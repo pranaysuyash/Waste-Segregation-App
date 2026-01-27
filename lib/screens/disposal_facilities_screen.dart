@@ -308,9 +308,10 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
     );
   }
 
-  Query _buildQuery() {
+  Query<Map<String, dynamic>> _buildQuery() {
     try {
-      Query query = FirebaseFirestore.instance.collection('disposal_locations');
+      Query<Map<String, dynamic>> query =
+          FirebaseFirestore.instance.collection('disposal_locations');
 
       // First apply the most selective filters
       if (_selectedSourceFilter != 'All') {

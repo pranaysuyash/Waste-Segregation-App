@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
-    show kIsWeb, kDebugMode, defaultTargetPlatform, TargetPlatform;
+    show kIsWeb, kDebugMode;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -60,8 +60,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 // Default: show the real app flow even in debug. Enable the purple debug screen
 // with: --dart-define=FORCE_DEBUG_HOME=true
-const bool _forceDebugHome =
-    bool.fromEnvironment('FORCE_DEBUG_HOME', defaultValue: false);
+const bool _forceDebugHome = bool.fromEnvironment('FORCE_DEBUG_HOME');
 
 void _setPreferredOrientationsSafe() {
   if (kIsWeb) return;
@@ -173,15 +172,10 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       }
 
       // 3. Storage & Database
-      const forceHiveInit = bool.fromEnvironment('FORCE_HIVE');
-      final skipHiveInit = !forceHiveInit &&
-          kDebugMode &&
-          !kIsWeb &&
-          defaultTargetPlatform == TargetPlatform.iOS;
+      const skipHiveInit = bool.fromEnvironment('SKIP_HIVE');
       if (skipHiveInit) {
         if (kDebugMode) {
-          print(
-              'BOOT: Skipping Hive init on debug iOS. Use --dart-define=FORCE_HIVE=true to enable.');
+          print('BOOT: Skipping Hive init (SKIP_HIVE=true).');
         }
         if (mounted) {
           setState(() {
@@ -369,7 +363,7 @@ class _MinimalBootApp extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.all(24),
             child: Text(
-              'MINIMAL MODE (iOS debug): Hive/Firebase init is skipped to avoid simulator hangs.\\n\\nRun with --dart-define=FORCE_HIVE=true and/or --dart-define=FORCE_FIREBASE=true to test full init.',
+              'MINIMAL MODE: Hive/Firebase init is skipped.\\n\\nRun without --dart-define=SKIP_HIVE (or set SKIP_HIVE=false) to enable full init. Use --dart-define=FORCE_FIREBASE=true to enable Firebase.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,

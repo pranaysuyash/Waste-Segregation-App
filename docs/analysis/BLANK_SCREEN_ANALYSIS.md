@@ -7,7 +7,7 @@
 **Key Findings:**
 
 - ✅ **Android:** App works perfectly (verified via screenshot showing home screen with stats)
-- ⚠️ **iOS Debug:** Shows minimal mode by design (requires `--dart-define=FORCE_HIVE=true`)
+- ℹ️ **Minimal mode:** Only shown when explicitly enabled via `--dart-define=SKIP_HIVE=true`
 - 🐛 **Fixed:** Firestore batch reuse bug causing "batch already committed" error
 
 ## Agent's Suggestions vs. Reality
@@ -150,18 +150,14 @@ Based on code analysis, blank screen is **unlikely** to be from:
 
 **Actual likely causes:**
 
-### 1. Minimal Mode Activation (iOS Debug)
+### 1. Minimal Mode Activation (Explicit Flag)
 
 ```dart
-// Lines 186-196
-const forceHiveInit = bool.fromEnvironment('FORCE_HIVE');
-final skipHiveInit = !forceHiveInit &&
-    kDebugMode &&
-    !kIsWeb &&
-    defaultTargetPlatform == TargetPlatform.iOS;
+// main.dart
+const skipHiveInit = bool.fromEnvironment('SKIP_HIVE');
 if (skipHiveInit) {
   if (kDebugMode) {
-    print('BOOT: Skipping Hive init on debug iOS. Use --dart-define=FORCE_HIVE=true to enable.');
+    print('BOOT: Skipping Hive init (SKIP_HIVE=true).');
   }
   if (mounted) {
     setState(() {
@@ -173,7 +169,7 @@ if (skipHiveInit) {
 }
 ```
 
-**This is by design!** On iOS debug without `--dart-define=FORCE_HIVE=true`, app shows purple "MINIMAL MODE" screen.
+**This is intentional for debugging only when opted in.** If `SKIP_HIVE=true`, the app shows the purple "MINIMAL MODE" screen.
 
 ### 2. FutureBuilder Waiting State
 
@@ -304,8 +300,8 @@ Current purple screen is correct but could be clearer:
 
 1. Run with `-v` flag to see full logs
 2. Check if `.env` file exists
-3. Try with `--dart-define=FORCE_HIVE=true`
-4. Check console for "BOOT: Skipping Hive init" message
+3. Ensure you are *not* passing `--dart-define=SKIP_HIVE=true`
+4. Check console for "BOOT: Skipping Hive init (SKIP_HIVE=true)." message
 
 ## Next Steps
 
@@ -323,6 +319,6 @@ Current purple screen is correct but could be clearer:
 
 **Actual Issues Found:**
 
-1. **iOS Debug Behavior:** Minimal mode by design (skips Hive unless `FORCE_HIVE=true`)
+1. **Minimal Mode:** Only enabled when `SKIP_HIVE=true`
 2. **Firestore Batch Bug:** ✅ FIXED - Batch objects were reused across retries causing "batch already committed" error (moved batch creation inside retry loop in `batch_operation_service.dart`)
 3. **Missing:** Debug overlay and env validation (nice-to-have, not critical)
