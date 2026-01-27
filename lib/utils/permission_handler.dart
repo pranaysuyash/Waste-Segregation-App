@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb, TargetPlatform, defaultTargetPlatform;
+import 'dart:io' show Platform;
 import 'package:permission_handler/permission_handler.dart';
 import 'constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
@@ -99,6 +100,25 @@ class PermissionHandler {
       return false;
     } catch (e) {
       WasteAppLogger.severe('Error checking storage/photos permission: $e');
+      return false;
+    }
+  }
+
+  /// Check and request app tracking permission (iOS ATT)
+  static Future<bool> checkTrackingPermission() async {
+    if (kIsWeb) return true;
+    if (!Platform.isIOS) return true; // ATT only applicable on iOS
+
+    try {
+      final status = await Permission.appTrackingTransparency.status;
+      if (status.isGranted) return true;
+      if (status.isDenied || status.isLimited || status.isRestricted) {
+        final result = await Permission.appTrackingTransparency.request();
+        return result.isGranted;
+      }
+      return false;
+    } catch (e) {
+      WasteAppLogger.warning('App tracking permission check failed', error: e);
       return false;
     }
   }

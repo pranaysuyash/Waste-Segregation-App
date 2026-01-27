@@ -52,6 +52,8 @@
 	<string>This app does not use the microphone</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs photo library access to select pictures of waste items for classification</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Allow tracking to enable personalized ads and analytics features in the Waste Segregation App.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

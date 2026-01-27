@@ -1,6 +1,12 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart'
+    show
+        debugPaintBaselinesEnabled,
+        debugPaintLayerBordersEnabled,
+        debugPaintPointersEnabled,
+        debugPaintSizeEnabled;
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
@@ -28,6 +34,7 @@ import 'services/haptic_settings_service.dart';
 import 'services/community_service.dart';
 import 'services/dynamic_link_service.dart';
 import 'services/cache_service.dart';
+import 'utils/permission_handler.dart';
 import 'services/local_guidelines_plugin.dart';
 import 'services/hive_box_manager.dart';
 import 'screens/auth_screen.dart';
@@ -80,6 +87,13 @@ void _setPreferredOrientationsSafe() {
 void main() {
   // Ensure Flutter is ready for interaction
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (kDebugMode && const bool.fromEnvironment('DEBUG_OVERFLOWS')) {
+    debugPaintSizeEnabled = true;
+    debugPaintBaselinesEnabled = true;
+    debugPaintLayerBordersEnabled = true;
+    debugPaintPointersEnabled = true;
+  }
 
   // Run the Bootstrapper which handles the transition from splash to app
   runApp(const _AppBootstrapper());
@@ -184,6 +198,13 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       // 4. Critical UI Services
       ErrorHandler.initialize(navigatorKey);
       DeveloperConfig.validateSecurity();
+
+      // Request App Tracking Transparency on iOS (non-blocking)
+      try {
+        // Import is in utils/permission_handler.dart
+        unawaited(PermissionHandler.checkTrackingPermission());
+      } catch (_) {}
+
 
       // 5. Instantiate Services
       final storageService = EnhancedStorageService();
@@ -515,12 +536,92 @@ class WasteSegregationApp extends StatelessWidget {
                     final mediaQuery = MediaQuery.of(context);
                     final currentScale = mediaQuery.textScaler.scale(1.0);
                     final clampedScale = currentScale.clamp(1.0, 2.0);
-                    return MediaQuery(
+                    final childWidget = child ?? const SizedBox.shrink();
+                    final mediaWrapped = MediaQuery(
                       data: mediaQuery.copyWith(
                         textScaler: TextScaler.linear(clampedScale),
                       ),
-                      child: child ?? const SizedBox.shrink(),
+                      child: childWidget,
                     );
+
+                    if (kDebugMode) {
+                      // Debug overlay showing quick init statuses
+                      final openAiKey =
+                          const String.fromEnvironment('OPENAI_API_KEY');
+                      final geminiKey =
+                          const String.fromEnvironment('GEMINI_API_KEY');
+                      final hasApiKeys =
+                          openAiKey.isNotEmpty || geminiKey.isNotEmpty;
+
+                      bool hasConsent = false;
+                      try {
+                        final uc = Provider.of<UserConsentService>(
+                          context,
+                          listen: false,
+                        );
+                        hasConsent = uc.hasAllRequiredConsents;
+                      } catch (_) {}
+
+                      bool firebaseOk = false;
+                      try {
+                        firebaseOk = Firebase.apps.isNotEmpty;
+                      } catch (_) {}
+
+                      var openHiveBoxes = 0;
+                      try {
+                        openHiveBoxes = HiveBoxManager.instance.openBoxCount;
+                      } catch (_) {}
+
+                      final overlay = Stack(
+                        children: [
+                          mediaWrapped,
+                          Positioned(
+                            top: 40,
+                            right: 12,
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.black87,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Init Status',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Firebase: ${firebaseOk ? '✓' : '✗'}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  Text(
+                                    'Hive boxes: $openHiveBoxes',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  Text(
+                                    'Consent: ${hasConsent ? '✓' : '✗'}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  Text(
+                                    'API Keys: ${hasApiKeys ? '✓' : '✗'}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      );
+
+                      return overlay;
+                    }
+
+                    return mediaWrapped;
                   },
                   routes: {
                     '/home': (context) =>
