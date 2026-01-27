@@ -27,12 +27,12 @@ extension ColorValues on Color {
 
   /// Back-compat for Flutter versions that don't yet expose `Color.toARGB32()`.
   ///
-  /// Newer Flutter versions include `toARGB32()` on `Color`; older versions
-  /// only have the deprecated `value` getter. This method keeps the codebase
-  /// compiling across Flutter SDK versions (CI currently uses an older stable).
+  /// Newer Flutter versions include `toARGB32()` on `Color`; older versions do
+  /// not. Implementing this via channel accessors avoids relying on the
+  /// deprecated `Color.value` getter while keeping a single call site API.
   int toARGB32() {
-    // ignore: deprecated_member_use
-    return value;
+    // 0xAARRGGBB
+    return (alpha << 24) | (red << 16) | (green << 8) | blue;
   }
 }
 
