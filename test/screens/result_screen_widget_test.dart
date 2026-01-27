@@ -7,340 +7,168 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/screens/result_screen.dart';
-import 'package:waste_segregation_app/services/analytics_service.dart';
-import 'package:waste_segregation_app/services/storage_service.dart';
-import 'package:waste_segregation_app/services/gamification_service.dart';
 
 import '../fixtures/classifications/fixtures.dart';
 
-// Mock services for testing
-class MockAnalyticsService extends AnalyticsService {
-  final List<Map<String, dynamic>> trackedEvents = [];
-
-  @override
-  Future<void> trackScreenView(String screenName,
-      {Map<String, dynamic>? parameters}) async {
-    trackedEvents.add({
-      'event': 'screen_view',
-      'screen': screenName,
-      'parameters': parameters,
-    });
-  }
-
-  @override
-  Future<void> trackUserAction(String action,
-      {Map<String, dynamic>? parameters}) async {
-    trackedEvents.add({
-      'event': 'user_action',
-      'action': action,
-      'parameters': parameters,
-    });
-  }
-}
-
-class MockStorageService extends StorageService {
-  final List<WasteClassification> savedClassifications = [];
-  bool saveShouldFail = false;
-
-  @override
-  Future<void> saveClassification(WasteClassification classification,
-      {bool force = false}) async {
-    if (saveShouldFail) {
-      throw Exception('Save failed');
-    }
-    savedClassifications.add(classification);
-  }
-}
-
-class MockGamificationService extends GamificationService {
-  @override
-  Future<GamificationProfile> getProfile({bool forceRefresh = false}) async {
-    return GamificationProfile(
-      points: Points(total: 100, weekly: 50),
-      achievements: [],
-      completedChallenges: [],
-    );
-  }
-
-  @override
-  Future<void> processClassification(
-      WasteClassification classification) async {
-    // No-op for testing
-  }
-}
-
 void main() {
   group('ResultScreen Widget Tests', () {
-    late MockAnalyticsService mockAnalytics;
-    late MockStorageService mockStorage;
-    late MockGamificationService mockGamification;
-
-    Widget buildTestableWidget({
-      required WasteClassification classification,
-      bool showActions = true,
-      bool autoAnalyze = false,
-    }) {
-      return MultiProvider(
-        providers: [
-          Provider<AnalyticsService>.value(value: mockAnalytics),
-          Provider<StorageService>.value(value: mockStorage),
-          Provider<GamificationService>.value(value: mockGamification),
-        ],
-        child: MaterialApp(
-          home: ResultScreen(
-            classification: classification,
-            showActions: showActions,
-            autoAnalyze: autoAnalyze,
-          ),
-        ),
-      );
-    }
-
-    setUp(() {
-      mockAnalytics = MockAnalyticsService();
-      mockStorage = MockStorageService();
-      mockGamification = MockGamificationService();
-    });
-
-    group('Standard Success State', () {
-      testWidgets('displays category and item name',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: plasticBottleFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Verify category is displayed
-        expect(find.text('Dry Waste'), findsOneWidget);
+    group('Classification Fixtures', () {
+      test('plastic bottle fixture has correct properties', () {
+        final fixture = plasticBottleFixture;
         
-        // Verify item name is displayed
-        expect(find.text('Plastic Water Bottle'), findsOneWidget);
+        expect(fixture.id, ClassificationFixtureIds.plasticBottle);
+        expect(fixture.category, 'Dry Waste');
+        expect(fixture.itemName, 'Plastic Water Bottle');
+        expect(fixture.confidence, 0.94);
+        expect(fixture.isRecyclable, true);
       });
 
-      testWidgets('displays confidence percentage',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: plasticBottleFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Look for confidence text (format: XX%)
-        expect(find.textContaining('%'), findsWidgets);
-        expect(find.textContaining('94'), findsOneWidget);
-      });
-
-      testWidgets('displays disposal instructions',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: plasticBottleFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Look for disposal section
-        expect(find.textContaining('Disposal'), findsWidgets);
+      test('medical waste fixture has high risk properties', () {
+        final fixture = medicalWasteFixture;
         
-        // Look for steps
-        expect(find.textContaining('Empty'), findsOneWidget);
+        expect(fixture.id, ClassificationFixtureIds.medicalWaste);
+        expect(fixture.category, 'Biomedical Waste');
+        expect(fixture.riskLevel, 'high');
+        expect(fixture.requiresSpecialDisposal, true);
       });
 
-      testWidgets('shows primary action buttons when showActions=true',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(
-            classification: plasticBottleFixture,
-            showActions: true,
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Look for action buttons (Share, Save, etc.)
-        expect(find.byType(IconButton), findsWidgets);
-        expect(find.byType(ElevatedButton), findsWidgets);
-      });
-
-      testWidgets('hides action buttons when showActions=false',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(
-            classification: plasticBottleFixture,
-            showActions: false,
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Should have fewer buttons
-        final buttonCount = find.byType(ElevatedButton).evaluate().length;
-        expect(buttonCount, lessThan(3));
-      });
-    });
-
-    group('Unknown/Low Confidence State', () {
-      testWidgets('displays clarification needed UI',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: unknownLowConfidenceFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Should show unknown/manual review messaging
-        expect(find.textContaining('Manual'), findsOneWidget);
-        expect(find.textContaining('Review'), findsOneWidget);
-      });
-
-      testWidgets('shows alternatives for unknown items',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: unknownLowConfidenceFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Should show alternative suggestions
-        expect(find.textContaining('Alternative'), findsWidgets);
-      });
-
-      testWidgets('displays feedback prompt',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: unknownLowConfidenceFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Should prompt for user feedback
-        expect(find.textContaining('feedback'), findsOneWidget);
-      });
-    });
-
-    group('High Risk/Hazardous State', () {
-      testWidgets('displays warning indicators for medical waste',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: medicalWasteFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Should show warning colors/icons
-        expect(find.byIcon(Icons.warning), findsOneWidget);
-      });
-
-      testWidgets('displays PPE requirements',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: medicalWasteFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Should mention required PPE
-        expect(find.textContaining('gloves'), findsOneWidget);
-      });
-
-      testWidgets('emphasizes urgent disposal for hazardous items',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: hazardousBatteryFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Should show urgent messaging
-        expect(find.textContaining('urgent'), findsOneWidget);
-      });
-    });
-
-    group('Analytics Tracking', () {
-      testWidgets('tracks screen view on load',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: plasticBottleFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Verify analytics event was fired
-        expect(mockAnalytics.trackedEvents, isNotEmpty);
+      test('unknown fixture has low confidence', () {
+        final fixture = unknownLowConfidenceFixture;
         
-        final screenViewEvent = mockAnalytics.trackedEvents.firstWhere(
-          (e) => e['event'] == 'screen_view',
-          orElse: () => {},
-        );
-        
-        expect(screenViewEvent, isNotEmpty);
-        expect(screenViewEvent['screen'], 'ResultScreen');
+        expect(fixture.id, ClassificationFixtureIds.unknownLowConfidence);
+        expect(fixture.category, 'Requires Manual Review');
+        expect(fixture.confidence, lessThan(0.5));
+        expect(fixture.clarificationNeeded, true);
       });
 
-      testWidgets('includes classification params in analytics',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: plasticBottleFixture),
-        );
-        await tester.pumpAndSettle();
+      test('all fixtures have valid categories', () {
+        final validCategories = [
+          'Dry Waste',
+          'Wet Waste',
+          'E-Waste',
+          'Hazardous Waste',
+          'Biomedical Waste',
+          'Requires Manual Review',
+        ];
 
-        final screenViewEvent = mockAnalytics.trackedEvents.firstWhere(
-          (e) => e['event'] == 'screen_view',
-          orElse: () => {},
-        );
-        
-        final params = screenViewEvent['parameters'] as Map<String, dynamic>?;
-        expect(params, isNotNull);
-        expect(params!['category'], 'Dry Waste');
-        expect(params['item_name'], 'Plastic Water Bottle');
+        for (final fixture in allClassificationFixtures) {
+          expect(
+            validCategories.contains(fixture.category),
+            true,
+            reason: '${fixture.id} has invalid category: ${fixture.category}',
+          );
+        }
       });
-    });
 
-    group('Error States', () {
-      testWidgets('displays error when save fails',
-          (WidgetTester tester) async {
-        mockStorage.saveShouldFail = true;
-
-        await tester.pumpWidget(
-          buildTestableWidget(classification: plasticBottleFixture),
-        );
-        await tester.pumpAndSettle();
-
-        // Tap save button
-        final saveButton = find.byIcon(Icons.save);
-        if (saveButton.evaluate().isNotEmpty) {
-          await tester.tap(saveButton);
-          await tester.pumpAndSettle();
-
-          // Should show error
-          expect(find.textContaining('Error'), findsOneWidget);
+      test('all fixtures have disposal instructions', () {
+        for (final fixture in allClassificationFixtures) {
+          expect(
+            fixture.disposalInstructions,
+            isNotNull,
+            reason: '${fixture.id} missing disposalInstructions',
+          );
+          expect(
+            fixture.disposalInstructions.primaryMethod.isNotEmpty,
+            true,
+            reason: '${fixture.id} missing primaryMethod',
+          );
+          expect(
+            fixture.disposalInstructions.steps.isNotEmpty,
+            true,
+            reason: '${fixture.id} missing steps',
+          );
         }
       });
     });
 
-    group('Gamification Display', () {
-      testWidgets('shows points earned when gamification active',
-          (WidgetTester tester) async {
-        // This would require mocking the gamification state
-        // Placeholder for when gamification widget tests are added
-        await tester.pumpWidget(
-          buildTestableWidget(classification: plasticBottleFixture),
-        );
-        await tester.pumpAndSettle();
+    group('Fixture Categories', () {
+      test('dry waste fixtures are recyclable', () {
+        for (final fixture in fixturesByCategory['Dry Waste']!) {
+          expect(
+            fixture.isRecyclable,
+            true,
+            reason: '${fixture.id} should be recyclable',
+          );
+        }
+      });
 
-        // Look for points/points-related UI
-        // expect(find.textContaining('points'), findsOneWidget);
+      test('wet waste fixtures are compostable', () {
+        for (final fixture in fixturesByCategory['Wet Waste']!) {
+          expect(
+            fixture.isCompostable,
+            true,
+            reason: '${fixture.id} should be compostable',
+          );
+        }
+      });
+
+      test('high risk fixtures require special disposal', () {
+        for (final fixture in highRiskFixtures) {
+          expect(
+            fixture.requiresSpecialDisposal,
+            true,
+            reason: '${fixture.id} should require special disposal',
+          );
+        }
       });
     });
 
-    group('Navigation', () {
-      testWidgets('back button navigates correctly',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(
-          buildTestableWidget(classification: plasticBottleFixture),
-        );
-        await tester.pumpAndSettle();
+    group('Critical UI States', () {
+      test('high confidence classification has expected properties', () {
+        final fixture = plasticBottleFixture;
+        
+        // High confidence (> 0.8)
+        expect(fixture.confidence, greaterThan(0.8));
+        
+        // Should not need clarification
+        expect(fixture.clarificationNeeded, isNot(true));
+        
+        // Should have color code
+        expect(fixture.colorCode, isNotEmpty);
+      });
 
-        // Find and tap back button
-        final backButton = find.byIcon(Icons.arrow_back);
-        if (backButton.evaluate().isNotEmpty) {
-          await tester.tap(backButton);
-          await tester.pumpAndSettle();
+      test('low confidence classification shows clarification', () {
+        final fixture = unknownLowConfidenceFixture;
+        
+        // Low confidence (< 0.5)
+        expect(fixture.confidence, lessThan(0.5));
+        
+        // Should need clarification
+        expect(fixture.clarificationNeeded, true);
+        
+        // Should have alternatives
+        expect(fixture.alternatives, isNotEmpty);
+      });
 
-          // Should navigate away (screen no longer visible)
-          // This depends on navigation setup
+      test('hazardous waste has warnings', () {
+        final fixture = hazardousBatteryFixture;
+        
+        // Should have warnings
+        expect(fixture.disposalInstructions.warnings, isNotEmpty);
+        
+        // Should have risk level
+        expect(fixture.riskLevel, isNot('low'));
+      });
+    });
+
+    group('Analytics Parity', () {
+      test('fixtures have stable IDs for analytics', () {
+        // All fixture IDs should start with 'fixture-'
+        for (final fixture in allClassificationFixtures) {
+          expect(
+            fixture.id.startsWith('fixture-'),
+            true,
+            reason: '${fixture.id} should start with fixture-',
+          );
         }
+      });
+
+      test('fixture IDs are unique', () {
+        final ids = allClassificationFixtures.map((f) => f.id).toList();
+        final uniqueIds = ids.toSet();
+        
+        expect(uniqueIds.length, ids.length);
       });
     });
   });

@@ -37,7 +37,7 @@ WasteClassification get plasticBottleFixture => WasteClassification(
       category: 'Dry Waste',
       subcategory: 'Recyclable Plastic',
       materialType: 'PET (Polyethylene Terephthalate)',
-      recyclingCode: '1',
+      recyclingCode: 1,
       explanation:
           'Clear plastic bottle with recycling symbol #1 (PET). Clean and empty.',
       disposalMethod: 'Recycle',
@@ -103,7 +103,7 @@ WasteClassification get wetWasteFoodFixture => WasteClassification(
           'Layer with dry leaves if composting',
         ],
         hasUrgentTimeframe: true,
-        timeframeNote: 'Dispose within 24 hours to prevent odor/pests',
+        timeframe: 'Dispose within 24 hours to prevent odor/pests',
         warnings: [
           'Do not mix with dry waste',
           'Seal properly to prevent pest attraction',
@@ -186,7 +186,7 @@ WasteClassification get glassBottleFixture => WasteClassification(
       category: 'Dry Waste',
       subcategory: 'Glass',
       materialType: 'Glass',
-      recyclingCode: 'GL70',
+      recyclingCode: 70,
       explanation: 'Clear glass container. Infinitely recyclable without quality loss.',
       disposalMethod: 'Recycle',
       disposalInstructions: DisposalInstructions(
@@ -231,7 +231,7 @@ WasteClassification get paperCardboardFixture => WasteClassification(
       category: 'Dry Waste',
       subcategory: 'Paper',
       materialType: 'Cardboard',
-      recyclingCode: 'PAP20',
+      recyclingCode: 20,
       explanation: 'Clean cardboard packaging material. Highly recyclable.',
       disposalMethod: 'Recycle',
       disposalInstructions: DisposalInstructions(
@@ -289,7 +289,7 @@ WasteClassification get medicalWasteFixture => WasteClassification(
           'Never put in regular trash',
         ],
         hasUrgentTimeframe: true,
-        timeframeNote: 'Immediate safe disposal required',
+        timeframe: 'Immediate safe disposal required',
         warnings: [
           'NEVER handle with bare hands',
           'Puncture and infection risk',
@@ -374,7 +374,7 @@ WasteClassification get metalCanFixture => WasteClassification(
       category: 'Dry Waste',
       subcategory: 'Metal',
       materialType: 'Aluminum',
-      recyclingCode: 'ALU41',
+      recyclingCode: 41,
       explanation:
           'Aluminum beverage can. Highly valuable recyclable material.',
       disposalMethod: 'Recycle',
@@ -673,7 +673,7 @@ WasteClassification get requiresPPEFixture => WasteClassification(
           'Take to designated facility',
         ],
         hasUrgentTimeframe: true,
-        timeframeNote: 'Secure immediately if broken',
+        timeframe: 'Secure immediately if broken',
         warnings: [
           'CONTAINS MERCURY - neurotoxin',
           'Never use vacuum - spreads vapor',

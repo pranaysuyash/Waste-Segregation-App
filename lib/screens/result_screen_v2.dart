@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/result_pipeline.dart';
+import '../services/haptic_settings_service.dart';
 import '../widgets/result_screen/result_header.dart';
 import '../widgets/result_screen/disposal_accordion.dart';
 import '../widgets/result_screen/action_row.dart';
+import '../widgets/result_screen/points_popup.dart';
+import '../widgets/result_screen/achievement_wrapper.dart';
 import '../utils/waste_app_logger.dart';
+import '../config/debug_config.dart';
 
 /// ResultScreenV2 - New composable result screen implementation
 ///
@@ -33,9 +38,13 @@ class ResultScreenV2 extends ConsumerStatefulWidget {
 }
 
 class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AchievementCelebrationMixin {
   late AnimationController _fadeController;
   late AnimationController _slideController;
+  
+  // Gamification state
+  bool _hasShownPointsPopup = false;
+  bool _hasProcessedGamification = false;
 
   @override
   void initState() {
@@ -103,8 +112,11 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final pipelineState = ref.watch(resultPipelineProvider);
+    
+    // Process gamification when pipeline completes
+    _processGamificationState(pipelineState);
 
-    return Scaffold(
+    final scaffold = Scaffold(
       backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: FadeTransition(
@@ -196,6 +208,14 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
         ),
       ),
     );
+    
+    // Add achievement celebration overlay
+    return Stack(
+      children: [
+        scaffold,
+        buildAchievementCelebration(),
+      ],
+    );
   }
 
   Widget _buildWhyCard(BuildContext context) {
@@ -258,6 +278,70 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
         ),
       ),
     );
+  }
+  
+  /// Process gamification state changes
+  void _processGamificationState(ResultPipelineState state) {
+    if (_hasProcessedGamification || state.isProcessing) {
+      return;
+    }
+    
+    // Mark as processed to prevent duplicate handling
+    _hasProcessedGamification = true;
+    
+    // Show points popup
+    if (state.pointsEarned > 0 && !_hasShownPointsPopup) {
+      _hasShownPointsPopup = true;
+      _showPointsPopup(state.pointsEarned);
+    }
+    
+    // Show achievement celebration
+    if (state.newAchievements.isNotEmpty) {
+      showAchievementCelebration(state.newAchievements);
+    }
+    
+    // Trigger haptic feedback on successful save
+    if (state.isSaved) {
+      _triggerHapticFeedback();
+    }
+    
+    // Debug logging
+    ResultScreenDebugConfig.logPipelineOutput(
+      classificationId: widget.classification.id,
+      pointsEarned: state.pointsEarned,
+      achievementsCount: state.newAchievements.length,
+      isSaved: state.isSaved,
+    );
+  }
+  
+  /// Show animated points popup
+  void _showPointsPopup(int points) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.showPointsPopup(points);
+        
+        // Log analytics
+        WasteAppLogger.aiEvent('points_popup_shown', context: {
+          'classificationId': widget.classification.id,
+          'points': points,
+          'version': 'v2',
+        });
+      }
+    });
+  }
+  
+  /// Trigger haptic feedback
+  void _triggerHapticFeedback() {
+    try {
+      final haptic = HapticSettingsService();
+      if (haptic.enabled && 
+          widget.classification.category != 'Requires Manual Review') {
+        HapticFeedback.lightImpact();
+      }
+    } catch (e) {
+      // Haptic feedback is non-critical
+      WasteAppLogger.warning('Haptic feedback failed', error: e);
+    }
   }
 
   void _handleDisposeCorrectly() {

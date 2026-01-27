@@ -42,8 +42,8 @@ void main() {
         
         // Verify specific content that should not change
         expect(instructions.steps[0], contains('Empty'));
-        expect(instructions.warnings[0], contains('burn'));
-        expect(instructions.tips[0], contains('Caps'));
+        expect(instructions.warnings?[0], contains('burn'));
+        expect(instructions.tips?[0], contains('Caps'));
       });
 
       test('has expected visual features', () {
@@ -74,7 +74,7 @@ void main() {
 
       test('has urgent timeframe flag', () {
         expect(fixture.disposalInstructions.hasUrgentTimeframe, true);
-        expect(fixture.disposalInstructions.timeframeNote, contains('24 hours'));
+        expect(fixture.disposalInstructions.timeframe, contains('24 hours'));
       });
     });
 
@@ -104,8 +104,8 @@ void main() {
 
       test('has strong warnings', () {
         final warnings = fixture.disposalInstructions.warnings;
-        expect(warnings.any((w) => w.contains('NEVER')), true);
-        expect(warnings.any((w) => w.contains('hazard')), true);
+        expect(warnings?.any((w) => w.contains('NEVER')), true);
+        expect(warnings?.any((w) => w.contains('hazard')), true);
       });
     });
 
@@ -146,7 +146,7 @@ void main() {
 
       test('has data security warnings', () {
         final warnings = fixture.disposalInstructions.warnings;
-        expect(warnings.any((w) => w.contains('data')), true);
+        expect(warnings?.any((w) => w.contains('data')), true);
       });
     });
 
