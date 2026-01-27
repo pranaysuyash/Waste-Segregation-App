@@ -49,7 +49,8 @@ void main() {
     }
 
     group('Classification Display', () {
-      testWidgets('should display classification results correctly', (WidgetTester tester) async {
+      testWidgets('should display classification results correctly',
+          (WidgetTester tester) async {
         final classification = WasteClassification(
           itemName: 'Plastic Water Bottle',
           category: 'Dry Waste',
@@ -58,7 +59,11 @@ void main() {
               'Clear plastic bottle, recyclable with PET code 1. This type of plastic is widely accepted in recycling programs.',
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle in blue bin',
-            steps: ['Remove cap and label', 'Rinse thoroughly', 'Place in recycling bin'],
+            steps: [
+              'Remove cap and label',
+              'Rinse thoroughly',
+              'Place in recycling bin'
+            ],
             hasUrgentTimeframe: false,
             warnings: ['Ensure bottle is empty'],
             tips: ['Check for recycling code'],
@@ -103,15 +108,18 @@ void main() {
         expect(find.textContaining('Recyclable'), findsOneWidget);
       });
 
-      testWidgets('should handle long item names without overflow', (WidgetTester tester) async {
+      testWidgets('should handle long item names without overflow',
+          (WidgetTester tester) async {
         final classification = WasteClassification(
-          itemName: 'Very Long Item Name That Could Potentially Cause Text Overflow Issues In The UI Components',
+          itemName:
+              'Very Long Item Name That Could Potentially Cause Text Overflow Issues In The UI Components',
           category: 'Dry Waste',
           subcategory: 'Plastic',
           explanation:
               'This is a very long explanation that contains a lot of detailed information about the waste item and its classification, disposal methods, environmental impact, and various other relevant details that users might find useful.',
           disposalInstructions: DisposalInstructions(
-            primaryMethod: 'Very detailed disposal method with extensive instructions',
+            primaryMethod:
+                'Very detailed disposal method with extensive instructions',
             steps: [
               'This is a very long step with detailed instructions that might cause overflow',
               'Another lengthy step with comprehensive guidance for proper disposal',
@@ -121,7 +129,15 @@ void main() {
           ),
           timestamp: DateTime.now(),
           region: 'Test Region',
-          visualFeatures: ['very', 'long', 'list', 'of', 'visual', 'features', 'detected'],
+          visualFeatures: [
+            'very',
+            'long',
+            'list',
+            'of',
+            'visual',
+            'features',
+            'detected'
+          ],
           alternatives: [],
           confidence: 0.85,
         );
@@ -140,7 +156,8 @@ void main() {
         expect(find.byType(SingleChildScrollView), findsWidgets);
       });
 
-      testWidgets('should show confidence scores appropriately', (WidgetTester tester) async {
+      testWidgets('should show confidence scores appropriately',
+          (WidgetTester tester) async {
         final highConfidenceClassification = WasteClassification(
           itemName: 'Clear Plastic Bottle',
           category: 'Dry Waste',
@@ -157,26 +174,32 @@ void main() {
           confidence: 0.95,
         );
 
-        await tester.pumpWidget(createResultScreen(highConfidenceClassification));
+        await tester
+            .pumpWidget(createResultScreen(highConfidenceClassification));
         await tester.pumpAndSettle();
 
         expect(find.text('95%'), findsOneWidget);
-        expect(find.byIcon(Icons.check_circle), findsOneWidget); // High confidence icon
+        expect(find.byIcon(Icons.check_circle),
+            findsOneWidget); // High confidence icon
 
         // Test low confidence classification
-        final lowConfidenceClassification = highConfidenceClassification.copyWith(
+        final lowConfidenceClassification =
+            highConfidenceClassification.copyWith(
           confidence: 0.65,
         );
 
-        await tester.pumpWidget(createResultScreen(lowConfidenceClassification));
+        await tester
+            .pumpWidget(createResultScreen(lowConfidenceClassification));
         await tester.pumpAndSettle();
 
         expect(find.text('65%'), findsOneWidget);
-        expect(find.byIcon(Icons.warning), findsOneWidget); // Low confidence warning
+        expect(find.byIcon(Icons.warning),
+            findsOneWidget); // Low confidence warning
         expect(find.textContaining('uncertain'), findsOneWidget);
       });
 
-      testWidgets('should display alternative classifications', (WidgetTester tester) async {
+      testWidgets('should display alternative classifications',
+          (WidgetTester tester) async {
         final classification = WasteClassification(
           itemName: 'Glass Jar',
           category: 'Dry Waste',
@@ -219,11 +242,14 @@ void main() {
     });
 
     group('User Actions', () {
-      testWidgets('should allow saving to history', (WidgetTester tester) async {
+      testWidgets('should allow saving to history',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockStorageService.saveClassification(any)).thenAnswer((_) async => {});
-        when(mockGamificationService.processClassification(any)).thenAnswer((_) async => {});
+        when(mockStorageService.saveClassification(any))
+            .thenAnswer((_) async => {});
+        when(mockGamificationService.processClassification(any))
+            .thenAnswer((_) async => {});
 
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
@@ -239,7 +265,8 @@ void main() {
         expect(find.textContaining('Saved'), findsOneWidget);
       });
 
-      testWidgets('should provide share functionality', (WidgetTester tester) async {
+      testWidgets('should provide share functionality',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
         await tester.pumpWidget(createResultScreen(classification));
@@ -255,13 +282,15 @@ void main() {
         verify(mockAnalyticsService.trackEvent(any)).called(greaterThan(0));
       });
 
-      testWidgets('should handle re-analysis requests', (WidgetTester tester) async {
+      testWidgets('should handle re-analysis requests',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => classification.copyWith(
-              confidence: 0.88,
-              explanation: 'Re-analyzed classification',
-            ));
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenAnswer((_) async => classification.copyWith(
+                  confidence: 0.88,
+                  explanation: 'Re-analyzed classification',
+                ));
 
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
@@ -283,7 +312,8 @@ void main() {
         verify(mockAiService.analyzeWebImage(any, any)).called(1);
       });
 
-      testWidgets('should integrate feedback widget', (WidgetTester tester) async {
+      testWidgets('should integrate feedback widget',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
         await tester.pumpWidget(createResultScreen(classification));
@@ -303,7 +333,8 @@ void main() {
     });
 
     group('Disposal Instructions', () {
-      testWidgets('should display detailed disposal instructions', (WidgetTester tester) async {
+      testWidgets('should display detailed disposal instructions',
+          (WidgetTester tester) async {
         final classification = WasteClassification(
           itemName: 'Hazardous Battery',
           category: 'Hazardous Waste',
@@ -319,8 +350,15 @@ void main() {
             ],
             hasUrgentTimeframe: true,
             timeframe: 'Within 30 days',
-            warnings: ['Do not puncture or damage', 'Keep away from children', 'Avoid extreme temperatures'],
-            tips: ['Many retailers offer take-back programs', 'Check manufacturer recycling options'],
+            warnings: [
+              'Do not puncture or damage',
+              'Keep away from children',
+              'Avoid extreme temperatures'
+            ],
+            tips: [
+              'Many retailers offer take-back programs',
+              'Check manufacturer recycling options'
+            ],
             location: 'Certified e-waste facility',
           ),
           timestamp: DateTime.now(),
@@ -339,8 +377,10 @@ void main() {
         expect(find.textContaining('Within 30 days'), findsOneWidget);
 
         // Verify detailed steps
-        expect(find.textContaining('Do not throw in regular trash'), findsOneWidget);
-        expect(find.textContaining('Find local e-waste center'), findsOneWidget);
+        expect(find.textContaining('Do not throw in regular trash'),
+            findsOneWidget);
+        expect(
+            find.textContaining('Find local e-waste center'), findsOneWidget);
 
         // Verify warnings
         expect(find.textContaining('Do not puncture'), findsOneWidget);
@@ -353,7 +393,8 @@ void main() {
         expect(find.byIcon(Icons.warning), findsWidgets);
       });
 
-      testWidgets('should show location-specific disposal information', (WidgetTester tester) async {
+      testWidgets('should show location-specific disposal information',
+          (WidgetTester tester) async {
         final classification = WasteClassification(
           itemName: 'Paper Box',
           category: 'Dry Waste',
@@ -361,7 +402,11 @@ void main() {
           explanation: 'Recyclable cardboard',
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Recycle in blue bin',
-            steps: ['Flatten the box', 'Remove any tape', 'Place in recycling bin'],
+            steps: [
+              'Flatten the box',
+              'Remove any tape',
+              'Place in recycling bin'
+            ],
             hasUrgentTimeframe: false,
             location: 'Curbside recycling',
             localInfo: {
@@ -388,7 +433,8 @@ void main() {
     });
 
     group('Environmental Impact', () {
-      testWidgets('should display environmental impact information', (WidgetTester tester) async {
+      testWidgets('should display environmental impact information',
+          (WidgetTester tester) async {
         final classification = WasteClassification(
           itemName: 'Aluminum Can',
           category: 'Dry Waste',
@@ -420,17 +466,21 @@ void main() {
         expect(find.textContaining('0.5 kg'), findsOneWidget); // CO2 saved
         expect(find.textContaining('95%'), findsOneWidget); // Energy saved
         expect(find.textContaining('90%'), findsOneWidget); // Water saved
-        expect(find.textContaining('Infinite'), findsOneWidget); // Recyclability
+        expect(
+            find.textContaining('Infinite'), findsOneWidget); // Recyclability
       });
 
-      testWidgets('should show gamification rewards for environmentally positive actions', (WidgetTester tester) async {
+      testWidgets(
+          'should show gamification rewards for environmentally positive actions',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockGamificationService.processClassification(any)).thenAnswer((_) async => {
-              'points_earned': 10,
-              'achievements_unlocked': ['Eco Warrior'],
-              'streak_bonus': 5,
-            });
+        when(mockGamificationService.processClassification(any))
+            .thenAnswer((_) async => {
+                  'points_earned': 10,
+                  'achievements_unlocked': ['Eco Warrior'],
+                  'streak_bonus': 5,
+                });
 
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
@@ -446,10 +496,12 @@ void main() {
     });
 
     group('Error Handling', () {
-      testWidgets('should handle save failures gracefully', (WidgetTester tester) async {
+      testWidgets('should handle save failures gracefully',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockStorageService.saveClassification(any)).thenThrow(Exception('Storage error'));
+        when(mockStorageService.saveClassification(any))
+            .thenThrow(Exception('Storage error'));
 
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
@@ -465,10 +517,12 @@ void main() {
         expect(retryButton, findsOneWidget);
       });
 
-      testWidgets('should handle re-analysis failures', (WidgetTester tester) async {
+      testWidgets('should handle re-analysis failures',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockAiService.analyzeWebImage(any, any)).thenThrow(Exception('AI service error'));
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenThrow(Exception('AI service error'));
 
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
@@ -482,10 +536,12 @@ void main() {
         expect(find.textContaining('Try again'), findsOneWidget);
       });
 
-      testWidgets('should handle network connectivity issues', (WidgetTester tester) async {
+      testWidgets('should handle network connectivity issues',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
-        when(mockAnalyticsService.trackEvent(any)).thenThrow(Exception('Network error'));
+        when(mockAnalyticsService.trackEvent(any))
+            .thenThrow(Exception('Network error'));
 
         await tester.pumpWidget(createResultScreen(classification));
         await tester.pumpAndSettle();
@@ -497,7 +553,8 @@ void main() {
     });
 
     group('Accessibility', () {
-      testWidgets('should provide semantic labels for screen readers', (WidgetTester tester) async {
+      testWidgets('should provide semantic labels for screen readers',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
         await tester.pumpWidget(createResultScreen(classification));
@@ -509,7 +566,8 @@ void main() {
         expect(find.bySemanticsLabel('Request re-analysis'), findsOneWidget);
       });
 
-      testWidgets('should support keyboard navigation', (WidgetTester tester) async {
+      testWidgets('should support keyboard navigation',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
         await tester.pumpWidget(createResultScreen(classification));
@@ -526,7 +584,8 @@ void main() {
         await tester.pump();
       });
 
-      testWidgets('should announce important changes to screen readers', (WidgetTester tester) async {
+      testWidgets('should announce important changes to screen readers',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
         await tester.pumpWidget(createResultScreen(classification));
@@ -550,7 +609,8 @@ void main() {
     });
 
     group('Performance', () {
-      testWidgets('should render large classifications efficiently', (WidgetTester tester) async {
+      testWidgets('should render large classifications efficiently',
+          (WidgetTester tester) async {
         final largeClassification = WasteClassification(
           itemName: 'Complex Multi-Material Item',
           category: 'Dry Waste',
@@ -558,10 +618,13 @@ void main() {
           explanation: 'A' * 5000, // Very long explanation
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Special handling required',
-            steps: List.generate(50, (i) => 'Step ${i + 1}: ${'Detailed instruction ' * 10}'),
+            steps: List.generate(
+                50, (i) => 'Step ${i + 1}: ${'Detailed instruction ' * 10}'),
             hasUrgentTimeframe: false,
-            warnings: List.generate(20, (i) => 'Warning ${i + 1}: ${'Important safety note ' * 5}'),
-            tips: List.generate(15, (i) => 'Tip ${i + 1}: ${'Helpful advice ' * 8}'),
+            warnings: List.generate(
+                20, (i) => 'Warning ${i + 1}: ${'Important safety note ' * 5}'),
+            tips: List.generate(
+                15, (i) => 'Tip ${i + 1}: ${'Helpful advice ' * 8}'),
           ),
           timestamp: DateTime.now(),
           region: 'Test Region',
@@ -589,7 +652,8 @@ void main() {
         expect(tester.takeException(), isNull);
       });
 
-      testWidgets('should handle image loading efficiently', (WidgetTester tester) async {
+      testWidgets('should handle image loading efficiently',
+          (WidgetTester tester) async {
         final classification = _createTestClassification();
 
         // Add image path to classification

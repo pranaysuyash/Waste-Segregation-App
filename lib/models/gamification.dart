@@ -16,12 +16,8 @@ class ColorAdapter extends TypeAdapter<Color> {
 
   @override
   void write(BinaryWriter writer, Color obj) {
-    // Use proper color serialization without deprecated methods
-    final alpha = (obj.a * 255).round();
-    final red = (obj.r * 255).round();
-    final green = (obj.g * 255).round();
-    final blue = (obj.b * 255).round();
-    writer.writeUint32((alpha << 24) | (red << 16) | (green << 8) | blue);
+    // Color.value is ARGB packed as 0xAARRGGBB.
+    writer.writeUint32(obj.value);
   }
 }
 
@@ -240,10 +236,7 @@ class Achievement {
       'type': type.toString().split('.').last,
       'threshold': threshold,
       'iconName': iconName,
-      'color': ((color.a * 255).round() << 24) |
-          ((color.r * 255).round() << 16) |
-          ((color.g * 255).round() << 8) |
-          (color.b * 255).round(),
+      'color': color.value,
       'isSecret': isSecret,
       'earnedOn': earnedOn?.toIso8601String(),
       'progress': progress,
@@ -434,10 +427,7 @@ class Challenge {
       'endDate': endDate.toIso8601String(),
       'pointsReward': pointsReward,
       'iconName': iconName,
-      'color': ((color.a * 255).round() << 24) |
-          ((color.r * 255).round() << 16) |
-          ((color.g * 255).round() << 8) |
-          (color.b * 255).round(),
+      'color': color.value,
       'requirements': requirements,
       'isCompleted': isCompleted,
       'progress': progress,

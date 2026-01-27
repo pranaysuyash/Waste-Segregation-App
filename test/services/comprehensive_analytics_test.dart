@@ -78,7 +78,8 @@ void main() {
           granted: true,
         );
 
-        expect(await consentManager.needsConsentDialog(), false); // After setting consent
+        expect(await consentManager.needsConsentDialog(),
+            false); // After setting consent
       });
 
       test('should determine event tracking permission correctly', () async {
@@ -148,7 +149,8 @@ void main() {
 
         expect(result.isValid, false);
         expect(result.errors.length, greaterThan(0));
-        expect(result.errors.any((error) => error.contains('device_type')), true);
+        expect(
+            result.errors.any((error) => error.contains('device_type')), true);
       });
 
       test('should validate field types correctly', () async {
@@ -167,7 +169,10 @@ void main() {
         final result = await validator.validateEvent(event);
 
         expect(result.isValid, false);
-        expect(result.errors.any((error) => error.contains('processing_duration_ms')), true);
+        expect(
+            result.errors
+                .any((error) => error.contains('processing_duration_ms')),
+            true);
       });
 
       test('should validate numeric ranges', () async {
@@ -186,7 +191,8 @@ void main() {
         final result = await validator.validateEvent(event);
 
         expect(result.isValid, false);
-        expect(result.errors.any((error) => error.contains('confidence_score')), true);
+        expect(result.errors.any((error) => error.contains('confidence_score')),
+            true);
       });
 
       test('should validate event name format', () async {
@@ -200,7 +206,10 @@ void main() {
         final result = await validator.validateEvent(event);
 
         expect(result.isValid, false);
-        expect(result.errors.any((error) => error.contains('Invalid event name format')), true);
+        expect(
+            result.errors
+                .any((error) => error.contains('Invalid event name format')),
+            true);
       });
 
       test('should detect potential PII', () async {
@@ -216,7 +225,8 @@ void main() {
 
         final result = await validator.validateEvent(event);
 
-        expect(result.warnings.any((warning) => warning.contains('email')), true);
+        expect(
+            result.warnings.any((warning) => warning.contains('email')), true);
       });
 
       test('should validate multiple events in batch', () async {
@@ -294,7 +304,8 @@ void main() {
         expect(analyticsService.pendingEventsCount, greaterThan(0));
       });
 
-      test('should track file classification with comprehensive data', () async {
+      test('should track file classification with comprehensive data',
+          () async {
         await consentManager.setConsent(
           consentType: AnalyticsConsentManager.analyticsConsent,
           granted: true,

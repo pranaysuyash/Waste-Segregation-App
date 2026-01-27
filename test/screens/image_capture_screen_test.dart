@@ -37,7 +37,8 @@ void main() {
 
     setUp(() {
       mockAiService = MockAiService();
-      mockImageBytes = Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xE0]); // Mock JPEG header
+      mockImageBytes =
+          Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xE0]); // Mock JPEG header
 
       mockClassification = WasteClassification(
         itemName: 'Test Plastic Bottle',
@@ -98,14 +99,16 @@ void main() {
         expect(find.byType(ImageCaptureScreen), findsOneWidget);
       });
 
-      testWidgets('should create with web image bytes', (WidgetTester tester) async {
+      testWidgets('should create with web image bytes',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
 
         expect(find.byType(ImageCaptureScreen), findsOneWidget);
       });
 
-      testWidgets('should fail assertion with no image provided', (WidgetTester tester) async {
+      testWidgets('should fail assertion with no image provided',
+          (WidgetTester tester) async {
         expect(
           () => ImageCaptureScreen(),
           throwsAssertionError,
@@ -114,7 +117,8 @@ void main() {
     });
 
     group('UI Elements Tests', () {
-      testWidgets('should display all essential UI elements', (WidgetTester tester) async {
+      testWidgets('should display all essential UI elements',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
 
@@ -126,7 +130,10 @@ void main() {
         expect(find.byType(InteractiveViewer), findsOneWidget);
 
         // Verify instructions
-        expect(find.text('Position the item clearly in the image for best results.'), findsOneWidget);
+        expect(
+            find.text(
+                'Position the item clearly in the image for best results.'),
+            findsOneWidget);
         expect(find.byIcon(Icons.info_outline), findsAtLeastNWidgets(1));
 
         // Verify segmentation toggle
@@ -138,7 +145,8 @@ void main() {
         expect(find.byType(CaptureButton), findsAtLeastNWidgets(2));
       });
 
-      testWidgets('should display image with InteractiveViewer for zoom', (WidgetTester tester) async {
+      testWidgets('should display image with InteractiveViewer for zoom',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
 
@@ -151,7 +159,8 @@ void main() {
         expect(find.byIcon(Icons.zoom_in), findsOneWidget);
       });
 
-      testWidgets('should display segmentation controls correctly', (WidgetTester tester) async {
+      testWidgets('should display segmentation controls correctly',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
 
@@ -165,7 +174,8 @@ void main() {
         expect(switchWidget.subtitle, isA<Text>());
       });
 
-      testWidgets('should show proper styling for premium feature', (WidgetTester tester) async {
+      testWidgets('should show proper styling for premium feature',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
 
@@ -179,8 +189,10 @@ void main() {
     });
 
     group('Image Analysis Tests', () {
-      testWidgets('should start analysis when analyze button is pressed', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
+      testWidgets('should start analysis when analyze button is pressed',
+          (WidgetTester tester) async {
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -192,13 +204,16 @@ void main() {
 
         // Should show loading screen
         expect(find.byType(EnhancedAnalysisLoader), findsOneWidget);
-        expect(find.text('Review Image'), findsNothing); // AppBar should be hidden
+        expect(
+            find.text('Review Image'), findsNothing); // AppBar should be hidden
 
         await tester.pumpAndSettle();
       });
 
-      testWidgets('should handle successful analysis and navigate to results', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
+      testWidgets('should handle successful analysis and navigate to results',
+          (WidgetTester tester) async {
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -216,8 +231,10 @@ void main() {
         expect(find.byType(ImageCaptureScreen), findsNothing);
       });
 
-      testWidgets('should handle analysis errors gracefully', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any)).thenThrow(Exception('Analysis failed'));
+      testWidgets('should handle analysis errors gracefully',
+          (WidgetTester tester) async {
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenThrow(Exception('Analysis failed'));
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -236,7 +253,8 @@ void main() {
         expect(find.byType(ImageCaptureScreen), findsOneWidget);
       });
 
-      testWidgets('should prevent multiple simultaneous analyses', (WidgetTester tester) async {
+      testWidgets('should prevent multiple simultaneous analyses',
+          (WidgetTester tester) async {
         when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 500));
           return mockClassification;
@@ -259,7 +277,8 @@ void main() {
         verify(mockAiService.analyzeWebImage(any, any)).called(1);
       });
 
-      testWidgets('should handle analysis cancellation', (WidgetTester tester) async {
+      testWidgets('should handle analysis cancellation',
+          (WidgetTester tester) async {
         when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async {
           await Future.delayed(const Duration(seconds: 2));
           return mockClassification;
@@ -283,7 +302,8 @@ void main() {
     });
 
     group('Segmentation Feature Tests', () {
-      testWidgets('should toggle segmentation mode', (WidgetTester tester) async {
+      testWidgets('should toggle segmentation mode',
+          (WidgetTester tester) async {
         when(mockAiService.segmentImage(any)).thenAnswer((_) async => [
               {
                 'bounds': {'x': 10.0, 'y': 10.0, 'width': 50.0, 'height': 50.0}
@@ -311,8 +331,10 @@ void main() {
         expect(find.textContaining('objects detected'), findsOneWidget);
       });
 
-      testWidgets('should handle segmentation errors', (WidgetTester tester) async {
-        when(mockAiService.segmentImage(any)).thenThrow(Exception('Segmentation failed'));
+      testWidgets('should handle segmentation errors',
+          (WidgetTester tester) async {
+        when(mockAiService.segmentImage(any))
+            .thenThrow(Exception('Segmentation failed'));
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -331,7 +353,8 @@ void main() {
         expect(switchWidget.value, isFalse);
       });
 
-      testWidgets('should clear segments when segmentation is disabled', (WidgetTester tester) async {
+      testWidgets('should clear segments when segmentation is disabled',
+          (WidgetTester tester) async {
         when(mockAiService.segmentImage(any)).thenAnswer((_) async => [
               {
                 'bounds': {'x': 10.0, 'y': 10.0, 'width': 50.0, 'height': 50.0}
@@ -357,7 +380,8 @@ void main() {
         expect(find.textContaining('objects detected'), findsNothing);
       });
 
-      testWidgets('should display segment selection UI when segments exist', (WidgetTester tester) async {
+      testWidgets('should display segment selection UI when segments exist',
+          (WidgetTester tester) async {
         when(mockAiService.segmentImage(any)).thenAnswer((_) async => [
               {
                 'bounds': {'x': 10.0, 'y': 10.0, 'width': 50.0, 'height': 50.0}
@@ -376,7 +400,8 @@ void main() {
         await tester.pumpAndSettle();
 
         // Should show segment count
-        expect(find.text('2 objects detected. Tap to select for analysis.'), findsOneWidget);
+        expect(find.text('2 objects detected. Tap to select for analysis.'),
+            findsOneWidget);
 
         // Should show info icon
         expect(find.byIcon(Icons.info_outline), findsAtLeastNWidgets(1));
@@ -384,7 +409,8 @@ void main() {
     });
 
     group('Navigation Tests', () {
-      testWidgets('should navigate back when retry button is pressed', (WidgetTester tester) async {
+      testWidgets('should navigate back when retry button is pressed',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -392,7 +418,8 @@ void main() {
                 onPressed: () => Navigator.push(
                   tester.element(find.byType(ElevatedButton)),
                   MaterialPageRoute(
-                    builder: (context) => ChangeNotifierProvider<AiService>.value(
+                    builder: (context) =>
+                        ChangeNotifierProvider<AiService>.value(
                       value: mockAiService,
                       child: ImageCaptureScreen(webImage: mockImageBytes),
                     ),
@@ -418,8 +445,10 @@ void main() {
         expect(find.byType(ImageCaptureScreen), findsNothing);
       });
 
-      testWidgets('should navigate to results after successful analysis', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
+      testWidgets('should navigate to results after successful analysis',
+          (WidgetTester tester) async {
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -435,12 +464,14 @@ void main() {
     });
 
     group('Platform-Specific Tests', () {
-      testWidgets('should handle File images on mobile platforms', (WidgetTester tester) async {
+      testWidgets('should handle File images on mobile platforms',
+          (WidgetTester tester) async {
         // This test assumes non-web platform
         final mockFile = MockFile();
         when(mockFile.path).thenReturn('/test/image.jpg');
         when(mockFile.exists()).thenAnswer((_) async => true);
-        when(mockAiService.analyzeImage(any)).thenAnswer((_) async => mockClassification);
+        when(mockAiService.analyzeImage(any))
+            .thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(imageFile: mockFile));
         await tester.pumpAndSettle();
@@ -448,11 +479,13 @@ void main() {
         expect(find.byType(ImageCaptureScreen), findsOneWidget);
       });
 
-      testWidgets('should handle XFile for web platform', (WidgetTester tester) async {
+      testWidgets('should handle XFile for web platform',
+          (WidgetTester tester) async {
         final mockXFile = MockXFile();
         when(mockXFile.name).thenReturn('test.jpg');
         when(mockXFile.readAsBytes()).thenAnswer((_) async => mockImageBytes);
-        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenAnswer((_) async => mockClassification);
 
         await tester.pumpWidget(createTestableWidget(xFile: mockXFile));
         await tester.pumpAndSettle();
@@ -462,7 +495,8 @@ void main() {
     });
 
     group('Error Handling and Edge Cases Tests', () {
-      testWidgets('should handle empty image bytes', (WidgetTester tester) async {
+      testWidgets('should handle empty image bytes',
+          (WidgetTester tester) async {
         final emptyBytes = Uint8List(0);
 
         await tester.pumpWidget(createTestableWidget(webImage: emptyBytes));
@@ -471,8 +505,10 @@ void main() {
         expect(find.byType(ImageCaptureScreen), findsOneWidget);
       });
 
-      testWidgets('should handle analysis service unavailable', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any)).thenThrow(Exception('Service unavailable'));
+      testWidgets('should handle analysis service unavailable',
+          (WidgetTester tester) async {
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenThrow(Exception('Service unavailable'));
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -487,19 +523,23 @@ void main() {
         expect(find.textContaining('Service unavailable'), findsOneWidget);
       });
 
-      testWidgets('should handle very large images', (WidgetTester tester) async {
+      testWidgets('should handle very large images',
+          (WidgetTester tester) async {
         // Create a large mock image (simulated)
         final largeImageBytes = Uint8List(10 * 1024 * 1024); // 10MB
 
-        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenAnswer((_) async => mockClassification);
 
-        await tester.pumpWidget(createTestableWidget(webImage: largeImageBytes));
+        await tester
+            .pumpWidget(createTestableWidget(webImage: largeImageBytes));
         await tester.pumpAndSettle();
 
         expect(find.byType(ImageCaptureScreen), findsOneWidget);
       });
 
-      testWidgets('should handle network timeouts', (WidgetTester tester) async {
+      testWidgets('should handle network timeouts',
+          (WidgetTester tester) async {
         when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async {
           await Future.delayed(const Duration(seconds: 30));
           throw Exception('Network timeout');
@@ -518,10 +558,13 @@ void main() {
         expect(find.byType(SnackBar), findsOneWidget);
       });
 
-      testWidgets('should handle corrupted image data', (WidgetTester tester) async {
-        final corruptedBytes = Uint8List.fromList([0x00, 0x01, 0x02, 0x03]); // Invalid image
+      testWidgets('should handle corrupted image data',
+          (WidgetTester tester) async {
+        final corruptedBytes =
+            Uint8List.fromList([0x00, 0x01, 0x02, 0x03]); // Invalid image
 
-        when(mockAiService.analyzeWebImage(any, any)).thenThrow(Exception('Invalid image format'));
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenThrow(Exception('Invalid image format'));
 
         await tester.pumpWidget(createTestableWidget(webImage: corruptedBytes));
         await tester.pumpAndSettle();
@@ -535,7 +578,8 @@ void main() {
     });
 
     group('State Management Tests', () {
-      testWidgets('should maintain UI state during analysis', (WidgetTester tester) async {
+      testWidgets('should maintain UI state during analysis',
+          (WidgetTester tester) async {
         when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 500));
           return mockClassification;
@@ -556,8 +600,10 @@ void main() {
         await tester.pumpAndSettle();
       });
 
-      testWidgets('should reset state after analysis error', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any)).thenThrow(Exception('Test error'));
+      testWidgets('should reset state after analysis error',
+          (WidgetTester tester) async {
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenThrow(Exception('Test error'));
 
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
@@ -572,7 +618,8 @@ void main() {
         expect(find.byType(EnhancedAnalysisLoader), findsNothing);
       });
 
-      testWidgets('should handle widget disposal during analysis', (WidgetTester tester) async {
+      testWidgets('should handle widget disposal during analysis',
+          (WidgetTester tester) async {
         when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 100));
           return mockClassification;
@@ -587,7 +634,8 @@ void main() {
         await tester.pump();
 
         // Simulate navigation away (widget disposal)
-        await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('Different Screen'))));
+        await tester.pumpWidget(
+            const MaterialApp(home: Scaffold(body: Text('Different Screen'))));
         await tester.pumpAndSettle();
 
         // Should not crash
@@ -596,7 +644,8 @@ void main() {
     });
 
     group('Accessibility Tests', () {
-      testWidgets('should have proper accessibility labels', (WidgetTester tester) async {
+      testWidgets('should have proper accessibility labels',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestableWidget(webImage: mockImageBytes));
         await tester.pumpAndSettle();
 
@@ -605,7 +654,8 @@ void main() {
         expect(find.byType(SwitchListTile), findsOneWidget);
       });
 
-      testWidgets('should support large text sizes', (WidgetTester tester) async {
+      testWidgets('should support large text sizes',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MediaQuery(
             data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
@@ -619,7 +669,8 @@ void main() {
         expect(tester.takeException(), isNull);
       });
 
-      testWidgets('should handle different screen sizes', (WidgetTester tester) async {
+      testWidgets('should handle different screen sizes',
+          (WidgetTester tester) async {
         // Test with small screen
         await tester.binding.setSurfaceSize(const Size(320, 568));
 
@@ -635,8 +686,10 @@ void main() {
     });
 
     group('Integration Tests', () {
-      testWidgets('should work with real image data flow', (WidgetTester tester) async {
-        when(mockAiService.analyzeWebImage(any, any)).thenAnswer((_) async => mockClassification);
+      testWidgets('should work with real image data flow',
+          (WidgetTester tester) async {
+        when(mockAiService.analyzeWebImage(any, any))
+            .thenAnswer((_) async => mockClassification);
 
         // Create realistic image data
         final jpegHeader = Uint8List.fromList([
@@ -659,7 +712,8 @@ void main() {
         expect(find.byType(ResultScreen), findsOneWidget);
       });
 
-      testWidgets('should integrate properly with navigation stack', (WidgetTester tester) async {
+      testWidgets('should integrate properly with navigation stack',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -668,7 +722,8 @@ void main() {
                 onPressed: () => Navigator.push(
                   tester.element(find.byType(ElevatedButton)),
                   MaterialPageRoute(
-                    builder: (context) => ChangeNotifierProvider<AiService>.value(
+                    builder: (context) =>
+                        ChangeNotifierProvider<AiService>.value(
                       value: mockAiService,
                       child: ImageCaptureScreen(webImage: mockImageBytes),
                     ),

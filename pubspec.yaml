@@ -34,6 +34,7 @@ dependencies:
   openai_api: ^0.3.7 # Updated to latest
   crypto: ^3.0.3 # For SHA-256 hashing
   image: ^4.0.17 # For image preprocessing
+  flutter_image_compress: ^2.3.0
   google_mobile_ads: ^5.0.0 # Compatible with Dart SDK 3.5.0 and webview_flutter 4.8.0
   fl_chart: ^0.68.0 # Compatible with Dart SDK 3.5.0
   # REPLACED: flutter_markdown (discontinued) with markdown_widget

@@ -18,7 +18,7 @@ void main() {
 
     test('initializes with correct configuration', () {
       final info = service.getModelInfo();
-      
+
       expect(info['model_type'], 'yoloV8');
       expect(info['is_initialized'], false);
       expect(info['confidence_threshold'], 0.6);
@@ -28,7 +28,7 @@ void main() {
     test('initialization succeeds', () async {
       // Initialize service
       await service.initialize();
-      
+
       final info = service.getModelInfo();
       expect(info['is_initialized'], true);
     });
@@ -48,17 +48,17 @@ void main() {
             modelType: modelType,
           ),
         );
-        
+
         final info = testService.getModelInfo();
         expect(info['model_type'], modelType.name);
-        
+
         testService.dispose();
       }
     });
 
     test('dispose cleans up resources', () {
       service.dispose();
-      
+
       final info = service.getModelInfo();
       expect(info['is_initialized'], false);
       expect(info['model_path'], null);
@@ -75,7 +75,7 @@ void main() {
 
       final info = customService.getModelInfo();
       expect(info['model_type'], 'tfliteCustom');
-      
+
       customService.dispose();
     });
 
@@ -88,7 +88,7 @@ void main() {
 
       final info = customService.getModelInfo();
       expect(info['confidence_threshold'], 0.8);
-      
+
       customService.dispose();
     });
   });

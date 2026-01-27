@@ -123,11 +123,15 @@ void main() {
     }
 
     group('Initialization and Loading', () {
-      testWidgets('should display app bar with correct title and tabs', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+      testWidgets('should display app bar with correct title and tabs',
+          (tester) async {
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump(); // Allow FutureBuilder to complete
@@ -147,8 +151,10 @@ void main() {
           return testUserProfile;
         });
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -158,11 +164,15 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsNothing);
       });
 
-      testWidgets('should load community data on initialization', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+      testWidgets('should load community data on initialization',
+          (tester) async {
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -173,12 +183,16 @@ void main() {
         verify(mockCommunityService.getStats()).called(1);
       });
 
-      testWidgets('should generate sample data when feed is empty', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+      testWidgets('should generate sample data when feed is empty',
+          (tester) async {
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
         when(mockCommunityService.getFeedItems()).thenAnswer((_) async => []);
-        when(mockCommunityService.generateSampleCommunityData()).thenAnswer((_) async {});
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.generateSampleCommunityData())
+            .thenAnswer((_) async {});
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -187,10 +201,12 @@ void main() {
       });
 
       testWidgets('should handle loading errors gracefully', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenThrow(Exception('Storage error'));
+        when(mockStorageService.getCurrentUserProfile())
+            .thenThrow(Exception('Storage error'));
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
         when(mockCommunityService.getFeedItems()).thenAnswer((_) async => []);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -200,10 +216,13 @@ void main() {
       });
 
       testWidgets('should use guest user when profile is null', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => null);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => null);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -215,10 +234,13 @@ void main() {
 
     group('Feed Tab', () {
       testWidgets('should display feed items correctly', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -231,28 +253,36 @@ void main() {
         expect(find.text('Reached a 7-day streak'), findsOneWidget);
       });
 
-      testWidgets('should display correct activity icons for different types', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+      testWidgets('should display correct activity icons for different types',
+          (tester) async {
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
 
         expect(find.byIcon(Icons.camera_alt), findsOneWidget); // Classification
         expect(find.byIcon(Icons.emoji_events), findsOneWidget); // Achievement
-        expect(find.byIcon(Icons.local_fire_department), findsOneWidget); // Streak
+        expect(
+            find.byIcon(Icons.local_fire_department), findsOneWidget); // Streak
         expect(find.byIcon(Icons.flag), findsOneWidget); // Challenge
         expect(find.byIcon(Icons.star), findsOneWidget); // Milestone
         expect(find.byIcon(Icons.school), findsOneWidget); // Educational
       });
 
       testWidgets('should display points correctly', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -266,10 +296,13 @@ void main() {
       });
 
       testWidgets('should display relative time correctly', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -280,25 +313,32 @@ void main() {
       });
 
       testWidgets('should show empty state when no feed items', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
         when(mockCommunityService.getFeedItems()).thenAnswer((_) async => []);
-        when(mockCommunityService.generateSampleCommunityData()).thenAnswer((_) async {});
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.generateSampleCommunityData())
+            .thenAnswer((_) async {});
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
 
         expect(find.text('No community activity yet'), findsOneWidget);
-        expect(find.text('Start classifying items to see community activity!'), findsOneWidget);
+        expect(find.text('Start classifying items to see community activity!'),
+            findsOneWidget);
         expect(find.byIcon(Icons.people_outline), findsOneWidget);
       });
 
       testWidgets('should support pull to refresh', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -326,26 +366,33 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => itemsWithZeroPoints);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => itemsWithZeroPoints);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
 
         expect(find.text('Zero User'), findsOneWidget);
         expect(find.text('Started using the app'), findsOneWidget);
-        expect(find.textContaining('+0 pts'), findsNothing); // Should not show 0 points
+        expect(find.textContaining('+0 pts'),
+            findsNothing); // Should not show 0 points
       });
     });
 
     group('Stats Tab', () {
       testWidgets('should display community overview stats', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -366,10 +413,13 @@ void main() {
       });
 
       testWidgets('should display popular categories', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -389,9 +439,11 @@ void main() {
       });
 
       testWidgets('should handle null stats gracefully', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
         when(mockCommunityService.getStats()).thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget());
@@ -414,10 +466,13 @@ void main() {
           averagePointsPerUser: 50,
         );
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => statsWithEmptyCategories);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => statsWithEmptyCategories);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -432,10 +487,13 @@ void main() {
 
     group('Members Tab', () {
       testWidgets('should display coming soon message', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -444,17 +502,23 @@ void main() {
         await tester.pump();
 
         expect(find.text('Members Directory'), findsOneWidget);
-        expect(find.text('Coming soon! View and connect with other community members.'), findsOneWidget);
+        expect(
+            find.text(
+                'Coming soon! View and connect with other community members.'),
+            findsOneWidget);
         expect(find.byIcon(Icons.construction), findsOneWidget);
       });
     });
 
     group('Tab Navigation', () {
       testWidgets('should switch between tabs correctly', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -480,7 +544,8 @@ void main() {
     });
 
     group('Time Formatting', () {
-      testWidgets('should format relative time correctly for various durations', (tester) async {
+      testWidgets('should format relative time correctly for various durations',
+          (tester) async {
         final now = DateTime.now();
         final timeTestItems = [
           CommunityFeedItem(
@@ -535,10 +600,13 @@ void main() {
           ),
         ];
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => timeTestItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => timeTestItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -552,11 +620,15 @@ void main() {
     });
 
     group('Error Handling', () {
-      testWidgets('should handle community service errors gracefully', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
-        when(mockCommunityService.initCommunity()).thenThrow(Exception('Community init failed'));
+      testWidgets('should handle community service errors gracefully',
+          (tester) async {
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
+        when(mockCommunityService.initCommunity())
+            .thenThrow(Exception('Community init failed'));
         when(mockCommunityService.getFeedItems()).thenAnswer((_) async => []);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -566,10 +638,13 @@ void main() {
       });
 
       testWidgets('should handle feed loading errors', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenThrow(Exception('Feed load failed'));
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenThrow(Exception('Feed load failed'));
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -579,10 +654,13 @@ void main() {
       });
 
       testWidgets('should handle stats loading errors', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenThrow(Exception('Stats load failed'));
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenThrow(Exception('Stats load failed'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -595,11 +673,15 @@ void main() {
     });
 
     group('Activity Colors and Icons', () {
-      testWidgets('should display correct colors for different activity types', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+      testWidgets('should display correct colors for different activity types',
+          (tester) async {
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -618,17 +700,21 @@ void main() {
                   id: 'feed_$index',
                   userId: 'user_$index',
                   userName: 'User $index',
-                  activityType: CommunityActivityType.values[index % CommunityActivityType.values.length],
+                  activityType: CommunityActivityType
+                      .values[index % CommunityActivityType.values.length],
                   description: 'Activity $index',
                   timestamp: DateTime.now().subtract(Duration(minutes: index)),
                   points: index * 5,
                   metadata: {},
                 ));
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => largeFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => largeFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -652,15 +738,19 @@ void main() {
           totalClassifications: 5000000,
           totalPoints: 50000000,
           activeToday: 10000,
-          topCategories: Map.fromEntries(List.generate(50, (index) => MapEntry('Category $index', 1000 - index))),
+          topCategories: Map.fromEntries(List.generate(
+              50, (index) => MapEntry('Category $index', 1000 - index))),
           weeklyGrowth: 25.7,
           averagePointsPerUser: 5000,
         );
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => largeStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => largeStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -677,10 +767,13 @@ void main() {
 
     group('Widget Disposal', () {
       testWidgets('should dispose tab controller properly', (tester) async {
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => testUserProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => testUserProfile);
         when(mockCommunityService.initCommunity()).thenAnswer((_) async {});
-        when(mockCommunityService.getFeedItems()).thenAnswer((_) async => testFeedItems);
-        when(mockCommunityService.getStats()).thenAnswer((_) async => testStats);
+        when(mockCommunityService.getFeedItems())
+            .thenAnswer((_) async => testFeedItems);
+        when(mockCommunityService.getStats())
+            .thenAnswer((_) async => testStats);
 
         await tester.pumpWidget(createTestWidget());
         await tester.pump();
@@ -688,7 +781,8 @@ void main() {
         expect(find.byType(CommunityScreen), findsOneWidget);
 
         // Navigate away to trigger disposal
-        await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('Other Screen'))));
+        await tester.pumpWidget(
+            const MaterialApp(home: Scaffold(body: Text('Other Screen'))));
 
         // Should not crash during disposal
         expect(find.text('Other Screen'), findsOneWidget);

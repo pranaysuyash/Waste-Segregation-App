@@ -12,7 +12,8 @@ void main() {
       testFeature = const PremiumFeature(
         id: 'test_feature',
         title: 'Advanced Analytics',
-        description: 'Get detailed insights into your waste management patterns.',
+        description:
+            'Get detailed insights into your waste management patterns.',
         icon: 'bar_chart',
         route: '/analytics',
         isEnabled: true,
@@ -21,7 +22,8 @@ void main() {
       testFeatureWithComplexIcon = const PremiumFeature(
         id: 'complex_feature',
         title: 'AI-Powered Recommendations',
-        description: 'Receive personalized suggestions for better waste segregation.',
+        description:
+            'Receive personalized suggestions for better waste segregation.',
         icon: 'auto_awesome',
         route: '/ai_recommendations',
         isEnabled: true,
@@ -45,11 +47,15 @@ void main() {
     }
 
     group('Widget Construction', () {
-      testWidgets('should render feature card with basic information', (tester) async {
+      testWidgets('should render feature card with basic information',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         expect(find.text('Advanced Analytics'), findsOneWidget);
-        expect(find.text('Get detailed insights into your waste management patterns.'), findsOneWidget);
+        expect(
+            find.text(
+                'Get detailed insights into your waste management patterns.'),
+            findsOneWidget);
       });
 
       testWidgets('should render with enabled state', (tester) async {
@@ -72,7 +78,8 @@ void main() {
         ));
 
         expect(find.text('AI-Powered Recommendations'), findsOneWidget);
-        expect(find.byType(Icon), findsAtLeastNWidgets(2)); // Feature icon + status icon
+        expect(find.byType(Icon),
+            findsAtLeastNWidgets(2)); // Feature icon + status icon
       });
 
       testWidgets('should handle invalid icon gracefully', (tester) async {
@@ -90,7 +97,8 @@ void main() {
         ));
 
         expect(find.text('Invalid Icon Feature'), findsOneWidget);
-        expect(find.byType(Icon), findsAtLeastNWidgets(2)); // Should fall back to default icon
+        expect(find.byType(Icon),
+            findsAtLeastNWidgets(2)); // Should fall back to default icon
       });
     });
 
@@ -149,7 +157,8 @@ void main() {
     });
 
     group('Visual State Differences', () {
-      testWidgets('should show different colors for enabled vs disabled state', (tester) async {
+      testWidgets('should show different colors for enabled vs disabled state',
+          (tester) async {
         // Test enabled state
         await tester.pumpWidget(createTestWidget(isEnabled: true));
 
@@ -183,16 +192,19 @@ void main() {
         expect(lockIcon.color, equals(Colors.grey));
       });
 
-      testWidgets('should style feature icon based on enabled state', (tester) async {
+      testWidgets('should style feature icon based on enabled state',
+          (tester) async {
         // Test enabled state
         await tester.pumpWidget(createTestWidget(isEnabled: true));
 
-        final enabledIcons = tester.widgetList<Icon>(find.byType(Icon)).toList();
+        final enabledIcons =
+            tester.widgetList<Icon>(find.byType(Icon)).toList();
 
         // Test disabled state
         await tester.pumpWidget(createTestWidget(isEnabled: false));
 
-        final disabledIcons = tester.widgetList<Icon>(find.byType(Icon)).toList();
+        final disabledIcons =
+            tester.widgetList<Icon>(find.byType(Icon)).toList();
 
         // Should have icons in both states
         expect(enabledIcons.length, greaterThanOrEqualTo(2));
@@ -203,13 +215,15 @@ void main() {
         // Test enabled state
         await tester.pumpWidget(createTestWidget(isEnabled: true));
 
-        final enabledTitle = tester.widget<Text>(find.text('Advanced Analytics'));
+        final enabledTitle =
+            tester.widget<Text>(find.text('Advanced Analytics'));
         expect(enabledTitle.style?.color, isNot(equals(Colors.grey)));
 
         // Test disabled state
         await tester.pumpWidget(createTestWidget(isEnabled: false));
 
-        final disabledTitle = tester.widget<Text>(find.text('Advanced Analytics'));
+        final disabledTitle =
+            tester.widget<Text>(find.text('Advanced Analytics'));
         expect(disabledTitle.style?.color, equals(Colors.grey));
       });
     });
@@ -233,10 +247,12 @@ void main() {
 
         expect(find.byType(Row), findsOneWidget);
         expect(find.byType(Column), findsOneWidget);
-        expect(find.byType(Container), findsAtLeastNWidgets(2)); // Icon container + main container
+        expect(find.byType(Container),
+            findsAtLeastNWidgets(2)); // Icon container + main container
       });
 
-      testWidgets('should have proper spacing between elements', (tester) async {
+      testWidgets('should have proper spacing between elements',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         final sizedBoxes = tester.widgetList<SizedBox>(find.byType(SizedBox));
@@ -248,7 +264,8 @@ void main() {
       testWidgets('should handle long text properly', (tester) async {
         final longTextFeature = const PremiumFeature(
           id: 'long_text',
-          title: 'This is a very long title that should wrap properly and not overflow the layout boundaries',
+          title:
+              'This is a very long title that should wrap properly and not overflow the layout boundaries',
           description:
               'This is an extremely long description that contains a lot of text and should be handled gracefully by the widget layout system without causing any overflow issues or layout problems in the user interface.',
           icon: 'description',
@@ -258,8 +275,10 @@ void main() {
 
         await tester.pumpWidget(createTestWidget(feature: longTextFeature));
 
-        expect(find.textContaining('This is a very long title'), findsOneWidget);
-        expect(find.textContaining('This is an extremely long description'), findsOneWidget);
+        expect(
+            find.textContaining('This is a very long title'), findsOneWidget);
+        expect(find.textContaining('This is an extremely long description'),
+            findsOneWidget);
 
         // Should not have overflow
         expect(tester.takeException(), isNull);
@@ -283,7 +302,8 @@ void main() {
     });
 
     group('Accessibility', () {
-      testWidgets('should have proper semantics for screen readers', (tester) async {
+      testWidgets('should have proper semantics for screen readers',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         expect(find.byType(Semantics), findsAtLeastNWidgets(1));
@@ -305,10 +325,12 @@ void main() {
         expect(wasTapped, isTrue);
       });
 
-      testWidgets('should have sufficient contrast for disabled state', (tester) async {
+      testWidgets('should have sufficient contrast for disabled state',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(isEnabled: false));
 
-        final disabledTitle = tester.widget<Text>(find.text('Advanced Analytics'));
+        final disabledTitle =
+            tester.widget<Text>(find.text('Advanced Analytics'));
         expect(disabledTitle.style?.color, equals(Colors.grey));
 
         // Grey should provide sufficient contrast for accessibility
@@ -350,7 +372,8 @@ void main() {
         expect(find.byType(PremiumFeatureCard), findsOneWidget);
       });
 
-      testWidgets('should use theme primary color when enabled', (tester) async {
+      testWidgets('should use theme primary color when enabled',
+          (tester) async {
         const customColor = Colors.purple;
 
         await tester.pumpWidget(
@@ -500,10 +523,12 @@ void main() {
         expect(find.byType(PremiumFeatureCard), findsWidgets);
       });
 
-      testWidgets('should maintain performance with complex features', (tester) async {
+      testWidgets('should maintain performance with complex features',
+          (tester) async {
         final complexFeature = const PremiumFeature(
           id: 'complex_feature_with_very_long_id_that_tests_performance',
-          title: 'Complex Feature with Very Long Title That Tests Layout Performance and Text Rendering Capabilities',
+          title:
+              'Complex Feature with Very Long Title That Tests Layout Performance and Text Rendering Capabilities',
           description:
               'This is a very complex feature description that contains multiple sentences and a lot of detailed information about what this premium feature does and how it benefits the user in their waste management journey. It should test the performance of the text rendering and layout systems.',
           icon: 'auto_awesome',
@@ -525,7 +550,8 @@ void main() {
     });
 
     group('Edge Cases', () {
-      testWidgets('should handle null or empty strings gracefully', (tester) async {
+      testWidgets('should handle null or empty strings gracefully',
+          (tester) async {
         final edgeCaseFeature = const PremiumFeature(
           id: '',
           title: '',
@@ -544,7 +570,8 @@ void main() {
         final specialCharFeature = const PremiumFeature(
           id: 'special_char_feature',
           title: 'Feature with émojis 🚀 & spëcial chars: <>&"\'',
-          description: 'Déscription with ñovel characters and symbols: @#\$%^&*()',
+          description:
+              'Déscription with ñovel characters and symbols: @#\$%^&*()',
           icon: 'star',
           route: '/special_char',
           isEnabled: true,
@@ -560,7 +587,8 @@ void main() {
         await tester.pumpWidget(createTestWidget());
 
         // Navigate away to trigger disposal
-        await tester.pumpWidget(const MaterialApp(home: Text('Different Widget')));
+        await tester
+            .pumpWidget(const MaterialApp(home: Text('Different Widget')));
 
         expect(find.text('Different Widget'), findsOneWidget);
         expect(find.byType(PremiumFeatureCard), findsNothing);

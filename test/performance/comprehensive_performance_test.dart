@@ -17,7 +17,8 @@ void main() {
     });
 
     group('Screen Loading Performance', () {
-      testWidgets('Home screen loads within 1 second', (WidgetTester tester) async {
+      testWidgets('Home screen loads within 1 second',
+          (WidgetTester tester) async {
         final stopwatch = Stopwatch()..start();
 
         await tester.pumpWidget(
@@ -29,10 +30,12 @@ void main() {
         await tester.pumpAndSettle();
         stopwatch.stop();
 
-        expect(stopwatch.elapsedMilliseconds, lessThan(1000), reason: 'Home screen should load within 1 second');
+        expect(stopwatch.elapsedMilliseconds, lessThan(1000),
+            reason: 'Home screen should load within 1 second');
       });
 
-      testWidgets('History screen loads within 1.5 seconds', (WidgetTester tester) async {
+      testWidgets('History screen loads within 1.5 seconds',
+          (WidgetTester tester) async {
         final stopwatch = Stopwatch()..start();
 
         await tester.pumpWidget(
@@ -44,10 +47,12 @@ void main() {
         await tester.pumpAndSettle();
         stopwatch.stop();
 
-        expect(stopwatch.elapsedMilliseconds, lessThan(1500), reason: 'History screen should load within 1.5 seconds');
+        expect(stopwatch.elapsedMilliseconds, lessThan(1500),
+            reason: 'History screen should load within 1.5 seconds');
       });
 
-      testWidgets('Educational content screen loads within 2 seconds', (WidgetTester tester) async {
+      testWidgets('Educational content screen loads within 2 seconds',
+          (WidgetTester tester) async {
         final stopwatch = Stopwatch()..start();
 
         await tester.pumpWidget(
@@ -65,7 +70,8 @@ void main() {
     });
 
     group('Frame Rate Performance', () {
-      testWidgets('Maintains 60fps during scrolling', (WidgetTester tester) async {
+      testWidgets('Maintains 60fps during scrolling',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -89,7 +95,8 @@ void main() {
         await tester.pump();
 
         // Check that no frames were dropped (simplified check)
-        expect(tester.binding.hasScheduledFrame, isFalse, reason: 'Should not have dropped frames during scrolling');
+        expect(tester.binding.hasScheduledFrame, isFalse,
+            reason: 'Should not have dropped frames during scrolling');
       });
 
       testWidgets('Animation performance test', (WidgetTester tester) async {
@@ -118,7 +125,8 @@ void main() {
     });
 
     group('Memory Usage Tests', () {
-      testWidgets('Memory usage stays reasonable during intensive operations', (WidgetTester tester) async {
+      testWidgets('Memory usage stays reasonable during intensive operations',
+          (WidgetTester tester) async {
         // Create a widget that uses significant memory
         await tester.pumpWidget(
           MaterialApp(
@@ -145,7 +153,8 @@ void main() {
     });
 
     group('UI Responsiveness Tests', () {
-      testWidgets('Button tap responds within 16ms', (WidgetTester tester) async {
+      testWidgets('Button tap responds within 16ms',
+          (WidgetTester tester) async {
         var tapped = false;
         final stopwatch = Stopwatch();
 
@@ -170,10 +179,12 @@ void main() {
         await tester.pump();
 
         expect(tapped, isTrue);
-        expect(stopwatch.elapsedMilliseconds, lessThan(16), reason: 'Button should respond within 16ms for 60fps');
+        expect(stopwatch.elapsedMilliseconds, lessThan(16),
+            reason: 'Button should respond within 16ms for 60fps');
       });
 
-      testWidgets('Text input responds immediately', (WidgetTester tester) async {
+      testWidgets('Text input responds immediately',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           const MaterialApp(
             home: Scaffold(

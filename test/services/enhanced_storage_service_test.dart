@@ -33,7 +33,8 @@ void main() {
         ttl: const Duration(hours: 1),
       );
 
-      final recentTimestamp = DateTime.now().subtract(const Duration(minutes: 10));
+      final recentTimestamp =
+          DateTime.now().subtract(const Duration(minutes: 10));
       final validEntry = CacheEntry(
         value: 'valid_value',
         timestamp: recentTimestamp,
@@ -123,14 +124,17 @@ void main() {
         }
 
         final stats = service.getCacheStats();
-        expect(stats['cache_size'], lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
+        expect(stats['cache_size'],
+            lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
 
         // Verify that older entries were evicted
-        final newValue = await service.get<String>('key_${EnhancedStorageService.MAX_CACHE_SIZE + 5}');
+        final newValue = await service
+            .get<String>('key_${EnhancedStorageService.MAX_CACHE_SIZE + 5}');
 
         // key_0 should have been evicted and result in cache miss
         // key_${MAX_CACHE_SIZE + 5} should be in cache and result in cache hit
-        expect(newValue, equals('value_${EnhancedStorageService.MAX_CACHE_SIZE + 5}'));
+        expect(newValue,
+            equals('value_${EnhancedStorageService.MAX_CACHE_SIZE + 5}'));
       });
 
       test('should handle cache expiration correctly', () async {
@@ -138,7 +142,8 @@ void main() {
         const testValue = 'expiring_value';
 
         // Store with very short TTL
-        service.addToCache(testKey, testValue, ttl: const Duration(milliseconds: 1));
+        service.addToCache(testKey, testValue,
+            ttl: const Duration(milliseconds: 1));
 
         // Wait for expiration
         await Future.delayed(const Duration(milliseconds: 10));
@@ -245,7 +250,8 @@ void main() {
         final result = await service.get<Map<String, dynamic>>('complex_data');
 
         expect(result, equals(complexData));
-        expect(result?['user']['preferences']['categories'], equals(['environment', 'science', 'health']));
+        expect(result?['user']['preferences']['categories'],
+            equals(['environment', 'science', 'health']));
         expect(result?['analytics']['averageTime'], equals(8.5));
       });
     });
@@ -264,7 +270,8 @@ void main() {
         await service.store('user_preferences', {'lang': 'en'});
 
         // Verify data is stored (we can't easily test box routing without complex mocking)
-        final retrievedProfile = await service.get<UserProfile>(StorageKeys.userProfileKey);
+        final retrievedProfile =
+            await service.get<UserProfile>(StorageKeys.userProfileKey);
         expect(retrievedProfile?.id, equals('test_user'));
       });
 
@@ -275,7 +282,8 @@ void main() {
         await service.store('settings_general', {'language': 'en'});
 
         final darkMode = await service.get<bool>(StorageKeys.isDarkModeKey);
-        final syncEnabled = await service.get<bool>(StorageKeys.isGoogleSyncEnabledKey);
+        final syncEnabled =
+            await service.get<bool>(StorageKeys.isGoogleSyncEnabledKey);
         final themeMode = await service.get<String>(StorageKeys.themeModeKey);
 
         expect(darkMode, isTrue);
@@ -294,7 +302,8 @@ void main() {
         await service.store('classification_123', classificationData);
         await service.store('classification_history', [classificationData]);
 
-        final result = await service.get<Map<String, dynamic>>('classification_123');
+        final result =
+            await service.get<Map<String, dynamic>>('classification_123');
         expect(result?['category'], equals('Recyclable'));
         expect(result?['confidence'], equals(0.95));
       });
@@ -307,13 +316,17 @@ void main() {
           'streak': 7,
         };
 
-        await service.store(StorageKeys.userGamificationProfileKey, gamificationData);
-        await service.store(StorageKeys.achievementsKey, gamificationData['achievements']);
+        await service.store(
+            StorageKeys.userGamificationProfileKey, gamificationData);
+        await service.store(
+            StorageKeys.achievementsKey, gamificationData['achievements']);
         await service.store(StorageKeys.pointsKey, gamificationData['points']);
         await service.store('gamification_stats', {'totalTime': 120});
 
-        final profile = await service.get<Map<String, dynamic>>(StorageKeys.userGamificationProfileKey);
-        final achievements = await service.get<List<String>>(StorageKeys.achievementsKey);
+        final profile = await service
+            .get<Map<String, dynamic>>(StorageKeys.userGamificationProfileKey);
+        final achievements =
+            await service.get<List<String>>(StorageKeys.achievementsKey);
 
         expect(profile?['points'], equals(1500));
         expect(achievements, equals(['first_classification', 'eco_warrior']));
@@ -324,7 +337,8 @@ void main() {
         await service.store('random_setting', {'custom': true});
 
         final unknownResult = await service.get<String>('unknown_key_type');
-        final randomResult = await service.get<Map<String, dynamic>>('random_setting');
+        final randomResult =
+            await service.get<Map<String, dynamic>>('random_setting');
 
         expect(unknownResult, equals('default_value'));
         expect(randomResult?['custom'], isTrue);
@@ -348,7 +362,8 @@ void main() {
 
         // Verify cache remains consistent
         final stats = service.getCacheStats();
-        expect(stats['cache_size'], lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
+        expect(stats['cache_size'],
+            lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
       });
 
       test('should maintain performance with large datasets', () async {
@@ -367,10 +382,12 @@ void main() {
 
         // Verify cache doesn't grow beyond limit
         final stats = service.getCacheStats();
-        expect(stats['cache_size'], lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
+        expect(stats['cache_size'],
+            lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
 
         // Performance should be reasonable (this is a rough check)
-        expect(stopwatch.elapsedMilliseconds, lessThan(10000)); // 10 seconds max
+        expect(
+            stopwatch.elapsedMilliseconds, lessThan(10000)); // 10 seconds max
       });
 
       test('should optimize for frequently accessed data', () async {
@@ -568,7 +585,8 @@ void main() {
         final finalStats = service.getCacheStats();
 
         // Cache size should be bounded
-        expect(finalStats['cache_size'], lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
+        expect(finalStats['cache_size'],
+            lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
 
         // Should have reasonable statistics
         expect(finalStats['cache_hits'], isA<int>());

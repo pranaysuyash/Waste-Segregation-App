@@ -5,7 +5,8 @@ import 'package:waste_segregation_app/utils/constants.dart';
 
 void main() {
   group('Horizontal Stat Cards Golden Tests', () {
-    testWidgets('StatsCard golden test - zero values', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - zero values',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -53,7 +54,8 @@ void main() {
       );
     });
 
-    testWidgets('StatsCard golden test - small values', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - small values',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -103,7 +105,8 @@ void main() {
       );
     });
 
-    testWidgets('StatsCard golden test - large values', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - large values',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -153,7 +156,8 @@ void main() {
       );
     });
 
-    testWidgets('StatsCard golden test - negative trends', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - negative trends',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -205,7 +209,8 @@ void main() {
       );
     });
 
-    testWidgets('StatsCard golden test - narrow screen', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - narrow screen',
+        (WidgetTester tester) async {
       // Set a narrow screen size
       await tester.binding.setSurfaceSize(const Size(320, 568));
 
@@ -261,7 +266,8 @@ void main() {
       await tester.binding.setSurfaceSize(null);
     });
 
-    testWidgets('StatsCard golden test - dark theme', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - dark theme',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -312,7 +318,8 @@ void main() {
       );
     });
 
-    testWidgets('StatsCard golden test - color standardization', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - color standardization',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(

@@ -5,7 +5,8 @@ import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 
 /// Mock CloudStorageService for testing that doesn't require Firebase
 class MockCloudStorageService extends CloudStorageService {
-  MockCloudStorageService(StorageService localStorageService) : super(localStorageService);
+  MockCloudStorageService(StorageService localStorageService)
+      : super(localStorageService);
 
   @override
   Future<void> saveUserProfileToFirestore(UserProfile userProfile) async {

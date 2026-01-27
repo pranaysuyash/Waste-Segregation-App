@@ -113,11 +113,13 @@ void main() {
       ];
     });
 
-    Widget createTestWidget({String? initialCategory, String? initialSubcategory}) {
+    Widget createTestWidget(
+        {String? initialCategory, String? initialSubcategory}) {
       return MaterialApp(
         home: MultiProvider(
           providers: [
-            Provider<EducationalContentService>.value(value: mockEducationalService),
+            Provider<EducationalContentService>.value(
+                value: mockEducationalService),
             Provider<AdService>.value(value: mockAdService),
           ],
           child: EducationalContentScreen(
@@ -129,7 +131,8 @@ void main() {
     }
 
     group('Initialization and Setup', () {
-      testWidgets('should display app bar with correct title and tabs', (tester) async {
+      testWidgets('should display app bar with correct title and tabs',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
         when(mockEducationalService.getContentByType(any)).thenReturn([]);
 
@@ -151,9 +154,11 @@ void main() {
         expect(find.byIcon(Icons.lightbulb_outline), findsOneWidget);
       });
 
-      testWidgets('should initialize with default category and tab', (tester) async {
+      testWidgets('should initialize with default category and tab',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -163,7 +168,8 @@ void main() {
 
       testWidgets('should initialize with specific category', (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByCategory('Recycling')).thenReturn([testContent[0], testContent[2]]);
+        when(mockEducationalService.getContentByCategory('Recycling'))
+            .thenReturn([testContent[0], testContent[2]]);
         when(mockEducationalService.getContentByType(any)).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget(initialCategory: 'Recycling'));
@@ -219,7 +225,8 @@ void main() {
 
       testWidgets('should filter content by search query', (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -232,7 +239,8 @@ void main() {
 
       testWidgets('should clear search when text is cleared', (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -247,9 +255,12 @@ void main() {
         // Should show all content again
       });
 
-      testWidgets('should search across title, description, tags, and categories', (tester) async {
+      testWidgets(
+          'should search across title, description, tags, and categories',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -274,7 +285,8 @@ void main() {
     group('Category Filtering', () {
       testWidgets('should filter content by selected category', (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(any)).thenReturn(testContent);
+        when(mockEducationalService.getContentByType(any))
+            .thenReturn(testContent);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -289,9 +301,11 @@ void main() {
         // Should filter to show only recycling content
       });
 
-      testWidgets('should show all content when "All" is selected', (tester) async {
+      testWidgets('should show all content when "All" is selected',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(any)).thenReturn(testContent);
+        when(mockEducationalService.getContentByType(any))
+            .thenReturn(testContent);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -310,11 +324,13 @@ void main() {
         // Should show all content
       });
 
-      testWidgets('should handle invalid category selection gracefully', (tester) async {
+      testWidgets('should handle invalid category selection gracefully',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
         when(mockEducationalService.getContentByType(any)).thenReturn([]);
 
-        await tester.pumpWidget(createTestWidget(initialCategory: 'NonExistentCategory'));
+        await tester.pumpWidget(
+            createTestWidget(initialCategory: 'NonExistentCategory'));
 
         // Should default to "All" for invalid category
         expect(find.text('All'), findsOneWidget);
@@ -324,12 +340,18 @@ void main() {
     group('Tab Navigation', () {
       testWidgets('should switch between content type tabs', (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
-        when(mockEducationalService.getContentByType(ContentType.video)).thenReturn([testContent[1]]);
-        when(mockEducationalService.getContentByType(ContentType.infographic)).thenReturn([testContent[2]]);
-        when(mockEducationalService.getContentByType(ContentType.quiz)).thenReturn([testContent[3]]);
-        when(mockEducationalService.getContentByType(ContentType.tutorial)).thenReturn([testContent[4]]);
-        when(mockEducationalService.getContentByType(ContentType.tip)).thenReturn([testContent[5]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.video))
+            .thenReturn([testContent[1]]);
+        when(mockEducationalService.getContentByType(ContentType.infographic))
+            .thenReturn([testContent[2]]);
+        when(mockEducationalService.getContentByType(ContentType.quiz))
+            .thenReturn([testContent[3]]);
+        when(mockEducationalService.getContentByType(ContentType.tutorial))
+            .thenReturn([testContent[4]]);
+        when(mockEducationalService.getContentByType(ContentType.tip))
+            .thenReturn([testContent[5]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -364,8 +386,10 @@ void main() {
 
       testWidgets('should filter content when tab changes', (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
-        when(mockEducationalService.getContentByType(ContentType.video)).thenReturn([testContent[1]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.video))
+            .thenReturn([testContent[1]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -384,21 +408,26 @@ void main() {
     });
 
     group('Content Display', () {
-      testWidgets('should display content cards with correct information', (tester) async {
+      testWidgets('should display content cards with correct information',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 
         expect(find.text('Recycling Basics'), findsOneWidget);
-        expect(find.text('Learn the fundamentals of recycling'), findsOneWidget);
+        expect(
+            find.text('Learn the fundamentals of recycling'), findsOneWidget);
         expect(find.text('Beginner'), findsOneWidget);
         expect(find.text('5 min read'), findsOneWidget);
       });
 
-      testWidgets('should show premium badges for premium content', (tester) async {
+      testWidgets('should show premium badges for premium content',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.video)).thenReturn([testContent[1]]);
+        when(mockEducationalService.getContentByType(ContentType.video))
+            .thenReturn([testContent[1]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -412,16 +441,19 @@ void main() {
 
       testWidgets('should display content type badges', (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 
         expect(find.text('article'), findsOneWidget);
       });
 
-      testWidgets('should handle content with different levels', (tester) async {
+      testWidgets('should handle content with different levels',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.tutorial)).thenReturn([testContent[4]]);
+        when(mockEducationalService.getContentByType(ContentType.tutorial))
+            .thenReturn([testContent[4]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -432,9 +464,11 @@ void main() {
         expect(find.text('Advanced'), findsOneWidget);
       });
 
-      testWidgets('should display formatted duration correctly', (tester) async {
+      testWidgets('should display formatted duration correctly',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.tip)).thenReturn([testContent[5]]);
+        when(mockEducationalService.getContentByType(ContentType.tip))
+            .thenReturn([testContent[5]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -445,9 +479,11 @@ void main() {
         expect(find.text('2 min read'), findsOneWidget);
       });
 
-      testWidgets('should navigate to content detail when tapped', (tester) async {
+      testWidgets('should navigate to content detail when tapped',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -459,18 +495,21 @@ void main() {
     });
 
     group('Empty States', () {
-      testWidgets('should show empty state when no content matches criteria', (tester) async {
+      testWidgets('should show empty state when no content matches criteria',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
         when(mockEducationalService.getContentByType(any)).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
 
-        expect(find.text('No content found matching your criteria'), findsOneWidget);
+        expect(find.text('No content found matching your criteria'),
+            findsOneWidget);
       });
 
       testWidgets('should show empty state after filtering', (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -478,13 +517,17 @@ void main() {
         await tester.enterText(find.byType(TextField), 'nonexistentcontent');
         await tester.pump();
 
-        expect(find.text('No content found matching your criteria'), findsOneWidget);
+        expect(find.text('No content found matching your criteria'),
+            findsOneWidget);
       });
 
-      testWidgets('should show empty state for tab with no content', (tester) async {
+      testWidgets('should show empty state for tab with no content',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
-        when(mockEducationalService.getContentByType(ContentType.video)).thenReturn([]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.video))
+            .thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -492,14 +535,17 @@ void main() {
         await tester.tap(find.text('Videos'));
         await tester.pump();
 
-        expect(find.text('No content found matching your criteria'), findsOneWidget);
+        expect(find.text('No content found matching your criteria'),
+            findsOneWidget);
       });
     });
 
     group('Combined Filtering', () {
-      testWidgets('should apply both category and search filters', (tester) async {
+      testWidgets('should apply both category and search filters',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -516,9 +562,11 @@ void main() {
         // Should apply both filters
       });
 
-      testWidgets('should apply category, search, and tab filters', (tester) async {
+      testWidgets('should apply category, search, and tab filters',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.infographic)).thenReturn([testContent[2]]);
+        when(mockEducationalService.getContentByType(ContentType.infographic))
+            .thenReturn([testContent[2]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -541,14 +589,17 @@ void main() {
     });
 
     group('Error Handling and Edge Cases', () {
-      testWidgets('should handle empty content list gracefully', (tester) async {
+      testWidgets('should handle empty content list gracefully',
+          (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn([]);
         when(mockEducationalService.getContentByType(any)).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
 
-        expect(find.text('All'), findsOneWidget); // Should still show category dropdown
-        expect(find.text('No content found matching your criteria'), findsOneWidget);
+        expect(find.text('All'),
+            findsOneWidget); // Should still show category dropdown
+        expect(find.text('No content found matching your criteria'),
+            findsOneWidget);
       });
 
       testWidgets('should handle content without categories', (tester) async {
@@ -569,8 +620,10 @@ void main() {
           ),
         ];
 
-        when(mockEducationalService.getAllContent()).thenReturn(contentWithoutCategories);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn(contentWithoutCategories);
+        when(mockEducationalService.getAllContent())
+            .thenReturn(contentWithoutCategories);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn(contentWithoutCategories);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -578,7 +631,8 @@ void main() {
         expect(find.text('No Category Content'), findsOneWidget);
       });
 
-      testWidgets('should handle very long content titles and descriptions', (tester) async {
+      testWidgets('should handle very long content titles and descriptions',
+          (tester) async {
         const longContentTitle =
             'This is a very long title that should be truncated to prevent overflow issues in the UI';
         const longContentDescription =
@@ -602,18 +656,22 @@ void main() {
         ];
 
         when(mockEducationalService.getAllContent()).thenReturn(longContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn(longContent);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn(longContent);
 
         await tester.pumpWidget(createTestWidget());
 
         // Should display truncated text without overflow
-        expect(find.textContaining('This is a very long title'), findsOneWidget);
-        expect(find.textContaining('This is a very long description'), findsOneWidget);
+        expect(
+            find.textContaining('This is a very long title'), findsOneWidget);
+        expect(find.textContaining('This is a very long description'),
+            findsOneWidget);
       });
 
       testWidgets('should handle special characters in search', (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -654,7 +712,8 @@ void main() {
         expect(find.byType(EducationalContentScreen), findsOneWidget);
 
         // Navigate away to trigger disposal
-        await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('Other Screen'))));
+        await tester.pumpWidget(
+            const MaterialApp(home: Scaffold(body: Text('Other Screen'))));
 
         // Should not crash during disposal
         expect(find.text('Other Screen'), findsOneWidget);
@@ -662,7 +721,8 @@ void main() {
     });
 
     group('Performance', () {
-      testWidgets('should handle large content lists efficiently', (tester) async {
+      testWidgets('should handle large content lists efficiently',
+          (tester) async {
         final largeContentList = List.generate(
             100,
             (index) => EducationalContent(
@@ -670,19 +730,24 @@ void main() {
                   title: 'Content $index',
                   description: 'Description $index',
                   type: ContentType.values[index % ContentType.values.length],
-                  level: ContentLevel.values[index % ContentLevel.values.length],
+                  level:
+                      ContentLevel.values[index % ContentLevel.values.length],
                   categories: ['Category${index % 5}'],
                   tags: ['tag$index'],
                   readTimeMinutes: index + 1,
                   content: 'Content $index...',
                   author: 'Author $index',
                   publishedDate: DateTime.now().subtract(Duration(days: index)),
-                  lastUpdated: DateTime.now().subtract(Duration(days: index ~/ 2)),
+                  lastUpdated:
+                      DateTime.now().subtract(Duration(days: index ~/ 2)),
                 ));
 
-        when(mockEducationalService.getAllContent()).thenReturn(largeContentList);
+        when(mockEducationalService.getAllContent())
+            .thenReturn(largeContentList);
         when(mockEducationalService.getContentByType(ContentType.article))
-            .thenReturn(largeContentList.where((c) => c.type == ContentType.article).toList());
+            .thenReturn(largeContentList
+                .where((c) => c.type == ContentType.article)
+                .toList());
 
         await tester.pumpWidget(createTestWidget());
 
@@ -715,7 +780,8 @@ void main() {
 
       testWidgets('should support keyboard navigation', (tester) async {
         when(mockEducationalService.getAllContent()).thenReturn(testContent);
-        when(mockEducationalService.getContentByType(ContentType.article)).thenReturn([testContent[0]]);
+        when(mockEducationalService.getContentByType(ContentType.article))
+            .thenReturn([testContent[0]]);
 
         await tester.pumpWidget(createTestWidget());
 

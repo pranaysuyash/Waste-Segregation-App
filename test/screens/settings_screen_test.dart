@@ -27,7 +27,8 @@ void main() {
       return MaterialApp(
         home: MultiProvider(
           providers: [
-            ChangeNotifierProvider<ThemeProvider>.value(value: mockThemeProvider),
+            ChangeNotifierProvider<ThemeProvider>.value(
+                value: mockThemeProvider),
             Provider<UserConsentService>.value(value: mockConsentService),
             Provider<StorageService>.value(value: mockStorageService),
           ],
@@ -37,7 +38,8 @@ void main() {
     }
 
     group('Widget Rendering', () {
-      testWidgets('should render settings screen with all sections', (WidgetTester tester) async {
+      testWidgets('should render settings screen with all sections',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockConsentService.hasMarketingConsent).thenReturn(false);
@@ -52,7 +54,8 @@ void main() {
         expect(find.text('About'), findsOneWidget);
       });
 
-      testWidgets('should show current theme selection', (WidgetTester tester) async {
+      testWidgets('should show current theme selection',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.dark);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockConsentService.hasMarketingConsent).thenReturn(false);
@@ -63,7 +66,8 @@ void main() {
         expect(find.text('Dark'), findsOneWidget);
       });
 
-      testWidgets('should display privacy consent toggles', (WidgetTester tester) async {
+      testWidgets('should display privacy consent toggles',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockConsentService.hasMarketingConsent).thenReturn(false);
@@ -80,7 +84,8 @@ void main() {
         expect(analyticsSwitches, findsWidgets);
       });
 
-      testWidgets('should show storage usage information', (WidgetTester tester) async {
+      testWidgets('should show storage usage information',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockStorageService.getStorageUsage()).thenAnswer((_) async => {
@@ -100,7 +105,8 @@ void main() {
     });
 
     group('Theme Settings', () {
-      testWidgets('should change theme when theme option is selected', (WidgetTester tester) async {
+      testWidgets('should change theme when theme option is selected',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
@@ -122,7 +128,8 @@ void main() {
         verify(mockThemeProvider.setThemeMode(ThemeMode.dark)).called(1);
       });
 
-      testWidgets('should show current theme as selected', (WidgetTester tester) async {
+      testWidgets('should show current theme as selected',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.system);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
@@ -135,7 +142,8 @@ void main() {
         expect(find.byIcon(Icons.check), findsOneWidget);
       });
 
-      testWidgets('should update theme display after change', (WidgetTester tester) async {
+      testWidgets('should update theme display after change',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
@@ -158,39 +166,46 @@ void main() {
     });
 
     group('Privacy Settings', () {
-      testWidgets('should toggle analytics consent', (WidgetTester tester) async {
+      testWidgets('should toggle analytics consent',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(false);
         when(mockConsentService.hasMarketingConsent).thenReturn(false);
-        when(mockConsentService.setAnalyticsConsent(true)).thenAnswer((_) async => null);
+        when(mockConsentService.setAnalyticsConsent(true))
+            .thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget());
 
         // Find and tap analytics toggle
-        final analyticsSwitch = find.widgetWithText(SwitchListTile, 'Analytics').first;
+        final analyticsSwitch =
+            find.widgetWithText(SwitchListTile, 'Analytics').first;
         await tester.tap(analyticsSwitch);
         await tester.pumpAndSettle();
 
         verify(mockConsentService.setAnalyticsConsent(true)).called(1);
       });
 
-      testWidgets('should toggle marketing consent', (WidgetTester tester) async {
+      testWidgets('should toggle marketing consent',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockConsentService.hasMarketingConsent).thenReturn(true);
-        when(mockConsentService.setMarketingConsent(false)).thenAnswer((_) async => null);
+        when(mockConsentService.setMarketingConsent(false))
+            .thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget());
 
         // Find and tap marketing toggle
-        final marketingSwitch = find.widgetWithText(SwitchListTile, 'Marketing').first;
+        final marketingSwitch =
+            find.widgetWithText(SwitchListTile, 'Marketing').first;
         await tester.tap(marketingSwitch);
         await tester.pumpAndSettle();
 
         verify(mockConsentService.setMarketingConsent(false)).called(1);
       });
 
-      testWidgets('should show privacy policy link', (WidgetTester tester) async {
+      testWidgets('should show privacy policy link',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
@@ -205,14 +220,17 @@ void main() {
         expect(find.text('Privacy Policy'), findsWidgets);
       });
 
-      testWidgets('should handle consent service errors gracefully', (WidgetTester tester) async {
+      testWidgets('should handle consent service errors gracefully',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(false);
-        when(mockConsentService.setAnalyticsConsent(true)).thenThrow(Exception('Failed to update consent'));
+        when(mockConsentService.setAnalyticsConsent(true))
+            .thenThrow(Exception('Failed to update consent'));
 
         await tester.pumpWidget(createTestWidget());
 
-        final analyticsSwitch = find.widgetWithText(SwitchListTile, 'Analytics').first;
+        final analyticsSwitch =
+            find.widgetWithText(SwitchListTile, 'Analytics').first;
         await tester.tap(analyticsSwitch);
         await tester.pumpAndSettle();
 
@@ -223,7 +241,8 @@ void main() {
     });
 
     group('Notification Settings', () {
-      testWidgets('should toggle notification preferences', (WidgetTester tester) async {
+      testWidgets('should toggle notification preferences',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
@@ -234,7 +253,8 @@ void main() {
         expect(find.text('Classification Reminders'), findsOneWidget);
 
         // Test notification toggles
-        final pushNotificationSwitch = find.widgetWithText(SwitchListTile, 'Push Notifications').first;
+        final pushNotificationSwitch =
+            find.widgetWithText(SwitchListTile, 'Push Notifications').first;
         await tester.tap(pushNotificationSwitch);
         await tester.pumpAndSettle();
 
@@ -242,7 +262,8 @@ void main() {
         expect(find.byType(Switch), findsWidgets);
       });
 
-      testWidgets('should configure notification times', (WidgetTester tester) async {
+      testWidgets('should configure notification times',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
@@ -258,7 +279,8 @@ void main() {
     });
 
     group('Data & Storage Settings', () {
-      testWidgets('should clear cache successfully', (WidgetTester tester) async {
+      testWidgets('should clear cache successfully',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockStorageService.getStorageUsage()).thenAnswer((_) async => {
@@ -274,7 +296,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Clear Cache?'), findsOneWidget);
-        expect(find.text('This will clear 256 KB of cached data.'), findsOneWidget);
+        expect(find.text('This will clear 256 KB of cached data.'),
+            findsOneWidget);
 
         await tester.tap(find.text('Clear'));
         await tester.pumpAndSettle();
@@ -286,7 +309,8 @@ void main() {
       testWidgets('should export data', (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
-        when(mockStorageService.exportAllData()).thenAnswer((_) async => 'exported_data.json');
+        when(mockStorageService.exportAllData())
+            .thenAnswer((_) async => 'exported_data.json');
 
         await tester.pumpWidget(createTestWidget());
 
@@ -303,7 +327,8 @@ void main() {
         expect(find.text('Data exported successfully'), findsOneWidget);
       });
 
-      testWidgets('should delete all data with confirmation', (WidgetTester tester) async {
+      testWidgets('should delete all data with confirmation',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockStorageService.deleteAllData()).thenAnswer((_) async => true);
@@ -323,10 +348,12 @@ void main() {
         verify(mockStorageService.deleteAllData()).called(1);
       });
 
-      testWidgets('should handle storage operations errors', (WidgetTester tester) async {
+      testWidgets('should handle storage operations errors',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
-        when(mockStorageService.clearCache()).thenThrow(Exception('Storage error'));
+        when(mockStorageService.clearCache())
+            .thenThrow(Exception('Storage error'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -379,7 +406,8 @@ void main() {
         expect(find.text('Feature Request'), findsOneWidget);
       });
 
-      testWidgets('should show open source licenses', (WidgetTester tester) async {
+      testWidgets('should show open source licenses',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
@@ -393,7 +421,8 @@ void main() {
     });
 
     group('Search Functionality', () {
-      testWidgets('should search settings options', (WidgetTester tester) async {
+      testWidgets('should search settings options',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
@@ -438,7 +467,8 @@ void main() {
     });
 
     group('Accessibility', () {
-      testWidgets('should support screen reader navigation', (WidgetTester tester) async {
+      testWidgets('should support screen reader navigation',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
@@ -454,14 +484,16 @@ void main() {
         );
 
         expect(
-          tester.getSemantics(find.widgetWithText(SwitchListTile, 'Analytics').first),
+          tester.getSemantics(
+              find.widgetWithText(SwitchListTile, 'Analytics').first),
           matchesSemantics(
             hasToggleAction: true,
           ),
         );
       });
 
-      testWidgets('should provide proper switch descriptions', (WidgetTester tester) async {
+      testWidgets('should provide proper switch descriptions',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
         when(mockConsentService.hasMarketingConsent).thenReturn(false);
@@ -473,7 +505,8 @@ void main() {
         expect(find.text('Receive marketing communications'), findsOneWidget);
       });
 
-      testWidgets('should support keyboard navigation', (WidgetTester tester) async {
+      testWidgets('should support keyboard navigation',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
@@ -492,9 +525,11 @@ void main() {
     });
 
     group('Error Handling', () {
-      testWidgets('should handle theme provider errors', (WidgetTester tester) async {
+      testWidgets('should handle theme provider errors',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
-        when(mockThemeProvider.setThemeMode(any)).thenThrow(Exception('Theme change failed'));
+        when(mockThemeProvider.setThemeMode(any))
+            .thenThrow(Exception('Theme change failed'));
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
 
         await tester.pumpWidget(createTestWidget());
@@ -508,10 +543,12 @@ void main() {
         expect(find.text('Failed to change theme'), findsOneWidget);
       });
 
-      testWidgets('should handle storage service unavailable', (WidgetTester tester) async {
+      testWidgets('should handle storage service unavailable',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
-        when(mockStorageService.getStorageUsage()).thenThrow(Exception('Storage unavailable'));
+        when(mockStorageService.getStorageUsage())
+            .thenThrow(Exception('Storage unavailable'));
 
         await tester.pumpWidget(createTestWidget());
         await tester.pumpAndSettle();
@@ -519,14 +556,17 @@ void main() {
         expect(find.text('Storage information unavailable'), findsOneWidget);
       });
 
-      testWidgets('should recover from network errors', (WidgetTester tester) async {
+      testWidgets('should recover from network errors',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(true);
-        when(mockConsentService.setAnalyticsConsent(any)).thenThrow(Exception('Network error'));
+        when(mockConsentService.setAnalyticsConsent(any))
+            .thenThrow(Exception('Network error'));
 
         await tester.pumpWidget(createTestWidget());
 
-        final analyticsSwitch = find.widgetWithText(SwitchListTile, 'Analytics').first;
+        final analyticsSwitch =
+            find.widgetWithText(SwitchListTile, 'Analytics').first;
         await tester.tap(analyticsSwitch);
         await tester.pumpAndSettle();
 
@@ -534,7 +574,8 @@ void main() {
         expect(find.text('Retry'), findsOneWidget);
 
         // Mock successful retry
-        when(mockConsentService.setAnalyticsConsent(any)).thenAnswer((_) async => null);
+        when(mockConsentService.setAnalyticsConsent(any))
+            .thenAnswer((_) async => null);
 
         await tester.tap(find.text('Retry'));
         await tester.pumpAndSettle();
@@ -561,14 +602,17 @@ void main() {
         expect(find.text('Settings'), findsOneWidget);
       });
 
-      testWidgets('should handle multiple rapid toggles', (WidgetTester tester) async {
+      testWidgets('should handle multiple rapid toggles',
+          (WidgetTester tester) async {
         when(mockThemeProvider.themeMode).thenReturn(ThemeMode.light);
         when(mockConsentService.hasAnalyticsConsent).thenReturn(false);
-        when(mockConsentService.setAnalyticsConsent(any)).thenAnswer((_) async => null);
+        when(mockConsentService.setAnalyticsConsent(any))
+            .thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget());
 
-        final analyticsSwitch = find.widgetWithText(SwitchListTile, 'Analytics').first;
+        final analyticsSwitch =
+            find.widgetWithText(SwitchListTile, 'Analytics').first;
 
         // Rapidly toggle multiple times
         for (var i = 0; i < 5; i++) {

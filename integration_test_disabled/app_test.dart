@@ -7,7 +7,8 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Waste Segregation App E2E Tests', () {
-    testWidgets('Complete waste classification flow', (WidgetTester tester) async {
+    testWidgets('Complete waste classification flow',
+        (WidgetTester tester) async {
       // Launch the app
       app.main();
       await tester.pumpAndSettle();
@@ -30,10 +31,10 @@ void main() {
       if (historyButton.evaluate().isNotEmpty) {
         await tester.tap(historyButton);
         await tester.pumpAndSettle();
-        
+
         // Verify history screen
         expect(find.text('Classification History'), findsOneWidget);
-        
+
         // Navigate back
         await tester.pageBack();
         await tester.pumpAndSettle();
@@ -50,10 +51,10 @@ void main() {
       if (achievementsButton.evaluate().isNotEmpty) {
         await tester.tap(achievementsButton);
         await tester.pumpAndSettle();
-        
+
         // Verify achievements screen
         expect(find.text('Achievements'), findsOneWidget);
-        
+
         // Navigate back
         await tester.pageBack();
         await tester.pumpAndSettle();
@@ -70,10 +71,10 @@ void main() {
       if (premiumButton.evaluate().isNotEmpty) {
         await tester.tap(premiumButton);
         await tester.pumpAndSettle();
-        
+
         // Verify premium screen
         expect(find.text('Premium Features'), findsOneWidget);
-        
+
         // Test premium banner visibility
         final premiumBanner = find.byKey(const Key('premium_banner'));
         expect(premiumBanner, findsOneWidget);
@@ -90,10 +91,10 @@ void main() {
       if (settingsButton.evaluate().isNotEmpty) {
         await tester.tap(settingsButton);
         await tester.pumpAndSettle();
-        
+
         // Verify settings screen
         expect(find.text('Settings'), findsOneWidget);
       }
     });
   });
-} 
+}

@@ -36,7 +36,9 @@ void main() {
       }
     });
 
-    test('clearAllUserData should handle mixed type SharedPreferences gracefully', () async {
+    test(
+        'clearAllUserData should handle mixed type SharedPreferences gracefully',
+        () async {
       // Arrange: Set up SharedPreferences with mixed data types
       SharedPreferences.setMockInitialValues({
         'string_key': 'test_string',
@@ -44,7 +46,9 @@ void main() {
         'bool_key': true,
         'double_key': 3.14,
         'string_list_key': ['item1', 'item2'],
-        'problematic_map_key': {'nested': 'data'}, // This could cause type cast issues
+        'problematic_map_key': {
+          'nested': 'data'
+        }, // This could cause type cast issues
       });
 
       // Act & Assert: Should not throw type cast exceptions

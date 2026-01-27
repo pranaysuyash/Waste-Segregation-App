@@ -40,7 +40,11 @@ void main() {
         materials: ['PET plastic', 'polyethylene cap'],
         commonUses: ['Water storage', 'beverage container'],
         alternativeOptions: ['Reusable water bottle', 'Glass bottle'],
-        circularEconomyPotential: ['Clothing fiber', 'Carpet material', 'New bottles'],
+        circularEconomyPotential: [
+          'Clothing fiber',
+          'Carpet material',
+          'New bottles'
+        ],
         generatesMicroplastics: true,
         humanToxicityLevel: 1,
         wildlifeImpactSeverity: 4,
@@ -49,39 +53,40 @@ void main() {
       );
     });
 
-    test('calculatePoints should return enhanced points based on data richness', () {
+    test('calculatePoints should return enhanced points based on data richness',
+        () {
       final points = testClassification.calculatePoints();
-      
+
       // Should be higher than base 10 due to rich environmental data
       expect(points, greaterThan(10));
       expect(points, lessThanOrEqualTo(50));
-      
+
       // High confidence should add bonus points
       expect(points, greaterThan(20)); // Should get confidence bonus
     });
 
     test('getEnvironmentalImpactScore should calculate impact correctly', () {
       final score = testClassification.getEnvironmentalImpactScore();
-      
+
       // Should be in valid range - algorithm calculates more conservatively
       expect(score, greaterThanOrEqualTo(1.0));
       expect(score, lessThanOrEqualTo(10.0));
-      
+
       // Should be impacted by wildlife severity and microplastics
       expect(score, greaterThan(2.0)); // Above neutral baseline
     });
 
     test('getClassificationTags should return relevant tags', () {
       final tags = testClassification.getClassificationTags();
-      
+
       expect(tags, isNotEmpty);
-      
+
       // Should include single-use tag
       expect(tags.any((tag) => tag.label == 'Single-Use'), isTrue);
-      
+
       // Should include recyclability tag
       expect(tags.any((tag) => tag.label == 'Fully Recyclable'), isTrue);
-      
+
       // Tags should be sorted by priority
       for (int i = 0; i < tags.length - 1; i++) {
         expect(tags[i].priority, lessThanOrEqualTo(tags[i + 1].priority));
@@ -90,7 +95,7 @@ void main() {
 
     test('ClassificationTag should have valid color values', () {
       final tags = testClassification.getClassificationTags();
-      
+
       for (final tag in tags) {
         expect(tag.color, startsWith('#'));
         expect(tag.color.length, equals(7)); // #RRGGBB format
@@ -114,14 +119,15 @@ void main() {
 
       test('should validate compliance correctly', () {
         final compliance = plugin.validateCompliance(testClassification);
-        
-        expect(compliance.status, isIn(['compliant', 'requires_attention', 'violation']));
+
+        expect(compliance.status,
+            isIn(['compliant', 'requires_attention', 'violation']));
         expect(compliance.recommendations, isNotEmpty);
       });
 
       test('should return color coding for all categories', () {
         final colorCoding = plugin.getColorCoding();
-        
+
         expect(colorCoding, containsPair('wet_waste', 'Green Bin/Bag'));
         expect(colorCoding, containsPair('dry_waste', 'Blue Bin/Bag'));
         expect(colorCoding, containsPair('hazardous_waste', 'Red Bin/Bag'));
@@ -130,7 +136,7 @@ void main() {
 
       test('should provide collection schedule information', () {
         final schedule = plugin.getCollectionSchedule();
-        
+
         expect(schedule, contains('wet_waste'));
         expect(schedule, contains('dry_waste'));
         expect(schedule['wet_waste']['frequency'], equals('daily'));
@@ -139,9 +145,10 @@ void main() {
 
       test('should apply local guidelines correctly', () async {
         final enhanced = await plugin.applyLocalGuidelines(testClassification);
-        
+
         expect(enhanced.bbmpComplianceStatus, isNotNull);
-        expect(enhanced.localGuidelinesVersion, equals(plugin.guidelinesVersion));
+        expect(
+            enhanced.localGuidelinesVersion, equals(plugin.guidelinesVersion));
         expect(enhanced.localRegulations, isNotEmpty);
       });
     });
@@ -152,13 +159,15 @@ void main() {
       });
 
       test('should register BBMP plugin correctly', () {
-        final plugin = LocalGuidelinesManager.getPluginForRegion('Bangalore, IN');
+        final plugin =
+            LocalGuidelinesManager.getPluginForRegion('Bangalore, IN');
         expect(plugin, isNotNull);
         expect(plugin!.pluginId, equals('bbmp_bangalore'));
       });
 
       test('should handle unknown regions gracefully', () {
-        final plugin = LocalGuidelinesManager.getPluginForRegion('Unknown City');
+        final plugin =
+            LocalGuidelinesManager.getPluginForRegion('Unknown City');
         expect(plugin, isNull);
       });
 
@@ -167,18 +176,19 @@ void main() {
           testClassification,
           'Bangalore, IN',
         );
-        
+
         // Should have BBMP enhancements
         expect(enhanced.bbmpComplianceStatus, isNotNull);
         expect(enhanced.localGuidelinesVersion, isNotNull);
       });
 
-      test('should return unchanged classification for unsupported regions', () async {
+      test('should return unchanged classification for unsupported regions',
+          () async {
         final enhanced = await LocalGuidelinesManager.applyLocalGuidelines(
           testClassification,
           'Unknown City',
         );
-        
+
         // Should be the same object
         expect(enhanced, equals(testClassification));
       });

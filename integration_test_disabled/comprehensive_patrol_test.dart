@@ -5,7 +5,6 @@ import 'package:waste_segregation_app/main.dart' as app;
 
 void main() {
   group('Comprehensive Waste Segregation App E2E Tests', () {
-
     patrolTest(
       'Complete App Launch and Navigation Flow',
       ($) async {
@@ -19,7 +18,7 @@ void main() {
         // Handle consent dialog if it appears
         await _handleConsentFlow($);
 
-        // Handle auth screen 
+        // Handle auth screen
         await _handleAuthFlow($);
 
         // Verify we're on home screen
@@ -46,7 +45,7 @@ void main() {
         // Test camera classification flow
         await _testCameraClassification($);
 
-        // Test gallery classification flow  
+        // Test gallery classification flow
         await _testGalleryClassification($);
 
         // Verify classification appears in history
@@ -166,11 +165,11 @@ void main() {
         await $.pumpAndSettle();
 
         final stopwatch = Stopwatch()..start();
-        
+
         await Future.delayed(const Duration(seconds: 5));
         await _handleConsentFlow($);
         await _handleAuthFlow($);
-        
+
         stopwatch.stop();
 
         // App should launch within reasonable time
@@ -205,7 +204,6 @@ void main() {
         await $.native.takeScreenshot('08-platform-compatibility');
       },
     );
-
   });
 }
 
@@ -215,13 +213,12 @@ Future<void> _handleConsentFlow(PatrolIntegrationTester $) async {
   try {
     // Look for consent dialog with more comprehensive patterns
     await Future.delayed(const Duration(seconds: 1));
-    
-    if ($(const Text('Privacy Policy')).exists || 
+
+    if ($(const Text('Privacy Policy')).exists ||
         $(const Text('Terms of Service')).exists ||
         $(const Text('Accept')).exists ||
         $(const Text('I Accept')).exists ||
         $(const Text('Agree')).exists) {
-      
       // Try different accept button patterns
       if ($(const Text('Accept')).exists) {
         await $(const Text('Accept')).tap();
@@ -234,7 +231,7 @@ Future<void> _handleConsentFlow(PatrolIntegrationTester $) async {
       } else if ($(FilledButton).exists) {
         await $(FilledButton).first.tap();
       }
-      
+
       await $.pumpAndSettle();
       await Future.delayed(const Duration(seconds: 1));
     }
@@ -247,7 +244,7 @@ Future<void> _handleAuthFlow(PatrolIntegrationTester $) async {
   try {
     // Handle authentication screen - choose guest mode for testing
     await Future.delayed(const Duration(seconds: 2));
-    
+
     if ($(const Text('Continue as Guest')).exists) {
       await $(const Text('Continue as Guest')).tap();
     } else if ($(const Text('Guest Mode')).exists) {
@@ -266,7 +263,7 @@ Future<void> _handleAuthFlow(PatrolIntegrationTester $) async {
         await inkWells.first.tap();
       }
     }
-    
+
     await $.pumpAndSettle();
     await Future.delayed(const Duration(seconds: 3));
   } catch (e) {
@@ -277,20 +274,19 @@ Future<void> _handleAuthFlow(PatrolIntegrationTester $) async {
 Future<void> _verifyHomeScreen(PatrolIntegrationTester $) async {
   // Wait for home screen to load
   await Future.delayed(const Duration(seconds: 3));
-  
+
   // Look for home screen indicators
   expect(
-    $(const Text('Waste Segregation')).exists || 
-    $(FloatingActionButton).exists || 
-    $(const Text('Scan')).exists ||
-    $(const Text('Home')).exists ||
-    $(Icons.camera_alt).exists ||
-    $(NavigationBar).exists ||
-    $(const Text('Hello')).exists ||
-    $(const Text('Eco-Warriors')).exists,
-    isTrue,
-    reason: 'Should find at least one home screen element'
-  );
+      $(const Text('Waste Segregation')).exists ||
+          $(FloatingActionButton).exists ||
+          $(const Text('Scan')).exists ||
+          $(const Text('Home')).exists ||
+          $(Icons.camera_alt).exists ||
+          $(NavigationBar).exists ||
+          $(const Text('Hello')).exists ||
+          $(const Text('Eco-Warriors')).exists,
+      isTrue,
+      reason: 'Should find at least one home screen element');
 }
 
 Future<void> _testBottomNavigation(PatrolIntegrationTester $) async {
@@ -300,7 +296,7 @@ Future<void> _testBottomNavigation(PatrolIntegrationTester $) async {
       final destinations = $(NavigationDestination);
       if (destinations.exists) {
         final count = destinations.evaluate().length;
-        
+
         // Test History tab (usually index 1)
         if (count > 1) {
           await destinations.at(1).tap();
@@ -336,9 +332,14 @@ Future<void> _testBottomNavigation(PatrolIntegrationTester $) async {
     } else {
       // Try alternative navigation patterns
       final tabs = [
-        'History', 'Learn', 'Social', 'Achievements', 'Rewards', 'Home'
+        'History',
+        'Learn',
+        'Social',
+        'Achievements',
+        'Rewards',
+        'Home'
       ];
-      
+
       for (final tab in tabs) {
         if ($(Text(tab)).exists) {
           await $(Text(tab)).tap();
@@ -379,7 +380,7 @@ Future<void> _testCameraClassification(PatrolIntegrationTester $) async {
     } catch (e) {
       // Permission might not be needed
     }
-    
+
     await Future.delayed(const Duration(seconds: 2));
 
     // Go back from camera
@@ -430,20 +431,19 @@ Future<void> _verifyClassificationInHistory(PatrolIntegrationTester $) async {
     } else if ($(const Text('History')).exists) {
       await $(const Text('History')).tap();
     }
-    
+
     await $.pumpAndSettle();
     await Future.delayed(const Duration(seconds: 1));
-    
+
     // Verify history screen loaded
     expect(
-      $(const Text('History')).exists || 
-      $(const Text('Classification History')).exists ||
-      $(ListView).exists ||
-      $(const Text('No classifications')).exists ||
-      $(const Text('Empty')).exists,
-      isTrue,
-      reason: 'Should be on history screen'
-    );
+        $(const Text('History')).exists ||
+            $(const Text('Classification History')).exists ||
+            $(ListView).exists ||
+            $(const Text('No classifications')).exists ||
+            $(const Text('Empty')).exists,
+        isTrue,
+        reason: 'Should be on history screen');
   } catch (e) {
     // History might not be accessible
   }
@@ -477,7 +477,8 @@ Future<void> _performMockClassification(PatrolIntegrationTester $) async {
   }
 }
 
-Future<void> _verifyPointsIncreased(PatrolIntegrationTester $, String? initialPoints) async {
+Future<void> _verifyPointsIncreased(
+    PatrolIntegrationTester $, String? initialPoints) async {
   await Future.delayed(const Duration(seconds: 1));
   try {
     if (initialPoints != null) {
@@ -504,18 +505,17 @@ Future<void> _testAchievementsScreen(PatrolIntegrationTester $) async {
     } else if ($(const Text('Rewards')).exists) {
       await $(const Text('Rewards')).tap();
     }
-    
+
     await $.pumpAndSettle();
     await Future.delayed(const Duration(seconds: 1));
-    
+
     // Verify achievements screen
     expect(
-      $(const Text('Achievements')).exists || 
-      $(const Text('Rewards')).exists ||
-      $(ListView).exists,
-      isTrue,
-      reason: 'Should be on achievements screen'
-    );
+        $(const Text('Achievements')).exists ||
+            $(const Text('Rewards')).exists ||
+            $(ListView).exists,
+        isTrue,
+        reason: 'Should be on achievements screen');
   } catch (e) {
     // Achievements screen might not be accessible
   }
@@ -538,7 +538,7 @@ Future<void> _testSettingsNavigation(PatrolIntegrationTester $) async {
         }
       }
     }
-    
+
     await $.pumpAndSettle();
     await Future.delayed(const Duration(seconds: 1));
   } catch (e) {
@@ -612,7 +612,7 @@ Future<void> _testOfflineBehavior(PatrolIntegrationTester $) async {
       await $(FloatingActionButton).tap();
       await $.pumpAndSettle();
       await Future.delayed(const Duration(seconds: 1));
-      
+
       // Should show offline message or handle gracefully
       await $.native.pressBack();
       await $.pumpAndSettle();
@@ -625,15 +625,14 @@ Future<void> _testOfflineBehavior(PatrolIntegrationTester $) async {
 Future<void> _testConnectivityRecovery(PatrolIntegrationTester $) async {
   try {
     await Future.delayed(const Duration(seconds: 3));
-    
+
     // App should recover gracefully
     expect(
-      $(const Text('Waste Segregation')).exists || 
-      $(FloatingActionButton).exists ||
-      $(NavigationBar).exists,
-      isTrue,
-      reason: 'App should recover after connectivity restoration'
-    );
+        $(const Text('Waste Segregation')).exists ||
+            $(FloatingActionButton).exists ||
+            $(NavigationBar).exists,
+        isTrue,
+        reason: 'App should recover after connectivity restoration');
   } catch (e) {
     // Recovery test failed
   }
@@ -652,10 +651,10 @@ Future<void> _testEducationalContent(PatrolIntegrationTester $) async {
     } else if ($(const Text('Education')).exists) {
       await $(const Text('Education')).tap();
     }
-    
+
     await $.pumpAndSettle();
     await Future.delayed(const Duration(seconds: 1));
-    
+
     // Look for educational content
     if ($(const Text('Learn More')).exists) {
       await $(const Text('Learn More')).tap();
@@ -672,12 +671,13 @@ Future<void> _testEducationalContent(PatrolIntegrationTester $) async {
 Future<void> _testDailyTips(PatrolIntegrationTester $) async {
   try {
     // Look for daily tips
-    if ($(const Text('Daily Tip')).exists || $(const Text('DAILY TIP')).exists) {
+    if ($(const Text('Daily Tip')).exists ||
+        $(const Text('DAILY TIP')).exists) {
       expect(
-        $(const Text('Daily Tip')).exists || $(const Text('DAILY TIP')).exists,
-        isTrue,
-        reason: 'Daily tip should be visible'
-      );
+          $(const Text('Daily Tip')).exists ||
+              $(const Text('DAILY TIP')).exists,
+          isTrue,
+          reason: 'Daily tip should be visible');
     }
   } catch (e) {
     // Daily tips not found
@@ -688,7 +688,7 @@ Future<void> _testWasteCategories(PatrolIntegrationTester $) async {
   try {
     // Test waste category interaction
     final categories = ['Wet Waste', 'Dry Waste', 'Hazardous', 'Recyclable'];
-    
+
     for (final category in categories) {
       if ($(Text(category)).exists) {
         await $(Text(category)).tap();
@@ -711,7 +711,7 @@ Future<void> _testRapidNavigation(PatrolIntegrationTester $) async {
       final destinations = $(NavigationDestination);
       if (destinations.exists) {
         final count = destinations.evaluate().length;
-        
+
         for (var i = 0; i < count && i < 5; i++) {
           await destinations.at(i).tap();
           await $.pumpAndSettle();
@@ -732,7 +732,7 @@ Future<void> _testScrollPerformance(PatrolIntegrationTester $) async {
       if (destinations.exists && destinations.evaluate().length > 1) {
         await destinations.at(1).tap();
         await $.pumpAndSettle();
-        
+
         // Test scrolling if content exists
         if ($(ListView).exists) {
           await $(ListView).scroll(const Offset(0, -200));
@@ -757,7 +757,7 @@ Future<void> _testPlatformFeatures(PatrolIntegrationTester $) async {
     await $.native.pressBack();
     await $.native.pressHome();
     await Future.delayed(const Duration(seconds: 1));
-    
+
     // This might reopen the app on some platforms
   } catch (e) {
     // Platform features test failed
@@ -769,16 +769,15 @@ Future<void> _testResponsiveDesign(PatrolIntegrationTester $) async {
     // Test different orientations if supported
     await $.native.setOrientation(Orientation.landscape);
     await Future.delayed(const Duration(seconds: 1));
-    
+
     // Verify app still works in landscape
     expect(
-      $(NavigationBar).exists || 
-      $(FloatingActionButton).exists ||
-      $(const Text('Waste Segregation')).exists,
-      isTrue,
-      reason: 'App should work in landscape mode'
-    );
-    
+        $(NavigationBar).exists ||
+            $(FloatingActionButton).exists ||
+            $(const Text('Waste Segregation')).exists,
+        isTrue,
+        reason: 'App should work in landscape mode');
+
     await $.native.setOrientation(Orientation.portrait);
     await Future.delayed(const Duration(seconds: 1));
   } catch (e) {

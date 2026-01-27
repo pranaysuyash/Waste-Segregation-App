@@ -37,7 +37,8 @@ class WidgetbookApp extends StatelessWidget {
                           children: [
                             Icon(Icons.stars, color: Colors.amber),
                             SizedBox(width: 8),
-                            Text('0 Points', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('0 Points',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -56,7 +57,8 @@ class WidgetbookApp extends StatelessWidget {
                           children: [
                             Icon(Icons.stars, color: Colors.amber),
                             SizedBox(width: 8),
-                            Text('150 Points', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('150 Points',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -89,15 +91,23 @@ class WidgetbookApp extends StatelessWidget {
                                   const SizedBox(width: 12),
                                   const Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text('Plastic Bottle', style: TextStyle(fontWeight: FontWeight.bold)),
-                                        Text('Dry Waste - Recyclable', style: TextStyle(color: Colors.grey)),
-                                        Text('95% confidence', style: TextStyle(color: Colors.green)),
+                                        Text('Plastic Bottle',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                        Text('Dry Waste - Recyclable',
+                                            style:
+                                                TextStyle(color: Colors.grey)),
+                                        Text('95% confidence',
+                                            style:
+                                                TextStyle(color: Colors.green)),
                                       ],
                                     ),
                                   ),
-                                  const Icon(Icons.check_circle, color: Colors.green),
+                                  const Icon(Icons.check_circle,
+                                      color: Colors.green),
                                 ],
                               ),
                             ],
@@ -142,4 +152,4 @@ class WidgetbookApp extends StatelessWidget {
       ],
     );
   }
-} 
+}

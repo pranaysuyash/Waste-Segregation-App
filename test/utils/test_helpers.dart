@@ -57,7 +57,8 @@ class TestHelpers {
       itemName: itemName ?? 'Detailed Test Item',
       category: category ?? 'Dry Waste',
       subcategory: 'Plastic',
-      explanation: 'Comprehensive test item with detailed properties for thorough testing scenarios',
+      explanation:
+          'Comprehensive test item with detailed properties for thorough testing scenarios',
       disposalInstructions: DisposalInstructions(
         primaryMethod: 'Recycle in designated container',
         steps: [
@@ -104,7 +105,8 @@ class TestHelpers {
       itemName: 'Lithium Battery',
       category: 'Hazardous Waste',
       subcategory: 'Electronic Waste',
-      explanation: 'Lithium-ion battery containing toxic materials requiring special handling',
+      explanation:
+          'Lithium-ion battery containing toxic materials requiring special handling',
       disposalInstructions: DisposalInstructions(
         primaryMethod: 'Take to certified e-waste facility',
         steps: [
@@ -142,9 +144,25 @@ class TestHelpers {
   }
 
   /// Creates a list of diverse test classifications for testing pagination, search, etc.
-  static List<WasteClassification> createClassificationList(int count, {String? userId}) {
-    final categories = ['Dry Waste', 'Wet Waste', 'Hazardous Waste', 'Medical Waste', 'Non-Waste'];
-    final items = ['Bottle', 'Can', 'Paper', 'Battery', 'Food', 'Glass', 'Plastic', 'Metal'];
+  static List<WasteClassification> createClassificationList(int count,
+      {String? userId}) {
+    final categories = [
+      'Dry Waste',
+      'Wet Waste',
+      'Hazardous Waste',
+      'Medical Waste',
+      'Non-Waste'
+    ];
+    final items = [
+      'Bottle',
+      'Can',
+      'Paper',
+      'Battery',
+      'Food',
+      'Glass',
+      'Plastic',
+      'Metal'
+    ];
 
     return List.generate(count, (index) {
       final category = categories[index % categories.length];
@@ -267,7 +285,11 @@ class TestHelpers {
       name: name ?? 'Test Family',
       createdBy: createdBy ?? adminUser.id,
       createdAt: DateTime.now(),
-      members: members ?? [createTestFamilyMember(userId: adminUser.id, role: ef.UserRole.admin)],
+      members: members ??
+          [
+            createTestFamilyMember(
+                userId: adminUser.id, role: ef.UserRole.admin)
+          ],
       settings: settings ?? ef.FamilySettings.defaultSettings(),
     );
   }
@@ -338,10 +360,12 @@ class TestHelpers {
         providers: [
           Provider<AiService>(create: (_) => MockAiService()),
           Provider<StorageService>(create: (_) => MockStorageService()),
-          Provider<GamificationService>(create: (_) => MockGamificationService()),
+          Provider<GamificationService>(
+              create: (_) => MockGamificationService()),
           Provider<AnalyticsService>(create: (_) => MockAnalyticsService()),
           Provider<CommunityService>(create: (_) => MockCommunityService()),
-          Provider<FirebaseFamilyService>(create: (_) => MockFirebaseFamilyService()),
+          Provider<FirebaseFamilyService>(
+              create: (_) => MockFirebaseFamilyService()),
           Provider<CacheService>(create: (_) => MockCacheService()),
         ],
         child: MaterialApp(
@@ -380,28 +404,36 @@ class TestHelpers {
   }) {
     // Setup AI Service
     if (aiService != null) {
-      when(aiService.analyzeWebImage(any, any)).thenAnswer((_) async => createBasicClassification());
+      when(aiService.analyzeWebImage(any, any))
+          .thenAnswer((_) async => createBasicClassification());
     }
 
     // Setup Storage Service
     if (storageService != null) {
-      when(storageService.getAllClassifications(filterOptions: anyNamed('filterOptions')))
+      when(storageService.getAllClassifications(
+              filterOptions: anyNamed('filterOptions')))
           .thenAnswer((_) async => createClassificationList(10));
       when(storageService.getClassificationsPaginated(
-              page: anyNamed('page'), pageSize: anyNamed('pageSize'), filterOptions: anyNamed('filterOptions')))
+              page: anyNamed('page'),
+              pageSize: anyNamed('pageSize'),
+              filterOptions: anyNamed('filterOptions')))
           .thenAnswer((_) async => createClassificationList(5));
       when(storageService.saveClassification(any)).thenAnswer((_) async => {});
       when(storageService.getAllClassifications(
-              filterOptions:
-                  FilterOptions(limit: 5, sortBy: SortBy.timestamp, sortDirection: SortDirection.descending)))
+              filterOptions: FilterOptions(
+                  limit: 5,
+                  sortBy: SortBy.timestamp,
+                  sortDirection: SortDirection.descending)))
           .thenAnswer((_) async => Future.value(<WasteClassification>[]));
-      when(storageService.getClassificationsPaginated(page: 0, pageSize: 10, filterOptions: null))
+      when(storageService.getClassificationsPaginated(
+              page: 0, pageSize: 10, filterOptions: null))
           .thenAnswer((_) async => Future.value(<WasteClassification>[]));
     }
 
     // Setup Gamification Service
     if (gamificationService != null) {
-      when(gamificationService.getProfile()).thenAnswer((_) async => createTestGamificationProfile());
+      when(gamificationService.getProfile())
+          .thenAnswer((_) async => createTestGamificationProfile());
       when(gamificationService.getAchievements()).thenAnswer((_) async => []);
       when(gamificationService.getLeaderboard()).thenAnswer((_) async => []);
     }
@@ -413,9 +445,12 @@ class TestHelpers {
 
     // Setup Community Service
     if (communityService != null) {
-      when(communityService.trackClassificationActivity(any, any)).thenAnswer((_) async => {});
-      when(communityService.getCommunityFeed(any, any, any)).thenAnswer((_) async => []);
-      when(communityService.getCommunityStats()).thenAnswer((_) async => createTestCommunityStats());
+      when(communityService.trackClassificationActivity(any, any))
+          .thenAnswer((_) async => {});
+      when(communityService.getCommunityFeed(any, any, any))
+          .thenAnswer((_) async => []);
+      when(communityService.getCommunityStats())
+          .thenAnswer((_) async => createTestCommunityStats());
       when(communityService.getUserActivity(any)).thenAnswer((_) async => []);
     }
   }
@@ -436,35 +471,49 @@ class TestHelpers {
 
   /// Verifies that a classification is valid
   static void assertValidClassification(WasteClassification classification) {
-    expect(classification.itemName, isNotEmpty, reason: 'Item name should not be empty');
-    expect(classification.category, isNotEmpty, reason: 'Category should not be empty');
-    expect(classification.explanation, isNotEmpty, reason: 'Explanation should not be empty');
-    expect(classification.disposalInstructions, isNotNull, reason: 'Disposal instructions required');
-    expect(classification.timestamp, isNotNull, reason: 'Timestamp is required');
-    expect(classification.confidence, isNotNull, reason: 'Confidence should be provided');
+    expect(classification.itemName, isNotEmpty,
+        reason: 'Item name should not be empty');
+    expect(classification.category, isNotEmpty,
+        reason: 'Category should not be empty');
+    expect(classification.explanation, isNotEmpty,
+        reason: 'Explanation should not be empty');
+    expect(classification.disposalInstructions, isNotNull,
+        reason: 'Disposal instructions required');
+    expect(classification.timestamp, isNotNull,
+        reason: 'Timestamp is required');
+    expect(classification.confidence, isNotNull,
+        reason: 'Confidence should be provided');
 
     if (classification.confidence != null) {
-      expect(classification.confidence!, greaterThanOrEqualTo(0.0), reason: 'Confidence should be >= 0');
-      expect(classification.confidence!, lessThanOrEqualTo(1.0), reason: 'Confidence should be <= 1');
+      expect(classification.confidence!, greaterThanOrEqualTo(0.0),
+          reason: 'Confidence should be >= 0');
+      expect(classification.confidence!, lessThanOrEqualTo(1.0),
+          reason: 'Confidence should be <= 1');
     }
   }
 
   /// Verifies that gamification data is consistent
   static void assertValidGamificationProfile(GamificationProfile profile) {
     expect(profile.userId, isNotEmpty, reason: 'User ID should not be empty');
-    expect(profile.points.total, greaterThanOrEqualTo(0), reason: 'Points should be non-negative');
+    expect(profile.points.total, greaterThanOrEqualTo(0),
+        reason: 'Points should be non-negative');
 
-    final dailyClassificationStreak = profile.streaks[StreakType.dailyClassification.toString()];
-    expect(dailyClassificationStreak, isNotNull, reason: 'Daily classification streak should exist');
+    final dailyClassificationStreak =
+        profile.streaks[StreakType.dailyClassification.toString()];
+    expect(dailyClassificationStreak, isNotNull,
+        reason: 'Daily classification streak should exist');
     expect(dailyClassificationStreak!.currentCount, greaterThanOrEqualTo(0),
         reason: 'Current streak should be non-negative');
-    expect(dailyClassificationStreak.longestCount, greaterThanOrEqualTo(dailyClassificationStreak.currentCount),
+    expect(dailyClassificationStreak.longestCount,
+        greaterThanOrEqualTo(dailyClassificationStreak.currentCount),
         reason: 'Longest streak should be >= current streak');
 
     // Check achievement progress
     for (final achievement in profile.achievements) {
-      expect(achievement.progress, greaterThanOrEqualTo(0.0), reason: 'Achievement progress should be >= 0');
-      expect(achievement.progress, lessThanOrEqualTo(1.0), reason: 'Achievement progress should be <= 1');
+      expect(achievement.progress, greaterThanOrEqualTo(0.0),
+          reason: 'Achievement progress should be >= 0');
+      expect(achievement.progress, lessThanOrEqualTo(1.0),
+          reason: 'Achievement progress should be <= 1');
     }
   }
 
@@ -473,7 +522,8 @@ class TestHelpers {
   // =============================================================================
 
   /// Measures the time taken to execute a function
-  static Future<Duration> measureExecutionTime(Future<void> Function() function) async {
+  static Future<Duration> measureExecutionTime(
+      Future<void> Function() function) async {
     final stopwatch = Stopwatch()..start();
     await function();
     stopwatch.stop();
@@ -497,7 +547,8 @@ class TestHelpers {
     const listSize = 1000;
     final numLists = totalBytes ~/ (listSize * 4); // 4 bytes per int
 
-    return List.generate(numLists, (index) => List.generate(listSize, (i) => index * listSize + i));
+    return List.generate(numLists,
+        (index) => List.generate(listSize, (i) => index * listSize + i));
   }
 
   // =============================================================================
@@ -579,11 +630,13 @@ class TestHelpers {
     double? maxConfidence,
   }) {
     final random = DateTime.now().millisecondsSinceEpoch;
-    final availableCategories = categories ?? ['Dry Waste', 'Wet Waste', 'Hazardous Waste'];
+    final availableCategories =
+        categories ?? ['Dry Waste', 'Wet Waste', 'Hazardous Waste'];
     final category = availableCategories[random % availableCategories.length];
 
-    final confidence =
-        (minConfidence ?? 0.5) + ((maxConfidence ?? 1.0) - (minConfidence ?? 0.5)) * ((random % 1000) / 1000.0);
+    final confidence = (minConfidence ?? 0.5) +
+        ((maxConfidence ?? 1.0) - (minConfidence ?? 0.5)) *
+            ((random % 1000) / 1000.0);
 
     return createDetailedClassification(
       itemName: 'Random Item $random',
@@ -595,10 +648,12 @@ class TestHelpers {
   static MockStorageService getMockStorageService() {
     final mockStorageService = MockStorageService();
     // Default behavior for common calls
-    when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => createTestUser());
+    when(mockStorageService.getCurrentUserProfile())
+        .thenAnswer((_) async => createTestUser());
 
     // General catch-all for getAllClassifications
-    when(mockStorageService.getAllClassifications(filterOptions: anyNamed('filterOptions')))
+    when(mockStorageService.getAllClassifications(
+            filterOptions: anyNamed('filterOptions')))
         .thenAnswer((invocation) async {
       // Simple mock: return a list of 10. Tests can be more specific if needed.
       return Future.value(createClassificationList(10)); // Corrected return
@@ -606,37 +661,48 @@ class TestHelpers {
 
     // Specific mock for getting recent items (sorted by timestamp descending)
     when(mockStorageService.getAllClassifications(
-            filterOptions:
-                const FilterOptions(sortBy: SortField.date, sortNewestFirst: true) // Explicitly using SortField.date
+            filterOptions: const FilterOptions(
+                sortBy: SortField.date,
+                sortNewestFirst: true) // Explicitly using SortField.date
             ))
-        .thenAnswer((_) async => Future.value(createClassificationList(5))); // Corrected return
+        .thenAnswer((_) async =>
+            Future.value(createClassificationList(5))); // Corrected return
 
     // General catch-all for getClassificationsPaginated
     // Ensuring parameters match StorageService.getClassificationsPaginated signature
     when(mockStorageService.getClassificationsPaginated(
-            page: anyNamed('page'), pageSize: anyNamed('pageSize'), filterOptions: anyNamed('filterOptions')))
+            page: anyNamed('page'),
+            pageSize: anyNamed('pageSize'),
+            filterOptions: anyNamed('filterOptions')))
         .thenAnswer((invocation) async {
-      final pageSize = invocation.namedArguments[const Symbol('pageSize')] as int?;
-      return Future.value(createClassificationList(pageSize ?? 5)); // Corrected return
+      final pageSize =
+          invocation.namedArguments[const Symbol('pageSize')] as int?;
+      return Future.value(
+          createClassificationList(pageSize ?? 5)); // Corrected return
     });
 
-    when(mockStorageService.saveClassification(any)).thenAnswer((_) async => Future.value());
+    when(mockStorageService.saveClassification(any))
+        .thenAnswer((_) async => Future.value());
 
     // Mock for getCachedClassification if it was causing null issues for Uint8List/String
     // Assuming getCachedClassification takes a String hash and returns Future<WasteClassification?>
-    when(mockStorageService.getCachedClassification(any)).thenAnswer((_) async => null);
+    when(mockStorageService.getCachedClassification(any))
+        .thenAnswer((_) async => null);
 
     return mockStorageService;
   }
 
   static MockGamificationService getMockGamificationService() {
     final mockGamificationService = MockGamificationService();
-    when(mockGamificationService.getProfile()).thenAnswer((_) async => createTestGamificationProfile());
+    when(mockGamificationService.getProfile())
+        .thenAnswer((_) async => createTestGamificationProfile());
 
     // Add mocks for getAchievements and getLeaderboard
-    when(mockGamificationService.getAchievements()).thenAnswer((_) async => Future.value(<Achievement>[]));
+    when(mockGamificationService.getAchievements())
+        .thenAnswer((_) async => Future.value(<Achievement>[]));
     when(mockGamificationService.getLeaderboard(limit: anyNamed('limit')))
-        .thenAnswer((_) async => Future.value(<LeaderboardEntry>[])); // Assuming LeaderboardEntry and limit param
+        .thenAnswer((_) async => Future.value(
+            <LeaderboardEntry>[])); // Assuming LeaderboardEntry and limit param
     // If getLeaderboard() takes no parameters or different ones, adjust accordingly.
 
     // Example of mocking a method that might have had a null issue if it returns Future<void>

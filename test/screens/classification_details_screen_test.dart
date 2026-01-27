@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/shared_waste_classification.dart';
-import 'package:waste_segregation_app/models/waste_classification.dart' as wc_model;
+import 'package:waste_segregation_app/models/waste_classification.dart'
+    as wc_model;
 import 'package:waste_segregation_app/screens/classification_details_screen.dart';
 import 'package:waste_segregation_app/utils/constants.dart'; // For AppTheme
 
@@ -25,8 +26,10 @@ SharedWasteClassification createMockSharedClassification({
     region: 'Test Region',
     visualFeatures: ['test feature'],
     alternatives: [],
-    disposalInstructions:
-        DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+    disposalInstructions: DisposalInstructions(
+        primaryMethod: 'Test method',
+        steps: ['Test step'],
+        hasUrgentTimeframe: false),
     id: id,
     classification: wc_model.WasteClassification(
       itemName: 'Test Item',
@@ -35,8 +38,10 @@ SharedWasteClassification createMockSharedClassification({
       region: 'Test Region',
       visualFeatures: ['test feature'],
       alternatives: [],
-      disposalInstructions:
-          DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+      disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Test method',
+          steps: ['Test step'],
+          hasUrgentTimeframe: false),
       id: 'wc-$id',
       itemName: itemName,
       category: category,
@@ -44,7 +49,11 @@ SharedWasteClassification createMockSharedClassification({
       explanation: 'A common plastic water bottle, usually recyclable.',
       disposalInstructions: wc_model.DisposalInstructions(
         primaryMethod: 'Recycling Bin',
-        steps: ['Empty contents', 'Rinse if possible', 'Place in recycling bin'],
+        steps: [
+          'Empty contents',
+          'Rinse if possible',
+          'Place in recycling bin'
+        ],
       ),
       imageUrl: imageUrl,
       timestamp: DateTime.now().subtract(const Duration(hours: 1)),
@@ -70,7 +79,8 @@ FamilyReaction createMockReaction({
     displayName: displayName,
     photoUrl: photoUrl,
     type: type,
-    timestamp: timestamp ?? DateTime.now().subtract(const Duration(minutes: 10)),
+    timestamp:
+        timestamp ?? DateTime.now().subtract(const Duration(minutes: 10)),
   );
 }
 
@@ -107,7 +117,8 @@ void main() {
   }
 
   group('ClassificationDetailsScreen Tests', () {
-    testWidgets('Displays basic classification info correctly', (WidgetTester tester) async {
+    testWidgets('Displays basic classification info correctly',
+        (WidgetTester tester) async {
       final mockClassification = createMockSharedClassification(
         itemName: 'Old Newspaper',
         category: 'Paper',
@@ -116,7 +127,8 @@ void main() {
         imageUrl: 'https://example.com/newspaper.jpg',
       );
 
-      await tester.pumpWidget(createTestableWidget(ClassificationDetailsScreen(classification: mockClassification)));
+      await tester.pumpWidget(createTestableWidget(
+          ClassificationDetailsScreen(classification: mockClassification)));
 
       expect(find.text('Old Newspaper'), findsOneWidget); // AppBar title
       expect(find.text('Item: Old Newspaper'), findsOneWidget);
@@ -128,25 +140,33 @@ void main() {
       // Here, we just check if the Image widget is part of the tree.
     });
 
-    testWidgets('Displays "No reactions yet" when reactions list is empty', (WidgetTester tester) async {
+    testWidgets('Displays "No reactions yet" when reactions list is empty',
+        (WidgetTester tester) async {
       final mockClassification = createMockSharedClassification(reactions: []);
-      await tester.pumpWidget(createTestableWidget(ClassificationDetailsScreen(classification: mockClassification)));
+      await tester.pumpWidget(createTestableWidget(
+          ClassificationDetailsScreen(classification: mockClassification)));
       expect(find.text('No reactions yet.'), findsOneWidget);
     });
 
-    testWidgets('Displays reactions list correctly', (WidgetTester tester) async {
+    testWidgets('Displays reactions list correctly',
+        (WidgetTester tester) async {
       final reactions = [
         createMockReaction(displayName: 'Bob'),
         createMockReaction(
-            displayName: 'Charlie', type: FamilyReactionType.love, photoUrl: 'https://example.com/charlie.jpg'),
+            displayName: 'Charlie',
+            type: FamilyReactionType.love,
+            photoUrl: 'https://example.com/charlie.jpg'),
       ];
-      final mockClassification = createMockSharedClassification(reactions: reactions);
+      final mockClassification =
+          createMockSharedClassification(reactions: reactions);
 
-      await tester.pumpWidget(createTestableWidget(ClassificationDetailsScreen(classification: mockClassification)));
+      await tester.pumpWidget(createTestableWidget(
+          ClassificationDetailsScreen(classification: mockClassification)));
 
       expect(find.text('Reactions'), findsOneWidget);
       expect(find.text('Bob'), findsOneWidget);
-      expect(find.textContaining('👍 like'), findsOneWidget); // Assuming _getReactionEmoji maps .like to 👍
+      expect(find.textContaining('👍 like'),
+          findsOneWidget); // Assuming _getReactionEmoji maps .like to 👍
 
       expect(find.text('Charlie'), findsOneWidget);
       expect(find.textContaining('❤️ love'), findsOneWidget);
@@ -154,20 +174,28 @@ void main() {
       // This might require more specific finders if there are multiple CircleAvatars
     });
 
-    testWidgets('Displays "No comments yet" when comments list is empty', (WidgetTester tester) async {
+    testWidgets('Displays "No comments yet" when comments list is empty',
+        (WidgetTester tester) async {
       final mockClassification = createMockSharedClassification(comments: []);
-      await tester.pumpWidget(createTestableWidget(ClassificationDetailsScreen(classification: mockClassification)));
+      await tester.pumpWidget(createTestableWidget(
+          ClassificationDetailsScreen(classification: mockClassification)));
       expect(find.text('No comments yet.'), findsOneWidget);
     });
 
-    testWidgets('Displays comments list correctly', (WidgetTester tester) async {
+    testWidgets('Displays comments list correctly',
+        (WidgetTester tester) async {
       final comments = [
         createMockComment(displayName: 'David', text: 'Very informative!'),
-        createMockComment(displayName: 'Eve', text: 'Thanks for sharing.', photoUrl: 'https://example.com/eve.jpg'),
+        createMockComment(
+            displayName: 'Eve',
+            text: 'Thanks for sharing.',
+            photoUrl: 'https://example.com/eve.jpg'),
       ];
-      final mockClassification = createMockSharedClassification(comments: comments);
+      final mockClassification =
+          createMockSharedClassification(comments: comments);
 
-      await tester.pumpWidget(createTestableWidget(ClassificationDetailsScreen(classification: mockClassification)));
+      await tester.pumpWidget(createTestableWidget(
+          ClassificationDetailsScreen(classification: mockClassification)));
 
       expect(find.text('Comments'), findsOneWidget);
       expect(find.text('David'), findsOneWidget);
@@ -177,20 +205,27 @@ void main() {
       expect(find.text('Thanks for sharing.'), findsOneWidget);
     });
 
-    testWidgets('Displays correct date format for sharedAt and comment timestamps', (WidgetTester tester) async {
+    testWidgets(
+        'Displays correct date format for sharedAt and comment timestamps',
+        (WidgetTester tester) async {
       final fixedTime = DateTime(2023, 1, 1, 10); // Known past time
-      final mockClassification = createMockSharedClassification(sharedAt: fixedTime, comments: [
+      final mockClassification =
+          createMockSharedClassification(sharedAt: fixedTime, comments: [
         createMockComment(
-            displayName: 'TestCommenter', text: 'Test', timestamp: fixedTime.add(const Duration(hours: 1)))
+            displayName: 'TestCommenter',
+            text: 'Test',
+            timestamp: fixedTime.add(const Duration(hours: 1)))
       ]);
 
-      await tester.pumpWidget(createTestableWidget(ClassificationDetailsScreen(classification: mockClassification)));
+      await tester.pumpWidget(createTestableWidget(
+          ClassificationDetailsScreen(classification: mockClassification)));
 
       // Example: if current time makes sharedAt > 7 days ago
       // This test is a bit fragile due to "time ago" logic.
       // A more robust way is to mock DateTime.now() or test the _formatDate helper separately.
       // For widget test, checking for a part of the expected string can be an option.
-      expect(find.textContaining('1/1/2023'), findsWidgets); // Shared on and comment on
+      expect(find.textContaining('1/1/2023'),
+          findsWidgets); // Shared on and comment on
     });
   });
 }

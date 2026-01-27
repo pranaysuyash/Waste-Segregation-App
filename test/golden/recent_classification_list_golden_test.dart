@@ -4,7 +4,8 @@ import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
 
 void main() {
   group('Recent Classification List Golden Tests', () {
-    testWidgets('RecentClassificationCard basic layout golden test', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard basic layout golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -60,7 +61,8 @@ void main() {
       );
     });
 
-    testWidgets('RecentClassificationCard overflow handling golden test', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard overflow handling golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -71,7 +73,8 @@ void main() {
                   SizedBox(
                     width: 300,
                     child: RecentClassificationCard(
-                      itemName: 'Very Long Item Name That Should Not Cause Overflow Issues',
+                      itemName:
+                          'Very Long Item Name That Should Not Cause Overflow Issues',
                       category: 'Dry Waste',
                       subcategory: 'Very Long Subcategory Name',
                       timestamp: DateTime(2024, 1, 15, 10, 30),
@@ -125,7 +128,8 @@ void main() {
       );
     });
 
-    testWidgets('RecentClassificationCard property indicators golden test', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard property indicators golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -195,7 +199,8 @@ void main() {
       );
     });
 
-    testWidgets('RecentClassificationCard responsive layout golden test', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard responsive layout golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -279,7 +284,8 @@ void main() {
       );
     });
 
-    testWidgets('RecentClassificationCard minimal layout golden test', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard minimal layout golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

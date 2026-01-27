@@ -56,7 +56,8 @@ void main() {
         },
       );
 
-      when(mockGamificationService.getProfile()).thenAnswer((_) async => profile);
+      when(mockGamificationService.getProfile())
+          .thenAnswer((_) async => profile);
 
       final result = await mockGamificationService.getProfile();
       expect(result.userId, equals('test_user'));

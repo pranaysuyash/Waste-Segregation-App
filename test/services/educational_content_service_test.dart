@@ -26,18 +26,24 @@ void main() {
 
         expect(allContent, isNotEmpty);
         expect(allTips, isNotEmpty);
-        expect(allContent.length, greaterThan(10)); // Should have substantial content
+        expect(allContent.length,
+            greaterThan(10)); // Should have substantial content
         expect(allTips.length, greaterThan(5)); // Should have multiple tips
       });
 
       test('should initialize with diverse content types', () {
         final allContent = service.getAllContent();
 
-        final articles = allContent.where((c) => c.type == ContentType.article).toList();
-        final videos = allContent.where((c) => c.type == ContentType.video).toList();
-        final quizzes = allContent.where((c) => c.type == ContentType.quiz).toList();
-        final tutorials = allContent.where((c) => c.type == ContentType.tutorial).toList();
-        final infographics = allContent.where((c) => c.type == ContentType.infographic).toList();
+        final articles =
+            allContent.where((c) => c.type == ContentType.article).toList();
+        final videos =
+            allContent.where((c) => c.type == ContentType.video).toList();
+        final quizzes =
+            allContent.where((c) => c.type == ContentType.quiz).toList();
+        final tutorials =
+            allContent.where((c) => c.type == ContentType.tutorial).toList();
+        final infographics =
+            allContent.where((c) => c.type == ContentType.infographic).toList();
 
         expect(articles, isNotEmpty);
         expect(videos, isNotEmpty);
@@ -48,7 +54,8 @@ void main() {
 
       test('should initialize with content covering all waste categories', () {
         final allContent = service.getAllContent();
-        final allCategories = allContent.expand((c) => c.categories).toSet().toList();
+        final allCategories =
+            allContent.expand((c) => c.categories).toSet().toList();
 
         expect(allCategories.contains('Dry Waste'), isTrue);
         expect(allCategories.contains('Wet Waste'), isTrue);
@@ -177,7 +184,8 @@ void main() {
       test('should filter content by category', () {
         final dryWasteContent = service.getContentByCategory('Dry Waste');
         final wetWasteContent = service.getContentByCategory('Wet Waste');
-        final hazardousContent = service.getContentByCategory('Hazardous Waste');
+        final hazardousContent =
+            service.getContentByCategory('Hazardous Waste');
         final medicalContent = service.getContentByCategory('Medical Waste');
 
         expect(dryWasteContent, isNotEmpty);
@@ -223,7 +231,8 @@ void main() {
       });
 
       test('should return empty list for non-existent category', () {
-        final nonExistentContent = service.getContentByCategory('Non-Existent Category');
+        final nonExistentContent =
+            service.getContentByCategory('Non-Existent Category');
         expect(nonExistentContent, isEmpty);
       });
 
@@ -281,9 +290,12 @@ void main() {
         expect(results, isNotEmpty);
         for (final content in results) {
           final titleMatch = content.title.toLowerCase().contains('plastic');
-          final descMatch = content.description.toLowerCase().contains('plastic');
-          final tagMatch = content.tags.any((tag) => tag.toLowerCase().contains('plastic'));
-          final categoryMatch = content.categories.any((cat) => cat.toLowerCase().contains('plastic'));
+          final descMatch =
+              content.description.toLowerCase().contains('plastic');
+          final tagMatch =
+              content.tags.any((tag) => tag.toLowerCase().contains('plastic'));
+          final categoryMatch = content.categories
+              .any((cat) => cat.toLowerCase().contains('plastic'));
 
           expect(titleMatch || descMatch || tagMatch || categoryMatch, isTrue);
         }
@@ -295,9 +307,12 @@ void main() {
         expect(results, isNotEmpty);
         for (final content in results) {
           final titleMatch = content.title.toLowerCase().contains('recycling');
-          final descMatch = content.description.toLowerCase().contains('recycling');
-          final tagMatch = content.tags.any((tag) => tag.toLowerCase().contains('recycling'));
-          final categoryMatch = content.categories.any((cat) => cat.toLowerCase().contains('recycling'));
+          final descMatch =
+              content.description.toLowerCase().contains('recycling');
+          final tagMatch = content.tags
+              .any((tag) => tag.toLowerCase().contains('recycling'));
+          final categoryMatch = content.categories
+              .any((cat) => cat.toLowerCase().contains('recycling'));
 
           expect(titleMatch || descMatch || tagMatch || categoryMatch, isTrue);
         }
@@ -309,9 +324,12 @@ void main() {
         expect(results, isNotEmpty);
         for (final content in results) {
           final titleMatch = content.title.toLowerCase().contains('composting');
-          final descMatch = content.description.toLowerCase().contains('composting');
-          final tagMatch = content.tags.any((tag) => tag.toLowerCase().contains('composting'));
-          final categoryMatch = content.categories.any((cat) => cat.toLowerCase().contains('composting'));
+          final descMatch =
+              content.description.toLowerCase().contains('composting');
+          final tagMatch = content.tags
+              .any((tag) => tag.toLowerCase().contains('composting'));
+          final categoryMatch = content.categories
+              .any((cat) => cat.toLowerCase().contains('composting'));
 
           expect(titleMatch || descMatch || tagMatch || categoryMatch, isTrue);
         }
@@ -323,9 +341,12 @@ void main() {
         expect(results, isNotEmpty);
         for (final content in results) {
           final titleMatch = content.title.toLowerCase().contains('hazardous');
-          final descMatch = content.description.toLowerCase().contains('hazardous');
-          final tagMatch = content.tags.any((tag) => tag.toLowerCase().contains('hazardous'));
-          final categoryMatch = content.categories.any((cat) => cat.toLowerCase().contains('hazardous'));
+          final descMatch =
+              content.description.toLowerCase().contains('hazardous');
+          final tagMatch = content.tags
+              .any((tag) => tag.toLowerCase().contains('hazardous'));
+          final categoryMatch = content.categories
+              .any((cat) => cat.toLowerCase().contains('hazardous'));
 
           expect(titleMatch || descMatch || tagMatch || categoryMatch, isTrue);
         }
@@ -367,7 +388,8 @@ void main() {
         for (final article in articles) {
           expect(article.contentText, isNotNull);
           expect(article.contentText!, isNotEmpty);
-          expect(article.contentText!.length, greaterThan(100)); // Substantial content
+          expect(article.contentText!.length,
+              greaterThan(100)); // Substantial content
         }
       });
 
@@ -393,7 +415,8 @@ void main() {
             expect(question.options, isNotEmpty);
             expect(question.options.length, greaterThanOrEqualTo(2));
             expect(question.correctOptionIndex, greaterThanOrEqualTo(0));
-            expect(question.correctOptionIndex, lessThan(question.options.length));
+            expect(
+                question.correctOptionIndex, lessThan(question.options.length));
 
             if (question.explanation != null) {
               expect(question.explanation!, isNotEmpty);
@@ -434,7 +457,8 @@ void main() {
 
         for (final content in allContent) {
           expect(content.durationMinutes, greaterThan(0));
-          expect(content.durationMinutes, lessThan(120)); // Should be under 2 hours
+          expect(content.durationMinutes,
+              lessThan(120)); // Should be under 2 hours
 
           // Different content types should have appropriate durations
           switch (content.type) {
@@ -459,27 +483,39 @@ void main() {
       test('should have content with appropriate difficulty levels', () {
         final allContent = service.getAllContent();
 
-        final beginnerContent = allContent.where((c) => c.level == ContentLevel.beginner).toList();
-        final intermediateContent = allContent.where((c) => c.level == ContentLevel.intermediate).toList();
-        final advancedContent = allContent.where((c) => c.level == ContentLevel.advanced).toList();
+        final beginnerContent =
+            allContent.where((c) => c.level == ContentLevel.beginner).toList();
+        final intermediateContent = allContent
+            .where((c) => c.level == ContentLevel.intermediate)
+            .toList();
+        final advancedContent =
+            allContent.where((c) => c.level == ContentLevel.advanced).toList();
 
         expect(beginnerContent, isNotEmpty);
         expect(intermediateContent, isNotEmpty);
         // Advanced content might be empty, which is okay
 
         // Most content should be beginner-friendly
-        expect(beginnerContent.length, greaterThanOrEqualTo(intermediateContent.length));
+        expect(beginnerContent.length,
+            greaterThanOrEqualTo(intermediateContent.length));
       });
 
       test('should have diverse content topics', () {
         final allContent = service.getAllContent();
 
         // Should cover main waste categories
-        final wasteCategories = ['Dry Waste', 'Wet Waste', 'Hazardous Waste', 'Medical Waste'];
+        final wasteCategories = [
+          'Dry Waste',
+          'Wet Waste',
+          'Hazardous Waste',
+          'Medical Waste'
+        ];
 
         for (final category in wasteCategories) {
-          final categoryContent = allContent.where((c) => c.categories.contains(category)).toList();
-          expect(categoryContent, isNotEmpty, reason: 'Should have content for $category');
+          final categoryContent =
+              allContent.where((c) => c.categories.contains(category)).toList();
+          expect(categoryContent, isNotEmpty,
+              reason: 'Should have content for $category');
         }
       });
     });
@@ -547,7 +583,9 @@ void main() {
       });
 
       test('should handle very long search queries', () {
-        final longQuery = 'plastic recycling composting waste management environmental sustainability' * 10;
+        final longQuery =
+            'plastic recycling composting waste management environmental sustainability' *
+                10;
 
         final results = service.searchContent(longQuery);
         expect(results, isA<List<EducationalContent>>());
@@ -618,12 +656,14 @@ void main() {
         // Should have reasonable distribution (no single type dominates too much)
         final maxCount = typeCounts.values.reduce((a, b) => a > b ? a : b);
         final totalCount = allContent.length;
-        expect(maxCount / totalCount, lessThan(0.7)); // No type should be >70% of content
+        expect(maxCount / totalCount,
+            lessThan(0.7)); // No type should be >70% of content
       });
 
       test('should have comprehensive category coverage', () {
         final allContent = service.getAllContent();
-        final allCategories = allContent.expand((c) => c.categories).toSet().toList();
+        final allCategories =
+            allContent.expand((c) => c.categories).toSet().toList();
 
         // Should cover essential waste management categories
         final essentialCategories = [
@@ -645,20 +685,23 @@ void main() {
         final allContent = service.getAllContent();
 
         for (final content in allContent) {
-          expect(content.thumbnailUrl, anyOf([startsWith('assets/'), startsWith('http')]));
+          expect(content.thumbnailUrl,
+              anyOf([startsWith('assets/'), startsWith('http')]));
 
           if (content.videoUrl != null) {
             expect(content.videoUrl!, startsWith('http'));
           }
 
           if (content.imageUrl != null) {
-            expect(content.imageUrl!, anyOf([startsWith('assets/'), startsWith('http')]));
+            expect(content.imageUrl!,
+                anyOf([startsWith('assets/'), startsWith('http')]));
           }
 
           if (content.steps != null) {
             for (final step in content.steps!) {
               if (step.imageUrl != null) {
-                expect(step.imageUrl!, anyOf([startsWith('assets/'), startsWith('http')]));
+                expect(step.imageUrl!,
+                    anyOf([startsWith('assets/'), startsWith('http')]));
               }
             }
           }
@@ -672,11 +715,15 @@ void main() {
         final majorCategories = ['Dry Waste', 'Wet Waste', 'Hazardous Waste'];
 
         for (final category in majorCategories) {
-          final categoryContent = allContent.where((c) => c.categories.contains(category)).toList();
+          final categoryContent =
+              allContent.where((c) => c.categories.contains(category)).toList();
 
-          final beginnerContent = categoryContent.where((c) => c.level == ContentLevel.beginner).toList();
+          final beginnerContent = categoryContent
+              .where((c) => c.level == ContentLevel.beginner)
+              .toList();
 
-          expect(beginnerContent, isNotEmpty, reason: 'Should have beginner content for $category');
+          expect(beginnerContent, isNotEmpty,
+              reason: 'Should have beginner content for $category');
         }
       });
     });

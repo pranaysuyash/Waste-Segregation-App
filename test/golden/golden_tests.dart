@@ -57,7 +57,8 @@ void main() {
       final lightTheme = ThemeData.light();
       final darkTheme = ThemeData.dark();
 
-      final builder = DeviceBuilder()..overrideDevicesForAllScenarios(devices: [Device.phone]);
+      final builder = DeviceBuilder()
+        ..overrideDevicesForAllScenarios(devices: [Device.phone]);
 
       // Light theme
       builder.addScenario(

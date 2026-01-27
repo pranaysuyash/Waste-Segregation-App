@@ -14,7 +14,8 @@ void main() {
         itemName: 'Test Aluminum Can',
         category: 'Recyclable',
         confidence: 0.92,
-        explanation: 'This appears to be an aluminum can based on visual analysis.',
+        explanation:
+            'This appears to be an aluminum can based on visual analysis.',
         region: 'Test Region',
         visualFeatures: ['metallic surface', 'cylindrical shape'],
         alternatives: [],
@@ -50,7 +51,8 @@ void main() {
     }
 
     testWidgets('renders classification information correctly', (tester) async {
-      await tester.pumpWidget(createTestWidget(classification: mockClassification));
+      await tester
+          .pumpWidget(createTestWidget(classification: mockClassification));
       await tester.pumpAndSettle();
 
       // Check if item name is displayed
@@ -75,7 +77,8 @@ void main() {
         itemName: 'Battery',
       );
 
-      await tester.pumpWidget(createTestWidget(classification: hazardousClassification));
+      await tester.pumpWidget(
+          createTestWidget(classification: hazardousClassification));
       await tester.pumpAndSettle();
 
       expect(find.text('Hazardous'), findsOneWidget);
@@ -101,7 +104,8 @@ void main() {
     });
 
     testWidgets('displays environmental impact correctly', (tester) async {
-      await tester.pumpWidget(createTestWidget(classification: mockClassification));
+      await tester
+          .pumpWidget(createTestWidget(classification: mockClassification));
       await tester.pumpAndSettle();
 
       // Check if environmental impact is shown
@@ -109,7 +113,8 @@ void main() {
     });
 
     testWidgets('shows confidence bar animation', (tester) async {
-      await tester.pumpWidget(createTestWidget(classification: mockClassification));
+      await tester
+          .pumpWidget(createTestWidget(classification: mockClassification));
 
       // Pump a few frames to allow animation to start
       await tester.pump();
@@ -144,7 +149,8 @@ void main() {
     testWidgets('displays placeholder when no image URL', (tester) async {
       final classificationNoImage = mockClassification.copyWith(imageUrl: null);
 
-      await tester.pumpWidget(createTestWidget(classification: classificationNoImage));
+      await tester
+          .pumpWidget(createTestWidget(classification: classificationNoImage));
       await tester.pumpAndSettle();
 
       // Should find the placeholder icon
@@ -152,9 +158,11 @@ void main() {
     });
 
     testWidgets('handles low confidence correctly', (tester) async {
-      final lowConfidenceClassification = mockClassification.copyWith(confidence: 0.45);
+      final lowConfidenceClassification =
+          mockClassification.copyWith(confidence: 0.45);
 
-      await tester.pumpWidget(createTestWidget(classification: lowConfidenceClassification));
+      await tester.pumpWidget(
+          createTestWidget(classification: lowConfidenceClassification));
       await tester.pumpAndSettle();
 
       expect(find.text('45% confidence'), findsOneWidget);

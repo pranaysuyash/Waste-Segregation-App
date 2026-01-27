@@ -26,13 +26,16 @@ void main() {
       container = ProviderContainer(
         overrides: [
           storageServiceProvider.overrideWithValue(mockStorageService),
-          cloudStorageServiceProvider.overrideWithValue(mockCloudStorageService),
+          cloudStorageServiceProvider
+              .overrideWithValue(mockCloudStorageService),
         ],
       );
 
       // Setup default mocks
-      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => null);
-      when(mockStorageService.getAllClassifications()).thenAnswer((_) async => []);
+      when(mockStorageService.getCurrentUserProfile())
+          .thenAnswer((_) async => null);
+      when(mockStorageService.getAllClassifications())
+          .thenAnswer((_) async => []);
       when(mockStorageService.saveUserProfile(any)).thenAnswer((_) async {});
     });
 
@@ -41,7 +44,8 @@ void main() {
     });
 
     group('Initialization', () {
-      test('should initialize with default UserPoints when no profile exists', () async {
+      test('should initialize with default UserPoints when no profile exists',
+          () async {
         final points = await container.read(pointsManagerProvider.future);
 
         expect(points, isA<UserPoints>());
@@ -69,13 +73,15 @@ void main() {
           ),
         );
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => existingProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => existingProfile);
 
         // Create new container with updated mock
         final newContainer = ProviderContainer(
           overrides: [
             storageServiceProvider.overrideWithValue(mockStorageService),
-            cloudStorageServiceProvider.overrideWithValue(mockCloudStorageService),
+            cloudStorageServiceProvider
+                .overrideWithValue(mockCloudStorageService),
           ],
         );
 
@@ -186,12 +192,14 @@ void main() {
           ),
         );
 
-        when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => highPointsProfile);
+        when(mockStorageService.getCurrentUserProfile())
+            .thenAnswer((_) async => highPointsProfile);
 
         final newContainer = ProviderContainer(
           overrides: [
             storageServiceProvider.overrideWithValue(mockStorageService),
-            cloudStorageServiceProvider.overrideWithValue(mockCloudStorageService),
+            cloudStorageServiceProvider
+                .overrideWithValue(mockCloudStorageService),
           ],
         );
 
@@ -210,12 +218,14 @@ void main() {
       });
 
       test('should handle error states', () async {
-        when(mockStorageService.getCurrentUserProfile()).thenThrow(Exception('Storage error'));
+        when(mockStorageService.getCurrentUserProfile())
+            .thenThrow(Exception('Storage error'));
 
         final errorContainer = ProviderContainer(
           overrides: [
             storageServiceProvider.overrideWithValue(mockStorageService),
-            cloudStorageServiceProvider.overrideWithValue(mockCloudStorageService),
+            cloudStorageServiceProvider
+                .overrideWithValue(mockCloudStorageService),
           ],
         );
 
@@ -233,10 +243,12 @@ void main() {
         await container.read(pointsManagerProvider.future);
 
         // Mock saveUserProfile to throw error
-        when(mockStorageService.saveUserProfile(any)).thenThrow(Exception('Save error'));
+        when(mockStorageService.saveUserProfile(any))
+            .thenThrow(Exception('Save error'));
 
         // The implementation handles save errors gracefully and still returns points
-        final newPoints = await pointsManager.addPoints(PointableAction.classification);
+        final newPoints =
+            await pointsManager.addPoints(PointableAction.classification);
         expect(newPoints, isA<UserPoints>());
         expect(newPoints.total, greaterThanOrEqualTo(0));
       });
@@ -280,7 +292,8 @@ void main() {
         // This test assumes the updateStreak method exists
         // If it doesn't exist yet, this test will serve as documentation
         try {
-          final streak = await pointsManager.updateStreak(StreakType.dailyClassification);
+          final streak =
+              await pointsManager.updateStreak(StreakType.dailyClassification);
           expect(streak, isA<StreakDetails>());
         } catch (e) {
           // Method might not be implemented yet - that's okay
@@ -299,7 +312,8 @@ void main() {
 
         // This test assumes the claimAchievementReward method exists
         try {
-          final achievement = await pointsManager.claimAchievementReward('test_achievement');
+          final achievement =
+              await pointsManager.claimAchievementReward('test_achievement');
           expect(achievement, isA<Achievement>());
         } catch (e) {
           // Method exists but throws Exception for non-existent achievements
@@ -311,20 +325,34 @@ void main() {
 
   group('PointableAction', () {
     test('should convert from string keys correctly', () {
-      expect(PointableAction.fromKey('classification'), equals(PointableAction.classification));
-      expect(PointableAction.fromKey('daily_streak'), equals(PointableAction.dailyStreak));
-      expect(PointableAction.fromKey('challenge_complete'), equals(PointableAction.challengeComplete));
-      expect(PointableAction.fromKey('badge_earned'), equals(PointableAction.badgeEarned));
-      expect(PointableAction.fromKey('achievement_claim'), equals(PointableAction.achievementClaim));
-      expect(PointableAction.fromKey('quiz_completed'), equals(PointableAction.quizCompleted));
-      expect(PointableAction.fromKey('educational_content'), equals(PointableAction.educationalContent));
-      expect(PointableAction.fromKey('perfect_week'), equals(PointableAction.perfectWeek));
-      expect(PointableAction.fromKey('community_challenge'), equals(PointableAction.communityChallenge));
-      expect(PointableAction.fromKey('streak_bonus'), equals(PointableAction.streakBonus));
-      expect(PointableAction.fromKey('migration_sync'), equals(PointableAction.migrationSync));
-      expect(PointableAction.fromKey('retroactive_sync'), equals(PointableAction.retroactiveSync));
-      expect(PointableAction.fromKey('instant_analysis'), equals(PointableAction.instantAnalysis));
-      expect(PointableAction.fromKey('manual_classification'), equals(PointableAction.manualClassification));
+      expect(PointableAction.fromKey('classification'),
+          equals(PointableAction.classification));
+      expect(PointableAction.fromKey('daily_streak'),
+          equals(PointableAction.dailyStreak));
+      expect(PointableAction.fromKey('challenge_complete'),
+          equals(PointableAction.challengeComplete));
+      expect(PointableAction.fromKey('badge_earned'),
+          equals(PointableAction.badgeEarned));
+      expect(PointableAction.fromKey('achievement_claim'),
+          equals(PointableAction.achievementClaim));
+      expect(PointableAction.fromKey('quiz_completed'),
+          equals(PointableAction.quizCompleted));
+      expect(PointableAction.fromKey('educational_content'),
+          equals(PointableAction.educationalContent));
+      expect(PointableAction.fromKey('perfect_week'),
+          equals(PointableAction.perfectWeek));
+      expect(PointableAction.fromKey('community_challenge'),
+          equals(PointableAction.communityChallenge));
+      expect(PointableAction.fromKey('streak_bonus'),
+          equals(PointableAction.streakBonus));
+      expect(PointableAction.fromKey('migration_sync'),
+          equals(PointableAction.migrationSync));
+      expect(PointableAction.fromKey('retroactive_sync'),
+          equals(PointableAction.retroactiveSync));
+      expect(PointableAction.fromKey('instant_analysis'),
+          equals(PointableAction.instantAnalysis));
+      expect(PointableAction.fromKey('manual_classification'),
+          equals(PointableAction.manualClassification));
     });
 
     test('should handle unknown keys gracefully', () {
@@ -393,7 +421,8 @@ void main() {
 
       for (final action in PointableAction.values) {
         expect(validCategories.contains(action.category), isTrue,
-            reason: 'Action ${action.key} has invalid category: ${action.category}');
+            reason:
+                'Action ${action.key} has invalid category: ${action.category}');
       }
     });
   });
@@ -403,22 +432,23 @@ void main() {
       final testMockStorage = MockStorageService();
       final testMockCloud = MockCloudStorageService();
 
-      when(testMockStorage.getCurrentUserProfile()).thenAnswer((_) async => UserProfile(
-            id: 'test-user',
-            gamificationProfile: const GamificationProfile(
-              userId: 'test-user',
-              points: UserPoints(
-                total: 100,
-                categoryPoints: {'Plastic': 50, 'Paper': 30, 'Glass': 20},
-              ),
-              streaks: {},
-              achievements: [],
-              activeChallenges: [],
-              completedChallenges: [],
-              discoveredItemIds: {},
-              unlockedHiddenContentIds: {},
-            ),
-          ));
+      when(testMockStorage.getCurrentUserProfile())
+          .thenAnswer((_) async => UserProfile(
+                id: 'test-user',
+                gamificationProfile: const GamificationProfile(
+                  userId: 'test-user',
+                  points: UserPoints(
+                    total: 100,
+                    categoryPoints: {'Plastic': 50, 'Paper': 30, 'Glass': 20},
+                  ),
+                  streaks: {},
+                  achievements: [],
+                  activeChallenges: [],
+                  completedChallenges: [],
+                  discoveredItemIds: {},
+                  unlockedHiddenContentIds: {},
+                ),
+              ));
 
       when(testMockStorage.getAllClassifications()).thenAnswer((_) async => []);
       when(testMockStorage.saveUserProfile(any)).thenAnswer((_) async {});
@@ -445,7 +475,8 @@ void main() {
       final testMockStorage = MockStorageService();
       final testMockCloud = MockCloudStorageService();
 
-      when(testMockStorage.getCurrentUserProfile()).thenAnswer((_) async => null);
+      when(testMockStorage.getCurrentUserProfile())
+          .thenAnswer((_) async => null);
       when(testMockStorage.getAllClassifications()).thenAnswer((_) async => []);
 
       // Test that providers can be created without throwing

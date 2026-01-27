@@ -8,7 +8,8 @@ void main() {
       expect(AchievementType.values, hasLength(22));
       expect(AchievementType.values, contains(AchievementType.wasteIdentified));
       expect(AchievementType.values, contains(AchievementType.ecoWarrior));
-      expect(AchievementType.values, contains(AchievementType.educationalContent));
+      expect(
+          AchievementType.values, contains(AchievementType.educationalContent));
     });
   });
 
@@ -183,7 +184,8 @@ void main() {
 
       expect(bronzeAchievement.getTierColor(), equals(const Color(0xFFCD7F32)));
 
-      final goldAchievement = bronzeAchievement.copyWith(tier: AchievementTier.gold);
+      final goldAchievement =
+          bronzeAchievement.copyWith(tier: AchievementTier.gold);
       expect(goldAchievement.getTierColor(), equals(const Color(0xFFDAA520)));
     });
 
@@ -201,7 +203,8 @@ void main() {
 
       expect(silverAchievement.tierName, equals('Silver'));
 
-      final platinumAchievement = silverAchievement.copyWith(tier: AchievementTier.platinum);
+      final platinumAchievement =
+          silverAchievement.copyWith(tier: AchievementTier.platinum);
       expect(platinumAchievement.tierName, equals('Platinum'));
     });
 
@@ -264,7 +267,12 @@ void main() {
 
       expect(fromJson.current, equals(streak.current));
       expect(fromJson.longest, equals(streak.longest));
-      expect(fromJson.lastUsageDate.difference(streak.lastUsageDate).inMilliseconds.abs(), lessThan(1000));
+      expect(
+          fromJson.lastUsageDate
+              .difference(streak.lastUsageDate)
+              .inMilliseconds
+              .abs(),
+          lessThan(1000));
     });
 
     test('should copyWith correctly', () {
@@ -551,7 +559,8 @@ void main() {
       expect(fromJson.type, equals(streak.type));
       expect(fromJson.currentCount, equals(streak.currentCount));
       expect(fromJson.longestCount, equals(streak.longestCount));
-      expect(fromJson.lastMilestoneAwardedLevel, equals(streak.lastMilestoneAwardedLevel));
+      expect(fromJson.lastMilestoneAwardedLevel,
+          equals(streak.lastMilestoneAwardedLevel));
     });
   });
 
@@ -563,7 +572,8 @@ void main() {
       expect(FamilyReactionType.values, contains(FamilyReactionType.helpful));
       expect(FamilyReactionType.values, contains(FamilyReactionType.amazing));
       expect(FamilyReactionType.values, contains(FamilyReactionType.wellDone));
-      expect(FamilyReactionType.values, contains(FamilyReactionType.educational));
+      expect(
+          FamilyReactionType.values, contains(FamilyReactionType.educational));
     });
   });
 
@@ -829,7 +839,8 @@ void main() {
       expect(event.id, isNotEmpty);
       expect(event.userId, equals('user123'));
       expect(event.eventType, equals(AnalyticsEventTypes.classification));
-      expect(event.eventName, equals(AnalyticsEventNames.classificationCompleted));
+      expect(
+          event.eventName, equals(AnalyticsEventNames.classificationCompleted));
       expect(event.parameters['category'], equals('Recyclable'));
       expect(event.timestamp, isNotNull);
     });
@@ -894,7 +905,8 @@ void main() {
         'color': Colors.blue.value,
       });
 
-      expect(achievementWithInvalidType.type, equals(AchievementType.wasteIdentified));
+      expect(achievementWithInvalidType.type,
+          equals(AchievementType.wasteIdentified));
     });
 
     test('should handle large datasets', () {
@@ -937,7 +949,8 @@ void main() {
       expect(fromJson.discoveredItemIds, hasLength(1000));
     });
 
-    test('should maintain data integrity through multiple serialization cycles', () {
+    test('should maintain data integrity through multiple serialization cycles',
+        () {
       final originalProfile = GamificationProfile(
         userId: 'integrity_test',
         streaks: {
@@ -964,8 +977,10 @@ void main() {
       final finalDeserialized = GamificationProfile.fromJson(json);
 
       expect(finalDeserialized.userId, equals(originalProfile.userId));
-      expect(finalDeserialized.points.total, equals(originalProfile.points.total));
-      expect(finalDeserialized.points.categoryPoints, equals(originalProfile.points.categoryPoints));
+      expect(
+          finalDeserialized.points.total, equals(originalProfile.points.total));
+      expect(finalDeserialized.points.categoryPoints,
+          equals(originalProfile.points.categoryPoints));
       expect(finalDeserialized.streaks['daily']?.currentCount, equals(15));
     });
   });

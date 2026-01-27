@@ -251,10 +251,10 @@ class BatchOperationService {
   Future<BatchResult> _executeClassificationChunk(
       List<WasteClassification> classifications) async {
     for (var attempt = 1; attempt <= _maxRetries; attempt++) {
-      try {
-        final batch = _firestore.batch();
-        final operationIds = <String>[];
+      final batch = _firestore.batch();
+      final operationIds = <String>[];
 
+      try {
         for (final classification in classifications) {
           final docRef = _firestore
               .collection('users')
@@ -310,10 +310,10 @@ class BatchOperationService {
   Future<BatchResult> _executeGamificationChunk(
       String userId, List<GamificationUpdate> updates) async {
     for (var attempt = 1; attempt <= _maxRetries; attempt++) {
-      try {
-        final batch = _firestore.batch();
-        final operationIds = <String>[];
+      final batch = _firestore.batch();
+      final operationIds = <String>[];
 
+      try {
         // Merge all updates for the same user into a single document update
         final mergedData = <String, dynamic>{};
         final metadata = <String, dynamic>{};

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
 import '../utils/constants.dart';
@@ -149,6 +150,34 @@ class EnhancedAiApiService {
     }
   }
 
+  /// Compress image to reduce API costs and latency
+  Future<Uint8List> _compressImage(Uint8List bytes) async {
+    if (bytes.length < 200 * 1024) return bytes;
+
+    try {
+      final result = await FlutterImageCompress.compressWithList(
+        bytes,
+        minWidth: 800,
+        minHeight: 800,
+        quality: 85,
+        rotate: 0,
+      );
+
+      WasteAppLogger.info('Image compressed', context: {
+        'original_kb': (bytes.length / 1024).toStringAsFixed(1),
+        'compressed_kb': (result.length / 1024).toStringAsFixed(1),
+        'reduction':
+            '${((1 - result.length / bytes.length) * 100).toStringAsFixed(0)}%',
+      });
+
+      return result;
+    } catch (e) {
+      WasteAppLogger.warning('Image compression failed, using original',
+          error: e);
+      return bytes;
+    }
+  }
+
   /// Analyze image with specific model
   Future<WasteClassification> _analyzeWithModel({
     required String model,
@@ -158,10 +187,12 @@ class EnhancedAiApiService {
     required String language,
     bool enableSegmentation = false,
   }) async {
+    final compressedBytes = await _compressImage(imageBytes);
+
     if (_isOpenAIModel(model)) {
       return _analyzeWithOpenAI(
         model: model,
-        imageBytes: imageBytes,
+        imageBytes: compressedBytes,
         imageName: imageName,
         region: region,
         language: language,
@@ -170,7 +201,7 @@ class EnhancedAiApiService {
     } else if (_isGeminiModel(model)) {
       return _analyzeWithGemini(
         model: model,
-        imageBytes: imageBytes,
+        imageBytes: compressedBytes,
         imageName: imageName,
         region: region,
         language: language,
@@ -216,8 +247,9 @@ class EnhancedAiApiService {
           ],
         },
       ],
-      'max_tokens': enableSegmentation ? 2000 : 1000,
-      'temperature': 0.1,
+      'max_tokens': enableSegmentation ? 2000 : 500,
+      'temperature': 0.0,
+      'response_format': {'type': 'json_object'},
     };
 
     final response = await _openAiClient.post<Map<String, dynamic>>(
@@ -226,6 +258,25 @@ class EnhancedAiApiService {
       operationId: 'openai_waste_analysis',
       timeout: const Duration(minutes: 2),
     );
+
+    // Track actual cost (gpt-4o-mini pricing)
+    try {
+      final usage = response.data?['usage'] as Map<String, dynamic>?;
+      if (usage != null) {
+        final promptTokens = usage['prompt_tokens'] as int? ?? 0;
+        final completionTokens = usage['completion_tokens'] as int? ?? 0;
+        final cost = (promptTokens * 0.15 + completionTokens * 0.60) / 1000000;
+        _modelCosts[model] = (_modelCosts[model] ?? 0) + cost;
+        WasteAppLogger.info('OpenAI cost tracked', context: {
+          'model': model,
+          'prompt_tokens': promptTokens,
+          'completion_tokens': completionTokens,
+          'cost_usd': cost.toStringAsFixed(6),
+        });
+      }
+    } catch (e) {
+      WasteAppLogger.warning('Cost tracking failed', error: e);
+    }
 
     if (!response.isSuccessful) {
       throw Exception('OpenAI API request failed: ${response.statusCode}');
@@ -263,8 +314,9 @@ class EnhancedAiApiService {
         },
       ],
       'generationConfig': {
-        'temperature': 0.1,
-        'maxOutputTokens': enableSegmentation ? 2000 : 1000,
+        'temperature': 0.0,
+        'maxOutputTokens': enableSegmentation ? 2000 : 500,
+        'responseMimeType': 'application/json',
       },
     };
 
@@ -294,21 +346,16 @@ class EnhancedAiApiService {
       return preferredModel;
     }
 
-    // Cost optimization logic
+    // Cost optimization logic - compressed images by default
     if (enableCostOptimization) {
-      // For large images or segmentation, use more capable models
-      if (imageSize > 1024 * 1024 || enableSegmentation) {
-        return ApiConfig.primaryModel; // GPT-4 variant
+      if (enableSegmentation) {
+        return ApiConfig.primaryModel; // More capable for segmentation
       }
 
-      // For smaller images, use cost-effective models
-      if (imageSize < 512 * 1024) {
-        return ApiConfig.secondaryModel1; // GPT-4o-mini
-      }
+      return 'gpt-4o-mini';
     }
 
-    // Default to primary model
-    return ApiConfig.primaryModel;
+    return 'gpt-4o-mini';
   }
 
   /// Get fallback model for a given primary model
@@ -344,10 +391,20 @@ class EnhancedAiApiService {
   /// Build system prompt
   String _buildSystemPrompt(String region, String language) {
     return '''
-You are an expert waste classification system for the region: $region.
-Respond in language: $language.
-Classify waste items accurately according to local waste management guidelines.
-Always provide structured JSON responses with classification, confidence, and disposal instructions.
+You are a waste classification API for $region. Output valid JSON only.
+{
+  "item_name": "specific name",
+  "category": "Recyclable|Organic|Hazardous|E-Waste|Reject",
+  "subcategory": "material type",
+  "confidence": 0.0-1.0,
+  "disposal_bin": "Blue|Green|Red|Black",
+  "recyclable": boolean,
+  "steps": ["max 3 steps"],
+  "requires_special_dropoff": boolean,
+  "explanation": "one sentence"
+}
+Rules for $region: Pizza boxes with grease=Organic(Green), Styrofoam=Reject(Black), Batteries=Hazardous(Red)+special dropoff.
+Language: $language
 ''';
   }
 
@@ -392,13 +449,8 @@ Analyze this waste item image and provide a JSON response with:
         throw Exception('No content in OpenAI response');
       }
 
-      // Parse JSON from content
-      final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(content);
-      if (jsonMatch == null) {
-        throw Exception('No JSON found in OpenAI response');
-      }
-
-      final jsonData = json.decode(jsonMatch.group(0)!) as Map<String, dynamic>;
+      // Parse JSON directly (JSON mode enforced in request)
+      final jsonData = json.decode(content) as Map<String, dynamic>;
 
       // Build a complete classification JSON for fromJson factory
       final classificationJson = {
@@ -458,13 +510,8 @@ Analyze this waste item image and provide a JSON response with:
         throw Exception('No text in Gemini response');
       }
 
-      // Parse JSON from text
-      final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(text);
-      if (jsonMatch == null) {
-        throw Exception('No JSON found in Gemini response');
-      }
-
-      final jsonData = json.decode(jsonMatch.group(0)!) as Map<String, dynamic>;
+      // Parse JSON directly (JSON mode enforced in request)
+      final jsonData = json.decode(text) as Map<String, dynamic>;
 
       // Build a complete classification JSON for fromJson factory
       final classificationJson = {

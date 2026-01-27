@@ -7,7 +7,8 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 
 void main() {
   group('UI Overflow Fixes Tests', () {
-    testWidgets('Classification feedback chips handle overflow correctly', (WidgetTester tester) async {
+    testWidgets('Classification feedback chips handle overflow correctly',
+        (WidgetTester tester) async {
       // Create a test classification
       final classification = WasteClassification(
         itemName: 'Very Long Item Name That Could Cause Overflow Issues',
@@ -55,7 +56,8 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('History list item handles long category names', (WidgetTester tester) async {
+    testWidgets('History list item handles long category names',
+        (WidgetTester tester) async {
       final classification = WasteClassification(
         itemName: 'Very Long Item Name That Could Cause Overflow',
         subcategory: 'Very Long Subcategory Name',
@@ -97,7 +99,8 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('Interactive tag collection handles many tags', (WidgetTester tester) async {
+    testWidgets('Interactive tag collection handles many tags',
+        (WidgetTester tester) async {
       // Create many tags to test overflow
       final tags = List.generate(
         10,
@@ -130,7 +133,8 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('Modal dialogs have proper height constraints', (WidgetTester tester) async {
+    testWidgets('Modal dialogs have proper height constraints',
+        (WidgetTester tester) async {
       final classification = WasteClassification(
         itemName: 'Test Item',
         explanation: 'Test explanation',

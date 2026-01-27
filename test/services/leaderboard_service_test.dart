@@ -61,8 +61,10 @@ void main() {
           }),
         ];
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
@@ -85,8 +87,10 @@ void main() {
       });
 
       test('should handle empty global leaderboard', () async {
-        when(mockCollection.where('period', isEqualTo: 'thisMonth')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisMonth'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn([]);
@@ -99,13 +103,16 @@ void main() {
       });
 
       test('should handle global leaderboard fetch error', () async {
-        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenThrow(Exception('Firestore error'));
 
         expect(
-          () => leaderboardService.getGlobalLeaderboard(LeaderboardPeriod.thisWeek),
+          () => leaderboardService
+              .getGlobalLeaderboard(LeaderboardPeriod.thisWeek),
           throwsException,
         );
       });
@@ -122,8 +129,10 @@ void main() {
                   'classificationsCount': 100 - index,
                 }));
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.limit(25)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
@@ -164,9 +173,12 @@ void main() {
           }),
         ];
 
-        when(mockCollection.where('familyId', isEqualTo: familyId)).thenReturn(mockQuery);
-        when(mockQuery.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('familyId', isEqualTo: familyId))
+            .thenReturn(mockQuery);
+        when(mockQuery.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
 
@@ -188,9 +200,12 @@ void main() {
       test('should handle empty family leaderboard', () async {
         const familyId = 'empty_family';
 
-        when(mockCollection.where('familyId', isEqualTo: familyId)).thenReturn(mockQuery);
-        when(mockQuery.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('familyId', isEqualTo: familyId))
+            .thenReturn(mockQuery);
+        when(mockQuery.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn([]);
 
@@ -289,7 +304,8 @@ void main() {
         const classificationsCount = 110;
 
         when(mockCollection.doc(userId)).thenReturn(MockDocumentReference());
-        when(mockCollection.doc(userId).set(any, any)).thenAnswer((_) async => null);
+        when(mockCollection.doc(userId).set(any, any))
+            .thenAnswer((_) async => null);
 
         await leaderboardService.updateUserScore(
           userId,
@@ -365,8 +381,10 @@ void main() {
           }),
         ];
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
 
@@ -375,7 +393,8 @@ void main() {
         when(mockFirestore.batch()).thenReturn(mockBatch);
         when(mockBatch.commit()).thenAnswer((_) async {});
 
-        await leaderboardService.recalculateRankings(LeaderboardPeriod.thisWeek);
+        await leaderboardService
+            .recalculateRankings(LeaderboardPeriod.thisWeek);
 
         verify(mockQuery.orderBy('score', descending: true)).called(1);
         verify(mockBatch.commit()).called(1);
@@ -393,7 +412,8 @@ void main() {
                   'accuracyRate': 0.9 - (index * 0.001),
                 }));
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
 
@@ -417,8 +437,10 @@ void main() {
                   'score': 1000 - index * 10,
                 }));
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
 
@@ -441,9 +463,12 @@ void main() {
                   'rank': 20 + index + 1,
                 }));
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.where('rank', isGreaterThanOrEqualTo: 20)).thenReturn(mockQuery);
-        when(mockQuery.where('rank', isLessThanOrEqualTo: 30)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.where('rank', isGreaterThanOrEqualTo: 20))
+            .thenReturn(mockQuery);
+        when(mockQuery.where('rank', isLessThanOrEqualTo: 30))
+            .thenReturn(mockQuery);
         when(mockQuery.orderBy('rank')).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
@@ -463,8 +488,10 @@ void main() {
     group('Leaderboard Periods', () {
       test('should handle all leaderboard periods', () async {
         for (final period in LeaderboardPeriod.values) {
-          when(mockCollection.where('period', isEqualTo: period.name)).thenReturn(mockQuery);
-          when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+          when(mockCollection.where('period', isEqualTo: period.name))
+              .thenReturn(mockQuery);
+          when(mockQuery.orderBy('score', descending: true))
+              .thenReturn(mockQuery);
           when(mockQuery.limit(50)).thenReturn(mockQuery);
           when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
           when(mockQuerySnapshot.docs).thenReturn([]);
@@ -472,7 +499,8 @@ void main() {
           final result = await leaderboardService.getGlobalLeaderboard(period);
 
           expect(result, isA<List<LeaderboardEntry>>());
-          verify(mockCollection.where('period', isEqualTo: period.name)).called(1);
+          verify(mockCollection.where('period', isEqualTo: period.name))
+              .called(1);
         }
       });
 
@@ -531,15 +559,18 @@ void main() {
 
     group('Error Handling and Edge Cases', () {
       test('should handle Firestore connection timeout', () async {
-        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenThrow(
           TimeoutException('Connection timeout', const Duration(seconds: 30)),
         );
 
         expect(
-          () => leaderboardService.getGlobalLeaderboard(LeaderboardPeriod.thisWeek),
+          () => leaderboardService
+              .getGlobalLeaderboard(LeaderboardPeriod.thisWeek),
           throwsA(isA<TimeoutException>()),
         );
       });
@@ -551,8 +582,10 @@ void main() {
           'rank': null,
         });
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn([malformedDoc]);
@@ -590,7 +623,9 @@ void main() {
             (index) => _createMockDoc('old_user_$index', {
                   'userId': 'old_user_$index',
                   'period': 'thisWeek',
-                  'lastUpdated': DateTime.now().subtract(const Duration(days: 14)).toIso8601String(),
+                  'lastUpdated': DateTime.now()
+                      .subtract(const Duration(days: 14))
+                      .toIso8601String(),
                 }));
 
         when(mockCollection.where(
@@ -625,8 +660,10 @@ void main() {
           }),
         ];
 
-        when(mockCollection.where('period', isEqualTo: 'thisWeek')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'thisWeek'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.limit(50)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(mockDocs);
@@ -656,8 +693,10 @@ void main() {
                   'rank': index + 1,
                 }));
 
-        when(mockCollection.where('period', isEqualTo: 'allTime')).thenReturn(mockQuery);
-        when(mockQuery.orderBy('score', descending: true)).thenReturn(mockQuery);
+        when(mockCollection.where('period', isEqualTo: 'allTime'))
+            .thenReturn(mockQuery);
+        when(mockQuery.orderBy('score', descending: true))
+            .thenReturn(mockQuery);
         when(mockQuery.limit(1000)).thenReturn(mockQuery);
         when(mockQuery.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(mockQuerySnapshot.docs).thenReturn(largeLeaderboard);

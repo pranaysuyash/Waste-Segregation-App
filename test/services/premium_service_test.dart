@@ -75,10 +75,12 @@ void main() {
         // In debug mode, some test features might be enabled
         if (kDebugMode) {
           // Verify at least some features exist
-          expect(premiumFeatures.length + comingSoonFeatures.length, equals(PremiumFeature.features.length));
+          expect(premiumFeatures.length + comingSoonFeatures.length,
+              equals(PremiumFeature.features.length));
         } else {
           expect(premiumFeatures, isEmpty);
-          expect(comingSoonFeatures.length, equals(PremiumFeature.features.length));
+          expect(comingSoonFeatures.length,
+              equals(PremiumFeature.features.length));
         }
       });
 
@@ -170,7 +172,8 @@ void main() {
         }
 
         final comingSoonFeatures = premiumService.getComingSoonFeatures();
-        final expectedCount = PremiumFeature.features.length - premiumFeatureIds.length;
+        final expectedCount =
+            PremiumFeature.features.length - premiumFeatureIds.length;
         expect(comingSoonFeatures.length, equals(expectedCount));
 
         for (final feature in comingSoonFeatures) {
@@ -200,7 +203,8 @@ void main() {
         final comingSoonFeatures = premiumService.getComingSoonFeatures();
 
         expect(premiumFeatures, isEmpty);
-        expect(comingSoonFeatures.length, equals(PremiumFeature.features.length));
+        expect(
+            comingSoonFeatures.length, equals(PremiumFeature.features.length));
       });
     });
 
@@ -230,7 +234,13 @@ void main() {
 
       test('should handle premium subscription validation', () async {
         // Test that all premium features can be enabled at once (subscription model)
-        const allFeatures = ['remove_ads', 'theme_customization', 'offline_mode', 'advanced_analytics', 'export_data'];
+        const allFeatures = [
+          'remove_ads',
+          'theme_customization',
+          'offline_mode',
+          'advanced_analytics',
+          'export_data'
+        ];
 
         for (final feature in allFeatures) {
           await premiumService.setPremiumFeature(feature, true);
@@ -314,7 +324,10 @@ void main() {
       test('should handle invalid feature IDs gracefully', () async {
         const invalidFeatureId = 'non_existent_feature';
 
-        expect(() async => premiumService.setPremiumFeature(invalidFeatureId, true), returnsNormally);
+        expect(
+            () async =>
+                premiumService.setPremiumFeature(invalidFeatureId, true),
+            returnsNormally);
 
         expect(premiumService.isPremiumFeature(invalidFeatureId), isFalse);
       });
@@ -408,15 +421,19 @@ void main() {
         expect(() => premiumService.isPremiumFeature(''), returnsNormally);
         expect(premiumService.isPremiumFeature(''), isFalse);
 
-        expect(() async => premiumService.setPremiumFeature('', true), returnsNormally);
+        expect(() async => premiumService.setPremiumFeature('', true),
+            returnsNormally);
       });
 
       test('should handle very long feature IDs', () async {
         final longFeatureId = 'a' * 1000;
 
-        expect(() async => premiumService.setPremiumFeature(longFeatureId, true), returnsNormally);
+        expect(
+            () async => premiumService.setPremiumFeature(longFeatureId, true),
+            returnsNormally);
 
-        expect(() => premiumService.isPremiumFeature(longFeatureId), returnsNormally);
+        expect(() => premiumService.isPremiumFeature(longFeatureId),
+            returnsNormally);
       });
 
       test('should handle rapid initialization attempts', () async {
@@ -471,7 +488,11 @@ void main() {
       });
 
       test('should maintain feature state consistency', () async {
-        const testFeatures = ['remove_ads', 'theme_customization', 'offline_mode'];
+        const testFeatures = [
+          'remove_ads',
+          'theme_customization',
+          'offline_mode'
+        ];
 
         // Enable some features
         for (var i = 0; i < testFeatures.length; i++) {
@@ -482,7 +503,8 @@ void main() {
         final enabledFeatures = premiumService.getPremiumFeatures();
         final comingSoonFeatures = premiumService.getComingSoonFeatures();
 
-        expect(enabledFeatures.length + comingSoonFeatures.length, equals(PremiumFeature.features.length));
+        expect(enabledFeatures.length + comingSoonFeatures.length,
+            equals(PremiumFeature.features.length));
       });
     });
   });

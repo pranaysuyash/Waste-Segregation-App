@@ -188,11 +188,16 @@ void main() {
   group('ContentInteractionType', () {
     test('should have all expected enum values', () {
       expect(ContentInteractionType.values, hasLength(5));
-      expect(ContentInteractionType.values, contains(ContentInteractionType.favorite));
-      expect(ContentInteractionType.values, contains(ContentInteractionType.unfavorite));
-      expect(ContentInteractionType.values, contains(ContentInteractionType.share));
-      expect(ContentInteractionType.values, contains(ContentInteractionType.bookmark));
-      expect(ContentInteractionType.values, contains(ContentInteractionType.like));
+      expect(ContentInteractionType.values,
+          contains(ContentInteractionType.favorite));
+      expect(ContentInteractionType.values,
+          contains(ContentInteractionType.unfavorite));
+      expect(ContentInteractionType.values,
+          contains(ContentInteractionType.share));
+      expect(ContentInteractionType.values,
+          contains(ContentInteractionType.bookmark));
+      expect(
+          ContentInteractionType.values, contains(ContentInteractionType.like));
     });
   });
 
@@ -219,7 +224,8 @@ void main() {
       // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
       service = EducationalContentAnalyticsService();
-      await Future.delayed(const Duration(milliseconds: 100)); // Allow initialization
+      await Future.delayed(
+          const Duration(milliseconds: 100)); // Allow initialization
     });
 
     tearDown(() {
@@ -343,7 +349,8 @@ void main() {
 
     group('Content Interactions', () {
       test('should track favorite interactions', () async {
-        await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.favorite);
 
         final analytics = service.getContentAnalytics('content_1');
         final favorites = service.getFavoriteContent();
@@ -355,9 +362,11 @@ void main() {
 
       test('should track unfavorite interactions', () async {
         // First favorite it
-        await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.favorite);
         // Then unfavorite it
-        await service.trackContentInteraction('content_1', ContentInteractionType.unfavorite);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.unfavorite);
 
         final analytics = service.getContentAnalytics('content_1');
         final favorites = service.getFavoriteContent();
@@ -368,17 +377,22 @@ void main() {
       });
 
       test('should track other interaction types', () async {
-        await service.trackContentInteraction('content_1', ContentInteractionType.share);
-        await service.trackContentInteraction('content_1', ContentInteractionType.bookmark);
-        await service.trackContentInteraction('content_1', ContentInteractionType.like);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.share);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.bookmark);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.like);
 
         final analytics = service.getContentAnalytics('content_1');
         expect(analytics.interactions, equals(3));
       });
 
       test('should not duplicate favorites', () async {
-        await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
-        await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.favorite);
 
         final favorites = service.getFavoriteContent();
         expect(favorites.where((id) => id == 'content_1'), hasLength(1));
@@ -458,8 +472,10 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
         await service.endContentSession(wasCompleted: true);
 
-        await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
-        await service.trackContentInteraction('content_2', ContentInteractionType.share);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            'content_2', ContentInteractionType.share);
 
         final metrics = service.getTotalEngagementMetrics();
 
@@ -493,10 +509,26 @@ void main() {
         await service.trackContentView('sci_content_1', 'Science');
 
         const allContent = [
-          EducationalContent(id: 'env_new', title: 'New Env', category: 'Environment', type: 'Article'),
-          EducationalContent(id: 'sci_new', title: 'New Sci', category: 'Science', type: 'Video'),
-          EducationalContent(id: 'health_new', title: 'New Health', category: 'Health', type: 'Article'),
-          EducationalContent(id: 'env_viewed', title: 'Viewed Env', category: 'Environment', type: 'Article'),
+          EducationalContent(
+              id: 'env_new',
+              title: 'New Env',
+              category: 'Environment',
+              type: 'Article'),
+          EducationalContent(
+              id: 'sci_new',
+              title: 'New Sci',
+              category: 'Science',
+              type: 'Video'),
+          EducationalContent(
+              id: 'health_new',
+              title: 'New Health',
+              category: 'Health',
+              type: 'Article'),
+          EducationalContent(
+              id: 'env_viewed',
+              title: 'Viewed Env',
+              category: 'Environment',
+              type: 'Article'),
         ];
 
         // Mark one as heavily viewed
@@ -510,8 +542,14 @@ void main() {
         );
 
         expect(recommendations, isNotEmpty);
-        expect(recommendations, contains('env_new')); // Should recommend new content in favorite category
-        expect(recommendations, isNot(contains('env_viewed'))); // Should not recommend heavily viewed content
+        expect(
+            recommendations,
+            contains(
+                'env_new')); // Should recommend new content in favorite category
+        expect(
+            recommendations,
+            isNot(contains(
+                'env_viewed'))); // Should not recommend heavily viewed content
       });
 
       test('should handle empty content list for recommendations', () {
@@ -527,7 +565,8 @@ void main() {
       test('should clear all analytics data', () async {
         // Set up some data
         await service.trackContentView('content_1', 'Environment');
-        await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.favorite);
         await service.trackSearchQuery('test query');
 
         // Verify data exists
@@ -550,7 +589,8 @@ void main() {
         // Set up comprehensive test data
         await service.trackContentView('content_1', 'Environment');
         await service.trackContentView('content_2', 'Science');
-        await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.favorite);
         await service.trackSearchQuery('recycling');
 
         service.startContentSession('content_1');
@@ -565,7 +605,8 @@ void main() {
         expect(exportedData, containsPair('favoriteContent', isList));
         expect(exportedData, containsPair('searchHistory', isList));
 
-        final totalMetrics = exportedData['totalMetrics'] as Map<String, dynamic>;
+        final totalMetrics =
+            exportedData['totalMetrics'] as Map<String, dynamic>;
         expect(totalMetrics['totalViews'], equals(2));
         expect(totalMetrics['totalCompletions'], equals(1));
         expect(totalMetrics['favoriteCount'], equals(1));
@@ -603,7 +644,8 @@ void main() {
         const specialId = 'content-with-special_chars.123!@#';
 
         await service.trackContentView(specialId, 'Environment');
-        await service.trackContentInteraction(specialId, ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            specialId, ContentInteractionType.favorite);
 
         final analytics = service.getContentAnalytics(specialId);
         expect(analytics.views, equals(1));
@@ -655,7 +697,8 @@ void main() {
         });
 
         await service.trackContentView('content_1', 'Environment');
-        await service.trackContentInteraction('content_1', ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            'content_1', ContentInteractionType.favorite);
 
         service.startContentSession('content_2');
         await service.endContentSession(wasCompleted: true);
@@ -664,7 +707,8 @@ void main() {
         expect(notificationCount, greaterThan(0));
       });
 
-      test('should maintain state consistency during rapid operations', () async {
+      test('should maintain state consistency during rapid operations',
+          () async {
         // Rapid content viewing
         for (var i = 0; i < 100; i++) {
           await service.trackContentView('rapid_content', 'Environment');
@@ -674,7 +718,8 @@ void main() {
         expect(analytics.views, equals(100));
 
         final recentlyViewed = service.getRecentlyViewed();
-        expect(recentlyViewed.where((id) => id == 'rapid_content'), hasLength(1));
+        expect(
+            recentlyViewed.where((id) => id == 'rapid_content'), hasLength(1));
       });
     });
 
@@ -682,16 +727,19 @@ void main() {
       test('should persist and load analytics data', () async {
         await service.trackContentView('persist_1', 'CategoryA');
         await service.recordTimeSpent('persist_1', const Duration(seconds: 30));
-        await service.trackContentInteraction('persist_1', ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            'persist_1', ContentInteractionType.favorite);
         await service.recordCompletion('persist_1');
 
         // Create a new service instance to simulate app restart
         final newService = EducationalContentAnalyticsService();
-        await Future.delayed(const Duration(milliseconds: 100)); // Allow initialization
+        await Future.delayed(
+            const Duration(milliseconds: 100)); // Allow initialization
 
         final loadedAnalytics = newService.getContentAnalytics('persist_1');
         expect(loadedAnalytics.views, equals(1));
-        expect(loadedAnalytics.totalTimeSpent, equals(const Duration(seconds: 30)));
+        expect(loadedAnalytics.totalTimeSpent,
+            equals(const Duration(seconds: 30)));
         expect(loadedAnalytics.interactions, equals(1)); // Favorite
         expect(loadedAnalytics.completions, equals(1));
         expect(loadedAnalytics.isFavorite, isTrue);
@@ -717,11 +765,13 @@ void main() {
       test('should handle multiple content items correctly', () async {
         await service.trackContentView('multi_1', 'MultiCat');
         await service.recordTimeSpent('multi_1', const Duration(minutes: 1));
-        await service.trackContentInteraction('multi_1', ContentInteractionType.like);
+        await service.trackContentInteraction(
+            'multi_1', ContentInteractionType.like);
 
         await service.trackContentView('multi_2', 'MultiCat');
         await service.recordTimeSpent('multi_2', const Duration(minutes: 2));
-        await service.trackContentInteraction('multi_2', ContentInteractionType.bookmark);
+        await service.trackContentInteraction(
+            'multi_2', ContentInteractionType.bookmark);
 
         // New service
         final newService = EducationalContentAnalyticsService();
@@ -745,28 +795,36 @@ void main() {
         await service.trackContentView('content_A', 'CategoryX');
         await service.recordTimeSpent('content_A', const Duration(minutes: 5));
         await service.recordCompletion('content_A');
-        await service.trackContentInteraction('content_A', ContentInteractionType.favorite);
+        await service.trackContentInteraction(
+            'content_A', ContentInteractionType.favorite);
 
         await service.trackContentView('content_B', 'CategoryY');
         await service.recordTimeSpent('content_B', const Duration(minutes: 10));
         // No completion for content_B
-        await service.trackContentInteraction('content_B', ContentInteractionType.share);
-        await service.trackContentInteraction('content_B', ContentInteractionType.like);
+        await service.trackContentInteraction(
+            'content_B', ContentInteractionType.share);
+        await service.trackContentInteraction(
+            'content_B', ContentInteractionType.like);
 
-        await service.trackContentView('content_A', 'CategoryX'); // Second view for content_A
+        await service.trackContentView(
+            'content_A', 'CategoryX'); // Second view for content_A
 
         final overallMetrics = service.getOverallEngagementMetrics();
 
         expect(overallMetrics.totalViews, equals(3)); // 2 for A, 1 for B
-        expect(overallMetrics.totalTimeSpent, equals(const Duration(minutes: 15)));
+        expect(
+            overallMetrics.totalTimeSpent, equals(const Duration(minutes: 15)));
         expect(overallMetrics.totalCompletions, equals(1)); // Only A completed
         expect(overallMetrics.totalInteractions, equals(3)); // 1 for A, 2 for B
         expect(overallMetrics.uniqueContentViewed, equals(2)); // A and B
         expect(overallMetrics.favoriteCount, equals(1)); // Only A favorited
 
-        expect(overallMetrics.averageTimePerContent,
-            equals(const Duration(minutes: 7, seconds: 30))); // 15 min / 2 unique contents
-        expect(overallMetrics.completionRate, closeTo(1 / 3, 0.01)); // 1 completion / 3 views
+        expect(
+            overallMetrics.averageTimePerContent,
+            equals(const Duration(
+                minutes: 7, seconds: 30))); // 15 min / 2 unique contents
+        expect(overallMetrics.completionRate,
+            closeTo(1 / 3, 0.01)); // 1 completion / 3 views
       });
     });
   });

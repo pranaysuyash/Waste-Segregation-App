@@ -23,7 +23,8 @@ void main() {
       mockThemeProvider = MockThemeProvider();
 
       // Set up default mock behavior
-      when(mockPremiumService.isPremiumFeature('theme_customization')).thenReturn(false);
+      when(mockPremiumService.isPremiumFeature('theme_customization'))
+          .thenReturn(false);
       when(mockPremiumService.getComingSoonFeatures()).thenReturn([]);
       when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
       when(mockThemeProvider.themeMode).thenReturn(ThemeMode.system);
@@ -33,7 +34,8 @@ void main() {
       bool isPremium = false,
       ThemeMode initialThemeMode = ThemeMode.system,
     }) {
-      when(mockPremiumService.isPremiumFeature('theme_customization')).thenReturn(isPremium);
+      when(mockPremiumService.isPremiumFeature('theme_customization'))
+          .thenReturn(isPremium);
       when(mockThemeProvider.themeMode).thenReturn(initialThemeMode);
 
       return ProviderScope(
@@ -76,22 +78,26 @@ void main() {
         expect(find.byIcon(Icons.dark_mode), findsOneWidget);
       });
 
-      testWidgets('should show radio buttons for theme selection', (tester) async {
+      testWidgets('should show radio buttons for theme selection',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         expect(find.byType(Radio<ThemeMode>), findsNWidgets(3));
       });
 
-      testWidgets('should show premium features navigation row', (tester) async {
+      testWidgets('should show premium features navigation row',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(isPremium: false));
 
         expect(find.text('Premium Features').first, findsOneWidget);
-        expect(find.text('Unlock advanced theme customization and more'), findsOneWidget);
+        expect(find.text('Unlock advanced theme customization and more'),
+            findsOneWidget);
         expect(find.byIcon(Icons.workspace_premium), findsAtLeastNWidgets(1));
         expect(find.byIcon(Icons.chevron_right), findsOneWidget);
       });
 
-      testWidgets('should show custom themes section for non-premium users', (tester) async {
+      testWidgets('should show custom themes section for non-premium users',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(isPremium: false));
 
         expect(find.text('Custom Themes'), findsOneWidget);
@@ -99,7 +105,8 @@ void main() {
         expect(find.byIcon(Icons.palette), findsOneWidget);
       });
 
-      testWidgets('should hide custom themes section for premium users', (tester) async {
+      testWidgets('should hide custom themes section for premium users',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(isPremium: true));
 
         expect(find.text('Custom Themes'), findsNothing);
@@ -109,20 +116,25 @@ void main() {
     });
 
     group('Premium Features Navigation', () {
-      testWidgets('should show premium feature prompt when custom themes is tapped', (tester) async {
+      testWidgets(
+          'should show premium feature prompt when custom themes is tapped',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(isPremium: false));
 
         await tester.tap(find.text('Custom Themes'));
         await tester.pumpAndSettle();
 
         expect(find.text('Premium Feature'), findsOneWidget);
-        expect(find.text('Custom themes are available with a premium subscription. Upgrade to unlock this feature!'),
+        expect(
+            find.text(
+                'Custom themes are available with a premium subscription. Upgrade to unlock this feature!'),
             findsOneWidget);
         expect(find.text('Maybe Later'), findsOneWidget);
         expect(find.text('Upgrade Now'), findsOneWidget);
       });
 
-      testWidgets('should close dialog when maybe later is tapped', (tester) async {
+      testWidgets('should close dialog when maybe later is tapped',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(isPremium: false));
 
         // Tap custom themes to show dialog
@@ -138,7 +150,9 @@ void main() {
         expect(find.text('Theme Settings'), findsOneWidget);
       });
 
-      testWidgets('should navigate to premium features when premium features row is tapped', (tester) async {
+      testWidgets(
+          'should navigate to premium features when premium features row is tapped',
+          (tester) async {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -149,7 +163,8 @@ void main() {
               initialRoute: '/',
               routes: {
                 '/': (_) => const ThemeSettingsScreen(),
-                '/premium': (context) => provider.ChangeNotifierProvider<PremiumService>.value(
+                '/premium': (context) =>
+                    provider.ChangeNotifierProvider<PremiumService>.value(
                       value: mockPremiumService,
                       child: const PremiumFeaturesScreen(),
                     ),
@@ -166,7 +181,8 @@ void main() {
             widget.title is Text &&
             (widget.title as Text).data == 'Premium Features' &&
             widget.subtitle is Text &&
-            (widget.subtitle as Text).data == 'Unlock advanced theme customization and more');
+            (widget.subtitle as Text).data ==
+                'Unlock advanced theme customization and more');
 
         expect(premiumFeaturesRow, findsOneWidget);
         await tester.tap(premiumFeaturesRow);
@@ -184,7 +200,8 @@ void main() {
         ));
 
         final systemRadio = tester.widget<Radio<ThemeMode>>(
-          find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.system),
+          find.byWidgetPredicate((widget) =>
+              widget is Radio<ThemeMode> && widget.value == ThemeMode.system),
         );
 
         expect(systemRadio.groupValue, equals(ThemeMode.system));
@@ -196,7 +213,8 @@ void main() {
         ));
 
         final lightRadio = tester.widget<Radio<ThemeMode>>(
-          find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.light),
+          find.byWidgetPredicate((widget) =>
+              widget is Radio<ThemeMode> && widget.value == ThemeMode.light),
         );
 
         expect(lightRadio.groupValue, equals(ThemeMode.light));
@@ -208,34 +226,37 @@ void main() {
         ));
 
         final darkRadio = tester.widget<Radio<ThemeMode>>(
-          find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.dark),
+          find.byWidgetPredicate((widget) =>
+              widget is Radio<ThemeMode> && widget.value == ThemeMode.dark),
         );
 
         expect(darkRadio.groupValue, equals(ThemeMode.dark));
       });
 
-      testWidgets('should call theme provider when theme mode is changed', (tester) async {
+      testWidgets('should call theme provider when theme mode is changed',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(
           initialThemeMode: ThemeMode.system,
         ));
 
         // Tap light theme radio button
-        await tester
-            .tap(find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
+        await tester.tap(find.byWidgetPredicate((widget) =>
+            widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
         await tester.pumpAndSettle();
 
         // Verify that setThemeMode was called
         verify(mockThemeProvider.setThemeMode(ThemeMode.light)).called(1);
       });
 
-      testWidgets('should call theme provider when dark theme is selected', (tester) async {
+      testWidgets('should call theme provider when dark theme is selected',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(
           initialThemeMode: ThemeMode.system,
         ));
 
         // Tap dark theme radio button
-        await tester
-            .tap(find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.dark));
+        await tester.tap(find.byWidgetPredicate((widget) =>
+            widget is Radio<ThemeMode> && widget.value == ThemeMode.dark));
         await tester.pumpAndSettle();
 
         // Verify that setThemeMode was called
@@ -263,7 +284,8 @@ void main() {
         expect(find.byType(Divider), findsOneWidget);
       });
 
-      testWidgets('should handle tap on system default ListTile', (tester) async {
+      testWidgets('should handle tap on system default ListTile',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(
           initialThemeMode: ThemeMode.light,
         ));
@@ -307,21 +329,25 @@ void main() {
         expect(tester.takeException(), isNull);
       });
 
-      testWidgets('should handle theme provider errors gracefully', (tester) async {
-        when(mockThemeProvider.setThemeMode(any)).thenThrow(Exception('Theme error'));
+      testWidgets('should handle theme provider errors gracefully',
+          (tester) async {
+        when(mockThemeProvider.setThemeMode(any))
+            .thenThrow(Exception('Theme error'));
 
         await tester.pumpWidget(createTestWidget());
 
-        await tester
-            .tap(find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
+        await tester.tap(find.byWidgetPredicate((widget) =>
+            widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
         await tester.pumpAndSettle();
 
         // Should not crash the app
         expect(find.byType(ThemeSettingsScreen), findsOneWidget);
       });
 
-      testWidgets('should handle premium service errors gracefully', (tester) async {
-        when(mockPremiumService.isPremiumFeature('theme_customization')).thenThrow(Exception('Premium service error'));
+      testWidgets('should handle premium service errors gracefully',
+          (tester) async {
+        when(mockPremiumService.isPremiumFeature('theme_customization'))
+            .thenThrow(Exception('Premium service error'));
 
         expect(() async {
           await tester.pumpWidget(createTestWidget());
@@ -333,12 +359,12 @@ void main() {
 
         // Rapidly change theme modes
         for (int i = 0; i < 5; i++) {
-          await tester
-              .tap(find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
+          await tester.tap(find.byWidgetPredicate((widget) =>
+              widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
           await tester.pump();
 
-          await tester
-              .tap(find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.dark));
+          await tester.tap(find.byWidgetPredicate((widget) =>
+              widget is Radio<ThemeMode> && widget.value == ThemeMode.dark));
           await tester.pump();
         }
 
@@ -400,7 +426,8 @@ void main() {
     });
 
     group('Accessibility', () {
-      testWidgets('should have proper semantics for radio buttons', (tester) async {
+      testWidgets('should have proper semantics for radio buttons',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         final radioButtons = find.byType(Radio<ThemeMode>);
@@ -413,7 +440,8 @@ void main() {
         }
       });
 
-      testWidgets('should have proper labels for screen readers', (tester) async {
+      testWidgets('should have proper labels for screen readers',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         expect(find.text('System Default'), findsOneWidget);
@@ -444,20 +472,22 @@ void main() {
         ));
 
         final darkRadio = tester.widget<Radio<ThemeMode>>(
-          find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.dark),
+          find.byWidgetPredicate((widget) =>
+              widget is Radio<ThemeMode> && widget.value == ThemeMode.dark),
         );
 
         expect(darkRadio.groupValue, equals(ThemeMode.dark));
       });
 
-      testWidgets('should update state when theme provider changes', (tester) async {
+      testWidgets('should update state when theme provider changes',
+          (tester) async {
         await tester.pumpWidget(createTestWidget(
           initialThemeMode: ThemeMode.system,
         ));
 
         // Change the theme via the provider
-        await tester
-            .tap(find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
+        await tester.tap(find.byWidgetPredicate((widget) =>
+            widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
         await tester.pumpAndSettle();
 
         // Verify the provider method was called
@@ -477,15 +507,16 @@ void main() {
     });
 
     group('Performance Tests', () {
-      testWidgets('should handle multiple rapid taps efficiently', (tester) async {
+      testWidgets('should handle multiple rapid taps efficiently',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         final stopwatch = Stopwatch()..start();
 
         // Rapidly tap different options
         for (int i = 0; i < 10; i++) {
-          await tester
-              .tap(find.byWidgetPredicate((widget) => widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
+          await tester.tap(find.byWidgetPredicate((widget) =>
+              widget is Radio<ThemeMode> && widget.value == ThemeMode.light));
           await tester.pump();
         }
 
@@ -502,7 +533,8 @@ void main() {
         await tester.pumpWidget(createTestWidget());
 
         // Navigate away to trigger disposal
-        await tester.pumpWidget(const MaterialApp(home: Text('Different Screen')));
+        await tester
+            .pumpWidget(const MaterialApp(home: Text('Different Screen')));
 
         expect(find.text('Different Screen'), findsOneWidget);
         expect(find.byType(ThemeSettingsScreen), findsNothing);

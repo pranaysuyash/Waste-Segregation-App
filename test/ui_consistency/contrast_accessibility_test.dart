@@ -7,7 +7,8 @@ void main() {
   group('Contrast and Accessibility Tests', () {
     /// Basic Color Contrast Tests
     group('Basic Color Contrast', () {
-      testWidgets('Primary colors meet WCAG AA standards', (WidgetTester tester) async {
+      testWidgets('Primary colors meet WCAG AA standards',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: AppTheme.lightTheme,
@@ -16,18 +17,22 @@ void main() {
         );
 
         // Test primary color contrast with white text
-        final primaryContrast = _calculateContrast(Colors.white, AppTheme.primaryColor);
+        final primaryContrast =
+            _calculateContrast(Colors.white, AppTheme.primaryColor);
         expect(primaryContrast, greaterThan(4.5),
             reason:
                 'Primary color should have 4.5:1 contrast with white text - got ${primaryContrast.toStringAsFixed(2)}:1');
 
         // Test secondary color contrast
-        final secondaryContrast = _calculateContrast(Colors.white, AppTheme.secondaryColor);
+        final secondaryContrast =
+            _calculateContrast(Colors.white, AppTheme.secondaryColor);
         expect(secondaryContrast, greaterThan(3.0),
-            reason: 'Secondary color should have readable contrast - got ${secondaryContrast.toStringAsFixed(2)}:1');
+            reason:
+                'Secondary color should have readable contrast - got ${secondaryContrast.toStringAsFixed(2)}:1');
       });
 
-      testWidgets('Text colors have sufficient contrast', (WidgetTester tester) async {
+      testWidgets('Text colors have sufficient contrast',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: AppTheme.lightTheme,
@@ -39,8 +44,14 @@ void main() {
         final colorPairs = [
           [Colors.white, AppTheme.primaryColor],
           [Colors.black, AppTheme.backgroundColor],
-          [AppTheme.textPrimaryColor, AppTheme.backgroundColor], // FIXED: Use textPrimaryColor
-          [AppTheme.textSecondaryColor, AppTheme.backgroundColor], // FIXED: Use textSecondaryColor
+          [
+            AppTheme.textPrimaryColor,
+            AppTheme.backgroundColor
+          ], // FIXED: Use textPrimaryColor
+          [
+            AppTheme.textSecondaryColor,
+            AppTheme.backgroundColor
+          ], // FIXED: Use textSecondaryColor
         ];
 
         for (final pair in colorPairs) {
@@ -54,11 +65,13 @@ void main() {
 
     /// Color Contrast Compliance Tests
     group('WCAG Color Contrast Compliance', () {
-      testWidgets('Primary color scheme meets WCAG AA standards', (WidgetTester tester) async {
+      testWidgets('Primary color scheme meets WCAG AA standards',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primaryColor),
+              colorScheme:
+                  ColorScheme.fromSeed(seedColor: AppTheme.primaryColor),
             ),
             home: const Scaffold(body: Text('Test')),
           ),
@@ -73,7 +86,8 @@ void main() {
           colorScheme.primary,
         );
         expect(primaryContrast, greaterThan(4.5),
-            reason: 'Primary color contrast should meet WCAG AA (4.5:1) - got ${primaryContrast.toStringAsFixed(2)}:1');
+            reason:
+                'Primary color contrast should meet WCAG AA (4.5:1) - got ${primaryContrast.toStringAsFixed(2)}:1');
 
         // Test secondary color combinations
         final secondaryContrast = _calculateContrast(
@@ -90,14 +104,17 @@ void main() {
           colorScheme.surface,
         );
         expect(surfaceContrast, greaterThan(4.5),
-            reason: 'Surface color contrast should meet WCAG AA (4.5:1) - got ${surfaceContrast.toStringAsFixed(2)}:1');
+            reason:
+                'Surface color contrast should meet WCAG AA (4.5:1) - got ${surfaceContrast.toStringAsFixed(2)}:1');
       });
 
-      testWidgets('Error and warning colors have sufficient contrast', (WidgetTester tester) async {
+      testWidgets('Error and warning colors have sufficient contrast',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primaryColor),
+              colorScheme:
+                  ColorScheme.fromSeed(seedColor: AppTheme.primaryColor),
             ),
             home: const Scaffold(body: Text('Test')),
           ),
@@ -112,7 +129,8 @@ void main() {
           colorScheme.error,
         );
         expect(errorContrast, greaterThan(4.5),
-            reason: 'Error color contrast should meet WCAG AA (4.5:1) - got ${errorContrast.toStringAsFixed(2)}:1');
+            reason:
+                'Error color contrast should meet WCAG AA (4.5:1) - got ${errorContrast.toStringAsFixed(2)}:1');
 
         // Test error container contrast
         final errorContainerContrast = _calculateContrast(
@@ -124,7 +142,8 @@ void main() {
                 'Error container should have minimum readable contrast - got ${errorContainerContrast.toStringAsFixed(2)}:1');
       });
 
-      testWidgets('App-specific color constants meet contrast requirements', (WidgetTester tester) async {
+      testWidgets('App-specific color constants meet contrast requirements',
+          (WidgetTester tester) async {
         // Test predefined color constants
         final colorPairs = [
           [Colors.white, AppTheme.primaryColor],
@@ -144,7 +163,8 @@ void main() {
 
     /// Dark Mode Contrast Tests
     group('Dark Mode Color Contrast', () {
-      testWidgets('Dark theme maintains proper contrast ratios', (WidgetTester tester) async {
+      testWidgets('Dark theme maintains proper contrast ratios',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.dark(),
@@ -161,7 +181,8 @@ void main() {
           colorScheme.primary,
         );
         expect(primaryContrast, greaterThan(3.0),
-            reason: 'Dark theme primary contrast should be readable - got ${primaryContrast.toStringAsFixed(2)}:1');
+            reason:
+                'Dark theme primary contrast should be readable - got ${primaryContrast.toStringAsFixed(2)}:1');
 
         // Test dark theme surface colors
         final surfaceContrast = _calculateContrast(
@@ -169,7 +190,8 @@ void main() {
           colorScheme.surface,
         );
         expect(surfaceContrast, greaterThan(4.5),
-            reason: 'Dark theme surface contrast should meet WCAG AA - got ${surfaceContrast.toStringAsFixed(2)}:1');
+            reason:
+                'Dark theme surface contrast should meet WCAG AA - got ${surfaceContrast.toStringAsFixed(2)}:1');
       });
 
       testWidgets('High contrast mode support', (WidgetTester tester) async {
@@ -191,13 +213,15 @@ void main() {
           colorScheme.primary,
         );
         expect(primaryContrast, greaterThan(7.0),
-            reason: 'High contrast theme should exceed WCAG AAA (7:1) - got ${primaryContrast.toStringAsFixed(2)}:1');
+            reason:
+                'High contrast theme should exceed WCAG AAA (7:1) - got ${primaryContrast.toStringAsFixed(2)}:1');
       });
     });
 
     /// Text Readability Tests
     group('Text Readability and Sizing', () {
-      testWidgets('Text maintains readability at different sizes', (WidgetTester tester) async {
+      testWidgets('Text maintains readability at different sizes',
+          (WidgetTester tester) async {
         final testSizes = [12.0, 14.0, 16.0, 18.0, 20.0, 24.0];
 
         for (final fontSize in testSizes) {
@@ -224,12 +248,14 @@ void main() {
           if (fontSize < 14.0) {
             final contrast = _calculateContrast(Colors.black, Colors.white);
             expect(contrast, greaterThan(7.0),
-                reason: 'Small text (${fontSize}px) should have enhanced contrast (7:1)');
+                reason:
+                    'Small text (${fontSize}px) should have enhanced contrast (7:1)');
           }
         }
       });
 
-      testWidgets('Text scales properly with accessibility settings', (WidgetTester tester) async {
+      testWidgets('Text scales properly with accessibility settings',
+          (WidgetTester tester) async {
         final scaleFactors = [0.8, 1.0, 1.2, 1.5, 2.0, 3.0];
 
         for (final scaleFactor in scaleFactors) {
@@ -241,7 +267,9 @@ void main() {
                 home: const Scaffold(
                   body: Column(
                     children: [
-                      Text('Heading Text', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                      Text('Heading Text',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w600)),
                       Text('Body Text', style: TextStyle(fontSize: 16)),
                       Text('Caption Text', style: TextStyle(fontSize: 12)),
                     ],
@@ -258,13 +286,16 @@ void main() {
             final finder = find.byWidget(textWidget);
             if (tester.any(finder)) {
               final size = tester.getSize(finder);
-              expect(size.width, greaterThan(0), reason: 'Text should render properly at scale factor $scaleFactor');
+              expect(size.width, greaterThan(0),
+                  reason:
+                      'Text should render properly at scale factor $scaleFactor');
             }
           }
         }
       });
 
-      testWidgets('Long text handles overflow gracefully', (WidgetTester tester) async {
+      testWidgets('Long text handles overflow gracefully',
+          (WidgetTester tester) async {
         const longText =
             'This is a very long text that should test how the application handles text overflow when the content is too long to fit in the available space and should wrap or truncate appropriately.';
 
@@ -296,7 +327,8 @@ void main() {
 
     /// Color Blindness Accessibility Tests
     group('Color Blindness Accessibility', () {
-      testWidgets('Important information is not conveyed by color alone', (WidgetTester tester) async {
+      testWidgets('Important information is not conveyed by color alone',
+          (WidgetTester tester) async {
         // Test common UI patterns that should not rely solely on color
         await tester.pumpWidget(
           const MaterialApp(
@@ -339,11 +371,15 @@ void main() {
         expect(find.text('Warning: Please review'), findsOneWidget);
       });
 
-      testWidgets('Color combinations work for common color blindness types', (WidgetTester tester) async {
+      testWidgets('Color combinations work for common color blindness types',
+          (WidgetTester tester) async {
         // FIXED: Test more realistic color combinations with better contrast
         final colorBlindFriendlyPairs = [
           [Colors.black, Colors.white], // High contrast
-          [Colors.blue.shade800, Colors.yellow.shade200], // FIXED: Darker blue, lighter yellow for better contrast
+          [
+            Colors.blue.shade800,
+            Colors.yellow.shade200
+          ], // FIXED: Darker blue, lighter yellow for better contrast
           [AppTheme.primaryColor, Colors.white], // Our app's primary color
         ];
 
@@ -358,7 +394,8 @@ void main() {
 
     /// Interactive Element Accessibility
     group('Interactive Element Accessibility', () {
-      testWidgets('Touch targets meet minimum size requirements', (WidgetTester tester) async {
+      testWidgets('Touch targets meet minimum size requirements',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: AppTheme.lightTheme,
@@ -391,22 +428,28 @@ void main() {
 
             // Material Design minimum touch target is 48x48dp
             expect(size.width, greaterThanOrEqualTo(48.0),
-                reason: 'Interactive element should meet minimum width of 48dp');
+                reason:
+                    'Interactive element should meet minimum width of 48dp');
             expect(size.height, greaterThanOrEqualTo(48.0),
-                reason: 'Interactive element should meet minimum height of 48dp');
+                reason:
+                    'Interactive element should meet minimum height of 48dp');
           }
         }
       });
 
-      testWidgets('Focus indicators are visible and accessible', (WidgetTester tester) async {
+      testWidgets('Focus indicators are visible and accessible',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: Column(
                 children: [
-                  ElevatedButton(onPressed: () {}, child: const Text('Button 1')),
-                  ElevatedButton(onPressed: () {}, child: const Text('Button 2')),
-                  const TextField(decoration: InputDecoration(labelText: 'Input')),
+                  ElevatedButton(
+                      onPressed: () {}, child: const Text('Button 1')),
+                  ElevatedButton(
+                      onPressed: () {}, child: const Text('Button 2')),
+                  const TextField(
+                      decoration: InputDecoration(labelText: 'Input')),
                 ],
               ),
             ),
@@ -424,7 +467,8 @@ void main() {
 
     /// Dynamic Content Accessibility
     group('Dynamic Content Accessibility', () {
-      testWidgets('Loading states maintain accessibility', (WidgetTester tester) async {
+      testWidgets('Loading states maintain accessibility',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -449,7 +493,8 @@ void main() {
         expect(find.text('Loading...'), findsOneWidget);
       });
 
-      testWidgets('Error states provide clear feedback', (WidgetTester tester) async {
+      testWidgets('Error states provide clear feedback',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -462,7 +507,9 @@ void main() {
                       children: [
                         Icon(Icons.error, color: Colors.red),
                         SizedBox(width: 8),
-                        Expanded(child: Text('An error occurred. Please try again.')),
+                        Expanded(
+                            child:
+                                Text('An error occurred. Please try again.')),
                       ],
                     ),
                   ),
@@ -474,11 +521,14 @@ void main() {
 
         // Error state should be clearly visible and informative
         expect(find.byIcon(Icons.error), findsOneWidget);
-        expect(find.text('An error occurred. Please try again.'), findsOneWidget);
+        expect(
+            find.text('An error occurred. Please try again.'), findsOneWidget);
 
         // Error container should have sufficient contrast
-        final errorContrast = _calculateContrast(Colors.red, Colors.red.shade100);
-        expect(errorContrast, greaterThan(2.0), reason: 'Error state should have visible contrast');
+        final errorContrast =
+            _calculateContrast(Colors.red, Colors.red.shade100);
+        expect(errorContrast, greaterThan(2.0),
+            reason: 'Error state should have visible contrast');
       });
     });
   });

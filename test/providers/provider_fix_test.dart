@@ -60,7 +60,8 @@ void main() {
     test('provider imports should be consistent', () {
       // This test verifies that the provider can be imported and accessed
       // without any import conflicts or duplicate declarations
-      expect(storageServiceProvider.runtimeType.toString(), contains('Provider'));
+      expect(
+          storageServiceProvider.runtimeType.toString(), contains('Provider'));
     });
 
     test('central providers file should be accessible', () {

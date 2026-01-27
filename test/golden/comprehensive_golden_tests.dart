@@ -72,7 +72,8 @@ void main() {
       );
 
       await tester.pumpDeviceBuilder(builder);
-      await screenMatchesGolden(tester, 'classification_results_all_categories');
+      await screenMatchesGolden(
+          tester, 'classification_results_all_categories');
     });
 
     testGoldens('Gamification Components - Achievement States', (tester) async {
@@ -411,7 +412,8 @@ WasteClassification _createTestClassification(
     subcategory: subcategory,
     explanation: 'This is a test $itemName for golden test purposes.',
     disposalInstructions: DisposalInstructions(
-      primaryMethod: hasUrgent ? 'Immediate Special Handling' : 'Standard Disposal',
+      primaryMethod:
+          hasUrgent ? 'Immediate Special Handling' : 'Standard Disposal',
       steps: hasUrgent
           ? ['Handle with care', 'Take to hazardous waste facility immediately']
           : ['Clean if necessary', 'Place in appropriate bin'],
@@ -454,6 +456,8 @@ Achievement _createTestAchievement(
     targetValue: 100,
     currentValue: (progress * 100).round(),
     unlockedAt: isUnlocked ? DateTime(2024, 6, 24, 10, 0) : null,
-    claimedAt: claimStatus == ClaimStatus.claimed ? DateTime(2024, 6, 24, 11, 0) : null,
+    claimedAt: claimStatus == ClaimStatus.claimed
+        ? DateTime(2024, 6, 24, 11, 0)
+        : null,
   );
 }

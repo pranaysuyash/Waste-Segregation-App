@@ -46,7 +46,8 @@ void main() {
         expect(hash.length, greaterThan(6)); // Should have content after prefix
       });
 
-      test('should handle normalized vs non-normalized images consistently', () async {
+      test('should handle normalized vs non-normalized images consistently',
+          () async {
         final hashNormalized = await ImageUtils.generateImageHash(
           testImageBytes,
         );
@@ -84,7 +85,9 @@ void main() {
         expect(hash, startsWith('simple_'));
       });
 
-      test('should generate different hashes for similar but not identical images', () async {
+      test(
+          'should generate different hashes for similar but not identical images',
+          () async {
         // Create two similar but slightly different images
         final image1 = img.Image(width: 50, height: 50);
         img.fill(image1, color: img.ColorRgb8(255, 0, 0));
@@ -239,7 +242,8 @@ void main() {
         for (final rect in invalidRects) {
           final cropped = await ImageUtils.cropImage(testImageBytes, rect);
           expect(cropped, isNull,
-              reason: 'Should return null for invalid rect: ${rect.left}, ${rect.top}, ${rect.width}, ${rect.height}');
+              reason:
+                  'Should return null for invalid rect: ${rect.left}, ${rect.top}, ${rect.width}, ${rect.height}');
         }
       });
 
@@ -299,7 +303,8 @@ void main() {
 
         for (final url in invalidUrls) {
           final bytes = ImageUtils.dataUrlToBytes(url);
-          expect(bytes, isNull, reason: 'Should return null for invalid URL: $url');
+          expect(bytes, isNull,
+              reason: 'Should return null for invalid URL: $url');
         }
       });
 
@@ -393,7 +398,8 @@ void main() {
         stopwatch.stop();
 
         expect(processed, isNotEmpty);
-        expect(stopwatch.elapsedMilliseconds, lessThan(10000)); // Should complete within 10 seconds
+        expect(stopwatch.elapsedMilliseconds,
+            lessThan(10000)); // Should complete within 10 seconds
 
         // Verify it was resized to target dimensions
         final decodedImage = img.decodeImage(processed);

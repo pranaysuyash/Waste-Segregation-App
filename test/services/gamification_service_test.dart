@@ -25,7 +25,8 @@ void main() {
     setUp(() async {
       mockStorageService = MockStorageService();
       mockCloudStorageService = MockCloudStorageService();
-      gamificationService = GamificationService(mockStorageService, mockCloudStorageService);
+      gamificationService =
+          GamificationService(mockStorageService, mockCloudStorageService);
 
       // Initialize the service
       await gamificationService.initGamification();
@@ -39,9 +40,11 @@ void main() {
       }
     });
 
-    test('getProfile should return guest profile when no user profile exists', () async {
+    test('getProfile should return guest profile when no user profile exists',
+        () async {
       // Arrange
-      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => null);
+      when(mockStorageService.getCurrentUserProfile())
+          .thenAnswer((_) async => null);
 
       // Act
       final profile = await gamificationService.getProfile();
@@ -53,7 +56,9 @@ void main() {
       expect(profile.points, isNotNull);
     });
 
-    test('getProfile should return existing gamification profile when user profile exists', () async {
+    test(
+        'getProfile should return existing gamification profile when user profile exists',
+        () async {
       // Arrange
       final existingGamificationProfile = GamificationProfile(
         userId: 'test_user_123',
@@ -73,7 +78,8 @@ void main() {
         gamificationProfile: existingGamificationProfile,
       );
 
-      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => userProfile);
+      when(mockStorageService.getCurrentUserProfile())
+          .thenAnswer((_) async => userProfile);
 
       // Act
       final profile = await gamificationService.getProfile();
@@ -85,7 +91,9 @@ void main() {
       expect(profile.points.level, equals(2));
     });
 
-    test('getProfile should create new profile for authenticated user without gamification profile', () async {
+    test(
+        'getProfile should create new profile for authenticated user without gamification profile',
+        () async {
       // Arrange
       final userProfile = UserProfile(
         id: 'test_user_456',
@@ -96,7 +104,8 @@ void main() {
         gamificationProfile: null, // No gamification profile yet
       );
 
-      when(mockStorageService.getCurrentUserProfile()).thenAnswer((_) async => userProfile);
+      when(mockStorageService.getCurrentUserProfile())
+          .thenAnswer((_) async => userProfile);
 
       // Act
       final profile = await gamificationService.getProfile();
@@ -108,9 +117,12 @@ void main() {
       expect(profile.points, isNotNull);
     });
 
-    test('getProfile should handle errors gracefully and return emergency profile', () async {
+    test(
+        'getProfile should handle errors gracefully and return emergency profile',
+        () async {
       // Arrange
-      when(mockStorageService.getCurrentUserProfile()).thenThrow(Exception('Storage error'));
+      when(mockStorageService.getCurrentUserProfile())
+          .thenThrow(Exception('Storage error'));
 
       // Act
       final profile = await gamificationService.getProfile();
@@ -118,7 +130,8 @@ void main() {
       // Assert
       expect(profile, isNotNull);
       expect(profile.userId, startsWith('emergency_user_'));
-      expect(profile.achievements, isEmpty); // Emergency profile has empty achievements
+      expect(profile.achievements,
+          isEmpty); // Emergency profile has empty achievements
       expect(profile.points, isNotNull);
     });
 

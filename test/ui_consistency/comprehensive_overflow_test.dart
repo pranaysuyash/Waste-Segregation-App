@@ -41,8 +41,10 @@ void main() {
     });
 
     group('StatsCard Overflow Tests', () {
-      testWidgets('StatsCard handles very narrow screen without overflow', (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(280, 600)); // Very narrow screen
+      testWidgets('StatsCard handles very narrow screen without overflow',
+          (WidgetTester tester) async {
+        await tester.binding
+            .setSurfaceSize(const Size(280, 600)); // Very narrow screen
 
         await tester.pumpWidget(
           const MaterialApp(
@@ -53,12 +55,14 @@ void main() {
                   children: [
                     Expanded(
                       child: StatsCard(
-                        title: 'Very Long Classification Title That Could Overflow',
+                        title:
+                            'Very Long Classification Title That Could Overflow',
                         value: '1,234,567,890',
                         icon: Icons.analytics,
                         color: AppTheme.primaryColor,
                         trend: '+999%',
-                        subtitle: 'Really long subtitle that might cause issues',
+                        subtitle:
+                            'Really long subtitle that might cause issues',
                       ),
                     ),
                   ],
@@ -71,7 +75,8 @@ void main() {
         await tester.pump();
 
         // Check for RenderFlex overflow errors
-        expect(tester.takeException(), isNull, reason: 'No RenderFlex overflow should occur');
+        expect(tester.takeException(), isNull,
+            reason: 'No RenderFlex overflow should occur');
 
         // Verify the card is rendered
         expect(find.byType(StatsCard), findsOneWidget);
@@ -80,8 +85,10 @@ void main() {
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('Multiple StatsCards in row handle overflow gracefully', (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(320, 568)); // iPhone SE size
+      testWidgets('Multiple StatsCards in row handle overflow gracefully',
+          (WidgetTester tester) async {
+        await tester.binding
+            .setSurfaceSize(const Size(320, 568)); // iPhone SE size
 
         await tester.pumpWidget(
           const MaterialApp(
@@ -129,7 +136,8 @@ void main() {
         await tester.pump();
 
         // Check for overflow errors
-        expect(tester.takeException(), isNull, reason: 'Three StatsCards should fit without overflow');
+        expect(tester.takeException(), isNull,
+            reason: 'Three StatsCards should fit without overflow');
 
         // Verify all cards are rendered
         expect(find.byType(StatsCard), findsNWidgets(3));
@@ -138,7 +146,8 @@ void main() {
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('StatsCard adapts text scaling properly', (WidgetTester tester) async {
+      testWidgets('StatsCard adapts text scaling properly',
+          (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(300, 600));
 
         await tester.pumpWidget(
@@ -165,7 +174,8 @@ void main() {
         await tester.pump();
 
         // No overflow with large text scaling
-        expect(tester.takeException(), isNull, reason: 'Large text scaling should not cause overflow');
+        expect(tester.takeException(), isNull,
+            reason: 'Large text scaling should not cause overflow');
 
         // Reset screen size
         await tester.binding.setSurfaceSize(null);
@@ -173,8 +183,10 @@ void main() {
     });
 
     group('Home Screen Layout Tests', () {
-      testWidgets('ModernHomeScreen handles small screens without overflow', (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(280, 568)); // Very small screen
+      testWidgets('ModernHomeScreen handles small screens without overflow',
+          (WidgetTester tester) async {
+        await tester.binding
+            .setSurfaceSize(const Size(280, 568)); // Very small screen
 
         // Create mock providers for the home screen
         final mockGamificationService = MockGamificationService();
@@ -188,11 +200,13 @@ void main() {
         await tester.pumpWidget(
           MultiProvider(
             providers: [
-              Provider<GamificationService>.value(value: mockGamificationService),
+              Provider<GamificationService>.value(
+                  value: mockGamificationService),
               ChangeNotifierProvider<AdService>.value(value: mockAdService),
               Provider<StorageService>.value(value: mockStorageService),
               Provider<AiService>.value(value: mockAiService),
-              ChangeNotifierProvider<AnalyticsService>.value(value: mockAnalyticsService),
+              ChangeNotifierProvider<AnalyticsService>.value(
+                  value: mockAnalyticsService),
               Provider<CommunityService>.value(value: mockCommunityService),
             ],
             child: const MaterialApp(
@@ -208,7 +222,8 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
 
         // Check for overflow errors during initial render
-        expect(tester.takeException(), isNull, reason: 'Home screen should handle small screens without overflow');
+        expect(tester.takeException(), isNull,
+            reason: 'Home screen should handle small screens without overflow');
 
         // Try scrolling to test different sections
         final scrollView = find.byType(SingleChildScrollView);
@@ -217,14 +232,16 @@ void main() {
           await tester.pump();
 
           // Check for overflow after scrolling
-          expect(tester.takeException(), isNull, reason: 'No overflow after scrolling');
+          expect(tester.takeException(), isNull,
+              reason: 'No overflow after scrolling');
         }
 
         // Reset screen size
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('Today\'s Impact Goal section handles narrow screens', (WidgetTester tester) async {
+      testWidgets('Today\'s Impact Goal section handles narrow screens',
+          (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(300, 600));
 
         await tester.pumpWidget(
@@ -242,12 +259,14 @@ void main() {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.emoji_events, color: AppTheme.primaryColor),
+                                Icon(Icons.emoji_events,
+                                    color: AppTheme.primaryColor),
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     '🌍 Today\'s Impact Goal - Make a Difference',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -257,7 +276,10 @@ void main() {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text('2', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                                Text('2',
+                                    style: TextStyle(
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.bold)),
                                 Text(' of '),
                                 Text('10', style: TextStyle(fontSize: 20)),
                               ],
@@ -276,7 +298,8 @@ void main() {
         await tester.pump();
 
         // No overflow in impact goal section
-        expect(tester.takeException(), isNull, reason: 'Today\'s Impact Goal should handle narrow screens');
+        expect(tester.takeException(), isNull,
+            reason: 'Today\'s Impact Goal should handle narrow screens');
 
         // Reset screen size
         await tester.binding.setSurfaceSize(null);
@@ -284,8 +307,10 @@ void main() {
     });
 
     group('Responsive Layout Edge Cases', () {
-      testWidgets('Extremely narrow width (200px) handles gracefully', (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(200, 600)); // Extremely narrow
+      testWidgets('Extremely narrow width (200px) handles gracefully',
+          (WidgetTester tester) async {
+        await tester.binding
+            .setSurfaceSize(const Size(200, 600)); // Extremely narrow
 
         await tester.pumpWidget(
           const MaterialApp(
@@ -331,14 +356,17 @@ void main() {
         await tester.pump();
 
         // Even extremely narrow screens should not overflow
-        expect(tester.takeException(), isNull, reason: 'Extremely narrow screens should be handled gracefully');
+        expect(tester.takeException(), isNull,
+            reason: 'Extremely narrow screens should be handled gracefully');
 
         // Reset screen size
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('Landscape orientation handles overflow properly', (WidgetTester tester) async {
-        await tester.binding.setSurfaceSize(const Size(812, 375)); // iPhone landscape
+      testWidgets('Landscape orientation handles overflow properly',
+          (WidgetTester tester) async {
+        await tester.binding
+            .setSurfaceSize(const Size(812, 375)); // iPhone landscape
 
         await tester.pumpWidget(
           const MaterialApp(
@@ -347,7 +375,9 @@ void main() {
                 padding: EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    Expanded(child: StatsCard(title: 'Classifications', value: '123')),
+                    Expanded(
+                        child:
+                            StatsCard(title: 'Classifications', value: '123')),
                     SizedBox(width: 8),
                     Expanded(child: StatsCard(title: 'Streak', value: '45')),
                     SizedBox(width: 8),
@@ -364,14 +394,16 @@ void main() {
         await tester.pump();
 
         // Landscape with 4 cards should work fine
-        expect(tester.takeException(), isNull, reason: 'Landscape orientation should handle multiple cards');
+        expect(tester.takeException(), isNull,
+            reason: 'Landscape orientation should handle multiple cards');
         expect(find.byType(StatsCard), findsNWidgets(4));
 
         // Reset screen size
         await tester.binding.setSurfaceSize(null);
       });
 
-      testWidgets('Very long text values are truncated properly', (WidgetTester tester) async {
+      testWidgets('Very long text values are truncated properly',
+          (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(300, 600));
 
         await tester.pumpWidget(
@@ -383,7 +415,8 @@ void main() {
                   title:
                       'This is an extremely long title that should be truncated if necessary to prevent overflow issues in the UI',
                   value: '1,234,567,890,123,456,789',
-                  subtitle: 'This is also a very long subtitle that might cause problems if not handled correctly',
+                  subtitle:
+                      'This is also a very long subtitle that might cause problems if not handled correctly',
                   trend: '+999,999%',
                 ),
               ),
@@ -394,7 +427,8 @@ void main() {
         await tester.pump();
 
         // Very long content should be handled gracefully
-        expect(tester.takeException(), isNull, reason: 'Very long text should be truncated to prevent overflow');
+        expect(tester.takeException(), isNull,
+            reason: 'Very long text should be truncated to prevent overflow');
 
         // Reset screen size
         await tester.binding.setSurfaceSize(null);
@@ -402,7 +436,8 @@ void main() {
     });
 
     group('Dynamic Content Tests', () {
-      testWidgets('Stats cards adapt to changing values without overflow', (WidgetTester tester) async {
+      testWidgets('Stats cards adapt to changing values without overflow',
+          (WidgetTester tester) async {
         await tester.binding.setSurfaceSize(const Size(350, 600));
 
         var testValue = '0';
@@ -445,7 +480,8 @@ void main() {
         await tester.pump();
 
         // Even very large values should not cause overflow
-        expect(tester.takeException(), isNull, reason: 'Dynamic value changes should not cause overflow');
+        expect(tester.takeException(), isNull,
+            reason: 'Dynamic value changes should not cause overflow');
 
         // Reset screen size
         await tester.binding.setSurfaceSize(null);

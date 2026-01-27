@@ -7,7 +7,8 @@ void main() {
     group('ApiConfig Tests', () {
       test('should have valid API URLs', () {
         expect(ApiConfig.openAiBaseUrl, equals('https://api.openai.com/v1'));
-        expect(ApiConfig.geminiBaseUrl, equals('https://generativelanguage.googleapis.com/v1beta'));
+        expect(ApiConfig.geminiBaseUrl,
+            equals('https://generativelanguage.googleapis.com/v1beta'));
 
         // URLs should be valid
         expect(() => Uri.parse(ApiConfig.openAiBaseUrl), returnsNormally);
@@ -111,7 +112,8 @@ void main() {
 
           expect(theme.brightness, equals(Brightness.light));
           expect(theme.primaryColor, equals(const Color(0xFF2E7D32)));
-          expect(theme.scaffoldBackgroundColor, equals(const Color(0xFFFFFFFF)));
+          expect(
+              theme.scaffoldBackgroundColor, equals(const Color(0xFFFFFFFF)));
           expect(theme.cardColor, equals(Colors.white));
         });
 
@@ -140,7 +142,8 @@ void main() {
 
           expect(theme.brightness, equals(Brightness.dark));
           expect(theme.primaryColor, equals(const Color(0xFF2E7D32)));
-          expect(theme.scaffoldBackgroundColor, equals(const Color(0xFF121212)));
+          expect(
+              theme.scaffoldBackgroundColor, equals(const Color(0xFF121212)));
           expect(theme.cardColor, equals(const Color(0xFF1E1E1E)));
         });
 
@@ -157,9 +160,11 @@ void main() {
           final lightTheme = AppTheme.lightTheme;
           final darkTheme = AppTheme.darkTheme;
 
-          expect(lightTheme.scaffoldBackgroundColor, isNot(equals(darkTheme.scaffoldBackgroundColor)));
+          expect(lightTheme.scaffoldBackgroundColor,
+              isNot(equals(darkTheme.scaffoldBackgroundColor)));
           expect(lightTheme.cardColor, isNot(equals(darkTheme.cardColor)));
-          expect(lightTheme.textTheme.bodyLarge?.color, isNot(equals(darkTheme.textTheme.bodyLarge?.color)));
+          expect(lightTheme.textTheme.bodyLarge?.color,
+              isNot(equals(darkTheme.textTheme.bodyLarge?.color)));
         });
       });
 
@@ -194,7 +199,8 @@ void main() {
           // Colors should not be too light (for accessibility)
           expect(AppTheme.wetWasteColor.computeLuminance(), lessThan(0.5));
           expect(AppTheme.dryWasteColor.computeLuminance(), lessThan(0.5));
-          expect(AppTheme.hazardousWasteColor.computeLuminance(), lessThan(0.5));
+          expect(
+              AppTheme.hazardousWasteColor.computeLuminance(), lessThan(0.5));
         });
       });
 
@@ -311,8 +317,10 @@ void main() {
 
         test('should have accessible animation durations', () {
           // Should be between 100ms and 1000ms for good UX
-          expect(AppTheme.animationFast.inMilliseconds, greaterThanOrEqualTo(100));
-          expect(AppTheme.animationSlow.inMilliseconds, lessThanOrEqualTo(1000));
+          expect(
+              AppTheme.animationFast.inMilliseconds, greaterThanOrEqualTo(100));
+          expect(
+              AppTheme.animationSlow.inMilliseconds, lessThanOrEqualTo(1000));
         });
       });
 
@@ -324,10 +332,14 @@ void main() {
                 body: Builder(
                   builder: (context) {
                     // Test that all button styles can be created
-                    final cancelStyle = AppTheme.dialogCancelButtonStyle(context);
-                    final confirmStyle = AppTheme.dialogConfirmButtonStyle(context);
-                    final destructiveStyle = AppTheme.dialogDestructiveButtonStyle(context);
-                    final primaryStyle = AppTheme.dialogPrimaryButtonStyle(context);
+                    final cancelStyle =
+                        AppTheme.dialogCancelButtonStyle(context);
+                    final confirmStyle =
+                        AppTheme.dialogConfirmButtonStyle(context);
+                    final destructiveStyle =
+                        AppTheme.dialogDestructiveButtonStyle(context);
+                    final primaryStyle =
+                        AppTheme.dialogPrimaryButtonStyle(context);
 
                     expect(cancelStyle, isA<ButtonStyle>());
                     expect(confirmStyle, isA<ButtonStyle>());
@@ -544,7 +556,8 @@ void main() {
         for (final category in requiredCategories) {
           expect(WasteInfo.disposalInstructions.containsKey(category), isTrue);
           expect(WasteInfo.disposalInstructions[category], isNotEmpty);
-          expect(WasteInfo.disposalInstructions[category]!.length, greaterThan(20));
+          expect(WasteInfo.disposalInstructions[category]!.length,
+              greaterThan(20));
         }
       });
 
@@ -569,8 +582,12 @@ void main() {
           'Other Dry Waste',
         ];
 
-        for (final subcategory in [...wetWasteSubcategories, ...dryWasteSubcategories]) {
-          expect(WasteInfo.subcategoryExamples.containsKey(subcategory), isTrue);
+        for (final subcategory in [
+          ...wetWasteSubcategories,
+          ...dryWasteSubcategories
+        ]) {
+          expect(
+              WasteInfo.subcategoryExamples.containsKey(subcategory), isTrue);
           expect(WasteInfo.subcategoryExamples[subcategory], isNotEmpty);
         }
       });
@@ -579,9 +596,11 @@ void main() {
         final subcategories = WasteInfo.subcategoryExamples.keys.toList();
 
         for (final subcategory in subcategories) {
-          expect(WasteInfo.subcategoryDisposal.containsKey(subcategory), isTrue);
+          expect(
+              WasteInfo.subcategoryDisposal.containsKey(subcategory), isTrue);
           expect(WasteInfo.subcategoryDisposal[subcategory], isNotEmpty);
-          expect(WasteInfo.subcategoryDisposal[subcategory]!.length, greaterThan(15));
+          expect(WasteInfo.subcategoryDisposal[subcategory]!.length,
+              greaterThan(15));
         }
       });
 
@@ -635,7 +654,8 @@ void main() {
             ));
 
         // Disposal instructions should be actionable
-        final hazardousDisposal = WasteInfo.disposalInstructions['Hazardous Waste']!;
+        final hazardousDisposal =
+            WasteInfo.disposalInstructions['Hazardous Waste']!;
         expect(
             hazardousDisposal.toLowerCase(),
             anyOf(
@@ -664,7 +684,8 @@ void main() {
 
       test('should have consistent font size relationships', () {
         // Font sizes should have reasonable jumps
-        const fontSizeDiff1 = AppTheme.fontSizeMedium - AppTheme.fontSizeRegular;
+        const fontSizeDiff1 =
+            AppTheme.fontSizeMedium - AppTheme.fontSizeRegular;
         const fontSizeDiff2 = AppTheme.fontSizeLarge - AppTheme.fontSizeMedium;
 
         expect(fontSizeDiff1, equals(2.0)); // 14 to 16
@@ -722,7 +743,8 @@ void main() {
 
         for (final string in strings) {
           expect(string, isNotEmpty);
-          expect(string.trim(), equals(string)); // No leading/trailing whitespace
+          expect(
+              string.trim(), equals(string)); // No leading/trailing whitespace
         }
       });
     });

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/leaderboard.dart';
-import 'package:waste_segregation_app/models/gamification.dart' hide LeaderboardEntry;
+import 'package:waste_segregation_app/models/gamification.dart'
+    hide LeaderboardEntry;
 
 void main() {
   group('LeaderboardType', () {
@@ -80,7 +81,8 @@ void main() {
       expect(fromJson.totalClassifications, equals(stats.totalClassifications));
       expect(fromJson.currentStreak, equals(stats.currentStreak));
       expect(fromJson.bestStreak, equals(stats.bestStreak));
-      expect(fromJson.averagePointsPerClassification, equals(stats.averagePointsPerClassification));
+      expect(fromJson.averagePointsPerClassification,
+          equals(stats.averagePointsPerClassification));
       expect(fromJson.mostActiveDay, equals(stats.mostActiveDay));
       expect(fromJson.topCategory, equals(stats.topCategory));
       expect(fromJson.accuracyPercentage, equals(stats.accuracyPercentage));
@@ -102,7 +104,8 @@ void main() {
       final json = stats.toJson();
       final fromJson = UserLeaderboardStats.fromJson(json);
 
-      expect(fromJson.averagePointsPerClassification, closeTo(7.888888, 0.000001));
+      expect(
+          fromJson.averagePointsPerClassification, closeTo(7.888888, 0.000001));
       expect(fromJson.accuracyPercentage, closeTo(88.33333, 0.000001));
     });
   });
@@ -290,8 +293,10 @@ void main() {
         periodEnd: now.subtract(const Duration(days: 1)),
       );
 
-      expect(futureEnd.timeRemaining.inMilliseconds,
-          closeTo(const Duration(hours: 2).inMilliseconds, 5000)); // Check within a 5s tolerance
+      expect(
+          futureEnd.timeRemaining.inMilliseconds,
+          closeTo(const Duration(hours: 2).inMilliseconds,
+              5000)); // Check within a 5s tolerance
       expect(pastEnd.timeRemaining, equals(Duration.zero));
     });
 
@@ -446,7 +451,11 @@ void main() {
         userId: 'test',
         displayName: 'Test User',
         points: 1000,
-        categoryBreakdown: {'Category1': 500, 'Category2': 300, 'Category3': 200},
+        categoryBreakdown: {
+          'Category1': 500,
+          'Category2': 300,
+          'Category3': 200
+        },
       );
 
       final emptyEntry = LeaderboardEntry(
@@ -553,7 +562,8 @@ void main() {
       expect(updated.points, equals(1500)); // Changed
       expect(updated.rank, equals(3)); // Changed
       expect(updated.isCurrentUser, isTrue); // Changed
-      expect(original.displayName, equals('Original User')); // Original unchanged
+      expect(
+          original.displayName, equals('Original User')); // Original unchanged
     });
   });
 
@@ -561,8 +571,10 @@ void main() {
     test('should create with required parameters', () {
       final lastUpdated = DateTime.now();
       final entries = [
-        LeaderboardEntry(userId: 'user1', displayName: 'User 1', points: 1000, rank: 1),
-        LeaderboardEntry(userId: 'user2', displayName: 'User 2', points: 800, rank: 2),
+        LeaderboardEntry(
+            userId: 'user1', displayName: 'User 1', points: 1000, rank: 1),
+        LeaderboardEntry(
+            userId: 'user2', displayName: 'User 2', points: 800, rank: 2),
       ];
       final metadata = LeaderboardMetadata(
         title: 'Test Board',
@@ -630,9 +642,12 @@ void main() {
 
     test('should getEntryByUserId correctly', () {
       final entries = [
-        LeaderboardEntry(userId: 'alice', displayName: 'Alice', points: 1000, rank: 1),
-        LeaderboardEntry(userId: 'bob', displayName: 'Bob', points: 800, rank: 2),
-        LeaderboardEntry(userId: 'charlie', displayName: 'Charlie', points: 600, rank: 3),
+        LeaderboardEntry(
+            userId: 'alice', displayName: 'Alice', points: 1000, rank: 1),
+        LeaderboardEntry(
+            userId: 'bob', displayName: 'Bob', points: 800, rank: 2),
+        LeaderboardEntry(
+            userId: 'charlie', displayName: 'Charlie', points: 600, rank: 3),
       ];
 
       final leaderboard = Leaderboard(
@@ -703,11 +718,16 @@ void main() {
 
     test('should getMinimumScoreForTopN correctly', () {
       final entries = [
-        LeaderboardEntry(userId: 'user1', displayName: 'User 1', points: 1000, rank: 1),
-        LeaderboardEntry(userId: 'user2', displayName: 'User 2', points: 900, rank: 2),
-        LeaderboardEntry(userId: 'user3', displayName: 'User 3', points: 800, rank: 3),
-        LeaderboardEntry(userId: 'user4', displayName: 'User 4', points: 700, rank: 4),
-        LeaderboardEntry(userId: 'user5', displayName: 'User 5', points: 600, rank: 5),
+        LeaderboardEntry(
+            userId: 'user1', displayName: 'User 1', points: 1000, rank: 1),
+        LeaderboardEntry(
+            userId: 'user2', displayName: 'User 2', points: 900, rank: 2),
+        LeaderboardEntry(
+            userId: 'user3', displayName: 'User 3', points: 800, rank: 3),
+        LeaderboardEntry(
+            userId: 'user4', displayName: 'User 4', points: 700, rank: 4),
+        LeaderboardEntry(
+            userId: 'user5', displayName: 'User 5', points: 600, rank: 5),
       ];
 
       final leaderboard = Leaderboard(
@@ -724,15 +744,20 @@ void main() {
         totalParticipants: 5,
       );
 
-      expect(leaderboard.getMinimumScoreForTopN(3), equals(800)); // 3rd place score
-      expect(leaderboard.getMinimumScoreForTopN(5), equals(600)); // 5th place score
-      expect(leaderboard.getMinimumScoreForTopN(10), isNull); // Not enough entries
+      expect(leaderboard.getMinimumScoreForTopN(3),
+          equals(800)); // 3rd place score
+      expect(leaderboard.getMinimumScoreForTopN(5),
+          equals(600)); // 5th place score
+      expect(
+          leaderboard.getMinimumScoreForTopN(10), isNull); // Not enough entries
     });
 
     test('should serialize to and from JSON correctly', () {
       final entries = [
-        LeaderboardEntry(userId: 'json1', displayName: 'JSON User 1', points: 500, rank: 1),
-        LeaderboardEntry(userId: 'json2', displayName: 'JSON User 2', points: 400, rank: 2),
+        LeaderboardEntry(
+            userId: 'json1', displayName: 'JSON User 1', points: 500, rank: 1),
+        LeaderboardEntry(
+            userId: 'json2', displayName: 'JSON User 2', points: 400, rank: 2),
       ];
 
       final currentUser = LeaderboardEntry(
@@ -825,7 +850,8 @@ void main() {
       expect(updated.entries, hasLength(1));
       expect(updated.totalParticipants, equals(200));
       expect(updated.familyId, equals('new_family'));
-      expect(original.type, equals(LeaderboardType.global)); // Original unchanged
+      expect(
+          original.type, equals(LeaderboardType.global)); // Original unchanged
       expect(original.entries, isEmpty); // Original unchanged
     });
   });
@@ -872,7 +898,8 @@ void main() {
         totalParticipants: 2,
       );
 
-      expect(leaderboard.getEntriesInRange(1, 5), isEmpty); // No entries have ranks
+      expect(leaderboard.getEntriesInRange(1, 5),
+          isEmpty); // No entries have ranks
       expect(entriesWithoutRanks[0].rankChange, isNull);
     });
 
@@ -959,9 +986,11 @@ void main() {
       expect(finalDeserialized.userId, equals(entry.userId));
       expect(finalDeserialized.points, equals(entry.points));
       expect(finalDeserialized.rankChange, equals(entry.rankChange));
-      expect(finalDeserialized.categoryBreakdown, equals(entry.categoryBreakdown));
+      expect(
+          finalDeserialized.categoryBreakdown, equals(entry.categoryBreakdown));
       expect(finalDeserialized.recentAchievements, hasLength(1));
-      expect(finalDeserialized.stats?.averagePointsPerClassification, closeTo(8.247, 0.001));
+      expect(finalDeserialized.stats?.averagePointsPerClassification,
+          closeTo(8.247, 0.001));
       expect(finalDeserialized.topCategoryPercentage, closeTo(0.3950, 0.001));
     });
   });

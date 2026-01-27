@@ -88,7 +88,8 @@ class MockStorageService extends Mock implements StorageService {
   }
 
   @override
-  Future<List<WasteClassification>> getAllClassifications({FilterOptions? filterOptions}) async {
+  Future<List<WasteClassification>> getAllClassifications(
+      {FilterOptions? filterOptions}) async {
     return [];
   }
 
@@ -117,12 +118,14 @@ class MockGamificationService extends Mock implements GamificationService {
   }
 
   @override
-  Future<List<Challenge>> processClassification(WasteClassification classification) async {
+  Future<List<Challenge>> processClassification(
+      WasteClassification classification) async {
     return [];
   }
 
   @override
-  Future<UserPoints> addPoints(String action, {String? category, int? customPoints}) async {
+  Future<UserPoints> addPoints(String action,
+      {String? category, int? customPoints}) async {
     return UserPoints(total: 110, weeklyTotal: 10);
   }
 
@@ -158,7 +161,8 @@ class MockPremiumService extends Mock implements PremiumService {
 // Mock Analytics Service
 class MockAnalyticsService extends Mock implements AnalyticsService {
   @override
-  Future<void> logEvent(String eventName, {Map<String, dynamic>? parameters}) async {
+  Future<void> logEvent(String eventName,
+      {Map<String, dynamic>? parameters}) async {
     // Mock implementation
   }
 

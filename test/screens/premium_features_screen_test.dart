@@ -69,7 +69,8 @@ void main() {
 
     group('Basic Layout and Structure', () {
       testWidgets('should display app bar with correct title', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -78,19 +79,25 @@ void main() {
         expect(find.byType(AppBar), findsOneWidget);
       });
 
-      testWidgets('should display header section with gradient background', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should display header section with gradient background',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
 
         expect(find.text('Upgrade to Premium'), findsOneWidget);
-        expect(find.text('Get access to all premium features and enjoy an ad-free experience'), findsOneWidget);
+        expect(
+            find.text(
+                'Get access to all premium features and enjoy an ad-free experience'),
+            findsOneWidget);
         expect(find.byIcon(Icons.workspace_premium), findsAtLeastNWidgets(1));
       });
 
       testWidgets('should display feature badges in header', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -101,17 +108,20 @@ void main() {
       });
 
       testWidgets('should display purchase button', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
 
-        expect(find.text('Upgrade to Premium'), findsNWidgets(2)); // Header + Button
+        expect(find.text('Upgrade to Premium'),
+            findsNWidgets(2)); // Header + Button
         expect(find.byType(ElevatedButton), findsOneWidget);
       });
 
       testWidgets('should be scrollable', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -121,9 +131,12 @@ void main() {
     });
 
     group('Developer Mode Features', () {
-      testWidgets('should show developer mode toggle when debug mode is enabled', (tester) async {
+      testWidgets(
+          'should show developer mode toggle when debug mode is enabled',
+          (tester) async {
         // This test depends on DeveloperConfig.canShowPremiumToggles
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -132,8 +145,11 @@ void main() {
         // The visibility depends on the DeveloperConfig.canShowPremiumToggles
       });
 
-      testWidgets('should toggle developer options when developer button is pressed', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets(
+          'should toggle developer options when developer button is pressed',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -145,12 +161,15 @@ void main() {
           await tester.pump();
 
           expect(find.text('DEVELOPER TESTING MODE'), findsOneWidget);
-          expect(find.text('Use these toggles to test premium features'), findsOneWidget);
+          expect(find.text('Use these toggles to test premium features'),
+              findsOneWidget);
         }
       });
 
-      testWidgets('should show feature toggles in developer mode', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should show feature toggles in developer mode',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
         when(mockPremiumService.isPremiumFeature(any)).thenReturn(false);
 
@@ -167,11 +186,14 @@ void main() {
         }
       });
 
-      testWidgets('should call setPremiumFeature when toggle is switched', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should call setPremiumFeature when toggle is switched',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
         when(mockPremiumService.isPremiumFeature(any)).thenReturn(false);
-        when(mockPremiumService.setPremiumFeature(any, any)).thenAnswer((_) async {
+        when(mockPremiumService.setPremiumFeature(any, any))
+            .thenAnswer((_) async {
           return;
         });
 
@@ -192,8 +214,10 @@ void main() {
         }
       });
 
-      testWidgets('should reset premium features when reset button is pressed', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should reset premium features when reset button is pressed',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
         when(mockPremiumService.isPremiumFeature(any)).thenReturn(false);
         when(mockPremiumService.resetPremiumFeatures()).thenAnswer((_) async {
@@ -221,18 +245,21 @@ void main() {
 
     group('Coming Soon Features', () {
       testWidgets('should display available premium features', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
 
         expect(find.text('Available Premium Features'), findsOneWidget);
         expect(find.text('Ad-Free Experience'), findsOneWidget);
-        expect(find.text('Offline Mode'), findsAtLeastNWidgets(1)); // Also in header badge
+        expect(find.text('Offline Mode'),
+            findsAtLeastNWidgets(1)); // Also in header badge
         expect(find.text('Advanced Analytics'), findsOneWidget);
       });
 
-      testWidgets('should not show section when no coming soon features', (tester) async {
+      testWidgets('should not show section when no coming soon features',
+          (tester) async {
         when(mockPremiumService.getComingSoonFeatures()).thenReturn([]);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
@@ -241,21 +268,25 @@ void main() {
         expect(find.text('Available Premium Features'), findsNothing);
       });
 
-      testWidgets('should use PremiumFeatureCard for each feature', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should use PremiumFeatureCard for each feature',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
 
         // Should have cards for each available feature
-        expect(find.byType(PremiumFeatureCard), findsNWidgets(testAvailableFeatures.length));
+        expect(find.byType(PremiumFeatureCard),
+            findsNWidgets(testAvailableFeatures.length));
       });
     });
 
     group('User Premium Features', () {
       testWidgets('should display user premium features', (tester) async {
         when(mockPremiumService.getComingSoonFeatures()).thenReturn([]);
-        when(mockPremiumService.getPremiumFeatures()).thenReturn(testUserFeatures);
+        when(mockPremiumService.getPremiumFeatures())
+            .thenReturn(testUserFeatures);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -263,8 +294,10 @@ void main() {
         expect(find.text('User Premium Feature'), findsOneWidget);
       });
 
-      testWidgets('should not show section when user has no premium features', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should not show section when user has no premium features',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -272,21 +305,30 @@ void main() {
         expect(find.text('Your Premium Features'), findsNothing);
       });
 
-      testWidgets('should show both sections when user has some features', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
-        when(mockPremiumService.getPremiumFeatures()).thenReturn(testUserFeatures);
+      testWidgets('should show both sections when user has some features',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getPremiumFeatures())
+            .thenReturn(testUserFeatures);
 
         await tester.pumpWidget(createTestWidget());
 
         expect(find.text('Available Premium Features'), findsOneWidget);
         expect(find.text('Your Premium Features'), findsOneWidget);
-        expect(find.byType(PremiumFeatureCard), findsNWidgets(testAvailableFeatures.length + testUserFeatures.length));
+        expect(
+            find.byType(PremiumFeatureCard),
+            findsNWidgets(
+                testAvailableFeatures.length + testUserFeatures.length));
       });
     });
 
     group('Purchase Button Functionality', () {
-      testWidgets('should show debug message when purchase button is tapped in debug mode', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets(
+          'should show debug message when purchase button is tapped in debug mode',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -296,15 +338,19 @@ void main() {
 
         // In debug mode, should show developer message
         if (kDebugMode) {
-          expect(find.text('In-app purchase flow would launch here. Use developer mode to test features.'),
+          expect(
+              find.text(
+                  'In-app purchase flow would launch here. Use developer mode to test features.'),
               findsOneWidget);
         } else {
           expect(find.text('Premium features coming soon!'), findsOneWidget);
         }
       });
 
-      testWidgets('should have correct styling for purchase button', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should have correct styling for purchase button',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -318,7 +364,8 @@ void main() {
     });
 
     group('Error Handling and Edge Cases', () {
-      testWidgets('should handle null or empty feature lists gracefully', (tester) async {
+      testWidgets('should handle null or empty feature lists gracefully',
+          (tester) async {
         when(mockPremiumService.getComingSoonFeatures()).thenReturn([]);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
@@ -332,7 +379,8 @@ void main() {
       });
 
       testWidgets('should handle service errors gracefully', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenThrow(Exception('Service error'));
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenThrow(Exception('Service error'));
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -350,10 +398,12 @@ void main() {
                   title: 'Feature $index',
                   description: 'Description for feature $index',
                   icon: Icons.star,
-                  category: PremiumFeatureCategory.values[index % PremiumFeatureCategory.values.length],
+                  category: PremiumFeatureCategory
+                      .values[index % PremiumFeatureCategory.values.length],
                 ));
 
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(manyFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(manyFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -371,11 +421,13 @@ void main() {
         expect(find.text('Feature 10'), findsOneWidget);
       });
 
-      testWidgets('should handle very long feature titles and descriptions', (tester) async {
+      testWidgets('should handle very long feature titles and descriptions',
+          (tester) async {
         final longFeature = [
           PremiumFeature(
             id: 'long_feature',
-            title: 'This is a very long feature title that might cause overflow issues in the UI',
+            title:
+                'This is a very long feature title that might cause overflow issues in the UI',
             description:
                 'This is a very long description that explains in great detail what this premium feature does and why users should purchase it',
             icon: Icons.text_fields,
@@ -383,19 +435,24 @@ void main() {
           ),
         ];
 
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(longFeature);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(longFeature);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
 
-        expect(find.textContaining('This is a very long feature title'), findsOneWidget);
-        expect(find.textContaining('This is a very long description'), findsOneWidget);
+        expect(find.textContaining('This is a very long feature title'),
+            findsOneWidget);
+        expect(find.textContaining('This is a very long description'),
+            findsOneWidget);
       });
     });
 
     group('State Management', () {
-      testWidgets('should update UI when premium service state changes', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should update UI when premium service state changes',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -405,7 +462,8 @@ void main() {
 
         // Simulate user purchasing features
         when(mockPremiumService.getComingSoonFeatures()).thenReturn([]);
-        when(mockPremiumService.getPremiumFeatures()).thenReturn(testUserFeatures);
+        when(mockPremiumService.getPremiumFeatures())
+            .thenReturn(testUserFeatures);
 
         await tester.pumpWidget(createTestWidget());
 
@@ -413,8 +471,10 @@ void main() {
         expect(find.text('Your Premium Features'), findsOneWidget);
       });
 
-      testWidgets('should maintain developer mode toggle state', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should maintain developer mode toggle state',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -438,28 +498,34 @@ void main() {
 
     group('Visual Elements', () {
       testWidgets('should display correct icons', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
 
-        expect(find.byIcon(Icons.workspace_premium), findsAtLeastNWidgets(2)); // Header + Button
+        expect(find.byIcon(Icons.workspace_premium),
+            findsAtLeastNWidgets(2)); // Header + Button
       });
 
       testWidgets('should have proper visual hierarchy', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
 
         // Check that main elements are present
-        expect(find.byType(Container), findsAtLeastNWidgets(1)); // Header container
+        expect(find.byType(Container),
+            findsAtLeastNWidgets(1)); // Header container
         expect(find.byType(Column), findsAtLeastNWidgets(1));
         expect(find.byType(Row), findsAtLeastNWidgets(1));
       });
 
-      testWidgets('should display gradient background in header', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should display gradient background in header',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -471,7 +537,8 @@ void main() {
 
     group('Accessibility', () {
       testWidgets('should have proper semantic structure', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -483,7 +550,8 @@ void main() {
       });
 
       testWidgets('should support keyboard navigation', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -492,8 +560,10 @@ void main() {
         expect(find.byType(ElevatedButton), findsOneWidget);
       });
 
-      testWidgets('should have appropriate tooltips for developer mode', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should have appropriate tooltips for developer mode',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -512,8 +582,10 @@ void main() {
     });
 
     group('Performance', () {
-      testWidgets('should efficiently handle feature list rebuilds', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+      testWidgets('should efficiently handle feature list rebuilds',
+          (tester) async {
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -527,7 +599,8 @@ void main() {
       });
 
       testWidgets('should handle rapid state changes', (tester) async {
-        when(mockPremiumService.getComingSoonFeatures()).thenReturn(testAvailableFeatures);
+        when(mockPremiumService.getComingSoonFeatures())
+            .thenReturn(testAvailableFeatures);
         when(mockPremiumService.getPremiumFeatures()).thenReturn([]);
 
         await tester.pumpWidget(createTestWidget());
@@ -536,7 +609,9 @@ void main() {
         if (developerToggle.hasFound) {
           // Rapid toggle changes
           for (var i = 0; i < 10; i++) {
-            await tester.tap(developerToggle.hasFound ? developerToggle : find.byIcon(Icons.developer_mode));
+            await tester.tap(developerToggle.hasFound
+                ? developerToggle
+                : find.byIcon(Icons.developer_mode));
             await tester.pump();
           }
 

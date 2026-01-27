@@ -18,7 +18,9 @@ void main() {
       mockCloudStorageService = MockCloudStorageService();
     });
 
-    testWidgets('should not call setState after dispose during async operations', (WidgetTester tester) async {
+    testWidgets(
+        'should not call setState after dispose during async operations',
+        (WidgetTester tester) async {
       // Create a test classification
       final testClassification = WasteClassification(
         itemName: 'Test Item',
@@ -27,8 +29,10 @@ void main() {
         region: 'Test Region',
         visualFeatures: ['test feature'],
         alternatives: [],
-        disposalInstructions:
-            DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+        disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Test method',
+            steps: ['Test step'],
+            hasUrgentTimeframe: false),
         id: 'test-1',
         itemName: 'Test Item',
         subcategory: 'Plastic',
@@ -45,15 +49,18 @@ void main() {
       // Setup mock to return classifications with delay
       mockStorageService.setupGetAllClassifications([testClassification]);
       mockStorageService.setupGetSettings({'isGoogleSyncEnabled': false});
-      mockCloudStorageService.setupGetAllClassificationsWithCloudSync([testClassification]);
+      mockCloudStorageService
+          .setupGetAllClassificationsWithCloudSync([testClassification]);
 
       // Build the widget
       await tester.pumpWidget(
         MaterialApp(
           home: MultiProvider(
             providers: [
-              ChangeNotifierProvider<StorageService>.value(value: mockStorageService),
-              ChangeNotifierProvider<CloudStorageService>.value(value: mockCloudStorageService),
+              ChangeNotifierProvider<StorageService>.value(
+                  value: mockStorageService),
+              ChangeNotifierProvider<CloudStorageService>.value(
+                  value: mockCloudStorageService),
             ],
             child: const HistoryScreen(),
           ),
@@ -82,7 +89,8 @@ void main() {
       expect(find.text('Other Screen'), findsOneWidget);
     });
 
-    testWidgets('should handle rapid navigation without memory leaks', (WidgetTester tester) async {
+    testWidgets('should handle rapid navigation without memory leaks',
+        (WidgetTester tester) async {
       final testClassifications = List.generate(
         50,
         (index) => WasteClassification(
@@ -92,8 +100,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'test-$index',
           itemName: 'Test Item $index',
           subcategory: 'Plastic',
@@ -110,15 +120,18 @@ void main() {
 
       mockStorageService.setupGetAllClassifications(testClassifications);
       mockStorageService.setupGetSettings({'isGoogleSyncEnabled': false});
-      mockStorageService.setupGetClassificationsWithPagination(testClassifications.take(20).toList());
+      mockStorageService.setupGetClassificationsWithPagination(
+          testClassifications.take(20).toList());
 
       // Build the widget
       await tester.pumpWidget(
         MaterialApp(
           home: MultiProvider(
             providers: [
-              ChangeNotifierProvider<StorageService>.value(value: mockStorageService),
-              ChangeNotifierProvider<CloudStorageService>.value(value: mockCloudStorageService),
+              ChangeNotifierProvider<StorageService>.value(
+                  value: mockStorageService),
+              ChangeNotifierProvider<CloudStorageService>.value(
+                  value: mockCloudStorageService),
             ],
             child: const HistoryScreen(),
           ),
@@ -147,8 +160,10 @@ void main() {
           MaterialApp(
             home: MultiProvider(
               providers: [
-                ChangeNotifierProvider<StorageService>.value(value: mockStorageService),
-                ChangeNotifierProvider<CloudStorageService>.value(value: mockCloudStorageService),
+                ChangeNotifierProvider<StorageService>.value(
+                    value: mockStorageService),
+                ChangeNotifierProvider<CloudStorageService>.value(
+                    value: mockCloudStorageService),
               ],
               child: const HistoryScreen(),
             ),
@@ -174,7 +189,8 @@ void main() {
       expect(find.text('Final Screen'), findsOneWidget);
     });
 
-    testWidgets('should handle export operation cancellation gracefully', (WidgetTester tester) async {
+    testWidgets('should handle export operation cancellation gracefully',
+        (WidgetTester tester) async {
       final testClassification = WasteClassification(
         itemName: 'Test Item',
         explanation: 'Test explanation',
@@ -182,8 +198,10 @@ void main() {
         region: 'Test Region',
         visualFeatures: ['test feature'],
         alternatives: [],
-        disposalInstructions:
-            DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+        disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Test method',
+            steps: ['Test step'],
+            hasUrgentTimeframe: false),
         id: 'test-1',
         itemName: 'Test Item',
         subcategory: 'Plastic',
@@ -205,8 +223,10 @@ void main() {
         MaterialApp(
           home: MultiProvider(
             providers: [
-              ChangeNotifierProvider<StorageService>.value(value: mockStorageService),
-              ChangeNotifierProvider<CloudStorageService>.value(value: mockCloudStorageService),
+              ChangeNotifierProvider<StorageService>.value(
+                  value: mockStorageService),
+              ChangeNotifierProvider<CloudStorageService>.value(
+                  value: mockCloudStorageService),
             ],
             child: const HistoryScreen(),
           ),
@@ -240,7 +260,8 @@ void main() {
       expect(find.text('Export Test Screen'), findsOneWidget);
     });
 
-    testWidgets('should handle filter operations during disposal', (WidgetTester tester) async {
+    testWidgets('should handle filter operations during disposal',
+        (WidgetTester tester) async {
       final testClassifications = List.generate(
         10,
         (index) => WasteClassification(
@@ -250,8 +271,10 @@ void main() {
           region: 'Test Region',
           visualFeatures: ['test feature'],
           alternatives: [],
-          disposalInstructions:
-              DisposalInstructions(primaryMethod: 'Test method', steps: ['Test step'], hasUrgentTimeframe: false),
+          disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Test method',
+              steps: ['Test step'],
+              hasUrgentTimeframe: false),
           id: 'test-$index',
           itemName: 'Test Item $index',
           subcategory: 'Test Subcategory',
@@ -273,8 +296,10 @@ void main() {
         MaterialApp(
           home: MultiProvider(
             providers: [
-              ChangeNotifierProvider<StorageService>.value(value: mockStorageService),
-              ChangeNotifierProvider<CloudStorageService>.value(value: mockCloudStorageService),
+              ChangeNotifierProvider<StorageService>.value(
+                  value: mockStorageService),
+              ChangeNotifierProvider<CloudStorageService>.value(
+                  value: mockCloudStorageService),
             ],
             child: const HistoryScreen(),
           ),

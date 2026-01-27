@@ -19,7 +19,8 @@ void main() {
     group('Initialization and Defaults', () {
       test('should initialize with default values', () async {
         service = NavigationSettingsService();
-        await Future.delayed(const Duration(milliseconds: 100)); // Allow initialization
+        await Future.delayed(
+            const Duration(milliseconds: 100)); // Allow initialization
 
         expect(service.bottomNavEnabled, isTrue);
         expect(service.fabEnabled, isFalse);
@@ -35,18 +36,21 @@ void main() {
         });
 
         service = NavigationSettingsService();
-        await Future.delayed(const Duration(milliseconds: 100)); // Allow initialization
+        await Future.delayed(
+            const Duration(milliseconds: 100)); // Allow initialization
 
         expect(service.bottomNavEnabled, isFalse);
         expect(service.fabEnabled, isTrue);
         expect(service.navigationStyle, equals('material3'));
       });
 
-      test('should use defaults when SharedPreferences values are null', () async {
+      test('should use defaults when SharedPreferences values are null',
+          () async {
         SharedPreferences.setMockInitialValues({});
 
         service = NavigationSettingsService();
-        await Future.delayed(const Duration(milliseconds: 100)); // Allow initialization
+        await Future.delayed(
+            const Duration(milliseconds: 100)); // Allow initialization
 
         expect(service.bottomNavEnabled, isTrue);
         expect(service.fabEnabled, isFalse);
@@ -61,11 +65,13 @@ void main() {
         });
 
         service = NavigationSettingsService();
-        await Future.delayed(const Duration(milliseconds: 100)); // Allow initialization
+        await Future.delayed(
+            const Duration(milliseconds: 100)); // Allow initialization
 
         expect(service.bottomNavEnabled, isFalse); // Saved value
         expect(service.fabEnabled, isFalse); // Default value
-        expect(service.navigationStyle, equals('glassmorphism')); // Default value
+        expect(
+            service.navigationStyle, equals('glassmorphism')); // Default value
       });
     });
 
@@ -213,8 +219,10 @@ void main() {
         await service.setNavigationStyle('');
         expect(service.navigationStyle, equals(''));
 
-        await service.setNavigationStyle('very_long_style_name_with_special_chars_123!@#');
-        expect(service.navigationStyle, equals('very_long_style_name_with_special_chars_123!@#'));
+        await service.setNavigationStyle(
+            'very_long_style_name_with_special_chars_123!@#');
+        expect(service.navigationStyle,
+            equals('very_long_style_name_with_special_chars_123!@#'));
       });
     });
 
@@ -393,12 +401,15 @@ void main() {
         void nonExistentListener() {}
 
         // Should not throw an error
-        expect(() => service.removeListener(nonExistentListener), returnsNormally);
+        expect(
+            () => service.removeListener(nonExistentListener), returnsNormally);
       });
     });
 
     group('Error Handling and Edge Cases', () {
-      test('should handle SharedPreferences errors gracefully during initialization', () async {
+      test(
+          'should handle SharedPreferences errors gracefully during initialization',
+          () async {
         // We can't easily mock SharedPreferences to throw errors in this setup,
         // but we can test that the service initializes even with unexpected data
         SharedPreferences.setMockInitialValues({
@@ -453,7 +464,8 @@ void main() {
     });
 
     group('State Consistency', () {
-      test('should maintain state consistency after disposal and recreation', () async {
+      test('should maintain state consistency after disposal and recreation',
+          () async {
         service = NavigationSettingsService();
         await Future.delayed(const Duration(milliseconds: 100));
 
@@ -489,7 +501,8 @@ void main() {
         service = NavigationSettingsService();
         await Future.delayed(const Duration(milliseconds: 100));
 
-        expect(service.bottomNavEnabled, isTrue); // i=9, 9%2 != 0, so false -> true
+        expect(service.bottomNavEnabled,
+            isTrue); // i=9, 9%2 != 0, so false -> true
         expect(service.fabEnabled, isTrue); // i=9, 9%3 == 0, so true
         expect(service.navigationStyle, equals('style_9'));
       });
@@ -515,7 +528,8 @@ void main() {
         expect(stopwatch.elapsedMilliseconds, lessThan(5000)); // 5 seconds max
 
         // Final state should be correct
-        expect(service.bottomNavEnabled, isTrue); // 99 % 2 != 0, so would set false, but 100-1=99
+        expect(service.bottomNavEnabled,
+            isTrue); // 99 % 2 != 0, so would set false, but 100-1=99
         expect(service.fabEnabled, isTrue); // 99 % 3 == 0
         expect(service.navigationStyle, equals('style_4')); // 99 % 5 = 4
       });

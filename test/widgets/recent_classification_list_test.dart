@@ -4,7 +4,8 @@ import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
 
 void main() {
   group('Recent Classification List Tests', () {
-    testWidgets('RecentClassificationCard displays basic information correctly', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard displays basic information correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -31,8 +32,11 @@ void main() {
       expect(find.byIcon(Icons.chevron_right), findsOneWidget);
     });
 
-    testWidgets('RecentClassificationCard handles long item names without overflow', (WidgetTester tester) async {
-      const longItemName = 'Very Long Item Name That Should Not Cause Overflow Issues In The Layout';
+    testWidgets(
+        'RecentClassificationCard handles long item names without overflow',
+        (WidgetTester tester) async {
+      const longItemName =
+          'Very Long Item Name That Should Not Cause Overflow Issues In The Layout';
 
       await tester.pumpWidget(
         MaterialApp(
@@ -57,7 +61,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('RecentClassificationCard adapts to narrow screens', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard adapts to narrow screens',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -86,7 +91,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('RecentClassificationCard adapts to very narrow screens', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard adapts to very narrow screens',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -116,7 +122,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('RecentClassificationCard handles tap events correctly', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard handles tap events correctly',
+        (WidgetTester tester) async {
       var tapped = false;
 
       await tester.pumpWidget(
@@ -136,7 +143,9 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('RecentClassificationCard shows/hides optional elements correctly', (WidgetTester tester) async {
+    testWidgets(
+        'RecentClassificationCard shows/hides optional elements correctly',
+        (WidgetTester tester) async {
       // Test without optional elements
       await tester.pumpWidget(
         MaterialApp(
@@ -153,7 +162,8 @@ void main() {
 
       expect(find.text('Basic Item'), findsOneWidget);
       expect(find.text('Wet Waste'), findsOneWidget);
-      expect(find.byIcon(Icons.recycling), findsNothing); // No recyclable indicator
+      expect(find.byIcon(Icons.recycling),
+          findsNothing); // No recyclable indicator
       expect(find.byIcon(Icons.eco), findsNothing); // No compostable indicator
 
       // Test with all optional elements
@@ -183,7 +193,8 @@ void main() {
       expect(find.byIcon(Icons.warning_amber), findsOneWidget);
     });
 
-    testWidgets('RecentClassificationCard uses custom colors correctly', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard uses custom colors correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -203,7 +214,8 @@ void main() {
       expect(find.text('Custom Category'), findsOneWidget);
     });
 
-    testWidgets('RecentClassificationCard handles date formatting correctly', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard handles date formatting correctly',
+        (WidgetTester tester) async {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final yesterday = DateTime(now.year, now.month, now.day - 1);
@@ -258,7 +270,8 @@ void main() {
       expect(find.text('15/1/2023'), findsOneWidget);
     });
 
-    testWidgets('RecentClassificationCard handles multiple property indicators', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard handles multiple property indicators',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -280,10 +293,13 @@ void main() {
       expect(find.byIcon(Icons.warning_amber), findsOneWidget);
     });
 
-    testWidgets('RecentClassificationCard handles extremely long text gracefully', (WidgetTester tester) async {
+    testWidgets(
+        'RecentClassificationCard handles extremely long text gracefully',
+        (WidgetTester tester) async {
       const extremelyLongItemName =
           'This is an extremely long item name that should definitely cause overflow issues if not handled properly by the responsive text system';
-      const extremelyLongSubcategory = 'Very Long Subcategory Name That Should Not Break Layout';
+      const extremelyLongSubcategory =
+          'Very Long Subcategory Name That Should Not Break Layout';
 
       await tester.pumpWidget(
         MaterialApp(
@@ -311,7 +327,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('RecentClassificationCard accessibility test', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard accessibility test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -339,7 +356,9 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('RecentClassificationCard performance test with multiple instances', (WidgetTester tester) async {
+    testWidgets(
+        'RecentClassificationCard performance test with multiple instances',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -371,7 +390,8 @@ void main() {
       }
     });
 
-    testWidgets('RecentClassificationCard handles image display options', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard handles image display options',
+        (WidgetTester tester) async {
       // Test with image enabled
       await tester.pumpWidget(
         MaterialApp(
@@ -408,7 +428,8 @@ void main() {
       expect(find.byType(RecentClassificationCard), findsOneWidget);
     });
 
-    testWidgets('RecentClassificationCard handles property indicators toggle', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard handles property indicators toggle',
+        (WidgetTester tester) async {
       // Test with property indicators enabled
       await tester.pumpWidget(
         MaterialApp(
@@ -449,7 +470,8 @@ void main() {
       expect(find.byIcon(Icons.eco), findsNothing);
     });
 
-    testWidgets('RecentClassificationCard handles vertical badge layout', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard handles vertical badge layout',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -481,7 +503,8 @@ void main() {
   });
 
   group('Recent Classification List Theme Tests', () {
-    testWidgets('RecentClassificationCard respects theme colors', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard respects theme colors',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
@@ -518,7 +541,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('RecentClassificationCard handles default category colors', (WidgetTester tester) async {
+    testWidgets('RecentClassificationCard handles default category colors',
+        (WidgetTester tester) async {
       final categories = [
         'Wet Waste',
         'Dry Waste',

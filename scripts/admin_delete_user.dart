@@ -40,7 +40,7 @@ void main(List<String> args) async {
     print('✅ Firebase initialized.');
 
     final cleanupService = FirebaseCleanupService();
-    
+
     print('🔑 Verifying admin credentials...');
     // The service method will handle the admin check.
     // Ensure you are logged into the app as the admin user.
@@ -48,13 +48,15 @@ void main(List<String> args) async {
     await cleanupService.adminDeleteUser(userIdToDelete);
 
     print('\n------------------------------------');
-    print('✅ SUCCESS: All Firestore data for user $userIdToDelete has been deleted.');
+    print(
+        '✅ SUCCESS: All Firestore data for user $userIdToDelete has been deleted.');
     print('------------------------------------');
     exit(0);
   } catch (e) {
     print('\n❌ An error occurred:');
     print(e);
-    print('\nDeletion failed. Please check the logs and ensure you are running this script with proper admin credentials.');
+    print(
+        '\nDeletion failed. Please check the logs and ensure you are running this script with proper admin credentials.');
     exit(1);
   }
-} 
+}

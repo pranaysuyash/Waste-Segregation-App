@@ -6,7 +6,8 @@ import 'package:waste_segregation_app/utils/constants.dart';
 
 void main() {
   group('ResponsiveText Golden Tests', () {
-    testWidgets('AppBar title golden test - normal width', (WidgetTester tester) async {
+    testWidgets('AppBar title golden test - normal width',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(
@@ -34,7 +35,8 @@ void main() {
       );
     });
 
-    testWidgets('AppBar title golden test - long title', (WidgetTester tester) async {
+    testWidgets('AppBar title golden test - long title',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(
@@ -62,7 +64,8 @@ void main() {
       );
     });
 
-    testWidgets('AppBar title golden test - narrow screen', (WidgetTester tester) async {
+    testWidgets('AppBar title golden test - narrow screen',
+        (WidgetTester tester) async {
       // Set a narrow screen size
       await tester.binding.setSurfaceSize(const Size(300, 600));
 
@@ -96,7 +99,8 @@ void main() {
       await tester.binding.setSurfaceSize(null);
     });
 
-    testWidgets('Greeting card golden test - normal username', (WidgetTester tester) async {
+    testWidgets('Greeting card golden test - normal username',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -144,7 +148,8 @@ void main() {
       );
     });
 
-    testWidgets('Greeting card golden test - long username', (WidgetTester tester) async {
+    testWidgets('Greeting card golden test - long username',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -192,7 +197,8 @@ void main() {
       );
     });
 
-    testWidgets('Greeting card golden test - narrow width', (WidgetTester tester) async {
+    testWidgets('Greeting card golden test - narrow width',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -211,7 +217,8 @@ void main() {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.wb_sunny_outlined, color: Colors.white, size: 24),
+                      Icon(Icons.wb_sunny_outlined,
+                          color: Colors.white, size: 24),
                       SizedBox(width: 8),
                       Expanded(
                         child: GreetingText(
@@ -240,7 +247,8 @@ void main() {
       );
     });
 
-    testWidgets('Multiple screen sizes comparison', (WidgetTester tester) async {
+    testWidgets('Multiple screen sizes comparison',
+        (WidgetTester tester) async {
       // Test different screen sizes
       final screenSizes = [
         const Size(320, 568), // iPhone SE
@@ -280,7 +288,8 @@ void main() {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.wb_sunny, color: Colors.white, size: 24),
+                              Icon(Icons.wb_sunny,
+                                  color: Colors.white, size: 24),
                               SizedBox(width: 8),
                               Expanded(
                                 child: GreetingText(
@@ -381,7 +390,8 @@ void main() {
   });
 
   group('Horizontal Stat Cards Golden Tests', () {
-    testWidgets('StatsCard golden test - zero values', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - zero values',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -429,7 +439,8 @@ void main() {
       );
     });
 
-    testWidgets('StatsCard golden test - small values', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - small values',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -479,7 +490,8 @@ void main() {
       );
     });
 
-    testWidgets('StatsCard golden test - large values', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - large values',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -529,7 +541,8 @@ void main() {
       );
     });
 
-    testWidgets('StatsCard golden test - negative trends', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - negative trends',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -581,7 +594,8 @@ void main() {
       );
     });
 
-    testWidgets('StatsCard golden test - narrow screen', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - narrow screen',
+        (WidgetTester tester) async {
       // Set a narrow screen size
       await tester.binding.setSurfaceSize(const Size(320, 568));
 
@@ -637,7 +651,8 @@ void main() {
       await tester.binding.setSurfaceSize(null);
     });
 
-    testWidgets('StatsCard golden test - dark theme', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - dark theme',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
@@ -688,7 +703,8 @@ void main() {
       );
     });
 
-    testWidgets('StatsCard golden test - color standardization', (WidgetTester tester) async {
+    testWidgets('StatsCard golden test - color standardization',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(

@@ -134,7 +134,8 @@ void main() {
 
     group('Convenience Methods', () {
       test('should track button clicks', () {
-        analyticsService.trackButtonClick('capture_button', screenName: 'camera');
+        analyticsService.trackButtonClick('capture_button',
+            screenName: 'camera');
         expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
 
@@ -150,13 +151,15 @@ void main() {
 
       test('should track classification workflow', () {
         analyticsService.trackClassificationStarted(method: 'camera');
-        analyticsService.trackClassificationShared('classification_123', familyId: 'family_456');
+        analyticsService.trackClassificationShared('classification_123',
+            familyId: 'family_456');
         expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
 
       test('should track family events', () {
         analyticsService.trackFamilyCreated('family_123', memberCount: 3);
-        analyticsService.trackFamilyJoined('family_456', invitationId: 'invite_789');
+        analyticsService.trackFamilyJoined('family_456',
+            invitationId: 'invite_789');
         expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
       });
     });
@@ -234,7 +237,8 @@ void main() {
       expect(event.id, isNotEmpty);
       expect(event.userId, equals('user_123'));
       expect(event.eventType, equals(AnalyticsEventTypes.classification));
-      expect(event.eventName, equals(AnalyticsEventNames.classificationCompleted));
+      expect(
+          event.eventName, equals(AnalyticsEventNames.classificationCompleted));
       expect(event.parameters['category'], equals('Recyclable'));
       expect(event.sessionId, equals('session_456'));
       expect(event.deviceInfo, equals('iOS 15.0'));
@@ -279,8 +283,10 @@ void main() {
     test('should have correct event name constants', () {
       expect(AnalyticsEventNames.buttonClick, equals('button_click'));
       expect(AnalyticsEventNames.screenSwipe, equals('screen_swipe'));
-      expect(AnalyticsEventNames.classificationCompleted, equals('classification_completed'));
-      expect(AnalyticsEventNames.achievementUnlocked, equals('achievement_unlocked'));
+      expect(AnalyticsEventNames.classificationCompleted,
+          equals('classification_completed'));
+      expect(AnalyticsEventNames.achievementUnlocked,
+          equals('achievement_unlocked'));
     });
   });
 }

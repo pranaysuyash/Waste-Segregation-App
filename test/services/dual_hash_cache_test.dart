@@ -82,7 +82,8 @@ void main() {
       CacheFeatureFlags.setContentHashVerification(true);
     });
 
-    test('should handle legacy cache entries without contentHash gracefully', () async {
+    test('should handle legacy cache entries without contentHash gracefully',
+        () async {
       // Create a legacy cache entry without contentHash (simulating old data)
       final legacyClassification = WasteClassification(
         id: 'test-legacy-id',
@@ -113,7 +114,8 @@ void main() {
       await box.put('phash_123456789abcdef0', legacyEntry.serialize());
 
       // Test 1: Exact match should work for legacy entries
-      final exactMatch = await cacheService.getCachedClassification('phash_123456789abcdef0');
+      final exactMatch =
+          await cacheService.getCachedClassification('phash_123456789abcdef0');
       expect(exactMatch, isNotNull);
       expect(exactMatch!.classification.itemName, equals('Legacy Item'));
 
@@ -122,10 +124,12 @@ void main() {
         'phash_123456789abcdef1', // Similar but different hash (16 chars after prefix)
         contentHash: 'md5_newcontenthashdifferent',
       );
-      expect(similarityResult, isNull); // Should not match due to missing contentHash in legacy entry
+      expect(similarityResult,
+          isNull); // Should not match due to missing contentHash in legacy entry
     });
 
-    test('should prevent false positives when legacy entries lack contentHash', () async {
+    test('should prevent false positives when legacy entries lack contentHash',
+        () async {
       // Create two different images with similar perceptual hashes
       final classification1 = _createTestClassification('Red Pen');
 
@@ -161,7 +165,8 @@ void main() {
       );
 
       // Test exact match
-      final exactMatch = await cacheService.getCachedClassification('phash_123456789abcdef0');
+      final exactMatch =
+          await cacheService.getCachedClassification('phash_123456789abcdef0');
       expect(exactMatch, isNotNull);
       expect(exactMatch!.classification.itemName, equals('New Item'));
 
@@ -241,7 +246,8 @@ void main() {
       await box.put('phash_123456789abcdef8', '{"invalid": json}');
 
       // Should not crash and return null
-      final result = await cacheService.getCachedClassification('phash_123456789abcdef8');
+      final result =
+          await cacheService.getCachedClassification('phash_123456789abcdef8');
       expect(result, isNull);
     });
   });

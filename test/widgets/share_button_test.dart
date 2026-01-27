@@ -36,7 +36,8 @@ void main() {
     }
 
     group('Widget Construction', () {
-      testWidgets('should render share button with default properties', (tester) async {
+      testWidgets('should render share button with default properties',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         expect(find.byType(ShareButton), findsOneWidget);
@@ -231,13 +232,15 @@ void main() {
     });
 
     group('Accessibility', () {
-      testWidgets('should have proper tooltip for accessibility', (tester) async {
+      testWidgets('should have proper tooltip for accessibility',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         expect(find.byTooltip('Share'), findsOneWidget);
       });
 
-      testWidgets('should be focusable for keyboard navigation', (tester) async {
+      testWidgets('should be focusable for keyboard navigation',
+          (tester) async {
         await tester.pumpWidget(createTestWidget());
 
         final iconButton = tester.widget<IconButton>(find.byType(IconButton));
@@ -260,12 +263,14 @@ void main() {
           tooltip: 'Share this content with others',
         ));
 
-        expect(find.byTooltip('Share this content with others'), findsOneWidget);
+        expect(
+            find.byTooltip('Share this content with others'), findsOneWidget);
       });
     });
 
     group('Visual Consistency', () {
-      testWidgets('should maintain consistent appearance across themes', (tester) async {
+      testWidgets('should maintain consistent appearance across themes',
+          (tester) async {
         // Test light theme
         await tester.pumpWidget(
           MaterialApp(
@@ -291,7 +296,9 @@ void main() {
         expect(find.byType(ShareButton), findsOneWidget);
       });
 
-      testWidgets('should respect theme colors when no custom color is provided', (tester) async {
+      testWidgets(
+          'should respect theme colors when no custom color is provided',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData(
@@ -306,7 +313,8 @@ void main() {
         expect(find.byType(ShareButton), findsOneWidget);
       });
 
-      testWidgets('should override theme colors when custom color is provided', (tester) async {
+      testWidgets('should override theme colors when custom color is provided',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData(
@@ -349,7 +357,8 @@ void main() {
         await tester.pumpWidget(createTestWidget());
 
         // Navigate away to trigger disposal
-        await tester.pumpWidget(const MaterialApp(home: Text('Different Widget')));
+        await tester
+            .pumpWidget(const MaterialApp(home: Text('Different Widget')));
 
         expect(find.text('Different Widget'), findsOneWidget);
         expect(find.byType(ShareButton), findsNothing);
@@ -402,7 +411,8 @@ void main() {
           foregroundColor: Colors.white,
         ));
 
-        final fab = tester.widget<FloatingActionButton>(find.byType(FloatingActionButton));
+        final fab = tester
+            .widget<FloatingActionButton>(find.byType(FloatingActionButton));
         expect(fab.backgroundColor, equals(Colors.red));
         expect(fab.foregroundColor, equals(Colors.white));
       });
@@ -463,13 +473,15 @@ void main() {
     });
 
     group('Accessibility', () {
-      testWidgets('should have proper tooltip for accessibility', (tester) async {
+      testWidgets('should have proper tooltip for accessibility',
+          (tester) async {
         await tester.pumpWidget(createFABTestWidget());
 
         expect(find.byTooltip('Share'), findsOneWidget);
       });
 
-      testWidgets('should be properly sized for touch interaction', (tester) async {
+      testWidgets('should be properly sized for touch interaction',
+          (tester) async {
         await tester.pumpWidget(createFABTestWidget());
 
         final fab = find.byType(FloatingActionButton);
@@ -482,7 +494,8 @@ void main() {
     });
 
     group('Theme Integration', () {
-      testWidgets('should respect theme when no custom colors provided', (tester) async {
+      testWidgets('should respect theme when no custom colors provided',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData(
@@ -500,7 +513,8 @@ void main() {
         expect(find.byType(ShareFloatingActionButton), findsOneWidget);
       });
 
-      testWidgets('should override theme when custom colors provided', (tester) async {
+      testWidgets('should override theme when custom colors provided',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData(
@@ -519,7 +533,8 @@ void main() {
           ),
         );
 
-        final fab = tester.widget<FloatingActionButton>(find.byType(FloatingActionButton));
+        final fab = tester
+            .widget<FloatingActionButton>(find.byType(FloatingActionButton));
         expect(fab.backgroundColor, equals(Colors.red));
         expect(fab.foregroundColor, equals(Colors.white));
       });
@@ -553,7 +568,8 @@ void main() {
   });
 
   group('Comparison Tests', () {
-    testWidgets('should have different widgets for button vs FAB', (tester) async {
+    testWidgets('should have different widgets for button vs FAB',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

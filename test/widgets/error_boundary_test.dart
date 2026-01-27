@@ -95,7 +95,8 @@ void main() {
     }
 
     group('Normal Operation', () {
-      testWidgets('should render child widget when no error occurs', (WidgetTester tester) async {
+      testWidgets('should render child widget when no error occurs',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: const Text('Test Child'),
         ));
@@ -104,7 +105,8 @@ void main() {
         expect(find.text('Something went wrong'), findsNothing);
       });
 
-      testWidgets('should render complex child widgets normally', (WidgetTester tester) async {
+      testWidgets('should render complex child widgets normally',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: const Column(
             children: [
@@ -120,7 +122,8 @@ void main() {
         expect(find.text('Button'), findsOneWidget);
       });
 
-      testWidgets('should handle stateful child widgets', (WidgetTester tester) async {
+      testWidgets('should handle stateful child widgets',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: const LifecycleErrorWidget(),
         ));
@@ -130,7 +133,8 @@ void main() {
     });
 
     group('Error Handling', () {
-      testWidgets('should catch and handle widget errors', (WidgetTester tester) async {
+      testWidgets('should catch and handle widget errors',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(shouldThrow: true),
         ));
@@ -140,7 +144,8 @@ void main() {
         expect(find.byIcon(Icons.error_outline), findsOneWidget);
       });
 
-      testWidgets('should show custom error message', (WidgetTester tester) async {
+      testWidgets('should show custom error message',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(
             shouldThrow: true,
@@ -152,7 +157,8 @@ void main() {
         expect(find.textContaining('Custom error message'), findsOneWidget);
       });
 
-      testWidgets('should render custom fallback widget', (WidgetTester tester) async {
+      testWidgets('should render custom fallback widget',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(shouldThrow: true),
           fallback: const Column(
@@ -170,12 +176,14 @@ void main() {
         expect(find.text('Something went wrong'), findsNothing);
       });
 
-      testWidgets('should call error callback when provided', (WidgetTester tester) async {
+      testWidgets('should call error callback when provided',
+          (WidgetTester tester) async {
         FlutterError? capturedError;
         ErrorDetails? capturedDetails;
 
         await tester.pumpWidget(createTestWidget(
-          child: const ErrorThrowingWidget(shouldThrow: true, errorMessage: 'Callback test'),
+          child: const ErrorThrowingWidget(
+              shouldThrow: true, errorMessage: 'Callback test'),
           onError: (error, details) {
             capturedError = error;
             capturedDetails = details;
@@ -187,8 +195,10 @@ void main() {
         expect(capturedDetails, isNotNull);
       });
 
-      testWidgets('should report errors to analytics service', (WidgetTester tester) async {
-        when(mockAnalyticsService.logError(any, any, any)).thenAnswer((_) async => null);
+      testWidgets('should report errors to analytics service',
+          (WidgetTester tester) async {
+        when(mockAnalyticsService.logError(any, any, any))
+            .thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(
@@ -206,7 +216,8 @@ void main() {
     });
 
     group('Error Recovery', () {
-      testWidgets('should allow retry after error', (WidgetTester tester) async {
+      testWidgets('should allow retry after error',
+          (WidgetTester tester) async {
         var shouldThrow = true;
 
         await tester.pumpWidget(
@@ -242,7 +253,8 @@ void main() {
         expect(find.text('Something went wrong'), findsNothing);
       });
 
-      testWidgets('should reset error state on rebuild', (WidgetTester tester) async {
+      testWidgets('should reset error state on rebuild',
+          (WidgetTester tester) async {
         var shouldThrow = true;
 
         Widget buildWidget() {
@@ -269,7 +281,8 @@ void main() {
         expect(find.text('Normal Widget'), findsOneWidget);
       });
 
-      testWidgets('should handle multiple consecutive errors', (WidgetTester tester) async {
+      testWidgets('should handle multiple consecutive errors',
+          (WidgetTester tester) async {
         var errorCount = 0;
 
         await tester.pumpWidget(createTestWidget(
@@ -297,7 +310,8 @@ void main() {
     });
 
     group('Error Types', () {
-      testWidgets('should handle assertion errors', (WidgetTester tester) async {
+      testWidgets('should handle assertion errors',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: Builder(
             builder: (context) {
@@ -311,7 +325,8 @@ void main() {
         expect(find.text('Should not show'), findsNothing);
       });
 
-      testWidgets('should handle null pointer exceptions', (WidgetTester tester) async {
+      testWidgets('should handle null pointer exceptions',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: Builder(
             builder: (context) {
@@ -338,7 +353,8 @@ void main() {
         expect(find.text('Something went wrong'), findsOneWidget);
       });
 
-      testWidgets('should handle async errors in FutureBuilder', (WidgetTester tester) async {
+      testWidgets('should handle async errors in FutureBuilder',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: FutureBuilder(
             future: Future.delayed(
@@ -364,7 +380,8 @@ void main() {
     });
 
     group('Error Boundary Nesting', () {
-      testWidgets('should handle nested error boundaries', (WidgetTester tester) async {
+      testWidgets('should handle nested error boundaries',
+          (WidgetTester tester) async {
         var outerErrorCaught = false;
         var innerErrorCaught = false;
 
@@ -394,12 +411,14 @@ void main() {
         );
 
         expect(innerErrorCaught, true);
-        expect(outerErrorCaught, false); // Inner boundary should catch the error
+        expect(
+            outerErrorCaught, false); // Inner boundary should catch the error
         expect(find.text('Outer Content'), findsOneWidget);
         expect(find.text('Something went wrong'), findsOneWidget);
       });
 
-      testWidgets('should propagate errors if inner boundary fails', (WidgetTester tester) async {
+      testWidgets('should propagate errors if inner boundary fails',
+          (WidgetTester tester) async {
         var outerErrorCaught = false;
 
         await tester.pumpWidget(
@@ -431,7 +450,8 @@ void main() {
     });
 
     group('Performance and Resource Management', () {
-      testWidgets('should not impact performance when no errors occur', (WidgetTester tester) async {
+      testWidgets('should not impact performance when no errors occur',
+          (WidgetTester tester) async {
         final stopwatch = Stopwatch()..start();
 
         await tester.pumpWidget(createTestWidget(
@@ -448,7 +468,8 @@ void main() {
         expect(find.text('Item 99'), findsOneWidget);
       });
 
-      testWidgets('should clean up resources on error', (WidgetTester tester) async {
+      testWidgets('should clean up resources on error',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: const LifecycleErrorWidget(throwInBuild: true),
         ));
@@ -464,7 +485,8 @@ void main() {
         expect(find.text('Something went wrong'), findsNothing);
       });
 
-      testWidgets('should handle rapid error state changes', (WidgetTester tester) async {
+      testWidgets('should handle rapid error state changes',
+          (WidgetTester tester) async {
         var shouldThrow = true;
 
         Widget buildWidget() {
@@ -504,7 +526,8 @@ void main() {
     });
 
     group('Accessibility', () {
-      testWidgets('should provide proper semantics for error state', (WidgetTester tester) async {
+      testWidgets('should provide proper semantics for error state',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(shouldThrow: true),
         ));
@@ -528,17 +551,21 @@ void main() {
         );
       });
 
-      testWidgets('should announce errors to screen readers', (WidgetTester tester) async {
+      testWidgets('should announce errors to screen readers',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(shouldThrow: true),
         ));
 
         // Should have live region announcement for accessibility
-        expect(find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.liveRegion == true),
+        expect(
+            find.byWidgetPredicate((widget) =>
+                widget is Semantics && widget.properties.liveRegion == true),
             findsOneWidget);
       });
 
-      testWidgets('should support keyboard navigation in error state', (WidgetTester tester) async {
+      testWidgets('should support keyboard navigation in error state',
+          (WidgetTester tester) async {
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(shouldThrow: true),
         ));
@@ -556,8 +583,10 @@ void main() {
     });
 
     group('Error Reporting Integration', () {
-      testWidgets('should include stack trace in error reports', (WidgetTester tester) async {
-        when(mockAnalyticsService.logError(any, any, any)).thenAnswer((_) async => null);
+      testWidgets('should include stack trace in error reports',
+          (WidgetTester tester) async {
+        when(mockAnalyticsService.logError(any, any, any))
+            .thenAnswer((_) async => null);
 
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(
@@ -573,8 +602,10 @@ void main() {
         )).called(1);
       });
 
-      testWidgets('should handle analytics service errors gracefully', (WidgetTester tester) async {
-        when(mockAnalyticsService.logError(any, any, any)).thenThrow(Exception('Analytics error'));
+      testWidgets('should handle analytics service errors gracefully',
+          (WidgetTester tester) async {
+        when(mockAnalyticsService.logError(any, any, any))
+            .thenThrow(Exception('Analytics error'));
 
         await tester.pumpWidget(createTestWidget(
           child: const ErrorThrowingWidget(shouldThrow: true),
@@ -584,8 +615,10 @@ void main() {
         expect(find.text('Something went wrong'), findsOneWidget);
       });
 
-      testWidgets('should throttle error reports for repeated errors', (WidgetTester tester) async {
-        when(mockAnalyticsService.logError(any, any, any)).thenAnswer((_) async => null);
+      testWidgets('should throttle error reports for repeated errors',
+          (WidgetTester tester) async {
+        when(mockAnalyticsService.logError(any, any, any))
+            .thenAnswer((_) async => null);
 
         // Trigger same error multiple times
         for (var i = 0; i < 5; i++) {
@@ -598,7 +631,8 @@ void main() {
         }
 
         // Should not report the same error too frequently
-        verify(mockAnalyticsService.logError(any, any, any)).called(lessThanOrEqualTo(3));
+        verify(mockAnalyticsService.logError(any, any, any))
+            .called(lessThanOrEqualTo(3));
       });
     });
   });

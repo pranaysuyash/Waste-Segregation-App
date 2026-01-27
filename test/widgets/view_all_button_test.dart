@@ -4,7 +4,8 @@ import 'package:waste_segregation_app/widgets/modern_ui/modern_buttons.dart';
 
 void main() {
   group('View All Button Tests', () {
-    testWidgets('ViewAllButton displays full text on wide screens', (WidgetTester tester) async {
+    testWidgets('ViewAllButton displays full text on wide screens',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -22,7 +23,8 @@ void main() {
       expect(find.byType(ViewAllButton), findsOneWidget);
     });
 
-    testWidgets('ViewAllButton displays abbreviated text on narrow screens', (WidgetTester tester) async {
+    testWidgets('ViewAllButton displays abbreviated text on narrow screens',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -40,7 +42,8 @@ void main() {
       expect(find.text('View All'), findsNothing);
     });
 
-    testWidgets('ViewAllButton displays only icon on very narrow screens', (WidgetTester tester) async {
+    testWidgets('ViewAllButton displays only icon on very narrow screens',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -59,7 +62,8 @@ void main() {
       expect(find.text('All'), findsNothing);
     });
 
-    testWidgets('ViewAllButton handles tap events correctly', (WidgetTester tester) async {
+    testWidgets('ViewAllButton handles tap events correctly',
+        (WidgetTester tester) async {
       var tapped = false;
 
       await tester.pumpWidget(
@@ -76,7 +80,8 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('ViewAllButton respects custom text', (WidgetTester tester) async {
+    testWidgets('ViewAllButton respects custom text',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -95,7 +100,8 @@ void main() {
       expect(find.text('View All'), findsNothing);
     });
 
-    testWidgets('ViewAllButton respects custom icon', (WidgetTester tester) async {
+    testWidgets('ViewAllButton respects custom icon',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -114,7 +120,8 @@ void main() {
       expect(find.byIcon(Icons.arrow_forward), findsNothing);
     });
 
-    testWidgets('ViewAllButton adapts to different button styles', (WidgetTester tester) async {
+    testWidgets('ViewAllButton adapts to different button styles',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -140,7 +147,8 @@ void main() {
       expect(find.byType(ViewAllButton), findsNWidgets(3));
     });
 
-    testWidgets('ViewAllButton adapts to different button sizes', (WidgetTester tester) async {
+    testWidgets('ViewAllButton adapts to different button sizes',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -166,7 +174,8 @@ void main() {
       expect(find.byType(ViewAllButton), findsNWidgets(3));
     });
 
-    testWidgets('ViewAllButton shows tooltip on very narrow screens', (WidgetTester tester) async {
+    testWidgets('ViewAllButton shows tooltip on very narrow screens',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -187,7 +196,8 @@ void main() {
       expect(find.text('View All'), findsOneWidget); // Should appear in tooltip
     });
 
-    testWidgets('ViewAllButton handles multiple instances without interference', (WidgetTester tester) async {
+    testWidgets('ViewAllButton handles multiple instances without interference',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -222,10 +232,12 @@ void main() {
 
       expect(find.text('View All Items'), findsOneWidget); // Wide version
       expect(find.text('More'), findsOneWidget); // Narrow version (abbreviated)
-      expect(find.byIcon(Icons.arrow_forward), findsOneWidget); // Very narrow version
+      expect(find.byIcon(Icons.arrow_forward),
+          findsOneWidget); // Very narrow version
     });
 
-    testWidgets('ViewAllButton performance test with rapid layout changes', (WidgetTester tester) async {
+    testWidgets('ViewAllButton performance test with rapid layout changes',
+        (WidgetTester tester) async {
       double width = 200;
 
       await tester.pumpWidget(
@@ -266,7 +278,8 @@ void main() {
       expect(find.byType(ViewAllButton), findsOneWidget);
     });
 
-    testWidgets('ViewAllButton accessibility test', (WidgetTester tester) async {
+    testWidgets('ViewAllButton accessibility test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -285,7 +298,8 @@ void main() {
       expect(find.byType(ViewAllButton), findsOneWidget);
     });
 
-    testWidgets('ViewAllButton theme compatibility test', (WidgetTester tester) async {
+    testWidgets('ViewAllButton theme compatibility test',
+        (WidgetTester tester) async {
       // Test with light theme
       await tester.pumpWidget(
         MaterialApp(
@@ -317,7 +331,8 @@ void main() {
   });
 
   group('View All Button Edge Cases', () {
-    testWidgets('ViewAllButton handles null onPressed gracefully', (WidgetTester tester) async {
+    testWidgets('ViewAllButton handles null onPressed gracefully',
+        (WidgetTester tester) async {
       // This should not be possible with required parameter, but test anyway
       await tester.pumpWidget(
         MaterialApp(
@@ -332,7 +347,8 @@ void main() {
       expect(find.byType(ViewAllButton), findsOneWidget);
     });
 
-    testWidgets('ViewAllButton handles extreme width constraints', (WidgetTester tester) async {
+    testWidgets('ViewAllButton handles extreme width constraints',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -351,7 +367,8 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('ViewAllButton handles very wide constraints', (WidgetTester tester) async {
+    testWidgets('ViewAllButton handles very wide constraints',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

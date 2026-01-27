@@ -5,7 +5,8 @@ import 'package:waste_segregation_app/widgets/modern_ui/modern_badges.dart';
 
 void main() {
   group('Active Challenge Preview Golden Tests', () {
-    testWidgets('ActiveChallengeCard basic layout golden test', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard basic layout golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -47,7 +48,8 @@ void main() {
       );
     });
 
-    testWidgets('ActiveChallengeCard overflow handling golden test', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard overflow handling golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -58,7 +60,8 @@ void main() {
                   SizedBox(
                     width: 300,
                     child: ActiveChallengeCard(
-                      title: 'Very Long Challenge Title That Should Not Overflow',
+                      title:
+                          'Very Long Challenge Title That Should Not Overflow',
                       description:
                           'Very long challenge description that explains in detail what the user needs to do to complete this challenge successfully',
                       progress: 0.45,
@@ -96,7 +99,8 @@ void main() {
       );
     });
 
-    testWidgets('ActiveChallengeCard progress variations golden test', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard progress variations golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -149,7 +153,8 @@ void main() {
       );
     });
 
-    testWidgets('ProgressBadge variations golden test', (WidgetTester tester) async {
+    testWidgets('ProgressBadge variations golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -238,7 +243,8 @@ void main() {
       );
     });
 
-    testWidgets('ActiveChallengeCard minimal layout golden test', (WidgetTester tester) async {
+    testWidgets('ActiveChallengeCard minimal layout golden test',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

@@ -19,7 +19,8 @@ void main() {
     });
 
     group('Dual-Hash Backward Compatibility', () {
-      test('should handle legacy cache entries without contentHash gracefully', () async {
+      test('should handle legacy cache entries without contentHash gracefully',
+          () async {
         // Create a legacy cache entry without contentHash (simulating old data)
         final legacyClassification = WasteClassification(
           id: 'test-id',
@@ -51,7 +52,8 @@ void main() {
         await box.put('phash_legacy123456789abcdef', legacyEntry.serialize());
 
         // Test 1: Exact match should work for legacy entries
-        final exactMatch = await cacheService.getCachedClassification('phash_legacy123456789abcdef');
+        final exactMatch = await cacheService
+            .getCachedClassification('phash_legacy123456789abcdef');
         expect(exactMatch, isNotNull);
         expect(exactMatch!.classification.itemName, equals('Legacy Item'));
 
@@ -60,10 +62,13 @@ void main() {
           'phash_legacy123456789abcdff', // Similar but different hash
           contentHash: 'md5_newcontenthashdifferent',
         );
-        expect(similarityResult, isNull); // Should not match due to missing contentHash in legacy entry
+        expect(similarityResult,
+            isNull); // Should not match due to missing contentHash in legacy entry
       });
 
-      test('should prevent false positives when legacy entries lack contentHash', () async {
+      test(
+          'should prevent false positives when legacy entries lack contentHash',
+          () async {
         // Create two different images with similar perceptual hashes
         final classification1 = _createTestClassification('Red Pen');
         final classification2 = _createTestClassification('Blue Marker');
@@ -101,7 +106,8 @@ void main() {
         );
 
         // Test exact match
-        final exactMatch = await cacheService.getCachedClassification('phash_newitem123456789abcdef');
+        final exactMatch = await cacheService
+            .getCachedClassification('phash_newitem123456789abcdef');
         expect(exactMatch, isNotNull);
         expect(exactMatch!.classification.itemName, equals('New Item'));
 
@@ -121,7 +127,9 @@ void main() {
         expect(wrongContentMatch, isNull);
       });
 
-      test('should maintain cache statistics correctly for dual-hash operations', () async {
+      test(
+          'should maintain cache statistics correctly for dual-hash operations',
+          () async {
         await cacheService.initialize();
 
         final classification = _createTestClassification('Stats Test Item');
@@ -160,13 +168,15 @@ void main() {
         await box.put('phash_corrupted123456789abc', '{"invalid": json}');
 
         // Should not crash and return null
-        final result = await cacheService.getCachedClassification('phash_corrupted123456789abc');
+        final result = await cacheService
+            .getCachedClassification('phash_corrupted123456789abc');
         expect(result, isNull);
       });
 
       test('should migrate legacy entries when accessed and updated', () async {
         // Create legacy entry without contentHash
-        final legacyClassification = _createTestClassification('Migration Test');
+        final legacyClassification =
+            _createTestClassification('Migration Test');
         final legacyEntry = CachedClassification(
           imageHash: 'phash_migration123456789abc',
           classification: legacyClassification,
@@ -177,7 +187,8 @@ void main() {
         await box.put('phash_migration123456789abc', legacyEntry.serialize());
 
         // Access the legacy entry (should work)
-        final accessed = await cacheService.getCachedClassification('phash_migration123456789abc');
+        final accessed = await cacheService
+            .getCachedClassification('phash_migration123456789abc');
         expect(accessed, isNotNull);
         expect(accessed!.contentHash, isNull); // Still no contentHash
 
@@ -189,7 +200,8 @@ void main() {
         );
 
         // Verify it now has contentHash
-        final updated = await cacheService.getCachedClassification('phash_migration123456789abc');
+        final updated = await cacheService
+            .getCachedClassification('phash_migration123456789abc');
         expect(updated, isNotNull);
         expect(updated!.contentHash, equals('md5_migrationcontenthashabc'));
       });
@@ -221,7 +233,8 @@ void main() {
         await cacheService.cacheClassification(imageHash, classification);
 
         // Retrieve from cache
-        final cachedResult = await cacheService.getCachedClassification(imageHash);
+        final cachedResult =
+            await cacheService.getCachedClassification(imageHash);
 
         expect(cachedResult, isNotNull);
         expect(cachedResult!.classification.itemName, equals('Plastic Bottle'));
@@ -232,7 +245,8 @@ void main() {
       test('should return null for non-existent cache entries', () async {
         const nonExistentHash = 'non_existent_hash_123';
 
-        final result = await cacheService.getCachedClassification(nonExistentHash);
+        final result =
+            await cacheService.getCachedClassification(nonExistentHash);
 
         expect(result, isNull);
       });
@@ -297,30 +311,39 @@ void main() {
         expect(cacheSize, lessThanOrEqualTo(maxCacheSize));
       });
 
-      test('should implement LRU (Least Recently Used) eviction policy', () async {
+      test('should implement LRU (Least Recently Used) eviction policy',
+          () async {
         cacheService.setMaxCacheSize(3);
 
         // Add 3 items
-        await cacheService.cacheClassification('hash_1', _createTestClassification('Item 1'));
-        await cacheService.cacheClassification('hash_2', _createTestClassification('Item 2'));
-        await cacheService.cacheClassification('hash_3', _createTestClassification('Item 3'));
+        await cacheService.cacheClassification(
+            'hash_1', _createTestClassification('Item 1'));
+        await cacheService.cacheClassification(
+            'hash_2', _createTestClassification('Item 2'));
+        await cacheService.cacheClassification(
+            'hash_3', _createTestClassification('Item 3'));
 
         // Access hash_1 to make it recently used
         await cacheService.getCachedClassification('hash_1');
 
         // Add a 4th item, should evict hash_2 (least recently used)
-        await cacheService.cacheClassification('hash_4', _createTestClassification('Item 4'));
+        await cacheService.cacheClassification(
+            'hash_4', _createTestClassification('Item 4'));
 
         expect(await cacheService.getCachedClassification('hash_1'), isNotNull);
-        expect(await cacheService.getCachedClassification('hash_2'), isNull); // Should be evicted
+        expect(await cacheService.getCachedClassification('hash_2'),
+            isNull); // Should be evicted
         expect(await cacheService.getCachedClassification('hash_3'), isNotNull);
         expect(await cacheService.getCachedClassification('hash_4'), isNotNull);
       });
 
       test('should calculate cache memory usage accurately', () async {
-        await cacheService.cacheClassification('hash_1', _createTestClassification('Small Item'));
-        await cacheService.cacheClassification('hash_2',
-            _createTestClassification('Large Item with very long description and many details about the item'));
+        await cacheService.cacheClassification(
+            'hash_1', _createTestClassification('Small Item'));
+        await cacheService.cacheClassification(
+            'hash_2',
+            _createTestClassification(
+                'Large Item with very long description and many details about the item'));
 
         final memoryUsage = await cacheService.getCacheMemoryUsage();
         expect(memoryUsage, greaterThan(0));
@@ -350,7 +373,8 @@ void main() {
 
         // Add multiple items
         for (var i = 0; i < 5; i++) {
-          await cacheService.cacheClassification('hash_$i', _createTestClassification('Item $i'));
+          await cacheService.cacheClassification(
+              'hash_$i', _createTestClassification('Item $i'));
         }
 
         expect(await cacheService.getCacheSize(), equals(5));
@@ -383,8 +407,10 @@ void main() {
         // Wait for short expiry
         await Future.delayed(const Duration(milliseconds: 100));
 
-        expect(await cacheService.getCachedClassification('short_hash'), isNull);
-        expect(await cacheService.getCachedClassification('long_hash'), isNotNull);
+        expect(
+            await cacheService.getCachedClassification('short_hash'), isNull);
+        expect(
+            await cacheService.getCachedClassification('long_hash'), isNotNull);
       });
     });
 
@@ -394,7 +420,8 @@ void main() {
         cacheService.resetStatistics();
 
         // Add an item to cache
-        await cacheService.cacheClassification('hash_1', _createTestClassification('Item 1'));
+        await cacheService.cacheClassification(
+            'hash_1', _createTestClassification('Item 1'));
 
         // Cache hit
         await cacheService.getCachedClassification('hash_1');
@@ -409,7 +436,8 @@ void main() {
       });
 
       test('should track cache operations performance', () async {
-        final classification = _createTestClassification('Performance Test Item');
+        final classification =
+            _createTestClassification('Performance Test Item');
 
         final stopwatch = Stopwatch()..start();
         await cacheService.cacheClassification('perf_hash', classification);
@@ -428,7 +456,8 @@ void main() {
       test('should provide cache efficiency metrics', () async {
         // Add multiple items with different access patterns
         for (var i = 0; i < 10; i++) {
-          await cacheService.cacheClassification('hash_$i', _createTestClassification('Item $i'));
+          await cacheService.cacheClassification(
+              'hash_$i', _createTestClassification('Item $i'));
         }
 
         // Access some items multiple times (simulate popular items)
@@ -459,7 +488,8 @@ void main() {
         final newCacheService = ClassificationCacheService();
         await newCacheService.loadCacheFromStorage();
 
-        final result = await newCacheService.getCachedClassification('persist_hash');
+        final result =
+            await newCacheService.getCachedClassification('persist_hash');
         expect(result, isNotNull);
         expect(result!.classification.itemName, equals('Persistent Item'));
       });
@@ -468,7 +498,8 @@ void main() {
         // Simulate corrupted cache file
         await cacheService.simulateCorruptedCache();
 
-        expect(() async => cacheService.loadCacheFromStorage(), returnsNormally);
+        expect(
+            () async => cacheService.loadCacheFromStorage(), returnsNormally);
 
         // Should start with empty cache
         expect(await cacheService.getCacheSize(), equals(0));
@@ -477,7 +508,8 @@ void main() {
       test('should backup and restore cache data', () async {
         // Add test data
         for (var i = 0; i < 5; i++) {
-          await cacheService.cacheClassification('backup_hash_$i', _createTestClassification('Backup Item $i'));
+          await cacheService.cacheClassification(
+              'backup_hash_$i', _createTestClassification('Backup Item $i'));
         }
 
         // Create backup
@@ -493,7 +525,8 @@ void main() {
         expect(await cacheService.getCacheSize(), equals(5));
 
         // Verify data integrity
-        final restoredItem = await cacheService.getCachedClassification('backup_hash_0');
+        final restoredItem =
+            await cacheService.getCachedClassification('backup_hash_0');
         expect(restoredItem!.classification.itemName, equals('Backup Item 0'));
       });
     });
@@ -501,12 +534,14 @@ void main() {
     group('Cache Validation', () {
       test('should validate cache data integrity', () async {
         final classification = _createTestClassification('Validation Test');
-        await cacheService.cacheClassification('validation_hash', classification);
+        await cacheService.cacheClassification(
+            'validation_hash', classification);
 
         // Simulate data corruption
         await cacheService.simulateDataCorruption('validation_hash');
 
-        final result = await cacheService.getCachedClassification('validation_hash');
+        final result =
+            await cacheService.getCachedClassification('validation_hash');
         expect(result, isNull); // Should return null for corrupted data
       });
 
@@ -514,7 +549,8 @@ void main() {
         // Simulate old cache version
         await cacheService.simulateOldCacheVersion();
 
-        expect(() async => cacheService.loadCacheFromStorage(), returnsNormally);
+        expect(
+            () async => cacheService.loadCacheFromStorage(), returnsNormally);
 
         // Should migrate or clear old cache
         expect(await cacheService.getCacheSize(), equals(0));
@@ -527,8 +563,8 @@ void main() {
 
         // Simulate concurrent access
         for (var i = 0; i < 10; i++) {
-          futures
-              .add(cacheService.cacheClassification('concurrent_$i', _createTestClassification('Concurrent Item $i')));
+          futures.add(cacheService.cacheClassification('concurrent_$i',
+              _createTestClassification('Concurrent Item $i')));
         }
 
         for (var i = 0; i < 10; i++) {
@@ -546,15 +582,18 @@ void main() {
         final classification2 = _createTestClassification('Version 2');
 
         // Simulate concurrent updates to same key
-        final future1 = cacheService.cacheClassification('race_hash', classification1);
-        final future2 = cacheService.cacheClassification('race_hash', classification2);
+        final future1 =
+            cacheService.cacheClassification('race_hash', classification1);
+        final future2 =
+            cacheService.cacheClassification('race_hash', classification2);
 
         await Future.wait([future1, future2]);
 
         // Should have only one version (last writer wins or proper locking)
         final result = await cacheService.getCachedClassification('race_hash');
         expect(result, isNotNull);
-        expect(result!.classification.itemName, anyOf('Version 1', 'Version 2'));
+        expect(
+            result!.classification.itemName, anyOf('Version 1', 'Version 2'));
       });
     });
 
@@ -565,7 +604,10 @@ void main() {
 
         final classification = _createTestClassification('Error Test');
 
-        expect(() async => cacheService.cacheClassification('error_hash', classification), returnsNormally);
+        expect(
+            () async =>
+                cacheService.cacheClassification('error_hash', classification),
+            returnsNormally);
 
         // Should fall back to in-memory cache
         final result = await cacheService.getCachedClassification('error_hash');
@@ -578,11 +620,13 @@ void main() {
 
         // Should reduce cache size automatically
         for (var i = 0; i < 100; i++) {
-          await cacheService.cacheClassification('memory_$i', _createTestClassification('Memory Item $i'));
+          await cacheService.cacheClassification(
+              'memory_$i', _createTestClassification('Memory Item $i'));
         }
 
         final cacheSize = await cacheService.getCacheSize();
-        expect(cacheSize, lessThan(100)); // Should evict items due to memory pressure
+        expect(cacheSize,
+            lessThan(100)); // Should evict items due to memory pressure
       });
     });
   });
@@ -637,7 +681,8 @@ extension CacheServiceTestExtension on CacheService {
     // Mock implementation
   }
 
-  Future<void> cacheClassificationWithExpiry(String hash, WasteClassification classification, Duration expiry) async {
+  Future<void> cacheClassificationWithExpiry(
+      String hash, WasteClassification classification, Duration expiry) async {
     // Mock implementation
   }
 

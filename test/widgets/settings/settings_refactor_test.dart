@@ -30,7 +30,8 @@ void main() {
       expect(find.byIcon(Icons.settings), findsOneWidget);
     });
 
-    testWidgets('SettingToggleTile renders correctly', (WidgetTester tester) async {
+    testWidgets('SettingToggleTile renders correctly',
+        (WidgetTester tester) async {
       bool testValue = false;
 
       await tester.pumpWidget(
@@ -59,7 +60,8 @@ void main() {
       expect(find.byType(Switch), findsOneWidget);
     });
 
-    testWidgets('SettingsSectionHeader renders correctly', (WidgetTester tester) async {
+    testWidgets('SettingsSectionHeader renders correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         createTestWidget(
           const SettingsSectionHeader(title: 'Test Section'),
@@ -69,7 +71,8 @@ void main() {
       expect(find.text('Test Section'), findsOneWidget);
     });
 
-    testWidgets('SettingsSectionSpacer renders correctly', (WidgetTester tester) async {
+    testWidgets('SettingsSectionSpacer renders correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         createTestWidget(
           const SettingsSectionSpacer(),
@@ -79,7 +82,8 @@ void main() {
       expect(find.byType(SizedBox), findsOneWidget);
     });
 
-    testWidgets('PremiumSection renders correctly', (WidgetTester tester) async {
+    testWidgets('PremiumSection renders correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         createTestWidget(
           const PremiumSection(),
@@ -91,7 +95,8 @@ void main() {
       expect(find.byIcon(Icons.workspace_premium), findsOneWidget);
     });
 
-    testWidgets('AppSettingsSection renders correctly', (WidgetTester tester) async {
+    testWidgets('AppSettingsSection renders correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         createTestWidget(
           const AppSettingsSection(),
@@ -105,7 +110,8 @@ void main() {
       expect(find.text('Data Export'), findsOneWidget);
     });
 
-    testWidgets('LegalSupportSection renders correctly', (WidgetTester tester) async {
+    testWidgets('LegalSupportSection renders correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         createTestWidget(
           const LegalSupportSection(),
@@ -119,7 +125,8 @@ void main() {
       expect(find.text('About'), findsOneWidget);
     });
 
-    testWidgets('SettingsTheme helper methods work', (WidgetTester tester) async {
+    testWidgets('SettingsTheme helper methods work',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Builder(

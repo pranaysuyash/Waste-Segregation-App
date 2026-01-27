@@ -51,7 +51,8 @@ void main() {
 
     /// Button Style Consistency Tests
     group('Button Style Consistency', () {
-      testWidgets('Primary buttons use consistent styling', (WidgetTester tester) async {
+      testWidgets('Primary buttons use consistent styling',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -66,7 +67,8 @@ void main() {
         expect(primaryStyle.shape?.resolve({}), isNotNull);
       });
 
-      testWidgets('Button styles maintain visual hierarchy', (WidgetTester tester) async {
+      testWidgets('Button styles maintain visual hierarchy',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -82,12 +84,15 @@ void main() {
         final tertiaryElevation = tertiaryStyle.elevation?.resolve({}) ?? 0;
 
         expect(primaryElevation, greaterThanOrEqualTo(secondaryElevation),
-            reason: 'Primary buttons should have equal or higher elevation than secondary');
+            reason:
+                'Primary buttons should have equal or higher elevation than secondary');
         expect(secondaryElevation, greaterThanOrEqualTo(tertiaryElevation),
-            reason: 'Secondary buttons should have equal or higher elevation than tertiary');
+            reason:
+                'Secondary buttons should have equal or higher elevation than tertiary');
       });
 
-      testWidgets('Destructive buttons have appropriate warning styling', (WidgetTester tester) async {
+      testWidgets('Destructive buttons have appropriate warning styling',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -102,11 +107,14 @@ void main() {
         final green = backgroundColor.g;
         final blue = backgroundColor.b;
 
-        expect(red, greaterThan(green), reason: 'Destructive buttons should have more red than green');
-        expect(red, greaterThan(blue), reason: 'Destructive buttons should have more red than blue');
+        expect(red, greaterThan(green),
+            reason: 'Destructive buttons should have more red than green');
+        expect(red, greaterThan(blue),
+            reason: 'Destructive buttons should have more red than blue');
       });
 
-      testWidgets('Success buttons have appropriate positive styling', (WidgetTester tester) async {
+      testWidgets('Success buttons have appropriate positive styling',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -121,14 +129,17 @@ void main() {
         final green = backgroundColor.g;
         final blue = backgroundColor.b;
 
-        expect(green, greaterThan(red), reason: 'Success buttons should have more green than red');
-        expect(green, greaterThan(blue), reason: 'Success buttons should have more green than blue');
+        expect(green, greaterThan(red),
+            reason: 'Success buttons should have more green than red');
+        expect(green, greaterThan(blue),
+            reason: 'Success buttons should have more green than blue');
       });
     });
 
     /// Button Size and Spacing Tests
     group('Button Size and Spacing', () {
-      testWidgets('All buttons have consistent padding', (WidgetTester tester) async {
+      testWidgets('All buttons have consistent padding',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -146,12 +157,14 @@ void main() {
           if (expectedPadding == null) {
             expectedPadding = padding;
           } else {
-            expect(padding, equals(expectedPadding), reason: 'All button types should have consistent padding');
+            expect(padding, equals(expectedPadding),
+                reason: 'All button types should have consistent padding');
           }
         }
       });
 
-      testWidgets('Buttons have minimum touch target size', (WidgetTester tester) async {
+      testWidgets('Buttons have minimum touch target size',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -167,13 +180,15 @@ void main() {
 
           // Material Design minimum touch target is 48x48
           expect(buttonSize.height, greaterThanOrEqualTo(48.0),
-              reason: 'Buttons should meet minimum touch target height of 48px');
+              reason:
+                  'Buttons should meet minimum touch target height of 48px');
           expect(buttonSize.width, greaterThanOrEqualTo(48.0),
               reason: 'Buttons should meet minimum touch target width of 48px');
         }
       });
 
-      testWidgets('Button text maintains readable size', (WidgetTester tester) async {
+      testWidgets('Button text maintains readable size',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -181,16 +196,19 @@ void main() {
 
         for (final textWidget in textWidgets) {
           final fontSize = textWidget.style?.fontSize ?? 14.0;
-          expect(fontSize, greaterThanOrEqualTo(14.0), reason: 'Button text should be at least 14px for readability');
+          expect(fontSize, greaterThanOrEqualTo(14.0),
+              reason: 'Button text should be at least 14px for readability');
           expect(fontSize, lessThanOrEqualTo(20.0),
-              reason: 'Button text should not exceed 20px to maintain button proportions');
+              reason:
+                  'Button text should not exceed 20px to maintain button proportions');
         }
       });
     });
 
     /// Button Accessibility Tests
     group('Button Accessibility', () {
-      testWidgets('Buttons have sufficient color contrast', (WidgetTester tester) async {
+      testWidgets('Buttons have sufficient color contrast',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -208,14 +226,17 @@ void main() {
           final foregroundColor = style.foregroundColor?.resolve({});
 
           if (backgroundColor != null && foregroundColor != null) {
-            final contrast = _calculateContrast(foregroundColor, backgroundColor);
+            final contrast =
+                _calculateContrast(foregroundColor, backgroundColor);
             expect(contrast, greaterThan(4.5),
-                reason: 'Button text should have at least 4.5:1 contrast ratio with background');
+                reason:
+                    'Button text should have at least 4.5:1 contrast ratio with background');
           }
         }
       });
 
-      testWidgets('Buttons respond to touch events', (WidgetTester tester) async {
+      testWidgets('Buttons respond to touch events',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -235,7 +256,8 @@ void main() {
         }
       });
 
-      testWidgets('Buttons scale properly with text size', (WidgetTester tester) async {
+      testWidgets('Buttons scale properly with text size',
+          (WidgetTester tester) async {
         // Test with larger text scale
         await tester.pumpWidget(
           MediaQuery(
@@ -257,16 +279,19 @@ void main() {
 
           // Buttons should still meet minimum touch targets when scaled
           expect(buttonSize.height, greaterThanOrEqualTo(48.0),
-              reason: 'Scaled buttons should still meet minimum touch target height');
+              reason:
+                  'Scaled buttons should still meet minimum touch target height');
           expect(buttonSize.width, greaterThanOrEqualTo(48.0),
-              reason: 'Scaled buttons should still meet minimum touch target width');
+              reason:
+                  'Scaled buttons should still meet minimum touch target width');
         }
       });
     });
 
     /// Button State Tests
     group('Button State Consistency', () {
-      testWidgets('Button states have visual feedback', (WidgetTester tester) async {
+      testWidgets('Button states have visual feedback',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -274,9 +299,11 @@ void main() {
         final primaryStyle = UIConsistency.primaryButtonStyle(context);
 
         // Test different material states
-        final pressedColor = primaryStyle.backgroundColor?.resolve({WidgetState.pressed});
+        final pressedColor =
+            primaryStyle.backgroundColor?.resolve({WidgetState.pressed});
         final normalColor = primaryStyle.backgroundColor?.resolve({});
-        final disabledColor = primaryStyle.backgroundColor?.resolve({WidgetState.disabled});
+        final disabledColor =
+            primaryStyle.backgroundColor?.resolve({WidgetState.disabled});
 
         expect(pressedColor, isNotNull);
         expect(normalColor, isNotNull);
@@ -284,14 +311,17 @@ void main() {
 
         // Pressed state should be different from normal
         expect(pressedColor, isNot(equals(normalColor)),
-            reason: 'Pressed button should have different color than normal state');
+            reason:
+                'Pressed button should have different color than normal state');
 
         // Disabled state should be different from normal
         expect(disabledColor, isNot(equals(normalColor)),
-            reason: 'Disabled button should have different color than normal state');
+            reason:
+                'Disabled button should have different color than normal state');
       });
 
-      testWidgets('Disabled buttons are properly styled', (WidgetTester tester) async {
+      testWidgets('Disabled buttons are properly styled',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -334,7 +364,8 @@ void main() {
 
     /// Button Layout Consistency Tests
     group('Button Layout Consistency', () {
-      testWidgets('Button content is properly aligned', (WidgetTester tester) async {
+      testWidgets('Button content is properly aligned',
+          (WidgetTester tester) async {
         await tester.pumpWidget(testApp);
         await tester.pumpAndSettle();
 
@@ -346,7 +377,8 @@ void main() {
         }
       });
 
-      testWidgets('Buttons with icons maintain proper spacing', (WidgetTester tester) async {
+      testWidgets('Buttons with icons maintain proper spacing',
+          (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(

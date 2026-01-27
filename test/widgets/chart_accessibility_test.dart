@@ -25,7 +25,8 @@ void main() {
     });
 
     group('WasteCategoryPieChart Accessibility', () {
-      testWidgets('renders with data and has semantic structure', (WidgetTester tester) async {
+      testWidgets('renders with data and has semantic structure',
+          (WidgetTester tester) async {
         final testData = [
           ChartData('Wet Waste', 10, Colors.green),
           ChartData('Dry Waste', 15, Colors.blue),
@@ -53,7 +54,9 @@ void main() {
         final handle = tester.ensureSemantics();
 
         // Check that there are semantic nodes (accessibility structure exists)
-        final semanticsNodes = tester.binding.pipelineOwner.semanticsOwner?.rootSemanticsNode?.debugDescribeChildren();
+        final semanticsNodes = tester
+            .binding.pipelineOwner.semanticsOwner?.rootSemanticsNode
+            ?.debugDescribeChildren();
         expect(semanticsNodes, isNotNull);
 
         handle.dispose();
@@ -108,7 +111,8 @@ void main() {
     });
 
     group('TopSubcategoriesBarChart Accessibility', () {
-      testWidgets('renders with data and has semantic structure', (WidgetTester tester) async {
+      testWidgets('renders with data and has semantic structure',
+          (WidgetTester tester) async {
         final testData = [
           ChartData('Paper', 8, Colors.blue),
           ChartData('Plastic', 12, Colors.orange),
@@ -137,7 +141,9 @@ void main() {
         final handle = tester.ensureSemantics();
 
         // Check that there are semantic nodes
-        final semanticsNodes = tester.binding.pipelineOwner.semanticsOwner?.rootSemanticsNode?.debugDescribeChildren();
+        final semanticsNodes = tester
+            .binding.pipelineOwner.semanticsOwner?.rootSemanticsNode
+            ?.debugDescribeChildren();
         expect(semanticsNodes, isNotNull);
 
         handle.dispose();
@@ -194,7 +200,8 @@ void main() {
     });
 
     group('WeeklyItemsChart Accessibility', () {
-      testWidgets('renders with data and has semantic structure', (WidgetTester tester) async {
+      testWidgets('renders with data and has semantic structure',
+          (WidgetTester tester) async {
         final testData = [
           ChartData('Mon', 5, Colors.blue),
           ChartData('Tue', 8, Colors.blue),
@@ -225,7 +232,9 @@ void main() {
         final handle = tester.ensureSemantics();
 
         // Check that there are semantic nodes
-        final semanticsNodes = tester.binding.pipelineOwner.semanticsOwner?.rootSemanticsNode?.debugDescribeChildren();
+        final semanticsNodes = tester
+            .binding.pipelineOwner.semanticsOwner?.rootSemanticsNode
+            ?.debugDescribeChildren();
         expect(semanticsNodes, isNotNull);
 
         handle.dispose();
@@ -282,7 +291,8 @@ void main() {
     });
 
     group('Chart Data Validation', () {
-      testWidgets('ChartData model works correctly', (WidgetTester tester) async {
+      testWidgets('ChartData model works correctly',
+          (WidgetTester tester) async {
         final chartData = ChartData('Test Label', 42.0, Colors.red);
 
         expect(chartData.label, equals('Test Label'));
@@ -290,7 +300,8 @@ void main() {
         expect(chartData.color, equals(Colors.red));
       });
 
-      testWidgets('charts handle various data sizes', (WidgetTester tester) async {
+      testWidgets('charts handle various data sizes',
+          (WidgetTester tester) async {
         // Test with single item
         final singleData = [ChartData('Single', 1, Colors.blue)];
 
@@ -311,7 +322,10 @@ void main() {
         expect(find.byType(WasteCategoryPieChart), findsOneWidget);
 
         // Test with many items
-        final manyData = List.generate(10, (index) => ChartData('Item $index', index.toDouble() + 1, Colors.blue));
+        final manyData = List.generate(
+            10,
+            (index) =>
+                ChartData('Item $index', index.toDouble() + 1, Colors.blue));
 
         await tester.pumpWidget(
           MaterialApp(

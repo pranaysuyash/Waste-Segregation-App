@@ -53,7 +53,8 @@ void main() {
 
         expect(family.id, equals('family_123'));
         expect(family.name, equals('Test Family'));
-        expect(family.description, equals('A test family for waste management'));
+        expect(
+            family.description, equals('A test family for waste management'));
         expect(family.createdBy, equals('user_123'));
         expect(family.createdAt, equals(testDateTime));
         expect(family.updatedAt, equals(testDateTime));
@@ -114,7 +115,8 @@ void main() {
           createdAt: testDateTime,
           updatedAt: testDateTime,
           members: [testMember],
-          settings: const FamilySettings(isPublic: true, shareClassifications: false),
+          settings:
+              const FamilySettings(isPublic: true, shareClassifications: false),
           imageUrl: 'https://example.com/serialize.jpg',
           isPublic: true,
         );
@@ -304,7 +306,8 @@ void main() {
         expect(updated.role, equals(UserRole.admin)); // Changed
         expect(updated.joinedAt, equals(original.joinedAt)); // Unchanged
         expect(updated.displayName, equals('Updated Member')); // Changed
-        expect(updated.photoUrl, equals('https://example.com/updated.jpg')); // Changed
+        expect(updated.photoUrl,
+            equals('https://example.com/updated.jpg')); // Changed
       });
     });
 
@@ -332,7 +335,8 @@ void main() {
         expect(settings.customSettings['theme'], equals('dark'));
         expect(settings.shareClassificationsPublicly, isFalse);
         expect(settings.showMemberActivityInFeed, isFalse);
-        expect(settings.leaderboardVisibility, equals(FamilyLeaderboardVisibility.public));
+        expect(settings.leaderboardVisibility,
+            equals(FamilyLeaderboardVisibility.public));
       });
 
       test('should create default settings', () {
@@ -366,8 +370,10 @@ void main() {
         final recreated = FamilySettings.fromJson(json);
         expect(recreated.isPublic, equals(original.isPublic));
         expect(recreated.allowChildInvites, equals(original.allowChildInvites));
-        expect(recreated.shareClassifications, equals(original.shareClassifications));
-        expect(recreated.leaderboardVisibility, equals(original.leaderboardVisibility));
+        expect(recreated.shareClassifications,
+            equals(original.shareClassifications));
+        expect(recreated.leaderboardVisibility,
+            equals(original.leaderboardVisibility));
       });
 
       test('should copyWith correctly', () {
@@ -382,10 +388,13 @@ void main() {
         );
 
         expect(updated.isPublic, isTrue); // Changed
-        expect(updated.allowChildInvites, equals(original.allowChildInvites)); // Unchanged
-        expect(updated.shareClassifications, equals(original.shareClassifications)); // Unchanged
+        expect(updated.allowChildInvites,
+            equals(original.allowChildInvites)); // Unchanged
+        expect(updated.shareClassifications,
+            equals(original.shareClassifications)); // Unchanged
         expect(updated.customSettings['updated'], equals('value')); // Changed
-        expect(updated.leaderboardVisibility, equals(FamilyLeaderboardVisibility.public)); // Changed
+        expect(updated.leaderboardVisibility,
+            equals(FamilyLeaderboardVisibility.public)); // Changed
       });
     });
 
@@ -416,7 +425,8 @@ void main() {
         expect(defaultSettings.invitationReceived, isTrue);
       });
 
-      test('should serialize and deserialize NotificationSettings correctly', () {
+      test('should serialize and deserialize NotificationSettings correctly',
+          () {
         const original = NotificationSettings(
           newMemberJoined: true,
           classificationShared: false,
@@ -436,10 +446,13 @@ void main() {
         // Test fromJson
         final recreated = NotificationSettings.fromJson(json);
         expect(recreated.newMemberJoined, equals(original.newMemberJoined));
-        expect(recreated.classificationShared, equals(original.classificationShared));
-        expect(recreated.achievementUnlocked, equals(original.achievementUnlocked));
+        expect(recreated.classificationShared,
+            equals(original.classificationShared));
+        expect(recreated.achievementUnlocked,
+            equals(original.achievementUnlocked));
         expect(recreated.weeklyReport, equals(original.weeklyReport));
-        expect(recreated.invitationReceived, equals(original.invitationReceived));
+        expect(
+            recreated.invitationReceived, equals(original.invitationReceived));
       });
     });
 
@@ -486,7 +499,8 @@ void main() {
         // Test fromJson
         final recreated = PrivacySettings.fromJson(json);
         expect(recreated.showLastSeen, equals(original.showLastSeen));
-        expect(recreated.showActivityStatus, equals(original.showActivityStatus));
+        expect(
+            recreated.showActivityStatus, equals(original.showActivityStatus));
         expect(recreated.allowSearchByName, equals(original.allowSearchByName));
         expect(recreated.blockedUsers, equals(original.blockedUsers));
       });
@@ -558,7 +572,8 @@ void main() {
         expect(updated.totalPoints, equals(250)); // Changed
         expect(updated.currentStreak, equals(3)); // Changed
         expect(updated.bestStreak, equals(original.bestStreak)); // Unchanged
-        expect(updated.achievementCount, equals(original.achievementCount)); // Unchanged
+        expect(updated.achievementCount,
+            equals(original.achievementCount)); // Unchanged
       });
     });
 
@@ -617,7 +632,8 @@ void main() {
         // Test fromJson
         final recreated = UserStats.fromJson(json);
         expect(recreated.totalPoints, equals(original.totalPoints));
-        expect(recreated.totalClassifications, equals(original.totalClassifications));
+        expect(recreated.totalClassifications,
+            equals(original.totalClassifications));
         expect(recreated.categoryBreakdown, equals(original.categoryBreakdown));
         expect(recreated.achievements, equals(original.achievements));
         expect(recreated.lastActive, equals(original.lastActive));
@@ -635,8 +651,10 @@ void main() {
         expect(updated.totalPoints, equals(100)); // Changed
         expect(updated.achievements, equals(['new_achievement'])); // Changed
         expect(updated.categoryBreakdown['New Category'], equals(5)); // Changed
-        expect(updated.totalClassifications, equals(original.totalClassifications)); // Unchanged
-        expect(updated.currentStreak, equals(original.currentStreak)); // Unchanged
+        expect(updated.totalClassifications,
+            equals(original.totalClassifications)); // Unchanged
+        expect(
+            updated.currentStreak, equals(original.currentStreak)); // Unchanged
       });
     });
 
@@ -664,7 +682,8 @@ void main() {
         expect(emptyImpact.lastUpdated, isA<DateTime>());
       });
 
-      test('should serialize and deserialize EnvironmentalImpact correctly', () {
+      test('should serialize and deserialize EnvironmentalImpact correctly',
+          () {
         final original = EnvironmentalImpact(
           co2Saved: 15.3,
           treesEquivalent: 3.7,
@@ -733,7 +752,8 @@ void main() {
         final recreated = WeeklyProgress.fromJson(json);
         expect(recreated.weekStart, equals(original.weekStart));
         expect(recreated.weekEnd, equals(original.weekEnd));
-        expect(recreated.classificationsCount, equals(original.classificationsCount));
+        expect(recreated.classificationsCount,
+            equals(original.classificationsCount));
         expect(recreated.pointsEarned, equals(original.pointsEarned));
         expect(recreated.categoryBreakdown, equals(original.categoryBreakdown));
       });
@@ -749,17 +769,30 @@ void main() {
 
       test('should handle InvitationStatus enum correctly', () {
         expect(InvitationStatus.values.length, equals(4));
-        expect(InvitationStatus.values.contains(InvitationStatus.pending), isTrue);
-        expect(InvitationStatus.values.contains(InvitationStatus.accepted), isTrue);
-        expect(InvitationStatus.values.contains(InvitationStatus.declined), isTrue);
-        expect(InvitationStatus.values.contains(InvitationStatus.expired), isTrue);
+        expect(
+            InvitationStatus.values.contains(InvitationStatus.pending), isTrue);
+        expect(InvitationStatus.values.contains(InvitationStatus.accepted),
+            isTrue);
+        expect(InvitationStatus.values.contains(InvitationStatus.declined),
+            isTrue);
+        expect(
+            InvitationStatus.values.contains(InvitationStatus.expired), isTrue);
       });
 
       test('should handle FamilyLeaderboardVisibility enum correctly', () {
         expect(FamilyLeaderboardVisibility.values.length, equals(3));
-        expect(FamilyLeaderboardVisibility.values.contains(FamilyLeaderboardVisibility.public), isTrue);
-        expect(FamilyLeaderboardVisibility.values.contains(FamilyLeaderboardVisibility.membersOnly), isTrue);
-        expect(FamilyLeaderboardVisibility.values.contains(FamilyLeaderboardVisibility.adminsOnly), isTrue);
+        expect(
+            FamilyLeaderboardVisibility.values
+                .contains(FamilyLeaderboardVisibility.public),
+            isTrue);
+        expect(
+            FamilyLeaderboardVisibility.values
+                .contains(FamilyLeaderboardVisibility.membersOnly),
+            isTrue);
+        expect(
+            FamilyLeaderboardVisibility.values
+                .contains(FamilyLeaderboardVisibility.adminsOnly),
+            isTrue);
       });
     });
 
@@ -813,7 +846,8 @@ void main() {
         final family = Family(
           id: 'complex_family',
           name: 'Eco Warriors Family',
-          description: 'A dedicated family working towards environmental sustainability',
+          description:
+              'A dedicated family working towards environmental sustainability',
           createdBy: 'admin_user',
           createdAt: testDateTime.subtract(const Duration(days: 30)),
           updatedAt: testDateTime,
@@ -842,7 +876,8 @@ void main() {
         final recreated = Family.fromJson(json);
         expect(recreated.members.length, equals(2));
         expect(recreated.settings.customSettings['theme'], equals('green'));
-        expect(recreated.settings.leaderboardVisibility, equals(FamilyLeaderboardVisibility.public));
+        expect(recreated.settings.leaderboardVisibility,
+            equals(FamilyLeaderboardVisibility.public));
       });
 
       test('should handle empty and null values gracefully', () {
@@ -868,7 +903,8 @@ void main() {
           totalClassifications: 50000,
           currentStreak: 365,
           bestStreak: 500,
-          categoryBreakdown: Map.fromEntries(List.generate(20, (i) => MapEntry('Category_$i', i * 100))),
+          categoryBreakdown: Map.fromEntries(
+              List.generate(20, (i) => MapEntry('Category_$i', i * 100))),
           achievements: List.generate(100, (i) => 'achievement_$i'),
           lastActive: testDateTime,
         );
@@ -880,8 +916,10 @@ void main() {
         final json = largeStats.toJson();
         final recreated = UserStats.fromJson(json);
         expect(recreated.totalPoints, equals(largeStats.totalPoints));
-        expect(recreated.categoryBreakdown.length, equals(largeStats.categoryBreakdown.length));
-        expect(recreated.achievements.length, equals(largeStats.achievements.length));
+        expect(recreated.categoryBreakdown.length,
+            equals(largeStats.categoryBreakdown.length));
+        expect(recreated.achievements.length,
+            equals(largeStats.achievements.length));
       });
 
       test('should handle special characters and unicode', () {

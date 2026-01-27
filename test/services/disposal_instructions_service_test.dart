@@ -15,7 +15,8 @@ void main() {
       final service = DisposalInstructionsService();
 
       // This will call _generateMaterialId internally
-      expect(() => service.getDisposalInstructions(material: 'plastic bottle'), returnsNormally);
+      expect(() => service.getDisposalInstructions(material: 'plastic bottle'),
+          returnsNormally);
     });
 
     test('should return fallback instructions for wet waste', () async {
@@ -52,7 +53,8 @@ void main() {
       expect(instructions.steps.isNotEmpty, true);
     });
 
-    test('should return different instructions for different categories', () async {
+    test('should return different instructions for different categories',
+        () async {
       final service = DisposalInstructionsService();
 
       // Test with dry waste
@@ -68,7 +70,8 @@ void main() {
         category: 'Wet Waste',
       );
       expect(instructions2.steps.length, greaterThan(2));
-      expect(instructions2.primaryMethod, isNot(equals(instructions1.primaryMethod)));
+      expect(instructions2.primaryMethod,
+          isNot(equals(instructions1.primaryMethod)));
     });
 
     test('should clear cache correctly', () {

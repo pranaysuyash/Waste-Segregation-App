@@ -12,7 +12,8 @@ void main() {
       );
     }
 
-    testWidgets('AnimatedSettingTile renders correctly', (WidgetTester tester) async {
+    testWidgets('AnimatedSettingTile renders correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         createTestWidget(
           const AnimatedSettingTile(
@@ -52,7 +53,8 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('ResponsiveSettingsLayout renders mobile layout', (WidgetTester tester) async {
+    testWidgets('ResponsiveSettingsLayout renders mobile layout',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         createTestWidget(
           ResponsiveSettingsLayout(
@@ -75,7 +77,8 @@ void main() {
       expect(find.byType(CustomScrollView), findsOneWidget);
     });
 
-    testWidgets('ResponsiveSettingsLayout adapts to tablet size', (WidgetTester tester) async {
+    testWidgets('ResponsiveSettingsLayout adapts to tablet size',
+        (WidgetTester tester) async {
       // Set tablet size
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
@@ -109,7 +112,8 @@ void main() {
       });
     });
 
-    testWidgets('StaggeredSettingsAnimation renders children', (WidgetTester tester) async {
+    testWidgets('StaggeredSettingsAnimation renders children',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         createTestWidget(
           const StaggeredSettingsAnimation(
@@ -130,7 +134,8 @@ void main() {
       expect(find.text('Staggered Item 3'), findsOneWidget);
     });
 
-    testWidgets('AnimatedSectionHeader expands and collapses', (WidgetTester tester) async {
+    testWidgets('AnimatedSectionHeader expands and collapses',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         createTestWidget(
           const AnimatedSectionHeader(

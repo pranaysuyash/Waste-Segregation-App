@@ -5,7 +5,7 @@ void main() {
   group('VisionModelConfig', () {
     test('creates default on-device config', () {
       final config = VisionModelConfig.onDevice();
-      
+
       expect(config.modelType, VisionModelType.yoloV8);
       expect(config.analysisMode, AnalysisMode.onDevice);
       expect(config.confidenceThreshold, 0.6);
@@ -15,7 +15,7 @@ void main() {
 
     test('creates hybrid config', () {
       final config = VisionModelConfig.hybrid();
-      
+
       expect(config.modelType, VisionModelType.yoloV8);
       expect(config.analysisMode, AnalysisMode.hybrid);
       expect(config.confidenceThreshold, 0.7);
@@ -25,7 +25,7 @@ void main() {
 
     test('creates batch cloud config', () {
       final config = VisionModelConfig.batchCloud();
-      
+
       expect(config.modelType, VisionModelType.openAI);
       expect(config.analysisMode, AnalysisMode.batch);
       expect(config.batchSize, 10);
@@ -39,7 +39,7 @@ void main() {
         confidenceThreshold: 0.8,
         enableSegmentation: true,
       );
-      
+
       expect(modified.confidenceThreshold, 0.8);
       expect(modified.enableSegmentation, true);
       expect(modified.modelType, config.modelType); // Unchanged
@@ -73,7 +73,7 @@ void main() {
         totalCost: 0.0,
         lastUpdated: DateTime.now(),
       );
-      
+
       expect(metrics.modelType, VisionModelType.yoloV8);
       expect(metrics.totalInferences, 100);
       expect(metrics.averageLatencyMs, 120.5);

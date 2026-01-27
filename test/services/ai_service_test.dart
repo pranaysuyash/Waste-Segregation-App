@@ -20,7 +20,8 @@ class MockAiService {
     _mockResult = null;
   }
 
-  Future<WasteClassification> analyzeWebImage(Uint8List imageData, String filename) async {
+  Future<WasteClassification> analyzeWebImage(
+      Uint8List imageData, String filename) async {
     if (_mockException != null) {
       throw _mockException!;
     }
@@ -53,7 +54,8 @@ void main() {
         // Test that the service handles empty image data appropriately
         // This should either throw an exception or return a fallback classification
         try {
-          final result = await aiService.analyzeWebImage(Uint8List(0), 'test.jpg');
+          final result =
+              await aiService.analyzeWebImage(Uint8List(0), 'test.jpg');
           // If it succeeds, it should return a fallback classification
           expect(result, isA<WasteClassification>());
           expect(result.clarificationNeeded, isTrue);
@@ -77,7 +79,8 @@ void main() {
 
       test('should handle invalid file extension', () async {
         try {
-          final result = await aiService.analyzeWebImage(Uint8List(0), 'invalid_file.txt');
+          final result =
+              await aiService.analyzeWebImage(Uint8List(0), 'invalid_file.txt');
           // If it succeeds, it should return a fallback classification
           expect(result, isA<WasteClassification>());
           expect(result.clarificationNeeded, isTrue);
@@ -109,7 +112,8 @@ void main() {
 
         mockService.setMockResult(expectedClassification);
 
-        final result = await mockService.analyzeWebImage(Uint8List.fromList([1, 2, 3, 4]), 'test.jpg');
+        final result = await mockService.analyzeWebImage(
+            Uint8List.fromList([1, 2, 3, 4]), 'test.jpg');
 
         expect(result, isA<WasteClassification>());
         expect(result.itemName, equals('Plastic Bottle'));
@@ -187,7 +191,13 @@ void main() {
 
     group('Category Validation', () {
       test('should recognize valid waste categories', () {
-        const validCategories = ['Dry Waste', 'Wet Waste', 'Hazardous Waste', 'Medical Waste', 'Non-Waste'];
+        const validCategories = [
+          'Dry Waste',
+          'Wet Waste',
+          'Hazardous Waste',
+          'Medical Waste',
+          'Non-Waste'
+        ];
 
         for (final category in validCategories) {
           final classification = WasteClassification(
@@ -217,7 +227,8 @@ void main() {
         // Test that the service handles network errors appropriately
         // This should either throw an exception or return a fallback classification
         try {
-          final result = await aiService.analyzeWebImage(Uint8List(0), 'non_existent_file.jpg');
+          final result = await aiService.analyzeWebImage(
+              Uint8List(0), 'non_existent_file.jpg');
           // If it succeeds, it should return a fallback classification
           expect(result, isA<WasteClassification>());
           expect(result.clarificationNeeded, isTrue);
@@ -229,7 +240,8 @@ void main() {
 
       test('should handle invalid file formats', () async {
         try {
-          final result = await aiService.analyzeWebImage(Uint8List(0), 'invalid_file.txt');
+          final result =
+              await aiService.analyzeWebImage(Uint8List(0), 'invalid_file.txt');
           // If it succeeds, it should return a fallback classification
           expect(result, isA<WasteClassification>());
           expect(result.clarificationNeeded, isTrue);
@@ -245,7 +257,8 @@ void main() {
         mockService.setMockException(Exception('Mock API Error'));
 
         expect(
-          () async => mockService.analyzeWebImage(Uint8List.fromList([1, 2, 3, 4]), 'test.jpg'),
+          () async => mockService.analyzeWebImage(
+              Uint8List.fromList([1, 2, 3, 4]), 'test.jpg'),
           throwsA(isA<Exception>()),
         );
       });
