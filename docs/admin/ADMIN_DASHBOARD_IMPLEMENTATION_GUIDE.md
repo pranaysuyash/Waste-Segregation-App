@@ -956,7 +956,7 @@ export const performanceMonitor = new PerformanceMonitor();
 # Firebase Admin
 FIREBASE_PROJECT_ID=waste-segregation-app-df523
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk@waste-segregation-app-df523.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+FIREBASE_PRIVATE_KEY="<paste your Firebase service account private key here (escape newlines as \\n)>"
 
 # BigQuery
 GOOGLE_CLOUD_PROJECT=waste-segregation-app-df523
