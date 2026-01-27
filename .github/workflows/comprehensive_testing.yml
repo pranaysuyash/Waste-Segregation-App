@@ -219,8 +219,10 @@ jobs:
         run: |
           echo "Running security checks..."
           
-          # Check for hardcoded secrets
-          if grep -r "sk_.*" lib/ || grep -r "pk_.*" lib/; then
+          # Check for hardcoded secrets.
+          # Keep this strict to avoid false positives like "task_alt" (contains "sk_").
+          SECRET_REGEX='(sk-(proj-)?[A-Za-z0-9]{16,}|sk_(live|test)_[A-Za-z0-9]{16,}|pk_(live|test)_[A-Za-z0-9]{16,})'
+          if grep -REn "$SECRET_REGEX" lib/; then
             echo "❌ Found potential hardcoded API keys!"
             exit 1
           fi
