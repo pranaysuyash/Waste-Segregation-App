@@ -22,25 +22,25 @@ jobs:
           set -euo pipefail
           echo "Checking for files matching failure patterns..."
 
-	          # Determine files changed in the PR (compare head to base) for PRs
-	          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-	            BASE_REF="origin/${{ github.event.pull_request.base.ref }}"
-	            git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1 || true
-	            # Include status so we can allow deletions (cleanup) while still blocking additions/updates.
-	            FILES=$(git diff --name-status $BASE_REF...HEAD)
-	          else
-	            # For push events, check all changes across the push range (not just the last commit).
-	            BEFORE_SHA="${{ github.event.before }}"
-	            AFTER_SHA="${{ github.sha }}"
+            # Determine files changed in the PR (compare head to base) for PRs
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              BASE_REF="origin/${{ github.event.pull_request.base.ref }}"
+              git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1 || true
+              # Include status so we can allow deletions (cleanup) while still blocking additions/updates.
+              FILES=$(git diff --name-status $BASE_REF...HEAD)
+            else
+              # For push events, check all changes across the push range (not just the last commit).
+              BEFORE_SHA="${{ github.event.before }}"
+              AFTER_SHA="${{ github.sha }}"
 
-	            # On the first push of a new branch, `before` is all zeros.
-	            if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
-	              EMPTY_TREE=$(git hash-object -t tree /dev/null)
-	              FILES=$(git diff --name-status "$EMPTY_TREE" "$AFTER_SHA" || true)
-	            else
-	              FILES=$(git diff --name-status "$BEFORE_SHA".."$AFTER_SHA" || true)
-	            fi
-	          fi
+              # On the first push of a new branch, `before` is all zeros.
+              if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+                EMPTY_TREE=$(git hash-object -t tree /dev/null)
+                FILES=$(git diff --name-status "$EMPTY_TREE" "$AFTER_SHA" || true)
+              else
+                FILES=$(git diff --name-status "$BEFORE_SHA".."$AFTER_SHA" || true)
+              fi
+            fi
 
           echo "Changed files:" 
           echo "$FILES"
