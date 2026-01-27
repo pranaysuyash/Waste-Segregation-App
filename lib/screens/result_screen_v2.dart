@@ -6,6 +6,7 @@ import '../services/result_pipeline.dart';
 import '../services/haptic_settings_service.dart';
 import '../services/storage_service.dart';
 import '../services/analytics_service.dart';
+import '../screens/educational_content_screen.dart';
 import '../widgets/result_screen/result_header.dart';
 import '../widgets/result_screen/disposal_accordion.dart';
 import '../widgets/result_screen/action_row.dart';
@@ -273,6 +274,38 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
                 color: colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
+            const SizedBox(height: 12),
+            // Educational content link
+            InkWell(
+              onTap: _handleEducationalContent,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.school,
+                      size: 16,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Learn more about ${widget.classification.category}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward,
+                      size: 14,
+                      color: colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -293,6 +326,20 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
           ],
         ),
       ),
+    );
+  }
+  
+  void _handleEducationalContent() {
+    // Track user action (Legacy parity)
+    _analyticsService.trackUserAction('educational_content_viewed', parameters: {
+      'category': widget.classification.category,
+      'item': widget.classification.itemName,
+    });
+    
+    // Navigate to educational content
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EducationalContentScreen()),
     );
   }
   
