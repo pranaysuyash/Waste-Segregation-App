@@ -12,7 +12,8 @@ class NavigationSettingsService extends ChangeNotifier {
 
   bool _bottomNavEnabled = true;
   bool _fabEnabled = false;
-  String _navigationStyle = 'glassmorphism'; // glassmorphism, material3, floating
+  String _navigationStyle =
+      'glassmorphism'; // glassmorphism, material3, floating
 
   bool get bottomNavEnabled => _bottomNavEnabled;
   bool get fabEnabled => _fabEnabled;
@@ -23,10 +24,12 @@ class NavigationSettingsService extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       _bottomNavEnabled = prefs.getBool(_bottomNavEnabledKey) ?? true;
       _fabEnabled = prefs.getBool(_fabEnabledKey) ?? false;
-      _navigationStyle = prefs.getString(_navigationStyleKey) ?? 'glassmorphism';
+      _navigationStyle =
+          prefs.getString(_navigationStyleKey) ?? 'glassmorphism';
       notifyListeners();
     } catch (e) {
-      WasteAppLogger.severe('Error loading navigation settings', e, null, {'action': 'use_default_settings'});
+      WasteAppLogger.severe('Error loading navigation settings',
+          error: e, context: {'action': 'use_default_settings'});
     }
   }
 
@@ -37,8 +40,9 @@ class NavigationSettingsService extends ChangeNotifier {
       _bottomNavEnabled = enabled;
       notifyListeners();
     } catch (e) {
-      WasteAppLogger.severe(
-          'Error saving bottom nav setting', e, null, {'setting': 'bottom_nav_enabled', 'value': enabled});
+      WasteAppLogger.severe('Error saving bottom nav setting',
+          error: e,
+          context: {'setting': 'bottom_nav_enabled', 'value': enabled});
     }
   }
 
@@ -49,7 +53,8 @@ class NavigationSettingsService extends ChangeNotifier {
       _fabEnabled = enabled;
       notifyListeners();
     } catch (e) {
-      WasteAppLogger.severe('Error saving FAB setting', e, null, {'setting': 'fab_enabled', 'value': enabled});
+      WasteAppLogger.severe('Error saving FAB setting',
+          error: e, context: {'setting': 'fab_enabled', 'value': enabled});
     }
   }
 
@@ -60,7 +65,8 @@ class NavigationSettingsService extends ChangeNotifier {
       _navigationStyle = style;
       notifyListeners();
     } catch (e) {
-      WasteAppLogger.severe('Error saving navigation style', e, null, {'setting': 'navigation_style', 'value': style});
+      WasteAppLogger.severe('Error saving navigation style',
+          error: e, context: {'setting': 'navigation_style', 'value': style});
     }
   }
 
@@ -76,7 +82,8 @@ class NavigationSettingsService extends ChangeNotifier {
       _navigationStyle = 'glassmorphism';
       notifyListeners();
     } catch (e) {
-      WasteAppLogger.severe('Error resetting navigation settings', e, null, {'action': 'reset_to_defaults'});
+      WasteAppLogger.severe('Error resetting navigation settings',
+          error: e, context: {'action': 'reset_to_defaults'});
     }
   }
 }

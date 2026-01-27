@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'dart:math' as math;
 
 /// Advanced floating particle system for background animations
@@ -7,8 +8,8 @@ class FloatingParticleSystem extends StatefulWidget {
   const FloatingParticleSystem({
     super.key,
     this.particleCount = 20,
-    this.primaryColor = const Color(0xFF06FFA5),
-    this.secondaryColor = const Color(0xFF00B4D8),
+    this.primaryColor = AppTheme.wetWasteColor,
+    this.secondaryColor = AppTheme.secondaryColor,
     this.particleSize = 4.0,
     this.animationSpeed = 1.0,
     this.isDarkMode = false,
@@ -24,7 +25,8 @@ class FloatingParticleSystem extends StatefulWidget {
   _FloatingParticleSystemState createState() => _FloatingParticleSystemState();
 }
 
-class _FloatingParticleSystemState extends State<FloatingParticleSystem> with TickerProviderStateMixin {
+class _FloatingParticleSystemState extends State<FloatingParticleSystem>
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late List<Particle> _particles;
 
@@ -122,16 +124,22 @@ class ParticleSystemPainter extends CustomPainter {
       final breathingEffect = math.sin(timeOffset + particle.phase) * 0.3;
       final driftEffect = math.cos(timeOffset * 0.5 + particle.phase) * 0.2;
 
-      final animatedX =
-          (particle.x + math.cos(particle.direction + timeOffset * particle.speed) * 0.1 + driftEffect) % 1.0;
-      final animatedY =
-          (particle.y + math.sin(particle.direction + timeOffset * particle.speed) * 0.1 + breathingEffect * 0.5) % 1.0;
+      final animatedX = (particle.x +
+              math.cos(particle.direction + timeOffset * particle.speed) * 0.1 +
+              driftEffect) %
+          1.0;
+      final animatedY = (particle.y +
+              math.sin(particle.direction + timeOffset * particle.speed) * 0.1 +
+              breathingEffect * 0.5) %
+          1.0;
 
       // Dynamic opacity based on animation
-      final dynamicOpacity = particle.opacity * (0.7 + 0.3 * math.sin(timeOffset * 2 + particle.phase));
+      final dynamicOpacity = particle.opacity *
+          (0.7 + 0.3 * math.sin(timeOffset * 2 + particle.phase));
 
       // Adjust opacity for theme
-      final themeAdjustedOpacity = isDarkMode ? dynamicOpacity * 0.8 : dynamicOpacity * 0.6;
+      final themeAdjustedOpacity =
+          isDarkMode ? dynamicOpacity * 0.8 : dynamicOpacity * 0.6;
 
       final paint = Paint()
         ..color = particle.color.withValues(alpha: themeAdjustedOpacity)
@@ -160,7 +168,8 @@ class ParticleSystemPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(ParticleSystemPainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue || oldDelegate.isDarkMode != isDarkMode;
+    return oldDelegate.animationValue != animationValue ||
+        oldDelegate.isDarkMode != isDarkMode;
   }
 }
 
@@ -171,8 +180,8 @@ class PulsingScanButton extends StatefulWidget {
     required this.onPressed,
     this.label = 'SCAN',
     this.icon = Icons.camera_alt_rounded,
-    this.primaryColor = const Color(0xFF06FFA5),
-    this.secondaryColor = const Color(0xFF00B4D8),
+    this.primaryColor = AppTheme.wetWasteColor,
+    this.secondaryColor = AppTheme.secondaryColor,
     this.size = 120.0,
   });
   final VoidCallback onPressed;
@@ -186,7 +195,8 @@ class PulsingScanButton extends StatefulWidget {
   _PulsingScanButtonState createState() => _PulsingScanButtonState();
 }
 
-class _PulsingScanButtonState extends State<PulsingScanButton> with TickerProviderStateMixin {
+class _PulsingScanButtonState extends State<PulsingScanButton>
+    with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _particleController;
   late Animation<double> _pulseAnimation;

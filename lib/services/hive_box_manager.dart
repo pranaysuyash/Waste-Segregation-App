@@ -1,12 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../utils/waste_app_logger.dart';
 
 /// OPTIMIZATION: Manager for Hive box lifecycle
-/// 
+///
 /// Provides centralized management of Hive boxes with proper initialization,
 /// lazy loading, and cleanup. Prevents memory leaks from unclosed boxes.
-/// 
+///
 /// Benefits:
 /// - Automatic box lifecycle management
 /// - Lazy initialization of boxes
@@ -36,21 +35,23 @@ class HiveBoxManager {
       _isInitialized = true;
       WasteAppLogger.info('HiveBoxManager initialized');
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to initialize HiveBoxManager', e, s);
+      WasteAppLogger.severe('Failed to initialize HiveBoxManager',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
 
   /// Get or open a Hive box
-  /// 
+  ///
   /// Uses lazy loading - box is only opened when first accessed.
   /// Subsequent calls return the cached instance.
-  /// 
+  ///
   /// [boxName] - Name of the Hive box
   /// [lazy] - Whether to use lazy box (default: false)
   Future<Box<T>> getBox<T>(String boxName, {bool lazy = false}) async {
     if (!_isInitialized) {
-      throw StateError('HiveBoxManager not initialized. Call initialize() first.');
+      throw StateError(
+          'HiveBoxManager not initialized. Call initialize() first.');
     }
 
     // Return cached box if already open
@@ -71,12 +72,13 @@ class HiveBoxManager {
       final box = await openFuture;
       _openBoxes[boxName] = box;
       _pendingBoxes.remove(boxName);
-      
+
       WasteAppLogger.info('Opened Hive box: $boxName (${box.length} entries)');
       return box;
     } catch (e, s) {
       _pendingBoxes.remove(boxName);
-      WasteAppLogger.severe('Failed to open Hive box: $boxName', e, s);
+      WasteAppLogger.severe('Failed to open Hive box: $boxName',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -110,7 +112,7 @@ class HiveBoxManager {
   int get openBoxCount => _openBoxes.length;
 
   /// Close a specific box
-  /// 
+  ///
   /// [boxName] - Name of the box to close
   /// [deleteFromDisk] - Whether to delete the box file (default: false)
   Future<void> closeBox(String boxName, {bool deleteFromDisk = false}) async {
@@ -121,7 +123,7 @@ class HiveBoxManager {
 
     try {
       final box = _openBoxes[boxName]!;
-      
+
       if (deleteFromDisk) {
         await box.deleteFromDisk();
         WasteAppLogger.info('Deleted Hive box from disk: $boxName');
@@ -129,44 +131,43 @@ class HiveBoxManager {
         await box.close();
         WasteAppLogger.info('Closed Hive box: $boxName');
       }
-      
+
       _openBoxes.remove(boxName);
     } catch (e, s) {
-      WasteAppLogger.severe('Error closing Hive box: $boxName', e, s);
+      WasteAppLogger.severe('Error closing Hive box: $boxName',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
 
   /// Close all open boxes
-  /// 
+  ///
   /// Should be called during app shutdown or when clearing all data.
-  /// 
+  ///
   /// [deleteFromDisk] - Whether to delete box files (default: false)
   Future<void> closeAllBoxes({bool deleteFromDisk = false}) async {
     final boxNames = _openBoxes.keys.toList();
-    
-    WasteAppLogger.info(
-      'Closing ${boxNames.length} Hive boxes',
-      context: {'deleteFromDisk': deleteFromDisk},
-    );
+
+    WasteAppLogger.info('Closing ${boxNames.length} Hive boxes',
+        context: {'deleteFromDisk': deleteFromDisk});
 
     for (final boxName in boxNames) {
       try {
         await closeBox(boxName, deleteFromDisk: deleteFromDisk);
       } catch (e) {
-        WasteAppLogger.severe('Error closing box $boxName', e, null);
+        WasteAppLogger.severe('Error closing box $boxName', error: e);
         // Continue closing other boxes
       }
     }
 
     _openBoxes.clear();
     _pendingBoxes.clear();
-    
+
     WasteAppLogger.info('All Hive boxes closed');
   }
 
   /// Compact a box to reduce file size
-  /// 
+  ///
   /// [boxName] - Name of the box to compact
   Future<void> compactBox(String boxName) async {
     if (!_openBoxes.containsKey(boxName)) {
@@ -178,7 +179,8 @@ class HiveBoxManager {
       await box.compact();
       WasteAppLogger.info('Compacted Hive box: $boxName');
     } catch (e, s) {
-      WasteAppLogger.severe('Error compacting Hive box: $boxName', e, s);
+      WasteAppLogger.severe('Error compacting Hive box: $boxName',
+          error: e, stackTrace: s);
       rethrow;
     }
   }

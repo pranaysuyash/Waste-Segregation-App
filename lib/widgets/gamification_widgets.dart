@@ -71,9 +71,11 @@ class StreakIndicator extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                     border: Border.all(
-                      color: _getStreakColor(streak.current).withValues(alpha: 0.3),
+                      color: _getStreakColor(streak.current)
+                          .withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -188,7 +190,8 @@ class ChallengeCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Ends in $daysLeft days',
-                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryColor),
+                style: const TextStyle(
+                    fontSize: 12, color: AppTheme.textSecondaryColor),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -275,12 +278,14 @@ class PointsIndicator extends StatelessWidget {
                 SizedBox(
                   width: 60,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                     child: LinearProgressIndicator(
                       value: (points.total % 100) / 100,
                       minHeight: 4,
                       backgroundColor: Colors.grey.withValues(alpha: 0.3),
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppTheme.primaryColor),
                     ),
                   ),
                 ),

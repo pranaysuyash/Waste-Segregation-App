@@ -23,7 +23,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
   @override
   void initState() {
     super.initState();
-    final educationalService = Provider.of<EducationalContentService>(context, listen: false);
+    final educationalService =
+        Provider.of<EducationalContentService>(context, listen: false);
     final content = educationalService.getContentById(widget.contentId);
     if (content != null) {
       educationalService.trackContentViewed(content);
@@ -32,7 +33,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
 
   @override
   void dispose() {
-    final educationalService = Provider.of<EducationalContentService>(context, listen: false);
+    final educationalService =
+        Provider.of<EducationalContentService>(context, listen: false);
     educationalService.endContentView();
     super.dispose();
   }
@@ -155,8 +157,10 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  border:
+                      Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
                   category,
@@ -199,7 +203,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(
                     '#$tag',
@@ -231,7 +236,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.black,
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               child: const Center(
                 child: Icon(
@@ -297,8 +303,10 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  border:
+                      Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
                   category,
@@ -341,7 +349,9 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
             style: TextStyle(
               fontSize: AppTheme.fontSizeSmall,
               color: AppTheme.textSecondaryColor,
-              fontStyle: content.description.isEmpty ? FontStyle.italic : FontStyle.normal,
+              fontStyle: content.description.isEmpty
+                  ? FontStyle.italic
+                  : FontStyle.normal,
             ),
           ),
         ],
@@ -349,7 +359,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
     );
   }
 
-  Widget _buildInfographicView(BuildContext context, EducationalContent content) {
+  Widget _buildInfographicView(
+      BuildContext context, EducationalContent content) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.paddingRegular),
       child: Column(
@@ -364,7 +375,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                 return Center(
                   child: CircularProgressIndicator(
                     value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
                         : null,
                   ),
                 );
@@ -372,7 +384,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
               errorBuilder: (context, error, stackTrace) => Container(
                 height: MediaQuery.of(context).size.height * 0.25,
                 color: Colors.grey.shade200,
-                child: const Icon(Icons.broken_image, size: 64, color: Colors.grey),
+                child: const Icon(Icons.broken_image,
+                    size: 64, color: Colors.grey),
               ),
             )
           else
@@ -381,7 +394,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               child: Icon(
                 Icons.image_search,
@@ -445,8 +459,10 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  border:
+                      Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
                   category,
@@ -560,8 +576,10 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: categoryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  border:
+                      Border.all(color: categoryColor.withValues(alpha: 0.5)),
                 ),
                 child: Text(
                   category,
@@ -735,7 +753,9 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
         ),
       );
     }
-    if (!_isInitialized || _controller == null || !_controller!.value.isInitialized) {
+    if (!_isInitialized ||
+        _controller == null ||
+        !_controller!.value.isInitialized) {
       return Container(
         height: MediaQuery.of(context).size.height * 0.25,
         color: Colors.black,

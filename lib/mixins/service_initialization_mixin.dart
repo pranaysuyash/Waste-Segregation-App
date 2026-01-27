@@ -1,15 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/service_locator.dart';
 import '../utils/error_handler.dart';
-import '../services/storage_service.dart';
-import '../services/cloud_storage_service.dart';
-import '../services/gamification_service.dart';
-import '../services/analytics_service.dart';
-import '../services/ad_service.dart';
-import '../services/google_drive_service.dart';
-import '../services/premium_service.dart';
-import '../services/community_service.dart';
-import '../services/enhanced_storage_service.dart';
 import '../models/user_profile.dart';
 import '../models/gamification.dart';
 
@@ -65,7 +56,7 @@ mixin ServiceInitializationMixin<T extends StatefulWidget> on State<T> {
         }
 
         _isInitialized = true;
-        
+
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -131,8 +122,9 @@ mixin ServiceInitializationMixin<T extends StatefulWidget> on State<T> {
 
   /// Common method to save classification
   @protected
-  Future<bool> saveClassification(dynamic classification, {bool force = false}) async {
-    return await ErrorHandler.handleAsyncVoid(
+  Future<bool> saveClassification(dynamic classification,
+      {bool force = false}) async {
+    return ErrorHandler.handleAsyncVoid(
       () async {
         await services.storage.saveClassification(classification, force: force);
       },
@@ -148,9 +140,10 @@ mixin ServiceInitializationMixin<T extends StatefulWidget> on State<T> {
   /// Common method to award points
   @protected
   Future<bool> awardPoints(String action, {int? customPoints}) async {
-    return await ErrorHandler.handleAsyncVoid(
+    return ErrorHandler.handleAsyncVoid(
       () async {
-        await services.gamification.addPoints(action, customPoints: customPoints);
+        await services.gamification
+            .addPoints(action, customPoints: customPoints);
         // Refresh gamification profile after awarding points
         _gamificationProfile = await services.gamification.getProfile();
         if (mounted) {
@@ -165,10 +158,13 @@ mixin ServiceInitializationMixin<T extends StatefulWidget> on State<T> {
 
   /// Common method to track analytics event
   @protected
-  void trackAnalyticsEvent(String eventName, {Map<String, dynamic>? parameters}) {
+  void trackAnalyticsEvent(String eventName,
+      {Map<String, dynamic>? parameters}) {
     ErrorHandler.handleSync(
       () {
-        services.analytics.trackEvent(eventName, parameters: parameters ?? {});
+        // Use the user action helper to avoid needing to provide eventType everywhere.
+        services.analytics
+            .trackUserAction(eventName, parameters: parameters ?? {});
       },
       context: 'Tracking analytics event: $eventName',
       service: 'service_initialization_mixin',
@@ -214,9 +210,7 @@ mixin ServiceInitializationMixin<T extends StatefulWidget> on State<T> {
   @protected
   String getUserDisplayName() {
     if (_userProfile != null) {
-      return _userProfile!.displayName ?? 
-             _userProfile!.email ?? 
-             'User';
+      return _userProfile!.displayName ?? _userProfile!.email ?? 'User';
     }
     return 'User';
   }

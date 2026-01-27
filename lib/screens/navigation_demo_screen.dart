@@ -153,7 +153,8 @@ class NavigationDemoScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: Icon(
                       icon,
@@ -197,7 +198,8 @@ class NavigationDemoScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: Row(

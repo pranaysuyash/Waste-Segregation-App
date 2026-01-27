@@ -35,7 +35,8 @@ enum PointableAction {
   }
 
   /// Get all action keys (for validation)
-  static List<String> get allKeys => PointableAction.values.map((a) => a.key).toList();
+  static List<String> get allKeys =>
+      PointableAction.values.map((a) => a.key).toList();
 
   /// Validate if a key is a valid pointable action
   static bool isValidAction(String key) {

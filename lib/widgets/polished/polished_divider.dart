@@ -55,7 +55,8 @@ class PolishedDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dividerColor = color ?? theme.colorScheme.outline.withValues(alpha: 0.3);
+    final dividerColor =
+        color ?? theme.colorScheme.outline.withValues(alpha: 0.3);
 
     switch (style) {
       case DividerStyle.solid:

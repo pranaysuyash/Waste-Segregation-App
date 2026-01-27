@@ -9,6 +9,7 @@ class ErrorHandler {
   static void initialize(GlobalKey<NavigatorState> navigatorKey) {
     _navigatorKey = navigatorKey;
   }
+
   /// Handle common async operations with consistent error handling
   static Future<T?> handleAsync<T>(
     Future<T> Function() operation, {
@@ -22,20 +23,19 @@ class ErrorHandler {
     try {
       return await operation();
     } catch (error, stackTrace) {
-      WasteAppLogger.severe(
-        'Error in ${context ?? 'operation'}',
-        error,
-        stackTrace,
-        {
-          if (service != null) 'service': service,
-          if (file != null) 'file': file,
-        },
-      );
+      WasteAppLogger.severe('Error in ${context ?? 'operation'}',
+          error: error,
+          stackTrace: stackTrace,
+          context: {
+            if (service != null) 'service': service,
+            if (file != null) 'file': file,
+          });
 
       if (showSnackBar && buildContext != null && buildContext.mounted) {
         ScaffoldMessenger.of(buildContext).showSnackBar(
           SnackBar(
-            content: Text(userMessage ?? 'An error occurred. Please try again.'),
+            content:
+                Text(userMessage ?? 'An error occurred. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -59,20 +59,19 @@ class ErrorHandler {
       await operation();
       return true;
     } catch (error, stackTrace) {
-      WasteAppLogger.severe(
-        'Error in ${context ?? 'operation'}',
-        error,
-        stackTrace,
-        {
-          if (service != null) 'service': service,
-          if (file != null) 'file': file,
-        },
-      );
+      WasteAppLogger.severe('Error in ${context ?? 'operation'}',
+          error: error,
+          stackTrace: stackTrace,
+          context: {
+            if (service != null) 'service': service,
+            if (file != null) 'file': file,
+          });
 
       if (showSnackBar && buildContext != null && buildContext.mounted) {
         ScaffoldMessenger.of(buildContext).showSnackBar(
           SnackBar(
-            content: Text(userMessage ?? 'An error occurred. Please try again.'),
+            content:
+                Text(userMessage ?? 'An error occurred. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -95,20 +94,19 @@ class ErrorHandler {
     try {
       return operation();
     } catch (error, stackTrace) {
-      WasteAppLogger.severe(
-        'Error in ${context ?? 'operation'}',
-        error,
-        stackTrace,
-        {
-          if (service != null) 'service': service,
-          if (file != null) 'file': file,
-        },
-      );
+      WasteAppLogger.severe('Error in ${context ?? 'operation'}',
+          error: error,
+          stackTrace: stackTrace,
+          context: {
+            if (service != null) 'service': service,
+            if (file != null) 'file': file,
+          });
 
       if (showSnackBar && buildContext != null && buildContext.mounted) {
         ScaffoldMessenger.of(buildContext).showSnackBar(
           SnackBar(
-            content: Text(userMessage ?? 'An error occurred. Please try again.'),
+            content:
+                Text(userMessage ?? 'An error occurred. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -131,7 +129,8 @@ class ErrorHandler {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title ?? 'Error'),
-        content: Text(message ?? 'An unexpected error occurred. Please try again.'),
+        content:
+            Text(message ?? 'An unexpected error occurred. Please try again.'),
         actions: [
           if (onRetry != null)
             TextButton(
@@ -185,19 +184,18 @@ class ErrorHandler {
   }
 
   /// Handle error with logging (legacy method for compatibility)
-  static void handleError(Object error, StackTrace? stackTrace, {String? context}) {
-    WasteAppLogger.severe(
-      'Error handled: ${context ?? 'unknown context'}',
-      error,
-      stackTrace,
-    );
+  static void handleError(Object error, StackTrace? stackTrace,
+      {String? context}) {
+    WasteAppLogger.severe('Error handled: ${context ?? 'unknown context'}',
+        error: error, stackTrace: stackTrace);
   }
 
   /// Get user-friendly error message (legacy method for compatibility)
   static String getUserFriendlyMessage(Object error) {
     if (error is Exception) {
       final errorString = error.toString();
-      if (errorString.contains('network') || errorString.contains('connection')) {
+      if (errorString.contains('network') ||
+          errorString.contains('connection')) {
         return 'Network connection issue. Please check your internet connection.';
       }
       if (errorString.contains('timeout')) {
@@ -221,32 +219,31 @@ class ErrorHandler {
     double backoffMultiplier = 2.0,
     String? context,
   }) async {
-    int attempts = 0;
-    Duration delay = initialDelay;
+    var attempts = 0;
+    var delay = initialDelay;
 
     while (attempts < maxRetries) {
       try {
         return await operation();
-      } catch (error) {
+      } catch (error, stackTrace) {
         attempts++;
-        
+
         if (attempts >= maxRetries) {
           WasteAppLogger.severe(
-            'Operation failed after $maxRetries attempts: ${context ?? 'unknown'}',
-            error,
-            null,
-          );
+              'Operation failed after $maxRetries attempts: ${context ?? 'unknown'}',
+              error: error,
+              stackTrace: stackTrace);
           rethrow;
         }
 
         WasteAppLogger.warning(
-          'Operation failed (attempt $attempts/$maxRetries), retrying in ${delay.inSeconds}s: ${context ?? 'unknown'}',
-          error,
-          null,
-        );
+            'Operation failed (attempt $attempts/$maxRetries), retrying in ${delay.inSeconds}s: ${context ?? 'unknown'}',
+            error: error,
+            stackTrace: stackTrace);
 
         await Future.delayed(delay);
-        delay = Duration(milliseconds: (delay.inMilliseconds * backoffMultiplier).round());
+        delay = Duration(
+            milliseconds: (delay.inMilliseconds * backoffMultiplier).round());
       }
     }
 

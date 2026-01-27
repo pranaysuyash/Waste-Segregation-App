@@ -22,7 +22,8 @@ class PointsManager extends AsyncNotifier<UserPoints> {
     _cloudStorageService = ref.read(cloudStorageServiceProvider);
 
     // Initialize Points Engine (singleton)
-    _pointsEngine = PointsEngine.getInstance(_storageService, _cloudStorageService);
+    _pointsEngine =
+        PointsEngine.getInstance(_storageService, _cloudStorageService);
     await _pointsEngine.initialize();
 
     // Listen to Points Engine changes
@@ -51,7 +52,8 @@ class PointsManager extends AsyncNotifier<UserPoints> {
     try {
       // Validate custom points usage
       if (customPoints != null && !action.supportsCustomPoints) {
-        WasteAppLogger.warning('Warning occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+        WasteAppLogger.warning('Warning occurred',
+            context: {'service': 'points_manager', 'file': 'points_manager'});
       }
 
       final newPoints = await _pointsEngine.addPoints(
@@ -74,7 +76,8 @@ class PointsManager extends AsyncNotifier<UserPoints> {
 
       return newPoints;
     } catch (e, stackTrace) {
-      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+      WasteAppLogger.severe('Error occurred',
+          context: {'service': 'points_manager', 'file': 'points_manager'});
       state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
@@ -114,7 +117,8 @@ class PointsManager extends AsyncNotifier<UserPoints> {
 
       return newStreak;
     } catch (e, stackTrace) {
-      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+      WasteAppLogger.severe('Error occurred',
+          context: {'service': 'points_manager', 'file': 'points_manager'});
       state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
@@ -123,7 +127,8 @@ class PointsManager extends AsyncNotifier<UserPoints> {
   /// Claim achievement reward
   Future<Achievement> claimAchievementReward(String achievementId) async {
     try {
-      final achievement = await _pointsEngine.claimAchievementReward(achievementId);
+      final achievement =
+          await _pointsEngine.claimAchievementReward(achievementId);
 
       // Update points state after claiming reward
       final profile = _pointsEngine.currentProfile;
@@ -133,7 +138,8 @@ class PointsManager extends AsyncNotifier<UserPoints> {
 
       return achievement;
     } catch (e, stackTrace) {
-      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+      WasteAppLogger.severe('Error occurred',
+          context: {'service': 'points_manager', 'file': 'points_manager'});
       state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
@@ -150,7 +156,8 @@ class PointsManager extends AsyncNotifier<UserPoints> {
         state = AsyncValue.data(profile.points);
       }
     } catch (e, stackTrace) {
-      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+      WasteAppLogger.severe('Error occurred',
+          context: {'service': 'points_manager', 'file': 'points_manager'});
       state = AsyncValue.error(e, stackTrace);
       rethrow;
     }
@@ -168,7 +175,8 @@ class PointsManager extends AsyncNotifier<UserPoints> {
         state = const AsyncValue.data(UserPoints());
       }
     } catch (e, stackTrace) {
-      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+      WasteAppLogger.severe('Error occurred',
+          context: {'service': 'points_manager', 'file': 'points_manager'});
       state = AsyncValue.error(e, stackTrace);
     }
   }
@@ -180,23 +188,29 @@ class PointsManager extends AsyncNotifier<UserPoints> {
       if (!currentState.hasValue) return;
 
       final points = currentState.value!;
-      final categorySum = points.categoryPoints.values.fold<int>(0, (sum, value) => sum + value);
+      final categorySum = points.categoryPoints.values
+          .fold<int>(0, (sum, value) => sum + value);
 
       // Allow some tolerance for legacy data
       const tolerance = 10;
       final difference = (points.total - categorySum).abs();
 
       if (difference > tolerance) {
-        WasteAppLogger.warning('Warning occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'points_manager', 'file': 'points_manager'});
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'points_manager', 'file': 'points_manager'});
-        WasteAppLogger.info('Operation completed', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+        WasteAppLogger.warning('Warning occurred',
+            context: {'service': 'points_manager', 'file': 'points_manager'});
+        WasteAppLogger.info('Operation completed',
+            context: {'service': 'points_manager', 'file': 'points_manager'});
+        WasteAppLogger.info('Operation completed',
+            context: {'service': 'points_manager', 'file': 'points_manager'});
+        WasteAppLogger.info('Operation completed',
+            context: {'service': 'points_manager', 'file': 'points_manager'});
 
         // Log for analytics but don't fail the operation
         // In production, this could trigger a background sync
       }
     } catch (e) {
-      WasteAppLogger.severe('Error occurred', null, null, {'service': 'points_manager', 'file': 'points_manager'});
+      WasteAppLogger.severe('Error occurred',
+          context: {'service': 'points_manager', 'file': 'points_manager'});
     }
   }
 
@@ -211,7 +225,8 @@ class PointsManager extends AsyncNotifier<UserPoints> {
 }
 
 /// Provider for the unified PointsManager
-final pointsManagerProvider = AsyncNotifierProvider<PointsManager, UserPoints>(() {
+final pointsManagerProvider =
+    AsyncNotifierProvider<PointsManager, UserPoints>(() {
   return PointsManager();
 });
 

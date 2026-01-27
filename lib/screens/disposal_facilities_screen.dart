@@ -7,12 +7,14 @@ import 'contribution_submission_screen.dart';
 import 'contribution_history_screen.dart';
 import '../models/user_contribution.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import '../utils/firebase_gate.dart';
 
 class DisposalFacilitiesScreen extends StatefulWidget {
   const DisposalFacilitiesScreen({super.key});
 
   @override
-  State<DisposalFacilitiesScreen> createState() => _DisposalFacilitiesScreenState();
+  State<DisposalFacilitiesScreen> createState() =>
+      _DisposalFacilitiesScreenState();
 }
 
 class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
@@ -122,7 +124,8 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                     )
                   : null,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               filled: true,
               fillColor: Colors.white,
@@ -187,7 +190,8 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         decoration: BoxDecoration(
           color: AppTheme.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+          border:
+              Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -212,6 +216,11 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
   }
 
   Widget _buildFacilitiesList() {
+    if (!isFirebaseEnabled) {
+      return const Center(
+        child: Text('Facilities are unavailable in this build.'),
+      );
+    }
     return StreamBuilder<QuerySnapshot>(
       stream: _buildQuery().snapshots(),
       builder: (context, snapshot) {
@@ -222,9 +231,10 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         if (snapshot.hasError) {
           // Check if it's a Firestore indexing error
           final errorMessage = snapshot.error.toString();
-          final isIndexingError = errorMessage.contains('failed-precondition') ||
-              errorMessage.contains('index') ||
-              errorMessage.contains('composite');
+          final isIndexingError =
+              errorMessage.contains('failed-precondition') ||
+                  errorMessage.contains('index') ||
+                  errorMessage.contains('composite');
 
           return Center(
             child: Column(
@@ -237,7 +247,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  isIndexingError ? 'Database Indexing Required' : 'Error loading facilities',
+                  isIndexingError
+                      ? 'Database Indexing Required'
+                      : 'Error loading facilities',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
@@ -286,7 +298,10 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
               doc.data() as Map<String, dynamic>,
               doc.id,
             );
-            return _buildFacilityCard(facility);
+            return RepaintBoundary(
+              key: ValueKey('facility_${doc.id}'),
+              child: _buildFacilityCard(facility),
+            );
           },
         );
       },
@@ -320,17 +335,21 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
       return query;
     } catch (e) {
       // Fallback to simpler query if indexing fails
-      WasteAppLogger.severe('Complex query failed, using fallback: $e');
-      return FirebaseFirestore.instance.collection('disposal_locations').orderBy('name');
+      WasteAppLogger.severe('Complex query failed, error: using fallback: $e');
+      return FirebaseFirestore.instance
+          .collection('disposal_locations')
+          .orderBy('name');
     }
   }
 
-  List<QueryDocumentSnapshot> _filterFacilities(List<QueryDocumentSnapshot> facilities) {
+  List<QueryDocumentSnapshot> _filterFacilities(
+      List<QueryDocumentSnapshot> facilities) {
     return facilities.where((doc) {
       final data = doc.data() as Map<String, dynamic>;
       final name = data['name']?.toString().toLowerCase() ?? '';
       final address = data['address']?.toString().toLowerCase() ?? '';
-      final acceptedMaterials = List<String>.from(data['acceptedMaterials'] ?? []);
+      final acceptedMaterials =
+          List<String>.from(data['acceptedMaterials'] ?? []);
 
       // Search filter
       if (_searchController.text.isNotEmpty) {
@@ -342,8 +361,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
 
       // Material filter
       if (_selectedMaterialFilter != 'All') {
-        final materialFound =
-            acceptedMaterials.any((material) => material.toLowerCase().contains(_selectedMaterialFilter.toLowerCase()));
+        final materialFound = acceptedMaterials.any((material) => material
+            .toLowerCase()
+            .contains(_selectedMaterialFilter.toLowerCase()));
         if (!materialFound) {
           return false;
         }
@@ -366,7 +386,8 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _getFacilitySourceColor(facility.source).withValues(alpha: 0.1),
+            color:
+                _getFacilitySourceColor(facility.source).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -401,10 +422,12 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                   .take(3)
                   .map(
                     (material) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSmall),
                       ),
                       child: Text(
                         material,
@@ -431,26 +454,35 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: facility.isActive ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    color: facility.isActive
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.1),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(
                     facility.isActive ? 'Active' : 'Inactive',
                     style: TextStyle(
                       fontSize: AppTheme.fontSizeSmall,
-                      color: facility.isActive ? Colors.green[700] : Colors.red[700],
+                      color: facility.isActive
+                          ? Colors.green[700]
+                          : Colors.red[700],
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: _getFacilitySourceColor(facility.source).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    color: _getFacilitySourceColor(facility.source)
+                        .withValues(alpha: 0.1),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusSmall),
                   ),
                   child: Text(
                     _getFacilitySourceLabel(facility.source),
@@ -606,7 +638,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
             const SizedBox(height: AppTheme.paddingRegular),
             ListTile(
               title: const Text('All'),
-              trailing: _selectedSourceFilter == 'All' ? const Icon(Icons.check, color: AppTheme.primaryColor) : null,
+              trailing: _selectedSourceFilter == 'All'
+                  ? const Icon(Icons.check, color: AppTheme.primaryColor)
+                  : null,
               onTap: () {
                 setState(() {
                   _selectedSourceFilter = 'All';

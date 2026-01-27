@@ -18,7 +18,8 @@ class TodaysImpactGoal extends StatefulWidget {
   State<TodaysImpactGoal> createState() => _TodaysImpactGoalState();
 }
 
-class _TodaysImpactGoalState extends State<TodaysImpactGoal> with SingleTickerProviderStateMixin {
+class _TodaysImpactGoalState extends State<TodaysImpactGoal>
+    with SingleTickerProviderStateMixin {
   late AnimationController _progressController;
   late Animation<double> _progressAnimation;
   late Animation<double> _pulseAnimation;
@@ -74,7 +75,8 @@ class _TodaysImpactGoalState extends State<TodaysImpactGoal> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final progress = (widget.currentClassifications / widget.dailyGoal).clamp(0.0, 1.0);
+    final progress =
+        (widget.currentClassifications / widget.dailyGoal).clamp(0.0, 1.0);
     final isGoalReached = widget.currentClassifications >= widget.dailyGoal;
 
     return ModernCard(
@@ -233,7 +235,9 @@ class ImpactRingPainter extends CustomPainter {
     // Progress arc
     final progressPaint = Paint()
       ..shader = LinearGradient(
-        colors: isGoalReached ? [Colors.green, Colors.lightGreen] : [primaryColor, secondaryColor],
+        colors: isGoalReached
+            ? [Colors.green, Colors.lightGreen]
+            : [primaryColor, secondaryColor],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromCircle(center: center, radius: radius))
@@ -263,7 +267,8 @@ class ImpactRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(ImpactRingPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.isGoalReached != isGoalReached;
+    return oldDelegate.progress != progress ||
+        oldDelegate.isGoalReached != isGoalReached;
   }
 }
 
@@ -318,7 +323,9 @@ class CommunityFeedPreview extends StatelessWidget {
             if (activities.isEmpty)
               _buildEmptyState()
             else
-              ...activities.take(3).map((activity) => _buildActivityItem(activity)),
+              ...activities
+                  .take(3)
+                  .map((activity) => _buildActivityItem(activity)),
           ],
         ),
       ),
@@ -366,7 +373,9 @@ class CommunityFeedPreview extends StatelessWidget {
             radius: 20,
             backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
             child: Text(
-              activity.userName.isNotEmpty ? activity.userName[0].toUpperCase() : '?',
+              activity.userName.isNotEmpty
+                  ? activity.userName[0].toUpperCase()
+                  : '?',
               style: const TextStyle(
                 color: AppTheme.primaryColor,
                 fontWeight: FontWeight.bold,
@@ -446,7 +455,8 @@ class GlobalImpactMeter extends StatefulWidget {
   State<GlobalImpactMeter> createState() => _GlobalImpactMeterState();
 }
 
-class _GlobalImpactMeterState extends State<GlobalImpactMeter> with SingleTickerProviderStateMixin {
+class _GlobalImpactMeterState extends State<GlobalImpactMeter>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _countAnimation;
 
@@ -516,7 +526,8 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter> with SingleTicker
                     Expanded(
                       child: _buildMetricCard(
                         icon: Icons.eco,
-                        value: (widget.globalCO2Saved * _countAnimation.value).toStringAsFixed(1),
+                        value: (widget.globalCO2Saved * _countAnimation.value)
+                            .toStringAsFixed(1),
                         unit: 'T CO₂',
                         label: 'Saved',
                         color: Colors.green,
@@ -526,7 +537,10 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter> with SingleTicker
                     Expanded(
                       child: _buildMetricCard(
                         icon: Icons.recycling,
-                        value: ((widget.globalItemsClassified * _countAnimation.value) / 1000).toStringAsFixed(0),
+                        value: ((widget.globalItemsClassified *
+                                    _countAnimation.value) /
+                                1000)
+                            .toStringAsFixed(0),
                         unit: 'K Items',
                         label: 'Classified',
                         color: AppTheme.primaryColor,
@@ -536,7 +550,9 @@ class _GlobalImpactMeterState extends State<GlobalImpactMeter> with SingleTicker
                     Expanded(
                       child: _buildMetricCard(
                         icon: Icons.people,
-                        value: ((widget.activeUsers * _countAnimation.value) / 1000).toStringAsFixed(1),
+                        value: ((widget.activeUsers * _countAnimation.value) /
+                                1000)
+                            .toStringAsFixed(1),
                         unit: 'K Users',
                         label: 'Active',
                         color: Colors.orange,

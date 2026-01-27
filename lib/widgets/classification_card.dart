@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../screens/history_screen.dart';
 import 'helpers/thumbnail_widget.dart';
 
@@ -40,7 +40,8 @@ class ClassificationCard extends StatelessWidget {
               Hero(
                 tag: 'photo-${classification.id}',
                 child: ThumbnailWidget(
-                  imagePath: classification.thumbnailRelativePath ?? classification.imageUrl,
+                  imagePath: classification.thumbnailRelativePath ??
+                      classification.imageUrl,
                   size: 60,
                   errorWidget: _fallbackIcon(catColor),
                 ),
@@ -55,7 +56,10 @@ class ClassificationCard extends StatelessWidget {
                     // Title
                     Text(
                       classification.itemName,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -69,15 +73,19 @@ class ClassificationCard extends StatelessWidget {
                       children: [
                         Chip(
                           backgroundColor: catColor.withValues(alpha: 0.1),
-                          avatar: Icon(_categoryIcon(classification.category), size: 16, color: catColor),
+                          avatar: Icon(_categoryIcon(classification.category),
+                              size: 16, color: catColor),
                           label: Text(classification.category,
-                              style: TextStyle(color: catColor, fontWeight: FontWeight.w500)),
+                              style: TextStyle(
+                                  color: catColor,
+                                  fontWeight: FontWeight.w500)),
                           visualDensity: VisualDensity.compact,
                         ),
                         if (classification.disposalMethod != null)
                           Chip(
                             backgroundColor: Colors.white,
-                            shape: StadiumBorder(side: BorderSide(color: catColor)),
+                            shape: StadiumBorder(
+                                side: BorderSide(color: catColor)),
                             label: Text(
                               _disposalText(classification.disposalMethod),
                               style: TextStyle(color: catColor, fontSize: 12),
@@ -86,10 +94,15 @@ class ClassificationCard extends StatelessWidget {
                           ),
                         if (classification.confidence != null)
                           Chip(
-                            backgroundColor: _confidenceColor(confidencePct).withValues(alpha: 0.1),
-                            avatar: Icon(Icons.verified, size: 16, color: _confidenceColor(confidencePct)),
+                            backgroundColor: _confidenceColor(confidencePct)
+                                .withValues(alpha: 0.1),
+                            avatar: Icon(Icons.verified,
+                                size: 16,
+                                color: _confidenceColor(confidencePct)),
                             label: Text('$confidencePct%',
-                                style: TextStyle(color: _confidenceColor(confidencePct), fontWeight: FontWeight.w500)),
+                                style: TextStyle(
+                                    color: _confidenceColor(confidencePct),
+                                    fontWeight: FontWeight.w500)),
                             visualDensity: VisualDensity.compact,
                           ),
                       ],
@@ -100,9 +113,12 @@ class ClassificationCard extends StatelessWidget {
                     // Time ago
                     Row(
                       children: [
-                        Icon(Icons.access_time, size: 14, color: Colors.grey.shade600),
+                        Icon(Icons.access_time,
+                            size: 14, color: Colors.grey.shade600),
                         const SizedBox(width: 4),
-                        Text(timeAgo, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                        Text(timeAgo,
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey.shade600)),
                       ],
                     ),
                   ],
@@ -116,7 +132,8 @@ class ClassificationCard extends StatelessWidget {
                   if (classification.environmentalImpact != null)
                     Chip(
                       backgroundColor: Colors.green.withValues(alpha: 0.1),
-                      avatar: const Icon(Icons.eco, size: 16, color: Colors.green),
+                      avatar:
+                          const Icon(Icons.eco, size: 16, color: Colors.green),
                       label: Text(
                         '+${classification.environmentalImpact} pts',
                         style: const TextStyle(
@@ -150,7 +167,8 @@ class ClassificationCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Icon(_categoryIcon(classification.category), color: Colors.white, size: 32),
+      child: Icon(_categoryIcon(classification.category),
+          color: Colors.white, size: 32),
     );
   }
 
@@ -194,17 +212,26 @@ class ClassificationCard extends StatelessWidget {
               ),
               Text(
                 'Classification Details',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              Text(classification.itemName, style: Theme.of(context).textTheme.titleLarge),
+              Text(classification.itemName,
+                  style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
               Text('Category: ${classification.category}'),
-              if (classification.confidence != null) Text('Confidence: ${(classification.confidence! * 100).toInt()}%'),
-              if (classification.disposalMethod != null) Text('Disposal: ${classification.disposalMethod}'),
-              Text('Date: ${_formatDate(classification.timestamp)} at ${_formatTime(classification.timestamp)}'),
+              if (classification.confidence != null)
+                Text(
+                    'Confidence: ${(classification.confidence! * 100).toInt()}%'),
+              if (classification.disposalMethod != null)
+                Text('Disposal: ${classification.disposalMethod}'),
+              Text(
+                  'Date: ${_formatDate(classification.timestamp)} at ${_formatTime(classification.timestamp)}'),
               if (classification.environmentalImpact != null)
-                Text('Environmental Impact: +${classification.environmentalImpact} points'),
+                Text(
+                    'Environmental Impact: +${classification.environmentalImpact} points'),
             ],
           ),
         ),
@@ -293,7 +320,8 @@ class ClassificationCard extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
-    final classificationDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    final classificationDate =
+        DateTime(dateTime.year, dateTime.month, dateTime.day);
 
     if (classificationDate == today) {
       return 'Today';

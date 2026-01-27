@@ -9,7 +9,8 @@ class ErrorRecoveryWidget extends StatefulWidget {
   State<ErrorRecoveryWidget> createState() => _ErrorRecoveryWidgetState();
 }
 
-class _ErrorRecoveryWidgetState extends State<ErrorRecoveryWidget> with SingleTickerProviderStateMixin {
+class _ErrorRecoveryWidgetState extends State<ErrorRecoveryWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -42,7 +43,9 @@ class _ErrorRecoveryWidgetState extends State<ErrorRecoveryWidget> with SingleTi
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            final offset = 4 * math.sin(_controller.value * 4 * math.pi) * (1 - _controller.value);
+            final offset = 4 *
+                math.sin(_controller.value * 4 * math.pi) *
+                (1 - _controller.value);
             return Transform.translate(
               offset: Offset(offset, 0),
               child: child,

@@ -4,10 +4,10 @@ import '../utils/waste_app_logger.dart';
 
 /// Service for providing immediate visual and haptic feedback to users
 class VisualFeedbackService {
-  static VisualFeedbackService? _instance;
-  static VisualFeedbackService get instance => _instance ??= VisualFeedbackService._();
-  
   VisualFeedbackService._();
+  static VisualFeedbackService? _instance;
+  static VisualFeedbackService get instance =>
+      _instance ??= VisualFeedbackService._();
 
   bool _hapticsEnabled = true;
   bool _animationsEnabled = true;
@@ -19,8 +19,8 @@ class VisualFeedbackService {
   }) {
     _hapticsEnabled = hapticsEnabled;
     _animationsEnabled = animationsEnabled;
-    
-    WasteAppLogger.info('Visual Feedback Service initialized', null, null, {
+
+    WasteAppLogger.info('Visual Feedback Service initialized', context: {
       'haptics_enabled': _hapticsEnabled,
       'animations_enabled': _animationsEnabled,
       'service': 'VisualFeedbackService',
@@ -30,88 +30,94 @@ class VisualFeedbackService {
   /// Provide light haptic feedback for button taps
   Future<void> lightImpact() async {
     if (!_hapticsEnabled) return;
-    
+
     try {
       await HapticFeedback.lightImpact();
     } catch (e) {
-      WasteAppLogger.warning('Failed to provide light haptic feedback', null, null, {
-        'error': e.toString(),
-        'service': 'VisualFeedbackService',
-      });
+      WasteAppLogger.warning('Failed to provide light haptic feedback',
+          context: {
+            'error': e.toString(),
+            'service': 'VisualFeedbackService',
+          });
     }
   }
 
   /// Provide medium haptic feedback for important actions
   Future<void> mediumImpact() async {
     if (!_hapticsEnabled) return;
-    
+
     try {
       await HapticFeedback.mediumImpact();
     } catch (e) {
-      WasteAppLogger.warning('Failed to provide medium haptic feedback', null, null, {
-        'error': e.toString(),
-        'service': 'VisualFeedbackService',
-      });
+      WasteAppLogger.warning('Failed to provide medium haptic feedback',
+          context: {
+            'error': e.toString(),
+            'service': 'VisualFeedbackService',
+          });
     }
   }
 
   /// Provide heavy haptic feedback for critical actions
   Future<void> heavyImpact() async {
     if (!_hapticsEnabled) return;
-    
+
     try {
       await HapticFeedback.heavyImpact();
     } catch (e) {
-      WasteAppLogger.warning('Failed to provide heavy haptic feedback', null, null, {
-        'error': e.toString(),
-        'service': 'VisualFeedbackService',
-      });
+      WasteAppLogger.warning('Failed to provide heavy haptic feedback',
+          context: {
+            'error': e.toString(),
+            'service': 'VisualFeedbackService',
+          });
     }
   }
 
   /// Provide selection haptic feedback for picker/selector interactions
   Future<void> selectionClick() async {
     if (!_hapticsEnabled) return;
-    
+
     try {
       await HapticFeedback.selectionClick();
     } catch (e) {
-      WasteAppLogger.warning('Failed to provide selection haptic feedback', null, null, {
-        'error': e.toString(),
-        'service': 'VisualFeedbackService',
-      });
+      WasteAppLogger.warning('Failed to provide selection haptic feedback',
+          context: {
+            'error': e.toString(),
+            'service': 'VisualFeedbackService',
+          });
     }
   }
 
   /// Provide vibration pattern for success feedback
   Future<void> successFeedback() async {
     if (!_hapticsEnabled) return;
-    
+
     try {
       await HapticFeedback.lightImpact();
       await Future.delayed(const Duration(milliseconds: 50));
       await HapticFeedback.lightImpact();
     } catch (e) {
-      WasteAppLogger.warning('Failed to provide success haptic feedback', null, null, {
-        'error': e.toString(),
-        'service': 'VisualFeedbackService',
-      });
+      WasteAppLogger.warning('Failed to provide success haptic feedback',
+          context: {
+            'error': e.toString(),
+            'service': 'VisualFeedbackService',
+          });
     }
   }
 
   /// Provide vibration pattern for error feedback
   Future<void> errorFeedback() async {
     if (!_hapticsEnabled) return;
-    
+
     try {
       await HapticFeedback.heavyImpact();
       await Future.delayed(const Duration(milliseconds: 100));
       await HapticFeedback.heavyImpact();
     } catch (e) {
-      WasteAppLogger.warning('Failed to provide error haptic feedback', null, null, {
-        'error': e.toString(),
-        'service': 'VisualFeedbackService',
-      });
+      WasteAppLogger.warning('Failed to provide error haptic feedback',
+          context: {
+            'error': e.toString(),
+            'service': 'VisualFeedbackService',
+          });
     }
   }
 
@@ -143,7 +149,7 @@ class VisualFeedbackService {
     SnackBarAction? action,
   }) {
     successFeedback();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -172,7 +178,7 @@ class VisualFeedbackService {
     SnackBarAction? action,
   }) {
     errorFeedback();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -201,7 +207,7 @@ class VisualFeedbackService {
     SnackBarAction? action,
   }) {
     lightImpact();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -281,17 +287,19 @@ class VisualFeedbackService {
   /// Enable or disable haptic feedback
   void setHapticsEnabled(bool enabled) {
     _hapticsEnabled = enabled;
-    WasteAppLogger.info('Haptics ${enabled ? 'enabled' : 'disabled'}', null, null, {
-      'service': 'VisualFeedbackService',
-    });
+    WasteAppLogger.info('Haptics ${enabled ? 'enabled' : 'disabled'}',
+        context: {
+          'service': 'VisualFeedbackService',
+        });
   }
 
   /// Enable or disable animations
   void setAnimationsEnabled(bool enabled) {
     _animationsEnabled = enabled;
-    WasteAppLogger.info('Animations ${enabled ? 'enabled' : 'disabled'}', null, null, {
-      'service': 'VisualFeedbackService',
-    });
+    WasteAppLogger.info('Animations ${enabled ? 'enabled' : 'disabled'}',
+        context: {
+          'service': 'VisualFeedbackService',
+        });
   }
 
   /// Get current haptics setting
@@ -380,7 +388,8 @@ class _FeedbackButtonState extends State<FeedbackButton>
       duration: widget.animationDuration,
       vsync: this,
     );
-    _scaleAnimation = VisualFeedbackService.instance.createBounceAnimation(_animationController);
+    _scaleAnimation = VisualFeedbackService.instance
+        .createBounceAnimation(_animationController);
   }
 
   @override
@@ -460,7 +469,7 @@ class LoadingStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return loadingWidget ?? 
+      return loadingWidget ??
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -476,7 +485,7 @@ class LoadingStateWidget extends StatelessWidget {
             ],
           );
     }
-    
+
     return child;
   }
 }
@@ -495,7 +504,8 @@ class AnimatedStateTransition extends StatefulWidget {
   final Curve curve;
 
   @override
-  State<AnimatedStateTransition> createState() => _AnimatedStateTransitionState();
+  State<AnimatedStateTransition> createState() =>
+      _AnimatedStateTransitionState();
 }
 
 class _AnimatedStateTransitionState extends State<AnimatedStateTransition>

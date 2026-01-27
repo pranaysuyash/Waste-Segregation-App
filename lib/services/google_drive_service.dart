@@ -19,21 +19,29 @@ class GoogleDriveService {
   );
 
   final StorageService _storageService;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Helper method to fetch UserProfile from Firestore
   Future<UserProfile?> _fetchUserProfileFromFirestore(String userId) async {
     try {
-      final docSnapshot = await _firestore.collection('users').doc(userId).get();
+      final docSnapshot =
+          await _firestore.collection('users').doc(userId).get();
       if (docSnapshot.exists && docSnapshot.data() != null) {
         return UserProfile.fromJson(docSnapshot.data()!);
       }
-      WasteAppLogger.info('No user profile found in Firestore', null, null,
-          {'user_id': userId.substring(0, 16), 'service': 'google_drive', 'action': 'return_null_for_new_user'});
+      WasteAppLogger.info('No user profile found in Firestore', context: {
+        'user_id': userId.substring(0, 16),
+        'service': 'google_drive',
+        'action': 'return_null_for_new_user'
+      });
       return null;
     } catch (e) {
-      WasteAppLogger.severe('Error fetching user profile from Firestore', e, null,
-          {'user_id': userId.substring(0, 16), 'service': 'google_drive'});
+      WasteAppLogger.severe('Error fetching user profile from Firestore',
+          error: e,
+          context: {
+            'user_id': userId.substring(0, 16),
+            'service': 'google_drive'
+          });
       return null;
     }
   }
@@ -48,7 +56,7 @@ class GoogleDriveService {
 
         if (userProfile == null) {
           // Truly new user, or Firestore fetch failed. Create a new UserProfile.
-          WasteAppLogger.info('Creating new UserProfile for user', null, null, {
+          WasteAppLogger.info('Creating new UserProfile for user', context: {
             'user_id': userId.substring(0, 16),
             'email': account.email,
             'service': 'google_drive',
@@ -65,12 +73,8 @@ class GoogleDriveService {
           );
         } else {
           // Existing user, update relevant fields
-          WasteAppLogger.info('Found existing UserProfile, updating fields', null, null, {
-            'user_id': userId.substring(0, 16),
-            'email': account.email,
-            'service': 'google_drive',
-            'action': 'update_existing_profile'
-          });
+          WasteAppLogger.info(
+              'Found existing UserProfile, error: updating fields');
           userProfile = userProfile.copyWith(
             lastActive: DateTime.now(),
             displayName: account.displayName ?? userProfile.displayName,
@@ -81,8 +85,12 @@ class GoogleDriveService {
 
         // Save the fetched/updated or newly created UserProfile to local storage
         await _storageService.saveUserProfile(userProfile);
-        WasteAppLogger.info('UserProfile saved locally after sign-in', null, null,
-            {'user_id': userId.substring(0, 16), 'service': 'google_drive', 'action': 'local_save_complete'});
+        WasteAppLogger.info('UserProfile saved locally after sign-in',
+            context: {
+              'user_id': userId.substring(0, 16),
+              'service': 'google_drive',
+              'action': 'local_save_complete'
+            });
 
         // Optional: If it was a new user, explicitly save to Firestore now.
         // Otherwise, CloudStorageService.saveUserProfileToFirestore will be called
@@ -91,11 +99,19 @@ class GoogleDriveService {
         if (userProfile.createdAt == userProfile.lastActive) {
           // Heuristic for new profile
           try {
-            await _firestore.collection('users').doc(userProfile.id).set(userProfile.toJson(), SetOptions(merge: true));
-            WasteAppLogger.info('New UserProfile synced to Firestore', null, null,
-                {'user_id': userId.substring(0, 16), 'service': 'google_drive', 'action': 'firestore_sync_complete'});
+            await _firestore
+                .collection('users')
+                .doc(userProfile.id)
+                .set(userProfile.toJson(), SetOptions(merge: true));
+            WasteAppLogger.info('New UserProfile synced to Firestore',
+                context: {
+                  'user_id': userId.substring(0, 16),
+                  'service': 'google_drive',
+                  'action': 'firestore_sync_complete'
+                });
           } catch (e) {
-            WasteAppLogger.severe('Error syncing new UserProfile $userId to Firestore immediately: $e');
+            WasteAppLogger.severe(
+                'Error syncing new UserProfile $userId to Firestore immediately: $e');
           }
         }
       }
@@ -256,7 +272,8 @@ class GoogleDriveService {
       folderId ??= await createFolder(appFolderName);
 
       // Backup file name with timestamp
-      final fileName = 'waste_seg_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final fileName =
+          'waste_seg_backup_${DateTime.now().millisecondsSinceEpoch}.json';
 
       // Upload backup to drive
       return await uploadToDrive(
@@ -297,7 +314,8 @@ class GoogleDriveService {
       }
 
       // List files in the folder
-      final query = "'$folderId' in parents and name contains 'waste_seg_backup_' and trashed = false";
+      final query =
+          "'$folderId' in parents and name contains 'waste_seg_backup_' and trashed = false";
       final fileList = await driveApi.files.list(q: query);
 
       if (fileList.files == null) {

@@ -14,5 +14,8 @@ class GamificationResult {
   final Challenge? completedChallenge;
   final String action;
 
-  bool get hasRewards => pointsEarned > 0 || newlyEarnedAchievements.isNotEmpty || completedChallenge != null;
+  bool get hasRewards =>
+      pointsEarned > 0 ||
+      newlyEarnedAchievements.isNotEmpty ||
+      completedChallenge != null;
 }

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
 
 /// Service for fetching LLM-generated disposal instructions
@@ -9,13 +9,14 @@ class DisposalInstructionsService {
   static const String _functionUrl =
       'https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/generateDisposal';
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Cache for disposal instructions to avoid repeated API calls
   final Map<String, DisposalInstructions> _cache = {};
 
   /// Generate a unique material ID for caching
-  String _generateMaterialId(String material, String? category, String? subcategory) {
+  String _generateMaterialId(
+      String material, String? category, String? subcategory) {
     final parts = [material.toLowerCase().trim()];
     if (category != null) parts.add(category.toLowerCase().trim());
     if (subcategory != null) parts.add(subcategory.toLowerCase().trim());
@@ -37,31 +38,45 @@ class DisposalInstructionsService {
         WasteAppLogger.cacheEvent('cache_hit', 'disposal_instructions',
             hit: true,
             key: materialId,
-            context: {'material': material, 'category': category, 'subcategory': subcategory});
+            context: {
+              'material': material,
+              'category': category,
+              'subcategory': subcategory
+            });
         return _cache[materialId]!;
       }
 
       // Check Firestore cache
-      final cachedDoc = await _firestore.collection('disposal_instructions').doc(materialId).get();
+      final cachedDoc = await _firestore
+          .collection('disposal_instructions')
+          .doc(materialId)
+          .get();
 
       if (cachedDoc.exists) {
-        WasteAppLogger.cacheEvent('cache_hit', 'disposal_instructions_firestore',
+        WasteAppLogger.cacheEvent(
+            'cache_hit', 'disposal_instructions_firestore',
             hit: true,
             key: materialId,
-            context: {'material': material, 'category': category, 'subcategory': subcategory, 'source': 'firestore'});
+            context: {
+              'material': material,
+              'category': category,
+              'subcategory': subcategory,
+              'source': 'firestore'
+            });
         final instructions = _parseFirestoreData(cachedDoc.data()!);
         _cache[materialId] = instructions;
         return instructions;
       }
 
       // Generate new instructions via Cloud Function
-      WasteAppLogger.aiEvent('disposal_instructions_generation_started', context: {
-        'material_id': materialId,
-        'material': material,
-        'category': category,
-        'subcategory': subcategory,
-        'language': lang
-      });
+      WasteAppLogger.aiEvent('disposal_instructions_generation_started',
+          context: {
+            'material_id': materialId,
+            'material': material,
+            'category': category,
+            'subcategory': subcategory,
+            'language': lang
+          });
       final instructions = await _generateViaCloudFunction(
         materialId: materialId,
         material: material,
@@ -73,13 +88,15 @@ class DisposalInstructionsService {
       _cache[materialId] = instructions;
       return instructions;
     } catch (e) {
-      WasteAppLogger.severe('Error fetching disposal instructions', e, null, {
-        'material': material,
-        'category': category,
-        'subcategory': subcategory,
-        'language': lang,
-        'action': 'fallback_to_default_instructions'
-      });
+      WasteAppLogger.severe('Error fetching disposal instructions',
+          error: e,
+          context: {
+            'material': material,
+            'category': category,
+            'subcategory': subcategory,
+            'language': lang,
+            'action': 'fallback_to_default_instructions'
+          });
       return _getFallbackInstructions(material, category);
     }
   }
@@ -94,7 +111,7 @@ class DisposalInstructionsService {
   }) async {
     const maxRetries = 3;
     const baseDelay = Duration(seconds: 1);
-    
+
     final requestBody = {
       'materialId': materialId,
       'material': material,
@@ -105,8 +122,9 @@ class DisposalInstructionsService {
 
     for (var attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        WasteAppLogger.info('Disposal instructions API call attempt ${attempt + 1}/${maxRetries + 1}', 
-            null, null, {
+        WasteAppLogger.info(
+            'Disposal instructions API call attempt ${attempt + 1}/${maxRetries + 1}',
+            context: {
               'material_id': materialId,
               'material': material,
               'attempt': attempt + 1,
@@ -124,8 +142,8 @@ class DisposalInstructionsService {
             .timeout(const Duration(seconds: 30));
 
         if (response.statusCode == 200) {
-          WasteAppLogger.info('Disposal instructions API call successful', 
-              null, null, {
+          WasteAppLogger.info('Disposal instructions API call successful',
+              context: {
                 'material_id': materialId,
                 'attempt': attempt + 1,
                 'response_length': response.body.length
@@ -136,80 +154,83 @@ class DisposalInstructionsService {
           // Server is temporarily unavailable - check for retry-after header
           final retryAfterHeader = response.headers['retry-after'];
           var retryAfterSeconds = 0;
-          
+
           if (retryAfterHeader != null) {
             retryAfterSeconds = int.tryParse(retryAfterHeader) ?? 0;
           }
-          
+
           if (attempt < maxRetries) {
             // Calculate delay: use retry-after header if provided, otherwise exponential backoff
-            final delay = retryAfterSeconds > 0 
+            final delay = retryAfterSeconds > 0
                 ? Duration(seconds: retryAfterSeconds)
-                : Duration(seconds: baseDelay.inSeconds * (1 << attempt)); // Exponential backoff: 1s, 2s, 4s
-            
-            WasteAppLogger.warning('Disposal instructions API returned 503, retrying', null, null, {
-              'material_id': materialId,
-              'attempt': attempt + 1,
-              'max_retries': maxRetries + 1,
-              'retry_after_seconds': retryAfterSeconds,
-              'delay_seconds': delay.inSeconds,
-              'response_body': response.body
-            });
-            
+                : Duration(
+                    seconds: baseDelay.inSeconds *
+                        (1 << attempt)); // Exponential backoff: 1s, 2s, 4s
+
+            WasteAppLogger.warning(
+                'Disposal instructions API returned 503, error: retrying');
+
             await Future.delayed(delay);
             continue; // Retry the request
           } else {
             // Final attempt failed with 503
-            WasteAppLogger.severe('Disposal instructions API exhausted retries with 503', null, null, {
-              'material_id': materialId,
-              'total_attempts': attempt + 1,
-              'final_status_code': response.statusCode,
-              'response_body': response.body,
-              'action': 'falling_back_to_default'
-            });
-            throw Exception('Service temporarily unavailable after ${attempt + 1} attempts: ${response.body}');
+            WasteAppLogger.severe(
+                'Disposal instructions API exhausted retries with 503',
+                context: {
+                  'material_id': materialId,
+                  'total_attempts': attempt + 1,
+                  'final_status_code': response.statusCode,
+                  'response_body': response.body,
+                  'action': 'falling_back_to_default'
+                });
+            throw Exception(
+                'Service temporarily unavailable after ${attempt + 1} attempts: ${response.body}');
           }
         } else {
           // Non-retryable error (4xx, 5xx except 503)
-          WasteAppLogger.severe('Disposal instructions API returned non-retryable error', null, null, {
-            'material_id': materialId,
-            'attempt': attempt + 1,
-            'status_code': response.statusCode,
-            'response_body': response.body,
-            'action': 'failing_immediately'
-          });
-          throw Exception('Cloud Function returned ${response.statusCode}: ${response.body}');
+          WasteAppLogger.severe(
+              'Disposal instructions API returned non-retryable error',
+              context: {
+                'material_id': materialId,
+                'attempt': attempt + 1,
+                'status_code': response.statusCode,
+                'response_body': response.body,
+                'action': 'failing_immediately'
+              });
+          throw Exception(
+              'Cloud Function returned ${response.statusCode}: ${response.body}');
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
         if (e.toString().contains('Service temporarily unavailable')) {
           // Re-throw 503 exhaustion errors
           rethrow;
         }
-        
+
         // Handle other exceptions (network errors, timeouts, etc.)
         if (attempt < maxRetries) {
           final delay = Duration(seconds: baseDelay.inSeconds * (1 << attempt));
-          WasteAppLogger.warning('Disposal instructions API call failed with exception, retrying', e, null, {
-            'material_id': materialId,
-            'attempt': attempt + 1,
-            'max_retries': maxRetries + 1,
-            'delay_seconds': delay.inSeconds,
-            'exception_type': e.runtimeType.toString()
-          });
+          WasteAppLogger.warning(
+              'Disposal instructions API call failed with exception, retrying',
+              error: e,
+              stackTrace: stackTrace);
           await Future.delayed(delay);
           continue;
         } else {
-          WasteAppLogger.severe('Disposal instructions API exhausted retries with exception', e, null, {
-            'material_id': materialId,
-            'total_attempts': attempt + 1,
-            'exception_type': e.runtimeType.toString(),
-            'action': 'falling_back_to_default'
-          });
+          WasteAppLogger.severe(
+              'Disposal instructions API exhausted retries with exception',
+              error: e,
+              stackTrace: stackTrace,
+              context: {
+                'material_id': materialId,
+                'total_attempts': attempt + 1,
+                'exception_type': e.runtimeType.toString(),
+                'action': 'falling_back_to_default'
+              });
           rethrow;
         }
       }
     }
-    
+
     // This should never be reached due to the loop structure, but added for completeness
     throw Exception('Unexpected end of retry loop');
   }
@@ -255,9 +276,17 @@ class DisposalInstructionsService {
     if (stepsData is String) {
       // Handle various string formats
       if (stepsData.contains('\n')) {
-        return stepsData.split('\n').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        return stepsData
+            .split('\n')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
       } else if (stepsData.contains(',')) {
-        return stepsData.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        return stepsData
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
       } else {
         return [stepsData];
       }
@@ -283,7 +312,8 @@ class DisposalInstructionsService {
   }
 
   /// Get fallback instructions when AI generation fails
-  DisposalInstructions _getFallbackInstructions(String material, String? category) {
+  DisposalInstructions _getFallbackInstructions(
+      String material, String? category) {
     // Use existing category-based fallbacks
     switch (category?.toLowerCase()) {
       case 'wet waste':
@@ -311,7 +341,10 @@ class DisposalInstructionsService {
           ],
           timeframe: 'Weekly collection',
           location: 'Dry waste bin or recycling center',
-          tips: ['Clean items recycle better', 'Sort by material when possible'],
+          tips: [
+            'Clean items recycle better',
+            'Sort by material when possible'
+          ],
           hasUrgentTimeframe: false,
         );
       case 'hazardous waste':
@@ -325,7 +358,10 @@ class DisposalInstructionsService {
           ],
           timeframe: 'As soon as possible',
           location: 'Hazardous waste collection center',
-          warnings: ['Never dispose in regular bins', 'Can contaminate other waste'],
+          warnings: [
+            'Never dispose in regular bins',
+            'Can contaminate other waste'
+          ],
           hasUrgentTimeframe: true,
         );
       default:
@@ -366,8 +402,12 @@ class DisposalInstructionsService {
           category: item['category'],
         );
       } catch (e) {
-        WasteAppLogger.warning('Failed to preload disposal instructions', e, null,
-            {'material': item['material'], 'action': 'continue_preloading'});
+        WasteAppLogger.warning('Failed to preload disposal instructions',
+            error: e,
+            context: {
+              'material': item['material'],
+              'action': 'continue_preloading'
+            });
       }
     }
   }

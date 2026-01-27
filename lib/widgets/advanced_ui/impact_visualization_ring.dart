@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'dart:math' as math;
 import '../../utils/design_system.dart';
 
@@ -28,8 +29,8 @@ class ImpactVisualizationRing extends StatefulWidget {
     required this.targetValue,
     required this.currentValue,
     this.unit = 'items',
-    this.primaryColor = const Color(0xFF06FFA5),
-    this.secondaryColor = const Color(0xFF00B4D8),
+    this.primaryColor = AppTheme.wetWasteColor,
+    this.secondaryColor = AppTheme.secondaryColor,
     this.centerText = '',
     this.milestones = const [],
     this.title = 'Environmental Impact',
@@ -47,10 +48,12 @@ class ImpactVisualizationRing extends StatefulWidget {
   final String subtitle;
 
   @override
-  _ImpactVisualizationRingState createState() => _ImpactVisualizationRingState();
+  _ImpactVisualizationRingState createState() =>
+      _ImpactVisualizationRingState();
 }
 
-class _ImpactVisualizationRingState extends State<ImpactVisualizationRing> with TickerProviderStateMixin {
+class _ImpactVisualizationRingState extends State<ImpactVisualizationRing>
+    with TickerProviderStateMixin {
   late AnimationController _progressController;
   late AnimationController _pulseController;
   late AnimationController _milestoneController;
@@ -125,7 +128,8 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing> with 
 
   void _checkMilestones(double oldProgress, double newProgress) {
     for (final milestone in widget.milestones) {
-      if (oldProgress < milestone.threshold && newProgress >= milestone.threshold) {
+      if (oldProgress < milestone.threshold &&
+          newProgress >= milestone.threshold) {
         _milestoneController.forward(from: 0);
         break;
       }
@@ -196,7 +200,10 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing> with 
                         // Current value
                         Text(
                           '${widget.currentValue.toInt()}',
-                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .displayMedium
+                              ?.copyWith(
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
                                 color: widget.primaryColor,
@@ -206,30 +213,34 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing> with 
                         // Target and unit
                         Text(
                           'of ${widget.targetValue.toInt()} ${widget.unit}',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: WasteAppDesignSystem.darkGray,
-                                fontWeight: FontWeight.w500,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: WasteAppDesignSystem.darkGray,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                         ),
 
                         // Percentage
                         const SizedBox(height: WasteAppDesignSystem.spacingXS),
                         Text(
                           '${(widget.progress * 100).toInt()}%',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: widget.primaryColor,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: widget.primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
 
                         // Center text if provided
                         if (widget.centerText.isNotEmpty) ...[
-                          const SizedBox(height: WasteAppDesignSystem.spacingXS),
+                          const SizedBox(
+                              height: WasteAppDesignSystem.spacingXS),
                           Text(
                             widget.centerText,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: WasteAppDesignSystem.darkGray,
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: WasteAppDesignSystem.darkGray,
+                                    ),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -265,7 +276,8 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing> with 
                 ),
           ),
           const SizedBox(height: WasteAppDesignSystem.spacingS),
-          ...widget.milestones.map((milestone) => _buildMilestoneItem(milestone)),
+          ...widget.milestones
+              .map((milestone) => _buildMilestoneItem(milestone)),
         ],
       ),
     );
@@ -273,23 +285,30 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing> with 
 
   Widget _buildMilestoneItem(ImpactMilestone milestone) {
     final isReached = widget.progress >= milestone.threshold;
-    final isActive = widget.progress >= milestone.threshold - 0.1 && widget.progress <= milestone.threshold + 0.1;
+    final isActive = widget.progress >= milestone.threshold - 0.1 &&
+        widget.progress <= milestone.threshold + 0.1;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: WasteAppDesignSystem.spacingXS),
+      padding:
+          const EdgeInsets.symmetric(vertical: WasteAppDesignSystem.spacingXS),
       child: Row(
         children: [
           // Milestone icon
           Container(
             padding: const EdgeInsets.all(WasteAppDesignSystem.spacingS),
             decoration: BoxDecoration(
-              color: isReached ? milestone.color.withValues(alpha: 0.2) : WasteAppDesignSystem.lightGray,
+              color: isReached
+                  ? milestone.color.withValues(alpha: 0.2)
+                  : WasteAppDesignSystem.lightGray,
               shape: BoxShape.circle,
-              border: isActive ? Border.all(color: milestone.color, width: 2) : null,
+              border: isActive
+                  ? Border.all(color: milestone.color, width: 2)
+                  : null,
             ),
             child: Icon(
               milestone.icon,
-              color: isReached ? milestone.color : WasteAppDesignSystem.darkGray,
+              color:
+                  isReached ? milestone.color : WasteAppDesignSystem.darkGray,
               size: 20,
             ),
           ),
@@ -305,7 +324,9 @@ class _ImpactVisualizationRingState extends State<ImpactVisualizationRing> with 
                   milestone.title,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: isReached ? milestone.color : WasteAppDesignSystem.textBlack,
+                        color: isReached
+                            ? milestone.color
+                            : WasteAppDesignSystem.textBlack,
                       ),
                 ),
                 Text(

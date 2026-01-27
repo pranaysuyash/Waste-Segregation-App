@@ -43,7 +43,6 @@ class _WasteImpactDashboardState extends State<WasteImpactDashboard> {
                 targetValue: monthlyTarget,
                 unit: 'items classified',
                 primaryColor: WasteAppDesignSystem.primaryGreen,
-                secondaryColor: WasteAppDesignSystem.secondaryGreen,
                 title: 'Monthly Progress',
                 subtitle: 'Items classified this month',
                 centerText: 'Keep going!',
@@ -387,10 +386,10 @@ class WasteImpactConfigurations {
       currentValue: itemsClassified,
       targetValue: dailyTarget,
       primaryColor: WasteAppDesignSystem.primaryGreen,
-      secondaryColor: WasteAppDesignSystem.secondaryGreen,
       title: 'Daily Goal',
       subtitle: 'Items classified today',
-      centerText: itemsClassified >= dailyTarget ? 'Goal achieved!' : 'Keep going!',
+      centerText:
+          itemsClassified >= dailyTarget ? 'Goal achieved!' : 'Keep going!',
       milestones: const [
         ImpactMilestone(
           threshold: 0.5,
@@ -427,7 +426,6 @@ class WasteImpactConfigurations {
       currentValue: co2Saved,
       targetValue: weeklyTarget,
       unit: 'kg CO₂ saved',
-      primaryColor: WasteAppDesignSystem.wetWasteColor,
       secondaryColor: const Color(0xFF2E7D32),
       subtitle: 'CO₂ emissions prevented this week',
       centerText: 'Saving the planet!',

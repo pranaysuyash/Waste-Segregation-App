@@ -25,13 +25,15 @@ class AnalysisSpeedSelector extends ConsumerWidget {
         final canAffordInstant = tokenBalance >= AnalysisSpeed.instant.cost;
 
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
+          margin:
+              const EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+              color:
+                  Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
             ),
           ),
           child: Column(
@@ -57,9 +59,13 @@ class AnalysisSpeedSelector extends ConsumerWidget {
                   const Spacer(),
                   // Token balance display
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -161,7 +167,8 @@ class AnalysisSpeedSelector extends ConsumerWidget {
         ),
         child: Text(
           'Unable to load token balance',
-          style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+          style:
+              TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
         ),
       ),
     );
@@ -243,7 +250,9 @@ class AnalysisSpeedSelector extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.bolt,
-                  color: canAfford ? colorScheme.primary : colorScheme.onSurface.withValues(alpha: 0.3),
+                  color: canAfford
+                      ? colorScheme.primary
+                      : colorScheme.onSurface.withValues(alpha: 0.3),
                   size: 12,
                 ),
                 const SizedBox(width: 2),
@@ -252,7 +261,9 @@ class AnalysisSpeedSelector extends ConsumerWidget {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: canAfford ? colorScheme.primary : colorScheme.onSurface.withValues(alpha: 0.3),
+                    color: canAfford
+                        ? colorScheme.primary
+                        : colorScheme.onSurface.withValues(alpha: 0.3),
                   ),
                 ),
               ],

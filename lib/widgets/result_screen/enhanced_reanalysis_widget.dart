@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../../services/ai_service.dart';
 import '../../services/analytics_service.dart';
 import '../../services/haptic_settings_service.dart';
@@ -23,10 +23,12 @@ class EnhancedReanalysisWidget extends StatefulWidget {
   final Function(WasteClassification)? onReanalysisCompleted;
 
   @override
-  State<EnhancedReanalysisWidget> createState() => _EnhancedReanalysisWidgetState();
+  State<EnhancedReanalysisWidget> createState() =>
+      _EnhancedReanalysisWidgetState();
 }
 
-class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> with SingleTickerProviderStateMixin {
+class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
+    with SingleTickerProviderStateMixin {
   bool _isReanalyzing = false;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -87,11 +89,13 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> wit
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isLowConfidence ? Colors.orange.shade300 : Colors.blue.shade300,
+          color:
+              isLowConfidence ? Colors.orange.shade300 : Colors.blue.shade300,
         ),
         boxShadow: [
           BoxShadow(
-            color: (isLowConfidence ? Colors.orange : Colors.blue).withValues(alpha: 0.1),
+            color: (isLowConfidence ? Colors.orange : Colors.blue)
+                .withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -119,12 +123,14 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> wit
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: isLowConfidence ? Colors.orange.shade200 : Colors.blue.shade200,
+            color:
+                isLowConfidence ? Colors.orange.shade200 : Colors.blue.shade200,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             isLowConfidence ? Icons.warning_amber : Icons.refresh,
-            color: isLowConfidence ? Colors.orange.shade700 : Colors.blue.shade700,
+            color:
+                isLowConfidence ? Colors.orange.shade700 : Colors.blue.shade700,
             size: 20,
           ),
         ),
@@ -134,11 +140,15 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> wit
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isLowConfidence ? 'Low Confidence Result' : 'Re-analyze Available',
+                isLowConfidence
+                    ? 'Low Confidence Result'
+                    : 'Re-analyze Available',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: isLowConfidence ? Colors.orange.shade800 : Colors.blue.shade800,
+                  color: isLowConfidence
+                      ? Colors.orange.shade800
+                      : Colors.blue.shade800,
                 ),
               ),
               if (isLowConfidence)
@@ -183,12 +193,14 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> wit
   Widget _buildDescription(bool isLowConfidence) {
     String description;
     if (widget.userCorrection != null) {
-      description = 'Re-analyze this image with your correction: "${widget.userCorrection}" for improved accuracy.';
+      description =
+          'Re-analyze this image with your correction: "${widget.userCorrection}" for improved accuracy.';
     } else if (isLowConfidence) {
       description =
           'This classification has lower confidence than usual. Try re-analyzing with a clearer image or different angle.';
     } else {
-      description = 'Not satisfied with the result? Re-analyze the image to get a fresh classification.';
+      description =
+          'Not satisfied with the result? Re-analyze the image to get a fresh classification.';
     }
 
     return Text(
@@ -213,11 +225,15 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> wit
             onPressed: _triggerReanalysis,
             icon: const Icon(Icons.refresh, size: 18),
             label: Text(
-              widget.userCorrection != null ? 'Re-analyze with Correction' : 'Re-analyze Image',
+              widget.userCorrection != null
+                  ? 'Re-analyze with Correction'
+                  : 'Re-analyze Image',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: isLowConfidence ? Colors.orange.shade600 : Colors.blue.shade600,
+              backgroundColor: isLowConfidence
+                  ? Colors.orange.shade600
+                  : Colors.blue.shade600,
               foregroundColor: Colors.white,
               elevation: 2,
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -233,9 +249,12 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> wit
           icon: const Icon(Icons.settings, size: 16),
           label: const Text('Options'),
           style: OutlinedButton.styleFrom(
-            foregroundColor: isLowConfidence ? Colors.orange.shade700 : Colors.blue.shade700,
+            foregroundColor:
+                isLowConfidence ? Colors.orange.shade700 : Colors.blue.shade700,
             side: BorderSide(
-              color: isLowConfidence ? Colors.orange.shade300 : Colors.blue.shade300,
+              color: isLowConfidence
+                  ? Colors.orange.shade300
+                  : Colors.blue.shade300,
             ),
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             shape: RoundedRectangleBorder(
@@ -306,7 +325,8 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> wit
     final hapticService = context.read<HapticSettingsService>();
 
     // Track re-analysis event
-    analyticsService.trackUserAction('enhanced_reanalysis_triggered', parameters: {
+    analyticsService
+        .trackUserAction('enhanced_reanalysis_triggered', parameters: {
       'original_category': widget.classification.category,
       'original_confidence': widget.classification.confidence,
       'has_user_correction': widget.userCorrection != null,
@@ -505,7 +525,8 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> wit
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+            Icon(Icons.arrow_forward_ios,
+                size: 16, color: Colors.grey.shade400),
           ],
         ),
       ),
@@ -516,7 +537,8 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget> wit
     // Implementation for manual review request
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Manual review requested. We\'ll improve our AI based on your feedback.'),
+        content: const Text(
+            'Manual review requested. We\'ll improve our AI based on your feedback.'),
         backgroundColor: Colors.green.shade600,
         behavior: SnackBarBehavior.floating,
       ),

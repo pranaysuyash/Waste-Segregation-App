@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 import '../utils/waste_app_logger.dart';
 import 'api_management_service.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 
 /// Example integration showing how to use the new API management system
-/// 
+///
 /// This demonstrates:
 /// - Service initialization
 /// - AI analysis with automatic fallback
@@ -18,19 +18,19 @@ class ApiIntegrationExample {
   static Future<void> initialize() async {
     try {
       await _apiManager.initialize(
-        enableMonitoring: true,
-        enableOptimization: true,
         monitoringInterval: const Duration(minutes: 5),
         optimizationInterval: const Duration(minutes: 15),
       );
 
-      WasteAppLogger.info('API integration initialized successfully', null, null, {
+      WasteAppLogger.info('API integration initialized successfully', context: {
         'timestamp': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      WasteAppLogger.severe('Failed to initialize API integration', e, null, {
-        'error_type': e.runtimeType.toString(),
-      });
+      WasteAppLogger.severe('Failed to initialize API integration',
+          error: e,
+          context: {
+            'error_type': e.runtimeType.toString(),
+          });
       rethrow;
     }
   }
@@ -44,15 +44,16 @@ class ApiIntegrationExample {
     String? preferredModel,
   }) async {
     final startTime = DateTime.now();
-    
+
     try {
-      WasteAppLogger.info('Starting waste analysis with enhanced API', null, null, {
-        'image_name': imageName,
-        'image_size_bytes': imageBytes.length,
-        'preferred_model': preferredModel,
-        'region': region,
-        'language': language,
-      });
+      WasteAppLogger.info('Starting waste analysis with enhanced API',
+          context: {
+            'image_name': imageName,
+            'image_size_bytes': imageBytes.length,
+            'preferred_model': preferredModel,
+            'region': region,
+            'language': language,
+          });
 
       // Use the enhanced AI API service through the management layer
       final result = await _apiManager.aiApiService.analyzeWasteImage(
@@ -61,29 +62,18 @@ class ApiIntegrationExample {
         region: region,
         language: language,
         preferredModel: preferredModel,
-        enableSegmentation: imageBytes.length > 1024 * 1024, // Enable for large images
+        enableSegmentation:
+            imageBytes.length > 1024 * 1024, // Enable for large images
       );
 
       final processingTime = DateTime.now().difference(startTime);
-      
-      // Update the result with processing time
-      final enhancedResult = WasteClassification(
-        category: result.category,
-        subcategory: result.subcategory,
-        confidence: result.confidence,
-        explanation: result.explanation,
-        disposalInstructions: result.disposalInstructions,
-        environmentalImpact: result.environmentalImpact,
-        imageName: result.imageName,
-        timestamp: result.timestamp,
-        source: result.source,
+
+      // Update the result with processing time using copyWith
+      final enhancedResult = result.copyWith(
         processingTimeMs: processingTime.inMilliseconds,
-        modelVersion: result.modelVersion,
-        segments: result.segments,
-        itemCount: result.itemCount,
       );
 
-      WasteAppLogger.info('Waste analysis completed successfully', null, null, {
+      WasteAppLogger.info('Waste analysis completed successfully', context: {
         'image_name': imageName,
         'category': result.category,
         'confidence': result.confidence,
@@ -94,13 +84,13 @@ class ApiIntegrationExample {
       return enhancedResult;
     } catch (e) {
       final processingTime = DateTime.now().difference(startTime);
-      
-      WasteAppLogger.severe('Waste analysis failed', e, null, {
+
+      WasteAppLogger.severe('Waste analysis failed', error: e, context: {
         'image_name': imageName,
         'processing_time_ms': processingTime.inMilliseconds,
         'error_type': e.runtimeType.toString(),
       });
-      
+
       rethrow;
     }
   }
@@ -109,19 +99,21 @@ class ApiIntegrationExample {
   static Map<String, dynamic> getApiStatistics() {
     try {
       final stats = _apiManager.getStatistics();
-      
-      WasteAppLogger.info('API statistics retrieved', null, null, {
+
+      WasteAppLogger.info('API statistics retrieved', context: {
         'total_services': stats['client_statistics']?.length ?? 0,
         'health_alerts': stats['health_alerts']?.length ?? 0,
         'monitoring_enabled': stats['monitoring_enabled'],
       });
-      
+
       return stats;
     } catch (e) {
-      WasteAppLogger.warning('Failed to get API statistics', e, null, {
-        'error_type': e.runtimeType.toString(),
-      });
-      
+      WasteAppLogger.warning('Failed to get API statistics',
+          error: e,
+          context: {
+            'error_type': e.runtimeType.toString(),
+          });
+
       return {
         'error': 'Failed to retrieve statistics',
         'timestamp': DateTime.now().toIso8601String(),
@@ -133,18 +125,18 @@ class ApiIntegrationExample {
   static Map<String, dynamic> getHealthStatus() {
     try {
       final health = _apiManager.getHealthStatus();
-      
-      WasteAppLogger.info('Health status retrieved', null, null, {
+
+      WasteAppLogger.info('Health status retrieved', context: {
         'overall_status': health['overall_status'],
         'alert_count': health['alert_count'],
       });
-      
+
       return health;
     } catch (e) {
-      WasteAppLogger.warning('Failed to get health status', e, null, {
+      WasteAppLogger.warning('Failed to get health status', error: e, context: {
         'error_type': e.runtimeType.toString(),
       });
-      
+
       return {
         'overall_status': 'error',
         'error': 'Failed to retrieve health status',
@@ -157,19 +149,19 @@ class ApiIntegrationExample {
   static Map<String, dynamic> getCostSummary() {
     try {
       final costs = _apiManager.getCostSummary();
-      
-      WasteAppLogger.info('Cost summary retrieved', null, null, {
+
+      WasteAppLogger.info('Cost summary retrieved', context: {
         'total_cost': costs['total_cost'],
         'total_requests': costs['total_requests'],
         'average_cost_per_request': costs['average_cost_per_request'],
       });
-      
+
       return costs;
     } catch (e) {
-      WasteAppLogger.warning('Failed to get cost summary', e, null, {
+      WasteAppLogger.warning('Failed to get cost summary', error: e, context: {
         'error_type': e.runtimeType.toString(),
       });
-      
+
       return {
         'error': 'Failed to retrieve cost summary',
         'timestamp': DateTime.now().toIso8601String(),
@@ -192,16 +184,18 @@ class ApiIntegrationExample {
         optimizationInterval: optimizationInterval,
       );
 
-      WasteAppLogger.info('API configuration updated', null, null, {
+      WasteAppLogger.info('API configuration updated', context: {
         'monitoring_enabled': enableMonitoring,
         'optimization_enabled': enableOptimization,
         'monitoring_interval_minutes': monitoringInterval?.inMinutes,
         'optimization_interval_minutes': optimizationInterval?.inMinutes,
       });
     } catch (e) {
-      WasteAppLogger.warning('Failed to update API configuration', e, null, {
-        'error_type': e.runtimeType.toString(),
-      });
+      WasteAppLogger.warning('Failed to update API configuration',
+          error: e,
+          context: {
+            'error_type': e.runtimeType.toString(),
+          });
     }
   }
 
@@ -209,14 +203,16 @@ class ApiIntegrationExample {
   static void resetStatistics() {
     try {
       _apiManager.resetStatistics();
-      
-      WasteAppLogger.info('API statistics reset successfully', null, null, {
+
+      WasteAppLogger.info('API statistics reset successfully', context: {
         'timestamp': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      WasteAppLogger.warning('Failed to reset API statistics', e, null, {
-        'error_type': e.runtimeType.toString(),
-      });
+      WasteAppLogger.warning('Failed to reset API statistics',
+          error: e,
+          context: {
+            'error_type': e.runtimeType.toString(),
+          });
     }
   }
 
@@ -229,13 +225,14 @@ class ApiIntegrationExample {
     int? maxConcurrent,
   }) async {
     if (imageBytesList.length != imageNames.length) {
-      throw ArgumentError('Image bytes list and names list must have the same length');
+      throw ArgumentError(
+          'Image bytes list and names list must have the same length');
     }
 
     final results = <WasteClassification>[];
     final concurrent = maxConcurrent ?? 3; // Limit concurrent requests
-    
-    WasteAppLogger.info('Starting batch image analysis', null, null, {
+
+    WasteAppLogger.info('Starting batch image analysis', context: {
       'total_images': imageBytesList.length,
       'max_concurrent': concurrent,
       'region': region,
@@ -243,11 +240,11 @@ class ApiIntegrationExample {
     });
 
     // Process images in batches to avoid overwhelming the API
-    for (int i = 0; i < imageBytesList.length; i += concurrent) {
+    for (var i = 0; i < imageBytesList.length; i += concurrent) {
       final batchEnd = (i + concurrent).clamp(0, imageBytesList.length);
       final batch = <Future<WasteClassification>>[];
-      
-      for (int j = i; j < batchEnd; j++) {
+
+      for (var j = i; j < batchEnd; j++) {
         batch.add(analyzeWasteImage(
           imageBytes: imageBytesList[j],
           imageName: imageNames[j],
@@ -255,24 +252,26 @@ class ApiIntegrationExample {
           language: language,
         ));
       }
-      
+
       try {
         final batchResults = await Future.wait(batch);
         results.addAll(batchResults);
-        
-        WasteAppLogger.info('Batch completed', null, null, {
+
+        WasteAppLogger.info('Batch completed', context: {
           'batch_start': i,
           'batch_end': batchEnd,
           'successful_analyses': batchResults.length,
         });
       } catch (e) {
-        WasteAppLogger.warning('Batch analysis partially failed', e, null, {
-          'batch_start': i,
-          'batch_end': batchEnd,
-        });
-        
+        WasteAppLogger.warning('Batch analysis partially failed',
+            error: e,
+            context: {
+              'batch_start': i,
+              'batch_end': batchEnd,
+            });
+
         // Continue with individual processing for failed batch
-        for (int j = i; j < batchEnd; j++) {
+        for (var j = i; j < batchEnd; j++) {
           try {
             final result = await analyzeWasteImage(
               imageBytes: imageBytesList[j],
@@ -282,16 +281,18 @@ class ApiIntegrationExample {
             );
             results.add(result);
           } catch (individualError) {
-            WasteAppLogger.warning('Individual image analysis failed', individualError, null, {
-              'image_name': imageNames[j],
-              'image_index': j,
-            });
+            WasteAppLogger.warning('Individual image analysis failed',
+                error: individualError,
+                context: {
+                  'image_name': imageNames[j],
+                  'image_index': j,
+                });
           }
         }
       }
     }
 
-    WasteAppLogger.info('Batch analysis completed', null, null, {
+    WasteAppLogger.info('Batch analysis completed', context: {
       'total_images': imageBytesList.length,
       'successful_analyses': results.length,
       'failed_analyses': imageBytesList.length - results.length,
@@ -304,14 +305,16 @@ class ApiIntegrationExample {
   static void dispose() {
     try {
       _apiManager.dispose();
-      
-      WasteAppLogger.info('API integration disposed successfully', null, null, {
+
+      WasteAppLogger.info('API integration disposed successfully', context: {
         'timestamp': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      WasteAppLogger.warning('Failed to dispose API integration', e, null, {
-        'error_type': e.runtimeType.toString(),
-      });
+      WasteAppLogger.warning('Failed to dispose API integration',
+          error: e,
+          context: {
+            'error_type': e.runtimeType.toString(),
+          });
     }
   }
 }

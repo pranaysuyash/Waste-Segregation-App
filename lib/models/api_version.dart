@@ -11,37 +11,11 @@ class ApiVersion {
     this.migrationGuide,
   });
 
-  /// Version identifier (e.g., 'v1', '2.0', '2024-01-01')
-  final String version;
-  
-  /// Service name for rate limiting and circuit breaker
-  final String serviceName;
-  
-  /// Path prefix to add to endpoints (e.g., '/v1', '/api/v2')
-  final String pathPrefix;
-  
-  /// Header name for version specification (e.g., 'API-Version')
-  final String headerName;
-  
-  /// Additional headers required for this version
-  final Map<String, String> headers;
-  
-  /// Whether this version is deprecated
-  final bool isDeprecated;
-  
-  /// When this version will be removed
-  final DateTime? deprecationDate;
-  
-  /// URL or text with migration instructions
-  final String? migrationGuide;
-
   /// Create default version configuration
   factory ApiVersion.defaultVersion() {
     return const ApiVersion(
       version: 'v1',
       serviceName: 'default',
-      pathPrefix: '',
-      headerName: '',
     );
   }
 
@@ -84,12 +58,51 @@ class ApiVersion {
     return ApiVersion(
       version: version,
       serviceName: 'firebase',
-      pathPrefix: '',
       headers: {
         ...?additionalHeaders,
       },
     );
   }
+
+  /// Create from map
+  factory ApiVersion.fromMap(Map<String, dynamic> map) {
+    return ApiVersion(
+      version: map['version'] as String,
+      serviceName: map['service_name'] as String,
+      pathPrefix: map['path_prefix'] as String? ?? '',
+      headerName: map['header_name'] as String? ?? '',
+      headers: Map<String, String>.from(map['headers'] as Map? ?? {}),
+      isDeprecated: map['is_deprecated'] as bool? ?? false,
+      deprecationDate: map['deprecation_date'] != null
+          ? DateTime.parse(map['deprecation_date'] as String)
+          : null,
+      migrationGuide: map['migration_guide'] as String?,
+    );
+  }
+
+  /// Version identifier (e.g., 'v1', '2.0', '2024-01-01')
+  final String version;
+
+  /// Service name for rate limiting and circuit breaker
+  final String serviceName;
+
+  /// Path prefix to add to endpoints (e.g., '/v1', '/api/v2')
+  final String pathPrefix;
+
+  /// Header name for version specification (e.g., 'API-Version')
+  final String headerName;
+
+  /// Additional headers required for this version
+  final Map<String, String> headers;
+
+  /// Whether this version is deprecated
+  final bool isDeprecated;
+
+  /// When this version will be removed
+  final DateTime? deprecationDate;
+
+  /// URL or text with migration instructions
+  final String? migrationGuide;
 
   /// Convert to map for serialization
   Map<String, dynamic> toMap() {
@@ -103,22 +116,6 @@ class ApiVersion {
       'deprecation_date': deprecationDate?.toIso8601String(),
       'migration_guide': migrationGuide,
     };
-  }
-
-  /// Create from map
-  factory ApiVersion.fromMap(Map<String, dynamic> map) {
-    return ApiVersion(
-      version: map['version'] as String,
-      serviceName: map['service_name'] as String,
-      pathPrefix: map['path_prefix'] as String? ?? '',
-      headerName: map['header_name'] as String? ?? '',
-      headers: Map<String, String>.from(map['headers'] as Map? ?? {}),
-      isDeprecated: map['is_deprecated'] as bool? ?? false,
-      deprecationDate: map['deprecation_date'] != null 
-          ? DateTime.parse(map['deprecation_date'] as String)
-          : null,
-      migrationGuide: map['migration_guide'] as String?,
-    );
   }
 
   @override

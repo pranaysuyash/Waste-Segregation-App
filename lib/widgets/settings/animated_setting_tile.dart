@@ -38,7 +38,8 @@ class AnimatedSettingTile extends StatefulWidget {
   State<AnimatedSettingTile> createState() => _AnimatedSettingTileState();
 }
 
-class _AnimatedSettingTileState extends State<AnimatedSettingTile> with TickerProviderStateMixin {
+class _AnimatedSettingTileState extends State<AnimatedSettingTile>
+    with TickerProviderStateMixin {
   late AnimationController _slideController;
   late AnimationController _hoverController;
   late AnimationController _tapController;
@@ -228,7 +229,8 @@ class _AnimatedSettingTileState extends State<AnimatedSettingTile> with TickerPr
     }
 
     return MouseRegion(
-      cursor: widget.enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor:
+          widget.enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       onEnter: (_) => _handleHover(true),
       onExit: (_) => _handleHover(false),
       child: Focus(
@@ -249,8 +251,8 @@ class _AnimatedSettingTileState extends State<AnimatedSettingTile> with TickerPr
 
   Widget _buildTileContent(ThemeData theme) {
     final effectiveIconColor = widget.iconColor ?? theme.colorScheme.primary;
-    final effectiveTitleColor =
-        widget.titleColor ?? (widget.enabled ? theme.colorScheme.onSurface : theme.disabledColor);
+    final effectiveTitleColor = widget.titleColor ??
+        (widget.enabled ? theme.colorScheme.onSurface : theme.disabledColor);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -271,7 +273,8 @@ class _AnimatedSettingTileState extends State<AnimatedSettingTile> with TickerPr
           enabled: widget.enabled,
           leading: _buildAnimatedIcon(effectiveIconColor),
           title: _buildAnimatedTitle(effectiveTitleColor, theme),
-          subtitle: widget.subtitle != null ? _buildAnimatedSubtitle(theme) : null,
+          subtitle:
+              widget.subtitle != null ? _buildAnimatedSubtitle(theme) : null,
           trailing: _buildAnimatedTrailing(),
         ),
       ),
@@ -283,7 +286,8 @@ class _AnimatedSettingTileState extends State<AnimatedSettingTile> with TickerPr
       duration: widget.hoverAnimationDuration,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: iconColor.withValues(alpha: _isHovered || _isFocused ? 0.15 : 0.1),
+        color:
+            iconColor.withValues(alpha: _isHovered || _isFocused ? 0.15 : 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: AnimatedRotation(
@@ -301,7 +305,8 @@ class _AnimatedSettingTileState extends State<AnimatedSettingTile> with TickerPr
     return AnimatedDefaultTextStyle(
       duration: widget.hoverAnimationDuration,
       style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: _isHovered || _isFocused ? FontWeight.w600 : FontWeight.w500,
+            fontWeight:
+                _isHovered || _isFocused ? FontWeight.w600 : FontWeight.w500,
             color: titleColor,
           ) ??
           TextStyle(color: titleColor),
@@ -313,7 +318,9 @@ class _AnimatedSettingTileState extends State<AnimatedSettingTile> with TickerPr
     return AnimatedDefaultTextStyle(
       duration: widget.hoverAnimationDuration,
       style: theme.textTheme.bodyMedium?.copyWith(
-            color: widget.enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
+            color: widget.enabled
+                ? theme.colorScheme.onSurfaceVariant
+                : theme.disabledColor,
           ) ??
           const TextStyle(),
       child: Text(widget.subtitle!),
@@ -347,10 +354,12 @@ class StaggeredSettingsAnimation extends StatefulWidget {
   final Duration animationDuration;
 
   @override
-  State<StaggeredSettingsAnimation> createState() => _StaggeredSettingsAnimationState();
+  State<StaggeredSettingsAnimation> createState() =>
+      _StaggeredSettingsAnimationState();
 }
 
-class _StaggeredSettingsAnimationState extends State<StaggeredSettingsAnimation> with TickerProviderStateMixin {
+class _StaggeredSettingsAnimationState extends State<StaggeredSettingsAnimation>
+    with TickerProviderStateMixin {
   late List<AnimationController> _controllers;
   late List<Animation<Offset>> _slideAnimations;
   late List<Animation<double>> _fadeAnimations;
@@ -445,7 +454,8 @@ class AnimatedSectionHeader extends StatefulWidget {
   State<AnimatedSectionHeader> createState() => _AnimatedSectionHeaderState();
 }
 
-class _AnimatedSectionHeaderState extends State<AnimatedSectionHeader> with TickerProviderStateMixin {
+class _AnimatedSectionHeaderState extends State<AnimatedSectionHeader>
+    with TickerProviderStateMixin {
   late AnimationController _expandController;
   late Animation<double> _expandAnimation;
   late Animation<double> _rotationAnimation;

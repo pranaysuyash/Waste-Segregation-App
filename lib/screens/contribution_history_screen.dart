@@ -5,12 +5,14 @@ import '../utils/constants.dart';
 import '../services/storage_service.dart';
 import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import '../utils/firebase_gate.dart';
 
 class ContributionHistoryScreen extends StatefulWidget {
   const ContributionHistoryScreen({super.key});
 
   @override
-  State<ContributionHistoryScreen> createState() => _ContributionHistoryScreenState();
+  State<ContributionHistoryScreen> createState() =>
+      _ContributionHistoryScreenState();
 }
 
 class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
@@ -53,67 +55,77 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: _currentUserId == null
-          ? const Center(child: CircularProgressIndicator())
-          : StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('user_contributions')
-                  .where('userId', isEqualTo: _currentUserId)
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+      body: !isFirebaseEnabled
+          ? const Center(
+              child: Text('Contributions are unavailable in this build.'),
+            )
+          : _currentUserId == null
+              ? const Center(child: CircularProgressIndicator())
+              : StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('user_contributions')
+                      .where('userId', isEqualTo: _currentUserId)
+                      .orderBy('timestamp', descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Colors.red[400],
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.red[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Error loading contributions',
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              snapshot.error.toString(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Colors.grey[600],
+                                  ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Error loading contributions',
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          snapshot.error.toString(),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[600],
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  );
-                }
+                      );
+                    }
 
-                final contributions = snapshot.data?.docs ?? [];
+                    final contributions = snapshot.data?.docs ?? [];
 
-                if (contributions.isEmpty) {
-                  return _buildEmptyState();
-                }
+                    if (contributions.isEmpty) {
+                      return _buildEmptyState();
+                    }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                  itemCount: contributions.length,
-                  itemBuilder: (context, index) {
-                    final doc = contributions[index];
-                    final contribution = UserContribution.fromJson(
-                      doc.data() as Map<String, dynamic>,
-                      doc.id,
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                      itemCount: contributions.length,
+                      itemBuilder: (context, index) {
+                        final doc = contributions[index];
+                        final contribution = UserContribution.fromJson(
+                          doc.data() as Map<String, dynamic>,
+                          doc.id,
+                        );
+                        return RepaintBoundary(
+                          key: ValueKey('contribution_${doc.id}'),
+                          child: _buildContributionCard(contribution),
+                        );
+                      },
                     );
-                    return _buildContributionCard(contribution);
                   },
-                );
-              },
-            ),
+                ),
     );
   }
 
@@ -189,18 +201,21 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _getContributionTypeTitle(contribution.contributionType),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        _getContributionTypeTitle(
+                            contribution.contributionType),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                       if (contribution.facilityId != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           'Facility ID: ${contribution.facilityId}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.grey[600],
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey[600],
+                                  ),
                         ),
                       ],
                     ],
@@ -220,7 +235,8 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,10 +265,13 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
               Container(
                 padding: const EdgeInsets.all(AppTheme.paddingSmall),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(contribution.status).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                  color: _getStatusColor(contribution.status)
+                      .withValues(alpha: 0.1),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusSmall),
                   border: Border.all(
-                    color: _getStatusColor(contribution.status).withValues(alpha: 0.3),
+                    color: _getStatusColor(contribution.status)
+                        .withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -320,21 +339,28 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
 
     switch (contribution.contributionType) {
       case ContributionType.editHours:
-        final operatingHours = suggestedData['operatingHours'] as Map<String, dynamic>? ?? {};
+        final operatingHours =
+            suggestedData['operatingHours'] as Map<String, dynamic>? ?? {};
         return _buildDataSection(
           'Operating Hours',
-          operatingHours.entries.map((e) => '${_capitalizeFirstLetter(e.key)}: ${e.value}').toList(),
+          operatingHours.entries
+              .map((e) => '${_capitalizeFirstLetter(e.key)}: ${e.value}')
+              .toList(),
         );
 
       case ContributionType.editContact:
-        final contactInfo = suggestedData['contactInfo'] as Map<String, dynamic>? ?? {};
+        final contactInfo =
+            suggestedData['contactInfo'] as Map<String, dynamic>? ?? {};
         return _buildDataSection(
           'Contact Information',
-          contactInfo.entries.map((e) => '${_capitalizeFirstLetter(e.key)}: ${e.value}').toList(),
+          contactInfo.entries
+              .map((e) => '${_capitalizeFirstLetter(e.key)}: ${e.value}')
+              .toList(),
         );
 
       case ContributionType.editAcceptedMaterials:
-        final materials = suggestedData['acceptedMaterials'] as List<dynamic>? ?? [];
+        final materials =
+            suggestedData['acceptedMaterials'] as List<dynamic>? ?? [];
         return _buildDataSection(
           'Accepted Materials',
           materials.map((m) => m.toString()).toList(),
@@ -356,7 +382,8 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
         );
 
       case ContributionType.otherCorrection:
-        final description = suggestedData['description'] ?? 'No description provided';
+        final description =
+            suggestedData['description'] ?? 'No description provided';
         return _buildDataSection(
           'Other Correction',
           [description.toString()],
@@ -389,7 +416,8 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
               final coords = data['coordinates'] as Map<String, dynamic>;
               return Column(
                 children: [
-                  Text('Location: ${coords['latitude']}, ${coords['longitude']}'),
+                  Text(
+                      'Location: ${coords['latitude']}, ${coords['longitude']}'),
                   const SizedBox(height: 4),
                 ],
               );

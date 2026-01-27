@@ -3,9 +3,15 @@ import 'package:uuid/uuid.dart';
 import '../models/enhanced_family.dart' as family_models;
 import '../models/family_invitation.dart' as invitation_models;
 import '../models/user_profile.dart' as user_profile_models;
-import '../models/waste_classification.dart';
-import '../models/gamification.dart' show FamilyReaction, FamilyComment, FamilyReactionType, ClassificationLocation;
-import '../models/shared_waste_classification.dart' show SharedWasteClassification;
+import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../models/gamification.dart'
+    show
+        FamilyReaction,
+        FamilyComment,
+        FamilyReactionType,
+        ClassificationLocation;
+import '../models/shared_waste_classification.dart'
+    show SharedWasteClassification;
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service for managing family-related data in Firebase Firestore.
@@ -15,13 +21,14 @@ class FirebaseFamilyService {
   static const String _classificationsCollection = 'shared_classifications';
   static const String _usersCollection = 'users';
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Uuid _uuid = const Uuid();
 
   // ================ FAMILY MANAGEMENT ================
 
   /// Creates a new family with the specified creator.
-  Future<family_models.Family> createFamily(String name, user_profile_models.UserProfile creator) async {
+  Future<family_models.Family> createFamily(
+      String name, user_profile_models.UserProfile creator) async {
     try {
       final familyId = _uuid.v4();
       final now = DateTime.now();
@@ -47,10 +54,14 @@ class FirebaseFamilyService {
       );
 
       // Save family to Firestore
-      await _firestore.collection(_familiesCollection).doc(familyId).set(family.toJson());
+      await _firestore
+          .collection(_familiesCollection)
+          .doc(familyId)
+          .set(family.toJson());
 
       // Update creator's profile to include family ID
-      await _updateUserFamilyId(creator.id, familyId, user_profile_models.UserRole.admin);
+      await _updateUserFamilyId(
+          creator.id, familyId, user_profile_models.UserRole.admin);
 
       return family;
     } catch (e) {
@@ -61,7 +72,8 @@ class FirebaseFamilyService {
   /// Gets a family by ID.
   Future<family_models.Family?> getFamily(String familyId) async {
     try {
-      final doc = await _firestore.collection(_familiesCollection).doc(familyId).get();
+      final doc =
+          await _firestore.collection(_familiesCollection).doc(familyId).get();
 
       if (!doc.exists || doc.data() == null) {
         return null;
@@ -78,7 +90,10 @@ class FirebaseFamilyService {
     try {
       final updatedFamily = family.copyWith(updatedAt: DateTime.now());
 
-      await _firestore.collection(_familiesCollection).doc(family.id).update(updatedFamily.toJson());
+      await _firestore
+          .collection(_familiesCollection)
+          .doc(family.id)
+          .update(updatedFamily.toJson());
     } catch (e) {
       throw Exception('Failed to update family: $e');
     }
@@ -101,8 +116,10 @@ class FirebaseFamilyService {
       }
 
       // Delete all related invitations
-      final invitations =
-          await _firestore.collection(_invitationsCollection).where('familyId', isEqualTo: familyId).get();
+      final invitations = await _firestore
+          .collection(_invitationsCollection)
+          .where('familyId', isEqualTo: familyId)
+          .get();
 
       for (final doc in invitations.docs) {
         batch.delete(doc.reference);
@@ -116,7 +133,11 @@ class FirebaseFamilyService {
 
   /// Returns a stream of the family document.
   Stream<family_models.Family?> getFamilyStream(String familyId) {
-    return _firestore.collection(_familiesCollection).doc(familyId).snapshots().map((doc) {
+    return _firestore
+        .collection(_familiesCollection)
+        .doc(familyId)
+        .snapshots()
+        .map((doc) {
       if (!doc.exists || doc.data() == null) {
         return null;
       }
@@ -131,7 +152,8 @@ class FirebaseFamilyService {
   // ================ MEMBER MANAGEMENT ================
 
   /// Adds a new member to a family.
-  Future<void> addMember(String familyId, String userId, user_profile_models.UserRole roleFromProfile) async {
+  Future<void> addMember(String familyId, String userId,
+      user_profile_models.UserRole roleFromProfile) async {
     try {
       final family = await getFamily(familyId);
       if (family == null) {
@@ -176,7 +198,8 @@ class FirebaseFamilyService {
       final updatedFamily = family.copyWith(members: updatedMembers);
 
       await updateFamily(updatedFamily);
-      await _updateUserFamilyId(userId, familyId, roleFromProfile); // Pass the original profile role here
+      await _updateUserFamilyId(userId, familyId,
+          roleFromProfile); // Pass the original profile role here
     } catch (e) {
       throw Exception('Failed to add member: $e');
     }
@@ -197,11 +220,13 @@ class FirebaseFamilyService {
 
       // Cannot remove the family creator unless transferring ownership
       if (family.createdBy == userId && family.members.length > 1) {
-        throw Exception('Cannot remove family creator. Transfer ownership first.');
+        throw Exception(
+            'Cannot remove family creator. Transfer ownership first.');
       }
 
       // Remove member from family
-      final updatedMembers = family.members.where((member) => member.userId != userId).toList();
+      final updatedMembers =
+          family.members.where((member) => member.userId != userId).toList();
 
       final updatedFamily = family.copyWith(members: updatedMembers);
       await updateFamily(updatedFamily);
@@ -219,7 +244,8 @@ class FirebaseFamilyService {
   }
 
   /// Updates a member's role in the family.
-  Future<void> updateMemberRole(String familyId, String userId, user_profile_models.UserRole newRoleFromProfile) async {
+  Future<void> updateMemberRole(String familyId, String userId,
+      user_profile_models.UserRole newRoleFromProfile) async {
     try {
       final family = await getFamily(familyId);
       if (family == null) {
@@ -246,18 +272,21 @@ class FirebaseFamilyService {
       }
 
       final updatedMembers = [...family.members];
-      updatedMembers[memberIndex] = updatedMembers[memberIndex].copyWith(role: newFamilyMemberRole);
+      updatedMembers[memberIndex] =
+          updatedMembers[memberIndex].copyWith(role: newFamilyMemberRole);
 
       final updatedFamily = family.copyWith(members: updatedMembers);
       await updateFamily(updatedFamily);
-      await _updateUserFamilyId(userId, familyId, newRoleFromProfile); // Pass the original profile role here
+      await _updateUserFamilyId(userId, familyId,
+          newRoleFromProfile); // Pass the original profile role here
     } catch (e) {
       throw Exception('Failed to update member role: $e');
     }
   }
 
   /// Gets all family members with their full profiles.
-  Future<List<user_profile_models.UserProfile>> getFamilyMembers(String familyId) async {
+  Future<List<user_profile_models.UserProfile>> getFamilyMembers(
+      String familyId) async {
     try {
       final family = await getFamily(familyId);
       if (family == null) {
@@ -279,8 +308,13 @@ class FirebaseFamilyService {
   }
 
   /// Returns a stream of family members' UserProfile objects.
-  Stream<List<user_profile_models.UserProfile>> getFamilyMembersStream(String familyId) {
-    return _firestore.collection(_familiesCollection).doc(familyId).snapshots().asyncMap((familyDoc) async {
+  Stream<List<user_profile_models.UserProfile>> getFamilyMembersStream(
+      String familyId) {
+    return _firestore
+        .collection(_familiesCollection)
+        .doc(familyId)
+        .snapshots()
+        .asyncMap((familyDoc) async {
       if (!familyDoc.exists || familyDoc.data() == null) {
         return <user_profile_models.UserProfile>[];
       }
@@ -304,7 +338,8 @@ class FirebaseFamilyService {
   /// Gets family statistics from the dedicated stats document.
   Future<family_models.FamilyStats> getFamilyStats(String familyId) async {
     try {
-      final statsDoc = await _firestore.collection('family_stats').doc(familyId).get();
+      final statsDoc =
+          await _firestore.collection('family_stats').doc(familyId).get();
 
       if (statsDoc.exists && statsDoc.data() != null) {
         return family_models.FamilyStats.fromJson(statsDoc.data()!);
@@ -313,14 +348,16 @@ class FirebaseFamilyService {
         return _recalculateAndSaveFamilyStats(familyId);
       }
     } catch (e) {
-      WasteAppLogger.severe('Error getting family stats, attempting recalculation: $e');
+      WasteAppLogger.severe(
+          'Error getting family stats, error: attempting recalculation: $e');
       // Fallback to recalculation if there's an error
       return _recalculateAndSaveFamilyStats(familyId);
     }
   }
 
   /// Updates family stats after a new classification is shared.
-  Future<void> _updateFamilyStatsAfterClassification(String familyId, int pointsEarned, String category) async {
+  Future<void> _updateFamilyStatsAfterClassification(
+      String familyId, int pointsEarned, String category) async {
     final statsRef = _firestore.collection('family_stats').doc(familyId);
 
     await _firestore.runTransaction((transaction) async {
@@ -328,7 +365,8 @@ class FirebaseFamilyService {
 
       if (!snapshot.exists) {
         // If stats don't exist, recalculate everything to be safe
-        await _recalculateAndSaveFamilyStats(familyId, transaction: transaction);
+        await _recalculateAndSaveFamilyStats(familyId,
+            transaction: transaction);
       } else {
         // Atomically update the existing stats
         transaction.update(statsRef, {
@@ -356,7 +394,8 @@ class FirebaseFamilyService {
 
     final allClassifications = <WasteClassification>[];
     for (final member in family.members) {
-      final memberClassifications = await _getUserClassifications(member.userId);
+      final memberClassifications =
+          await _getUserClassifications(member.userId);
       allClassifications.addAll(memberClassifications);
     }
 
@@ -371,7 +410,8 @@ class FirebaseFamilyService {
     }
 
     // Simplified streak calculation - you can expand this
-    currentStreak = _calculateStreakFromDates(allClassifications.map((c) => c.timestamp).toList());
+    currentStreak = _calculateStreakFromDates(
+        allClassifications.map((c) => c.timestamp).toList());
 
     final stats = family_models.FamilyStats(
       totalClassifications: totalClassifications,
@@ -384,7 +424,8 @@ class FirebaseFamilyService {
     // Save the newly calculated stats
     final statsRef = _firestore.collection('family_stats').doc(familyId);
     final statsJson = stats.toJson();
-    statsJson['lastUpdated'] = FieldValue.serverTimestamp(); // Use server timestamp
+    statsJson['lastUpdated'] =
+        FieldValue.serverTimestamp(); // Use server timestamp
 
     if (transaction != null) {
       transaction.set(statsRef, statsJson);
@@ -400,7 +441,10 @@ class FirebaseFamilyService {
     if (dates.isEmpty) return 0;
     final now = DateTime.now();
 
-    final uniqueDays = dates.map((d) => DateTime(d.year, d.month, d.day)).toSet().toList()
+    final uniqueDays = dates
+        .map((d) => DateTime(d.year, d.month, d.day))
+        .toSet()
+        .toList()
       ..sort((a, b) => b.compareTo(a));
 
     if (uniqueDays.isEmpty) return 0;
@@ -411,7 +455,8 @@ class FirebaseFamilyService {
     final firstDay = uniqueDays.first;
 
     // Check if the streak is current (activity today or yesterday)
-    if (firstDay.isAtSameMomentAs(today) || firstDay.isAtSameMomentAs(today.subtract(const Duration(days: 1)))) {
+    if (firstDay.isAtSameMomentAs(today) ||
+        firstDay.isAtSameMomentAs(today.subtract(const Duration(days: 1)))) {
       streak = 1;
       for (var i = 0; i < uniqueDays.length - 1; i++) {
         final diff = uniqueDays[i].difference(uniqueDays[i + 1]).inDays;
@@ -426,19 +471,28 @@ class FirebaseFamilyService {
   }
 
   /// Helper to get all classifications for a single user
-  Future<List<WasteClassification>> _getUserClassifications(String userId) async {
+  Future<List<WasteClassification>> _getUserClassifications(
+      String userId) async {
     try {
-      final snapshot = await _firestore.collection(_usersCollection).doc(userId).collection('classifications').get();
+      final snapshot = await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .collection('classifications')
+          .get();
 
-      return snapshot.docs.map((doc) => WasteClassification.fromJson(doc.data())).toList();
+      return snapshot.docs
+          .map((doc) => WasteClassification.fromJson(doc.data()))
+          .toList();
     } catch (e) {
-      WasteAppLogger.severe('Error getting user classifications for $userId: $e');
+      WasteAppLogger.severe(
+          'Error getting user classifications for $userId: $e');
       return [];
     }
   }
 
   /// Gets all classifications for a family.
-  Future<List<SharedWasteClassification>> getFamilyClassifications(String familyId) async {
+  Future<List<SharedWasteClassification>> getFamilyClassifications(
+      String familyId) async {
     try {
       final querySnapshot = await _firestore
           .collection(_classificationsCollection)
@@ -446,7 +500,9 @@ class FirebaseFamilyService {
           .orderBy('timestamp', descending: true)
           .get();
 
-      return querySnapshot.docs.map((doc) => SharedWasteClassification.fromJson(doc.data())).toList();
+      return querySnapshot.docs
+          .map((doc) => SharedWasteClassification.fromJson(doc.data()))
+          .toList();
     } catch (e) {
       throw Exception('Failed to get family classifications: $e');
     }
@@ -457,13 +513,15 @@ class FirebaseFamilyService {
     try {
       final family = await getFamily(familyId);
       final stats = await getFamilyStats(familyId);
-      final recentClassifications = await _getRecentFamilyClassifications(familyId, 10);
+      final recentClassifications =
+          await _getRecentFamilyClassifications(familyId, 10);
       final topMembers = await _getTopFamilyMembers(familyId);
 
       return {
         'family': family?.toJson(),
         'stats': stats.toJson(),
-        'recentClassifications': recentClassifications.map((c) => c.toJson()).toList(),
+        'recentClassifications':
+            recentClassifications.map((c) => c.toJson()).toList(),
         'topMembers': topMembers,
         'lastUpdated': DateTime.now().toIso8601String(),
       };
@@ -473,15 +531,20 @@ class FirebaseFamilyService {
   }
 
   /// Returns a stream of recent shared classifications for a family.
-  Stream<List<SharedWasteClassification>> getFamilyClassificationsStream(String familyId, {int limit = 5}) {
+  Stream<List<SharedWasteClassification>> getFamilyClassificationsStream(
+      String familyId,
+      {int limit = 5}) {
     return _firestore
         .collection(_classificationsCollection)
         .where('familyId', isEqualTo: familyId)
-        .orderBy('sharedAt', descending: true) // Assuming 'sharedAt' for ordering recent items
+        .orderBy('sharedAt',
+            descending: true) // Assuming 'sharedAt' for ordering recent items
         .limit(limit)
         .snapshots()
         .map((querySnapshot) {
-      return querySnapshot.docs.map((doc) => SharedWasteClassification.fromJson(doc.data())).toList();
+      return querySnapshot.docs
+          .map((doc) => SharedWasteClassification.fromJson(doc.data()))
+          .toList();
     }).handleError((error) {
       // Log error or handle appropriately
       WasteAppLogger.severe('Error in getFamilyClassificationsStream: $error');
@@ -525,7 +588,8 @@ class FirebaseFamilyService {
           .set(sharedClassification.toJson());
 
       // Update family stats
-      await _updateFamilyStatsAfterClassification(familyId, pointsEarned, classification.category);
+      await _updateFamilyStatsAfterClassification(
+          familyId, pointsEarned, classification.category);
     } catch (e) {
       throw Exception('Failed to save shared classification: $e');
     }
@@ -553,7 +617,10 @@ class FirebaseFamilyService {
         comment: comment,
       );
 
-      await _firestore.collection(_classificationsCollection).doc(classificationId).update({
+      await _firestore
+          .collection(_classificationsCollection)
+          .doc(classificationId)
+          .update({
         'reactions': FieldValue.arrayUnion([reaction.toJson()])
       });
     } catch (e) {
@@ -584,7 +651,10 @@ class FirebaseFamilyService {
         parentCommentId: parentCommentId,
       );
 
-      await _firestore.collection(_classificationsCollection).doc(classificationId).update({
+      await _firestore
+          .collection(_classificationsCollection)
+          .doc(classificationId)
+          .update({
         'comments': FieldValue.arrayUnion([comment.toJson()])
       });
     } catch (e) {
@@ -596,8 +666,12 @@ class FirebaseFamilyService {
 
   /// Creates an invitation for someone to join a family.
   Future<invitation_models.FamilyInvitation> createInvitation(
-      String familyId, String inviterUserId, String inviteeEmail, user_profile_models.UserRole roleToAssign,
-      {invitation_models.InvitationMethod method = invitation_models.InvitationMethod.email}) async {
+      String familyId,
+      String inviterUserId,
+      String inviteeEmail,
+      user_profile_models.UserRole roleToAssign,
+      {invitation_models.InvitationMethod method =
+          invitation_models.InvitationMethod.email}) async {
     try {
       final family = await getFamily(familyId);
       if (family == null) {
@@ -619,7 +693,10 @@ class FirebaseFamilyService {
         method: method,
       );
 
-      await _firestore.collection(_invitationsCollection).doc(invitation.id).set(invitation.toJson());
+      await _firestore
+          .collection(_invitationsCollection)
+          .doc(invitation.id)
+          .set(invitation.toJson());
 
       return invitation;
     } catch (e) {
@@ -630,13 +707,17 @@ class FirebaseFamilyService {
   /// Accepts a family invitation.
   Future<void> acceptInvitation(String invitationId, String userId) async {
     try {
-      final invitationDoc = await _firestore.collection(_invitationsCollection).doc(invitationId).get();
+      final invitationDoc = await _firestore
+          .collection(_invitationsCollection)
+          .doc(invitationId)
+          .get();
 
       if (!invitationDoc.exists) {
         throw Exception('Invitation not found');
       }
 
-      final invitation = invitation_models.FamilyInvitation.fromJson(invitationDoc.data()!);
+      final invitation =
+          invitation_models.FamilyInvitation.fromJson(invitationDoc.data()!);
 
       if (invitation.status != invitation_models.InvitationStatus.pending) {
         throw Exception('Invitation is not pending');
@@ -661,7 +742,10 @@ class FirebaseFamilyService {
         invitedUserId: userId,
       );
 
-      await _firestore.collection(_invitationsCollection).doc(invitationId).update(updatedInvitation.toJson());
+      await _firestore
+          .collection(_invitationsCollection)
+          .doc(invitationId)
+          .update(updatedInvitation.toJson());
     } catch (e) {
       // Log original error for debugging while showing user-friendly message
       WasteAppLogger.severe('Invitation acceptance failed: $e');
@@ -672,13 +756,17 @@ class FirebaseFamilyService {
   /// Declines a family invitation.
   Future<void> declineInvitation(String invitationId, String userId) async {
     try {
-      final invitationDoc = await _firestore.collection(_invitationsCollection).doc(invitationId).get();
+      final invitationDoc = await _firestore
+          .collection(_invitationsCollection)
+          .doc(invitationId)
+          .get();
 
       if (!invitationDoc.exists) {
         throw Exception('Invitation not found');
       }
 
-      final invitation = invitation_models.FamilyInvitation.fromJson(invitationDoc.data()!);
+      final invitation =
+          invitation_models.FamilyInvitation.fromJson(invitationDoc.data()!);
 
       if (invitation.status != invitation_models.InvitationStatus.pending) {
         throw Exception('Invitation is not pending');
@@ -691,7 +779,10 @@ class FirebaseFamilyService {
         invitedUserId: userId,
       );
 
-      await _firestore.collection(_invitationsCollection).doc(invitationId).update(updatedInvitation.toJson());
+      await _firestore
+          .collection(_invitationsCollection)
+          .doc(invitationId)
+          .update(updatedInvitation.toJson());
     } catch (e) {
       throw Exception('Failed to decline invitation: $e');
     }
@@ -700,11 +791,16 @@ class FirebaseFamilyService {
   /// Resends a family invitation.
   Future<void> resendInvitation(String invitationId) async {
     try {
-      final docRef = _firestore.collection(_invitationsCollection).doc(invitationId);
+      final docRef =
+          _firestore.collection(_invitationsCollection).doc(invitationId);
       await docRef.update({
-        'status': invitation_models.InvitationStatus.pending.toString().split('.').last,
+        'status': invitation_models.InvitationStatus.pending
+            .toString()
+            .split('.')
+            .last,
         'createdAt': DateTime.now().toIso8601String(),
-        'expiresAt': DateTime.now().add(const Duration(days: 7)).toIso8601String(),
+        'expiresAt':
+            DateTime.now().add(const Duration(days: 7)).toIso8601String(),
         'respondedAt': null, // Reset respondedAt
       });
     } catch (e) {
@@ -715,9 +811,13 @@ class FirebaseFamilyService {
   /// Cancels a family invitation.
   Future<void> cancelInvitation(String invitationId) async {
     try {
-      final docRef = _firestore.collection(_invitationsCollection).doc(invitationId);
+      final docRef =
+          _firestore.collection(_invitationsCollection).doc(invitationId);
       await docRef.update({
-        'status': invitation_models.InvitationStatus.cancelled.toString().split('.').last,
+        'status': invitation_models.InvitationStatus.cancelled
+            .toString()
+            .split('.')
+            .last,
         'respondedAt': DateTime.now().toIso8601String(),
       });
     } catch (e) {
@@ -726,7 +826,8 @@ class FirebaseFamilyService {
   }
 
   /// Gets all invitations for a family.
-  Future<List<invitation_models.FamilyInvitation>> getInvitations(String familyId) async {
+  Future<List<invitation_models.FamilyInvitation>> getInvitations(
+      String familyId) async {
     try {
       final snapshot = await _firestore
           .collection(_invitationsCollection)
@@ -734,21 +835,26 @@ class FirebaseFamilyService {
           .orderBy('createdAt', descending: true)
           .get();
 
-      return snapshot.docs.map((doc) => invitation_models.FamilyInvitation.fromJson(doc.data())).toList();
+      return snapshot.docs
+          .map((doc) => invitation_models.FamilyInvitation.fromJson(doc.data()))
+          .toList();
     } catch (e) {
       throw Exception('Failed to get invitations: $e');
     }
   }
 
   /// Returns a stream of invitations for a family.
-  Stream<List<invitation_models.FamilyInvitation>> getInvitationsStream(String familyId) {
+  Stream<List<invitation_models.FamilyInvitation>> getInvitationsStream(
+      String familyId) {
     return _firestore
         .collection(_invitationsCollection)
         .where('familyId', isEqualTo: familyId)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => invitation_models.FamilyInvitation.fromJson(doc.data())).toList();
+      return snapshot.docs
+          .map((doc) => invitation_models.FamilyInvitation.fromJson(doc.data()))
+          .toList();
     }).handleError((error) {
       WasteAppLogger.severe('Error in getInvitationsStream: $error');
       throw Exception('Failed to stream invitations: $error');
@@ -758,9 +864,13 @@ class FirebaseFamilyService {
   // ================ HELPER METHODS ================
 
   /// Updates a user's family ID and role in their profile.
-  Future<void> _updateUserFamilyId(String userId, String? familyId, user_profile_models.UserRole? role) async {
+  Future<void> _updateUserFamilyId(String userId, String? familyId,
+      user_profile_models.UserRole? role) async {
     try {
-      final data = {'familyId': familyId, 'role': role?.toString().split('.').last};
+      final data = {
+        'familyId': familyId,
+        'role': role?.toString().split('.').last
+      };
       // Remove null values to avoid overwriting existing data with null if not intended
       data.removeWhere((key, value) => value == null);
 
@@ -772,9 +882,11 @@ class FirebaseFamilyService {
   }
 
   /// Gets a user profile by ID.
-  Future<user_profile_models.UserProfile?> _getUserProfile(String userId) async {
+  Future<user_profile_models.UserProfile?> _getUserProfile(
+      String userId) async {
     try {
-      final doc = await _firestore.collection(_usersCollection).doc(userId).get();
+      final doc =
+          await _firestore.collection(_usersCollection).doc(userId).get();
 
       if (!doc.exists || doc.data() == null) {
         return null;
@@ -787,7 +899,8 @@ class FirebaseFamilyService {
   }
 
   /// Gets recent family classifications (limited number).
-  Future<List<SharedWasteClassification>> _getRecentFamilyClassifications(String familyId, int limit) async {
+  Future<List<SharedWasteClassification>> _getRecentFamilyClassifications(
+      String familyId, int limit) async {
     try {
       final querySnapshot = await _firestore
           .collection(_classificationsCollection)
@@ -796,21 +909,25 @@ class FirebaseFamilyService {
           .limit(limit)
           .get();
 
-      return querySnapshot.docs.map((doc) => SharedWasteClassification.fromJson(doc.data())).toList();
+      return querySnapshot.docs
+          .map((doc) => SharedWasteClassification.fromJson(doc.data()))
+          .toList();
     } catch (e) {
       return [];
     }
   }
 
   /// Gets top family members by points/activity.
-  Future<List<Map<String, dynamic>>> _getTopFamilyMembers(String familyId) async {
+  Future<List<Map<String, dynamic>>> _getTopFamilyMembers(
+      String familyId) async {
     try {
       final family = await getFamily(familyId);
       if (family == null) return [];
 
       // Sort members by their individual stats (simplified)
       final sortedMembers = family.members.toList()
-        ..sort((a, b) => b.individualStats.totalPoints.compareTo(a.individualStats.totalPoints));
+        ..sort((a, b) => b.individualStats.totalPoints
+            .compareTo(a.individualStats.totalPoints));
 
       return sortedMembers
           .take(5)
@@ -828,8 +945,11 @@ class FirebaseFamilyService {
   }
 
   /// Calculates environmental impact metrics.
-  family_models.EnvironmentalImpact _calculateEnvironmentalImpact(List<SharedWasteClassification> classifications) {
-    final recyclableCount = classifications.where((c) => c.classification.isRecyclable == true).length;
+  family_models.EnvironmentalImpact _calculateEnvironmentalImpact(
+      List<SharedWasteClassification> classifications) {
+    final recyclableCount = classifications
+        .where((c) => c.classification.isRecyclable == true)
+        .length;
 
     final co2Saved = recyclableCount * 0.5; // Simplified calculation
 
@@ -842,7 +962,8 @@ class FirebaseFamilyService {
   }
 
   /// Calculates weekly progress data.
-  List<family_models.WeeklyProgress> _calculateWeeklyProgress(List<SharedWasteClassification> classifications) {
+  List<family_models.WeeklyProgress> _calculateWeeklyProgress(
+      List<SharedWasteClassification> classifications) {
     // Simplified implementation - would group by weeks and calculate progress
     return [];
   }

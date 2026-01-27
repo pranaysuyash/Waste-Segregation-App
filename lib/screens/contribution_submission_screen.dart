@@ -6,6 +6,7 @@ import '../models/disposal_location.dart';
 import '../models/user_contribution.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
+import '../utils/firebase_gate.dart';
 
 class ContributionSubmissionScreen extends StatefulWidget {
   const ContributionSubmissionScreen({
@@ -19,10 +20,12 @@ class ContributionSubmissionScreen extends StatefulWidget {
   final ContributionType contributionType;
 
   @override
-  State<ContributionSubmissionScreen> createState() => _ContributionSubmissionScreenState();
+  State<ContributionSubmissionScreen> createState() =>
+      _ContributionSubmissionScreenState();
 }
 
-class _ContributionSubmissionScreenState extends State<ContributionSubmissionScreen> {
+class _ContributionSubmissionScreenState
+    extends State<ContributionSubmissionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _userNotesController = TextEditingController();
 
@@ -78,7 +81,15 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
   }
 
   void _initializeOperatingHours() {
-    final days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    final days = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday'
+    ];
     for (final day in days) {
       _operatingHoursControllers[day] = TextEditingController(
         text: widget.facility?.operatingHours[day] ?? '',
@@ -282,7 +293,9 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
                             ? TextInputType.emailAddress
                             : TextInputType.url,
                     validator: (value) {
-                      if (entry.key == 'email' && value != null && value.isNotEmpty) {
+                      if (entry.key == 'email' &&
+                          value != null &&
+                          value.isNotEmpty) {
                         if (!value.contains('@')) {
                           return 'Please enter a valid email address';
                         }
@@ -356,7 +369,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
                           label: Text(material),
                           deleteIcon: const Icon(Icons.close, size: 18),
                           onDeleted: () => _removeMaterial(material),
-                          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          backgroundColor:
+                              AppTheme.primaryColor.withValues(alpha: 0.1),
                         ))
                     .toList(),
               ),
@@ -591,7 +605,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
                       child: Stack(
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                            borderRadius: BorderRadius.circular(
+                                AppTheme.borderRadiusSmall),
                             child: Image.file(
                               _selectedImages[index],
                               fit: BoxFit.cover,
@@ -672,7 +687,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
             TextFormField(
               controller: _userNotesController,
               decoration: const InputDecoration(
-                hintText: 'Add any additional information, context, or rationale for your contribution...',
+                hintText:
+                    'Add any additional information, context, or rationale for your contribution...',
                 border: OutlineInputBorder(),
               ),
               maxLines: 4,
@@ -826,6 +842,17 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
       return;
     }
 
+    if (!isFirebaseEnabled) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Contributions are unavailable in this build.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     if (!mounted) return;
     setState(() {
       _isSubmitting = true;
@@ -851,7 +878,9 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
         facilityId: widget.facilityId,
         contributionType: widget.contributionType,
         suggestedData: suggestedData,
-        userNotes: _userNotesController.text.trim().isEmpty ? null : _userNotesController.text.trim(),
+        userNotes: _userNotesController.text.trim().isEmpty
+            ? null
+            : _userNotesController.text.trim(),
         photoUrls: photoUrls.isEmpty ? null : photoUrls,
         timestamp: Timestamp.now(),
         status: ContributionStatus.pendingReview,
@@ -863,7 +892,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Contribution submitted successfully! It will be reviewed by our team.'),
+            content: Text(
+                'Contribution submitted successfully! It will be reviewed by our team.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -951,6 +981,8 @@ class _ContributionSubmissionScreenState extends State<ContributionSubmissionScr
   }
 
   Future<void> _submitToFirestore(UserContribution contribution) async {
-    await FirebaseFirestore.instance.collection('user_contributions').add(contribution.toJson());
+    await FirebaseFirestore.instance
+        .collection('user_contributions')
+        .add(contribution.toJson());
   }
 }

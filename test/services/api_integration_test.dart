@@ -16,7 +16,8 @@ class MockDynamicPricingService extends Mock implements DynamicPricingService {}
 
 class MockCostGuardrailService extends Mock implements CostGuardrailService {}
 
-class MockEnhancedApiErrorHandler extends Mock implements EnhancedApiErrorHandler {}
+class MockEnhancedApiErrorHandler extends Mock
+    implements EnhancedApiErrorHandler {}
 
 void main() {
   group('API Integration Tests', () {

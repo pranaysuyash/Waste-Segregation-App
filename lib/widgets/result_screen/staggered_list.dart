@@ -59,7 +59,8 @@ class DelayedDisplay extends StatefulWidget {
   State<DelayedDisplay> createState() => _DelayedDisplayState();
 }
 
-class _DelayedDisplayState extends State<DelayedDisplay> with SingleTickerProviderStateMixin {
+class _DelayedDisplayState extends State<DelayedDisplay>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;

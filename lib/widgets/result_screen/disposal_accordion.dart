@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 
 /// DisposalAccordion provides progressive disclosure for disposal instructions
 /// Implements the below-the-fold accordion design from the plan
@@ -18,7 +18,8 @@ class DisposalAccordion extends ConsumerStatefulWidget {
   ConsumerState<DisposalAccordion> createState() => _DisposalAccordionState();
 }
 
-class _DisposalAccordionState extends ConsumerState<DisposalAccordion> with TickerProviderStateMixin {
+class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
+    with TickerProviderStateMixin {
   late AnimationController _expansionController;
   late Animation<double> _expansionAnimation;
   bool _isExpanded = false;
@@ -91,7 +92,8 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion> with Tick
   }
 
   Widget _buildHeader(BuildContext context, ColorScheme colorScheme) {
-    final disposalSteps = widget.classification.disposalInstructions.steps ?? [];
+    final disposalSteps =
+        widget.classification.disposalInstructions.steps ?? [];
     final stepCount = disposalSteps.length;
 
     return InkWell(
@@ -131,7 +133,9 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion> with Tick
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _isExpanded ? '$stepCount steps to dispose correctly' : _getPreviewText(),
+                    _isExpanded
+                        ? '$stepCount steps to dispose correctly'
+                        : _getPreviewText(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -159,7 +163,8 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion> with Tick
     );
   }
 
-  Widget _buildExpandableContent(BuildContext context, ColorScheme colorScheme) {
+  Widget _buildExpandableContent(
+      BuildContext context, ColorScheme colorScheme) {
     return SizeTransition(
       sizeFactor: _expansionAnimation,
       child: Container(
@@ -180,7 +185,8 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion> with Tick
   }
 
   Widget _buildStaggeredSteps(BuildContext context, ColorScheme colorScheme) {
-    final disposalSteps = widget.classification.disposalInstructions.steps ?? [];
+    final disposalSteps =
+        widget.classification.disposalInstructions.steps ?? [];
 
     if (disposalSteps.isEmpty) {
       return _buildNoStepsMessage(context, colorScheme);
@@ -199,7 +205,8 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion> with Tick
             builder: (context, child) {
               // Staggered delay for each step
               final delay = index * 0.1;
-              final progress = (_expansionAnimation.value - delay).clamp(0.0, 1.0);
+              final progress =
+                  (_expansionAnimation.value - delay).clamp(0.0, 1.0);
 
               return Transform.translate(
                 offset: Offset(0, (1 - progress) * 20),
@@ -227,7 +234,8 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion> with Tick
     );
   }
 
-  Widget _buildStep(BuildContext context, ColorScheme colorScheme, int stepNumber, String step) {
+  Widget _buildStep(BuildContext context, ColorScheme colorScheme,
+      int stepNumber, String step) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -342,7 +350,8 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion> with Tick
   }
 
   String _getPreviewText() {
-    final disposalSteps = widget.classification.disposalInstructions.steps ?? [];
+    final disposalSteps =
+        widget.classification.disposalInstructions.steps ?? [];
     if (disposalSteps.isEmpty) {
       return 'Tap to view disposal guidelines';
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'dart:ui';
 import 'dart:math' as math;
 
@@ -72,8 +73,8 @@ class ShimmerCard extends StatefulWidget {
     super.key,
     required this.child,
     this.shimmerColors = const [
-      Color(0xFF845EC2),
-      Color(0xFFFF6B6B),
+      AppTheme.medicalWasteColor,
+      AppTheme.hazardousWasteColor,
     ],
     this.duration = const Duration(milliseconds: 2000),
     this.borderRadius,
@@ -87,7 +88,8 @@ class ShimmerCard extends StatefulWidget {
   _ShimmerCardState createState() => _ShimmerCardState();
 }
 
-class _ShimmerCardState extends State<ShimmerCard> with SingleTickerProviderStateMixin {
+class _ShimmerCardState extends State<ShimmerCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -149,8 +151,8 @@ class MorphingProgressIndicator extends StatefulWidget {
   const MorphingProgressIndicator({
     super.key,
     required this.progress,
-    this.primaryColor = const Color(0xFF06FFA5),
-    this.secondaryColor = const Color(0xFF00B4D8),
+    this.primaryColor = AppTheme.wetWasteColor,
+    this.secondaryColor = AppTheme.secondaryColor,
     this.backgroundColor = const Color(0xFFE0E0E0),
     this.height = 8.0,
     this.borderRadius = 8.0,
@@ -165,10 +167,12 @@ class MorphingProgressIndicator extends StatefulWidget {
   final Widget? child;
 
   @override
-  _MorphingProgressIndicatorState createState() => _MorphingProgressIndicatorState();
+  _MorphingProgressIndicatorState createState() =>
+      _MorphingProgressIndicatorState();
 }
 
-class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator> with TickerProviderStateMixin {
+class _MorphingProgressIndicatorState extends State<MorphingProgressIndicator>
+    with TickerProviderStateMixin {
   late AnimationController _progressController;
   late AnimationController _pulseController;
   late Animation<double> _progressAnimation;

@@ -16,7 +16,8 @@ class RefactoredSettingsScreen extends StatefulWidget {
   const RefactoredSettingsScreen({super.key});
 
   @override
-  State<RefactoredSettingsScreen> createState() => _RefactoredSettingsScreenState();
+  State<RefactoredSettingsScreen> createState() =>
+      _RefactoredSettingsScreenState();
 }
 
 class _RefactoredSettingsScreenState extends State<RefactoredSettingsScreen> {
@@ -54,7 +55,9 @@ class _RefactoredSettingsScreenState extends State<RefactoredSettingsScreen> {
         if (DeveloperConfig.canShowDeveloperOptions)
           IconButton(
             icon: Icon(
-              _showDeveloperOptions ? Icons.developer_mode : Icons.developer_mode_outlined,
+              _showDeveloperOptions
+                  ? Icons.developer_mode
+                  : Icons.developer_mode_outlined,
               color: _showDeveloperOptions ? Colors.yellow : Colors.white,
             ),
             onPressed: _toggleDeveloperMode,

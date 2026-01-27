@@ -39,8 +39,9 @@ class PremiumService extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      WasteAppLogger.severe(
-          'Error initializing premium service', e, null, {'service': 'premium', 'action': 'attempt_recovery'});
+      WasteAppLogger.severe('Error initializing premium service',
+          error: e,
+          context: {'service': 'premium', 'action': 'attempt_recovery'});
       // Try to recover by creating the box
       try {
         if (!Hive.isBoxOpen(_premiumBoxName)) {
@@ -52,8 +53,13 @@ class PremiumService extends ChangeNotifier {
         _isInitialized = true;
         notifyListeners();
       } catch (e) {
-        WasteAppLogger.severe('Failed to recover from premium service initialization error', e, null,
-            {'service': 'premium', 'action': 'continue_without_premium_features'});
+        WasteAppLogger.severe(
+            'Failed to recover from premium service initialization error',
+            error: e,
+            context: {
+              'service': 'premium',
+              'action': 'continue_without_premium_features'
+            });
       }
     } finally {
       _isInitializing = false;
@@ -93,7 +99,9 @@ class PremiumService extends ChangeNotifier {
   List<PremiumFeature> getComingSoonFeatures() {
     if (_premiumBox == null) return PremiumFeature.features;
 
-    return PremiumFeature.features.where((feature) => !isPremiumFeature(feature.id)).toList();
+    return PremiumFeature.features
+        .where((feature) => !isPremiumFeature(feature.id))
+        .toList();
   }
 
   Future<void> resetPremiumFeatures() async {

@@ -66,7 +66,9 @@ class ConsentDialogScreen extends StatelessWidget {
               // Explanation text
               const Text(
                 'We care about your privacy and data security. We only collect data necessary to provide our waste classification service and improve your experience.',
-                style: TextStyle(fontSize: AppTheme.fontSizeRegular, color: AppTheme.textPrimaryColor),
+                style: TextStyle(
+                    fontSize: AppTheme.fontSizeRegular,
+                    color: AppTheme.textPrimaryColor),
                 textAlign: TextAlign.center,
               ),
 
@@ -125,7 +127,8 @@ class ConsentDialogScreen extends StatelessWidget {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                   ),
                   child: const Text(

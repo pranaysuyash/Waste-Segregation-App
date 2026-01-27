@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:waste_segregation_app/models/shared_waste_classification.dart';
-import 'package:waste_segregation_app/models/gamification.dart' show FamilyReactionType;
+import 'package:waste_segregation_app/models/gamification.dart'
+    show FamilyReactionType;
 import 'package:waste_segregation_app/utils/constants.dart';
 import 'package:waste_segregation_app/utils/image_utils.dart';
 import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
@@ -11,10 +12,12 @@ class ClassificationDetailsScreen extends StatefulWidget {
   final SharedWasteClassification classification;
 
   @override
-  State<ClassificationDetailsScreen> createState() => _ClassificationDetailsScreenState();
+  State<ClassificationDetailsScreen> createState() =>
+      _ClassificationDetailsScreenState();
 }
 
-class _ClassificationDetailsScreenState extends State<ClassificationDetailsScreen> with TickerProviderStateMixin {
+class _ClassificationDetailsScreenState
+    extends State<ClassificationDetailsScreen> with TickerProviderStateMixin {
   bool _isBookmarked = false;
   late AnimationController _bookmarkAnimationController;
   late Animation<double> _bookmarkAnimation;
@@ -78,7 +81,9 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                       color: _isBookmarked ? Colors.amber : Colors.white,
                     ),
                   ),
-                  tooltip: _isBookmarked ? 'Remove bookmark' : 'Bookmark this classification',
+                  tooltip: _isBookmarked
+                      ? 'Remove bookmark'
+                      : 'Bookmark this classification',
                 ),
               );
             },
@@ -108,21 +113,25 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                           color: AppTheme.textSecondaryColor,
                         ),
                   ),
-                  if (originalClassification.subcategory != null) ...[
+                  if (originalClassification.normalizedSubcategory != null &&
+                      originalClassification
+                          .normalizedSubcategory!.isNotEmpty) ...[
                     const SizedBox(height: AppTheme.spacingXs),
                     Text(
-                      'Subcategory: ${originalClassification.subcategory}',
+                      'Subcategory: ${originalClassification.normalizedSubcategory!}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppTheme.textSecondaryColor,
                           ),
                     ),
                   ],
-                  if (originalClassification.imageUrl != null && originalClassification.imageUrl!.isNotEmpty) ...[
+                  if (originalClassification.imageUrl != null &&
+                      originalClassification.imageUrl!.isNotEmpty) ...[
                     const SizedBox(height: AppTheme.spacingMd),
                     Center(
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusMd),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.1),
@@ -132,7 +141,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                           ],
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusMd),
                           child: ImageUtils.buildImage(
                             imageSource: originalClassification.imageUrl!,
                             height: MediaQuery.of(context).size.height * 0.25,
@@ -140,7 +150,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                               height: MediaQuery.of(context).size.height * 0.25,
                               decoration: BoxDecoration(
                                 color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                                borderRadius: BorderRadius.circular(
+                                    AppTheme.borderRadiusMd),
                               ),
                               child: const Icon(
                                 Icons.image_not_supported,
@@ -156,7 +167,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                   const SizedBox(height: AppTheme.spacingMd),
                   Row(
                     children: [
-                      const Icon(Icons.person, size: 16, color: AppTheme.textSecondaryColor),
+                      const Icon(Icons.person,
+                          size: 16, color: AppTheme.textSecondaryColor),
                       const SizedBox(width: AppTheme.spacingXs),
                       Text(
                         'Shared by ${widget.classification.sharedByDisplayName}',
@@ -169,7 +181,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                   const SizedBox(height: AppTheme.spacingXs),
                   Row(
                     children: [
-                      const Icon(Icons.access_time, size: 16, color: AppTheme.textSecondaryColor),
+                      const Icon(Icons.access_time,
+                          size: 16, color: AppTheme.textSecondaryColor),
                       const SizedBox(width: AppTheme.spacingXs),
                       Text(
                         _formatDateWithIntl(widget.classification.sharedAt),
@@ -224,8 +237,11 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
               height: 56,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: widget.classification.reactions.length > 6 ? 6 : widget.classification.reactions.length,
-                separatorBuilder: (_, __) => const SizedBox(width: AppTheme.spacingSm),
+                itemCount: widget.classification.reactions.length > 6
+                    ? 6
+                    : widget.classification.reactions.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(width: AppTheme.spacingSm),
                 itemBuilder: (_, i) {
                   if (i == 5 && widget.classification.reactions.length > 6) {
                     return Center(
@@ -239,14 +255,16 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                           border: Border.all(
                             color: AppTheme.primaryColor.withValues(alpha: 0.3),
                           ),
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusSm),
                         ),
                         child: Text(
                           '+${widget.classification.reactions.length - 5} more',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                       ),
                     );
@@ -254,11 +272,13 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                   final reaction = widget.classification.reactions[i];
                   return Column(
                     children: [
-                      if (reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty)
+                      if (reaction.photoUrl != null &&
+                          reaction.photoUrl!.isNotEmpty)
                         ImageUtils.buildCircularAvatar(
                           imageSource: reaction.photoUrl!,
                           radius: 20,
-                          backgroundColor: _getAvatarColor(reaction.displayName),
+                          backgroundColor:
+                              _getAvatarColor(reaction.displayName),
                           child: Text(
                             reaction.displayName.substring(0, 1).toUpperCase(),
                             style: const TextStyle(
@@ -270,7 +290,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                       else
                         CircleAvatar(
                           radius: 20,
-                          backgroundColor: _getAvatarColor(reaction.displayName),
+                          backgroundColor:
+                              _getAvatarColor(reaction.displayName),
                           child: Text(
                             reaction.displayName.substring(0, 1).toUpperCase(),
                             style: const TextStyle(
@@ -292,7 +313,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
           else
             Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMd),
+                padding:
+                    const EdgeInsets.symmetric(vertical: AppTheme.spacingMd),
                 child: Column(
                   children: [
                     const Icon(
@@ -318,14 +340,17 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
             const Divider(),
             const SizedBox(height: AppTheme.spacingSm),
             ...widget.classification.reactions.map((reaction) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
                   child: Row(
                     children: [
-                      if (reaction.photoUrl != null && reaction.photoUrl!.isNotEmpty)
+                      if (reaction.photoUrl != null &&
+                          reaction.photoUrl!.isNotEmpty)
                         ImageUtils.buildCircularAvatar(
                           imageSource: reaction.photoUrl!,
                           radius: 16,
-                          backgroundColor: _getAvatarColor(reaction.displayName),
+                          backgroundColor:
+                              _getAvatarColor(reaction.displayName),
                           child: Text(
                             reaction.displayName.substring(0, 1).toUpperCase(),
                             style: const TextStyle(
@@ -338,7 +363,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                       else
                         CircleAvatar(
                           radius: 16,
-                          backgroundColor: _getAvatarColor(reaction.displayName),
+                          backgroundColor:
+                              _getAvatarColor(reaction.displayName),
                           child: Text(
                             reaction.displayName.substring(0, 1).toUpperCase(),
                             style: const TextStyle(
@@ -361,11 +387,14 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                           vertical: AppTheme.spacingXs,
                         ),
                         decoration: BoxDecoration(
-                          color: _getReactionColor(reaction.type).withValues(alpha: 0.1),
+                          color: _getReactionColor(reaction.type)
+                              .withValues(alpha: 0.1),
                           border: Border.all(
-                            color: _getReactionColor(reaction.type).withValues(alpha: 0.3),
+                            color: _getReactionColor(reaction.type)
+                                .withValues(alpha: 0.3),
                           ),
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadiusSm),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -377,7 +406,10 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                             const SizedBox(width: AppTheme.spacingXs),
                             Text(
                               reaction.type.toString().split('.').last,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
                                     color: _getReactionColor(reaction.type),
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -404,7 +436,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
             padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
             child: Row(
               children: [
-                const Icon(Icons.chat_bubble_outline, color: AppTheme.primaryColor),
+                const Icon(Icons.chat_bubble_outline,
+                    color: AppTheme.primaryColor),
                 const SizedBox(width: AppTheme.spacingSm),
                 Text(
                   'Comments',
@@ -418,29 +451,39 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
 
           if (widget.classification.comments.isNotEmpty)
             Column(
-              children: widget.classification.comments.asMap().entries.map((entry) {
+              children:
+                  widget.classification.comments.asMap().entries.map((entry) {
                 final index = entry.key;
                 final comment = entry.value;
-                final isLast = index == widget.classification.comments.length - 1;
+                final isLast =
+                    index == widget.classification.comments.length - 1;
 
                 return Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingSm),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppTheme.spacingSm),
                       decoration: BoxDecoration(
-                        color: index.isEven ? Colors.transparent : AppTheme.primaryColor.withValues(alpha: 0.02),
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                        color: index.isEven
+                            ? Colors.transparent
+                            : AppTheme.primaryColor.withValues(alpha: 0.02),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusSm),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (comment.photoUrl != null && comment.photoUrl!.isNotEmpty)
+                          if (comment.photoUrl != null &&
+                              comment.photoUrl!.isNotEmpty)
                             ImageUtils.buildCircularAvatar(
                               imageSource: comment.photoUrl!,
                               radius: 18,
-                              backgroundColor: _getAvatarColor(comment.displayName),
+                              backgroundColor:
+                                  _getAvatarColor(comment.displayName),
                               child: Text(
-                                comment.displayName.substring(0, 1).toUpperCase(),
+                                comment.displayName
+                                    .substring(0, 1)
+                                    .toUpperCase(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -450,9 +493,12 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                           else
                             CircleAvatar(
                               radius: 18,
-                              backgroundColor: _getAvatarColor(comment.displayName),
+                              backgroundColor:
+                                  _getAvatarColor(comment.displayName),
                               child: Text(
-                                comment.displayName.substring(0, 1).toUpperCase(),
+                                comment.displayName
+                                    .substring(0, 1)
+                                    .toUpperCase(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -468,14 +514,20 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                                   children: [
                                     Text(
                                       comment.displayName,
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
                                             fontWeight: FontWeight.w600,
                                           ),
                                     ),
                                     const Spacer(),
                                     Text(
                                       _formatDateWithIntl(comment.timestamp),
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
                                             color: AppTheme.textSecondaryColor,
                                           ),
                                     ),
@@ -495,7 +547,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
                     if (!isLast)
                       Divider(
                         height: 1,
-                        color: AppTheme.textDisabledColor.withValues(alpha: 0.2),
+                        color:
+                            AppTheme.textDisabledColor.withValues(alpha: 0.2),
                       ),
                   ],
                 );
@@ -504,7 +557,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
           else
             Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMd),
+                padding:
+                    const EdgeInsets.symmetric(vertical: AppTheme.spacingMd),
                 child: Column(
                   children: [
                     const Icon(
@@ -540,7 +594,8 @@ class _ClassificationDetailsScreenState extends State<ClassificationDetailsScree
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_isBookmarked ? 'Added to bookmarks!' : 'Removed from bookmarks'),
+        content: Text(
+            _isBookmarked ? 'Added to bookmarks!' : 'Removed from bookmarks'),
         duration: const Duration(seconds: 2),
         backgroundColor: _isBookmarked ? Colors.green : Colors.orange,
       ),

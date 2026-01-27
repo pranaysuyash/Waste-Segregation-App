@@ -28,10 +28,12 @@ class AnalyticsTrackingWrapper extends ConsumerStatefulWidget {
   final String? userIntent;
 
   @override
-  ConsumerState<AnalyticsTrackingWrapper> createState() => _AnalyticsTrackingWrapperState();
+  ConsumerState<AnalyticsTrackingWrapper> createState() =>
+      _AnalyticsTrackingWrapperState();
 }
 
-class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrapper> {
+class _AnalyticsTrackingWrapperState
+    extends ConsumerState<AnalyticsTrackingWrapper> {
   final ScrollController _scrollController = ScrollController();
   final List<DateTime> _tapTimes = [];
   final Set<int> _scrollDepthsReported = {};
@@ -67,7 +69,8 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
         // Track at 25%, 50%, 75%, and 100% scroll depths
         const milestones = [25, 50, 75, 100];
         for (final milestone in milestones) {
-          if (scrollPercent >= milestone && !_scrollDepthsReported.contains(milestone)) {
+          if (scrollPercent >= milestone &&
+              !_scrollDepthsReported.contains(milestone)) {
             _scrollDepthsReported.add(milestone);
             _trackScrollDepth(milestone);
             break; // Only track one milestone per scroll event
@@ -75,8 +78,10 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
         }
       }
     } catch (e) {
-      WasteAppLogger.warning('Error tracking scroll depth', e, null,
-          {'screen_name': widget.screenName, 'service': 'AnalyticsTrackingWrapper'});
+      WasteAppLogger.warning('Error tracking scroll depth', error: e, context: {
+        'screen_name': widget.screenName,
+        'service': 'AnalyticsTrackingWrapper'
+      });
     }
   }
 
@@ -104,7 +109,9 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
 
       if (widget.trackRageClicks && _tapTimes.length >= 3) {
         // Check if 3+ taps happened within 1 second
-        final recentTaps = _tapTimes.where((time) => now.difference(time).inSeconds <= 1).toList();
+        final recentTaps = _tapTimes
+            .where((time) => now.difference(time).inSeconds <= 1)
+            .toList();
 
         if (recentTaps.length >= 3) {
           _trackRageClick(recentTaps.length);
@@ -112,8 +119,11 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
         }
       }
     } catch (e) {
-      WasteAppLogger.warning('Error tracking tap', e, null,
-          {'screen_name': widget.screenName, 'element_id': widget.elementId, 'service': 'AnalyticsTrackingWrapper'});
+      WasteAppLogger.warning('Error tracking tap', error: e, context: {
+        'screen_name': widget.screenName,
+        'element_id': widget.elementId,
+        'service': 'AnalyticsTrackingWrapper'
+      });
     }
   }
 
@@ -136,7 +146,7 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
         tapCount: tapCount,
       );
 
-      WasteAppLogger.info('Rage click detected', null, null, {
+      WasteAppLogger.info('Rage click detected', context: {
         'element_id': widget.elementId,
         'screen_name': widget.screenName,
         'tap_count': tapCount,
@@ -158,8 +168,8 @@ class _AnalyticsTrackingWrapperState extends ConsumerState<AnalyticsTrackingWrap
     } else if (widget.trackScrollDepth && widget.child is Scrollable) {
       // If child is already scrollable, we need to inject our controller
       // This is more complex and might need specific handling per scrollable type
-      WasteAppLogger.info('Child is already scrollable, scroll tracking may not work', null, null,
-          {'screen_name': widget.screenName, 'service': 'AnalyticsTrackingWrapper'});
+      WasteAppLogger.info(
+          'Child is already scrollable, error: scroll tracking may not work');
     }
 
     // Wrap with tap tracking if enabled

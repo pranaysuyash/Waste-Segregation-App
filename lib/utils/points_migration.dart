@@ -17,11 +17,13 @@ class PointsMigration {
       WasteAppLogger.info('🔄 Starting Points Engine migration...');
 
       // Create Points Engine instance
-      final pointsEngine = PointsEngine.getInstance(_storageService, _cloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(_storageService, _cloudStorageService);
       await pointsEngine.initialize();
 
       // Create legacy GamificationService for comparison
-      final legacyService = GamificationService(_storageService, _cloudStorageService);
+      final legacyService =
+          GamificationService(_storageService, _cloudStorageService);
       await legacyService.initGamification();
 
       // Get profiles from both systems
@@ -29,7 +31,8 @@ class PointsMigration {
       final engineProfile = pointsEngine.currentProfile;
 
       if (engineProfile == null) {
-        WasteAppLogger.info('⚠️ Points Engine profile is null, skipping migration');
+        WasteAppLogger.info(
+            '⚠️ Points Engine profile is null, error: skipping migration');
         return;
       }
 
@@ -37,11 +40,13 @@ class PointsMigration {
       final needsSync = _compareProfiles(legacyProfile, engineProfile);
 
       if (needsSync) {
-        WasteAppLogger.info('🔄 Profiles differ, syncing to Points Engine...');
+        WasteAppLogger.info(
+            '🔄 Profiles differ, error: syncing to Points Engine...');
         await _syncProfiles(legacyProfile, pointsEngine);
         WasteAppLogger.info('✅ Migration completed successfully');
       } else {
-        WasteAppLogger.info('✅ Profiles already in sync, no migration needed');
+        WasteAppLogger.info(
+            '✅ Profiles already in sync, error: no migration needed');
       }
 
       // Validate the migration
@@ -69,15 +74,20 @@ class PointsMigration {
     final engineAchievements = engineProfile.achievements?.length ?? 0;
 
     WasteAppLogger.info('📊 Profile comparison:');
-    WasteAppLogger.info('   Legacy: $legacyPoints pts, level $legacyLevel, $legacyAchievements achievements');
-    WasteAppLogger.info('   Engine: $enginePoints pts, level $engineLevel, $engineAchievements achievements');
+    WasteAppLogger.info(
+        '   Legacy: $legacyPoints pts, error: level $legacyLevel, stackTrace: $legacyAchievements achievements');
+    WasteAppLogger.info(
+        '   Engine: $enginePoints pts, error: level $engineLevel, stackTrace: $engineAchievements achievements');
 
     // Need sync if there are significant differences
-    return legacyPoints != enginePoints || legacyLevel != engineLevel || legacyAchievements != engineAchievements;
+    return legacyPoints != enginePoints ||
+        legacyLevel != engineLevel ||
+        legacyAchievements != engineAchievements;
   }
 
   /// Sync legacy profile data to Points Engine
-  Future<void> _syncProfiles(dynamic legacyProfile, PointsEngine pointsEngine) async {
+  Future<void> _syncProfiles(
+      dynamic legacyProfile, PointsEngine pointsEngine) async {
     if (legacyProfile == null) return;
 
     try {
@@ -109,11 +119,14 @@ class PointsMigration {
         final engineAchievements = engineProfile.achievements;
 
         // Find achievements that exist in legacy but not in engine
-        final missingAchievements =
-            legacyAchievements.where((legacy) => !engineAchievements.any((engine) => engine.id == legacy.id)).toList();
+        final missingAchievements = legacyAchievements
+            .where((legacy) =>
+                !engineAchievements.any((engine) => engine.id == legacy.id))
+            .toList();
 
         if (missingAchievements.isNotEmpty) {
-          WasteAppLogger.info('🏆 Found ${missingAchievements.length} missing achievements');
+          WasteAppLogger.info(
+              '🏆 Found ${missingAchievements.length} missing achievements');
           // Note: Achievement sync would require more complex logic
           // For now, we'll just log this for manual review
         }
@@ -125,7 +138,8 @@ class PointsMigration {
   }
 
   /// Validate that migration was successful
-  Future<void> _validateMigration(dynamic legacyProfile, PointsEngine pointsEngine) async {
+  Future<void> _validateMigration(
+      dynamic legacyProfile, PointsEngine pointsEngine) async {
     try {
       final engineProfile = pointsEngine.currentProfile;
 
@@ -137,13 +151,15 @@ class PointsMigration {
       final enginePoints = engineProfile.points.total;
 
       if (enginePoints < legacyPoints) {
-        WasteAppLogger.warning('⚠️ Warning: Engine points ($enginePoints) less than legacy ($legacyPoints)');
+        WasteAppLogger.warning(
+            '⚠️ Warning: Engine points ($enginePoints) less than legacy ($legacyPoints)');
       }
 
       WasteAppLogger.info('✅ Migration validation passed');
       WasteAppLogger.info('   Final points: $enginePoints');
       WasteAppLogger.info('   Final level: ${engineProfile.points.level}');
-      WasteAppLogger.info('   Achievements: ${engineProfile.achievements.length}');
+      WasteAppLogger.info(
+          '   Achievements: ${engineProfile.achievements.length}');
     } catch (e) {
       WasteAppLogger.severe('🔥 Migration validation failed: $e');
       rethrow;
@@ -175,10 +191,12 @@ class PointsMigration {
   /// Perform a dry run of the migration (for testing)
   Future<Map<String, dynamic>> dryRunMigration() async {
     try {
-      final pointsEngine = PointsEngine.getInstance(_storageService, _cloudStorageService);
+      final pointsEngine =
+          PointsEngine.getInstance(_storageService, _cloudStorageService);
       await pointsEngine.initialize();
 
-      final legacyService = GamificationService(_storageService, _cloudStorageService);
+      final legacyService =
+          GamificationService(_storageService, _cloudStorageService);
       await legacyService.initGamification();
 
       final legacyProfile = await legacyService.getProfile();

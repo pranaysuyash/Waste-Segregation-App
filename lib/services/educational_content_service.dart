@@ -1,5 +1,5 @@
-import 'package:waste_segregation_app/models/educational_content.dart';
-import 'package:waste_segregation_app/services/educational_content_analytics_service.dart' as analytics_service;
+import '../models/educational_content.dart';
+import 'educational_content_analytics_service.dart' as analytics_service;
 
 /// Service for managing educational content in the app
 class EducationalContentService {
@@ -52,7 +52,8 @@ class EducationalContentService {
       DailyTip(
         id: 'daily_tip4',
         title: 'Composting Benefits',
-        content: 'Composting reduces methane emissions from landfills and creates nutrient-rich soil for your garden.',
+        content:
+            'Composting reduces methane emissions from landfills and creates nutrient-rich soil for your garden.',
         category: 'Wet Waste',
         date: DateTime.now().subtract(const Duration(days: 3)),
         actionText: 'Start Composting',
@@ -81,7 +82,8 @@ class EducationalContentService {
       DailyTip(
         id: 'daily_tip7',
         title: 'Reduce Single-Use Items',
-        content: 'Bring your own bags, cups, and utensils to reduce single-use plastic consumption by up to 80%.',
+        content:
+            'Bring your own bags, cups, and utensils to reduce single-use plastic consumption by up to 80%.',
         category: 'General',
         date: DateTime.now().subtract(const Duration(days: 6)),
         actionText: 'Reduction Tips',
@@ -139,7 +141,8 @@ class EducationalContentService {
       EducationalContent.article(
         id: 'article3',
         title: 'Medical Waste Safety Guidelines',
-        description: 'Essential safety protocols for handling and disposing of medical waste at home.',
+        description:
+            'Essential safety protocols for handling and disposing of medical waste at home.',
         thumbnailUrl: 'assets/images/education/medical_waste.jpg',
         contentText:
             'Medical waste requires special handling to prevent contamination and injury. Sharps should be placed in puncture-resistant containers. Medications should never be flushed down toilets. Many pharmacies offer take-back programs for unused medications.',
@@ -155,7 +158,8 @@ class EducationalContentService {
       EducationalContent.video(
         id: 'video1',
         title: 'Home Composting for Beginners',
-        description: 'A step-by-step guide to start composting at home with minimal equipment.',
+        description:
+            'A step-by-step guide to start composting at home with minimal equipment.',
         thumbnailUrl: 'assets/images/education/composting.jpg',
         videoUrl: 'https://example.com/videos/home_composting.mp4',
         categories: ['Wet Waste', 'Composting'],
@@ -169,7 +173,8 @@ class EducationalContentService {
       EducationalContent.video(
         id: 'video2',
         title: 'E-Waste Recycling Process',
-        description: 'See how electronic waste is processed and recycled in modern facilities.',
+        description:
+            'See how electronic waste is processed and recycled in modern facilities.',
         thumbnailUrl: 'assets/images/education/ewaste.jpg',
         videoUrl: 'https://example.com/videos/ewaste_recycling.mp4',
         categories: ['Hazardous Waste', 'Electronics', 'Recycling'],
@@ -184,7 +189,8 @@ class EducationalContentService {
       EducationalContent.infographic(
         id: 'infographic1',
         title: 'Waste Segregation Quick Guide',
-        description: 'Visual guide showing how to properly segregate different types of waste.',
+        description:
+            'Visual guide showing how to properly segregate different types of waste.',
         thumbnailUrl: 'assets/images/education/segregation_guide.jpg',
         imageUrl: 'assets/images/education/segregation_infographic.jpg',
         categories: ['General', 'Dry Waste', 'Wet Waste', 'Hazardous Waste'],
@@ -198,7 +204,8 @@ class EducationalContentService {
       EducationalContent.infographic(
         id: 'infographic2',
         title: 'Plastic Pollution Impact',
-        description: 'Visualizing the environmental impact of plastic pollution on marine life.',
+        description:
+            'Visualizing the environmental impact of plastic pollution on marine life.',
         thumbnailUrl: 'assets/images/education/plastic_pollution.jpg',
         imageUrl: 'assets/images/education/plastic_impact_infographic.jpg',
         categories: ['Environmental Impact', 'Plastic'],
@@ -213,12 +220,19 @@ class EducationalContentService {
       EducationalContent.quiz(
         id: 'quiz1',
         title: 'Test Your Recycling Knowledge',
-        description: 'Challenge yourself to see how much you know about proper recycling practices.',
+        description:
+            'Challenge yourself to see how much you know about proper recycling practices.',
         thumbnailUrl: 'assets/images/education/recycling_quiz.jpg',
         questions: [
           const QuizQuestion(
-            question: 'Which of these items cannot be recycled in most curbside programs?',
-            options: ['Plastic water bottles', 'Aluminum cans', 'Styrofoam containers', 'Cardboard boxes'],
+            question:
+                'Which of these items cannot be recycled in most curbside programs?',
+            options: [
+              'Plastic water bottles',
+              'Aluminum cans',
+              'Styrofoam containers',
+              'Cardboard boxes'
+            ],
             correctOptionIndex: 2,
             explanation:
                 'Styrofoam (polystyrene) is not accepted in most curbside recycling programs and usually goes to landfill.',
@@ -247,12 +261,19 @@ class EducationalContentService {
       EducationalContent.quiz(
         id: 'quiz2',
         title: 'Advanced Waste Management Quiz',
-        description: 'Test your knowledge of complex waste management scenarios.',
+        description:
+            'Test your knowledge of complex waste management scenarios.',
         thumbnailUrl: 'assets/images/education/advanced_quiz.jpg',
         questions: [
           const QuizQuestion(
-            question: 'What is the most effective method for treating medical waste?',
-            options: ['Incineration', 'Autoclaving', 'Chemical treatment', 'All of the above'],
+            question:
+                'What is the most effective method for treating medical waste?',
+            options: [
+              'Incineration',
+              'Autoclaving',
+              'Chemical treatment',
+              'All of the above'
+            ],
             correctOptionIndex: 3,
             explanation:
                 'Different types of medical waste require different treatment methods. All three are effective for different scenarios.',
@@ -270,7 +291,8 @@ class EducationalContentService {
       EducationalContent.tutorial(
         id: 'tutorial1',
         title: 'Setting Up a Home Recycling System',
-        description: 'Step-by-step guide to organize an efficient recycling system at home.',
+        description:
+            'Step-by-step guide to organize an efficient recycling system at home.',
         thumbnailUrl: 'assets/images/education/home_recycling.jpg',
         steps: [
           const TutorialStep(
@@ -303,7 +325,8 @@ class EducationalContentService {
       EducationalContent.tutorial(
         id: 'tutorial2',
         title: 'Building a Compost Bin',
-        description: 'Learn to build your own compost bin using recycled materials.',
+        description:
+            'Learn to build your own compost bin using recycled materials.',
         thumbnailUrl: 'assets/images/education/compost_bin.jpg',
         steps: [
           const TutorialStep(
@@ -314,12 +337,14 @@ class EducationalContentService {
           ),
           const TutorialStep(
             title: 'Assemble the Frame',
-            description: 'Connect the pallets to form a three-sided enclosure. Leave one side open for easy access.',
+            description:
+                'Connect the pallets to form a three-sided enclosure. Leave one side open for easy access.',
             imageUrl: 'assets/images/education/compost_assembly.jpg',
           ),
           const TutorialStep(
             title: 'Add Ventilation',
-            description: 'Install wire mesh for airflow and add a lid to control moisture.',
+            description:
+                'Install wire mesh for airflow and add a lid to control moisture.',
             imageUrl: 'assets/images/education/compost_ventilation.jpg',
           ),
         ],
@@ -335,7 +360,8 @@ class EducationalContentService {
       EducationalContent.tip(
         id: 'tip1',
         title: 'Reduce Food Packaging Waste',
-        description: 'Simple strategies to minimize packaging waste when shopping.',
+        description:
+            'Simple strategies to minimize packaging waste when shopping.',
         thumbnailUrl: 'assets/images/education/packaging_tip.jpg',
         contentText:
             'Bring reusable bags, choose products with minimal packaging, buy in bulk when possible, and opt for refillable containers.',
@@ -362,7 +388,8 @@ class EducationalContentService {
       EducationalContent.article(
         id: 'article4',
         title: 'Zero Waste Lifestyle Guide',
-        description: 'Complete guide to adopting a zero waste lifestyle and reducing your environmental footprint.',
+        description:
+            'Complete guide to adopting a zero waste lifestyle and reducing your environmental footprint.',
         thumbnailUrl: 'assets/images/education/zero_waste.jpg',
         contentText:
             'Zero waste is a philosophy that encourages the redesign of resource life cycles so that all products are reused. Start small with reusable bags, containers, and water bottles.',
@@ -377,7 +404,8 @@ class EducationalContentService {
       EducationalContent.video(
         id: 'video3',
         title: 'Plastic-Free Kitchen Setup',
-        description: 'Transform your kitchen to be plastic-free with these simple swaps and alternatives.',
+        description:
+            'Transform your kitchen to be plastic-free with these simple swaps and alternatives.',
         thumbnailUrl: 'assets/images/education/plastic_free_kitchen.jpg',
         videoUrl: 'https://example.com/videos/plastic_free_kitchen.mp4',
         categories: ['Plastic', 'Reduction', 'Kitchen'],
@@ -419,7 +447,9 @@ class EducationalContentService {
 
   /// Get content by category
   List<EducationalContent> getContentByCategory(String category) {
-    return _allContent.where((content) => content.categories.contains(category)).toList();
+    return _allContent
+        .where((content) => content.categories.contains(category))
+        .toList();
   }
 
   /// Get content by type
@@ -438,8 +468,10 @@ class EducationalContentService {
         .where((content) =>
             content.title.toLowerCase().contains(lowercaseQuery) ||
             content.description.toLowerCase().contains(lowercaseQuery) ||
-            content.tags.any((tag) => tag.toLowerCase().contains(lowercaseQuery)) ||
-            content.categories.any((category) => category.toLowerCase().contains(lowercaseQuery)))
+            content.tags
+                .any((tag) => tag.toLowerCase().contains(lowercaseQuery)) ||
+            content.categories.any(
+                (category) => category.toLowerCase().contains(lowercaseQuery)))
         .toList();
   }
 
@@ -473,7 +505,9 @@ class EducationalContentService {
   List<EducationalContent> getNewContent() {
     // Return content added in the last 30 days, or most recent if none
     final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-    final newContent = _allContent.where((content) => content.dateAdded.isAfter(thirtyDaysAgo)).toList();
+    final newContent = _allContent
+        .where((content) => content.dateAdded.isAfter(thirtyDaysAgo))
+        .toList();
 
     if (newContent.isEmpty) {
       // If no recent content, return the most recently added content
@@ -488,13 +522,17 @@ class EducationalContentService {
   /// Get interactive content (quizzes and tutorials)
   List<EducationalContent> getInteractiveContent() {
     return _allContent
-        .where((content) => content.type == ContentType.quiz || content.type == ContentType.tutorial)
+        .where((content) =>
+            content.type == ContentType.quiz ||
+            content.type == ContentType.tutorial)
         .toList();
   }
 
   /// Get advanced topics content
   List<EducationalContent> getAdvancedTopics() {
-    return _allContent.where((content) => content.level == ContentLevel.advanced).toList();
+    return _allContent
+        .where((content) => content.level == ContentLevel.advanced)
+        .toList();
   }
 
   // ==================== BASIC ANALYTICS ====================

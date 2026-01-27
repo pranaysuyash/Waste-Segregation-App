@@ -32,12 +32,15 @@ class ActionButtons extends StatelessWidget {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               elevation: isAutoSaving ? 0 : 2,
             ),
             icon: Icon(
-              isAutoSaving ? Icons.hourglass_empty : (isSaved ? Icons.share : Icons.save),
+              isAutoSaving
+                  ? Icons.hourglass_empty
+                  : (isSaved ? Icons.share : Icons.save),
             ),
             label: Text(
               isAutoSaving ? 'Saving...' : (isSaved ? 'Share' : 'Save'),
@@ -57,7 +60,8 @@ class ActionButtons extends StatelessWidget {
               ),
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
             ),
             icon: const Icon(Icons.share),

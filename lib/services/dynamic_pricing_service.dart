@@ -64,17 +64,20 @@ class DynamicPricingService extends ChangeNotifier {
       await _loadSpendingData();
       _schedulePeriodicUpdates();
 
-      WasteAppLogger.info('DynamicPricingService initialized successfully', null, null, {
-        'service': 'dynamic_pricing_service',
-        'pricing_models': _cachedPricing?.keys.toList() ?? [],
-        'last_update': _lastUpdate?.toIso8601String(),
-      });
+      WasteAppLogger.info('DynamicPricingService initialized successfully',
+          context: {
+            'service': 'dynamic_pricing_service',
+            'pricing_models': _cachedPricing?.keys.toList() ?? [],
+            'last_update': _lastUpdate?.toIso8601String(),
+          });
     } catch (e) {
-      WasteAppLogger.severe('Failed to initialize DynamicPricingService', e, null, {
-        'service': 'dynamic_pricing_service',
-        'action': 'falling_back_to_defaults',
-      });
-      
+      WasteAppLogger.severe('Failed to initialize DynamicPricingService',
+          error: e,
+          context: {
+            'service': 'dynamic_pricing_service',
+            'action': 'falling_back_to_defaults',
+          });
+
       // Fall back to default pricing
       _cachedPricing = Map.from(_defaultPricing);
       _cachedBudgets = Map.from(_defaultBudgets);
@@ -87,12 +90,14 @@ class DynamicPricingService extends ChangeNotifier {
   Future<void> _loadPricingFromRemoteConfig() async {
     try {
       // Load pricing data
-      final pricingJson = await _remoteConfigService.getString('ai_model_pricing', 
+      final pricingJson = await _remoteConfigService.getString(
+          'ai_model_pricing',
           defaultValue: jsonEncode(_defaultPricing));
       _cachedPricing = Map<String, double>.from(jsonDecode(pricingJson));
 
       // Load budget limits
-      final budgetJson = await _remoteConfigService.getString('spending_budgets',
+      final budgetJson = await _remoteConfigService.getString(
+          'spending_budgets',
           defaultValue: jsonEncode(_defaultBudgets));
       _cachedBudgets = Map<String, double>.from(jsonDecode(budgetJson));
 
@@ -103,7 +108,7 @@ class DynamicPricingService extends ChangeNotifier {
 
       _lastUpdate = DateTime.now();
 
-      WasteAppLogger.info('Loaded pricing from Remote Config', null, null, {
+      WasteAppLogger.info('Loaded pricing from Remote Config', context: {
         'service': 'dynamic_pricing_service',
         'pricing_count': _cachedPricing?.length ?? 0,
         'budget_count': _cachedBudgets?.length ?? 0,
@@ -112,11 +117,13 @@ class DynamicPricingService extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      WasteAppLogger.severe('Failed to load pricing from Remote Config', e, null, {
-        'service': 'dynamic_pricing_service',
-        'action': 'using_cached_or_default_pricing',
-      });
-      
+      WasteAppLogger.severe('Failed to load pricing from Remote Config',
+          error: e,
+          context: {
+            'service': 'dynamic_pricing_service',
+            'action': 'using_cached_or_default_pricing',
+          });
+
       // Keep existing cached pricing or use defaults
       _cachedPricing ??= Map.from(_defaultPricing);
       _cachedBudgets ??= Map.from(_defaultBudgets);
@@ -140,10 +147,12 @@ class DynamicPricingService extends ChangeNotifier {
         await _remoteConfigService.forceFetch();
         await _loadPricingFromRemoteConfig();
       } catch (e) {
-        WasteAppLogger.warning('Failed to update pricing from Remote Config', e, null, {
-          'service': 'dynamic_pricing_service',
-          'operation': 'periodic_update',
-        });
+        WasteAppLogger.warning('Failed to update pricing from Remote Config',
+            error: e,
+            context: {
+              'service': 'dynamic_pricing_service',
+              'operation': 'periodic_update',
+            });
       }
     });
 
@@ -159,9 +168,11 @@ class DynamicPricingService extends ChangeNotifier {
     final lastReset = _lastSpendingReset ?? now;
 
     // Reset daily spending
-    if (now.day != lastReset.day || now.month != lastReset.month || now.year != lastReset.year) {
+    if (now.day != lastReset.day ||
+        now.month != lastReset.month ||
+        now.year != lastReset.year) {
       _dailySpending.clear();
-      WasteAppLogger.info('Reset daily spending counters', null, null, {
+      WasteAppLogger.info('Reset daily spending counters', context: {
         'service': 'dynamic_pricing_service',
         'reset_type': 'daily',
         'reset_date': now.toIso8601String(),
@@ -170,10 +181,11 @@ class DynamicPricingService extends ChangeNotifier {
 
     // Reset weekly spending (Monday to Sunday)
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final lastWeekStart = lastReset.subtract(Duration(days: lastReset.weekday - 1));
+    final lastWeekStart =
+        lastReset.subtract(Duration(days: lastReset.weekday - 1));
     if (weekStart.isAfter(lastWeekStart)) {
       _weeklySpending.clear();
-      WasteAppLogger.info('Reset weekly spending counters', null, null, {
+      WasteAppLogger.info('Reset weekly spending counters', context: {
         'service': 'dynamic_pricing_service',
         'reset_type': 'weekly',
         'week_start': weekStart.toIso8601String(),
@@ -183,7 +195,7 @@ class DynamicPricingService extends ChangeNotifier {
     // Reset monthly spending
     if (now.month != lastReset.month || now.year != lastReset.year) {
       _monthlySpending.clear();
-      WasteAppLogger.info('Reset monthly spending counters', null, null, {
+      WasteAppLogger.info('Reset monthly spending counters', context: {
         'service': 'dynamic_pricing_service',
         'reset_type': 'monthly',
         'reset_month': '${now.year}-${now.month.toString().padLeft(2, '0')}',
@@ -197,7 +209,8 @@ class DynamicPricingService extends ChangeNotifier {
   double getModelPricing(String modelKey, {bool isOutput = false}) {
     final pricing = _cachedPricing ?? _defaultPricing;
     final key = isOutput ? '${modelKey}_output' : '${modelKey}_input';
-    return pricing[key] ?? pricing['gpt_4o_mini_${isOutput ? 'output' : 'input'}']!;
+    return pricing[key] ??
+        pricing['gpt_4o_mini_${isOutput ? 'output' : 'input'}']!;
   }
 
   /// Calculate cost for a specific API call
@@ -209,12 +222,14 @@ class DynamicPricingService extends ChangeNotifier {
   }) {
     // Get base pricing
     final inputCost = getModelPricing(model) * (inputTokens / 1000.0);
-    final outputCost = getModelPricing(model, isOutput: true) * (outputTokens / 1000.0);
+    final outputCost =
+        getModelPricing(model, isOutput: true) * (outputTokens / 1000.0);
     final totalCost = inputCost + outputCost;
 
     // Apply batch discount if applicable
     if (isBatchMode) {
-      final discountRate = _cachedPricing?['batch_discount_rate'] ?? _defaultPricing['batch_discount_rate']!;
+      final discountRate = _cachedPricing?['batch_discount_rate'] ??
+          _defaultPricing['batch_discount_rate']!;
       return totalCost * (1.0 - discountRate);
     }
 
@@ -237,7 +252,7 @@ class DynamicPricingService extends ChangeNotifier {
     _monthlySpending[model] = (_monthlySpending[model] ?? 0.0) + cost;
 
     // Log the spending
-    WasteAppLogger.info('Recorded API spending', null, null, {
+    WasteAppLogger.info('Recorded API spending', context: {
       'service': 'dynamic_pricing_service',
       'model': model,
       'cost': cost,
@@ -272,17 +287,20 @@ class DynamicPricingService extends ChangeNotifier {
     final weeklyThreshold = weeklyBudget * 0.8;
     final monthlyThreshold = monthlyBudget * 0.8;
 
-    if (dailySpend >= dailyThreshold || weeklySpend >= weeklyThreshold || monthlySpend >= monthlyThreshold) {
-      WasteAppLogger.warning('Budget threshold reached - enforcing batch mode', null, null, {
-        'service': 'dynamic_pricing_service',
-        'daily_spend': dailySpend,
-        'daily_threshold': dailyThreshold,
-        'weekly_spend': weeklySpend,
-        'weekly_threshold': weeklyThreshold,
-        'monthly_spend': monthlySpend,
-        'monthly_threshold': monthlyThreshold,
-        'action': 'force_batch_mode',
-      });
+    if (dailySpend >= dailyThreshold ||
+        weeklySpend >= weeklyThreshold ||
+        monthlySpend >= monthlyThreshold) {
+      WasteAppLogger.warning('Budget threshold reached - enforcing batch mode',
+          context: {
+            'service': 'dynamic_pricing_service',
+            'daily_spend': dailySpend,
+            'daily_threshold': dailyThreshold,
+            'weekly_spend': weeklySpend,
+            'weekly_threshold': weeklyThreshold,
+            'monthly_spend': monthlySpend,
+            'monthly_threshold': monthlyThreshold,
+            'action': 'force_batch_mode',
+          });
 
       // TODO: Send notification to force batch mode in UI
       // This could be implemented via a stream or callback mechanism
@@ -303,8 +321,8 @@ class DynamicPricingService extends ChangeNotifier {
 
     // Enforce batch mode if we're at 80% of any budget
     return dailySpend >= (dailyBudget * 0.8) ||
-           weeklySpend >= (weeklyBudget * 0.8) ||
-           monthlySpend >= (monthlyBudget * 0.8);
+        weeklySpend >= (weeklyBudget * 0.8) ||
+        monthlySpend >= (monthlyBudget * 0.8);
   }
 
   /// Check if we can afford instant analysis
@@ -313,8 +331,12 @@ class DynamicPricingService extends ChangeNotifier {
     int? estimatedInputTokens,
     int? estimatedOutputTokens,
   }) {
-    final inputTokens = estimatedInputTokens ?? _cachedTokenLimits?['avg_input_tokens'] ?? _defaultTokenLimits['avg_input_tokens']!;
-    final outputTokens = estimatedOutputTokens ?? _cachedTokenLimits?['avg_output_tokens'] ?? _defaultTokenLimits['avg_output_tokens']!;
+    final inputTokens = estimatedInputTokens ??
+        _cachedTokenLimits?['avg_input_tokens'] ??
+        _defaultTokenLimits['avg_input_tokens']!;
+    final outputTokens = estimatedOutputTokens ??
+        _cachedTokenLimits?['avg_output_tokens'] ??
+        _defaultTokenLimits['avg_output_tokens']!;
 
     final estimatedCost = calculateCost(
       model: model,
@@ -379,8 +401,12 @@ class DynamicPricingService extends ChangeNotifier {
     int? estimatedInputTokens,
     int? estimatedOutputTokens,
   }) {
-    final inputTokens = estimatedInputTokens ?? _cachedTokenLimits?['avg_input_tokens'] ?? _defaultTokenLimits['avg_input_tokens']!;
-    final outputTokens = estimatedOutputTokens ?? _cachedTokenLimits?['avg_output_tokens'] ?? _defaultTokenLimits['avg_output_tokens']!;
+    final inputTokens = estimatedInputTokens ??
+        _cachedTokenLimits?['avg_input_tokens'] ??
+        _defaultTokenLimits['avg_input_tokens']!;
+    final outputTokens = estimatedOutputTokens ??
+        _cachedTokenLimits?['avg_output_tokens'] ??
+        _defaultTokenLimits['avg_output_tokens']!;
 
     final instantCost = calculateCost(
       model: model,
@@ -403,14 +429,15 @@ class DynamicPricingService extends ChangeNotifier {
     try {
       await _remoteConfigService.forceFetch();
       await _loadPricingFromRemoteConfig();
-      
-      WasteAppLogger.info('Successfully refreshed pricing from Remote Config', null, null, {
-        'service': 'dynamic_pricing_service',
-        'operation': 'refresh_pricing',
-        'last_update': _lastUpdate?.toIso8601String(),
-      });
+
+      WasteAppLogger.info('Successfully refreshed pricing from Remote Config',
+          context: {
+            'service': 'dynamic_pricing_service',
+            'operation': 'refresh_pricing',
+            'last_update': _lastUpdate?.toIso8601String(),
+          });
     } catch (e) {
-      WasteAppLogger.severe('Failed to refresh pricing', e, null, {
+      WasteAppLogger.severe('Failed to refresh pricing', error: e, context: {
         'service': 'dynamic_pricing_service',
         'operation': 'refresh_pricing',
       });

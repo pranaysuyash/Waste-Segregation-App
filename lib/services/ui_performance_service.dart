@@ -1,18 +1,14 @@
 import 'dart:async';
-import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import '../utils/frame_performance_monitor.dart';
 import '../utils/waste_app_logger.dart';
 import 'analytics_service.dart';
 
 /// Service for monitoring UI performance and providing optimization recommendations
 class UIPerformanceService {
-  static UIPerformanceService? _instance;
-  static UIPerformanceService get instance => _instance ??= UIPerformanceService._();
-  
   UIPerformanceService._();
+  static UIPerformanceService? _instance;
+  static UIPerformanceService get instance =>
+      _instance ??= UIPerformanceService._();
 
   final Map<String, _WidgetPerformanceData> _widgetMetrics = {};
   final Map<String, Timer> _reportingTimers = {};
@@ -23,8 +19,8 @@ class UIPerformanceService {
   void initialize(AnalyticsService analyticsService) {
     _analyticsService = analyticsService;
     _isInitialized = true;
-    
-    WasteAppLogger.info('UI Performance Service initialized', null, null, {
+
+    WasteAppLogger.info('UI Performance Service initialized', context: {
       'service': 'UIPerformanceService',
     });
   }
@@ -45,7 +41,7 @@ class UIPerformanceService {
       (_) => _reportWidgetMetrics(widgetId),
     );
 
-    WasteAppLogger.info('Started monitoring widget: $widgetId', null, null, {
+    WasteAppLogger.info('Started monitoring widget: $widgetId', context: {
       'widget_id': widgetId,
       'debug_label': debugLabel,
       'service': 'UIPerformanceService',
@@ -56,13 +52,13 @@ class UIPerformanceService {
   void stopWidgetMonitoring(String widgetId) {
     _reportingTimers[widgetId]?.cancel();
     _reportingTimers.remove(widgetId);
-    
+
     final data = _widgetMetrics.remove(widgetId);
     if (data != null) {
       _reportFinalWidgetMetrics(data);
     }
 
-    WasteAppLogger.info('Stopped monitoring widget: $widgetId', null, null, {
+    WasteAppLogger.info('Stopped monitoring widget: $widgetId', context: {
       'widget_id': widgetId,
       'service': 'UIPerformanceService',
     });
@@ -76,7 +72,8 @@ class UIPerformanceService {
     data.recordFrame(frameTimeMs);
 
     // Check for performance issues
-    if (frameTimeMs > 32) { // Jank threshold (30fps)
+    if (frameTimeMs > 32) {
+      // Jank threshold (30fps)
       _reportJankFrame(widgetId, frameTimeMs);
     }
   }
@@ -129,7 +126,8 @@ class UIPerformanceService {
         );
       }
 
-      if (data.peakMemoryUsage > 50 * 1024 * 1024) { // 50MB
+      if (data.peakMemoryUsage > 50 * 1024 * 1024) {
+        // 50MB
         recommendations.add(
           'Widget ${data.debugLabel ?? data.widgetId} has high memory usage '
           '(${(data.peakMemoryUsage / 1024 / 1024).toStringAsFixed(1)}MB peak). '
@@ -147,7 +145,8 @@ class UIPerformanceService {
     if (data == null || _analyticsService == null) return;
 
     final metrics = data.toMap();
-    _analyticsService!.trackUserAction('widget_performance_metrics', parameters: {
+    _analyticsService!
+        .trackUserAction('widget_performance_metrics', parameters: {
       'widget_id': widgetId,
       ...metrics,
     });
@@ -158,9 +157,11 @@ class UIPerformanceService {
     if (_analyticsService == null) return;
 
     final metrics = data.toMap();
-    _analyticsService!.trackUserAction('widget_performance_session_end', parameters: {
+    _analyticsService!
+        .trackUserAction('widget_performance_session_end', parameters: {
       'widget_id': data.widgetId,
-      'session_duration_ms': DateTime.now().difference(data.startTime).inMilliseconds,
+      'session_duration_ms':
+          DateTime.now().difference(data.startTime).inMilliseconds,
       ...metrics,
     });
   }
@@ -175,11 +176,12 @@ class UIPerformanceService {
       'debug_label': _widgetMetrics[widgetId]?.debugLabel,
     });
 
-    WasteAppLogger.warning('Jank frame detected in widget: $widgetId', null, null, {
-      'widget_id': widgetId,
-      'frame_time_ms': frameTimeMs,
-      'service': 'UIPerformanceService',
-    });
+    WasteAppLogger.warning('Jank frame detected in widget: $widgetId',
+        context: {
+          'widget_id': widgetId,
+          'frame_time_ms': frameTimeMs,
+          'service': 'UIPerformanceService',
+        });
   }
 
   /// Dispose of the service and clean up resources
@@ -232,14 +234,17 @@ class _WidgetPerformanceData {
 
   void recordMemoryUsage(int memoryBytes) {
     _currentMemoryUsage = memoryBytes;
-    _peakMemoryUsage = memoryBytes > _peakMemoryUsage ? memoryBytes : _peakMemoryUsage;
+    _peakMemoryUsage =
+        memoryBytes > _peakMemoryUsage ? memoryBytes : _peakMemoryUsage;
   }
 
-  double get averageFrameTime => _frameCount > 0 ? _totalFrameTime / _frameCount : 0.0;
+  double get averageFrameTime =>
+      _frameCount > 0 ? _totalFrameTime / _frameCount : 0.0;
   double get rebuildsPerSecond {
     final durationSeconds = DateTime.now().difference(startTime).inSeconds;
     return durationSeconds > 0 ? _rebuildCount / durationSeconds : 0.0;
   }
+
   int get peakMemoryUsage => _peakMemoryUsage;
 
   Map<String, dynamic> toMap() {
@@ -249,13 +254,16 @@ class _WidgetPerformanceData {
       'frame_count': _frameCount,
       'average_frame_time_ms': averageFrameTime,
       'max_frame_time_ms': _maxFrameTime,
-      'min_frame_time_ms': _minFrameTime == double.infinity ? 0.0 : _minFrameTime,
+      'min_frame_time_ms':
+          _minFrameTime == double.infinity ? 0.0 : _minFrameTime,
       'rebuild_count': _rebuildCount,
       'rebuilds_per_second': rebuildsPerSecond,
       'current_memory_usage_bytes': _currentMemoryUsage,
       'peak_memory_usage_bytes': _peakMemoryUsage,
-      'session_duration_ms': DateTime.now().difference(startTime).inMilliseconds,
-      'rebuild_reasons': _rebuildReasons.take(10).toList(), // Limit to last 10 reasons
+      'session_duration_ms':
+          DateTime.now().difference(startTime).inMilliseconds,
+      'rebuild_reasons':
+          _rebuildReasons.take(10).toList(), // Limit to last 10 reasons
     };
   }
 }
@@ -280,10 +288,12 @@ class PerformanceMonitoredWidget extends StatefulWidget {
   final bool enableMemoryMonitoring;
 
   @override
-  State<PerformanceMonitoredWidget> createState() => _PerformanceMonitoredWidgetState();
+  State<PerformanceMonitoredWidget> createState() =>
+      _PerformanceMonitoredWidgetState();
 }
 
-class _PerformanceMonitoredWidgetState extends State<PerformanceMonitoredWidget> {
+class _PerformanceMonitoredWidgetState
+    extends State<PerformanceMonitoredWidget> {
   DateTime? _lastFrameTime;
   int _buildCount = 0;
 

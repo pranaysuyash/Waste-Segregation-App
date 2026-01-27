@@ -6,10 +6,12 @@ import 'providers/theme_provider.dart';
 /// This allows gradual migration from Provider to Riverpod
 
 // Theme Provider - migrated to Riverpod
-final themeProvider = ChangeNotifierProvider<ThemeProvider>((ref) => ThemeProvider());
+final themeProvider =
+    ChangeNotifierProvider<ThemeProvider>((ref) => ThemeProvider());
 
 // Premium Service Provider - migrated to Riverpod
-final premiumServiceProvider = Provider<PremiumService>((ref) => PremiumService());
+final premiumServiceProvider =
+    Provider<PremiumService>((ref) => PremiumService());
 
 // For testing, we can easily override these providers:
 // Example:

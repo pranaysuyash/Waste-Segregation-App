@@ -22,7 +22,8 @@ class EnhancedEmptyState extends StatefulWidget {
   State<EnhancedEmptyState> createState() => _EnhancedEmptyStateState();
 }
 
-class _EnhancedEmptyStateState extends State<EnhancedEmptyState> with TickerProviderStateMixin {
+class _EnhancedEmptyStateState extends State<EnhancedEmptyState>
+    with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _floatController;
   late Animation<double> _pulseAnimation;
@@ -177,7 +178,8 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState> with TickerProv
           backgroundColor: Colors.orange.shade100,
           iconColor: Colors.orange.shade600,
           title: 'No Results Found',
-          message: 'Try adjusting your filters or search terms to find what you\'re looking for.',
+          message:
+              'Try adjusting your filters or search terms to find what you\'re looking for.',
           actionText: 'Clear Filters',
           actionIcon: Icons.clear_all,
         );
@@ -188,7 +190,8 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState> with TickerProv
           backgroundColor: Colors.pink.shade100,
           iconColor: Colors.pink.shade600,
           title: 'No Favorites Yet',
-          message: 'Mark items as favorites to easily access your most important classifications.',
+          message:
+              'Mark items as favorites to easily access your most important classifications.',
           actionText: 'Explore Content',
           actionIcon: Icons.explore,
         );
@@ -199,7 +202,8 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState> with TickerProv
           backgroundColor: Colors.amber.shade100,
           iconColor: Colors.amber.shade700,
           title: 'No Achievements Yet',
-          message: 'Complete your first classification to start earning badges and tracking your progress!',
+          message:
+              'Complete your first classification to start earning badges and tracking your progress!',
           actionText: 'Start Earning',
           actionIcon: Icons.play_arrow,
         );
@@ -210,7 +214,8 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState> with TickerProv
           backgroundColor: Colors.green.shade100,
           iconColor: Colors.green.shade600,
           title: 'No Content Available',
-          message: 'Educational content is being prepared. Check back soon for tips on waste segregation!',
+          message:
+              'Educational content is being prepared. Check back soon for tips on waste segregation!',
           actionText: 'Refresh',
           actionIcon: Icons.refresh,
         );
@@ -221,7 +226,8 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState> with TickerProv
           backgroundColor: Colors.grey.shade200,
           iconColor: Colors.grey.shade600,
           title: 'You\'re Offline',
-          message: 'Some features require an internet connection. Connect to access all features.',
+          message:
+              'Some features require an internet connection. Connect to access all features.',
           actionText: 'Retry Connection',
           actionIcon: Icons.wifi,
         );
@@ -232,7 +238,8 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState> with TickerProv
           backgroundColor: Colors.red.shade100,
           iconColor: Colors.red.shade600,
           title: 'Something Went Wrong',
-          message: 'We encountered an issue loading this content. Please try again.',
+          message:
+              'We encountered an issue loading this content. Please try again.',
           actionText: 'Try Again',
           actionIcon: Icons.refresh,
         );
@@ -243,7 +250,8 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState> with TickerProv
           backgroundColor: Colors.orange.shade100,
           iconColor: Colors.orange.shade600,
           title: 'Under Maintenance',
-          message: 'This feature is temporarily unavailable while we make improvements.',
+          message:
+              'This feature is temporarily unavailable while we make improvements.',
         );
 
       case EmptyStateType.comingSoon:
@@ -252,7 +260,8 @@ class _EnhancedEmptyStateState extends State<EnhancedEmptyState> with TickerProv
           backgroundColor: Colors.purple.shade100,
           iconColor: Colors.purple.shade600,
           title: 'Coming Soon',
-          message: 'We\'re working hard to bring you this exciting new feature. Stay tuned!',
+          message:
+              'We\'re working hard to bring you this exciting new feature. Stay tuned!',
         );
     }
   }
@@ -272,7 +281,8 @@ class ScanningEmptyState extends StatefulWidget {
   State<ScanningEmptyState> createState() => _ScanningEmptyStateState();
 }
 
-class _ScanningEmptyStateState extends State<ScanningEmptyState> with TickerProviderStateMixin {
+class _ScanningEmptyStateState extends State<ScanningEmptyState>
+    with TickerProviderStateMixin {
   late AnimationController _scanController;
   late Animation<double> _scanAnimation;
 
@@ -381,7 +391,8 @@ class _ScanningEmptyStateState extends State<ScanningEmptyState> with TickerProv
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: 1.0 - _scanAnimation.value),
+                    color: AppTheme.primaryColor
+                        .withValues(alpha: 1.0 - _scanAnimation.value),
                     width: 2,
                   ),
                 ),
@@ -434,7 +445,8 @@ class ProgressEmptyState extends StatefulWidget {
   State<ProgressEmptyState> createState() => _ProgressEmptyStateState();
 }
 
-class _ProgressEmptyStateState extends State<ProgressEmptyState> with SingleTickerProviderStateMixin {
+class _ProgressEmptyStateState extends State<ProgressEmptyState>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -520,13 +532,15 @@ class _ProgressEmptyStateState extends State<ProgressEmptyState> with SingleTick
                   value: _animation.value,
                   strokeWidth: 4,
                   backgroundColor: Colors.grey.shade200,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppTheme.primaryColor),
                 )
               : CircularProgressIndicator(
                   value: widget.progress ?? 0.0,
                   strokeWidth: 4,
                   backgroundColor: Colors.grey.shade200,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppTheme.primaryColor),
                 ),
         );
       },

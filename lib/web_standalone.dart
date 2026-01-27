@@ -14,7 +14,8 @@ void main() async {
 
   try {
     if (kDebugMode) {
-      WasteAppLogger.info('Initializing Web Standalone Mode', null, null, {'platform': 'web', 'mode': 'standalone'});
+      WasteAppLogger.info('Initializing Web Standalone Mode',
+          context: {'platform': 'web', 'mode': 'standalone'});
     }
 
     // Initialize Hive for web
@@ -27,9 +28,14 @@ void main() async {
     await Hive.openBox<String>(StorageKeys.settingsBox);
 
     if (kDebugMode) {
-      WasteAppLogger.info('Hive initialized successfully', null, null, {
+      WasteAppLogger.info('Hive initialized successfully', context: {
         'platform': 'web',
-        'boxes_opened': ['userBox', 'classificationsBox', 'gamificationBox', 'settingsBox']
+        'boxes_opened': [
+          'userBox',
+          'classificationsBox',
+          'gamificationBox',
+          'settingsBox'
+        ]
       });
     }
 
@@ -48,7 +54,8 @@ void main() async {
     );
   } catch (e) {
     if (kDebugMode) {
-      WasteAppLogger.severe('Error initializing web app', e, null, {'platform': 'web', 'mode': 'standalone'});
+      WasteAppLogger.severe('Error initializing web app',
+          error: e, context: {'platform': 'web', 'mode': 'standalone'});
     }
     // Use the Flutter runApp function
     runApp(
@@ -189,7 +196,8 @@ class HomeTab extends StatelessWidget {
           FeatureCard(
             icon: Icons.camera_alt,
             title: 'Image Recognition',
-            description: 'Take a photo of an item to identify its waste category',
+            description:
+                'Take a photo of an item to identify its waste category',
             color: Colors.blue.shade100,
           ),
 
@@ -198,7 +206,8 @@ class HomeTab extends StatelessWidget {
           FeatureCard(
             icon: Icons.category,
             title: 'Waste Categories',
-            description: 'Learn about different waste types and how to dispose of them properly',
+            description:
+                'Learn about different waste types and how to dispose of them properly',
             color: Colors.orange.shade100,
           ),
 
@@ -262,7 +271,8 @@ class HomeTab extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Coming Soon'),
-        content: const Text('The mobile app will be available for download soon!'),
+        content:
+            const Text('The mobile app will be available for download soon!'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -325,7 +335,8 @@ class LearnTab extends StatelessWidget {
 
           WasteCategoryCard(
             title: 'Hazardous Waste',
-            description: 'Waste that poses substantial or potential threats to public health or the environment',
+            description:
+                'Waste that poses substantial or potential threats to public health or the environment',
             examples: 'Batteries, chemicals, electronic waste',
             color: Colors.red.shade100,
             iconData: Icons.warning,
@@ -419,7 +430,8 @@ class AboutTab extends StatelessWidget {
               Expanded(
                 child: ImpactCard(
                   title: '80%',
-                  description: 'Landfill waste reduction possible with proper segregation',
+                  description:
+                      'Landfill waste reduction possible with proper segregation',
                   color: Colors.green.shade100,
                 ),
               ),
@@ -441,7 +453,8 @@ class AboutTab extends StatelessWidget {
               Expanded(
                 child: ImpactCard(
                   title: '25x',
-                  description: 'Food waste in landfills produces methane 25 times more potent than CO2',
+                  description:
+                      'Food waste in landfills produces methane 25 times more potent than CO2',
                   color: Colors.red.shade100,
                 ),
               ),
@@ -449,7 +462,8 @@ class AboutTab extends StatelessWidget {
               Expanded(
                 child: ImpactCard(
                   title: '5-7x',
-                  description: 'Paper can typically be recycled 5-7 times before fibers become too short',
+                  description:
+                      'Paper can typically be recycled 5-7 times before fibers become too short',
                   color: Colors.blue.shade100,
                 ),
               ),

@@ -56,12 +56,14 @@ class ShareButton extends StatelessWidget {
               context: context,
             );
           } catch (e) {
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'share_button'});
+            WasteAppLogger.info('Operation completed',
+                context: {'service': 'widget', 'file': 'share_button'});
           }
         } else {
           // Use callback for custom notification
           ShareService.onShareComplete = (message) {
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'share_button'});
+            WasteAppLogger.info('Operation completed',
+                context: {'service': 'widget', 'file': 'share_button'});
             // No visual notification
           };
 
@@ -128,12 +130,14 @@ class ShareFloatingActionButton extends StatelessWidget {
               context: context,
             );
           } catch (e) {
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'share_button'});
+            WasteAppLogger.info('Operation completed',
+                context: {'service': 'widget', 'file': 'share_button'});
           }
         } else {
           // Use callback for custom notification
           ShareService.onShareComplete = (message) {
-            WasteAppLogger.info('Operation completed', null, null, {'service': 'widget', 'file': 'share_button'});
+            WasteAppLogger.info('Operation completed',
+                context: {'service': 'widget', 'file': 'share_button'});
             // No visual notification
           };
 

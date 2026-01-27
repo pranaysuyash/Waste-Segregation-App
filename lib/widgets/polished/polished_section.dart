@@ -34,7 +34,8 @@ class PolishedSection extends StatelessWidget {
     this.trailing,
     this.crossAxisAlignment = CrossAxisAlignment.start,
   })  : padding = const EdgeInsets.all(AppThemePolish.spacingComfortable),
-        margin = const EdgeInsets.symmetric(vertical: AppThemePolish.spacingGenerous);
+        margin = const EdgeInsets.symmetric(
+            vertical: AppThemePolish.spacingGenerous);
 
   /// Creates a section with luxurious spacing for hero sections
   const PolishedSection.luxurious({
@@ -50,7 +51,8 @@ class PolishedSection extends StatelessWidget {
     this.trailing,
     this.crossAxisAlignment = CrossAxisAlignment.start,
   })  : padding = const EdgeInsets.all(AppThemePolish.spacingLuxurious),
-        margin = const EdgeInsets.symmetric(vertical: AppThemePolish.spacingComfortable);
+        margin = const EdgeInsets.symmetric(
+            vertical: AppThemePolish.spacingComfortable);
   final String? title;
   final String? subtitle;
   final Widget? titleWidget;
@@ -123,7 +125,8 @@ class PolishedSection extends StatelessWidget {
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       height: AppThemePolish.lineHeightComfortable,
-                      color: onTitleTap != null ? theme.colorScheme.primary : null,
+                      color:
+                          onTitleTap != null ? theme.colorScheme.primary : null,
                     ),
                   ),
 

@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/community_feed.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/user_profile.dart';
 import '../models/gamification.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Service for managing community feed and social features
 class CommunityService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _feedCollection = 'community_feed';
   static const String _statsCollection = 'community_stats';
   static const String _mainStatsDoc = 'main';
@@ -25,7 +25,8 @@ class CommunityService {
     try {
       await _firestore.collection(_feedCollection).add(item.toJson());
       await _updateCommunityStatsOnActivity(item);
-      WasteAppLogger.info('🌍 Firestore: Community feed item added: ${item.title}');
+      WasteAppLogger.info(
+          '🌍 Firestore: Community feed item added: ${item.title}');
     } catch (e) {
       WasteAppLogger.severe('❌ Error adding Firestore feed item: $e');
     }
@@ -34,10 +35,15 @@ class CommunityService {
   // Get feed items from Firestore
   Future<List<CommunityFeedItem>> getFeedItems({int limit = 50}) async {
     try {
-      final snapshot =
-          await _firestore.collection(_feedCollection).orderBy('timestamp', descending: true).limit(limit).get();
+      final snapshot = await _firestore
+          .collection(_feedCollection)
+          .orderBy('timestamp', descending: true)
+          .limit(limit)
+          .get();
 
-      return snapshot.docs.map((doc) => CommunityFeedItem.fromJson(doc.data())).toList();
+      return snapshot.docs
+          .map((doc) => CommunityFeedItem.fromJson(doc.data()))
+          .toList();
     } catch (e) {
       WasteAppLogger.severe('❌ Error getting Firestore feed: $e');
       return [];
@@ -48,7 +54,8 @@ class CommunityService {
   Future<CommunityStats> getStats() async {
     try {
       // Get all feed items to calculate accurate stats
-      final feedItems = await getFeedItems(limit: 10000); // Get a large number to ensure we get all
+      final feedItems = await getFeedItems(
+          limit: 10000); // Get a large number to ensure we get all
 
       // Calculate stats from actual feed data
       var totalClassifications = 0;
@@ -66,7 +73,8 @@ class CommunityService {
           final categoryValue = item.metadata['category'];
           final category = categoryValue is String ? categoryValue : null;
           if (category != null) {
-            categoryBreakdown.update(category, (value) => value + 1, ifAbsent: () => 1);
+            categoryBreakdown.update(category, (value) => value + 1,
+                ifAbsent: () => 1);
           }
         }
       }
@@ -80,7 +88,8 @@ class CommunityService {
       );
     } catch (e) {
       WasteAppLogger.severe('❌ Error calculating community stats: $e');
-      return const CommunityStats(totalUsers: 0, totalClassifications: 0, totalPoints: 0);
+      return const CommunityStats(
+          totalUsers: 0, totalClassifications: 0, totalPoints: 0);
     }
   }
 
@@ -93,14 +102,18 @@ class CommunityService {
 
       if (!snapshot.exists) {
         transaction.set(statsRef, {
-          'totalClassifications': item.activityType == CommunityActivityType.classification ? 1 : 0,
+          'totalClassifications':
+              item.activityType == CommunityActivityType.classification ? 1 : 0,
           'totalPoints': item.points,
-          'categoryBreakdown': {if (item.metadata['category'] != null) item.metadata['category']: 1},
+          'categoryBreakdown': {
+            if (item.metadata['category'] != null) item.metadata['category']: 1
+          },
           'lastUpdated': FieldValue.serverTimestamp(),
           'totalUsers': 1,
         });
       } else {
-        final classificationIncrement = item.activityType == CommunityActivityType.classification ? 1 : 0;
+        final classificationIncrement =
+            item.activityType == CommunityActivityType.classification ? 1 : 0;
         // Safe type extraction
         final categoryValue = item.metadata['category'];
         final categoryKey = categoryValue is String ? categoryValue : null;
@@ -108,7 +121,8 @@ class CommunityService {
         transaction.update(statsRef, {
           'totalClassifications': FieldValue.increment(classificationIncrement),
           'totalPoints': FieldValue.increment(item.points),
-          if (categoryKey != null) 'categoryBreakdown.$categoryKey': FieldValue.increment(1),
+          if (categoryKey != null)
+            'categoryBreakdown.$categoryKey': FieldValue.increment(1),
           'lastUpdated': FieldValue.serverTimestamp(),
         });
       }
@@ -116,7 +130,8 @@ class CommunityService {
   }
 
   // Record classification - now writes to Firestore
-  Future<void> recordClassification(WasteClassification classification, UserProfile user) async {
+  Future<void> recordClassification(
+      WasteClassification classification, UserProfile user) async {
     // Use consistent points from PointsEngine standard (10 per classification)
     const standardClassificationPoints = 10;
 
@@ -126,7 +141,8 @@ class CommunityService {
       userName: user.displayName ?? 'Anonymous',
       activityType: CommunityActivityType.classification,
       title: 'New Scan!',
-      description: 'Scanned a ${classification.itemName} (${classification.category})',
+      description:
+          'Scanned a ${classification.itemName} (${classification.category})',
       timestamp: classification.timestamp,
       points: classification.pointsAwarded ?? standardClassificationPoints,
       metadata: {'category': classification.category},
@@ -135,7 +151,8 @@ class CommunityService {
   }
 
   // Record achievement - now writes to Firestore
-  Future<void> recordAchievement(Achievement achievement, UserProfile user) async {
+  Future<void> recordAchievement(
+      Achievement achievement, UserProfile user) async {
     final item = CommunityFeedItem(
       id: 'ach_${user.id}_${achievement.id}',
       userId: user.id,
@@ -173,18 +190,22 @@ class CommunityService {
   ) async {
     if (user == null) return;
 
-    WasteAppLogger.info('🔄 SYNC: Starting community feed sync for user ${user.id}');
-    WasteAppLogger.info('🔄 SYNC: Found ${classifications.length} classifications to potentially sync');
+    WasteAppLogger.info(
+        '🔄 SYNC: Starting community feed sync for user ${user.id}');
+    WasteAppLogger.info(
+        '🔄 SYNC: Found ${classifications.length} classifications to potentially sync');
 
     try {
       // Get existing feed items to avoid duplicates
       final existingItems = await getFeedItems(limit: 1000);
       final existingClassificationIds = existingItems
-          .where((item) => item.activityType == CommunityActivityType.classification)
+          .where((item) =>
+              item.activityType == CommunityActivityType.classification)
           .map((item) => item.id)
           .toSet();
 
-      WasteAppLogger.info('🔄 SYNC: Found ${existingClassificationIds.length} existing classification feed items');
+      WasteAppLogger.info(
+          '🔄 SYNC: Found ${existingClassificationIds.length} existing classification feed items');
 
       // Backfill missing classifications
       var syncedCount = 0;
@@ -200,15 +221,18 @@ class CommunityService {
         }
       }
 
-      WasteAppLogger.info('🔄 SYNC: Backfilled $syncedCount classification activities to community feed');
+      WasteAppLogger.info(
+          '🔄 SYNC: Backfilled $syncedCount classification activities to community feed');
 
       // Sync achievements if user has gamification profile
       if (user.gamificationProfile != null) {
         final achievements = user.gamificationProfile!.achievements;
-        final unlockedAchievements = achievements.where((a) => a.isEarned).toList();
+        final unlockedAchievements =
+            achievements.where((a) => a.isEarned).toList();
 
         final existingAchievementIds = existingItems
-            .where((item) => item.activityType == CommunityActivityType.achievement)
+            .where((item) =>
+                item.activityType == CommunityActivityType.achievement)
             .map((item) {
               final achievementIdValue = item.metadata['achievementId'];
               return achievementIdValue is String ? achievementIdValue : null;
@@ -224,7 +248,8 @@ class CommunityService {
           }
         }
 
-        WasteAppLogger.info('🔄 SYNC: Backfilled $achievementsSynced achievement activities to community feed');
+        WasteAppLogger.info(
+            '🔄 SYNC: Backfilled $achievementsSynced achievement activities to community feed');
       }
 
       WasteAppLogger.info('✅ SYNC: Community feed sync completed successfully');

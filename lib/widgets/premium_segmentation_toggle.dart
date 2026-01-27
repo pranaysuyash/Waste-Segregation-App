@@ -18,14 +18,19 @@ class PremiumSegmentationToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<PremiumService>(
       builder: (context, premiumService, child) {
-        final hasAdvancedSegmentation = premiumService.isPremiumFeature('advanced_segmentation');
+        final hasAdvancedSegmentation =
+            premiumService.isPremiumFeature('advanced_segmentation');
 
         return Container(
           decoration: BoxDecoration(
-            color: hasAdvancedSegmentation ? Colors.blue.shade50 : Colors.grey.shade100,
+            color: hasAdvancedSegmentation
+                ? Colors.blue.shade50
+                : Colors.grey.shade100,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: hasAdvancedSegmentation ? Colors.blue.shade200 : Colors.grey.shade300,
+              color: hasAdvancedSegmentation
+                  ? Colors.blue.shade200
+                  : Colors.grey.shade300,
             ),
           ),
           child: Column(
@@ -38,7 +43,9 @@ class PremiumSegmentationToggle extends StatelessWidget {
                         'Advanced Segmentation',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: hasAdvancedSegmentation ? null : Colors.grey.shade600,
+                          color: hasAdvancedSegmentation
+                              ? null
+                              : Colors.grey.shade600,
                         ),
                       ),
                     ),
@@ -57,7 +64,9 @@ class PremiumSegmentationToggle extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: hasAdvancedSegmentation ? Colors.blue.shade600 : Colors.grey.shade500,
+                        color: hasAdvancedSegmentation
+                            ? Colors.blue.shade600
+                            : Colors.grey.shade500,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Text(
@@ -75,7 +84,8 @@ class PremiumSegmentationToggle extends StatelessWidget {
                   'Identify multiple objects in a single image',
                   style: TextStyle(
                     fontSize: 12,
-                    color: hasAdvancedSegmentation ? null : Colors.grey.shade500,
+                    color:
+                        hasAdvancedSegmentation ? null : Colors.grey.shade500,
                   ),
                 ),
                 value: hasAdvancedSegmentation ? value : false,
@@ -121,7 +131,8 @@ class PremiumSegmentationToggle extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       TextButton(
-                        onPressed: onUpgradePressed ?? () => _showPremiumUpgradeDialog(context),
+                        onPressed: onUpgradePressed ??
+                            () => _showPremiumUpgradeDialog(context),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.amber.shade700,
                           padding: const EdgeInsets.symmetric(

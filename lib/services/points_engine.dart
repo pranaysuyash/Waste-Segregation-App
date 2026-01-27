@@ -14,7 +14,8 @@ class PointsEngine extends ChangeNotifier {
   static PointsEngine? _instance;
 
   /// Get singleton instance of PointsEngine
-  static PointsEngine getInstance(StorageService storageService, CloudStorageService cloudStorageService) {
+  static PointsEngine getInstance(
+      StorageService storageService, CloudStorageService cloudStorageService) {
     _instance ??= PointsEngine._internal(storageService, cloudStorageService);
     return _instance!;
   }
@@ -43,7 +44,8 @@ class PointsEngine extends ChangeNotifier {
   Stream<Achievement> get achievementStream => _achievementController.stream;
 
   /// Internal access to achievement controller for GamificationService
-  StreamController<Achievement> get achievementController => _achievementController;
+  StreamController<Achievement> get achievementController =>
+      _achievementController;
 
   /// Get current profile (cached or fresh)
   GamificationProfile? get currentProfile => _cachedProfile;
@@ -55,8 +57,9 @@ class PointsEngine extends ChangeNotifier {
     try {
       await _loadProfile();
     } catch (e) {
-      WasteAppLogger.severe(
-          'PointsEngine initialization failed', e, null, {'component': 'points_engine', 'operation': 'initialize'});
+      WasteAppLogger.severe('PointsEngine initialization failed',
+          error: e,
+          context: {'component': 'points_engine', 'operation': 'initialize'});
       // Create emergency fallback profile
       _cachedProfile = _createEmergencyProfile();
     }
@@ -92,13 +95,17 @@ class PointsEngine extends ChangeNotifier {
       final pointsToAdd = customPoints ?? _getPointsForAction(action);
 
       if (pointsToAdd <= 0) {
-        WasteAppLogger.warning('No points to add for action', null, null,
-            {'component': 'points_engine', 'action': action, 'points_to_add': pointsToAdd});
+        WasteAppLogger.warning('No points to add for action', context: {
+          'component': 'points_engine',
+          'action': action,
+          'points_to_add': pointsToAdd
+        });
         return profile.points;
       }
 
       // Calculate new points with validation
-      final newPoints = _calculateNewPoints(profile.points, pointsToAdd, category);
+      final newPoints =
+          _calculateNewPoints(profile.points, pointsToAdd, category);
 
       // Update profile
       final updatedProfile = profile.copyWith(points: newPoints);
@@ -108,13 +115,15 @@ class PointsEngine extends ChangeNotifier {
       _earnedController.add(pointsToAdd);
 
       // Log the operation
-      WasteAppLogger.gamificationEvent('points_earned', pointsEarned: pointsToAdd, context: {
-        'action': action,
-        'category': category,
-        'total_points': newPoints.total,
-        'user_level': newPoints.level,
-        'metadata': metadata
-      });
+      WasteAppLogger.gamificationEvent('points_earned',
+          pointsEarned: pointsToAdd,
+          context: {
+            'action': action,
+            'category': category,
+            'total_points': newPoints.total,
+            'user_level': newPoints.level,
+            'metadata': metadata
+          });
 
       // Track analytics if metadata provided
       if (metadata != null) {
@@ -148,14 +157,17 @@ class PointsEngine extends ChangeNotifier {
 
       // Add streak points if earned
       if (streakPoints > 0) {
-        final newPoints = _calculateNewPoints(profile.points, streakPoints, 'streak');
+        final newPoints =
+            _calculateNewPoints(profile.points, streakPoints, 'streak');
         updatedProfile = updatedProfile.copyWith(points: newPoints);
-        WasteAppLogger.gamificationEvent('streak_bonus', pointsEarned: streakPoints, context: {
-          'streak_type': type.toString(),
-          'streak_current': newStreak.currentCount,
-          'streak_longest': newStreak.longestCount,
-          'total_points': newPoints.total
-        });
+        WasteAppLogger.gamificationEvent('streak_bonus',
+            pointsEarned: streakPoints,
+            context: {
+              'streak_type': type.toString(),
+              'streak_current': newStreak.currentCount,
+              'streak_longest': newStreak.longestCount,
+              'total_points': newPoints.total
+            });
       }
 
       await _saveProfile(updatedProfile);
@@ -169,7 +181,8 @@ class PointsEngine extends ChangeNotifier {
       await initialize();
 
       final profile = _cachedProfile!;
-      final achievementIndex = profile.achievements.indexWhere((a) => a.id == achievementId);
+      final achievementIndex =
+          profile.achievements.indexWhere((a) => a.id == achievementId);
 
       if (achievementIndex == -1) {
         throw Exception('Achievement not found: $achievementId');
@@ -177,7 +190,8 @@ class PointsEngine extends ChangeNotifier {
 
       final achievement = profile.achievements[achievementIndex];
 
-      if (!achievement.isClaimable || achievement.claimStatus == ClaimStatus.claimed) {
+      if (!achievement.isClaimable ||
+          achievement.claimStatus == ClaimStatus.claimed) {
         throw Exception('Achievement not claimable: $achievementId');
       }
 
@@ -191,7 +205,8 @@ class PointsEngine extends ChangeNotifier {
       updatedAchievements[achievementIndex] = updatedAchievement;
 
       // Add reward points
-      final newPoints = _calculateNewPoints(profile.points, achievement.pointsReward, 'achievement');
+      final newPoints = _calculateNewPoints(
+          profile.points, achievement.pointsReward, 'achievement');
 
       final updatedProfile = profile.copyWith(
         achievements: updatedAchievements,
@@ -203,7 +218,10 @@ class PointsEngine extends ChangeNotifier {
       WasteAppLogger.gamificationEvent('achievement_claimed',
           pointsEarned: achievement.pointsReward,
           achievementId: achievement.id,
-          context: {'achievement_title': achievement.title, 'total_points': newPoints.total});
+          context: {
+            'achievement_title': achievement.title,
+            'total_points': newPoints.total
+          });
       return updatedAchievement;
     });
   }
@@ -214,7 +232,7 @@ class PointsEngine extends ChangeNotifier {
       await initialize();
 
       final classifications = await _storageService.getAllClassifications();
-      
+
       // Calculate expected points using dynamic calculation for each classification
       var expectedPoints = 0;
       for (final classification in classifications) {
@@ -229,15 +247,18 @@ class PointsEngine extends ChangeNotifier {
       final profile = _cachedProfile!;
       if (profile.points.total < expectedPoints) {
         final missingPoints = expectedPoints - profile.points.total;
-        WasteAppLogger.gamificationEvent('points_sync', pointsEarned: missingPoints, context: {
-          'expected_points': expectedPoints,
-          'current_points': profile.points.total,
-          'missing_points': missingPoints,
-          'total_classifications': classifications.length,
-          'dynamic_calculation': true
-        });
+        WasteAppLogger.gamificationEvent('points_sync',
+            pointsEarned: missingPoints,
+            context: {
+              'expected_points': expectedPoints,
+              'current_points': profile.points.total,
+              'missing_points': missingPoints,
+              'total_classifications': classifications.length,
+              'dynamic_calculation': true
+            });
 
-        final newPoints = _calculateNewPoints(profile.points, missingPoints, 'sync');
+        final newPoints =
+            _calculateNewPoints(profile.points, missingPoints, 'sync');
         final updatedProfile = profile.copyWith(points: newPoints);
         await _saveProfile(updatedProfile);
       }
@@ -286,20 +307,24 @@ class PointsEngine extends ChangeNotifier {
       await _storageService.saveUserProfile(updatedUserProfile);
 
       // Try cloud sync (non-blocking)
-      unawaited(_cloudStorageService.saveUserProfileToFirestore(updatedUserProfile));
+      unawaited(
+          _cloudStorageService.saveUserProfileToFirestore(updatedUserProfile));
     }
   }
 
   /// Calculate new points with validation
-  UserPoints _calculateNewPoints(UserPoints currentPoints, int pointsToAdd, String? category) {
+  UserPoints _calculateNewPoints(
+      UserPoints currentPoints, int pointsToAdd, String? category) {
     final newTotal = currentPoints.total + pointsToAdd;
     final newWeekly = currentPoints.weeklyTotal + pointsToAdd;
     final newMonthly = currentPoints.monthlyTotal + pointsToAdd;
     final newLevel = (newTotal / 100).floor() + 1;
 
-    final newCategoryPoints = Map<String, int>.from(currentPoints.categoryPoints);
+    final newCategoryPoints =
+        Map<String, int>.from(currentPoints.categoryPoints);
     if (category != null && category.isNotEmpty) {
-      newCategoryPoints[category] = (newCategoryPoints[category] ?? 0) + pointsToAdd;
+      newCategoryPoints[category] =
+          (newCategoryPoints[category] ?? 0) + pointsToAdd;
     }
 
     return UserPoints(
@@ -312,7 +337,8 @@ class PointsEngine extends ChangeNotifier {
   }
 
   /// Calculate new streak details
-  StreakDetails _calculateNewStreak(StreakDetails? currentStreak, DateTime now, StreakType type) {
+  StreakDetails _calculateNewStreak(
+      StreakDetails? currentStreak, DateTime now, StreakType type) {
     if (currentStreak == null) {
       return StreakDetails(
         type: type,
@@ -322,7 +348,8 @@ class PointsEngine extends ChangeNotifier {
       );
     }
 
-    final daysSinceLastActivity = now.difference(currentStreak.lastActivityDate).inDays;
+    final daysSinceLastActivity =
+        now.difference(currentStreak.lastActivityDate).inDays;
 
     if (daysSinceLastActivity == 0) {
       return currentStreak; // Same day, no change
@@ -331,7 +358,9 @@ class PointsEngine extends ChangeNotifier {
       final newCount = currentStreak.currentCount + 1;
       return currentStreak.copyWith(
         currentCount: newCount,
-        longestCount: newCount > currentStreak.longestCount ? newCount : currentStreak.longestCount,
+        longestCount: newCount > currentStreak.longestCount
+            ? newCount
+            : currentStreak.longestCount,
         lastActivityDate: now,
       );
     } else {
@@ -344,7 +373,8 @@ class PointsEngine extends ChangeNotifier {
   }
 
   /// Calculate streak bonus points
-  int _calculateStreakPoints(StreakDetails newStreak, StreakDetails? oldStreak) {
+  int _calculateStreakPoints(
+      StreakDetails newStreak, StreakDetails? oldStreak) {
     if (oldStreak == null || newStreak.currentCount <= oldStreak.currentCount) {
       return 0; // No streak increase
     }
@@ -380,7 +410,7 @@ class PointsEngine extends ChangeNotifier {
 
     return pointValues[action] ?? 0;
   }
-  
+
   /// Calculate enhanced points for classification based on AI analysis richness
   int calculateEnhancedClassificationPoints({
     int dataFieldsCount = 0,
@@ -390,20 +420,20 @@ class PointsEngine extends ChangeNotifier {
     bool isComplexItem = false,
   }) {
     var points = 10; // Base classification points
-    
+
     // Data richness bonus (up to 15 points)
     points += (dataFieldsCount * 1.5).round().clamp(0, 15);
-    
+
     // Environmental analysis bonus (up to 10 points)
     if (hasEnvironmentalData) {
       points += 5;
     }
-    
+
     // Local compliance bonus (up to 5 points)
     if (hasLocalCompliance) {
       points += 3;
     }
-    
+
     // Confidence bonus/penalty (±5 points)
     if (confidence >= 0.9) {
       points += 5;
@@ -414,12 +444,12 @@ class PointsEngine extends ChangeNotifier {
     } else if (confidence < 0.5) {
       points -= 2;
     }
-    
+
     // Complexity bonus (up to 5 points)
     if (isComplexItem) {
       points += 3;
     }
-    
+
     return points.clamp(5, 50);
   }
 
@@ -453,7 +483,8 @@ class PointsEngine extends ChangeNotifier {
   }
 
   /// Track analytics for points operations
-  void _trackPointsAnalytics(String action, int points, UserPoints newPoints, Map<String, dynamic> metadata) {
+  void _trackPointsAnalytics(String action, int points, UserPoints newPoints,
+      Map<String, dynamic> metadata) {
     WasteAppLogger.performanceLog('points_operation', points, context: {
       'action': action,
       'points_added': points,

@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, TargetPlatform, defaultTargetPlatform;
 import 'package:permission_handler/permission_handler.dart';
 import 'constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class PermissionHandler {
+  static bool get _isMobilePlatform =>
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
+
   /// Check and request camera permission
   static Future<bool> checkCameraPermission() async {
     if (kIsWeb) return true; // Web handles permissions differently
+    if (!_isMobilePlatform) {
+      return true; // Short-circuit for non-mobile platforms/tests
+    }
 
     try {
       final status = await Permission.camera.status;
@@ -31,6 +39,9 @@ class PermissionHandler {
   /// Check and request storage permission (for gallery access)
   static Future<bool> checkStoragePermission() async {
     if (kIsWeb) return true; // Web handles permissions differently
+    if (!_isMobilePlatform) {
+      return true; // Short-circuit for non-mobile platforms/tests
+    }
 
     try {
       // For Android 13+ (API 33+), use photos permission instead of storage
@@ -46,7 +57,7 @@ class PermissionHandler {
           WasteAppLogger.info('Photos permission already granted');
           return true;
         } else if (status.isDenied) {
-          WasteAppLogger.info('Photos permission denied, requesting...');
+          WasteAppLogger.info('Photos permission denied, error: requesting...');
           final result = await permission.request();
           if (result.isGranted) {
             WasteAppLogger.info('Photos permission granted after request');
@@ -57,7 +68,8 @@ class PermissionHandler {
           return false;
         }
       } catch (e) {
-        WasteAppLogger.info('Photos permission not available, trying storage: $e');
+        WasteAppLogger.info(
+            'Photos permission not available, error: trying storage: $e');
       }
 
       // Fallback to storage permission for older Android versions
@@ -69,7 +81,8 @@ class PermissionHandler {
           WasteAppLogger.info('Storage permission already granted');
           return true;
         } else if (status.isDenied) {
-          WasteAppLogger.info('Storage permission denied, requesting...');
+          WasteAppLogger.info(
+              'Storage permission denied, error: requesting...');
           final result = await permission.request();
           if (result.isGranted) {
             WasteAppLogger.info('Storage permission granted after request');

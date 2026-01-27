@@ -7,8 +7,8 @@ void main() async {
 
   if (kDebugMode) {
     await WasteAppLogger.initialize();
-    WasteAppLogger.info(
-        '🌐 Starting simplified web debug mode', null, null, {'platform': kIsWeb ? 'web' : 'mobile', 'mode': 'debug'});
+    WasteAppLogger.info('🌐 Starting simplified web debug mode',
+        context: {'platform': kIsWeb ? 'web' : 'mobile', 'mode': 'debug'});
   }
 
   runApp(const DebugWasteApp());
@@ -68,8 +68,10 @@ class DebugHomePage extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                WasteAppLogger.userAction('debug_button_pressed',
-                    context: {'screen': 'debug_home', 'test_type': 'rendering'});
+                WasteAppLogger.userAction('debug_button_pressed', context: {
+                  'screen': 'debug_home',
+                  'test_type': 'rendering'
+                });
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Debug test successful!')),
                 );

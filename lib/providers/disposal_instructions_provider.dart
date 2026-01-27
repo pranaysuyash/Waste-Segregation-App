@@ -1,15 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/disposal_instructions_service.dart';
 
 /// Provider for the disposal instructions service
-final disposalInstructionsServiceProvider = Provider<DisposalInstructionsService>((ref) {
+final disposalInstructionsServiceProvider =
+    Provider<DisposalInstructionsService>((ref) {
   return DisposalInstructionsService();
 });
 
 /// Provider for fetching disposal instructions for a specific material
 final disposalInstructionsProvider =
-    FutureProvider.family<DisposalInstructions, DisposalInstructionsRequest>((ref, request) async {
+    FutureProvider.family<DisposalInstructions, DisposalInstructionsRequest>(
+        (ref, request) async {
   final service = ref.read(disposalInstructionsServiceProvider);
 
   return service.getDisposalInstructions(
@@ -56,14 +58,10 @@ class DisposalInstructionsRequest {
 
 /// Provider for preloading common disposal instructions
 final preloadDisposalInstructionsProvider = FutureProvider<void>((ref) async {
-  final service = ref.read(disposalInstructionsServiceProvider);
-  await service.preloadCommonMaterials();
+  await ref.read(disposalInstructionsServiceProvider).preloadCommonMaterials();
 });
 
 /// Provider to clear disposal instructions cache
 final clearDisposalCacheProvider = Provider<void Function()>((ref) {
-  return () {
-    final service = ref.read(disposalInstructionsServiceProvider);
-    service.clearCache();
-  };
+  return () => ref.read(disposalInstructionsServiceProvider).clearCache();
 });

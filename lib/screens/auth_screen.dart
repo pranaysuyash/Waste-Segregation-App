@@ -37,7 +37,8 @@ class _AuthScreenState extends State<AuthScreen> {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
-      final googleDriveService = Provider.of<GoogleDriveService>(context, listen: false);
+      final googleDriveService =
+          Provider.of<GoogleDriveService>(context, listen: false);
 
       final user = await googleDriveService.signIn();
 
@@ -189,8 +190,10 @@ class _AuthScreenState extends State<AuthScreen> {
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
                     decoration: BoxDecoration(
                       color: Colors.red.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                      border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      border:
+                          Border.all(color: Colors.red.withValues(alpha: 0.5)),
                     ),
                     child: const Row(
                       children: [
@@ -217,7 +220,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 // Google Sign-in card (disabled on web)
                 _buildAuthCard(
-                  onPressed: (kIsWeb || _isLoading) ? null : () => _signInWithGoogle(context),
+                  onPressed: (kIsWeb || _isLoading)
+                      ? null
+                      : () => _signInWithGoogle(context),
                   icon: _isLoading
                       ? const SizedBox(
                           width: 20,
@@ -234,7 +239,9 @@ class _AuthScreenState extends State<AuthScreen> {
                           size: 24,
                           color: Colors.blue,
                         ),
-                  title: kIsWeb ? 'Sign In Unavailable on Web' : AppStrings.signInWithGoogle,
+                  title: kIsWeb
+                      ? 'Sign In Unavailable on Web'
+                      : AppStrings.signInWithGoogle,
                   subtitle: 'Sync your progress across devices',
                   backgroundColor: Colors.white,
                   textColor: Colors.black87,
@@ -244,7 +251,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 // Guest mode card
                 _buildAuthCard(
-                  onPressed: _isLoading ? null : () => _continueAsGuest(context),
+                  onPressed:
+                      _isLoading ? null : () => _continueAsGuest(context),
                   icon: const Icon(
                     Icons.person_outline,
                     size: 24,
@@ -286,7 +294,9 @@ class _AuthScreenState extends State<AuthScreen> {
             padding: const EdgeInsets.all(AppTheme.paddingRegular),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-              border: borderColor != null ? Border.all(color: borderColor, width: 2) : null,
+              border: borderColor != null
+                  ? Border.all(color: borderColor, width: 2)
+                  : null,
               boxShadow: backgroundColor != Colors.transparent
                   ? [
                       BoxShadow(

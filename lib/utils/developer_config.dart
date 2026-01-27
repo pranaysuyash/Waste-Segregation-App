@@ -45,7 +45,8 @@ class DeveloperConfig {
     assert(() {
       // This block only runs in debug mode
       if (kReleaseMode) {
-        throw StateError('Developer features should never be enabled in release mode!');
+        throw StateError(
+            'Developer features should never be enabled in release mode!');
       }
       return true;
     }());
@@ -84,20 +85,23 @@ class DeveloperConfig {
     // In release mode, absolutely no developer features should be available
     if (kReleaseMode) {
       if (isDeveloperModeEnabled) {
-        throw StateError('SECURITY VIOLATION: Developer features enabled in release build!');
+        throw StateError(
+            'SECURITY VIOLATION: Developer features enabled in release build!');
       }
     }
 
     // Additional runtime checks
     if (kReleaseMode && _runtimeSafetyCheck) {
-      throw StateError('SECURITY VIOLATION: Runtime safety check failed in release build!');
+      throw StateError(
+          'SECURITY VIOLATION: Runtime safety check failed in release build!');
     }
 
     // Log the current state for verification (only in debug)
     if (kDebugMode) {
       WasteAppLogger.info('🔒 Developer Config Security Check Passed');
       WasteAppLogger.info('📊 Developer Mode Enabled: $isDeveloperModeEnabled');
-      WasteAppLogger.info('🏗️ Build Mode: ${kDebugMode ? 'DEBUG' : kReleaseMode ? 'RELEASE' : 'PROFILE'}');
+      WasteAppLogger.info(
+          '🏗️ Build Mode: ${kDebugMode ? 'DEBUG' : kReleaseMode ? 'RELEASE' : 'PROFILE'}');
     }
   }
 

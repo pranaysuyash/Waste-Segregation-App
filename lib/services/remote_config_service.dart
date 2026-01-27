@@ -25,7 +25,7 @@ class RemoteConfigService {
         'golden_test_mode': false,
         'accessibility_enhanced': true,
         'micro_animations_enabled': true,
-        
+
         // Dynamic pricing configuration
         'ai_model_pricing': '''
 {
@@ -39,7 +39,7 @@ class RemoteConfigService {
   "gemini_2_0_flash_output": 0.000300,
   "batch_discount_rate": 0.50
 }''',
-        
+
         // Spending budgets
         'spending_budgets': '''
 {
@@ -47,7 +47,7 @@ class RemoteConfigService {
   "weekly_budget": 30.00,
   "monthly_budget": 100.00
 }''',
-        
+
         // Token limits and estimates
         'token_limits': '''
 {
@@ -55,7 +55,7 @@ class RemoteConfigService {
   "avg_output_tokens": 800,
   "max_tokens_per_request": 4000
 }''',
-        
+
         // Cost guardrails
         'cost_guardrails_enabled': true,
         'budget_threshold_percentage': 80,
@@ -65,7 +65,8 @@ class RemoteConfigService {
       // Configure fetch settings
       await _remoteConfig!.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 10),
-        minimumFetchInterval: Duration.zero, // For testing - use longer in production
+        minimumFetchInterval:
+            Duration.zero, // For testing - use longer in production
       ));
 
       // Fetch and activate
@@ -73,12 +74,16 @@ class RemoteConfigService {
       _initialized = true;
 
       if (kDebugMode) {
-        WasteAppLogger.info('RemoteConfigService initialized successfully', null, null,
-            {'service': 'remote_config', 'status': 'initialized'});
+        WasteAppLogger.info('RemoteConfigService initialized successfully',
+            context: {'service': 'remote_config', 'status': 'initialized'});
       }
     } catch (e) {
-      WasteAppLogger.severe('RemoteConfigService initialization failed', e, null,
-          {'service': 'remote_config', 'action': 'continue_without_remote_config'});
+      WasteAppLogger.severe('RemoteConfigService initialization failed',
+          error: e,
+          context: {
+            'service': 'remote_config',
+            'action': 'continue_without_remote_config'
+          });
       // Continue without remote config in case of failure
       _initialized = true;
     }
@@ -92,7 +97,8 @@ class RemoteConfigService {
       return _remoteConfig?.getBool(key) ?? defaultValue;
     } catch (e) {
       if (kDebugMode) {
-        WasteAppLogger.severe('🔥 Error getting remote config bool for $key: $e');
+        WasteAppLogger.severe(
+            '🔥 Error getting remote config bool for $key: $e');
       }
       return defaultValue;
     }
@@ -106,7 +112,8 @@ class RemoteConfigService {
       return _remoteConfig?.getString(key) ?? defaultValue;
     } catch (e) {
       if (kDebugMode) {
-        WasteAppLogger.severe('🔥 Error getting remote config string for $key: $e');
+        WasteAppLogger.severe(
+            '🔥 Error getting remote config string for $key: $e');
       }
       return defaultValue;
     }
@@ -120,7 +127,8 @@ class RemoteConfigService {
       return _remoteConfig?.getInt(key) ?? defaultValue;
     } catch (e) {
       if (kDebugMode) {
-        WasteAppLogger.severe('🔥 Error getting remote config int for $key: $e');
+        WasteAppLogger.severe(
+            '🔥 Error getting remote config int for $key: $e');
       }
       return defaultValue;
     }
@@ -147,7 +155,9 @@ class RemoteConfigService {
     if (!_initialized || _remoteConfig == null) return {};
 
     try {
-      return _remoteConfig!.getAll().map((key, value) => MapEntry(key, value.asString()));
+      return _remoteConfig!
+          .getAll()
+          .map((key, value) => MapEntry(key, value.asString()));
     } catch (e) {
       if (kDebugMode) {
         WasteAppLogger.severe('🔥 Error getting all remote config values: $e');

@@ -13,8 +13,8 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 /// Service to clear Firebase data for testing fresh install experience
 /// This should only be used in development/testing environments
 class FirebaseCleanupService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// A flag to indicate that a fresh install has just been performed.
   /// App initialization logic can check this flag to prevent automatic
@@ -31,7 +31,7 @@ class FirebaseCleanupService {
     'classification_feedback',
     'user_contributions',
     'admin_classifications', // AI model training data
-    'admin_user_recovery',   // User recovery data
+    'admin_user_recovery', // User recovery data
   ];
 
   static const List<String> _globalCollections = [
@@ -41,7 +41,7 @@ class FirebaseCleanupService {
     'disposal_instructions',
     'disposal_locations',
     'family_stats', // Family feature collections
-    'test',         // Test collection for API verification
+    'test', // Test collection for API verification
   ];
 
   /// Collections that need direct document deletion (not query-based)
@@ -74,7 +74,8 @@ class FirebaseCleanupService {
       return;
     }
 
-    WasteAppLogger.info('🔥 Starting fresh install process for user: ${user.uid}');
+    WasteAppLogger.info(
+        '🔥 Starting fresh install process for user: ${user.uid}');
     didPerformFreshInstall = false; // Reset flag at start
 
     try {
@@ -111,11 +112,15 @@ class FirebaseCleanupService {
 
     // Delete user-specific documents from various collections
     for (final collectionName in _userCollections) {
-      final snapshot = await _firestore.collection(collectionName).where('userId', isEqualTo: uid).get();
+      final snapshot = await _firestore
+          .collection(collectionName)
+          .where('userId', isEqualTo: uid)
+          .get();
       for (final doc in snapshot.docs) {
         batch.delete(doc.reference);
       }
-      WasteAppLogger.info('  - Found and staged ${snapshot.size} docs for deletion in "$collectionName"');
+      WasteAppLogger.info(
+          '  - Found and staged ${snapshot.size} docs for deletion in "$collectionName"');
     }
 
     // Delete direct user collections (document ID = userId)
@@ -125,7 +130,8 @@ class FirebaseCleanupService {
         final docSnapshot = await docRef.get();
         if (docSnapshot.exists) {
           batch.delete(docRef);
-          WasteAppLogger.info('  - Staged deletion for doc "$uid" in "$collectionName"');
+          WasteAppLogger.info(
+              '  - Staged deletion for doc "$uid" in "$collectionName"');
         }
       } catch (e) {
         WasteAppLogger.warning('Failed to delete from $collectionName: $e');
@@ -142,14 +148,16 @@ class FirebaseCleanupService {
               .doc(uid)
               .collection('classifications')
               .get();
-          
+
           for (final doc in subcollectionSnapshot.docs) {
             batch.delete(doc.reference);
           }
-          WasteAppLogger.info('  - Found and staged ${subcollectionSnapshot.size} docs for deletion in "users/$uid/classifications"');
+          WasteAppLogger.info(
+              '  - Found and staged ${subcollectionSnapshot.size} docs for deletion in "users/$uid/classifications"');
         }
       } catch (e) {
-        WasteAppLogger.warning('Failed to delete subcollections from $collectionName: $e');
+        WasteAppLogger.warning(
+            'Failed to delete subcollections from $collectionName: $e');
       }
     }
 
@@ -157,7 +165,8 @@ class FirebaseCleanupService {
     for (final collectionName in _globalCollections) {
       final docRef = _firestore.collection(collectionName).doc(uid);
       batch.delete(docRef);
-      WasteAppLogger.info('  - Staged deletion for doc "$uid" in "$collectionName"');
+      WasteAppLogger.info(
+          '  - Staged deletion for doc "$uid" in "$collectionName"');
     }
 
     await batch.commit();
@@ -176,7 +185,8 @@ class FirebaseCleanupService {
         await Hive.deleteBoxFromDisk(boxName);
         WasteAppLogger.info('  - Deleted box: $boxName');
       } catch (e) {
-        WasteAppLogger.info('  - Could not delete box $boxName (may not exist): $e');
+        WasteAppLogger.info(
+            '  - Could not delete box $boxName (may not exist): $e');
       }
     }
     WasteAppLogger.info('✅ All Hive boxes deleted from disk.');
@@ -184,7 +194,8 @@ class FirebaseCleanupService {
     // Re-initialize essential services to get the app back into a usable state
     WasteAppLogger.info('🔄 Re-initializing core services...');
     final storageService = EnhancedStorageService();
-    final gamificationService = GamificationService(storageService, CloudStorageService(storageService));
+    final gamificationService = GamificationService(
+        storageService, CloudStorageService(storageService));
     final communityService = CommunityService();
 
     await StorageService.initializeHive();
@@ -206,13 +217,16 @@ class FirebaseCleanupService {
   Future<void> adminDeleteUser(String userIdToDelete) async {
     await _verifyCurrentUserIsAdmin();
 
-    WasteAppLogger.info('🔥 [ADMIN] Deleting all Firestore data for user: $userIdToDelete');
+    WasteAppLogger.info(
+        '🔥 [ADMIN] Deleting all Firestore data for user: $userIdToDelete');
     try {
       // Re-using the same Firestore deletion logic, but targeted at a specific user.
       await _wipeCloudAndFirestoreCache(userIdToDelete);
-      WasteAppLogger.info('✅ [ADMIN] Successfully deleted all Firestore data for user: $userIdToDelete');
+      WasteAppLogger.info(
+          '✅ [ADMIN] Successfully deleted all Firestore data for user: $userIdToDelete');
     } catch (e) {
-      WasteAppLogger.severe('❌ [ADMIN] Error deleting data for user $userIdToDelete: $e');
+      WasteAppLogger.severe(
+          '❌ [ADMIN] Error deleting data for user $userIdToDelete: $e');
       throw Exception('Failed to delete user data. Error: $e');
     }
   }
@@ -226,7 +240,8 @@ class FirebaseCleanupService {
     // For this project, we'll use the email as a simple check.
     const adminEmail = 'pranaysuyash@gmail.com';
     if (currentUser.email != adminEmail) {
-      throw Exception('Admin action failed: User ${currentUser.email} is not an authorized admin.');
+      throw Exception(
+          'Admin action failed: User ${currentUser.email} is not an authorized admin.');
     }
     WasteAppLogger.info('🔑 Admin user verified: ${currentUser.email}');
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../../utils/constants.dart';
 import '../interactive_tag.dart';
 
@@ -61,7 +61,9 @@ class ClassificationCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isDark ? [Colors.grey.shade800, Colors.grey.shade900] : [Colors.white, Colors.grey.shade50],
+            colors: isDark
+                ? [Colors.grey.shade800, Colors.grey.shade900]
+                : [Colors.white, Colors.grey.shade50],
           ),
         ),
         child: Column(
@@ -74,10 +76,12 @@ class ClassificationCard extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: _getCategoryColor(classification.category),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusRegular),
                     boxShadow: [
                       BoxShadow(
-                        color: _getCategoryColor(classification.category).withValues(alpha: 0.3),
+                        color: _getCategoryColor(classification.category)
+                            .withValues(alpha: 0.3),
                         offset: const Offset(0, 2),
                         blurRadius: 8,
                       ),
@@ -93,7 +97,9 @@ class ClassificationCard extends StatelessWidget {
                       Text(
                         'Identified As',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

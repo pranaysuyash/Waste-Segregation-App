@@ -20,7 +20,8 @@ void main() {
       });
 
       test('should initialize without errors', () async {
-        expect(() async => await communityService.initCommunity(), returnsNormally);
+        expect(() async => await communityService.initCommunity(),
+            returnsNormally);
       });
     });
 
@@ -64,7 +65,8 @@ void main() {
         final classification = _createTestClassification();
 
         expect(
-          () async => await communityService.recordClassification(classification, user),
+          () async =>
+              await communityService.recordClassification(classification, user),
           returnsNormally,
         );
       });
@@ -83,7 +85,8 @@ void main() {
         );
 
         expect(
-          () async => await communityService.recordAchievement(achievement, user),
+          () async =>
+              await communityService.recordAchievement(achievement, user),
           returnsNormally,
         );
       });
@@ -102,9 +105,10 @@ void main() {
     group('User Data Sync', () {
       test('should handle null user gracefully', () async {
         final classifications = [_createTestClassification()];
-        
+
         expect(
-          () async => await communityService.syncWithUserData(classifications, null),
+          () async =>
+              await communityService.syncWithUserData(classifications, null),
           returnsNormally,
         );
       });
@@ -117,7 +121,8 @@ void main() {
         ];
 
         expect(
-          () async => await communityService.syncWithUserData(classifications, user),
+          () async =>
+              await communityService.syncWithUserData(classifications, user),
           returnsNormally,
         );
       });
@@ -127,7 +132,8 @@ void main() {
         final classifications = <WasteClassification>[];
 
         expect(
-          () async => await communityService.syncWithUserData(classifications, user),
+          () async =>
+              await communityService.syncWithUserData(classifications, user),
           returnsNormally,
         );
       });
@@ -151,10 +157,10 @@ void main() {
       test('should respect feed item limit parameter', () async {
         final feed1 = await communityService.getFeedItems(limit: 5);
         final feed2 = await communityService.getFeedItems(limit: 10);
-        
+
         expect(feed1, isA<List<CommunityFeedItem>>());
         expect(feed2, isA<List<CommunityFeedItem>>());
-        
+
         // The actual sizes depend on what's in Firestore, but we can verify the API works
         expect(feed1.length, lessThanOrEqualTo(5));
         expect(feed2.length, lessThanOrEqualTo(10));
@@ -177,7 +183,7 @@ void main() {
           totalPoints: 100,
           categoryBreakdown: {'Plastic': 5, 'Paper': 5},
         );
-        
+
         expect(stats.totalUsers, equals(5));
         expect(stats.totalClassifications, equals(10));
         expect(stats.totalPoints, equals(100));
@@ -197,7 +203,8 @@ UserProfile _createTestUser({String? id, String? email, String? displayName}) {
   );
 }
 
-WasteClassification _createTestClassification({String? userId, DateTime? timestamp}) {
+WasteClassification _createTestClassification(
+    {String? userId, DateTime? timestamp}) {
   return WasteClassification(
     itemName: 'Test Item',
     category: 'Plastic',

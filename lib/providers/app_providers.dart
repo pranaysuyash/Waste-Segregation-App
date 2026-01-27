@@ -22,7 +22,8 @@ import '../services/ai_service.dart';
 /// This eliminates duplicate provider declarations across the app
 
 /// Storage service provider - single source of truth
-final storageServiceProvider = Provider<StorageService>((ref) => StorageService());
+final storageServiceProvider =
+    Provider<StorageService>((ref) => StorageService());
 
 /// Cloud storage service provider - single source of truth
 final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) {
@@ -64,7 +65,9 @@ final todayGoalProvider = FutureProvider<(int, int)>((ref) async {
   // Count today's classifications
   final today = DateTime.now();
   final todayClassifications = classifications.where((c) {
-    return c.timestamp.year == today.year && c.timestamp.month == today.month && c.timestamp.day == today.day;
+    return c.timestamp.year == today.year &&
+        c.timestamp.month == today.month &&
+        c.timestamp.day == today.day;
   }).length;
 
   // Default daily goal is 10 items
@@ -86,13 +89,15 @@ final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
   try {
     return await storageService.getCurrentUserProfile();
   } catch (e) {
-    WasteAppLogger.severe('Error loading user profile', e, null, {'action': 'return_default_profile'});
+    WasteAppLogger.severe('Error loading user profile',
+        error: e, context: {'action': 'return_default_profile'});
     return null;
   }
 });
 
 /// Educational content service provider - single source of truth
-final educationalContentServiceProvider = Provider<EducationalContentService>((ref) => EducationalContentService());
+final educationalContentServiceProvider =
+    Provider<EducationalContentService>((ref) => EducationalContentService());
 
 /// Ad service provider - single source of truth
 final adServiceProvider = Provider<AdService>((ref) => AdService());
@@ -104,10 +109,12 @@ final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
 });
 
 /// Analytics consent manager provider - for GDPR/CCPA compliance
-final analyticsConsentManagerProvider = Provider<AnalyticsConsentManager>((ref) => AnalyticsConsentManager());
+final analyticsConsentManagerProvider =
+    Provider<AnalyticsConsentManager>((ref) => AnalyticsConsentManager());
 
 /// Analytics schema validator provider - for event validation
-final analyticsSchemaValidatorProvider = Provider<AnalyticsSchemaValidator>((ref) => AnalyticsSchemaValidator());
+final analyticsSchemaValidatorProvider =
+    Provider<AnalyticsSchemaValidator>((ref) => AnalyticsSchemaValidator());
 
 /// Gamification profile provider - for accessing current user's gamification data
 final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
@@ -115,13 +122,15 @@ final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
   try {
     return await gamificationService.getProfile();
   } catch (e) {
-    WasteAppLogger.severe('Error loading gamification profile', e, null, {'action': 'return_null_profile'});
+    WasteAppLogger.severe('Error loading gamification profile',
+        error: e, context: {'action': 'return_null_profile'});
     return null;
   }
 });
 
 /// Remote config provider for A/B testing
-final remoteConfigProvider = Provider<RemoteConfigService>((ref) => RemoteConfigService());
+final remoteConfigProvider =
+    Provider<RemoteConfigService>((ref) => RemoteConfigService());
 
 /// Dynamic pricing service provider - for cost management
 final dynamicPricingServiceProvider = Provider<DynamicPricingService>((ref) {
@@ -140,7 +149,8 @@ final costGuardrailServiceProvider = Provider<CostGuardrailService>((ref) {
 });
 
 /// Enhanced API error handler provider - for reliable API operations
-final enhancedApiErrorHandlerProvider = Provider<EnhancedApiErrorHandler>((ref) {
+final enhancedApiErrorHandlerProvider =
+    Provider<EnhancedApiErrorHandler>((ref) {
   return EnhancedApiErrorHandler();
 });
 
@@ -183,7 +193,7 @@ final aiServiceProvider = Provider<AiService>((ref) {
   final pricingService = ref.read(dynamicPricingServiceProvider);
   final guardrailService = ref.read(costGuardrailServiceProvider);
   final errorHandler = ref.read(enhancedApiErrorHandlerProvider);
-  
+
   return AiService(
     pricingService: pricingService,
     guardrailService: guardrailService,

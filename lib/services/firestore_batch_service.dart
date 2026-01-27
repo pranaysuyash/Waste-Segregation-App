@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/waste_app_logger.dart';
 
 /// OPTIMIZATION: Service for batching Firestore write operations
-/// 
+///
 /// Provides 40% cost reduction by grouping multiple writes into single batch commits.
 /// Firestore charges per document write, so batching significantly reduces costs.
-/// 
+///
 /// Benefits:
 /// - Reduces Firestore costs by ~40%
 /// - Atomic operations (all succeed or all fail)
@@ -17,7 +17,7 @@ class FirestoreBatchService {
     this.autoCommitThreshold = 100, // Auto-commit at 100 operations
   });
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final int maxBatchSize;
   final int autoCommitThreshold;
 
@@ -33,13 +33,13 @@ class FirestoreBatchService {
     bool merge = false,
   }) async {
     _ensureBatch();
-    
+
     if (merge) {
       _currentBatch!.set(docRef, data, SetOptions(merge: true));
     } else {
       _currentBatch!.set(docRef, data);
     }
-    
+
     _operationCount++;
     await _checkAutoCommit();
   }
@@ -71,7 +71,8 @@ class FirestoreBatchService {
     }
 
     if (_isCommitting) {
-      WasteAppLogger.warning('Batch commit already in progress, skipping');
+      WasteAppLogger.warning(
+          'Batch commit already in progress, error: skipping');
       return 0;
     }
 
@@ -79,26 +80,26 @@ class FirestoreBatchService {
     final opsCount = _operationCount;
 
     try {
-      WasteAppLogger.info('Committing Firestore batch with $opsCount operations');
-      await _currentBatch!.commit();
-      
       WasteAppLogger.info(
-        'Successfully committed batch',
-        null,
-        null,
-        {
-          'operations': opsCount,
-          'cost_savings': '~${(opsCount * 0.4).toStringAsFixed(0)}% vs individual writes',
-        },
-      );
+          'Committing Firestore batch with $opsCount operations');
+      await _currentBatch!.commit();
+
+      WasteAppLogger.info('Successfully committed batch', context: {
+        'operations': opsCount,
+        'cost_savings':
+            '~${(opsCount * 0.4).toStringAsFixed(0)}% vs individual writes',
+      });
 
       _currentBatch = null;
       _operationCount = 0;
       return opsCount;
     } catch (e, s) {
-      WasteAppLogger.severe('Error committing Firestore batch', e, s, {
-        'operations': opsCount,
-      });
+      WasteAppLogger.severe('Error committing Firestore batch',
+          error: e,
+          stackTrace: s,
+          context: {
+            'operations': opsCount,
+          });
       rethrow;
     } finally {
       _isCommitting = false;
@@ -123,16 +124,16 @@ class FirestoreBatchService {
 
     if (_operationCount >= maxBatchSize) {
       throw Exception(
-        'Batch is at maximum capacity ($maxBatchSize operations). '
-        'Please commit before adding more operations.'
-      );
+          'Batch is at maximum capacity ($maxBatchSize operations). '
+          'Please commit before adding more operations.');
     }
   }
 
   /// Check if we should auto-commit based on threshold
   Future<void> _checkAutoCommit() async {
     if (_operationCount >= autoCommitThreshold) {
-      WasteAppLogger.info('Auto-committing batch at threshold: $_operationCount operations');
+      WasteAppLogger.info(
+          'Auto-committing batch at threshold: $_operationCount operations');
       await commit();
     }
   }
@@ -141,11 +142,8 @@ class FirestoreBatchService {
   void dispose() {
     if (_operationCount > 0) {
       WasteAppLogger.warning(
-        'FirestoreBatchService disposed with uncommitted operations',
-        null,
-        null,
-        {'pending_operations': _operationCount},
-      );
+          'FirestoreBatchService disposed with uncommitted operations',
+          context: {'pending_operations': _operationCount});
     }
     _currentBatch = null;
     _operationCount = 0;
@@ -179,7 +177,7 @@ class FirestoreBatchManager {
   Future<int> commitBatch(String name) async {
     final batch = _batches[name];
     if (batch == null) return 0;
-    
+
     final count = await batch.commit();
     if (batch.isEmpty) {
       _batches.remove(name);
@@ -199,15 +197,10 @@ class FirestoreBatchManager {
       }
     }
 
-    WasteAppLogger.info(
-      'Committed all batches',
-      null,
-      null,
-      {
-        'batches': results.length,
-        'total_operations': results.values.fold(0, (sum, count) => sum + count),
-      },
-    );
+    WasteAppLogger.info('Committed all batches', context: {
+      'batches': results.length,
+      'total_operations': results.values.fold(0, (sum, count) => sum + count),
+    });
 
     return results;
   }

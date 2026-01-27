@@ -37,7 +37,8 @@ class EmptyStateWidget extends StatefulWidget {
   State<EmptyStateWidget> createState() => _EmptyStateWidgetState();
 }
 
-class _EmptyStateWidgetState extends State<EmptyStateWidget> with TickerProviderStateMixin {
+class _EmptyStateWidgetState extends State<EmptyStateWidget>
+    with TickerProviderStateMixin {
   late AnimationController _primaryController;
   late AnimationController _pulseController;
   late AnimationController _tipController;
@@ -386,7 +387,8 @@ class EmptyHistoryStateWidget extends StatelessWidget {
       message:
           'Start classifying items to build your waste history.\nEvery classification helps you learn and track your environmental impact!',
       icon: Icons.history_toggle_off_outlined,
-      educationalTip: 'Tip: Take photos of different waste items to learn proper disposal methods',
+      educationalTip:
+          'Tip: Take photos of different waste items to learn proper disposal methods',
       actionText: 'Start Classifying',
       onActionPressed: onStartClassifying,
     );
@@ -411,7 +413,8 @@ class EmptyAchievementsStateWidget extends StatelessWidget {
       icon: Icons.emoji_events_outlined,
       iconColor: Colors.amber.shade600,
       animationType: EmptyStateAnimationType.bounceIn,
-      educationalTip: 'First achievement unlocked after just 3 classifications!',
+      educationalTip:
+          'First achievement unlocked after just 3 classifications!',
       actionText: 'Start Earning',
       onActionPressed: onStartEarning,
     );
@@ -439,7 +442,8 @@ class EmptySearchResultsWidget extends StatelessWidget {
           'We couldn\'t find any items matching "$searchQuery".\nTry adjusting your search terms or explore different categories.',
       icon: Icons.search_off_outlined,
       animationType: EmptyStateAnimationType.slideUp,
-      educationalTip: 'Try searching for broader terms like "plastic" or "paper"',
+      educationalTip:
+          'Try searching for broader terms like "plastic" or "paper"',
       actionText: 'Clear Search',
       onActionPressed: onClearSearch,
     );
@@ -497,7 +501,8 @@ class EmptyEducationalContentWidget extends StatelessWidget {
       iconColor: AppTheme.primaryColor,
       animationType: EmptyStateAnimationType.slideUp,
       educationalTip: 'New content is added regularly based on user feedback',
-      actionText: category != null ? 'Explore Categories' : 'Browse Available Content',
+      actionText:
+          category != null ? 'Explore Categories' : 'Browse Available Content',
       onActionPressed: onExploreCategories,
     );
   }
@@ -520,7 +525,8 @@ class RefreshLoadingWidget extends StatefulWidget {
   State<RefreshLoadingWidget> createState() => _RefreshLoadingWidgetState();
 }
 
-class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget> with TickerProviderStateMixin {
+class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
+    with TickerProviderStateMixin {
   late AnimationController _particleController;
   late AnimationController _stepController;
   late AnimationController _tipController;
@@ -620,7 +626,8 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget> with Ticker
               _tipController.reverse().then((_) {
                 if (mounted) {
                   setState(() {
-                    _currentTipIndex = (_currentTipIndex + 1) % _educationalTips.length;
+                    _currentTipIndex =
+                        (_currentTipIndex + 1) % _educationalTips.length;
                   });
                   _startTipRotation();
                 }
@@ -730,7 +737,8 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget> with Ticker
                       padding: const EdgeInsets.all(AppTheme.paddingRegular),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusRegular),
                       ),
                       child: Row(
                         children: [

@@ -11,10 +11,12 @@ class CyberpunkWasteImpactDashboard extends StatefulWidget {
   const CyberpunkWasteImpactDashboard({super.key});
 
   @override
-  _CyberpunkWasteImpactDashboardState createState() => _CyberpunkWasteImpactDashboardState();
+  _CyberpunkWasteImpactDashboardState createState() =>
+      _CyberpunkWasteImpactDashboardState();
 }
 
-class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDashboard> {
+class _CyberpunkWasteImpactDashboardState
+    extends State<CyberpunkWasteImpactDashboard> {
   // Sample futuristic data
   double wasteItemsClassified = 73.0;
   double dailyTarget = 100.0;
@@ -455,7 +457,8 @@ class _CyberpunkWasteImpactDashboardState extends State<CyberpunkWasteImpactDash
     );
   }
 
-  Widget _buildStatItem(String title, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildStatItem(
+      String title, String value, String subtitle, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

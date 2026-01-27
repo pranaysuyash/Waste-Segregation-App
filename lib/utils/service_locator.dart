@@ -44,7 +44,8 @@ class ServiceLocator {
     return Provider.of<CommunityService>(context, listen: false);
   }
 
-  static EnhancedStorageService getEnhancedStorageService(BuildContext context) {
+  static EnhancedStorageService getEnhancedStorageService(
+      BuildContext context) {
     return Provider.of<EnhancedStorageService>(context, listen: false);
   }
 
@@ -65,15 +66,6 @@ class ServiceLocator {
 
 /// Bundle of commonly used services together
 class ServiceBundle {
-  final StorageService storage;
-  final CloudStorageService cloudStorage;
-  final GamificationService gamification;
-  final AnalyticsService analytics;
-  final AdService ad;
-  final GoogleDriveService googleDrive;
-  final PremiumService premium;
-  final CommunityService community;
-
   const ServiceBundle({
     required this.storage,
     required this.cloudStorage,
@@ -84,4 +76,12 @@ class ServiceBundle {
     required this.premium,
     required this.community,
   });
+  final StorageService storage;
+  final CloudStorageService cloudStorage;
+  final GamificationService gamification;
+  final AnalyticsService analytics;
+  final AdService ad;
+  final GoogleDriveService googleDrive;
+  final PremiumService premium;
+  final CommunityService community;
 }

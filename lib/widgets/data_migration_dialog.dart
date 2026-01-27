@@ -73,8 +73,10 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
+                border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3)),
               ),
               child: const Row(
                 children: [
@@ -87,7 +89,8 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
                   Expanded(
                     child: Text(
                       'Would you like to keep this data in your signed-in account?',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],
@@ -129,7 +132,8 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
                 color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
                 border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
               ),
               child: const Row(
@@ -181,8 +185,10 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
     });
 
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
-      final migratedCount = await storageService.migrateGuestDataToCurrentUser();
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final migratedCount =
+          await storageService.migrateGuestDataToCurrentUser();
 
       setState(() {
         _isMigrating = false;

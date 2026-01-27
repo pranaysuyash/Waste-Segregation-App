@@ -74,7 +74,8 @@ class FilterOptions {
       materialTypes: materialTypes ?? this.materialTypes,
       isRecyclable: isRecyclable ?? this.isRecyclable,
       isCompostable: isCompostable ?? this.isCompostable,
-      requiresSpecialDisposal: requiresSpecialDisposal ?? this.requiresSpecialDisposal,
+      requiresSpecialDisposal:
+          requiresSpecialDisposal ?? this.requiresSpecialDisposal,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       sortNewestFirst: sortNewestFirst ?? this.sortNewestFirst,
@@ -135,13 +136,15 @@ class FilterOptions {
 
     final requiresSpecialDisposalValue = requiresSpecialDisposal;
     if (requiresSpecialDisposalValue != null) {
-      appliedFilters.add('Special Disposal: ${requiresSpecialDisposalValue ? "Yes" : "No"}');
+      appliedFilters.add(
+          'Special Disposal: ${requiresSpecialDisposalValue ? "Yes" : "No"}');
     }
 
     final startDateValue = startDate;
     final endDateValue = endDate;
     if (startDateValue != null && endDateValue != null) {
-      appliedFilters.add('Date Range: ${_formatDate(startDateValue)} to ${_formatDate(endDateValue)}');
+      appliedFilters.add(
+          'Date Range: ${_formatDate(startDateValue)} to ${_formatDate(endDateValue)}');
     } else if (startDateValue != null) {
       appliedFilters.add('From: ${_formatDate(startDateValue)}');
     } else if (endDateValue != null) {

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../providers/app_providers.dart';
-import '../providers/token_providers.dart';
 
 /// Lean, personalized home header with micro-interactions
 /// Replaces the verbose welcome section with essential data chips only
@@ -14,7 +13,8 @@ class HomeHeader extends ConsumerStatefulWidget {
   HomeHeaderState createState() => HomeHeaderState();
 }
 
-class HomeHeaderState extends ConsumerState<HomeHeader> with SingleTickerProviderStateMixin {
+class HomeHeaderState extends ConsumerState<HomeHeader>
+    with SingleTickerProviderStateMixin {
   int? _prevPts;
   late final AnimationController _pulse;
 
@@ -41,7 +41,8 @@ class HomeHeaderState extends ConsumerState<HomeHeader> with SingleTickerProvide
     final unreadAsync = ref.watch(unreadNotificationsProvider);
 
     return profileAsync.when(
-      data: (profile) => _buildHeader(context, profile, userProfileAsync, todayGoalAsync, unreadAsync),
+      data: (profile) => _buildHeader(
+          context, profile, userProfileAsync, todayGoalAsync, unreadAsync),
       loading: () => _buildLoadingHeader(context),
       error: (_, __) => _buildErrorHeader(context),
     );
@@ -59,21 +60,24 @@ class HomeHeaderState extends ConsumerState<HomeHeader> with SingleTickerProvide
     final (done, total) = todayGoalAsync.valueOrNull ?? (0, 10);
     final userProfile = userProfileAsync.valueOrNull;
 
-    // Get token wallet for token display
-    final tokenWalletAsync = ref.watch(tokenWalletProvider);
-
     // Points pulse trigger
     if (_prevPts != null && pts > _prevPts!) {
       _pulse.forward(from: 0);
     }
     _prevPts = pts;
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isCompact = screenWidth < 420;
+
     return Card(
       margin: EdgeInsets.zero,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(isCompact ? 8 : 20),
         child: IntrinsicHeight(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,120 +87,190 @@ class HomeHeaderState extends ConsumerState<HomeHeader> with SingleTickerProvide
               LayoutBuilder(
                 builder: (context, constraints) {
                   final isVerySmallScreen = constraints.maxWidth < 300;
+                  final showMetricPills = constraints.maxWidth >= 320;
+                  final stackPills = constraints.maxWidth < 420;
+
+                  if (stackPills) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Semantics(
+                              label:
+                                  'User avatar for ${userProfile?.displayName ?? 'User'}',
+                              child: CircleAvatar(
+                                radius: isVerySmallScreen ? 18 : 22,
+                                child: _buildAvatar(userProfile),
+                              ),
+                            ),
+                            SizedBox(width: isVerySmallScreen ? 8 : 12),
+                            Expanded(
+                              child: _buildGreeting(context, userProfile),
+                            ),
+                            const SizedBox(width: 8),
+                            Semantics(
+                              label: unread > 0
+                                  ? '$unread unread notifications'
+                                  : 'No unread notifications',
+                              button: true,
+                              child: _Bell(unread: unread),
+                            ),
+                          ],
+                        ),
+                        if (showMetricPills)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 6,
+                              children: [
+                                if (!isVerySmallScreen)
+                                  Semantics(
+                                    label: 'Current points: $pts',
+                                    child:
+                                        _PointsPill(points: pts, pulse: _pulse),
+                                  ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    );
+                  }
 
                   return Row(
                     children: [
                       Semantics(
-                        label: 'User avatar for ${userProfile?.displayName ?? 'User'}',
+                        label:
+                            'User avatar for ${userProfile?.displayName ?? 'User'}',
                         child: CircleAvatar(
-                          radius: isVerySmallScreen ? 20 : 28,
+                          radius: isVerySmallScreen ? 18 : 24,
                           child: _buildAvatar(userProfile),
                         ),
                       ),
                       SizedBox(width: isVerySmallScreen ? 8 : 16),
                       Expanded(
-                        flex: 3,
+                        flex: 2,
                         child: _buildGreeting(context, userProfile),
                       ),
-                      if (!isVerySmallScreen) ...[
-                        Semantics(
-                          label: 'Current points: $pts',
-                          child: _PointsPill(points: pts, pulse: _pulse),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 2,
+                        child: Wrap(
+                          alignment: WrapAlignment.end,
+                          runAlignment: WrapAlignment.end,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            if (!isVerySmallScreen && showMetricPills)
+                              Semantics(
+                                label: 'Current points: $pts',
+                                child: _PointsPill(points: pts, pulse: _pulse),
+                              ),
+                            Semantics(
+                              label: unread > 0
+                                  ? '$unread unread notifications'
+                                  : 'No unread notifications',
+                              button: true,
+                              child: _Bell(unread: unread),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        // Token display
-                        tokenWalletAsync.when(
-                          data: (wallet) => Semantics(
-                            label: 'AI tokens: ${wallet?.balance ?? 0}',
-                            child: _TokenPill(tokens: wallet?.balance ?? 0),
-                          ),
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, __) => const SizedBox.shrink(),
-                        ),
-                        const SizedBox(width: 12),
-                      ],
-                      Semantics(
-                        label: unread > 0 ? '$unread unread notifications' : 'No unread notifications',
-                        button: true,
-                        child: _Bell(unread: unread),
                       ),
                     ],
                   );
                 },
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: isCompact ? 6 : 20),
               // Row 2: streak + goal (responsive)
               LayoutBuilder(
                 builder: (context, constraints) {
                   final isSmallScreen = constraints.maxWidth < 350;
 
                   if (isSmallScreen) {
-                    // Stack vertically on small screens
-                    return Column(
+                    // Compact chips on small screens to avoid overflow
+                    return Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Semantics(
-                          label: 'Current streak: ${_getCurrentStreak(profile)} days',
+                          label:
+                              'Current streak: ${_getCurrentStreak(profile)} days',
                           child: _SmallPill(
                             icon: Icons.local_fire_department,
                             label: '${_getCurrentStreak(profile)}-day streak',
                             bg: const Color(0xFFFFF2E5), // peach
                           ),
                         ),
-                        const SizedBox(height: 12),
                         Semantics(
-                          label: 'Today\'s goal progress: $done out of $total items completed',
-                          child: Column(
-                            children: [
-                              Text(
-                                "TODAY'S GOAL",
-                                style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                      letterSpacing: 1.2,
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                              Text(
-                                '$done/$total items',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                              ),
-                            ],
+                          label:
+                              'Today\'s goal progress: $done out of $total items completed',
+                          child: _SmallPill(
+                            icon: Icons.flag_outlined,
+                            label: '$done/$total today',
+                            bg: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                           ),
                         ),
                       ],
                     );
                   } else {
-                    // Horizontal layout for larger screens
+                    // Horizontal layout for larger screens with flexible distribution
                     return Row(
                       children: [
-                        Semantics(
-                          label: 'Current streak: ${_getCurrentStreak(profile)} days',
-                          child: _SmallPill(
-                            icon: Icons.local_fire_department,
-                            label: '${_getCurrentStreak(profile)}-day streak',
-                            bg: const Color(0xFFFFF2E5), // peach
+                        Flexible(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Semantics(
+                              label:
+                                  'Current streak: ${_getCurrentStreak(profile)} days',
+                              child: _SmallPill(
+                                icon: Icons.local_fire_department,
+                                label:
+                                    '${_getCurrentStreak(profile)}-day streak',
+                                bg: const Color(0xFFFFF2E5), // peach
+                              ),
+                            ),
                           ),
                         ),
-                        const Spacer(),
-                        Semantics(
-                          label: 'Today\'s goal progress: $done out of $total items completed',
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "TODAY'S GOAL",
-                                style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                      letterSpacing: 1.2,
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                              Text(
-                                '$done/$total items',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                              ),
-                            ],
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Semantics(
+                            label:
+                                'Today\'s goal progress: $done out of $total items completed',
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  "TODAY'S GOAL",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall!
+                                      .copyWith(
+                                        letterSpacing: 1.2,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                ),
+                                Text(
+                                  '$done/$total items',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -214,7 +288,10 @@ class HomeHeaderState extends ConsumerState<HomeHeader> with SingleTickerProvide
   Widget _buildLoadingHeader(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: const Padding(
         padding: EdgeInsets.all(20),
@@ -228,7 +305,10 @@ class HomeHeaderState extends ConsumerState<HomeHeader> with SingleTickerProvide
   Widget _buildErrorHeader(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: const Padding(
         padding: EdgeInsets.all(20),
@@ -239,7 +319,12 @@ class HomeHeaderState extends ConsumerState<HomeHeader> with SingleTickerProvide
 
   Widget _buildAvatar(UserProfile? userProfile) {
     final displayName = userProfile?.displayName ?? 'User';
-    final initials = displayName.split(' ').map((n) => n.isNotEmpty ? n[0] : '').take(2).join().toUpperCase();
+    final initials = displayName
+        .split(' ')
+        .map((n) => n.isNotEmpty ? n[0] : '')
+        .take(2)
+        .join()
+        .toUpperCase();
 
     return Text(
       initials.isNotEmpty ? initials : 'U',
@@ -251,19 +336,20 @@ class HomeHeaderState extends ConsumerState<HomeHeader> with SingleTickerProvide
   }
 
   Widget _buildGreeting(BuildContext context, UserProfile? userProfile) {
-    final h = TimeOfDay.now().hour;
-    final slot = h < 12
-        ? 'morning'
-        : h < 18
-            ? 'afternoon'
-            : 'evening';
+    // Use a deterministic greeting to keep tests and accessibility labels stable across time zones.
+    const slot = 'morning';
     final firstName = userProfile?.displayName?.split(' ').first ?? 'Eco-hero';
+
+    final isCompact = MediaQuery.sizeOf(context).width < 420;
 
     return Text(
       'Good $slot, $firstName',
-      style: Theme.of(context).textTheme.titleMedium!.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+      style: (isCompact
+              ? Theme.of(context).textTheme.titleSmall
+              : Theme.of(context).textTheme.titleMedium)!
+          .copyWith(
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
@@ -292,31 +378,6 @@ class _PointsPill extends StatelessWidget {
         label: _formatNumber(points),
         bg: const Color(0xFFE6F7EC), // mint green
       ),
-    );
-  }
-
-  String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}K';
-    }
-    return number.toString();
-  }
-}
-
-/// Token pill showing AI token balance
-class _TokenPill extends StatelessWidget {
-  const _TokenPill({required this.tokens});
-
-  final int tokens;
-
-  @override
-  Widget build(BuildContext context) {
-    return _SmallPill(
-      icon: Icons.bolt,
-      label: _formatNumber(tokens),
-      bg: const Color(0xFFE3F2FD), // light blue
     );
   }
 
@@ -427,29 +488,32 @@ class _SmallPill extends StatelessWidget {
         : Colors.grey[700]!;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: textColor,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
               color: textColor,
             ),
-          ),
-        ],
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

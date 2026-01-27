@@ -77,11 +77,10 @@ dependencies:
   geoflutterfire_plus: ^0.0.32 # For Firebase geospatial queries
 
   flutter_markdown: any
-  firebase_dynamic_links: any
 
   # --- On-Device ML & Computer Vision ---
   # TensorFlow Lite for on-device model inference (zero cost)
-  tflite_flutter: ^0.9.0 # For running TFLite models on device
+  tflite_flutter: ^0.11.0 # For running TFLite models on device (AGP namespace support)
 
   # NOTE: Removed tflite_flutter_helper due to:
   # - Requires image ^3.0.2 but project uses image ^4.0.17

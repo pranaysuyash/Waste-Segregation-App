@@ -7,8 +7,10 @@ import '../services/remote_config_service.dart';
 import '../models/token_wallet.dart';
 
 // Re-export types for convenience
-export '../services/cost_guardrail_service.dart' show CostAlert, CostAlertType, CostAlertSeverity;
-export '../services/ai_cost_tracker.dart' show CostEstimate, TokenCounts, OperationDecision;
+export '../services/cost_guardrail_service.dart'
+    show CostAlert, CostAlertType, CostAlertSeverity;
+export '../services/ai_cost_tracker.dart'
+    show CostEstimate, TokenCounts, OperationDecision;
 
 /// Provider for the DynamicPricingService
 final dynamicPricingServiceProvider = Provider<DynamicPricingService>((ref) {
@@ -32,7 +34,8 @@ final costGuardrailServiceProvider = Provider<CostGuardrailService>((ref) {
 });
 
 /// Provider for the EnhancedApiErrorHandler
-final enhancedApiErrorHandlerProvider = Provider<EnhancedApiErrorHandler>((ref) {
+final enhancedApiErrorHandlerProvider =
+    Provider<EnhancedApiErrorHandler>((ref) {
   return EnhancedApiErrorHandler();
 });
 
@@ -47,7 +50,8 @@ final aiCostTrackerProvider = Provider<AiCostTracker>((ref) {
 });
 
 /// Provider for current pricing information
-final currentPricingProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+final currentPricingProvider =
+    FutureProvider<Map<String, dynamic>>((ref) async {
   final pricingService = ref.watch(dynamicPricingServiceProvider);
   await pricingService.initialize();
   return pricingService.getPricingSummary();
@@ -72,7 +76,8 @@ final costAlertsProvider = StreamProvider<CostAlert>((ref) {
 });
 
 /// Provider for checking if instant analysis is affordable
-final instantAnalysisAffordableProvider = Provider.family<bool, AnalysisSpeedCheckParams>((ref, params) {
+final instantAnalysisAffordableProvider =
+    Provider.family<bool, AnalysisSpeedCheckParams>((ref, params) {
   final guardrailService = ref.watch(costGuardrailServiceProvider);
   return guardrailService.canUseInstantAnalysis(
     model: params.model,
@@ -82,7 +87,8 @@ final instantAnalysisAffordableProvider = Provider.family<bool, AnalysisSpeedChe
 });
 
 /// Provider for recommended analysis speed
-final recommendedAnalysisSpeedProvider = Provider.family<AnalysisSpeed, AnalysisSpeedCheckParams>((ref, params) {
+final recommendedAnalysisSpeedProvider =
+    Provider.family<AnalysisSpeed, AnalysisSpeedCheckParams>((ref, params) {
   final guardrailService = ref.watch(costGuardrailServiceProvider);
   return guardrailService.getRecommendedAnalysisSpeed(
     model: params.model,
@@ -110,13 +116,16 @@ final monthlySpendingProvider = Provider<double>((ref) {
 });
 
 /// Provider for spending breakdown by model
-final spendingBreakdownProvider = Provider.family<Map<String, double>, String>((ref, period) {
+final spendingBreakdownProvider =
+    Provider.family<Map<String, double>, String>((ref, period) {
   final pricingService = ref.watch(dynamicPricingServiceProvider);
   return pricingService.getSpendingBreakdown(period);
 });
 
 /// Provider for cost estimate
-final costEstimateProvider = FutureProvider.family<CostEstimate, CostEstimateParams>((ref, params) async {
+final costEstimateProvider =
+    FutureProvider.family<CostEstimate, CostEstimateParams>(
+        (ref, params) async {
   final costTracker = ref.watch(aiCostTrackerProvider);
   return costTracker.estimateCost(
     model: params.model,
@@ -127,7 +136,8 @@ final costEstimateProvider = FutureProvider.family<CostEstimate, CostEstimatePar
 });
 
 /// Provider for operation decision
-final operationDecisionProvider = Provider.family<OperationDecision, OperationDecisionParams>((ref, params) {
+final operationDecisionProvider =
+    Provider.family<OperationDecision, OperationDecisionParams>((ref, params) {
   final costTracker = ref.watch(aiCostTrackerProvider);
   return costTracker.shouldProceedWithOperation(
     model: params.model,
@@ -156,7 +166,8 @@ final costAnalyticsSummaryProvider = Provider<Map<String, dynamic>>((ref) {
 });
 
 /// Provider for batch savings estimate
-final batchSavingsEstimateProvider = Provider.family<double, BatchSavingsParams>((ref, params) {
+final batchSavingsEstimateProvider =
+    Provider.family<double, BatchSavingsParams>((ref, params) {
   final pricingService = ref.watch(dynamicPricingServiceProvider);
   return pricingService.getEstimatedBatchSavings(
     model: params.model,
@@ -187,7 +198,10 @@ class AnalysisSpeedCheckParams {
           estimatedOutputTokens == other.estimatedOutputTokens;
 
   @override
-  int get hashCode => model.hashCode ^ estimatedInputTokens.hashCode ^ estimatedOutputTokens.hashCode;
+  int get hashCode =>
+      model.hashCode ^
+      estimatedInputTokens.hashCode ^
+      estimatedOutputTokens.hashCode;
 }
 
 /// Parameters for cost estimation
@@ -216,7 +230,10 @@ class CostEstimateParams {
 
   @override
   int get hashCode =>
-      model.hashCode ^ estimatedInputTokens.hashCode ^ estimatedOutputTokens.hashCode ^ isBatchMode.hashCode;
+      model.hashCode ^
+      estimatedInputTokens.hashCode ^
+      estimatedOutputTokens.hashCode ^
+      isBatchMode.hashCode;
 }
 
 /// Parameters for operation decision
@@ -245,7 +262,10 @@ class OperationDecisionParams {
 
   @override
   int get hashCode =>
-      model.hashCode ^ userRequestedInstant.hashCode ^ estimatedInputTokens.hashCode ^ estimatedOutputTokens.hashCode;
+      model.hashCode ^
+      userRequestedInstant.hashCode ^
+      estimatedInputTokens.hashCode ^
+      estimatedOutputTokens.hashCode;
 }
 
 /// Parameters for batch savings calculation
@@ -270,5 +290,8 @@ class BatchSavingsParams {
           estimatedOutputTokens == other.estimatedOutputTokens;
 
   @override
-  int get hashCode => model.hashCode ^ estimatedInputTokens.hashCode ^ estimatedOutputTokens.hashCode;
+  int get hashCode =>
+      model.hashCode ^
+      estimatedInputTokens.hashCode ^
+      estimatedOutputTokens.hashCode;
 }

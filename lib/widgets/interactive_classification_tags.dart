@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 
 /// Interactive widget to display classification tags with visual indicators
 class InteractiveClassificationTags extends StatefulWidget {
@@ -17,11 +17,12 @@ class InteractiveClassificationTags extends StatefulWidget {
   final Function(ClassificationTag)? onTagTap;
 
   @override
-  State<InteractiveClassificationTags> createState() => _InteractiveClassificationTagsState();
+  State<InteractiveClassificationTags> createState() =>
+      _InteractiveClassificationTagsState();
 }
 
-class _InteractiveClassificationTagsState extends State<InteractiveClassificationTags>
-    with TickerProviderStateMixin {
+class _InteractiveClassificationTagsState
+    extends State<InteractiveClassificationTags> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   int? _expandedTagIndex;
@@ -52,7 +53,7 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
   @override
   Widget build(BuildContext context) {
     final tags = widget.classification.getClassificationTags();
-    
+
     if (tags.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -77,9 +78,9 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
                   Text(
                     'Environmental Tags',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                   ),
                 ],
               ),
@@ -101,7 +102,7 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
       children: tags.take(widget.maxTags).map((tag) {
         final index = tags.indexOf(tag);
         final isExpanded = _expandedTagIndex == index;
-        
+
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           child: _buildTagChip(context, tag, index, isExpanded),
@@ -111,14 +112,14 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
   }
 
   Widget _buildTagChip(
-    BuildContext context, 
-    ClassificationTag tag, 
-    int index, 
+    BuildContext context,
+    ClassificationTag tag,
+    int index,
     bool isExpanded,
   ) {
     final color = Color(tag.colorValue);
     final textColor = _getContrastColor(color);
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -132,18 +133,16 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(16),
-          border: isExpanded 
-            ? Border.all(color: Colors.white, width: 2)
-            : null,
+          border: isExpanded ? Border.all(color: Colors.white, width: 2) : null,
           boxShadow: isExpanded
-            ? [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -178,7 +177,7 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
 
   Widget _buildTagDescription(BuildContext context, ClassificationTag tag) {
     final description = _getTagDescription(tag);
-    
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.only(top: 12),
@@ -204,9 +203,9 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
               Text(
                 tag.label,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Color(tag.colorValue),
-                ),
+                      fontWeight: FontWeight.w600,
+                      color: Color(tag.colorValue),
+                    ),
               ),
             ],
           ),
@@ -214,8 +213,11 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
           Text(
             description,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-            ),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.8),
+                ),
           ),
           _buildTagActions(context, tag),
         ],
@@ -329,9 +331,9 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
   }
 
   bool _hasQuickAction(ClassificationTag tag) {
-    return tag.label == 'Single-Use' || 
-           tag.label == 'Not Recyclable' || 
-           tag.label.startsWith('BBMP:');
+    return tag.label == 'Single-Use' ||
+        tag.label == 'Not Recyclable' ||
+        tag.label.startsWith('BBMP:');
   }
 
   String _getQuickActionLabel(ClassificationTag tag) {
@@ -393,14 +395,16 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
           const Text('• Higher resource consumption'),
           const Text('• Limited reuse potential'),
           const SizedBox(height: 8),
-          const Text('Alternatives:', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Alternatives:',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const Text('• Reusable containers'),
           const Text('• Refillable products'),
           const Text('• Durable materials'),
         ];
       case 'Hazardous':
         return [
-          const Text('Safety Precautions:', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Safety Precautions:',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const Text('• Wear protective equipment'),
           const Text('• Avoid direct contact'),
           const Text('• Store in safe location'),
@@ -424,7 +428,7 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
 
   void _showAlternatives(BuildContext context) {
     final alternatives = widget.classification.alternativeOptions ?? [];
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -436,21 +440,24 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
           ],
         ),
         content: alternatives.isNotEmpty
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: alternatives.map((alt) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  children: [
-                    const Icon(Icons.arrow_right, size: 16),
-                    const SizedBox(width: 4),
-                    Expanded(child: Text(alt)),
-                  ],
-                ),
-              )).toList(),
-            )
-          : const Text('Consider reusable or biodegradable alternatives when replacing this item.'),
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: alternatives
+                    .map((alt) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.arrow_right, size: 16),
+                              const SizedBox(width: 4),
+                              Expanded(child: Text(alt)),
+                            ],
+                          ),
+                        ))
+                    .toList(),
+              )
+            : const Text(
+                'Consider reusable or biodegradable alternatives when replacing this item.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -463,7 +470,7 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
 
   void _showBBMPGuidelines(BuildContext context) {
     final regulations = widget.classification.localRegulations ?? {};
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -475,25 +482,29 @@ class _InteractiveClassificationTagsState extends State<InteractiveClassificatio
           ],
         ),
         content: regulations.isNotEmpty
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: regulations.entries.map((entry) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.key.replaceAll('_', ' ').toUpperCase(),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                    ),
-                    Text(entry.value),
-                    const SizedBox(height: 4),
-                  ],
-                ),
-              )).toList(),
-            )
-          : const Text('Follow BBMP waste segregation guidelines for Bangalore.'),
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: regulations.entries
+                    .map((entry) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.key.replaceAll('_', ' ').toUpperCase(),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
+                              Text(entry.value),
+                              const SizedBox(height: 4),
+                            ],
+                          ),
+                        ))
+                    .toList(),
+              )
+            : const Text(
+                'Follow BBMP waste segregation guidelines for Bangalore.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

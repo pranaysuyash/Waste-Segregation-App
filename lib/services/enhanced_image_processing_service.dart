@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import '../mixins/disposable_service_mixin.dart';
@@ -53,20 +52,23 @@ class ImageProcessingResult {
   final int? height;
 
   Map<String, dynamic> toJson() => {
-    'originalSize': originalSize,
-    'processedSize': processedSize,
-    'compressionRatio': compressionRatio,
-    'processingTimeMs': processingTimeMs,
-    'format': format.name,
-    'width': width,
-    'height': height,
-    'sizeSavingBytes': originalSize - processedSize,
-    'sizeSavingPercent': ((originalSize - processedSize) / originalSize * 100).toStringAsFixed(1),
-  };
+        'originalSize': originalSize,
+        'processedSize': processedSize,
+        'compressionRatio': compressionRatio,
+        'processingTimeMs': processingTimeMs,
+        'format': format.name,
+        'width': width,
+        'height': height,
+        'sizeSavingBytes': originalSize - processedSize,
+        'sizeSavingPercent':
+            ((originalSize - processedSize) / originalSize * 100)
+                .toStringAsFixed(1),
+      };
 }
 
 /// Enhanced image processing service with memory management
-class EnhancedImageProcessingService extends ChangeNotifier with DisposableServiceMixin {
+class EnhancedImageProcessingService extends ChangeNotifier
+    with DisposableServiceMixin {
   EnhancedImageProcessingService({
     ImageProcessingConfig? config,
   }) : _config = config ?? const ImageProcessingConfig() {
@@ -83,21 +85,21 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
     ImageProcessingConfig? customConfig,
   }) async {
     ensureNotDisposed('processImageFromPath');
-    
+
     final operationId = 'path_${++_operationCounter}';
-    
+
     return executeTrackedOperation(operationId, () async {
       MemoryManagementService.instance.trackImageOperation(operationId);
-      
+
       try {
         final file = File(imagePath);
         if (!await file.exists()) {
           throw ArgumentError('Image file does not exist: $imagePath');
         }
-        
+
         final imageData = await file.readAsBytes();
-        return await _processImageData(imageData, customConfig ?? _config, operationId);
-        
+        return await _processImageData(
+            imageData, customConfig ?? _config, operationId);
       } finally {
         MemoryManagementService.instance.completeImageOperation(operationId);
       }
@@ -110,14 +112,15 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
     ImageProcessingConfig? customConfig,
   }) async {
     ensureNotDisposed('processImageFromBytes');
-    
+
     final operationId = 'bytes_${++_operationCounter}';
-    
+
     return executeTrackedOperation(operationId, () async {
       MemoryManagementService.instance.trackImageOperation(operationId);
-      
+
       try {
-        return await _processImageData(imageData, customConfig ?? _config, operationId);
+        return await _processImageData(
+            imageData, customConfig ?? _config, operationId);
       } finally {
         MemoryManagementService.instance.completeImageOperation(operationId);
       }
@@ -131,13 +134,13 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
     int? maxConcurrent,
   }) async {
     ensureNotDisposed('processMultipleImages');
-    
+
     final config = customConfig ?? _config;
     final concurrency = maxConcurrent ?? config.maxConcurrentOperations;
-    
+
     final results = <ImageProcessingResult>[];
     final semaphore = Semaphore(concurrency);
-    
+
     final futures = imagePaths.map((path) async {
       await semaphore.acquire();
       try {
@@ -146,8 +149,8 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
         semaphore.release();
       }
     });
-    
-    return await Future.wait(futures);
+
+    return Future.wait(futures);
   }
 
   /// Get processing statistics
@@ -171,42 +174,42 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
   ) async {
     final stopwatch = Stopwatch()..start();
     final originalSize = imageData.length;
-    
+
     try {
       // Check if operation was cancelled
       if (isDisposed) {
         throw StateError('Service disposed during operation');
       }
-      
+
       // Decode image
-      img.Image? image = img.decodeImage(imageData);
+      var image = img.decodeImage(imageData);
       if (image == null) {
         throw ArgumentError('Unable to decode image data');
       }
-      
-      WasteAppLogger.debug('Image decoded successfully', {
+
+      WasteAppLogger.debug('Image decoded successfully', context: {
         'service': 'enhanced_image_processing',
         'operation_id': operationId,
         'original_width': image.width,
         'original_height': image.height,
         'original_size_bytes': originalSize,
       });
-      
+
       // Apply memory optimization if enabled
       if (config.enableMemoryOptimization) {
         image = await _optimizeImageMemory(image, config, operationId);
       }
-      
+
       // Resize if needed
       if (image.width > config.maxWidth || image.height > config.maxHeight) {
         image = await _resizeImage(image, config, operationId);
       }
-      
+
       // Encode with specified format and quality
       final processedData = await _encodeImage(image, config, operationId);
-      
+
       stopwatch.stop();
-      
+
       final result = ImageProcessingResult(
         processedData: processedData,
         originalSize: originalSize,
@@ -217,29 +220,31 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
         width: image.width,
         height: image.height,
       );
-      
-      WasteAppLogger.performanceLog('image_processing_complete', stopwatch.elapsedMilliseconds, 
-        context: {
-          'service': 'enhanced_image_processing',
-          'operation_id': operationId,
-          'original_size_kb': (originalSize / 1024).toStringAsFixed(1),
-          'processed_size_kb': (processedData.length / 1024).toStringAsFixed(1),
-          'compression_ratio': result.compressionRatio.toStringAsFixed(3),
-          'size_reduction_percent': ((1 - result.compressionRatio) * 100).toStringAsFixed(1),
-        });
-      
+
+      WasteAppLogger.performanceLog(
+          'image_processing_complete', stopwatch.elapsedMilliseconds,
+          context: {
+            'service': 'enhanced_image_processing',
+            'operation_id': operationId,
+            'original_size_kb': (originalSize / 1024).toStringAsFixed(1),
+            'processed_size_kb':
+                (processedData.length / 1024).toStringAsFixed(1),
+            'compression_ratio': result.compressionRatio.toStringAsFixed(3),
+            'size_reduction_percent':
+                ((1 - result.compressionRatio) * 100).toStringAsFixed(1),
+          });
+
       return result;
-      
     } catch (e) {
       stopwatch.stop();
-      
-      WasteAppLogger.severe('Image processing failed', e, null, {
+
+      WasteAppLogger.severe('Image processing failed', error: e, context: {
         'service': 'enhanced_image_processing',
         'operation_id': operationId,
         'processing_time_ms': stopwatch.elapsedMilliseconds,
         'original_size_bytes': originalSize,
       });
-      
+
       rethrow;
     }
   }
@@ -256,21 +261,20 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
       final optimized = img.Image(
         width: image.width,
         height: image.height,
-        numChannels: 3,
       );
-      
+
       img.compositeImage(optimized, image);
-      
-      WasteAppLogger.debug('Image memory optimized', {
+
+      WasteAppLogger.debug('Image memory optimized', context: {
         'service': 'enhanced_image_processing',
         'operation_id': operationId,
         'original_channels': image.numChannels,
         'optimized_channels': optimized.numChannels,
       });
-      
+
       return optimized;
     }
-    
+
     return image;
   }
 
@@ -282,11 +286,11 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
   ) async {
     final aspectRatio = image.width / image.height;
     int newWidth, newHeight;
-    
+
     if (image.width > image.height) {
       newWidth = config.maxWidth;
       newHeight = (config.maxWidth / aspectRatio).round();
-      
+
       if (newHeight > config.maxHeight) {
         newHeight = config.maxHeight;
         newWidth = (config.maxHeight * aspectRatio).round();
@@ -294,28 +298,28 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
     } else {
       newHeight = config.maxHeight;
       newWidth = (config.maxHeight * aspectRatio).round();
-      
+
       if (newWidth > config.maxWidth) {
         newWidth = config.maxWidth;
         newHeight = (config.maxWidth / aspectRatio).round();
       }
     }
-    
+
     final resized = img.copyResize(
       image,
       width: newWidth,
       height: newHeight,
       interpolation: img.Interpolation.cubic,
     );
-    
-    WasteAppLogger.debug('Image resized', {
+
+    WasteAppLogger.debug('Image resized', context: {
       'service': 'enhanced_image_processing',
       'operation_id': operationId,
       'original_dimensions': '${image.width}x${image.height}',
-      'new_dimensions': '${newWidth}x${newHeight}',
+      'new_dimensions': '${newWidth}x$newHeight',
       'aspect_ratio': aspectRatio.toStringAsFixed(3),
     });
-    
+
     return resized;
   }
 
@@ -326,7 +330,7 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
     String operationId,
   ) async {
     Uint8List encodedData;
-    
+
     switch (config.format) {
       case ImageFormat.jpeg:
         encodedData = img.encodeJpg(image, quality: config.quality);
@@ -340,23 +344,25 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
           // WebP encoding not available in current image package version
           encodedData = img.encodeJpg(image, quality: config.quality);
         } catch (e) {
-          WasteAppLogger.warning('WebP encoding failed, falling back to JPEG', e, null, {
-            'service': 'enhanced_image_processing',
-            'operation_id': operationId,
-          });
+          WasteAppLogger.warning('WebP encoding failed, falling back to JPEG',
+              error: e,
+              context: {
+                'service': 'enhanced_image_processing',
+                'operation_id': operationId,
+              });
           encodedData = img.encodeJpg(image, quality: config.quality);
         }
         break;
     }
-    
-    WasteAppLogger.debug('Image encoded', {
+
+    WasteAppLogger.debug('Image encoded', context: {
       'service': 'enhanced_image_processing',
       'operation_id': operationId,
       'format': config.format.name,
       'quality': config.quality,
       'encoded_size_bytes': encodedData.length,
     });
-    
+
     return encodedData;
   }
 
@@ -369,7 +375,7 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
       }
     }
     _activeOperations.clear();
-    
+
     super.dispose();
   }
 }
@@ -377,22 +383,22 @@ class EnhancedImageProcessingService extends ChangeNotifier with DisposableServi
 /// Semaphore for controlling concurrent operations
 class Semaphore {
   Semaphore(this.maxCount) : _currentCount = maxCount;
-  
+
   final int maxCount;
   int _currentCount;
   final Queue<Completer<void>> _waitQueue = Queue<Completer<void>>();
-  
+
   Future<void> acquire() async {
     if (_currentCount > 0) {
       _currentCount--;
       return;
     }
-    
+
     final completer = Completer<void>();
     _waitQueue.add(completer);
     return completer.future;
   }
-  
+
   void release() {
     if (_waitQueue.isNotEmpty) {
       final completer = _waitQueue.removeFirst();

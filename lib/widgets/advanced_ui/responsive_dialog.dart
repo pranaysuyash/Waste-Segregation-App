@@ -43,7 +43,8 @@ class ResponsiveDialog extends StatelessWidget {
                 ? screenWidth * 0.9
                 : screenWidth * 0.6);
 
-    final dialogHeight = maxHeight ?? (isMobile ? screenHeight * 0.8 : screenHeight * 0.7);
+    final dialogHeight =
+        maxHeight ?? (isMobile ? screenHeight * 0.8 : screenHeight * 0.7);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -83,16 +84,18 @@ class ResponsiveDialog extends StatelessWidget {
                 child: titleWidget ??
                     Text(
                       title!,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
               ),
 
             // Content section
             Flexible(
               child: Container(
-                padding: contentPadding ?? const EdgeInsets.all(AppTheme.paddingLarge),
+                padding: contentPadding ??
+                    const EdgeInsets.all(AppTheme.paddingLarge),
                 child: scrollable
                     ? SingleChildScrollView(
                         child: content,
@@ -104,7 +107,8 @@ class ResponsiveDialog extends StatelessWidget {
             // Actions section
             if (actions != null && actions!.isNotEmpty)
               Container(
-                padding: actionsPadding ?? const EdgeInsets.all(AppTheme.paddingLarge),
+                padding: actionsPadding ??
+                    const EdgeInsets.all(AppTheme.paddingLarge),
                 decoration: BoxDecoration(
                   border: Border(
                     top: BorderSide(

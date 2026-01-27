@@ -39,7 +39,8 @@ class GlobalSettingsMenu extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             } catch (e) {
-              WasteAppLogger.severe('Failed to navigate to settings screen', e);
+              WasteAppLogger.severe('Failed to navigate to settings screen',
+                  error: e);
             }
             break;
           case 'profile':
@@ -49,7 +50,8 @@ class GlobalSettingsMenu extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
             } catch (e) {
-              WasteAppLogger.severe('Failed to navigate to profile screen', e);
+              WasteAppLogger.severe('Failed to navigate to profile screen',
+                  error: e);
             }
             break;
           case 'help':
@@ -151,7 +153,8 @@ class GlobalSettingsMenu extends StatelessWidget {
                 if (context.mounted) {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const SettingsScreen()),
                   );
                 }
               });

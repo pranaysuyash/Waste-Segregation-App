@@ -86,7 +86,8 @@ class SafeCollectionUtils {
   }
 
   /// Safe fold operation
-  static T safeFold<T, R>(List<R> list, T initialValue, T Function(T, R) combine) {
+  static T safeFold<T, R>(
+      List<R> list, T initialValue, T Function(T, R) combine) {
     try {
       return list.fold(initialValue, combine);
     } catch (e) {
@@ -100,16 +101,22 @@ extension SafeListExtension<T> on List<T> {
   T? get safeFirst => SafeCollectionUtils.safeFirst(this);
   T? get safeLast => SafeCollectionUtils.safeLast(this);
   T? safeAt(int index) => SafeCollectionUtils.safeElementAt(this, index);
-  T? safeFirstWhere(bool Function(T) test) => SafeCollectionUtils.safeFirstWhere(this, test);
-  T? safeLastWhere(bool Function(T) test) => SafeCollectionUtils.safeLastWhere(this, test);
-  T? safeSingleWhere(bool Function(T) test) => SafeCollectionUtils.safeSingleWhere(this, test);
-  List<T> safeWhere(bool Function(T) test) => SafeCollectionUtils.safeWhere(this, test);
-  List<R> safeMap<R>(R Function(T) mapper) => SafeCollectionUtils.safeMap(this, mapper);
+  T? safeFirstWhere(bool Function(T) test) =>
+      SafeCollectionUtils.safeFirstWhere(this, test);
+  T? safeLastWhere(bool Function(T) test) =>
+      SafeCollectionUtils.safeLastWhere(this, test);
+  T? safeSingleWhere(bool Function(T) test) =>
+      SafeCollectionUtils.safeSingleWhere(this, test);
+  List<T> safeWhere(bool Function(T) test) =>
+      SafeCollectionUtils.safeWhere(this, test);
+  List<R> safeMap<R>(R Function(T) mapper) =>
+      SafeCollectionUtils.safeMap(this, mapper);
 
   /// Safe operations with default values
   T safeFirstWithDefault(T defaultValue) => safeFirst ?? defaultValue;
   T safeLastWithDefault(T defaultValue) => safeLast ?? defaultValue;
-  T safeAtWithDefault(int index, T defaultValue) => safeAt(index) ?? defaultValue;
+  T safeAtWithDefault(int index, T defaultValue) =>
+      safeAt(index) ?? defaultValue;
 
   /// Safe random element
   T? get safeRandom {

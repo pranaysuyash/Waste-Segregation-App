@@ -20,7 +20,8 @@ class FamilyInviteScreen extends StatefulWidget {
   State<FamilyInviteScreen> createState() => _FamilyInviteScreenState();
 }
 
-class _FamilyInviteScreenState extends State<FamilyInviteScreen> with SingleTickerProviderStateMixin {
+class _FamilyInviteScreenState extends State<FamilyInviteScreen>
+    with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _familyService = FirebaseFamilyService();
@@ -48,7 +49,8 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen> with SingleTick
 
   Future<void> _generateInviteLink() async {
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final currentUser = await storageService.getCurrentUserProfile();
       if (currentUser == null) {
         throw Exception('User not found');
@@ -115,7 +117,8 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen> with SingleTick
                       height: 50,
                       decoration: BoxDecoration(
                         color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusRegular),
                       ),
                       child: const Icon(
                         Icons.family_restroom,
@@ -258,7 +261,8 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen> with SingleTick
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
               decoration: BoxDecoration(
                 color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               child: Row(
                 children: [
@@ -309,7 +313,8 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen> with SingleTick
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: QrImageView(
                       data: _inviteLink!,
@@ -351,7 +356,8 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen> with SingleTick
                     padding: const EdgeInsets.all(AppTheme.paddingRegular),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
                     child: Row(
                       children: [
@@ -470,7 +476,8 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen> with SingleTick
               height: 50,
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius:
+                    BorderRadius.circular(AppTheme.borderRadiusRegular),
               ),
               child: Icon(
                 icon,
@@ -503,7 +510,8 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen> with SingleTick
 
     try {
       // Get current user ID
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final currentUser = await storageService.getCurrentUserProfile();
 
       if (currentUser == null) {

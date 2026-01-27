@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/ai_service.dart';
 import '../services/gamification_service.dart';
 import '../widgets/enhanced_analysis_loader.dart';
@@ -45,7 +45,8 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
     });
 
     try {
-      WasteAppLogger.info('🚀 Auto-analyze enabled - starting analysis immediately');
+      WasteAppLogger.info(
+          '🚀 Auto-analyze enabled - starting analysis immediately');
 
       final aiService = Provider.of<AiService>(context, listen: false);
       WasteClassification? result;
@@ -67,13 +68,16 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
       }
 
       if (!_isCancelled && mounted) {
-        WasteAppLogger.info('✅ Analysis complete - saving classification immediately');
+        WasteAppLogger.info(
+            '✅ Analysis complete - saving classification immediately');
 
         // Save the classification immediately using gamification service to trigger all hooks
-        final gamificationService = Provider.of<GamificationService>(context, listen: false);
+        final gamificationService =
+            Provider.of<GamificationService>(context, listen: false);
         await gamificationService.processClassification(result);
 
-        WasteAppLogger.info('✅ Classification saved - navigating to results screen');
+        WasteAppLogger.info(
+            '✅ Classification saved - navigating to results screen');
 
         // Navigate to results screen and wait for it to complete
         await Navigator.pushReplacement<void, void>(

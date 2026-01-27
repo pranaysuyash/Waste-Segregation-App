@@ -8,7 +8,8 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 /// Modern Riverpod-based gamification state management
 /// Eliminates mounted checks, provides proper error handling, and uses repository pattern
 class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
-  GamificationRepository get _repository => ref.read(gamificationRepositoryProvider);
+  GamificationRepository get _repository =>
+      ref.read(gamificationRepositoryProvider);
 
   @override
   Future<GamificationProfile> build() async {
@@ -47,13 +48,15 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
 
     try {
       // Optimistic update - immediately show claimed state
-      final achievementIndex = currentProfile.achievements.indexWhere((a) => a.id == achievementId);
+      final achievementIndex =
+          currentProfile.achievements.indexWhere((a) => a.id == achievementId);
       if (achievementIndex == -1) {
         throw AppException.storage('Achievement not found');
       }
 
       final achievement = currentProfile.achievements[achievementIndex];
-      if (!achievement.isClaimable || achievement.claimStatus == ClaimStatus.claimed) {
+      if (!achievement.isClaimable ||
+          achievement.claimStatus == ClaimStatus.claimed) {
         throw AppException.storage('Achievement is not claimable');
       }
 
@@ -63,7 +66,8 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
         earnedOn: achievement.earnedOn ?? DateTime.now(),
       );
 
-      final updatedAchievements = List<Achievement>.from(currentProfile.achievements);
+      final updatedAchievements =
+          List<Achievement>.from(currentProfile.achievements);
       updatedAchievements[achievementIndex] = updatedAchievement;
 
       final updatedPoints = currentProfile.points.copyWith(
@@ -110,7 +114,8 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
 
       // Validate streak update timing
       if (currentStreak != null) {
-        final daysSinceLastActivity = now.difference(currentStreak.lastActivityDate).inDays;
+        final daysSinceLastActivity =
+            now.difference(currentStreak.lastActivityDate).inDays;
 
         // Prevent multiple updates on same day
         if (daysSinceLastActivity == 0) {
@@ -125,7 +130,8 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       final newStreak = _calculateNewStreak(currentStreak, now, type);
 
       // Update profile
-      final updatedStreaks = Map<String, StreakDetails>.from(currentProfile.streaks);
+      final updatedStreaks =
+          Map<String, StreakDetails>.from(currentProfile.streaks);
       updatedStreaks[streakKey] = newStreak;
 
       // Calculate points for streak
@@ -151,7 +157,8 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
   }
 
   /// Add classification points
-  Future<void> addClassificationPoints(String category, String subcategory) async {
+  Future<void> addClassificationPoints(
+      String category, String subcategory) async {
     final currentState = state;
     if (!currentState.hasValue) return;
 
@@ -190,7 +197,8 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
   }
 
   /// Calculate new streak details
-  StreakDetails _calculateNewStreak(StreakDetails? currentStreak, DateTime now, StreakType type) {
+  StreakDetails _calculateNewStreak(
+      StreakDetails? currentStreak, DateTime now, StreakType type) {
     if (currentStreak == null) {
       return StreakDetails(
         type: type,
@@ -200,14 +208,17 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
       );
     }
 
-    final daysSinceLastActivity = now.difference(currentStreak.lastActivityDate).inDays;
+    final daysSinceLastActivity =
+        now.difference(currentStreak.lastActivityDate).inDays;
 
     if (daysSinceLastActivity == 1) {
       // Continue streak
       final newCount = currentStreak.currentCount + 1;
       return currentStreak.copyWith(
         currentCount: newCount,
-        longestCount: newCount > currentStreak.longestCount ? newCount : currentStreak.longestCount,
+        longestCount: newCount > currentStreak.longestCount
+            ? newCount
+            : currentStreak.longestCount,
         lastActivityDate: now,
       );
     } else if (daysSinceLastActivity > 1) {
@@ -256,7 +267,8 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
 
         return achievement.copyWith(
           progress: newProgress,
-          claimStatus: isCompleted ? ClaimStatus.unclaimed : ClaimStatus.ineligible,
+          claimStatus:
+              isCompleted ? ClaimStatus.unclaimed : ClaimStatus.ineligible,
           earnedOn: isCompleted ? DateTime.now() : null,
         );
       }
@@ -266,7 +278,8 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
   }
 
   /// Check if classification contributes to achievement
-  bool _doesClassificationContribute(Achievement achievement, String category, String subcategory) {
+  bool _doesClassificationContribute(
+      Achievement achievement, String category, String subcategory) {
     switch (achievement.type) {
       case AchievementType.firstClassification:
         return true; // Any classification counts
@@ -286,7 +299,8 @@ class GamificationNotifier extends AsyncNotifier<GamificationProfile> {
 }
 
 /// Provider for the gamification notifier
-final gamificationNotifierProvider = AsyncNotifierProvider<GamificationNotifier, GamificationProfile>(
+final gamificationNotifierProvider =
+    AsyncNotifierProvider<GamificationNotifier, GamificationProfile>(
   () => GamificationNotifier(),
 );
 
@@ -311,7 +325,9 @@ final gamificationAchievementsProvider = Provider<List<Achievement>>((ref) {
 
 final claimableAchievementsProvider = Provider<List<Achievement>>((ref) {
   final achievements = ref.watch(gamificationAchievementsProvider);
-  return achievements.where((a) => a.claimStatus == ClaimStatus.unclaimed).toList();
+  return achievements
+      .where((a) => a.claimStatus == ClaimStatus.unclaimed)
+      .toList();
 });
 
 final gamificationStreaksProvider = Provider<Map<String, StreakDetails>>((ref) {

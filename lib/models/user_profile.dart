@@ -59,14 +59,20 @@ class UserProfile {
               orElse: () => UserRole.guest, // Default if string doesn't match
             )
           : null,
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
-      lastActive: json['lastActive'] != null ? DateTime.parse(json['lastActive'] as String) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : null,
+      lastActive: json['lastActive'] != null
+          ? DateTime.parse(json['lastActive'] as String)
+          : null,
       preferences: json['preferences'] as Map<String, dynamic>?,
       gamificationProfile: json['gamificationProfile'] != null
-          ? GamificationProfile.fromJson(json['gamificationProfile'] as Map<String, dynamic>)
+          ? GamificationProfile.fromJson(
+              json['gamificationProfile'] as Map<String, dynamic>)
           : null,
-      tokenWallet:
-          json['tokenWallet'] != null ? TokenWallet.fromJson(json['tokenWallet'] as Map<String, dynamic>) : null,
+      tokenWallet: json['tokenWallet'] != null
+          ? TokenWallet.fromJson(json['tokenWallet'] as Map<String, dynamic>)
+          : null,
       tokenTransactions: json['tokenTransactions'] != null
           ? (json['tokenTransactions'] as List)
               .map((e) => TokenTransaction.fromJson(e as Map<String, dynamic>))

@@ -139,7 +139,8 @@ class LegalSupportSection extends StatelessWidget {
         const Text(
             'A smart waste classification app that helps you sort waste correctly and track your environmental impact.'),
         const SizedBox(height: 16),
-        const Text('Built with Flutter and powered by AI to make waste management easier and more effective.'),
+        const Text(
+            'Built with Flutter and powered by AI to make waste management easier and more effective.'),
       ],
     );
   }

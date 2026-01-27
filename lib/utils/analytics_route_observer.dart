@@ -5,7 +5,8 @@ import '../providers/app_providers.dart';
 import 'waste_app_logger.dart';
 
 /// Global RouteObserver instance for analytics tracking
-final RouteObserver<PageRoute> analyticsRouteObserver = RouteObserver<PageRoute>();
+final RouteObserver<PageRoute> analyticsRouteObserver =
+    RouteObserver<PageRoute>();
 
 /// Wrapper widget that automatically tracks screen views when routes change
 class AnalyticsRouteAware extends ConsumerStatefulWidget {
@@ -23,10 +24,12 @@ class AnalyticsRouteAware extends ConsumerStatefulWidget {
   final Map<String, dynamic>? additionalParameters;
 
   @override
-  ConsumerState<AnalyticsRouteAware> createState() => _AnalyticsRouteAwareState();
+  ConsumerState<AnalyticsRouteAware> createState() =>
+      _AnalyticsRouteAwareState();
 }
 
-class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware> with RouteAware {
+class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
+    with RouteAware {
   late AnalyticsService _analyticsService;
   DateTime? _screenStartTime;
   String? _previousScreenName;
@@ -97,13 +100,14 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware> with 
     _analyticsService.trackScreenView(screenName, parameters: {
       'navigation_method': navigationMethod,
       'previous_screen': _previousScreenName,
-      if (timeOnPreviousScreen != null) 'time_on_previous_screen_ms': timeOnPreviousScreen,
+      if (timeOnPreviousScreen != null)
+        'time_on_previous_screen_ms': timeOnPreviousScreen,
       ...?widget.additionalParameters,
     });
 
     _previousScreenName = screenName;
 
-    WasteAppLogger.info('📊 Screen tracked: $screenName', null, null, {
+    WasteAppLogger.info('📊 Screen tracked: $screenName', context: {
       'navigation_method': navigationMethod,
       'previous_screen': _previousScreenName,
       'service': 'AnalyticsRouteObserver',
@@ -113,7 +117,8 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware> with 
   /// Track when user leaves screen
   void _trackScreenEnd() {
     if (_screenStartTime != null) {
-      final timeSpent = DateTime.now().difference(_screenStartTime!).inMilliseconds;
+      final timeSpent =
+          DateTime.now().difference(_screenStartTime!).inMilliseconds;
       final screenName = _getScreenName();
 
       _analyticsService.trackUserAction('screen_exit', parameters: {
@@ -122,10 +127,12 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware> with 
         'exit_method': 'navigation',
       });
 
-      WasteAppLogger.info('📊 Screen exit tracked: $screenName (${timeSpent}ms)', null, null, {
-        'time_spent_ms': timeSpent,
-        'service': 'AnalyticsRouteObserver',
-      });
+      WasteAppLogger.info(
+          '📊 Screen exit tracked: $screenName (${timeSpent}ms)',
+          context: {
+            'time_spent_ms': timeSpent,
+            'service': 'AnalyticsRouteObserver',
+          });
     }
   }
 
@@ -198,9 +205,11 @@ class EnhancedAnalyticsRouteObserver extends RouteObserver<PageRoute> {
     }
   }
 
-  void _trackRouteChange(PageRoute route, Route<dynamic>? previousRoute, String method) {
+  void _trackRouteChange(
+      PageRoute route, Route<dynamic>? previousRoute, String method) {
     final screenName = _getRouteName(route);
-    final previousScreenName = previousRoute != null ? _getRouteName(previousRoute) : null;
+    final previousScreenName =
+        previousRoute != null ? _getRouteName(previousRoute) : null;
 
     analyticsService.trackPageView(
       screenName,
@@ -208,7 +217,7 @@ class EnhancedAnalyticsRouteObserver extends RouteObserver<PageRoute> {
       navigationMethod: method,
     );
 
-    WasteAppLogger.info('🧭 Enhanced route tracking: $screenName', null, null, {
+    WasteAppLogger.info('🧭 Enhanced route tracking: $screenName', context: {
       'method': method,
       'previous_screen': previousScreenName,
       'service': 'EnhancedAnalyticsRouteObserver',
@@ -251,9 +260,10 @@ class RouteAnalyticsManager {
   }
 
   /// Track a custom route event
-  static void trackCustomRouteEvent(String eventName, Map<String, dynamic> parameters) {
+  static void trackCustomRouteEvent(
+      String eventName, Map<String, dynamic> parameters) {
     // This could be used for special navigation events
-    WasteAppLogger.info('🧭 Custom route event: $eventName', null, null, {
+    WasteAppLogger.info('🧭 Custom route event: $eventName', context: {
       'event_name': eventName,
       'parameters': parameters,
       'service': 'RouteAnalyticsManager',

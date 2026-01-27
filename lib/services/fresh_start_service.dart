@@ -25,7 +25,8 @@ class FreshStartService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_freshStartKey, true);
-      await prefs.setString(_freshStartDateKey, DateTime.now().toIso8601String());
+      await prefs.setString(
+          _freshStartDateKey, DateTime.now().toIso8601String());
 
       if (archiveTimestamp != null) {
         await prefs.setString(_archiveTimestampKey, archiveTimestamp);
@@ -147,7 +148,8 @@ class FreshStartService {
     final info = await getFreshStartInfo();
 
     WasteAppLogger.info('🔄 Fresh Start Status:');
-    WasteAppLogger.info('   Mode: ${info['isFreshStartMode'] ? 'ENABLED' : 'DISABLED'}');
+    WasteAppLogger.info(
+        '   Mode: ${info['isFreshStartMode'] ? 'ENABLED' : 'DISABLED'}');
     WasteAppLogger.info('   Archive: ${info['archiveTimestamp'] ?? 'None'}');
     WasteAppLogger.info('   Started: ${info['freshStartDate'] ?? 'Never'}');
     WasteAppLogger.info('   Prevent Sync: ${info['shouldPreventAutoSync']}');

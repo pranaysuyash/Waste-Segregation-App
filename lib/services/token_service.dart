@@ -42,8 +42,9 @@ class TokenService extends ChangeNotifier {
     try {
       await _loadWallet();
     } catch (e) {
-      WasteAppLogger.severe(
-          'TokenService initialization failed', e, null, {'component': 'token_service', 'operation': 'initialize'});
+      WasteAppLogger.severe('TokenService initialization failed',
+          error: e,
+          context: {'component': 'token_service', 'operation': 'initialize'});
       // Create emergency fallback wallet
       _cachedWallet = TokenWallet.newUser();
     }
@@ -79,8 +80,11 @@ class TokenService extends ChangeNotifier {
       final wallet = _cachedWallet!;
 
       if (amount <= 0) {
-        WasteAppLogger.warning('Invalid token amount to earn', null, null,
-            {'component': 'token_service', 'amount': amount, 'type': type.toString()});
+        WasteAppLogger.warning('Invalid token amount to earn', context: {
+          'component': 'token_service',
+          'amount': amount,
+          'type': type.toString()
+        });
         return wallet;
       }
 
@@ -136,7 +140,8 @@ class TokenService extends ChangeNotifier {
       }
 
       if (!wallet.canAfford(amount)) {
-        throw Exception('Insufficient tokens. Need $amount, have ${wallet.balance}');
+        throw Exception(
+            'Insufficient tokens. Need $amount, have ${wallet.balance}');
       }
 
       // Calculate new wallet state
@@ -189,7 +194,8 @@ class TokenService extends ChangeNotifier {
       }
 
       if (pointsToConvert > currentUserPoints) {
-        throw Exception('Insufficient points. Need $pointsToConvert, have $currentUserPoints');
+        throw Exception(
+            'Insufficient points. Need $pointsToConvert, have $currentUserPoints');
       }
 
       // Check daily conversion limit
@@ -256,7 +262,9 @@ class TokenService extends ChangeNotifier {
     final lastUpdate = wallet.lastUpdated;
 
     // Check if already received bonus today
-    if (lastUpdate.day == today.day && lastUpdate.month == today.month && lastUpdate.year == today.year) {
+    if (lastUpdate.day == today.day &&
+        lastUpdate.month == today.month &&
+        lastUpdate.year == today.year) {
       return wallet; // Already received today's bonus
     }
 
@@ -277,14 +285,19 @@ class TokenService extends ChangeNotifier {
     try {
       final userProfile = await _storageService.getCurrentUserProfile();
       if (userProfile?.tokenTransactions != null) {
-        _cachedTransactions = userProfile!.tokenTransactions!.take(limit).toList();
+        _cachedTransactions =
+            userProfile!.tokenTransactions!.take(limit).toList();
         return _cachedTransactions!;
       }
 
       return [];
     } catch (e) {
-      WasteAppLogger.severe('Error loading transaction history', e, null,
-          {'component': 'token_service', 'operation': 'get_transaction_history'});
+      WasteAppLogger.severe('Error loading transaction history',
+          error: e,
+          context: {
+            'component': 'token_service',
+            'operation': 'get_transaction_history'
+          });
       return [];
     }
   }
@@ -297,13 +310,17 @@ class TokenService extends ChangeNotifier {
     final transactions = await getTransactionHistory();
 
     // Calculate stats
-    final earnedToday =
-        transactions.where((t) => t.delta > 0 && _isToday(t.timestamp)).fold(0, (sum, t) => sum + t.delta);
+    final earnedToday = transactions
+        .where((t) => t.delta > 0 && _isToday(t.timestamp))
+        .fold(0, (sum, t) => sum + t.delta);
 
-    final spentToday =
-        transactions.where((t) => t.delta < 0 && _isToday(t.timestamp)).fold(0, (sum, t) => sum + t.delta.abs());
+    final spentToday = transactions
+        .where((t) => t.delta < 0 && _isToday(t.timestamp))
+        .fold(0, (sum, t) => sum + t.delta.abs());
 
-    final conversionStats = transactions.where((t) => t.type == TokenTransactionType.convert).length;
+    final conversionStats = transactions
+        .where((t) => t.type == TokenTransactionType.convert)
+        .length;
 
     return {
       'current_balance': wallet.balance,
@@ -312,7 +329,8 @@ class TokenService extends ChangeNotifier {
       'earned_today': earnedToday,
       'spent_today': spentToday,
       'total_conversions': conversionStats,
-      'conversions_remaining_today': wallet.remainingConversions(maxDailyConversions),
+      'conversions_remaining_today':
+          wallet.remainingConversions(maxDailyConversions),
       'last_updated': wallet.lastUpdated.toIso8601String(),
     };
   }
@@ -359,7 +377,8 @@ class TokenService extends ChangeNotifier {
       await _storageService.saveUserProfile(updatedProfile);
 
       // Try cloud sync (non-blocking)
-      unawaited(_cloudStorageService.saveUserProfileToFirestore(updatedProfile));
+      unawaited(
+          _cloudStorageService.saveUserProfileToFirestore(updatedProfile));
     }
   }
 
@@ -381,15 +400,19 @@ class TokenService extends ChangeNotifier {
         _cachedTransactions = updatedTransactions;
       }
     } catch (e) {
-      WasteAppLogger.severe(
-          'Error saving transaction', e, null, {'component': 'token_service', 'transaction_id': transaction.id});
+      WasteAppLogger.severe('Error saving transaction', error: e, context: {
+        'component': 'token_service',
+        'transaction_id': transaction.id
+      });
     }
   }
 
   /// Check if date is today
   bool _isToday(DateTime date) {
     final now = DateTime.now();
-    return date.day == now.day && date.month == now.month && date.year == now.year;
+    return date.day == now.day &&
+        date.month == now.month &&
+        date.year == now.year;
   }
 
   /// Dispose resources

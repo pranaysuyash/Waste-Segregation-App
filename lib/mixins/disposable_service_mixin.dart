@@ -9,14 +9,14 @@ mixin DisposableServiceMixin on ChangeNotifier implements DisposableResource {
   final List<StreamSubscription> _subscriptions = [];
   final List<Timer> _timers = [];
   final Set<String> _activeOperations = {};
-  
+
   /// Whether this service has been disposed
   bool get isDisposed => _isDisposed;
-  
+
   /// Service identifier for memory tracking
   @override
-  String get resourceId => '${runtimeType}_${hashCode}';
-  
+  String get resourceId => '${runtimeType}_$hashCode';
+
   /// Service type for memory tracking
   @override
   String get resourceType => runtimeType.toString();
@@ -27,14 +27,15 @@ mixin DisposableServiceMixin on ChangeNotifier implements DisposableResource {
     if (_isDisposed) {
       throw StateError('Cannot initialize disposed service: $resourceType');
     }
-    
+
     // Register with memory management service
     MemoryManagementService.instance.registerDisposableResource(this);
-    
-    WasteAppLogger.debug('Service initialized with memory management', {
-      'service': resourceType,
-      'resource_id': resourceId,
-    });
+
+    WasteAppLogger.debug('Service initialized with memory management',
+        context: {
+          'service': resourceType,
+          'resource_id': resourceId,
+        });
   }
 
   /// Add a stream subscription for automatic disposal
@@ -44,7 +45,7 @@ mixin DisposableServiceMixin on ChangeNotifier implements DisposableResource {
       subscription.cancel();
       return;
     }
-    
+
     _subscriptions.add(subscription);
   }
 
@@ -55,7 +56,7 @@ mixin DisposableServiceMixin on ChangeNotifier implements DisposableResource {
       timer.cancel();
       return;
     }
-    
+
     _timers.add(timer);
   }
 
@@ -63,9 +64,9 @@ mixin DisposableServiceMixin on ChangeNotifier implements DisposableResource {
   @protected
   void trackOperation(String operationId) {
     if (_isDisposed) return;
-    
+
     _activeOperations.add(operationId);
-    WasteAppLogger.debug('Operation tracked', {
+    WasteAppLogger.debug('Operation tracked', context: {
       'service': resourceType,
       'operation_id': operationId,
       'active_operations': _activeOperations.length,
@@ -76,7 +77,7 @@ mixin DisposableServiceMixin on ChangeNotifier implements DisposableResource {
   @protected
   void completeOperation(String operationId) {
     _activeOperations.remove(operationId);
-    WasteAppLogger.debug('Operation completed', {
+    WasteAppLogger.debug('Operation completed', context: {
       'service': resourceType,
       'operation_id': operationId,
       'remaining_operations': _activeOperations.length,
@@ -90,11 +91,12 @@ mixin DisposableServiceMixin on ChangeNotifier implements DisposableResource {
     Future<T> Function() operation,
   ) async {
     if (_isDisposed) {
-      throw StateError('Cannot execute operation on disposed service: $resourceType');
+      throw StateError(
+          'Cannot execute operation on disposed service: $resourceType');
     }
-    
+
     trackOperation(operationId);
-    
+
     try {
       final result = await operation();
       return result;
@@ -107,9 +109,9 @@ mixin DisposableServiceMixin on ChangeNotifier implements DisposableResource {
   @protected
   void ensureNotDisposed([String? operation]) {
     if (_isDisposed) {
-      final message = operation != null 
-        ? 'Cannot perform $operation on disposed service: $resourceType'
-        : 'Service is disposed: $resourceType';
+      final message = operation != null
+          ? 'Cannot perform $operation on disposed service: $resourceType'
+          : 'Service is disposed: $resourceType';
       throw StateError(message);
     }
   }
@@ -119,45 +121,47 @@ mixin DisposableServiceMixin on ChangeNotifier implements DisposableResource {
   @mustCallSuper
   void dispose() {
     if (_isDisposed) return;
-    
+
     _isDisposed = true;
-    
+
     try {
       // Cancel all subscriptions
       for (final subscription in _subscriptions) {
         subscription.cancel();
       }
       _subscriptions.clear();
-      
+
       // Cancel all timers
       for (final timer in _timers) {
         timer.cancel();
       }
       _timers.clear();
-      
+
       // Log any remaining active operations
       if (_activeOperations.isNotEmpty) {
-        WasteAppLogger.warning('Service disposed with active operations', null, null, {
-          'service': resourceType,
-          'active_operations': _activeOperations.toList(),
-          'operation_count': _activeOperations.length,
-        });
+        WasteAppLogger.warning('Service disposed with active operations',
+            context: {
+              'service': resourceType,
+              'active_operations': _activeOperations.toList(),
+              'operation_count': _activeOperations.length,
+            });
       }
       _activeOperations.clear();
-      
+
       // Unregister from memory management
       MemoryManagementService.instance.unregisterDisposableResource(resourceId);
-      
-      WasteAppLogger.debug('Service disposed', {
+
+      WasteAppLogger.debug('Service disposed', context: {
         'service': resourceType,
         'resource_id': resourceId,
       });
-      
     } catch (e) {
-      WasteAppLogger.severe('Error during service disposal', e, null, {
-        'service': resourceType,
-        'resource_id': resourceId,
-      });
+      WasteAppLogger.severe('Error during service disposal',
+          error: e,
+          context: {
+            'service': resourceType,
+            'resource_id': resourceId,
+          });
     } finally {
       // Always call super.dispose() to notify listeners
       super.dispose();
@@ -184,7 +188,7 @@ mixin DisposableProviderMixin {
   bool _isDisposed = false;
   final List<StreamSubscription> _subscriptions = [];
   final List<Timer> _timers = [];
-  
+
   /// Whether this provider has been disposed
   bool get isDisposed => _isDisposed;
 
@@ -195,7 +199,7 @@ mixin DisposableProviderMixin {
       subscription.cancel();
       return;
     }
-    
+
     _subscriptions.add(subscription);
   }
 
@@ -206,7 +210,7 @@ mixin DisposableProviderMixin {
       timer.cancel();
       return;
     }
-    
+
     _timers.add(timer);
   }
 
@@ -214,9 +218,9 @@ mixin DisposableProviderMixin {
   @protected
   void ensureNotDisposed([String? operation]) {
     if (_isDisposed) {
-      final message = operation != null 
-        ? 'Cannot perform $operation on disposed provider: $runtimeType'
-        : 'Provider is disposed: $runtimeType';
+      final message = operation != null
+          ? 'Cannot perform $operation on disposed provider: $runtimeType'
+          : 'Provider is disposed: $runtimeType';
       throw StateError(message);
     }
   }
@@ -226,30 +230,31 @@ mixin DisposableProviderMixin {
   @mustCallSuper
   void disposeProvider() {
     if (_isDisposed) return;
-    
+
     _isDisposed = true;
-    
+
     try {
       // Cancel all subscriptions
       for (final subscription in _subscriptions) {
         subscription.cancel();
       }
       _subscriptions.clear();
-      
+
       // Cancel all timers
       for (final timer in _timers) {
         timer.cancel();
       }
       _timers.clear();
-      
-      WasteAppLogger.debug('Provider disposed', {
+
+      WasteAppLogger.debug('Provider disposed', context: {
         'provider': runtimeType.toString(),
       });
-      
     } catch (e) {
-      WasteAppLogger.severe('Error during provider disposal', e, null, {
-        'provider': runtimeType.toString(),
-      });
+      WasteAppLogger.severe('Error during provider disposal',
+          error: e,
+          context: {
+            'provider': runtimeType.toString(),
+          });
     }
   }
 }
@@ -266,16 +271,18 @@ extension ResourceCleanupExtension<T> on Future<T> {
       throw error;
     });
   }
-  
+
   void _cleanupResources(List<DisposableResource> resources) {
     for (final resource in resources) {
       try {
         resource.dispose();
       } catch (e) {
-        WasteAppLogger.warning('Error cleaning up resource', e, null, {
-          'resource_type': resource.resourceType,
-          'resource_id': resource.resourceId,
-        });
+        WasteAppLogger.warning('Error cleaning up resource',
+            error: e,
+            context: {
+              'resource_type': resource.resourceType,
+              'resource_id': resource.resourceId,
+            });
       }
     }
   }
@@ -285,50 +292,54 @@ extension ResourceCleanupExtension<T> on Future<T> {
 class TemporaryResourceManager {
   final List<DisposableResource> _resources = [];
   bool _isDisposed = false;
-  
+
   /// Add a resource for automatic cleanup
   void addResource(DisposableResource resource) {
     if (_isDisposed) {
       resource.dispose();
       return;
     }
-    
+
     _resources.add(resource);
   }
-  
+
   /// Remove a resource from management (without disposing)
   void removeResource(DisposableResource resource) {
     _resources.remove(resource);
   }
-  
+
   /// Dispose all managed resources
   void dispose() {
     if (_isDisposed) return;
-    
+
     _isDisposed = true;
-    
+
     for (final resource in _resources) {
       try {
         resource.dispose();
       } catch (e) {
-        WasteAppLogger.warning('Error disposing temporary resource', e, null, {
-          'resource_type': resource.resourceType,
-          'resource_id': resource.resourceId,
-        });
+        WasteAppLogger.warning('Error disposing temporary resource',
+            error: e,
+            context: {
+              'resource_type': resource.resourceType,
+              'resource_id': resource.resourceId,
+            });
       }
     }
-    
+
     _resources.clear();
   }
 }
 
 /// Wrapper for disposable resources with automatic cleanup
 class DisposableWrapper<T> implements DisposableResource {
-  DisposableWrapper(this.resource, this.disposeCallback, {
+  DisposableWrapper(
+    this.resource,
+    this.disposeCallback, {
     String? resourceId,
     String? resourceType,
-  }) : _resourceId = resourceId ?? 'wrapper_${resource.hashCode}',
-       _resourceType = resourceType ?? T.toString();
+  })  : _resourceId = resourceId ?? 'wrapper_${resource.hashCode}',
+        _resourceType = resourceType ?? T.toString();
 
   final T resource;
   final void Function(T) disposeCallback;
@@ -353,13 +364,13 @@ class DisposableWrapper<T> implements DisposableResource {
   @override
   void dispose() {
     if (_isDisposed) return;
-    
+
     _isDisposed = true;
-    
+
     try {
       disposeCallback(resource);
     } catch (e) {
-      WasteAppLogger.warning('Error in dispose callback', e, null, {
+      WasteAppLogger.warning('Error in dispose callback', error: e, context: {
         'resource_type': _resourceType,
         'resource_id': _resourceId,
       });

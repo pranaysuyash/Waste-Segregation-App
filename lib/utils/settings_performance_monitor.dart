@@ -7,7 +7,8 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 class SettingsPerformanceMonitor {
   factory SettingsPerformanceMonitor() => _instance;
   SettingsPerformanceMonitor._internal();
-  static final SettingsPerformanceMonitor _instance = SettingsPerformanceMonitor._internal();
+  static final SettingsPerformanceMonitor _instance =
+      SettingsPerformanceMonitor._internal();
 
   final Map<String, PerformanceMetrics> _metrics = {};
   final List<FrameTimingInfo> _frameTimings = [];
@@ -51,7 +52,8 @@ class SettingsPerformanceMonitor {
     metrics.incrementRebuild();
 
     if (kDebugMode && metrics.rebuildCount % 10 == 0) {
-      WasteAppLogger.info('⚠️ Widget $widgetName has rebuilt ${metrics.rebuildCount} times');
+      WasteAppLogger.info(
+          '⚠️ Widget $widgetName has rebuilt ${metrics.rebuildCount} times');
     }
   }
 
@@ -98,7 +100,8 @@ class SettingsPerformanceMonitor {
 
       // Warn about slow frames
       if (timing.totalSpan.inMilliseconds > 16) {
-        WasteAppLogger.info('🐌 Slow frame detected: ${timing.totalSpan.inMilliseconds}ms');
+        WasteAppLogger.info(
+            '🐌 Slow frame detected: ${timing.totalSpan.inMilliseconds}ms');
       }
     }
   }
@@ -114,7 +117,8 @@ class SettingsPerformanceMonitor {
     WasteAppLogger.info('\n🔄 Widget Rebuilds:');
     for (final metrics in _metrics.values) {
       if (metrics.rebuildCount > 0) {
-        WasteAppLogger.info('  ${metrics.name}: ${metrics.rebuildCount} rebuilds');
+        WasteAppLogger.info(
+            '  ${metrics.name}: ${metrics.rebuildCount} rebuilds');
       }
     }
 
@@ -123,7 +127,8 @@ class SettingsPerformanceMonitor {
     for (final metrics in _metrics.values) {
       if (metrics.animationDurations.isNotEmpty) {
         final avgDuration = metrics.averageAnimationDuration;
-        WasteAppLogger.info('  ${metrics.name}: ${avgDuration.inMilliseconds}ms avg');
+        WasteAppLogger.info(
+            '  ${metrics.name}: ${avgDuration.inMilliseconds}ms avg');
       }
     }
 
@@ -135,21 +140,28 @@ class SettingsPerformanceMonitor {
       final avgTotal = _calculateAverageFrameTime((f) => f.totalSpan);
 
       WasteAppLogger.info('  Average build time: ${avgBuild.inMilliseconds}ms');
-      WasteAppLogger.info('  Average raster time: ${avgRaster.inMilliseconds}ms');
+      WasteAppLogger.info(
+          '  Average raster time: ${avgRaster.inMilliseconds}ms');
       WasteAppLogger.info('  Average total time: ${avgTotal.inMilliseconds}ms');
 
-      final slowFrames = _frameTimings.where((f) => f.totalSpan.inMilliseconds > 16).length;
+      final slowFrames =
+          _frameTimings.where((f) => f.totalSpan.inMilliseconds > 16).length;
       final frameRate = slowFrames / _frameTimings.length * 100;
-      WasteAppLogger.info('  Slow frames: $slowFrames/${_frameTimings.length} (${frameRate.toStringAsFixed(1)}%)');
+      WasteAppLogger.info(
+          '  Slow frames: $slowFrames/${_frameTimings.length} (${frameRate.toStringAsFixed(1)}%)');
     }
 
     WasteAppLogger.info('=' * 50);
   }
 
-  Duration _calculateAverageFrameTime(Duration Function(FrameTimingInfo) selector) {
+  Duration _calculateAverageFrameTime(
+      Duration Function(FrameTimingInfo) selector) {
     if (_frameTimings.isEmpty) return Duration.zero;
 
-    final totalMs = _frameTimings.map(selector).map((d) => d.inMicroseconds).reduce((a, b) => a + b);
+    final totalMs = _frameTimings
+        .map(selector)
+        .map((d) => d.inMicroseconds)
+        .reduce((a, b) => a + b);
 
     return Duration(microseconds: totalMs ~/ _frameTimings.length);
   }
@@ -197,7 +209,8 @@ class PerformanceMetrics {
   Duration get averageAnimationDuration {
     if (animationDurations.isEmpty) return Duration.zero;
 
-    final totalMs = animationDurations.map((d) => d.inMicroseconds).reduce((a, b) => a + b);
+    final totalMs =
+        animationDurations.map((d) => d.inMicroseconds).reduce((a, b) => a + b);
 
     return Duration(microseconds: totalMs ~/ animationDurations.length);
   }
@@ -284,7 +297,8 @@ mixin PerformanceTrackingMixin<T extends StatefulWidget> on State<T> {
 
   /// Track animation performance
   void trackAnimation(String animationName, Duration duration) {
-    _monitor.trackAnimation('$performanceTrackingName.$animationName', duration);
+    _monitor.trackAnimation(
+        '$performanceTrackingName.$animationName', duration);
   }
 }
 
@@ -300,10 +314,12 @@ class PerformanceAwareSettingsScreen extends StatefulWidget {
   final bool enableMonitoring;
 
   @override
-  State<PerformanceAwareSettingsScreen> createState() => _PerformanceAwareSettingsScreenState();
+  State<PerformanceAwareSettingsScreen> createState() =>
+      _PerformanceAwareSettingsScreenState();
 }
 
-class _PerformanceAwareSettingsScreenState extends State<PerformanceAwareSettingsScreen> with WidgetsBindingObserver {
+class _PerformanceAwareSettingsScreenState
+    extends State<PerformanceAwareSettingsScreen> with WidgetsBindingObserver {
   final _monitor = SettingsPerformanceMonitor();
 
   @override

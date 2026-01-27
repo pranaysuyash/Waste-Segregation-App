@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/token_wallet.dart';
 import '../models/ai_job.dart';
 import '../services/token_service.dart';
 import 'app_providers.dart';
+import '../utils/firebase_gate.dart';
 
 /// Provider for the TokenService
 final tokenServiceProvider = Provider<TokenService>((ref) {
@@ -20,7 +22,8 @@ final tokenWalletProvider = FutureProvider<TokenWallet?>((ref) async {
 });
 
 /// Provider for token transaction history
-final tokenTransactionsProvider = FutureProvider<List<TokenTransaction>>((ref) async {
+final tokenTransactionsProvider =
+    FutureProvider<List<TokenTransaction>>((ref) async {
   final tokenService = ref.watch(tokenServiceProvider);
   return tokenService.getTransactionHistory();
 });
@@ -45,7 +48,8 @@ final canAffordProvider = Provider.family<bool, int>((ref, cost) {
 final remainingConversionsProvider = Provider<int>((ref) {
   final walletAsync = ref.watch(tokenWalletProvider);
   return walletAsync.when(
-    data: (wallet) => wallet?.remainingConversions(TokenService.maxDailyConversions) ?? 0,
+    data: (wallet) =>
+        wallet?.remainingConversions(TokenService.maxDailyConversions) ?? 0,
     loading: () => 0,
     error: (_, __) => 0,
   );
@@ -62,30 +66,86 @@ final instantAnalysisAffordableProvider = Provider<bool>((ref) {
   return ref.watch(canAffordProvider(AnalysisSpeed.instant.cost));
 });
 
-/// Provider for AI job queue (stub for now - will be implemented with Firestore)
+/// Provider for AI job queue - queries all active jobs from Firestore
 final aiJobQueueProvider = FutureProvider<List<AiJob>>((ref) async {
-  // TODO: Implement with Firestore query
-  // For now, return empty list
-  return <AiJob>[];
+  if (!isFirebaseEnabled) {
+    return [];
+  }
+  final firestore = FirebaseFirestore.instance;
+  final snapshot = await firestore
+      .collection('ai_jobs')
+      .where('status',
+          whereIn: [AiJobStatus.queued.name, AiJobStatus.processing.name])
+      .orderBy('createdAt', descending: false)
+      .get();
+  return snapshot.docs.map((doc) => AiJob.fromJson(doc.data())).toList();
 });
 
-/// Provider for queue statistics (stub for now)
-final queueStatsProvider = FutureProvider<QueueStats>((ref) async {
-  // TODO: Implement with Firestore aggregation
-  // For now, return healthy queue using the empty factory
-  return QueueStats.empty();
+/// Provider for token queue statistics from Firestore
+final tokenQueueStatsProvider = FutureProvider<QueueStats>((ref) async {
+  if (!isFirebaseEnabled) {
+    return QueueStats.empty();
+  }
+  final firestore = FirebaseFirestore.instance;
+  final now = DateTime.now();
+  final oneDayAgo = now.subtract(const Duration(days: 1));
+  final snapshot = await firestore
+      .collection('ai_jobs')
+      .where('createdAt', isGreaterThan: Timestamp.fromDate(oneDayAgo))
+      .get();
+
+  if (snapshot.docs.isEmpty) return QueueStats.empty();
+
+  final jobs = snapshot.docs.map((doc) => doc.data()).toList();
+  final queuedJobs =
+      jobs.where((j) => j['status'] == AiJobStatus.queued.name).length;
+  final processingJobs =
+      jobs.where((j) => j['status'] == AiJobStatus.processing.name).length;
+  final completedJobs =
+      jobs.where((j) => j['status'] == AiJobStatus.completed.name).length;
+  final failedJobs =
+      jobs.where((j) => j['status'] == AiJobStatus.failed.name).length;
+  final total = jobs.length;
+
+  return QueueStats(
+    totalJobs: total,
+    queuedJobs: queuedJobs,
+    processingJobs: processingJobs,
+    completedToday: completedJobs,
+    failedToday: failedJobs,
+    averageWaitTime: Duration(minutes: queuedJobs * 5),
+    lastUpdated: DateTime.now(),
+    averageProcessingTime: const Duration(seconds: 30),
+    estimatedWaitTime: Duration(minutes: queuedJobs * 5),
+    successRate: total > 0 ? completedJobs / total : 1.0,
+    failureRate: total > 0 ? failedJobs / total : 0.0,
+    pendingJobs: queuedJobs,
+  );
 });
 
-/// Provider for user's pending jobs
-final userJobsProvider = FutureProvider<List<AiJob>>((ref) async {
-  // TODO: Implement with Firestore query filtered by user ID
-  return <AiJob>[];
+/// Provider for user's pending jobs from Firestore
+final userJobsProvider =
+    FutureProvider.family<List<AiJob>, String>((ref, userId) async {
+  if (!isFirebaseEnabled) {
+    return [];
+  }
+  final firestore = FirebaseFirestore.instance;
+  final snapshot = await firestore
+      .collection('ai_jobs')
+      .where('userId', isEqualTo: userId)
+      .orderBy('createdAt', descending: true)
+      .limit(50)
+      .get();
+  return snapshot.docs.map((doc) => AiJob.fromJson(doc.data())).toList();
 });
 
 /// Provider for converting points to tokens
-final convertPointsProvider = FutureProvider.family<TokenWallet, ConvertPointsParams>((ref, params) async {
+final convertPointsProvider =
+    FutureProvider.family<TokenWallet, ConvertPointsParams>(
+        (ref, params) async {
   final tokenService = ref.watch(tokenServiceProvider);
-  return tokenService.convertPointsToTokens(params.pointsToConvert, params.currentUserPoints);
+  return tokenService.convertPointsToTokens(
+      params.pointsToConvert, params.currentUserPoints);
 });
 
 /// Parameters for point conversion

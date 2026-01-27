@@ -128,22 +128,26 @@ class _FamilyCreationScreenState extends State<FamilyCreationScreen> {
                       _buildFeatureItem(
                         icon: Icons.analytics,
                         title: 'Shared Statistics',
-                        description: 'View combined family waste reduction metrics',
+                        description:
+                            'View combined family waste reduction metrics',
                       ),
                       _buildFeatureItem(
                         icon: Icons.emoji_events,
                         title: 'Family Challenges',
-                        description: 'Compete together in waste reduction challenges',
+                        description:
+                            'Compete together in waste reduction challenges',
                       ),
                       _buildFeatureItem(
                         icon: Icons.share,
                         title: 'Classification Sharing',
-                        description: 'Share and learn from each other\'s classifications',
+                        description:
+                            'Share and learn from each other\'s classifications',
                       ),
                       _buildFeatureItem(
                         icon: Icons.trending_up,
                         title: 'Progress Tracking',
-                        description: 'Monitor individual and family progress over time',
+                        description:
+                            'Monitor individual and family progress over time',
                       ),
                     ],
                   ),
@@ -178,7 +182,8 @@ class _FamilyCreationScreenState extends State<FamilyCreationScreen> {
                 padding: const EdgeInsets.all(AppTheme.paddingRegular),
                 decoration: BoxDecoration(
                   color: Colors.blue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+                  borderRadius:
+                      BorderRadius.circular(AppTheme.borderRadiusRegular),
                 ),
                 child: Row(
                   children: [
@@ -262,7 +267,8 @@ class _FamilyCreationScreenState extends State<FamilyCreationScreen> {
     });
 
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final currentUser = await storageService.getCurrentUserProfile();
 
       if (currentUser == null) {

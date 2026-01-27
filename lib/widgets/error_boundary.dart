@@ -30,8 +30,8 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
   @override
   Widget build(BuildContext context) {
     if (_error != null) {
-      return widget.fallback?.call(_error!, _stackTrace) ?? 
-             _buildDefaultErrorWidget(context);
+      return widget.fallback?.call(_error!, _stackTrace) ??
+          _buildDefaultErrorWidget(context);
     }
 
     return ErrorCatchingWidget(
@@ -48,10 +48,9 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
 
     // Log the error
     WasteAppLogger.severe(
-      'Error boundary caught error${widget.context != null ? ' in ${widget.context}' : ''}',
-      error,
-      stackTrace,
-    );
+        'Error boundary caught error${widget.context != null ? ' in ${widget.context}' : ''}',
+        error: error,
+        stackTrace: stackTrace);
 
     // Call custom error handler if provided
     widget.onError?.call(error, stackTrace);
@@ -72,8 +71,8 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
           Text(
             'Something went wrong',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
+                  color: Theme.of(context).colorScheme.error,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -95,8 +94,8 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
                   child: Text(
                     _error.toString(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                    ),
+                          fontFamily: 'monospace',
+                        ),
                   ),
                 ),
               ),
@@ -180,20 +179,19 @@ class _AsyncErrorBoundaryState extends State<AsyncErrorBoundary> {
       future: widget.future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return widget.loadingBuilder?.call(context) ?? 
-                 const Center(child: CircularProgressIndicator());
+          return widget.loadingBuilder?.call(context) ??
+              const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
           // Log the error
           WasteAppLogger.severe(
-            'Async error boundary caught error${widget.context != null ? ' in ${widget.context}' : ''}',
-            snapshot.error,
-            snapshot.stackTrace,
-          );
+              'Async error boundary caught error${widget.context != null ? ' in ${widget.context}' : ''}',
+              error: snapshot.error,
+              stackTrace: snapshot.stackTrace);
 
-          return widget.errorBuilder?.call(context, snapshot.error!) ?? 
-                 _buildDefaultAsyncErrorWidget(context, snapshot.error!);
+          return widget.errorBuilder?.call(context, snapshot.error!) ??
+              _buildDefaultAsyncErrorWidget(context, snapshot.error!);
         }
 
         return widget.builder(context, snapshot.data);
@@ -216,8 +214,8 @@ class _AsyncErrorBoundaryState extends State<AsyncErrorBoundary> {
           Text(
             'Failed to load data',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
+                  color: Theme.of(context).colorScheme.error,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -279,10 +277,10 @@ class NetworkErrorBoundary extends StatelessWidget {
   bool _isNetworkError(Object error) {
     final errorString = error.toString().toLowerCase();
     return errorString.contains('network') ||
-           errorString.contains('connection') ||
-           errorString.contains('timeout') ||
-           errorString.contains('socket') ||
-           errorString.contains('http');
+        errorString.contains('connection') ||
+        errorString.contains('timeout') ||
+        errorString.contains('socket') ||
+        errorString.contains('http');
   }
 
   Widget _buildNetworkErrorWidget(BuildContext context) {
@@ -300,8 +298,8 @@ class NetworkErrorBoundary extends StatelessWidget {
           Text(
             'Connection Problem',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
+                  color: Theme.of(context).colorScheme.error,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -336,8 +334,8 @@ class NetworkErrorBoundary extends StatelessWidget {
           Text(
             'Something went wrong',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Theme.of(context).colorScheme.error,
-            ),
+                  color: Theme.of(context).colorScheme.error,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),

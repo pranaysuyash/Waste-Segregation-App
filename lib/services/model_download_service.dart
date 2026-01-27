@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
@@ -7,7 +6,7 @@ import '../models/vision_model_config.dart';
 import '../utils/waste_app_logger.dart';
 
 /// Service for downloading and managing TFLite model files
-/// 
+///
 /// Handles:
 /// - Model file downloads from remote URLs
 /// - Local caching and storage
@@ -133,7 +132,7 @@ class ModelDownloadService {
       // Download from URL
       final url = '$baseUrl/${metadata.fileName}';
       onStatusChange?.call('Downloading from server...');
-      
+
       final request = http.Request('GET', Uri.parse(url));
       final response = await http.Client().send(request);
 
@@ -145,16 +144,17 @@ class ModelDownloadService {
       var downloadedBytes = 0;
 
       final sink = modelFile.openWrite();
-      
+
       try {
         await for (final chunk in response.stream) {
           sink.add(chunk);
           downloadedBytes += chunk.length;
-          
+
           final progress = downloadedBytes / totalBytes;
           onProgress?.call(progress);
-          
-          final mbDownloaded = (downloadedBytes / (1024 * 1024)).toStringAsFixed(1);
+
+          final mbDownloaded =
+              (downloadedBytes / (1024 * 1024)).toStringAsFixed(1);
           final mbTotal = (totalBytes / (1024 * 1024)).toStringAsFixed(1);
           onStatusChange?.call('Downloaded $mbDownloaded MB / $mbTotal MB');
         }
@@ -162,11 +162,12 @@ class ModelDownloadService {
         await sink.close();
       }
 
-      WasteAppLogger.info('Model downloaded successfully: ${metadata.fileName}');
+      WasteAppLogger.info(
+          'Model downloaded successfully: ${metadata.fileName}');
       onProgress?.call(1.0);
       onStatusChange?.call('Download complete');
     } catch (e, s) {
-      WasteAppLogger.severe('Model download failed', e, s);
+      WasteAppLogger.severe('Model download failed', error: e, stackTrace: s);
       onStatusChange?.call('Download failed: $e');
       rethrow;
     }
@@ -208,7 +209,7 @@ class ModelDownloadService {
         WasteAppLogger.info('Model deleted: ${metadata.fileName}');
       }
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to delete model', e, s);
+      WasteAppLogger.severe('Failed to delete model', error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -217,14 +218,14 @@ class ModelDownloadService {
   Future<int> getTotalDownloadedSize() async {
     try {
       var totalSize = 0;
-      
+
       for (final entry in modelMetadata.entries) {
         final isDownloaded = await isModelDownloaded(entry.key);
         if (isDownloaded) {
           totalSize += entry.value.sizeBytes;
         }
       }
-      
+
       return totalSize;
     } catch (e) {
       WasteAppLogger.warning('Error calculating total size: $e');
@@ -235,7 +236,7 @@ class ModelDownloadService {
   /// Get download status for all models
   Future<Map<VisionModelType, ModelStatus>> getAllModelStatus() async {
     final status = <VisionModelType, ModelStatus>{};
-    
+
     for (final entry in modelMetadata.entries) {
       final isDownloaded = await isModelDownloaded(entry.key);
       status[entry.key] = ModelStatus(
@@ -244,7 +245,7 @@ class ModelDownloadService {
         isDownloaded: isDownloaded,
       );
     }
-    
+
     return status;
   }
 }

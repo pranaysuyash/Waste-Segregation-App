@@ -10,7 +10,8 @@ class UIConsistency {
     final textScaler = MediaQuery.textScalerOf(context);
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
-        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(48.0, double.infinity);
+        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium)
+            .clamp(48.0, double.infinity);
 
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -67,7 +68,8 @@ class UIConsistency {
     final textScaler = MediaQuery.textScalerOf(context);
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
-        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(48.0, double.infinity);
+        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium)
+            .clamp(48.0, double.infinity);
 
     return OutlinedButton.styleFrom(
       textStyle: const TextStyle(
@@ -122,7 +124,8 @@ class UIConsistency {
     final textScaler = MediaQuery.textScalerOf(context);
     final scaleFactor = textScaler.scale(AppTheme.fontSizeRegular);
     final scaledMinHeight =
-        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeRegular).clamp(48.0, double.infinity);
+        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeRegular)
+            .clamp(48.0, double.infinity);
 
     return TextButton.styleFrom(
       textStyle: const TextStyle(
@@ -171,7 +174,8 @@ class UIConsistency {
     final textScaler = MediaQuery.textScalerOf(context);
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
-        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(48.0, double.infinity);
+        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium)
+            .clamp(48.0, double.infinity);
 
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -230,7 +234,8 @@ class UIConsistency {
     final textScaler = MediaQuery.textScalerOf(context);
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
-        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(48.0, double.infinity);
+        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium)
+            .clamp(48.0, double.infinity);
 
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -307,7 +312,8 @@ class UIConsistency {
                   ),
                 )
               : Row(
-                  mainAxisSize: isExpanded ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisSize:
+                      isExpanded ? MainAxisSize.max : MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (icon != null) ...[
@@ -319,7 +325,9 @@ class UIConsistency {
                 ),
         );
 
-        return isExpanded ? SizedBox(width: double.infinity, child: button) : button;
+        return isExpanded
+            ? SizedBox(width: double.infinity, child: button)
+            : button;
       },
     );
   }
@@ -349,7 +357,9 @@ class UIConsistency {
           ),
         );
 
-        return isExpanded ? SizedBox(width: double.infinity, child: button) : button;
+        return isExpanded
+            ? SizedBox(width: double.infinity, child: button)
+            : button;
       },
     );
   }
@@ -408,7 +418,8 @@ class UIConsistency {
               onTap: onTap,
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
               child: Padding(
-                padding: padding ?? const EdgeInsets.all(AppTheme.paddingMedium),
+                padding:
+                    padding ?? const EdgeInsets.all(AppTheme.paddingMedium),
                 child: child,
               ),
             ),
@@ -548,7 +559,9 @@ class UIConsistency {
       const SizedBox(width: AppTheme.spacingSm),
       ElevatedButton(
         onPressed: onConfirm,
-        style: isDestructive ? destructiveButtonStyle(context) : primaryButtonStyle(context),
+        style: isDestructive
+            ? destructiveButtonStyle(context)
+            : primaryButtonStyle(context),
         child: Text(confirmText),
       ),
     ];

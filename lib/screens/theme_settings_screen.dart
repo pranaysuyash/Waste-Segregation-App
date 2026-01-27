@@ -91,7 +91,8 @@ class ThemeSettingsScreen extends ConsumerWidget {
                 'Premium Features',
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
-              subtitle: const Text('Unlock advanced theme customization and more'),
+              subtitle:
+                  const Text('Unlock advanced theme customization and more'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.pushNamed(context, Routes.premium);
@@ -108,7 +109,8 @@ class ThemeSettingsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.palette, color: Colors.amber),
                 title: const Text('Custom Themes'),
                 subtitle: const Text('Create your own theme colors'),
-                trailing: const Icon(Icons.workspace_premium, color: Colors.amber),
+                trailing:
+                    const Icon(Icons.workspace_premium, color: Colors.amber),
                 onTap: () {
                   _showPremiumFeaturePrompt(context, ref);
                 },

@@ -2,23 +2,30 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mockito/mockito.dart' as mockito;
 import 'package:waste_segregation_app/services/ai_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/cache_service.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/cached_classification.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
+import 'package:waste_segregation_app/models/filter_options.dart';
 
 // Mock services for performance testing
-class MockAiService extends Mock implements AiService {}
-class MockStorageService extends Mock implements StorageService {
-  Future<List<WasteClassification>> getRecentClassifications() async => [];
+class MockAiService extends mockito.Mock implements AiService {}
+class MockStorageService extends mockito.Mock implements StorageService {
+  // Updated to match current API: supports pagination
+  Future<List<WasteClassification>> getClassificationsWithPagination({
+    FilterOptions? filterOptions,
+    int pageSize = 20,
+    int page = 0,
+  }) async => [];
 }
-class MockCacheService extends Mock implements CacheService {
+class MockCacheService extends mockito.Mock implements CacheService {
   int getCacheMemoryUsage() => 1024 * 1024; // 1MB mock usage
 }
-class MockGamificationService extends Mock implements GamificationService {}
+class MockGamificationService extends mockito.Mock implements GamificationService {}
 
 void main() {
   group('Performance Tests', () {
@@ -42,7 +49,7 @@ void main() {
         for (var i = 0; i < 50; i++) {
           final imageData = _generateTestImageData(1024 * 1024); // 1MB each
           
-          when(mockAiService.analyzeWebImage(imageData, 'test_$i.jpg'))
+            mockito.when(mockAiService.analyzeWebImage(imageData, 'test_$i.jpg'))
               .thenAnswer((_) async => _createTestClassification('Image $i'));
           
           final classification = await mockAiService.analyzeWebImage(imageData, 'test_$i.jpg');
@@ -70,7 +77,7 @@ void main() {
       test('should handle large classification history efficiently', () async {
         final largeHistory = List.generate(10000, (i) => _createTestClassification('Item $i'));
         
-        when(mockStorageService.getClassificationHistory())
+        mockito.when(mockStorageService.getClassificationHistory())
             .thenAnswer((_) async => largeHistory);
         
         final stopwatch = Stopwatch()..start();
@@ -97,7 +104,7 @@ void main() {
         const cacheLimit = 50 * 1024 * 1024; // 50MB cache limit
         
         // Setup cache service mock
-        when(mockCacheService.getCacheMemoryUsage())
+        mockito.when(mockCacheService.getCacheMemoryUsage())
             .thenReturn(cacheLimit - (10 * 1024 * 1024)); // Near limit
         
         // Add items until cache limit
@@ -121,7 +128,7 @@ void main() {
         
         // Batch save multiple classifications
         for (var classification in largeDataSet) {
-          when(mockStorageService.saveClassification(classification))
+            mockito.when(mockStorageService.saveClassification(classification))
               .thenAnswer((_) async => {});
         }
         
@@ -184,19 +191,19 @@ void main() {
         final recentClassifications = List.generate(10, (i) => _createTestClassification('Recent $i'));
         final userProfile = _createTestUserProfile();
         
-        when(mockStorageService.getRecentClassifications())
+        mockito.when(mockStorageService.getClassificationsWithPagination(filterOptions: mockito.anyNamed('filterOptions'), pageSize: 10))
             .thenAnswer((_) async => recentClassifications);
-        when(mockGamificationService.getUserProfile())
+        mockito.when(mockGamificationService.getProfile())
             .thenAnswer((_) async => userProfile);
         
         final stopwatch = Stopwatch()..start();
         
         // Load initial app data
-        final futures = [
-          mockStorageService.getRecentClassifications(limit: 10),
-          mockGamificationService.getUserProfile(),
+        final futures = <Future<dynamic>>[
+          mockStorageService.getClassificationsWithPagination(pageSize: 10),
+          mockGamificationService.getProfile(),
         ];
-        
+
         await Future.wait(futures);
         stopwatch.stop();
         
@@ -208,17 +215,17 @@ void main() {
         final initOrder = <String>[];
         
         // Mock service initialization with timing
-        when(mockStorageService.initialize()).thenAnswer((_) async {
+        mockito.when(mockStorageService.initialize()).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 100));
           initOrder.add('storage');
         });
         
-        when(mockCacheService.initialize()).thenAnswer((_) async {
+        mockito.when(mockCacheService.initialize()).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 50));
           initOrder.add('cache');
         });
         
-        when(mockGamificationService.initialize()).thenAnswer((_) async {
+        mockito.when(mockGamificationService.initialize()).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 75));
           initOrder.add('gamification');
         });
@@ -251,10 +258,10 @@ void main() {
       test('should handle 10,000 classifications efficiently', () async {
         final largeDataset = List.generate(10000, (i) => _createTestClassification('Large Item $i'));
         
-        when(mockStorageService.saveClassificationBatch(any))
-            .thenAnswer((_) async => {});
-        when(mockStorageService.searchClassifications(any))
-            .thenAnswer((_) async => largeDataset.take(100).toList());
+        mockito.when(mockStorageService.saveClassificationBatch(mockito.any<List<WasteClassification>>()))
+          .thenAnswer((_) async => {});
+        mockito.when(mockStorageService.searchClassifications(mockito.any<String>()))
+          .thenAnswer((_) async => largeDataset.take(100).toList());
         
         final stopwatch = Stopwatch()..start();
         
@@ -274,13 +281,14 @@ void main() {
         const pageSize = 50;
         const totalItems = 1000;
         
-        when(mockStorageService.getClassificationHistory(
-          offset: any, 
-          limit: pageSize
+        mockito.when(mockStorageService.getClassificationHistory(
+          offset: mockito.anyNamed('offset'), 
+          limit: mockito.anyNamed('limit'),
         )).thenAnswer((invocation) async {
-          final offset = invocation.namedArguments[#offset] ?? 0;
+          final offset = invocation.namedArguments[#offset] as int? ?? 0;
+          final limit = invocation.namedArguments[#limit] as int? ?? pageSize;
           final start = offset;
-          final end = (start + pageSize).clamp(0, totalItems);
+          final end = (start + limit).clamp(0, totalItems);
           
           return List.generate(end - start, (i) => 
             _createTestClassification('Paginated Item ${start + i}')
@@ -312,8 +320,8 @@ void main() {
           List.generate(1000, (j) => _createTestClassification('Concurrent $i-$j'))
         );
         
-        when(mockStorageService.saveClassificationBatch(any))
-            .thenAnswer((_) async => Future.delayed(const Duration(milliseconds: 500)));
+        mockito.when(mockStorageService.saveClassificationBatch(mockito.any<List<WasteClassification>>()))
+          .thenAnswer((_) async => Future.delayed(const Duration(milliseconds: 500)));
         
         final stopwatch = Stopwatch()..start();
         
@@ -329,18 +337,18 @@ void main() {
         expect(stopwatch.elapsedMilliseconds, lessThan(1000)); // Faster than 5 * 500ms
         
         // Verify all operations completed
-        verify(mockStorageService.saveClassificationBatch(any)).called(5);
+        mockito.verify(mockStorageService.saveClassificationBatch(mockito.any<List<WasteClassification>>())).called(5);
       });
 
       test('should maintain performance with mixed operations', () async {
         final classifications = List.generate(100, (i) => _createTestClassification('Mixed $i'));
         
-        when(mockStorageService.saveClassification(any))
-            .thenAnswer((_) async => Future.delayed(const Duration(milliseconds: 10)));
-        when(mockStorageService.getClassificationHistory())
+        mockito.when(mockStorageService.saveClassification(mockito.any<WasteClassification>()))
+          .thenAnswer((_) async => Future.delayed(const Duration(milliseconds: 10)));
+        mockito.when(mockStorageService.getClassificationHistory())
             .thenAnswer((_) async => classifications);
-        when(mockCacheService.getCachedClassification(any))
-            .thenAnswer((_) async => classifications.first);
+        mockito.when(mockCacheService.getCachedClassification(mockito.any<String>()))
+          .thenAnswer((_) async => CachedClassification.fromClassification('hash', classifications.first));
         
         final stopwatch = Stopwatch()..start();
         
@@ -432,7 +440,7 @@ void main() {
       test('should handle AI API calls within timeout', () async {
         final imageData = _generateTestImageData(2 * 1024 * 1024); // 2MB image
         
-        when(mockAiService.analyzeWebImage(any, any))
+        mockito.when(mockAiService.analyzeWebImage(mockito.any<Uint8List>(), mockito.any<String>()))
             .thenAnswer((_) async {
               await Future.delayed(const Duration(seconds: 3)); // Simulate API delay
               return _createTestClassification('API Result');
@@ -452,7 +460,7 @@ void main() {
         const batchSize = 10;
         final requests = List.generate(batchSize, (i) => 'request_$i');
         
-        when(mockAiService.batchAnalyzeImages(any))
+        mockito.when(mockAiService.batchAnalyzeImages(mockito.any<List<String>>()))
             .thenAnswer((_) async {
               await Future.delayed(const Duration(milliseconds: 1000)); // Simulate batch processing
               return requests.map((r) => _createTestClassification(r)).toList();
@@ -470,7 +478,7 @@ void main() {
       });
 
       test('should handle network timeouts gracefully', () async {
-        when(mockAiService.analyzeWebImage(any, any))
+        mockito.when(mockAiService.analyzeWebImage(mockito.any<Uint8List>(), mockito.any<String>()))
             .thenAnswer((_) async {
               await Future.delayed(const Duration(seconds: 10)); // Simulate slow network
               return _createTestClassification('Timeout Test');
@@ -717,8 +725,15 @@ GamificationProfile _createTestUserProfile() {
   return GamificationProfile(
     userId: 'performance_test_user',
     points: const UserPoints(total: 500),
-    streak: Streak(current: 5, longest: 10, lastUsageDate: DateTime.now()),
-    achievements: [],
+    streaks: {
+      'daily_classification': StreakDetails(
+        type: StreakType.dailyClassification,
+        currentCount: 5,
+        longestCount: 10,
+        lastActivityDate: DateTime.now(),
+      ),
+    },
+    achievements: const [],
   );
 }
 

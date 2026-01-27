@@ -7,7 +7,7 @@ import '../utils/waste_app_logger.dart';
 part 'ab_testing_config.g.dart';
 
 /// A/B testing framework for model comparison
-/// 
+///
 /// Enables:
 /// - Random assignment to test groups
 /// - Performance comparison between strategies
@@ -144,7 +144,8 @@ class ABTestingService {
       await _testsBox?.put(config.testId, config);
       WasteAppLogger.info('A/B test created: ${config.testId}');
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to create A/B test', e, s);
+      WasteAppLogger.severe('Failed to create A/B test',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -196,10 +197,10 @@ class ABTestingService {
         0.0,
         (sum, variant) => sum + variant.weight,
       );
-      
+
       var rand = _random.nextDouble() * totalWeight;
       ABTestVariant? selectedVariant;
-      
+
       for (final variant in test.variants) {
         rand -= variant.weight;
         if (rand <= 0) {
@@ -207,7 +208,7 @@ class ABTestingService {
           break;
         }
       }
-      
+
       selectedVariant ??= test.variants.first;
 
       // Save assignment
@@ -217,12 +218,12 @@ class ABTestingService {
       );
 
       WasteAppLogger.info(
-        'User $userId assigned to variant ${selectedVariant.variantId}',
-      );
+          'User $userId assigned to variant ${selectedVariant.variantId}');
 
       return selectedVariant;
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to assign variant', e, s);
+      WasteAppLogger.severe('Failed to assign variant',
+          error: e, stackTrace: s);
       return null;
     }
   }
@@ -230,10 +231,12 @@ class ABTestingService {
   /// Record test result
   Future<void> recordResult(ABTestResult result) async {
     try {
-      final key = '${result.testId}_${result.variantId}_${result.timestamp.millisecondsSinceEpoch}';
+      final key =
+          '${result.testId}_${result.variantId}_${result.timestamp.millisecondsSinceEpoch}';
       await _resultsBox?.put(key, result);
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to record A/B test result', e, s);
+      WasteAppLogger.severe('Failed to record A/B test result',
+          error: e, stackTrace: s);
     }
   }
 
@@ -271,13 +274,12 @@ class ABTestingService {
 
   VariantStats _calculateStats(List<ABTestResult> results) {
     if (results.isEmpty) {
-      return VariantStats(
+      return const VariantStats(
         sampleSize: 0,
         avgLatencyMs: 0,
         avgCost: 0,
         avgAccuracy: 0,
         conversionRate: 0,
-        avgSatisfaction: null,
       );
     }
 
@@ -325,7 +327,7 @@ class ABTestingService {
   /// Get winner (variant with best overall performance)
   String? getWinner(String testId, {double significanceLevel = 0.05}) {
     final stats = getVariantStats(testId);
-    
+
     if (stats.length < 2) {
       return null; // Need at least 2 variants
     }
@@ -333,11 +335,11 @@ class ABTestingService {
     // Simple winner determination based on composite score
     // In production, use proper statistical significance testing
     String? winner;
-    double bestScore = double.negativeInfinity;
+    var bestScore = double.negativeInfinity;
 
     for (final entry in stats.entries) {
       final s = entry.value;
-      
+
       // Composite score (adjust weights as needed)
       final score = (s.avgAccuracy * 0.4) +
           (s.conversionRate * 0.3) +
@@ -374,12 +376,11 @@ class ABTestingService {
       );
 
       await _testsBox?.put(testId, updatedTest);
-      
+
       WasteAppLogger.info(
-        'A/B test ended: $testId, Winner: ${winner ?? "No clear winner"}',
-      );
+          'A/B test ended: $testId, error: Winner: ${winner ?? "No clear winner"}');
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to end A/B test', e, s);
+      WasteAppLogger.severe('Failed to end A/B test', error: e, stackTrace: s);
       rethrow;
     }
   }

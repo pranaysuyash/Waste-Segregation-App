@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'constants.dart';
 
 /// Enhanced Design System for Waste Segregation App
 /// Provides comprehensive theming, colors, typography, and component styles
 class WasteAppDesignSystem {
   // Color Palette with Environmental Semantics
-  static const Color primaryGreen = Color(0xFF2E7D4A); // Forest Green
-  static const Color secondaryGreen = Color(0xFF52C41A); // Action Green
-  static const Color warningOrange = Color(0xFFFF9800); // Warning Orange
-  static const Color errorRed = Color(0xFFE53E3E); // Alert Red
+  static const Color primaryGreen = AppTheme.seedColor; // Unified primary
+  static const Color secondaryGreen =
+      AppTheme.secondaryColor; // Unified secondary (ocean blue)
+  static const Color warningOrange = AppTheme.warningColor; // Unified warning
+  static const Color errorRed = AppTheme.errorColor; // Unified error
   static const Color surfaceWhite = Color(0xFFFAFAFA); // Clean White
   static const Color textBlack = Color(0xFF1A1A1A); // Rich Black
   static const Color lightGray = Color(0xFFF5F5F5); // Light Surface
@@ -16,11 +18,11 @@ class WasteAppDesignSystem {
   static const Color darkGray = Color(0xFF6C757D); // Secondary Text
 
   // Waste Category Colors
-  static const Color wetWasteColor = Color(0xFF4CAF50); // Green
-  static const Color dryWasteColor = Color(0xFF2196F3); // Blue
-  static const Color hazardousWasteColor = Color(0xFFFF5722); // Red-Orange
-  static const Color medicalWasteColor = Color(0xFF9C27B0); // Purple
-  static const Color nonWasteColor = Color(0xFF795548); // Brown
+  static const Color wetWasteColor = AppTheme.wetWasteColor; // Living Earth
+  static const Color dryWasteColor = AppTheme.dryWasteColor;
+  static const Color hazardousWasteColor = AppTheme.hazardousWasteColor;
+  static const Color medicalWasteColor = AppTheme.medicalWasteColor;
+  static const Color nonWasteColor = AppTheme.nonWasteColor;
 
   // Material 3 Color Scheme
   static const ColorScheme lightColorScheme = ColorScheme(
@@ -41,18 +43,18 @@ class WasteAppDesignSystem {
     shadow: Colors.black26,
     inverseSurface: textBlack,
     onInverseSurface: surfaceWhite,
-    inversePrimary: Color(0xFF7BC984),
+    inversePrimary: primaryGreen,
   );
 
   static const ColorScheme darkColorScheme = ColorScheme(
     brightness: Brightness.dark,
-    primary: Color(0xFF7BC984),
+    primary: primaryGreen,
     onPrimary: Color(0xFF003919),
-    secondary: Color(0xFF86E996),
+    secondary: secondaryGreen,
     onSecondary: Color(0xFF00390E),
     tertiary: Color(0xFFFFB74D),
     onTertiary: Color(0xFF4A2800),
-    error: Color(0xFFFF6B6B),
+    error: errorRed,
     onError: Color(0xFF4A0000),
     surface: Color(0xFF121212),
     onSurface: Color(0xFFE0E0E0),

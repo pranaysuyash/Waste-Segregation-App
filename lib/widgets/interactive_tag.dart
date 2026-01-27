@@ -396,12 +396,16 @@ class InteractiveTag extends StatelessWidget {
 
   Future<void> _openMaps() async {
     final query = Uri.encodeComponent(category ?? text);
-    final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+    final url =
+        Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      WasteAppLogger.warning('Could not launch maps for query', null, null,
-          {'query': query, 'widget': 'interactive_tag', 'action': 'maps_launch_failed'});
+      WasteAppLogger.warning('Could not launch maps for query', context: {
+        'query': query,
+        'widget': 'interactive_tag',
+        'action': 'maps_launch_failed'
+      });
     }
   }
 }
@@ -426,11 +430,16 @@ class InteractiveTagCollection extends StatelessWidget {
         // Calculate how many tags can fit in the available space
         final availableWidth = constraints.maxWidth;
         const estimatedTagWidth = 80.0; // Estimated average tag width
-        final maxTagsPerRow = (availableWidth / estimatedTagWidth).floor().clamp(2, 6);
+        final maxTagsPerRow =
+            (availableWidth / estimatedTagWidth).floor().clamp(2, 6);
 
         // Determine which tags to show
-        final tagsToShow = showViewMore && tags.length > maxTagsPerRow ? tags.take(maxTagsPerRow - 1).toList() : tags;
-        final hiddenCount = showViewMore && tags.length > maxTagsPerRow ? tags.length - (maxTagsPerRow - 1) : 0;
+        final tagsToShow = showViewMore && tags.length > maxTagsPerRow
+            ? tags.take(maxTagsPerRow - 1).toList()
+            : tags;
+        final hiddenCount = showViewMore && tags.length > maxTagsPerRow
+            ? tags.length - (maxTagsPerRow - 1)
+            : 0;
 
         return Wrap(
           spacing: 8,
@@ -457,7 +466,8 @@ class InteractiveTagCollection extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusLarge),
                     border: Border.all(color: Colors.grey.shade400),
                   ),
                   child: Row(

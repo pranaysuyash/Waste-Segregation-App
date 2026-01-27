@@ -10,7 +10,7 @@ void main() {
     setUp(() {
       // Create a test image: 100x100 RGB
       testImage = img.Image(width: 100, height: 100);
-      
+
       // Fill with test pattern (red pixels)
       for (int y = 0; y < testImage.height; y++) {
         for (int x = 0; x < testImage.width; x++) {
@@ -21,7 +21,8 @@ void main() {
 
     group('preprocessImageForInference', () {
       test('resizes image to specified dimensions', () async {
-        final result = await TFLitePreprocessingHelper.preprocessImageForInference(
+        final result =
+            await TFLitePreprocessingHelper.preprocessImageForInference(
           image: testImage,
           inputWidth: 224,
           inputHeight: 224,
@@ -34,7 +35,8 @@ void main() {
       });
 
       test('normalizes pixel values correctly', () async {
-        final result = await TFLitePreprocessingHelper.preprocessImageForInference(
+        final result =
+            await TFLitePreprocessingHelper.preprocessImageForInference(
           image: testImage,
           inputWidth: 10,
           inputHeight: 10,
@@ -45,7 +47,7 @@ void main() {
 
         expect(result, isNotEmpty);
         final float32List = result[0];
-        
+
         // Check normalized values are in expected range
         for (final value in float32List) {
           expect(value, greaterThanOrEqualTo(-1.0));
@@ -54,7 +56,8 @@ void main() {
       });
 
       test('handles different normalization ranges', () async {
-        final result = await TFLitePreprocessingHelper.preprocessImageForInference(
+        final result =
+            await TFLitePreprocessingHelper.preprocessImageForInference(
           image: testImage,
           inputWidth: 10,
           inputHeight: 10,
@@ -65,7 +68,7 @@ void main() {
 
         expect(result, isNotEmpty);
         final float32List = result[0];
-        
+
         for (final value in float32List) {
           expect(value, greaterThanOrEqualTo(0.0));
           expect(value, lessThanOrEqualTo(1.0));
@@ -75,8 +78,9 @@ void main() {
       test('returns Float32List with correct size', () async {
         const width = 128;
         const height = 128;
-        
-        final result = await TFLitePreprocessingHelper.preprocessImageForInference(
+
+        final result =
+            await TFLitePreprocessingHelper.preprocessImageForInference(
           image: testImage,
           inputWidth: width,
           inputHeight: height,
@@ -216,8 +220,9 @@ void main() {
     group('edge cases', () {
       test('handles very small image input', () async {
         final tinyImage = img.Image(width: 2, height: 2);
-        
-        final result = await TFLitePreprocessingHelper.preprocessImageForInference(
+
+        final result =
+            await TFLitePreprocessingHelper.preprocessImageForInference(
           image: tinyImage,
           inputWidth: 224,
           inputHeight: 224,
@@ -229,7 +234,8 @@ void main() {
       });
 
       test('handles very large output dimensions', () async {
-        final result = await TFLitePreprocessingHelper.preprocessImageForInference(
+        final result =
+            await TFLitePreprocessingHelper.preprocessImageForInference(
           image: testImage,
           inputWidth: 512,
           inputHeight: 512,

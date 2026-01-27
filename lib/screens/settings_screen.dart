@@ -56,8 +56,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final premiumService = Provider.of<PremiumService>(context);
     final storageService = Provider.of<StorageService>(context);
     final adService = Provider.of<AdService>(context, listen: false);
-    final analyticsService = Provider.of<AnalyticsService>(context, listen: false);
-    final googleDriveService = Provider.of<GoogleDriveService>(context, listen: false);
+    final analyticsService =
+        Provider.of<AnalyticsService>(context, listen: false);
+    final googleDriveService =
+        Provider.of<GoogleDriveService>(context, listen: false);
 
     // Set context for ads
     adService.setInClassificationFlow(false);
@@ -72,7 +74,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           if (DeveloperConfig.canShowDeveloperOptions)
             IconButton(
               icon: Icon(
-                _showDeveloperOptions ? Icons.developer_mode : Icons.developer_mode_outlined,
+                _showDeveloperOptions
+                    ? Icons.developer_mode
+                    : Icons.developer_mode_outlined,
                 color: _showDeveloperOptions ? Colors.yellow : Colors.white,
               ),
               onPressed: () {
@@ -110,7 +114,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isSignedIn ? Colors.red.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1),
+                      color: isSignedIn
+                          ? Colors.red.withValues(alpha: 0.1)
+                          : Colors.blue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -132,7 +138,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Icons.chevron_right,
                     color: isSignedIn ? Colors.red : Colors.blue,
                   ),
-                  onTap: () => _handleAccountAction(context, isSignedIn, googleDriveService),
+                  onTap: () => _handleAccountAction(
+                      context, isSignedIn, googleDriveService),
                 );
               },
             ),
@@ -195,7 +202,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
 
           // Developer Options Section (Secure Debug Only)
-          if (DeveloperConfig.canShowDeveloperOptions && _showDeveloperOptions) ...[
+          if (DeveloperConfig.canShowDeveloperOptions &&
+              _showDeveloperOptions) ...[
             Container(
               color: Colors.yellow.shade50,
               padding: const EdgeInsets.all(8),
@@ -221,7 +229,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             await premiumService.resetPremiumFeatures();
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('All premium features reset')),
+                                const SnackBar(
+                                    content:
+                                        Text('All premium features reset')),
                               );
                             }
                           },
@@ -276,7 +286,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.warning, color: Colors.red),
-                      label: const Text('Force Crash (Crashlytics Test)', style: TextStyle(color: Colors.red)),
+                      label: const Text('Force Crash (Crashlytics Test)',
+                          style: TextStyle(color: Colors.red)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.red,
@@ -292,21 +303,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (DeveloperConfig.canShowFactoryReset)
                     ElevatedButton.icon(
                       icon: const Icon(Icons.restore, color: Colors.orange),
-                      label: const Text('Reset Full Data (Factory Reset)', style: TextStyle(color: Colors.orange)),
+                      label: const Text('Reset Full Data (Factory Reset)',
+                          style: TextStyle(color: Colors.orange)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.orange,
                         side: const BorderSide(color: Colors.orange),
                       ),
                       onPressed: () {
-                        _showFactoryResetDialog(context, storageService, analyticsService, premiumService);
+                        _showFactoryResetDialog(context, storageService,
+                            analyticsService, premiumService);
                       },
                     ),
                   // Firebase cleanup button (debug only)
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
                     icon: const Icon(Icons.cloud_off, color: Colors.red),
-                    label: const Text('Clear Firebase Data (Fresh Install)', style: TextStyle(color: Colors.red)),
+                    label: const Text('Clear Firebase Data (Fresh Install)',
+                        style: TextStyle(color: Colors.red)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.red,
@@ -320,7 +334,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
                     icon: const Icon(Icons.update, color: Colors.green),
-                    label: const Text('Migrate Old Classifications', style: TextStyle(color: Colors.green)),
+                    label: const Text('Migrate Old Classifications',
+                        style: TextStyle(color: Colors.green)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.green,
@@ -368,7 +383,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Bottom navigation ${value ? 'enabled' : 'disabled'}'),
+                                content: Text(
+                                    'Bottom navigation ${value ? 'enabled' : 'disabled'}'),
                                 duration: const Duration(seconds: 1),
                               ),
                             );
@@ -387,7 +403,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Camera button ${value ? 'enabled' : 'disabled'}'),
+                                content: Text(
+                                    'Camera button ${value ? 'enabled' : 'disabled'}'),
                                 duration: const Duration(seconds: 1),
                               ),
                             );
@@ -420,7 +437,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Navigation style changed to $value'),
+                                  content: Text(
+                                      'Navigation style changed to $value'),
                                   duration: const Duration(seconds: 1),
                                 ),
                               );
@@ -578,7 +596,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.offline_bolt),
             title: const Text('Offline Mode'),
             subtitle: const Text('Classify items without internet'),
-            trailing: _buildFeatureIndicator(context, premiumService.isPremiumFeature('offline_mode')),
+            trailing: _buildFeatureIndicator(
+                context, premiumService.isPremiumFeature('offline_mode')),
             onTap: () {
               if (premiumService.isPremiumFeature('offline_mode')) {
                 Navigator.push(
@@ -599,7 +618,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.analytics),
             title: const Text('Analytics'),
             subtitle: const Text('View detailed insights'),
-            trailing: _buildFeatureIndicator(context, premiumService.isPremiumFeature('advanced_analytics')),
+            trailing: _buildFeatureIndicator(
+                context, premiumService.isPremiumFeature('advanced_analytics')),
             onTap: () {
               if (premiumService.isPremiumFeature('advanced_analytics')) {
                 Navigator.push(
@@ -622,7 +642,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: premiumService.isPremiumFeature('remove_ads')
                 ? const Text('Ads are disabled')
                 : const Text('Manage ad preferences'),
-            trailing: _buildFeatureIndicator(context, premiumService.isPremiumFeature('remove_ads')),
+            trailing: _buildFeatureIndicator(
+                context, premiumService.isPremiumFeature('remove_ads')),
             onTap: () {
               if (premiumService.isPremiumFeature('remove_ads')) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -640,7 +661,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.file_download),
             title: const Text('Export Data'),
             subtitle: const Text('Export your classification history'),
-            trailing: _buildFeatureIndicator(context, premiumService.isPremiumFeature('export_data')),
+            trailing: _buildFeatureIndicator(
+                context, premiumService.isPremiumFeature('export_data')),
             onTap: () {
               if (premiumService.isPremiumFeature('export_data')) {
                 Navigator.push(
@@ -689,18 +711,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: const Text('Control when you can provide feedback'),
               children: [
                 FutureBuilder<Map<String, dynamic>>(
-                  future: Provider.of<StorageService>(context, listen: false).getSettings(),
+                  future: Provider.of<StorageService>(context, listen: false)
+                      .getSettings(),
                   builder: (context, snapshot) {
                     final settings = snapshot.data ?? {};
-                    final allowHistoryFeedback = settings['allowHistoryFeedback'] ?? true;
-                    final feedbackTimeframeDays = settings['feedbackTimeframeDays'] ?? 7;
+                    final allowHistoryFeedback =
+                        settings['allowHistoryFeedback'] ?? true;
+                    final feedbackTimeframeDays =
+                        settings['feedbackTimeframeDays'] ?? 7;
 
                     return Column(
                       children: [
                         Semantics(
                           label: 'Toggle feedback on recent history',
                           child: SwitchListTile(
-                            title: const Text('Allow Feedback on Recent History'),
+                            title:
+                                const Text('Allow Feedback on Recent History'),
                             subtitle: Text(
                               allowHistoryFeedback
                                   ? 'Can provide feedback on recent classifications from history'
@@ -716,15 +742,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         if (allowHistoryFeedback) ...[
                           ListTile(
                             title: const Text('Feedback Timeframe'),
-                            subtitle: Text('Can provide feedback on items from last $feedbackTimeframeDays days'),
+                            subtitle: Text(
+                                'Can provide feedback on items from last $feedbackTimeframeDays days'),
                             trailing: DropdownButton<int>(
                               value: feedbackTimeframeDays,
                               items: const [
-                                DropdownMenuItem(value: 1, child: Text('1 day')),
-                                DropdownMenuItem(value: 3, child: Text('3 days')),
-                                DropdownMenuItem(value: 7, child: Text('7 days')),
-                                DropdownMenuItem(value: 14, child: Text('14 days')),
-                                DropdownMenuItem(value: 30, child: Text('30 days')),
+                                DropdownMenuItem(
+                                    value: 1, child: Text('1 day')),
+                                DropdownMenuItem(
+                                    value: 3, child: Text('3 days')),
+                                DropdownMenuItem(
+                                    value: 7, child: Text('7 days')),
+                                DropdownMenuItem(
+                                    value: 14, child: Text('14 days')),
+                                DropdownMenuItem(
+                                    value: 30, child: Text('30 days')),
                               ],
                               onChanged: (value) async {
                                 if (value != null) {
@@ -766,12 +798,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ListTile(
                       leading: const Icon(Icons.cloud_done),
                       title: const Text('Last Cloud Sync'),
-                      subtitle: Text(DateFormat.yMd().add_Hm().format(_lastCloudSync!)),
+                      subtitle: Text(
+                          DateFormat.yMd().add_Hm().format(_lastCloudSync!)),
                     ),
                   ListTile(
                     leading: const Icon(Icons.cloud_upload),
                     title: const Text('Sync Local Data to Cloud'),
-                    subtitle: const Text('Upload existing local classifications to cloud'),
+                    subtitle: const Text(
+                        'Upload existing local classifications to cloud'),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: _syncLocalDataToCloud,
                   ),
@@ -821,7 +855,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: Colors.red,
                 ),
               ),
-              subtitle: const Text('Reset all app data (history, settings, preferences)'),
+              subtitle: const Text(
+                  'Reset all app data (history, settings, preferences)'),
               trailing: const Icon(Icons.chevron_right, color: Colors.red),
               onTap: () {
                 showDialog(
@@ -852,7 +887,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           if (context.mounted) {
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('All data cleared successfully')),
+                              const SnackBar(
+                                  content:
+                                      Text('All data cleared successfully')),
                             );
                           }
                         },
@@ -913,7 +950,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const LegalDocumentScreen(
+                                  builder: (context) =>
+                                      const LegalDocumentScreen(
                                     title: 'Privacy Policy',
                                     assetPath: 'assets/docs/privacy_policy.md',
                                   ),
@@ -929,9 +967,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const LegalDocumentScreen(
+                                  builder: (context) =>
+                                      const LegalDocumentScreen(
                                     title: 'Terms of Service',
-                                    assetPath: 'assets/docs/terms_of_service.md',
+                                    assetPath:
+                                        'assets/docs/terms_of_service.md',
                                   ),
                                 ),
                               );
@@ -989,7 +1029,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const LegalDocumentScreen(
+                                  builder: (context) =>
+                                      const LegalDocumentScreen(
                                     title: 'Privacy Policy',
                                     assetPath: 'assets/docs/privacy_policy.md',
                                   ),
@@ -1007,9 +1048,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const LegalDocumentScreen(
+                                  builder: (context) =>
+                                      const LegalDocumentScreen(
                                     title: 'Terms of Service',
-                                    assetPath: 'assets/docs/terms_of_service.md',
+                                    assetPath:
+                                        'assets/docs/terms_of_service.md',
                                   ),
                                 ),
                               );
@@ -1146,7 +1189,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // Navigate back to auth screen
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => const AuthScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const AuthScreen()),
                       (route) => false,
                     );
                   }
@@ -1162,7 +1206,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   }
                 }
               },
-              child: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+              child:
+                  const Text('Sign Out', style: TextStyle(color: Colors.red)),
             ),
           ],
         ),
@@ -1274,7 +1319,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final appVersion = packageInfo.version;
       final buildNumber = packageInfo.buildNumber;
 
-      final subject = Uri.encodeComponent('Waste Segregation App - Support Request');
+      final subject =
+          Uri.encodeComponent('Waste Segregation App - Support Request');
       final body = Uri.encodeComponent('Hi Support Team,\n\n'
           'I need help with the Waste Segregation App.\n\n'
           'App Version: $appVersion ($buildNumber)\n'
@@ -1282,7 +1328,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'Device: ${Platform.operatingSystemVersion}\n\n'
           'Please describe your issue below:\n\n');
 
-      final emailUrl = 'mailto:support@wastewise.app?subject=$subject&body=$body';
+      final emailUrl =
+          'mailto:support@wastewise.app?subject=$subject&body=$body';
       final uri = Uri.parse(emailUrl);
 
       if (await canLaunchUrl(uri)) {
@@ -1356,10 +1403,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       String storeUrl;
       if (Platform.isIOS) {
         // Replace with actual App Store ID when published
-        storeUrl = 'https://apps.apple.com/app/waste-segregation-app/id123456789';
+        storeUrl =
+            'https://apps.apple.com/app/waste-segregation-app/id123456789';
       } else if (Platform.isAndroid) {
         // Replace with actual package name when published
-        storeUrl = 'https://play.google.com/store/apps/details?id=com.wastewise.app';
+        storeUrl =
+            'https://play.google.com/store/apps/details?id=com.wastewise.app';
       } else {
         // Fallback for other platforms
         storeUrl = 'https://wastewise.app';
@@ -1373,7 +1422,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Unable to open app store. Please search for "Waste Segregation App" in your app store.'),
+              content: Text(
+                  'Unable to open app store. Please search for "Waste Segregation App" in your app store.'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -1419,7 +1469,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Clipboard.setData(ClipboardData(text: email));
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Email address copied to clipboard')),
+                        const SnackBar(
+                            content: Text('Email address copied to clipboard')),
                       );
                     },
                     icon: const Icon(Icons.copy),
@@ -1521,9 +1572,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              final currentCapturedContext = context; // Capture context before async gap
+              final currentCapturedContext =
+                  context; // Capture context before async gap
 
-              Navigator.pop(currentCapturedContext); // Close confirmation dialog
+              Navigator.pop(
+                  currentCapturedContext); // Close confirmation dialog
 
               // Show loading dialog
               showDialog(
@@ -1579,7 +1632,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // If the original context is unmounted, a root navigator pop might be needed
                   // For now, we assume the auth state change might have already rebuilt the tree.
                   // If the dialog is still stuck, a GlobalKey for the Navigator would be the next step.
-                  WasteAppLogger.info('SettingsScreen context was unmounted before trying to pop loading dialog.');
+                  WasteAppLogger.info(
+                      'SettingsScreen context was unmounted before trying to pop loading dialog.');
                 }
 
                 if (snackBarMessage != null) {
@@ -1593,7 +1647,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     );
                   } else {
-                    WasteAppLogger.info('SettingsScreen context unmounted, cannot show SnackBar: $snackBarMessage');
+                    WasteAppLogger.info(
+                        'SettingsScreen context unmounted, error: cannot show SnackBar: $snackBarMessage');
                   }
                 }
 
@@ -1606,11 +1661,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 } else if (!success && currentCapturedContext.mounted) {
                   // Stay on settings or current screen if reset failed and screen is still mounted
-                  WasteAppLogger.severe('Factory reset failed, staying on current screen.');
+                  WasteAppLogger.severe(
+                      'Factory reset failed, error: staying on current screen.');
                 } else if (!currentCapturedContext.mounted) {
                   // If not mounted, assume an auth state listener has already handled navigation
                   WasteAppLogger.info(
-                      'SettingsScreen context unmounted, assuming navigation handled by auth listener.');
+                      'SettingsScreen context unmounted, error: assuming navigation handled by auth listener.');
                 }
               }
             },
@@ -1623,7 +1679,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadGoogleSyncSetting() async {
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final settings = await storageService.getSettings();
       final lastSync = await storageService.getLastCloudSync();
       setState(() {
@@ -1637,8 +1694,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _toggleGoogleSync(bool value) async {
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
-      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService =
+          Provider.of<CloudStorageService>(context, listen: false);
 
       // Update the setting
       final currentSettings = await storageService.getSettings();
@@ -1657,7 +1716,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Google sync disabled. Future classifications will be saved locally only.'),
+            content: Text(
+                'Google sync disabled. Future classifications will be saved locally only.'),
           ),
         );
       }
@@ -1679,7 +1739,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Text('Google sync is now enabled!'),
             SizedBox(height: 16),
-            Text('Would you like to upload your existing local classifications to the cloud?'),
+            Text(
+                'Would you like to upload your existing local classifications to the cloud?'),
             SizedBox(height: 8),
             Text('This will make them available across all your devices.'),
           ],
@@ -1719,11 +1780,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
 
-      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
-      final syncedCount = await cloudStorageService.syncAllLocalClassificationsToCloud();
+      final cloudStorageService =
+          Provider.of<CloudStorageService>(context, listen: false);
+      final syncedCount =
+          await cloudStorageService.syncAllLocalClassificationsToCloud();
 
       if (syncedCount > 0) {
-        final storageService = Provider.of<StorageService>(context, listen: false);
+        final storageService =
+            Provider.of<StorageService>(context, listen: false);
         final lastSync = await storageService.getLastCloudSync();
         setState(() {
           _lastCloudSync = lastSync;
@@ -1740,7 +1804,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   const Icon(Icons.cloud_done, color: Colors.white),
                   const SizedBox(width: 8),
-                  Text('Successfully synced $syncedCount classifications to cloud!'),
+                  Text(
+                      'Successfully synced $syncedCount classifications to cloud!'),
                 ],
               ),
               backgroundColor: Colors.green,
@@ -1780,7 +1845,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
 
-      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      final cloudStorageService =
+          Provider.of<CloudStorageService>(context, listen: false);
       final downloadedCount = await cloudStorageService.syncCloudToLocal();
 
       if (mounted) {
@@ -1793,7 +1859,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   const Icon(Icons.cloud_download, color: Colors.white),
                   const SizedBox(width: 8),
-                  Text('Downloaded $downloadedCount classifications from cloud!'),
+                  Text(
+                      'Downloaded $downloadedCount classifications from cloud!'),
                 ],
               ),
               backgroundColor: Colors.green,
@@ -1801,7 +1868,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No classifications were downloaded.')),
+            const SnackBar(
+                content: Text('No classifications were downloaded.')),
           );
         }
       }
@@ -1817,7 +1885,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _toggleHistoryFeedback(bool value) async {
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final settings = await storageService.getSettings();
       await storageService.saveSettings(
         isDarkMode: settings['isDarkMode'] ?? false,
@@ -1834,7 +1903,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _updateFeedbackTimeframe(int value) async {
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final settings = await storageService.getSettings();
       await storageService.saveSettings(
         isDarkMode: settings['isDarkMode'] ?? false,
@@ -1922,7 +1992,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('✅ All data cleared. Please sign in or create a new account.'),
+                      content: Text(
+                          '✅ All data cleared. Please sign in or create a new account.'),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -1948,7 +2019,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _runClassificationMigration(BuildContext context, StorageService storageService) async {
+  Future<void> _runClassificationMigration(
+      BuildContext context, StorageService storageService) async {
     try {
       // Show loading dialog
       showDialog(
@@ -1962,7 +2034,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SizedBox(height: 16),
               Text('Migrating old classifications...'),
               SizedBox(height: 8),
-              Text('This may take a few moments.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              Text('This may take a few moments.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey)),
             ],
           ),
         ),
@@ -1981,7 +2054,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 8),
                 Expanded(
-                  child: Text('Classification migration completed! Check console for detailed results.'),
+                  child: Text(
+                      'Classification migration completed! Check console for detailed results.'),
                 ),
               ],
             ),

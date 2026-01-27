@@ -64,7 +64,9 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
             button: true,
             child: IconButton(
               icon: Icon(
-                _showDeveloperOptions ? Icons.developer_mode : Icons.developer_mode_outlined,
+                _showDeveloperOptions
+                    ? Icons.developer_mode
+                    : Icons.developer_mode_outlined,
                 color: _showDeveloperOptions ? Colors.yellow : Colors.white,
               ),
               onPressed: _toggleDeveloperMode,
@@ -184,7 +186,8 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
                 decoration: BoxDecoration(
                   color: Colors.amber.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                  border:
+                      Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                 ),
                 child: const Text(
                   'PRO',
@@ -246,7 +249,8 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
       context,
       // TODO(i18n): Localize
       title: 'Confirmation Dialog',
-      body: 'This demonstrates the consistent dialog pattern using DialogHelper. '
+      body:
+          'This demonstrates the consistent dialog pattern using DialogHelper. '
           'All dialogs in the app use the same styling and behavior.',
       okLabel: 'Confirm',
       cancelLabel: 'Cancel',

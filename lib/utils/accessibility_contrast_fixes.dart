@@ -68,7 +68,8 @@ class AccessibilityContrastFixes {
   }
 
   /// Check if a color combination meets WCAG AA contrast requirements
-  static bool meetsContrastRequirement(Color foreground, Color background, {bool isLargeText = false}) {
+  static bool meetsContrastRequirement(Color foreground, Color background,
+      {bool isLargeText = false}) {
     final ratio = calculateContrastRatio(foreground, background);
     final requiredRatio = isLargeText ? 3.0 : 4.5;
     return ratio >= requiredRatio;
@@ -79,8 +80,12 @@ class AccessibilityContrastFixes {
     final foregroundLuminance = _calculateLuminance(foreground);
     final backgroundLuminance = _calculateLuminance(background);
 
-    final lighter = foregroundLuminance > backgroundLuminance ? foregroundLuminance : backgroundLuminance;
-    final darker = foregroundLuminance > backgroundLuminance ? backgroundLuminance : foregroundLuminance;
+    final lighter = foregroundLuminance > backgroundLuminance
+        ? foregroundLuminance
+        : backgroundLuminance;
+    final darker = foregroundLuminance > backgroundLuminance
+        ? backgroundLuminance
+        : foregroundLuminance;
 
     return (lighter + 0.05) / (darker + 0.05);
   }
@@ -96,7 +101,9 @@ class AccessibilityContrastFixes {
 
   /// Convert sRGB component to linear RGB
   static double _getLinearRGBComponent(double colorComponent) {
-    return colorComponent <= 0.03928 ? colorComponent / 12.92 : _pow((colorComponent + 0.055) / 1.055, 2.4);
+    return colorComponent <= 0.03928
+        ? colorComponent / 12.92
+        : _pow((colorComponent + 0.055) / 1.055, 2.4);
   }
 
   /// Power function implementation
@@ -181,7 +188,8 @@ class ContrastColorPair {
 extension AccessibleColors on Widget {
   /// Apply accessible chip colors based on category
   Widget withAccessibleChipColors(String category) {
-    final colors = AccessibilityContrastFixes.getContrastColors('${category.toLowerCase()}_chip');
+    final colors = AccessibilityContrastFixes.getContrastColors(
+        '${category.toLowerCase()}_chip');
 
     if (this is Chip) {
       final chip = this as Chip;
@@ -206,7 +214,8 @@ extension AccessibleColors on Widget {
   Widget withAccessibleToastColors(String type) {
     if (this is SnackBar) {
       final snackBar = this as SnackBar;
-      final colors = AccessibilityContrastFixes.getContrastColors('${type}_toast');
+      final colors =
+          AccessibilityContrastFixes.getContrastColors('${type}_toast');
 
       return SnackBar(
         content: snackBar.content,

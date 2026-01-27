@@ -12,9 +12,12 @@ final featureFlagsProvider = FutureProvider<Map<String, bool>>((ref) async {
 
   return {
     'results_v2_enabled': await remoteConfig.getBool('results_v2_enabled'),
-    'home_header_v2_enabled': await remoteConfig.getBool('home_header_v2_enabled'),
-    'accessibility_enhanced': await remoteConfig.getBool('accessibility_enhanced'),
-    'micro_animations_enabled': await remoteConfig.getBool('micro_animations_enabled'),
+    'home_header_v2_enabled':
+        await remoteConfig.getBool('home_header_v2_enabled'),
+    'accessibility_enhanced':
+        await remoteConfig.getBool('accessibility_enhanced'),
+    'micro_animations_enabled':
+        await remoteConfig.getBool('micro_animations_enabled'),
     'golden_test_mode': await remoteConfig.getBool('golden_test_mode'),
   };
 });
@@ -33,7 +36,8 @@ final homeHeaderV2FeatureFlagProvider = FutureProvider<bool>((ref) async {
 });
 
 /// Provider for accessibility enhancements feature flag
-final accessibilityEnhancedFeatureFlagProvider = FutureProvider<bool>((ref) async {
+final accessibilityEnhancedFeatureFlagProvider =
+    FutureProvider<bool>((ref) async {
   final flags = await ref.watch(featureFlagsProvider.future);
   return flags['accessibility_enhanced'] ?? false;
 });

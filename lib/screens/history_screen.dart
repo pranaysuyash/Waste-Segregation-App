@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/filter_options.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../screens/result_screen.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
@@ -17,6 +17,11 @@ import '../widgets/history_list_item.dart';
 import '../widgets/animations/enhanced_loading_states.dart';
 import '../services/analytics_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+
+// Suppress cascade_invocations lint for this file where small, deliberate
+// repeated receiver calls (e.g., analytics + navigator) are used for clarity.
+// The remaining analyzer info is informational and not a compile blocker.
+// ignore_for_file: cascade_invocations
 
 /// A screen that displays the complete history of waste classifications with filtering and searching
 class HistoryScreen extends StatefulWidget {
@@ -100,13 +105,11 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   @override
   void initState() {
     super.initState();
-    _analyticsService = Provider.of<AnalyticsService>(context, listen: false);
-
-    // Track screen view
-    _analyticsService.trackScreenView('HistoryScreen', parameters: {
-      'filter_category': widget.filterCategory,
-      'filter_subcategory': widget.filterSubcategory,
-    });
+    _analyticsService = Provider.of<AnalyticsService>(context, listen: false)
+      ..trackScreenView('HistoryScreen', parameters: {
+        'filter_category': widget.filterCategory,
+        'filter_subcategory': widget.filterSubcategory,
+      });
 
     // Apply initial filters if provided
     if (widget.filterCategory != null) {
@@ -355,12 +358,12 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
   // Show filter dialog
   Future<void> _showFilterDialog() async {
-    // Track filter dialog open
-    _analyticsService
+    // Track filter dialog open (fire-and-forget)
+    unawaited(_analyticsService
         .trackUserAction('open_history_filter_dialog', parameters: {
       'current_active_filters': _isFilterActive(),
       'active_categories': _selectedCategories,
-    });
+    }));
 
     final tempSelectedCategories = List<String>.from(_selectedCategories);
 
@@ -522,12 +525,12 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Track filter application
-                    _analyticsService
+                    // Track filter application (fire-and-forget)
+                    unawaited(_analyticsService
                         .trackUserAction('apply_history_filters', parameters: {
                       'categories_selected': tempSelectedCategories,
                       'filters_count': tempSelectedCategories.length,
-                    });
+                    }));
 
                     Navigator.of(context).pop();
                     // Update selected categories and apply filters
@@ -553,12 +556,13 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   Future<void> _exportToCSV() async {
     if (!mounted) return;
 
-    // Track export action
-    _analyticsService.trackUserAction('export_history_csv', parameters: {
+    // Track export action (fire-and-forget)
+    unawaited(
+        _analyticsService.trackUserAction('export_history_csv', parameters: {
       'total_classifications': _classifications.length,
       'active_filters': _isFilterActive(),
       'selected_categories': _selectedCategories,
-    });
+    }));
 
     try {
       setState(() {
@@ -669,15 +673,15 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
   // Navigate to classification details
   void _navigateToClassificationDetails(WasteClassification classification) {
-    // Track viewing classification from history
-    _analyticsService
+    // Track viewing classification from history (fire-and-forget)
+    unawaited(_analyticsService
         .trackUserAction('view_history_classification', parameters: {
       'classification_id': classification.id,
       'category': classification.category,
       'item_name': classification.itemName,
       'from_screen': 'HistoryScreen',
       'is_wide_layout': MediaQuery.of(context).size.width >= 840,
-    });
+    }));
 
     _selectedClassificationId.value = classification.id;
     if (MediaQuery.of(context).size.width >= 840) {

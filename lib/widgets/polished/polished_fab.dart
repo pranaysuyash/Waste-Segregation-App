@@ -32,7 +32,8 @@ class PolishedFAB extends StatefulWidget {
   State<PolishedFAB> createState() => _PolishedFABState();
 }
 
-class _PolishedFABState extends State<PolishedFAB> with TickerProviderStateMixin {
+class _PolishedFABState extends State<PolishedFAB>
+    with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _pressController;
   late Animation<double> _pulseAnimation;
@@ -117,7 +118,8 @@ class _PolishedFABState extends State<PolishedFAB> with TickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final backgroundColor = widget.backgroundColor ?? AppThemePolish.accentVibrant;
+    final backgroundColor =
+        widget.backgroundColor ?? AppThemePolish.accentVibrant;
     final foregroundColor = widget.foregroundColor ?? Colors.white;
 
     return AnimatedBuilder(
@@ -135,7 +137,8 @@ class _PolishedFABState extends State<PolishedFAB> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildRegularFAB(ThemeData theme, Color backgroundColor, Color foregroundColor) {
+  Widget _buildRegularFAB(
+      ThemeData theme, Color backgroundColor, Color foregroundColor) {
     return GestureDetector(
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
@@ -153,7 +156,8 @@ class _PolishedFABState extends State<PolishedFAB> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildExtendedFAB(ThemeData theme, Color backgroundColor, Color foregroundColor) {
+  Widget _buildExtendedFAB(
+      ThemeData theme, Color backgroundColor, Color foregroundColor) {
     return GestureDetector(
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
@@ -208,7 +212,8 @@ class PolishedActionButton extends StatefulWidget {
   State<PolishedActionButton> createState() => _PolishedActionButtonState();
 }
 
-class _PolishedActionButtonState extends State<PolishedActionButton> with SingleTickerProviderStateMixin {
+class _PolishedActionButtonState extends State<PolishedActionButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -264,7 +269,9 @@ class _PolishedActionButtonState extends State<PolishedActionButton> with Single
             onTapDown: _handleTapDown,
             onTapUp: _handleTapUp,
             onTapCancel: _handleTapCancel,
-            child: widget.isOutlined ? _buildOutlinedButton(theme) : _buildFilledButton(theme),
+            child: widget.isOutlined
+                ? _buildOutlinedButton(theme)
+                : _buildFilledButton(theme),
           ),
         );
       },

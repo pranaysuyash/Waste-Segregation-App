@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../models/ai_job.dart';
 import '../models/token_wallet.dart';
-import '../models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/token_service.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
@@ -22,12 +22,15 @@ class AiJobService {
     FirebaseFirestore? firestore,
     TokenService? tokenService,
     StorageService? storageService,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+  })  : _firestoreOverride = firestore,
         _storageService = storageService ?? StorageService(),
         _tokenService = tokenService ??
-            TokenService(storageService ?? StorageService(), CloudStorageService(storageService ?? StorageService()));
+            TokenService(storageService ?? StorageService(),
+                CloudStorageService(storageService ?? StorageService()));
 
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _firestoreOverride;
+  FirebaseFirestore get _firestore =>
+      _firestoreOverride ?? FirebaseFirestore.instance;
   final TokenService _tokenService;
   final StorageService _storageService;
 
@@ -47,7 +50,7 @@ class AiJobService {
     required File imageFile,
   }) async {
     try {
-      WasteAppLogger.info('Creating batch job for user: $userId', null, null, {
+      WasteAppLogger.info('Creating batch job for user: $userId', context: {
         'service': 'ai_job_service',
         'method': 'createBatchJob',
         'userId': userId,
@@ -99,9 +102,12 @@ class AiJobService {
       );
 
       // 7. Save to Firestore
-      await _firestore.collection(_jobsCollection).doc(jobId).set(updatedJob.toJson());
+      await _firestore
+          .collection(_jobsCollection)
+          .doc(jobId)
+          .set(updatedJob.toJson());
 
-      WasteAppLogger.info('Batch job created successfully', null, null, {
+      WasteAppLogger.info('Batch job created successfully', context: {
         'service': 'ai_job_service',
         'jobId': jobId,
         'tokenCost': tokenCost,
@@ -110,7 +116,7 @@ class AiJobService {
 
       return jobId;
     } catch (e) {
-      WasteAppLogger.severe('Failed to create batch job', e, null, {
+      WasteAppLogger.severe('Failed to create batch job', error: e, context: {
         'service': 'ai_job_service',
         'userId': userId,
       });
@@ -124,10 +130,12 @@ class AiJobService {
           reference: 'batch_job_refund',
         );
       } catch (refundError) {
-        WasteAppLogger.severe('Failed to refund tokens after batch job failure', refundError, null, {
-          'service': 'ai_job_service',
-          'userId': userId,
-        });
+        WasteAppLogger.severe('Failed to refund tokens after batch job failure',
+            error: refundError,
+            context: {
+              'service': 'ai_job_service',
+              'userId': userId,
+            });
       }
 
       rethrow;
@@ -178,9 +186,10 @@ class AiJobService {
       final jsonlContent = json.encode(batchRequest);
 
       // Upload to OpenAI Files API
-      final fileId = await _uploadToOpenAI(jsonlContent, 'batch_${job.id}.jsonl');
+      final fileId =
+          await _uploadToOpenAI(jsonlContent, 'batch_${job.id}.jsonl');
 
-      WasteAppLogger.info('Created OpenAI batch file', null, null, {
+      WasteAppLogger.info('Created OpenAI batch file', context: {
         'service': 'ai_job_service',
         'jobId': job.id,
         'fileId': fileId,
@@ -188,10 +197,12 @@ class AiJobService {
 
       return fileId;
     } catch (e) {
-      WasteAppLogger.severe('Failed to create OpenAI batch file', e, null, {
-        'service': 'ai_job_service',
-        'jobId': job.id,
-      });
+      WasteAppLogger.severe('Failed to create OpenAI batch file',
+          error: e,
+          context: {
+            'service': 'ai_job_service',
+            'jobId': job.id,
+          });
       rethrow;
     }
   }
@@ -223,7 +234,7 @@ class AiJobService {
         throw Exception('Failed to upload file to OpenAI: $responseBody');
       }
     } catch (e) {
-      WasteAppLogger.severe('Failed to upload to OpenAI', e, null, {
+      WasteAppLogger.severe('Failed to upload to OpenAI', error: e, context: {
         'service': 'ai_job_service',
         'filename': filename,
       });
@@ -254,10 +265,12 @@ class AiJobService {
         throw Exception('Failed to submit batch job: ${response.body}');
       }
     } catch (e) {
-      WasteAppLogger.severe('Failed to submit OpenAI batch job', e, null, {
-        'service': 'ai_job_service',
-        'fileId': fileId,
-      });
+      WasteAppLogger.severe('Failed to submit OpenAI batch job',
+          error: e,
+          context: {
+            'service': 'ai_job_service',
+            'fileId': fileId,
+          });
       rethrow;
     }
   }
@@ -286,13 +299,13 @@ class AiJobService {
 
       await _firestore.collection(_jobsCollection).doc(jobId).update(updates);
 
-      WasteAppLogger.info('Updated job status', null, null, {
+      WasteAppLogger.info('Updated job status', context: {
         'service': 'ai_job_service',
         'jobId': jobId,
         'status': status.name,
       });
     } catch (e) {
-      WasteAppLogger.severe('Failed to update job status', e, null, {
+      WasteAppLogger.severe('Failed to update job status', error: e, context: {
         'service': 'ai_job_service',
         'jobId': jobId,
       });
@@ -307,7 +320,8 @@ class AiJobService {
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => AiJob.fromJson(doc.data())).toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => AiJob.fromJson(doc.data())).toList());
   }
 
   /// Get queue statistics
@@ -340,31 +354,43 @@ class AiJobService {
 
       final jobs = snapshot.docs.map((doc) => doc.data()).toList();
       final totalJobs = jobs.length;
-      final queuedJobs = jobs.where((job) => job['status'] == AiJobStatus.queued.name).length;
-      final processingJobs = jobs.where((job) => job['status'] == AiJobStatus.processing.name).length;
-      final completedJobs = jobs.where((job) => job['status'] == AiJobStatus.completed.name).length;
-      final failedJobs = jobs.where((job) => job['status'] == AiJobStatus.failed.name).length;
+      final queuedJobs =
+          jobs.where((job) => job['status'] == AiJobStatus.queued.name).length;
+      final processingJobs = jobs
+          .where((job) => job['status'] == AiJobStatus.processing.name)
+          .length;
+      final completedJobs = jobs
+          .where((job) => job['status'] == AiJobStatus.completed.name)
+          .length;
+      final failedJobs =
+          jobs.where((job) => job['status'] == AiJobStatus.failed.name).length;
 
       // Calculate average processing time from completed jobs
       final completedJobsWithTimes = jobs
           .where((job) =>
-              job['status'] == AiJobStatus.completed.name && job['completedAt'] != null && job['createdAt'] != null)
+              job['status'] == AiJobStatus.completed.name &&
+              job['completedAt'] != null &&
+              job['createdAt'] != null)
           .toList();
 
       var averageProcessingTime = const Duration(seconds: 30); // Default
       if (completedJobsWithTimes.isNotEmpty) {
-        final totalProcessingTime = completedJobsWithTimes.fold<int>(0, (sum, job) {
+        final totalProcessingTime =
+            completedJobsWithTimes.fold<int>(0, (sum, job) {
           final createdAt = (job['createdAt'] as Timestamp).toDate();
           final completedAt = (job['completedAt'] as Timestamp).toDate();
           return sum + completedAt.difference(createdAt).inMilliseconds;
         });
-        averageProcessingTime = Duration(milliseconds: totalProcessingTime ~/ completedJobsWithTimes.length);
+        averageProcessingTime = Duration(
+            milliseconds: totalProcessingTime ~/ completedJobsWithTimes.length);
       }
 
       // Calculate success and failure rates
       final totalProcessedJobs = completedJobs + failedJobs;
-      final successRate = totalProcessedJobs > 0 ? completedJobs / totalProcessedJobs : 1.0;
-      final failureRate = totalProcessedJobs > 0 ? failedJobs / totalProcessedJobs : 0.0;
+      final successRate =
+          totalProcessedJobs > 0 ? completedJobs / totalProcessedJobs : 1.0;
+      final failureRate =
+          totalProcessedJobs > 0 ? failedJobs / totalProcessedJobs : 0.0;
 
       // Estimate wait time based on queue length and processing time
       final estimatedWaitTime = Duration(
@@ -379,7 +405,8 @@ class AiJobService {
           final completedAt = (job['completedAt'] as Timestamp).toDate();
           return sum + completedAt.difference(createdAt).inMilliseconds;
         });
-        averageWaitTime = Duration(milliseconds: totalWaitTime ~/ completedJobsWithTimes.length);
+        averageWaitTime = Duration(
+            milliseconds: totalWaitTime ~/ completedJobsWithTimes.length);
       }
 
       return QueueStats(
@@ -397,7 +424,7 @@ class AiJobService {
         pendingJobs: queuedJobs, // Same as queuedJobs
       );
     } catch (e) {
-      WasteAppLogger.severe('Failed to get queue stats', e, null, {
+      WasteAppLogger.severe('Failed to get queue stats', error: e, context: {
         'service': 'ai_job_service',
         'method': 'getQueueStats',
       });
@@ -420,9 +447,13 @@ class AiJobService {
 
       final jobs = snapshot.docs.map((doc) => doc.data()).toList();
       final totalJobs = jobs.length;
-      final completedJobs = jobs.where((job) => job['status'] == AiJobStatus.completed.name).length;
-      final failedJobs = jobs.where((job) => job['status'] == AiJobStatus.failed.name).length;
-      final queuedJobs = jobs.where((job) => job['status'] == AiJobStatus.queued.name).length;
+      final completedJobs = jobs
+          .where((job) => job['status'] == AiJobStatus.completed.name)
+          .length;
+      final failedJobs =
+          jobs.where((job) => job['status'] == AiJobStatus.failed.name).length;
+      final queuedJobs =
+          jobs.where((job) => job['status'] == AiJobStatus.queued.name).length;
 
       // Use the same logic as QueueHealth.get health
       if (queuedJobs > 1000) return QueueHealth.overloaded;
@@ -430,7 +461,7 @@ class AiJobService {
       if (queuedJobs > 100) return QueueHealth.moderate;
       return QueueHealth.healthy;
     } catch (e) {
-      WasteAppLogger.severe('Failed to get queue health', e, null, {
+      WasteAppLogger.severe('Failed to get queue health', error: e, context: {
         'service': 'ai_job_service',
       });
       return QueueHealth.healthy;
@@ -462,11 +493,12 @@ Focus on accuracy and provide clear, actionable disposal instructions. Consider 
     const apiKey = String.fromEnvironment('OPENAI_API_KEY');
 
     if (apiKey.isEmpty) {
-      WasteAppLogger.severe('OpenAI API key not configured', null, null, {
+      WasteAppLogger.severe('OpenAI API key not configured', context: {
         'service': 'ai_job_service',
         'method': '_getOpenAIApiKey',
       });
-      throw Exception('OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.');
+      throw Exception(
+          'OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.');
     }
 
     return apiKey;

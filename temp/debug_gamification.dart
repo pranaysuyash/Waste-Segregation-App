@@ -14,7 +14,7 @@ void main() async {
   await Hive.initFlutter();
   
   await WasteAppLogger.initialize();
-  WasteAppLogger.info('🎮 DEBUG: Starting gamification debug...', null, null, {
+  WasteAppLogger.info('🎮 DEBUG: Starting gamification debug...', context: {
     'debug_type': 'gamification',
     'mode': 'temp_script'
   });
@@ -29,7 +29,7 @@ void main() async {
     
     await gamificationService.initGamification();
     
-    WasteAppLogger.info('🎮 DEBUG: Services initialized', null, null, {
+    WasteAppLogger.info('🎮 DEBUG: Services initialized', context: {
       'services': ['storage', 'cloud_storage', 'gamification']
     });
     
@@ -83,14 +83,14 @@ void main() async {
     if (pointsEarned > 0) {
       WasteAppLogger.gamificationEvent('points_verification_success', pointsEarned: pointsEarned);
     } else {
-      WasteAppLogger.severe('Points verification failed', null, null, {
+      WasteAppLogger.severe('Points verification failed', context: {
         'expected_points': '>0',
         'actual_points': pointsEarned
       });
     }
     
     // Test cloud storage service gamification processing
-    WasteAppLogger.info('Testing CloudStorageService gamification...', null, null, {
+    WasteAppLogger.info('Testing CloudStorageService gamification...', context: {
       'test_type': 'cloud_storage_gamification'
     });
     await cloudStorageService.saveClassificationWithSync(
@@ -105,12 +105,12 @@ void main() async {
     });
     
   } catch (e, stackTrace) {
-    WasteAppLogger.severe('Gamification debug error', e, stackTrace, {
+    WasteAppLogger.severe('Gamification debug error', error: e, stackTrace: stackTrace, context: {
       'debug_type': 'gamification_temp_script'
     });
   }
   
-  WasteAppLogger.info('🎮 DEBUG: Debug complete', null, null, {
+  WasteAppLogger.info('🎮 DEBUG: Debug complete', context: {
     'debug_session': 'gamification_completed'
   });
   exit(0);

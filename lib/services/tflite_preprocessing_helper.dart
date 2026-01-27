@@ -33,9 +33,9 @@ class TFLitePreprocessingHelper {
       // Convert to Float32 buffer
       final float32List = Float32List(inputWidth * inputHeight * 3);
 
-      int pixelIndex = 0;
-      for (int y = 0; y < inputHeight; y++) {
-        for (int x = 0; x < inputWidth; x++) {
+      var pixelIndex = 0;
+      for (var y = 0; y < inputHeight; y++) {
+        for (var x = 0; x < inputWidth; x++) {
           final pixel = resized.getPixelSafe(x, y);
 
           // Extract RGB channels using image package API
@@ -60,24 +60,16 @@ class TFLitePreprocessingHelper {
         }
       }
 
-      WasteAppLogger.info(
-        'Image preprocessed for TFLite inference',
-        null,
-        null,
-        {
-          'original_size': '${image.width}x${image.height}',
-          'model_input': '${inputWidth}x${inputHeight}',
-          'normalized': normalize,
-        },
-      );
+      WasteAppLogger.info('Image preprocessed for TFLite inference', context: {
+        'original_size': '${image.width}x${image.height}',
+        'model_input': '${inputWidth}x$inputHeight',
+        'normalized': normalize,
+      });
 
       return [float32List];
     } catch (e, s) {
-      WasteAppLogger.severe(
-        'Error preprocessing image for TFLite inference',
-        e,
-        s,
-      );
+      WasteAppLogger.severe('Error preprocessing image for TFLite inference',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -110,7 +102,7 @@ class TFLitePreprocessingHelper {
 
     final results = <String, double>{};
 
-    for (int i = 0; i < predictions.length; i++) {
+    for (var i = 0; i < predictions.length; i++) {
       final confidence = predictions[i];
       if (confidence >= confidenceThreshold) {
         results[labels[i]] = confidence;
@@ -134,7 +126,7 @@ class TFLitePreprocessingHelper {
 
     // Create list of predictions with labels
     final labeledPredictions = <MapEntry<String, double>>[];
-    for (int i = 0; i < predictions.length; i++) {
+    for (var i = 0; i < predictions.length; i++) {
       labeledPredictions.add(MapEntry(labels[i], predictions[i]));
     }
 
@@ -154,7 +146,7 @@ class TFLitePreprocessingHelper {
       }
       return decoded;
     } catch (e) {
-      WasteAppLogger.severe('Error decoding image bytes', e, null);
+      WasteAppLogger.severe('Error decoding image bytes', error: e);
       rethrow;
     }
   }

@@ -24,7 +24,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get signOutSubtitle => 'Sign out and return to login screen';
 
   @override
-  String get guestModeSubtitle => 'Currently in guest mode - sign in to sync data';
+  String get guestModeSubtitle =>
+      'Currently in guest mode - sign in to sync data';
 
   @override
   String get signOutConfirmTitle => 'Sign Out';
@@ -338,7 +339,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get feedbackSettings => 'Feedback Settings';
 
   @override
-  String get feedbackSettingsSubtitle => 'Control when you can provide feedback';
+  String get feedbackSettingsSubtitle =>
+      'Control when you can provide feedback';
 
   @override
   String get allowFeedbackRecentHistory => 'Allow Feedback on Recent History';
@@ -373,7 +375,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get syncLocalDataToCloud => 'Sync Local Data to Cloud';
 
   @override
-  String get syncLocalDataSubtitle => 'Upload existing local classifications to cloud';
+  String get syncLocalDataSubtitle =>
+      'Upload existing local classifications to cloud';
 
   @override
   String get forceDownloadFromCloud => 'Force Download from Cloud';
@@ -382,7 +385,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get forceDownloadSubtitle => 'Download latest data from cloud';
 
   @override
-  String get resetAllAppData => 'Reset all app data (history, settings, preferences)';
+  String get resetAllAppData =>
+      'Reset all app data (history, settings, preferences)';
 
   @override
   String get allDataClearedSuccessfully => 'All data cleared successfully';
@@ -466,10 +470,12 @@ class AppLocalizationsHi extends AppLocalizations {
       'This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?';
 
   @override
-  String get resettingToFactorySettings => 'Resetting app to factory settings...';
+  String get resettingToFactorySettings =>
+      'Resetting app to factory settings...';
 
   @override
-  String get googleSyncDisabled => 'Google sync disabled. Future classifications will be saved locally only.';
+  String get googleSyncDisabled =>
+      'Google sync disabled. Future classifications will be saved locally only.';
 
   @override
   String failedToToggleGoogleSync(String error) {

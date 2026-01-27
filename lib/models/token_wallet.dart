@@ -16,7 +16,9 @@ class TokenWallet {
       totalSpent: json['totalSpent'] ?? 0,
       lastUpdated: DateTime.parse(json['lastUpdated']),
       dailyConversionsUsed: json['dailyConversionsUsed'] ?? 0,
-      lastConversionDate: json['lastConversionDate'] != null ? DateTime.parse(json['lastConversionDate']) : null,
+      lastConversionDate: json['lastConversionDate'] != null
+          ? DateTime.parse(json['lastConversionDate'])
+          : null,
     );
   }
 
@@ -48,7 +50,9 @@ class TokenWallet {
     final lastConversion = lastConversionDate!;
 
     // Reset daily count if it's a new day
-    if (today.day != lastConversion.day || today.month != lastConversion.month || today.year != lastConversion.year) {
+    if (today.day != lastConversion.day ||
+        today.month != lastConversion.month ||
+        today.year != lastConversion.year) {
       return true;
     }
 

@@ -15,25 +15,25 @@ class ApiResponse<T> {
 
   /// Response data
   final T data;
-  
+
   /// HTTP status code
   final int statusCode;
-  
+
   /// HTTP status message
   final String? statusMessage;
-  
+
   /// Response headers
   final Map<String, List<String>>? headers;
-  
+
   /// Operation identifier for tracking
   final String? operationId;
-  
+
   /// Original request options
   final RequestOptions? requestOptions;
-  
+
   /// Request timing information
   final ApiTiming? timing;
-  
+
   /// Cache information if applicable
   final CacheInfo? cacheInfo;
 
