@@ -631,10 +631,10 @@ class GamificationProfile {
     this.activeChallenges = const [],
     this.completedChallenges = const [],
     this.weeklyStats = const [],
-    this.discoveredItemIds = const {},
+    this.discoveredItemIds = const [],
     this.lastDailyEngagementBonusAwardedDate,
     this.lastViewPersonalStatsAwardedDate,
-    this.unlockedHiddenContentIds = const {},
+    this.unlockedHiddenContentIds = const [],
   });
 
   // For deserialization
@@ -670,7 +670,7 @@ class GamificationProfile {
               .toList()
           : [],
       discoveredItemIds:
-          Set<String>.from(json['discoveredItemIds'] as List<dynamic>? ?? []),
+          List<String>.from(json['discoveredItemIds'] as List<dynamic>? ?? []),
       lastDailyEngagementBonusAwardedDate:
           json['lastDailyEngagementBonusAwardedDate'] != null
               ? DateTime.parse(json['lastDailyEngagementBonusAwardedDate'])
@@ -679,7 +679,7 @@ class GamificationProfile {
           json['lastViewPersonalStatsAwardedDate'] != null
               ? DateTime.parse(json['lastViewPersonalStatsAwardedDate'])
               : null,
-      unlockedHiddenContentIds: Set<String>.from(
+      unlockedHiddenContentIds: List<String>.from(
           json['unlockedHiddenContentIds'] as List<dynamic>? ?? []),
     );
   }
@@ -698,13 +698,13 @@ class GamificationProfile {
   @HiveField(6)
   final List<WeeklyStats> weeklyStats;
   @HiveField(7)
-  final Set<String> discoveredItemIds;
+  final List<String> discoveredItemIds;
   @HiveField(8)
   final DateTime? lastDailyEngagementBonusAwardedDate;
   @HiveField(9)
   final DateTime? lastViewPersonalStatsAwardedDate;
   @HiveField(10)
-  final Set<String> unlockedHiddenContentIds;
+  final List<String> unlockedHiddenContentIds;
 
   // For serialization
   Map<String, dynamic> toJson() {
@@ -717,12 +717,12 @@ class GamificationProfile {
       'completedChallenges':
           completedChallenges.map((c) => c.toJson()).toList(),
       'weeklyStats': weeklyStats.map((s) => s.toJson()).toList(),
-      'discoveredItemIds': discoveredItemIds.toList(),
+      'discoveredItemIds': discoveredItemIds,
       'lastDailyEngagementBonusAwardedDate':
           lastDailyEngagementBonusAwardedDate?.toIso8601String(),
       'lastViewPersonalStatsAwardedDate':
           lastViewPersonalStatsAwardedDate?.toIso8601String(),
-      'unlockedHiddenContentIds': unlockedHiddenContentIds.toList(),
+      'unlockedHiddenContentIds': unlockedHiddenContentIds,
     };
   }
 
@@ -735,10 +735,10 @@ class GamificationProfile {
     List<Challenge>? activeChallenges,
     List<Challenge>? completedChallenges,
     List<WeeklyStats>? weeklyStats,
-    Set<String>? discoveredItemIds,
+    List<String>? discoveredItemIds,
     DateTime? lastDailyEngagementBonusAwardedDate,
     DateTime? lastViewPersonalStatsAwardedDate,
-    Set<String>? unlockedHiddenContentIds,
+    List<String>? unlockedHiddenContentIds,
   }) {
     return GamificationProfile(
       userId: userId ?? this.userId,

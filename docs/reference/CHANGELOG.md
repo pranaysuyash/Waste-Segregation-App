@@ -2,6 +2,16 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [Unreleased] - 2026-01-27
+
+### ⚡ AI Improvements & Experimentation
+- **ADD**: `EnhancedAiApiService.analyzeWithRace()` — opt-in parallel race between OpenAI and Gemini (non-breaking). See `docs/AI_API_RACE_FAULT_TOLERANCE.md`.
+- **CHANGE**: Default request deduplication disabled (`UnifiedApiClient` default now `enableRequestDeduplication=false`) to avoid ineffective image dedup overhead.
+- **ADD**: A/B routing via `setRacePercentage(double)` on `EnhancedAiApiService` for controlled rollout.
+
+---
+
+
 ## [2.5.4] - 2025-06-16
 
 ### 🔧 **CRITICAL FIX: Comprehensive Data Reset & UI Fixes**

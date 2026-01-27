@@ -287,6 +287,10 @@ After each fix:
 - ❌ Don't touch error handling
 - ❌ Don't refactor architecture (yet)
 
+**Note (27 Jan 2026):** Two additional, non-breaking changes were applied in the staging branch:
+- **Deduplication default flipped**: `UnifiedApiClient` default now disables `enableRequestDeduplication` (was `true`). This reduces cognitive load and avoids ineffective image dedup attempts. Clients can still opt-in per-instance when needed.
+- **Race-based analysis (opt-in)**: `EnhancedAiApiService.analyzeWithRace(...)` was added. Use `setRacePercentage(0.5)` to route a portion of `analyzeWasteImage` calls to the race method for A/B testing. See `docs/AI_API_RACE_FAULT_TOLERANCE.md` and `docs/smoke_tests/ai_race_ab_test.md` for details.
+
 This is **surgical**, not **radical**. We fix the broken parts while keeping the structure intact.
 
 ---

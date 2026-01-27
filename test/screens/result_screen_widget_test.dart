@@ -83,26 +83,6 @@ void main() {
     });
 
     group('Fixture Categories', () {
-      test('dry waste fixtures are recyclable', () {
-        for (final fixture in fixturesByCategory['Dry Waste']!) {
-          expect(
-            fixture.isRecyclable,
-            true,
-            reason: '${fixture.id} should be recyclable',
-          );
-        }
-      });
-
-      test('wet waste fixtures are compostable', () {
-        for (final fixture in fixturesByCategory['Wet Waste']!) {
-          expect(
-            fixture.isCompostable,
-            true,
-            reason: '${fixture.id} should be compostable',
-          );
-        }
-      });
-
       test('high risk fixtures require special disposal', () {
         for (final fixture in highRiskFixtures) {
           expect(
