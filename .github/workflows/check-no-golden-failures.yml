@@ -26,10 +26,11 @@ jobs:
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             BASE_REF="origin/${{ github.event.pull_request.base.ref }}"
             git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1 || true
-            FILES=$(git diff --name-only $BASE_REF...HEAD)
+            # Include status so we can allow deletions (cleanup) while still blocking additions/updates.
+            FILES=$(git diff --name-status $BASE_REF...HEAD)
           else
             # For push events, check all changes in the push
-            FILES=$(git diff --name-only HEAD~1..HEAD || true)
+            FILES=$(git diff --name-status HEAD~1..HEAD || true)
           fi
 
           echo "Changed files:" 
@@ -38,12 +39,28 @@ jobs:
           # Patterns to reject
           REJECT_PATTERNS='(^|/)failures/|_maskedDiff|_isolatedDiff|_masterImage|_testImage|/boringssl|fix_boringssl_issue.sh|BoringSSL-Fix-Podfile.rb'
 
-          # Iterate changed files and detect any that match reject patterns
+          # Iterate changed files and detect any that match reject patterns.
+          # Allow deletions so we can remove previously-committed failure artifacts.
           bad_files=()
           while IFS= read -r f; do
-            if [[ -n "$f" && "$f" =~ $REJECT_PATTERNS ]]; then
-              bad_files+=("$f")
+            # name-status format: <status>\t<path> (or for renames: Rxxx\t<old>\t<new>)
+            [[ -z "$f" ]] && continue
+            status=$(echo "$f" | awk '{print $1}')
+
+            # Only enforce on non-deletions.
+            if [[ "$status" =~ ^D ]]; then
+              continue
             fi
+
+            # Extract all paths from the line (1 or 2 paths).
+            # shellcheck disable=SC2206
+            parts=($f)
+            for ((i=1; i<${#parts[@]}; i++)); do
+              path="${parts[$i]}"
+              if [[ -n "$path" && "$path" =~ $REJECT_PATTERNS ]]; then
+                bad_files+=("$path")
+              fi
+            done
           done <<< "$FILES"
 
           if [ ${#bad_files[@]} -ne 0 ]; then
