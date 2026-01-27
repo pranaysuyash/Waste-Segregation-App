@@ -191,7 +191,13 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
             WasteAppLogger.debug('BOOT: Firebase initialized');
           }
         } catch (e) {
-          WasteAppLogger.severe('Firebase init failed', error: e);
+          // Some environments initialize the default app via native config before
+          // Flutter calls initializeApp(). Treat duplicate-app as a no-op.
+          if (e is FirebaseException && e.code == 'duplicate-app') {
+            WasteAppLogger.debug('BOOT: Firebase already initialized (native)');
+          } else {
+            WasteAppLogger.severe('Firebase init failed', error: e);
+          }
         }
       }
 
