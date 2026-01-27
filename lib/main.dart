@@ -96,7 +96,6 @@ class _AppBootstrapper extends StatefulWidget {
 
 class _AppBootstrapperState extends State<_AppBootstrapper> {
   bool _initialized = false;
-  bool _minimalMode = false;
   String? _error;
   UserConsentService? _userConsentService;
 
@@ -126,7 +125,6 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
         setState(() {
           _error = null;
           _initialized = false;
-          _minimalMode = false;
         });
       }
 
@@ -172,14 +170,9 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       // 3. Storage & Database
       const skipHiveInit = bool.fromEnvironment('SKIP_HIVE');
       if (skipHiveInit) {
-        WasteAppLogger.debug('BOOT: Skipping Hive init (SKIP_HIVE=true).');
-        if (mounted) {
-          setState(() {
-            _minimalMode = true;
-            _initialized = true;
-          });
-        }
-        return;
+        throw StateError(
+          'Hive initialization is disabled (SKIP_HIVE=true). Remove the define to run the full app.',
+        );
       } else {
         await _runInitStep('Hive', () async {
           await StorageService.initializeHive();
@@ -268,20 +261,9 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
     try {
       await action().timeout(timeout);
       WasteAppLogger.debug('BOOT: Step $label finished');
-    } catch (e) {
-      WasteAppLogger.severe('BOOT: Step $label failed', error: e);
-      if (critical) {
-        // For simulator/debug scenarios, failing Hive should still yield a visible UI.
-        WasteAppLogger.debug(
-          'BOOT: Critical step failed ($label). Falling back to minimal mode.',
-        );
-        if (mounted) {
-          setState(() {
-            _minimalMode = true;
-            _initialized = true;
-          });
-        }
-      }
+    } catch (e, s) {
+      WasteAppLogger.severe('BOOT: Step $label failed', error: e, stackTrace: s);
+      if (critical) rethrow;
     }
   }
 
@@ -322,10 +304,6 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       return const _StartupApp();
     }
 
-    if (_minimalMode) {
-      return const _MinimalBootApp();
-    }
-
     return WasteSegregationApp(
       storageService: _storageService,
       aiService: _aiService,
@@ -340,34 +318,6 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       hapticSettingsService: _hapticSettingsService,
       communityService: _communityService,
       userConsentService: _userConsentService ?? UserConsentService(),
-    );
-  }
-}
-
-class _MinimalBootApp extends StatelessWidget {
-  const _MinimalBootApp();
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: Colors.purple,
-        body: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'MINIMAL MODE: Hive/Firebase init is skipped.\\n\\nRun without --dart-define=SKIP_HIVE (or set SKIP_HIVE=false) to enable full init. Use --dart-define=FORCE_FIREBASE=true to enable Firebase.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
