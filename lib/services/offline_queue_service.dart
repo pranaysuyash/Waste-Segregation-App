@@ -347,6 +347,27 @@ class OfflineQueueService {
     return _queueBox!.values.toList();
   }
 
+  /// Get queue statistics for impact dashboard
+  Map<String, int> getQueueStats() {
+    if (!_isInitialized || _queueBox == null) {
+      return {
+        'totalQueued': 0,
+        'processed': 0,
+        'pending': 0,
+      };
+    }
+    
+    // Note: We only track pending items in the queue box
+    // Processed items are removed from the queue
+    final pending = _queueBox!.length;
+    
+    return {
+      'totalQueued': pending, // Only pending items remain in queue
+      'processed': 0, // Processed items are removed
+      'pending': pending,
+    };
+  }
+
   /// Dispose resources
   void dispose() {
     _connectivitySub?.cancel();
