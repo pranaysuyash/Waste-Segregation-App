@@ -63,6 +63,22 @@ class GlobalSettingsMenu extends StatelessWidget {
           case 'sign_out':
             SimplifiedNavigationService.showSignOutConfirmation(context);
             break;
+          case 'impact_dashboard':
+            try {
+              Navigator.pushNamed(context, '/impact-dashboard');
+            } catch (e) {
+              WasteAppLogger.severe('Failed to navigate to impact dashboard',
+                  error: e);
+            }
+            break;
+          case 'smart_suggestions':
+            try {
+              Navigator.pushNamed(context, '/smart-suggestions');
+            } catch (e) {
+              WasteAppLogger.severe('Failed to navigate to smart suggestions',
+                  error: e);
+            }
+            break;
         }
       },
       itemBuilder: (context) => const [
@@ -83,6 +99,26 @@ class GlobalSettingsMenu extends StatelessWidget {
               Icon(Icons.person, color: Colors.grey),
               SizedBox(width: 12),
               Text('Profile'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'impact_dashboard',
+          child: Row(
+            children: [
+              Icon(Icons.analytics_outlined, color: Colors.green),
+              SizedBox(width: 12),
+              Text('Impact Dashboard'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'smart_suggestions',
+          child: Row(
+            children: [
+              Icon(Icons.lightbulb_outline, color: Colors.purple),
+              SizedBox(width: 12),
+              Text('Smart Suggestions'),
             ],
           ),
         ),
