@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../models/disposal_location.dart';
 import '../models/user_contribution.dart';
 import '../utils/constants.dart';
@@ -837,6 +839,60 @@ class _ContributionSubmissionScreenState
     });
   }
 
+  /// Uploads contribution photos to Firebase Storage and returns download URLs
+  Future<List<String>> _uploadContributionPhotos(
+    List<File> images,
+    String userId,
+  ) async {
+    final photoUrls = <String>[];
+    final storage = FirebaseStorage.instance;
+    
+    for (var i = 0; i < images.length; i++) {
+      try {
+        final imageFile = images[i];
+        final imageBytes = await imageFile.readAsBytes();
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final fileName = 'contribution_${timestamp}_$i.jpg';
+        final path = 'contribution_photos/$userId/$fileName';
+        
+        // Create storage reference
+        final ref = storage.ref().child(path);
+        
+        // Upload with metadata
+        final metadata = SettableMetadata(
+          contentType: 'image/jpeg',
+          customMetadata: {
+            'userId': userId,
+            'purpose': 'facility_contribution',
+            'uploadedAt': DateTime.now().toIso8601String(),
+          },
+        );
+        
+        // Upload the file
+        final uploadTask = ref.putData(imageBytes, metadata);
+        final snapshot = await uploadTask;
+        
+        // Get the download URL
+        final downloadUrl = await snapshot.ref.getDownloadURL();
+        photoUrls.add(downloadUrl);
+      } catch (e) {
+        // Log error but continue with other images
+        debugPrint('Error uploading photo $i: $e');
+        // Optionally show a snackbar to user
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload photo ${i + 1}'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    }
+    
+    return photoUrls;
+  }
+
   Future<void> _submitContribution() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -859,13 +915,34 @@ class _ContributionSubmissionScreenState
     });
 
     try {
-      // Upload photos if any (placeholder for now)
-      final photoUrls = <String>[];
+      // Get current user ID from Firebase Auth
+      final currentUser = FirebaseAuth.instance.currentUser;
+      final userId = currentUser?.uid ?? 'anonymous';
+      
+      // Upload photos to Firebase Storage if any
+      List<String> photoUrls = [];
       if (_selectedImages.isNotEmpty) {
-        // TODO: Implement photo upload functionality
-        // For now, we'll just simulate the URLs
-        for (var i = 0; i < _selectedImages.length; i++) {
-          photoUrls.add('placeholder_photo_url_$i');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Uploading photos...'),
+            backgroundColor: Colors.blue,
+          ),
+        );
+        
+        try {
+          photoUrls = await _uploadContributionPhotos(_selectedImages, userId);
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Photo upload failed: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          // Continue with submission even if photo upload fails
+          photoUrls = [];
         }
       }
 
@@ -874,7 +951,7 @@ class _ContributionSubmissionScreenState
 
       // Create contribution
       final contribution = UserContribution(
-        userId: 'current_user_id', // TODO: Get from auth provider
+        userId: userId,
         facilityId: widget.facilityId,
         contributionType: widget.contributionType,
         suggestedData: suggestedData,
