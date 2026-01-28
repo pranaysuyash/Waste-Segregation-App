@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../../services/premium_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/cloud_storage_service.dart';
+import '../../services/classification_migration_service.dart';
 import '../../services/firebase_cleanup_service.dart';
 import '../../utils/developer_config.dart';
 import 'settings_theme.dart';
@@ -289,16 +291,28 @@ class DeveloperSection extends StatelessWidget {
   Future<void> _runClassificationMigration(BuildContext context) async {
     try {
       final storageService = context.read<StorageService>();
+      final cloudStorageService = context.read<CloudStorageService>();
+      final migrationService = ClassificationMigrationService(
+        storageService,
+        cloudStorageService,
+      );
 
-      // TODO: Implement classification migration logic
-      // This would migrate old classification data to new format
+      // Run migration to update old classifications with images and sync to cloud
+      final result = await migrationService.migrateOldClassifications();
 
       if (context.mounted) {
-        // TODO(i18n): Localize success message
-        SettingsTheme.showSuccessSnackBar(
-          context,
-          'Classification migration completed',
-        );
+        if (result.success) {
+          // TODO(i18n): Localize success message
+          SettingsTheme.showSuccessSnackBar(
+            context,
+            'Migration completed: ${result.updated} updated, ${result.skipped} skipped, ${result.errors} errors',
+          );
+        } else {
+          SettingsTheme.showErrorSnackBar(
+            context,
+            'Migration failed: ${result.message}',
+          );
+        }
       }
     } catch (e) {
       if (context.mounted) {
