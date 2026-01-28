@@ -13,8 +13,10 @@ class FamilyManagementScreen extends StatefulWidget {
   const FamilyManagementScreen({
     super.key,
     required this.family,
+    this.familyService,
   });
   final family_models.Family family;
+  final FirebaseFamilyService? familyService;
 
   @override
   State<FamilyManagementScreen> createState() => _FamilyManagementScreenState();
@@ -24,12 +26,20 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   user_models.UserProfile? _currentUser;
-  final FirebaseFamilyService _familyService = FirebaseFamilyService();
+  late final FirebaseFamilyService _familyService;
   late family_models.Family _currentFamily;
 
   @override
   void initState() {
     super.initState();
+    _familyService = widget.familyService ??
+        (() {
+          try {
+            return context.read<FirebaseFamilyService>();
+          } catch (_) {
+            return FirebaseFamilyService();
+          }
+        })();
     _currentFamily = widget.family;
     _tabController = TabController(length: 3, vsync: this);
     _loadInitialUserData();
@@ -630,9 +640,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       final inviteRole = _convertToUserRole(role);
       await _familyService.createInvitation(
           family.id, _currentUser?.id ?? '', email, inviteRole);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Invitation sent!')));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -743,9 +754,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       }
 
       await _familyService.updateMemberRole(family.id, userId, newProfileRole);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Member role updated.')));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -757,9 +769,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   Future<void> _removeMember(family_models.Family family, String userId) async {
     try {
       await _familyService.removeMember(family.id, userId);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Member removed.')));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -772,9 +785,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       family_models.Family family) async {
     try {
       await _familyService.resendInvitation(invitation.id);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Invitation resent.')));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -787,9 +801,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
       family_models.Family family) async {
     try {
       await _familyService.cancelInvitation(invitation.id);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Invitation cancelled.')));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -823,9 +838,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                       final updatedFamily =
                           family.copyWith(name: nameController.text);
                       await _familyService.updateFamily(updatedFamily);
-                      if (mounted)
+                      if (mounted) {
                         messenger.showSnackBar(const SnackBar(
                             content: Text('Family name updated.')));
+                      }
                     }
                   }),
             ],
@@ -860,9 +876,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                     final updatedFamily = family.copyWith(
                         description: descriptionController.text);
                     await _familyService.updateFamily(updatedFamily);
-                    if (mounted)
+                    if (mounted) {
                       messenger.showSnackBar(const SnackBar(
                           content: Text('Family description updated.')));
+                    }
                   }),
             ],
           );
@@ -870,9 +887,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   }
 
   void _copyFamilyId(family_models.Family family) {
-    if (mounted)
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Family ID copied: ${family.id}')));
+    }
   }
 
   Future<void> _togglePublicFamily(
@@ -970,9 +988,10 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                   final updatedFamily =
                       family.copyWith(settings: updatedSettings);
                   await _familyService.updateFamily(updatedFamily);
-                  if (mounted)
+                  if (mounted) {
                     messenger.showSnackBar(const SnackBar(
                         content: Text('Leaderboard visibility updated.')));
+                  }
                 }
               },
             ),

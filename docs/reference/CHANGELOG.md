@@ -2,6 +2,16 @@
 
 All notable changes to the Waste Segregation App will be documented in this file.
 
+## [Unreleased] - 2026-01-27
+
+### ⚡ AI Improvements & Experimentation
+
+- **ADD**: `EnhancedAiApiService.analyzeWithRace()` — opt-in parallel race between OpenAI and Gemini (non-breaking). See `docs/AI_API_RACE_FAULT_TOLERANCE.md`.
+- **CHANGE**: Default request deduplication disabled (`UnifiedApiClient` default now `enableRequestDeduplication=false`) to avoid ineffective image dedup overhead.
+- **ADD**: A/B routing via `setRacePercentage(double)` on `EnhancedAiApiService` for controlled rollout.
+
+---
+
 ## [2.5.4] - 2025-06-16
 
 ### 🔧 **CRITICAL FIX: Comprehensive Data Reset & UI Fixes**
@@ -920,7 +930,7 @@ All notable changes to the Waste Segregation App will be documented in this file
 ### 🔧 Technical Improvements
 
 - **UPDATED**: MainNavigationWrapper to use NewModernHomeScreen instead of ModernHomeScreen
-- **ADDED**: _navigateToHistory method to ClassificationCard for proper history navigation
+- **ADDED**: \_navigateToHistory method to ClassificationCard for proper history navigation
 - **CLEANED**: Removed unused imports and developer-only features from settings screen
 - **OPTIMIZED**: Code organization with streamlined navigation flow
 
@@ -1164,7 +1174,7 @@ All notable changes to the Waste Segregation App will be documented in this file
 ### 📋 Content Organization
 
 - **Admin & Analytics**: Admin dashboard specifications and implementation guides
-- **Technical Documentation**: Architecture decisions, navigation systems, and development guides  
+- **Technical Documentation**: Architecture decisions, navigation systems, and development guides
 - **Status & Tracking**: Project status, issue tracking, and implementation progress
 - **Testing**: Comprehensive testing infrastructure and quality assurance documentation
 - **Planning & Strategy**: Sprint planning, roadmaps, and strategic documentation
@@ -1250,7 +1260,7 @@ All notable changes to the Waste Segregation App will be documented in this file
 
 - **Environment Setup Guide**: Added critical documentation for development environment setup (`docs/technical/development/ENVIRONMENT_SETUP.md`). Emphasizes the requirement to use `.env` file with `--dart-define-from-file=.env` for proper API key configuration during development.
 
-### 🛠️ Performance Optimizations  
+### 🛠️ Performance Optimizations
 
 - **Service Instantiation Optimization**: Completed optimization of both `CloudStorageService` and `AiService` to use singleton pattern for `GamificationService` and `EnhancedImageService` respectively. Eliminates repeated service instantiation overhead and adds proper error handling.
 
@@ -1516,7 +1526,7 @@ This release resolves critical compilation errors that were preventing the app f
 
 - **UI Consistency Tests**: 41/41 passing ✅
   - Button Consistency: 14/14 passing
-  - Text Consistency: 11/11 passing  
+  - Text Consistency: 11/11 passing
   - Contrast Accessibility: 16/16 passing
 - **Accessibility Compliance**: 100% WCAG AA compliance achieved
 - **Quality Metrics**: Enterprise-grade UI consistency and accessibility standards met

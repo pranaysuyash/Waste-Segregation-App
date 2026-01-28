@@ -359,14 +359,16 @@ class ClassificationStorageService {
 
       // Recyclable filter
       if (filterOptions.isRecyclable != null) {
-        if (classification.isRecyclable != filterOptions.isRecyclable)
+        if (classification.isRecyclable != filterOptions.isRecyclable) {
           return false;
+        }
       }
 
       // Compostable filter
       if (filterOptions.isCompostable != null) {
-        if (classification.isCompostable != filterOptions.isCompostable)
+        if (classification.isCompostable != filterOptions.isCompostable) {
           return false;
+        }
       }
 
       // Special disposal filter

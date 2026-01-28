@@ -26,7 +26,7 @@ class UnifiedApiClient {
     Duration? receiveTimeout,
     Duration? sendTimeout,
     EnhancedApiErrorHandler? errorHandler,
-    this.enableRequestDeduplication = true,
+    this.enableRequestDeduplication = false,
     this.enableRateLimiting = true,
     this.maxConcurrentRequests = 10,
   }) : _errorHandler = errorHandler ?? EnhancedApiErrorHandler() {

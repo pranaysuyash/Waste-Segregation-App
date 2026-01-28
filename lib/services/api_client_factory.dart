@@ -115,8 +115,6 @@ class ApiClientFactory {
         receiveTimeout: const Duration(seconds: 30),
         sendTimeout: const Duration(seconds: 30),
         errorHandler: errorHandler,
-        enableRequestDeduplication:
-            false, // Firebase operations should not be deduplicated
         maxConcurrentRequests: 20, // Higher limit for Firebase
       );
 
@@ -149,7 +147,7 @@ class ApiClientFactory {
     int maxRetries = 3,
     int circuitBreakerThreshold = 5,
     Duration circuitBreakerTimeout = const Duration(minutes: 5),
-    bool enableRequestDeduplication = true,
+    bool enableRequestDeduplication = false,
     bool enableRateLimiting = true,
     int maxConcurrentRequests = 10,
     Map<String, ApiVersion>? apiVersions,

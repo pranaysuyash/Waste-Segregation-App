@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:math';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
@@ -28,6 +29,15 @@ class EnhancedAiApiService {
   final bool enableFallback;
   final String defaultRegion;
   final String defaultLanguage;
+
+  // A/B routing for race-based analysis (0.0 - 1.0)
+  static final Random _random = Random();
+  double _racePercentage = 0.0;
+
+  /// Set the fraction of requests that are routed to the race method (0.0 - 1.0)
+  void setRacePercentage(double p) {
+    _racePercentage = p.clamp(0.0, 1.0);
+  }
 
   // API clients
   late final UnifiedApiClient _openAiClient;
@@ -77,6 +87,23 @@ class EnhancedAiApiService {
 
     final effectiveRegion = region ?? defaultRegion;
     final effectiveLanguage = language ?? defaultLanguage;
+
+    // A/B experiment: if configured, route a fraction of requests to the new race-based method
+    if (_racePercentage > 0.0 && _random.nextDouble() < _racePercentage) {
+      WasteAppLogger.info('A/B routing: using race-based analysis', context: {
+        'race_percentage': _racePercentage,
+        'image_name': imageName,
+      });
+
+      return analyzeWithRace(
+        imageBytes: imageBytes,
+        imageName: imageName,
+        region: region,
+        language: language,
+        preferredModel: preferredModel,
+        enableSegmentation: enableSegmentation,
+      );
+    }
 
     // Determine optimal model based on cost and performance
     final selectedModel = _selectOptimalModel(
@@ -150,6 +177,72 @@ class EnhancedAiApiService {
     }
   }
 
+  /// Analyze image by racing OpenAI and Gemini in parallel (non-breaking opt-in)
+  Future<WasteClassification> analyzeWithRace({
+    required Uint8List imageBytes,
+    required String imageName,
+    String? region,
+    String? language,
+    String? preferredModel,
+    bool enableSegmentation = false,
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    await initialize();
+
+    final effectiveRegion = region ?? defaultRegion;
+    final effectiveLanguage = language ?? defaultLanguage;
+    final compressedBytes = await _compressImage(imageBytes);
+
+    final openModel = (preferredModel != null && _isOpenAIModel(preferredModel))
+        ? preferredModel
+        : 'gpt-4o-mini';
+    const geminiModel = ApiConfig.tertiaryModel;
+
+    final openFuture = _analyzeWithOpenAI(
+      model: openModel,
+      imageBytes: compressedBytes,
+      imageName: imageName,
+      region: effectiveRegion,
+      language: effectiveLanguage,
+      enableSegmentation: enableSegmentation,
+    ).timeout(timeout);
+
+    final geminiFuture = _analyzeWithGemini(
+      model: geminiModel,
+      imageBytes: compressedBytes,
+      imageName: imageName,
+      region: effectiveRegion,
+      language: effectiveLanguage,
+      enableSegmentation: enableSegmentation,
+    ).timeout(timeout);
+
+    try {
+      final result = await Future.any([openFuture, geminiFuture]);
+
+      // Record success for whichever model produced the result
+      _recordModelUsage(result.modelVersion ?? 'unknown', success: true);
+
+      WasteAppLogger.info('Race analysis completed', context: {
+        'winner_model': result.modelVersion,
+        'image_name': imageName,
+      });
+
+      return result;
+    } catch (e) {
+      WasteAppLogger.warning('Race analysis: both services failed', error: e);
+
+      // Mark both as failures for telemetry
+      _recordModelUsage(openModel, success: false);
+      _recordModelUsage(geminiModel, success: false);
+
+      if (!enableFallback) {
+        rethrow;
+      }
+
+      return WasteClassification.fallback(imageName);
+    }
+  }
+
   /// Compress image to reduce API costs and latency
   Future<Uint8List> _compressImage(Uint8List bytes) async {
     if (bytes.length < 200 * 1024) return bytes;
@@ -160,7 +253,6 @@ class EnhancedAiApiService {
         minWidth: 800,
         minHeight: 800,
         quality: 85,
-        rotate: 0,
       );
 
       WasteAppLogger.info('Image compressed', context: {
@@ -261,7 +353,7 @@ class EnhancedAiApiService {
 
     // Track actual cost (gpt-4o-mini pricing)
     try {
-      final usage = response.data?['usage'] as Map<String, dynamic>?;
+      final usage = response.data['usage'] as Map<String, dynamic>?;
       if (usage != null) {
         final promptTokens = usage['prompt_tokens'] as int? ?? 0;
         final completionTokens = usage['completion_tokens'] as int? ?? 0;

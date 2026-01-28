@@ -271,10 +271,10 @@ class GamificationProfileAdapter extends TypeAdapter<GamificationProfile> {
       activeChallenges: (fields[4] as List).cast<Challenge>(),
       completedChallenges: (fields[5] as List).cast<Challenge>(),
       weeklyStats: (fields[6] as List).cast<WeeklyStats>(),
-      discoveredItemIds: (fields[7] as List).cast<String>().toSet(),
+      discoveredItemIds: (fields[7] as List).cast<String>(),
       lastDailyEngagementBonusAwardedDate: fields[8] as DateTime?,
       lastViewPersonalStatsAwardedDate: fields[9] as DateTime?,
-      unlockedHiddenContentIds: (fields[10] as List).cast<String>().toSet(),
+      unlockedHiddenContentIds: (fields[10] as List).cast<String>(),
     );
   }
 
@@ -297,13 +297,13 @@ class GamificationProfileAdapter extends TypeAdapter<GamificationProfile> {
       ..writeByte(6)
       ..write(obj.weeklyStats)
       ..writeByte(7)
-      ..write(obj.discoveredItemIds.toList())
+      ..write(obj.discoveredItemIds)
       ..writeByte(8)
       ..write(obj.lastDailyEngagementBonusAwardedDate)
       ..writeByte(9)
       ..write(obj.lastViewPersonalStatsAwardedDate)
       ..writeByte(10)
-      ..write(obj.unlockedHiddenContentIds.toList());
+      ..write(obj.unlockedHiddenContentIds);
   }
 
   @override

@@ -743,22 +743,6 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       return const Center(child: Text('No category data available'));
     }
 
-    // Prepare data for the chart
-    final pieData = <Map<String, dynamic>>[];
-
-    for (final entry in _wasteCategoryCounts.entries) {
-      final color = _getCategoryColor(entry.key);
-      final colorHex = '#${color.toARGB32().toRadixString(16).substring(2)}';
-      final percentage = entry.value / total;
-
-      pieData.add({
-        'label': entry.key,
-        'value': entry.value,
-        'color': colorHex,
-        'percentage': '${(percentage * 100).toStringAsFixed(0)}%',
-      });
-    }
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.paddingRegular),
@@ -767,11 +751,6 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
             Text(
               'Category breakdown of your classifications',
               style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: AppTheme.paddingRegular),
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.3,
-              child: WebPieChartWidget(data: pieData),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             SizedBox(

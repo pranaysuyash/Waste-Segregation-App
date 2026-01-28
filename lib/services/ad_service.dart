@@ -233,7 +233,9 @@ class AdService extends ChangeNotifier {
     if (kIsWeb ||
         _isInterstitialAdLoading ||
         _interstitialAd != null ||
-        _disposed) return;
+        _disposed) {
+      return;
+    }
 
     _isInterstitialAdLoading = true;
 

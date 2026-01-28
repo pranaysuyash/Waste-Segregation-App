@@ -579,10 +579,13 @@ class WasteClassification extends HiveObject {
     if (visualFeatures.isNotEmpty) dataFields++;
     if (materials != null && materials!.isNotEmpty) dataFields++;
     if (commonUses != null && commonUses!.isNotEmpty) dataFields++;
-    if (alternativeOptions != null && alternativeOptions!.isNotEmpty)
+    if (alternativeOptions != null && alternativeOptions!.isNotEmpty) {
       dataFields++;
+    }
     if (circularEconomyPotential != null &&
-        circularEconomyPotential!.isNotEmpty) dataFields++;
+        circularEconomyPotential!.isNotEmpty) {
+      dataFields++;
+    }
     if (localRegulations != null && localRegulations!.isNotEmpty) dataFields++;
 
     // Award bonus points for detailed analysis (1-15 points)

@@ -465,8 +465,7 @@ class PointsEngine extends ChangeNotifier {
       },
       points: const UserPoints(),
       achievements: [], // Will be populated by GamificationService
-      discoveredItemIds: {},
-      unlockedHiddenContentIds: {},
+      unlockedHiddenContentIds: const [],
     );
   }
 
@@ -477,8 +476,6 @@ class PointsEngine extends ChangeNotifier {
       streaks: {},
       points: const UserPoints(),
       achievements: [],
-      discoveredItemIds: {},
-      unlockedHiddenContentIds: {},
     );
   }
 

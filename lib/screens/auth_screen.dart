@@ -94,11 +94,16 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.paddingLarge),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(AppTheme.paddingLarge),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
                 // App logo
                 Container(
                   width: 120,
@@ -264,8 +269,12 @@ class _AuthScreenState extends State<AuthScreen> {
                   textColor: Colors.white,
                   borderColor: Colors.white,
                 ),
-              ],
-            ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),
