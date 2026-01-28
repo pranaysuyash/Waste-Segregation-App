@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/constants.dart';
 import '../widgets/enhanced_analysis_loader.dart';
 import '../widgets/premium_segmentation_toggle.dart';
@@ -12,6 +14,8 @@ import '../widgets/modern_ui/modern_cards.dart';
 import '../models/token_wallet.dart';
 import '../providers/ai_job_providers.dart';
 import '../providers/app_providers.dart';
+import '../services/image_quality_gate.dart';
+import '../services/offline_queue_service.dart';
 import 'result_screen.dart';
 import '../utils/waste_app_logger.dart';
 
@@ -61,6 +65,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   late final Animation<double> _scanPulseScale;
   late final Animation<double> _scanPulseOpacity;
 
+  // Track 1 & 2: Quality Gate and Offline Queue Integration
+  bool _isOnline = true;
+  int _pendingQueueItems = 0;
+  late StreamSubscription<int> _queueCountSubscription;
+
   @override
   String? get restorationId => 'image_capture_screen';
 
@@ -103,6 +112,13 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     _scanPulseOpacity = Tween<double>(begin: 0.35, end: 0.0).animate(
       CurvedAnimation(parent: _scanPulseController, curve: Curves.easeOut),
     );
+
+    // Track 1 & 2: Initialize connectivity listener
+    _initializeConnectivityListener();
+
+    // Track 2: Initialize offline queue listener
+    _initializeQueueListener();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_imageFile != null) {
         _imagePath.value = _imageFile!.path;
@@ -124,6 +140,35 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     } else if (kIsWeb && _xFile != null) {
       _loadWebImage();
     }
+  }
+
+  void _initializeConnectivityListener() {
+    final connectivity = Connectivity();
+    connectivity.onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      final isOnline = !results.contains(ConnectivityResult.none);
+      if (mounted) {
+        setState(() {
+          _isOnline = isOnline;
+        });
+      }
+      WasteAppLogger.info('Connectivity changed', context: {
+        'service': 'screen',
+        'file': 'image_capture_screen',
+        'isOnline': isOnline
+      });
+    });
+  }
+
+  void _initializeQueueListener() {
+    final queueService = OfflineQueueService();
+    _queueCountSubscription = queueService.queueCountStream.listen((count) {
+      if (mounted) {
+        setState(() {
+          _pendingQueueItems = count;
+        });
+      }
+    });
   }
 
   Future<void> _captureImage() async {
@@ -193,8 +238,180 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     });
   }
 
+  // Track 1: Quality check dialog and offline queue integration
+  Future<bool> _showQualityCheckDialog(QualityCheckResult result) async {
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Image Quality Warning'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(result.userMessage),
+                if (result.metrics != null && result.metrics!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Quality Metrics:',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  ...result.metrics!.entries.map((e) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(_formatMetricLabel(e.key)),
+                            Text(
+                              e.value,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      )),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Retake'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Use Anyway'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  String _formatMetricLabel(String key) {
+    return key
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((w) => w[0].toUpperCase() + w.substring(1))
+        .join(' ');
+  }
+
+  void _queueAnalysisOffline(Uint8List imageBytes) {
+    final queueService = OfflineQueueService();
+    final userProfile = ref.read(userProfileProvider).value;
+    const region = 'auto'; // Default region for offline queue
+    final imageName = _imageFile?.path.split('/').last ??
+        _xFile?.name ??
+        'captured_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    queueService
+        .queue(
+          imageBytes: imageBytes,
+          region: region,
+          userId: userProfile?.id,
+          imageName: imageName,
+        )
+        .then((_) {
+          WasteAppLogger.info('Image queued for offline processing', context: {
+            'service': 'screen',
+            'file': 'image_capture_screen',
+            'imageName': imageName,
+            'region': region,
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'Image queued for analysis. Will process when online.'),
+                duration: Duration(seconds: 4),
+              ),
+            );
+            // Navigate back to camera screen after queuing
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                Navigator.pop(context);
+              }
+            });
+          }
+        })
+        .catchError((e) {
+          WasteAppLogger.severe('Failed to queue image offline',
+              error: e,
+              context: {
+                'service': 'screen',
+                'file': 'image_capture_screen',
+              });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to queue image: ${e.toString()}'),
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+        });
+  }
+
   Future<void> _analyzeImage() async {
     if (_isAnalyzing || _isCancelled) return;
+
+    // Track 1 & 2: Quality gate check and offline queue handling
+    Uint8List? imageBytes;
+    try {
+      if (kIsWeb) {
+        if (_xFile != null) {
+          imageBytes = _webImageBytes;
+          imageBytes ??= await _xFile!.readAsBytes();
+        } else if (_webImageBytes != null) {
+          imageBytes = _webImageBytes;
+        }
+      } else if (_imageFile != null) {
+        imageBytes = await _imageFile!.readAsBytes();
+      }
+
+      if (imageBytes != null && imageBytes.isNotEmpty) {
+        // Track 1: Check image quality
+        final qualityResult = await ImageQualityGate.check(imageBytes);
+        if (!qualityResult.isValid) {
+          WasteAppLogger.info('Image quality check failed', context: {
+            'service': 'screen',
+            'file': 'image_capture_screen',
+            'failureType': qualityResult.failureType.toString(),
+          });
+          if (mounted) {
+            final useAnyway = await _showQualityCheckDialog(qualityResult);
+            if (!useAnyway) {
+              WasteAppLogger.info('User chose to retake image', context: {
+                'service': 'screen',
+                'file': 'image_capture_screen',
+              });
+              return;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      WasteAppLogger.warning('Quality gate error (non-blocking)',
+          error: e,
+          context: {
+            'service': 'screen',
+            'file': 'image_capture_screen',
+          });
+      // Fail-open: continue with analysis even if quality check fails
+    }
+
+    // Track 2: Check if we're offline
+    if (!_isOnline && !kIsWeb) {
+      if (imageBytes != null && imageBytes.isNotEmpty) {
+        // Queue the classification for later processing
+        if (mounted) {
+          _queueAnalysisOffline(imageBytes);
+        }
+        return;
+      }
+    }
+
     setState(() {
       _isAnalyzing = true;
       _isCancelled = false;
@@ -532,6 +749,47 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.autoAnalyze ? 'Analyzing Image' : 'Review Image'),
+        actions: [
+          // Track 1 & 2: Show connectivity and queue status
+          if (!_isOnline)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Center(
+                child: Tooltip(
+                  message: 'No internet connection - images will be queued',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.cloud_off, size: 20),
+                      SizedBox(width: 4),
+                      Text('Offline', style: TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          else if (_pendingQueueItems > 0)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Center(
+                child: Tooltip(
+                  message:
+                      '$_pendingQueueItems image(s) waiting to be processed',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.schedule, size: 20),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Pending: $_pendingQueueItems',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
       body: _isAnalyzing
           ? EnhancedAnalysisLoader(
@@ -1434,6 +1692,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     _imagePath.dispose();
     _useSegmentationRestorable.dispose();
     _scanPulseController.dispose();
+    // Track 2: Cleanup offline queue listener
+    _queueCountSubscription.cancel();
     super.dispose();
   }
 }

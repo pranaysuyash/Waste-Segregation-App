@@ -1,7 +1,8 @@
 /// Achievement celebration wrapper for ResultScreen V2
-/// 
+///
 /// Bridges the existing AchievementCelebration widget with V2's state management.
 /// Ensures celebrations are shown once and only for qualifying achievements.
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,7 +91,7 @@ class _AchievementCelebrationWrapperState
 final celebrationShownProvider = StateProvider<bool>((ref) => false);
 
 /// Hook to show achievement celebration programmatically
-/// 
+///
 /// Usage in V2 screen:
 /// ```dart
 /// ref.read(achievementCelebrationProvider).show(achievement);
@@ -113,7 +114,8 @@ class AchievementCelebrationController {
   bool get hasAchievement => _currentAchievement != null;
 }
 
-final achievementCelebrationProvider = Provider<AchievementCelebrationController>(
+final achievementCelebrationProvider =
+    Provider<AchievementCelebrationController>(
   (ref) => AchievementCelebrationController(),
 );
 
@@ -138,7 +140,7 @@ class AchievementCelebrationDisplay extends StatelessWidget {
 }
 
 /// Mixin for screens that need achievement celebration
-/// 
+///
 /// Usage:
 /// ```dart
 /// class _MyScreenState extends State<MyScreen> with AchievementCelebrationMixin {

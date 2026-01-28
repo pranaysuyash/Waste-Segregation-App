@@ -55,6 +55,38 @@ enum AnalysisMode {
 /// Configuration for vision model usage
 @HiveType(typeId: 32)
 class VisionModelConfig extends HiveObject {
+  /// Factory for default on-device configuration
+  factory VisionModelConfig.onDevice() {
+    return VisionModelConfig(
+      modelType: VisionModelType.yoloV8,
+      analysisMode: AnalysisMode.onDevice,
+      confidenceThreshold: 0.6,
+      enableObjectDetection: true,
+      preferOnDevice: true,
+    );
+  }
+
+  /// Factory for hybrid configuration (on-device with cloud fallback)
+  factory VisionModelConfig.hybrid() {
+    return VisionModelConfig(
+      modelType: VisionModelType.yoloV8,
+      analysisMode: AnalysisMode.hybrid,
+      confidenceThreshold: 0.7,
+      enableObjectDetection: true,
+      preferOnDevice: true,
+    );
+  }
+
+  /// Factory for batch cloud configuration (cost optimized)
+  factory VisionModelConfig.batchCloud() {
+    return VisionModelConfig(
+      modelType: VisionModelType.openAI,
+      analysisMode: AnalysisMode.batch,
+      batchSize: 10,
+      batchTimeoutSeconds: 60,
+      preferOnDevice: false,
+    );
+  }
   VisionModelConfig({
     required this.modelType,
     required this.analysisMode,
@@ -71,36 +103,6 @@ class VisionModelConfig extends HiveObject {
     this.roboflowProject,
     this.preferOnDevice = true,
   });
-
-  /// Factory for default on-device configuration
-  factory VisionModelConfig.onDevice() {
-    return VisionModelConfig(
-      modelType: VisionModelType.yoloV8,
-      analysisMode: AnalysisMode.onDevice,
-      confidenceThreshold: 0.6,
-      enableObjectDetection: true,
-    );
-  }
-
-  /// Factory for hybrid configuration (on-device with cloud fallback)
-  factory VisionModelConfig.hybrid() {
-    return VisionModelConfig(
-      modelType: VisionModelType.yoloV8,
-      analysisMode: AnalysisMode.hybrid,
-      enableObjectDetection: true,
-    );
-  }
-
-  /// Factory for batch cloud configuration (cost optimized)
-  factory VisionModelConfig.batchCloud() {
-    return VisionModelConfig(
-      modelType: VisionModelType.openAI,
-      analysisMode: AnalysisMode.batch,
-      batchSize: 10,
-      batchTimeoutSeconds: 60,
-      preferOnDevice: false,
-    );
-  }
 
   @HiveField(0)
   final VisionModelType modelType;

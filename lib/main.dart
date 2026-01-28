@@ -12,8 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart'
-    show kIsWeb, kDebugMode;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -225,7 +224,6 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
         unawaited(PermissionHandler.checkTrackingPermission());
       } catch (_) {}
 
-
       // 5. Instantiate Services
       final storageService = EnhancedStorageService();
       _storageService = storageService;
@@ -303,7 +301,8 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       await action().timeout(timeout);
       WasteAppLogger.debug('BOOT: Step $label finished');
     } catch (e, s) {
-      WasteAppLogger.severe('BOOT: Step $label failed', error: e, stackTrace: s);
+      WasteAppLogger.severe('BOOT: Step $label failed',
+          error: e, stackTrace: s);
       if (critical) rethrow;
     }
   }
@@ -566,14 +565,14 @@ class WasteSegregationApp extends StatelessWidget {
 
                     if (kDebugMode) {
                       // Debug overlay showing quick init statuses
-                      final openAiKey =
-                          const String.fromEnvironment('OPENAI_API_KEY');
-                      final geminiKey =
-                          const String.fromEnvironment('GEMINI_API_KEY');
+                      const openAiKey =
+                          String.fromEnvironment('OPENAI_API_KEY');
+                      const geminiKey =
+                          String.fromEnvironment('GEMINI_API_KEY');
                       final hasApiKeys =
                           openAiKey.isNotEmpty || geminiKey.isNotEmpty;
 
-                      bool hasConsent = false;
+                      var hasConsent = false;
                       try {
                         final uc = Provider.of<UserConsentService>(
                           context,
@@ -582,7 +581,7 @@ class WasteSegregationApp extends StatelessWidget {
                         hasConsent = uc.hasAllRequiredConsents;
                       } catch (_) {}
 
-                      bool firebaseOk = false;
+                      var firebaseOk = false;
                       try {
                         firebaseOk = Firebase.apps.isNotEmpty;
                       } catch (_) {}

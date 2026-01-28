@@ -1,7 +1,8 @@
 /// Points earned popup widget
-/// 
+///
 /// Displays animated points earned with celebratory effects.
 /// Matches Legacy ResultScreen behavior.
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -90,10 +91,10 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
 
   void _startAnimation() async {
     await _controller.forward();
-    
+
     // Auto-dismiss after display duration
     await Future.delayed(widget.duration);
-    
+
     if (mounted) {
       widget.onDismiss();
     }

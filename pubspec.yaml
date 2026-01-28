@@ -34,7 +34,6 @@ dependencies:
   openai_api: ^0.3.7 # Updated to latest
   crypto: ^3.0.3 # For SHA-256 hashing
   image: ^4.0.17 # For image preprocessing
-  flutter_image_compress: ^2.3.0
   google_mobile_ads: ^5.0.0 # Compatible with Dart SDK 3.5.0 and webview_flutter 4.8.0
   fl_chart: ^0.68.0 # Compatible with Dart SDK 3.5.0
   # REPLACED: flutter_markdown (discontinued) with markdown_widget
@@ -78,10 +77,12 @@ dependencies:
   geoflutterfire_plus: ^0.0.32 # For Firebase geospatial queries
 
   flutter_markdown: any
+  firebase_dynamic_links: any
+  flutter_image_compress: ^2.3.0
 
   # --- On-Device ML & Computer Vision ---
   # TensorFlow Lite for on-device model inference (zero cost)
-  tflite_flutter: ^0.11.0 # For running TFLite models on device (AGP namespace support)
+  tflite_flutter: ^0.9.0 # For running TFLite models on device
 
   # NOTE: Removed tflite_flutter_helper due to:
   # - Requires image ^3.0.2 but project uses image ^4.0.17

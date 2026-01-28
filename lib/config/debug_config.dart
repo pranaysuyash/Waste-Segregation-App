@@ -1,7 +1,8 @@
 /// Debug configuration for development builds
-/// 
+///
 /// Provides runtime guardrails and logging for ResultScreen migration.
 /// Only active in debug builds - no overhead in release.
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -121,22 +122,22 @@ class DebugFeatureFlags {
   DebugFeatureFlags._();
 
   /// Force legacy ResultScreen (ignores remote config)
-  /// 
+  ///
   /// Usage: Add `?legacyResults=1` to app URL in dev
   static bool get forceLegacyResults {
     if (!kDebugMode) return false;
-    
+
     // Check URL query parameter
     // This would need to be integrated with your navigation system
     return _urlParams['legacyResults'] == '1';
   }
 
   /// Force V2 ResultScreen (ignores remote config)
-  /// 
+  ///
   /// Usage: Add `?v2Results=1` to app URL in dev
   static bool get forceV2Results {
     if (!kDebugMode) return false;
-    
+
     return _urlParams['v2Results'] == '1';
   }
 
@@ -163,7 +164,7 @@ class DebugIndicators {
   DebugIndicators._();
 
   /// Build a debug banner showing which ResultScreen version is active
-  /// 
+  ///
   /// Only visible in debug builds. Returns null in release.
   static Widget? buildVersionBanner(String version) {
     if (!kDebugMode) return null;

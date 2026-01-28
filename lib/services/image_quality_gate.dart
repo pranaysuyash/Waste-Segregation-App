@@ -4,12 +4,12 @@ import '../utils/waste_app_logger.dart';
 import 'analytics_service.dart';
 
 /// Pre-flight quality check to prevent wasting API credits on poor-quality images
-/// 
+///
 /// Checks:
 /// - Minimum resolution (300x300)
 /// - Blur detection via Laplacian variance
 /// - Brightness (too dark or overexposed)
-/// 
+///
 /// Fail-open design: if checks crash, image is allowed (better UX than blocking)
 class ImageQualityGate {
   // Configurable thresholds
@@ -17,12 +17,12 @@ class ImageQualityGate {
   static double minVariance = 100.0; // Blur threshold - lower = blurrier
   static int minBrightness = 40;
   static int maxBrightness = 250; // Overexposed threshold
-  
+
   /// Check image quality before sending to AI API
   /// Returns [QualityCheckResult] with pass/fail and detailed metrics
   static Future<QualityCheckResult> check(Uint8List bytes) async {
     final stopwatch = Stopwatch()..start();
-    
+
     try {
       // Try multiple decoders
       img.Image? image;
@@ -35,7 +35,7 @@ class ImageQualityGate {
           image = img.decodeImage(bytes); // Generic fallback
         }
       }
-      
+
       if (image == null) {
         WasteAppLogger.warning('Could not decode image for quality check');
         return QualityCheckResult(
@@ -45,10 +45,10 @@ class ImageQualityGate {
           failureType: QualityFailureType.decodeError,
         );
       }
-      
+
       final width = image.width;
       final height = image.height;
-      
+
       // Check 1: Minimum resolution
       if (width < minDimension || height < minDimension) {
         final result = QualityCheckResult(
@@ -62,11 +62,11 @@ class ImageQualityGate {
             'required': '$minDimension x $minDimension',
           },
         );
-        
+
         _logQualityCheck(result, stopwatch.elapsedMilliseconds);
         return result;
       }
-      
+
       // Check 2: Blur detection (Laplacian variance)
       final variance = await _calculateLaplacianVariance(image);
       if (variance < minVariance) {
@@ -80,11 +80,11 @@ class ImageQualityGate {
             'threshold': minVariance.toStringAsFixed(1),
           },
         );
-        
+
         _logQualityCheck(result, stopwatch.elapsedMilliseconds);
         return result;
       }
-      
+
       // Check 3: Brightness
       final brightness = await _averageBrightness(image);
       if (brightness < minBrightness) {
@@ -98,11 +98,11 @@ class ImageQualityGate {
             'min_threshold': minBrightness.toString(),
           },
         );
-        
+
         _logQualityCheck(result, stopwatch.elapsedMilliseconds);
         return result;
       }
-      
+
       if (brightness > maxBrightness) {
         final result = QualityCheckResult(
           isValid: false,
@@ -114,11 +114,11 @@ class ImageQualityGate {
             'max_threshold': maxBrightness.toString(),
           },
         );
-        
+
         _logQualityCheck(result, stopwatch.elapsedMilliseconds);
         return result;
       }
-      
+
       // All checks passed
       final result = QualityCheckResult(
         isValid: true,
@@ -129,10 +129,9 @@ class ImageQualityGate {
           'brightness': brightness.toStringAsFixed(0),
         },
       );
-      
+
       _logQualityCheck(result, stopwatch.elapsedMilliseconds);
       return result;
-      
     } catch (e, stackTrace) {
       // Fail open - don't block user if quality check crashes
       WasteAppLogger.warning(
@@ -140,47 +139,47 @@ class ImageQualityGate {
         error: e,
         stackTrace: stackTrace,
       );
-      
+
       final result = QualityCheckResult(
         isValid: true, // Allow through on error
         reason: 'Quality check unavailable (allowed)',
         suggestion: 'Photo will be sent to AI for analysis',
       );
-      
+
       AnalyticsService.log('image.quality_check_error', {
         'error': e.toString(),
         'allowed': true,
       });
-      
+
       return result;
     }
   }
-  
+
   /// Calculate Laplacian variance (edge detection) to detect blur
   /// Low variance = blurry (few edges), high variance = sharp (many edges)
   static Future<double> _calculateLaplacianVariance(img.Image src) async {
     final gray = img.grayscale(src);
     double sum = 0;
     double sumSquared = 0;
-    int count = 0;
-    
+    var count = 0;
+
     // Sample every 4th pixel for performance (still accurate)
-    for (int y = 2; y < gray.height - 2; y += 4) {
-      for (int x = 2; x < gray.width - 2; x += 4) {
+    for (var y = 2; y < gray.height - 2; y += 4) {
+      for (var x = 2; x < gray.width - 2; x += 4) {
         final laplacian = _computeLaplacian(gray, x, y);
         sum += laplacian;
         sumSquared += laplacian * laplacian;
         count++;
       }
     }
-    
+
     if (count == 0) return 0;
-    
+
     final mean = sum / count;
     final variance = (sumSquared / count) - (mean * mean);
     return variance;
   }
-  
+
   /// Compute Laplacian at a single pixel using 3x3 kernel
   static double _computeLaplacian(img.Image gray, int x, int y) {
     final center = img.getLuminance(gray.getPixel(x, y));
@@ -188,27 +187,27 @@ class ImageQualityGate {
     final south = img.getLuminance(gray.getPixel(x, y + 1));
     final east = img.getLuminance(gray.getPixel(x + 1, y));
     final west = img.getLuminance(gray.getPixel(x - 1, y));
-    
+
     // Simplified Laplacian: 4*center - sum(neighbors)
     return (4 * center - north - south - east - west).abs().toDouble();
   }
-  
+
   /// Calculate average brightness of the image
   static Future<double> _averageBrightness(img.Image src) async {
     var total = 0;
     var count = 0;
-    
+
     // Sample every 8th pixel for performance
-    for (int y = 0; y < src.height; y += 8) {
-      for (int x = 0; x < src.width; x += 8) {
+    for (var y = 0; y < src.height; y += 8) {
+      for (var x = 0; x < src.width; x += 8) {
         total += img.getLuminance(src.getPixel(x, y));
         count++;
       }
     }
-    
+
     return count > 0 ? total / count : 0;
   }
-  
+
   /// Log quality check result for analytics
   static void _logQualityCheck(QualityCheckResult result, int durationMs) {
     WasteAppLogger.info(
@@ -221,7 +220,7 @@ class ImageQualityGate {
         ...?result.metrics,
       },
     );
-    
+
     AnalyticsService.log(
       result.isValid ? 'image.quality_passed' : 'image.quality_rejected',
       {
@@ -235,12 +234,6 @@ class ImageQualityGate {
 
 /// Result of image quality check
 class QualityCheckResult {
-  final bool isValid;
-  final String reason;
-  final String suggestion;
-  final QualityFailureType? failureType;
-  final Map<String, String>? metrics;
-  
   QualityCheckResult({
     required this.isValid,
     required this.reason,
@@ -248,7 +241,12 @@ class QualityCheckResult {
     this.failureType,
     this.metrics,
   });
-  
+  final bool isValid;
+  final String reason;
+  final String suggestion;
+  final QualityFailureType? failureType;
+  final Map<String, String>? metrics;
+
   /// Get user-friendly message for display
   String get userMessage => '$reason\n\n$suggestion';
 }

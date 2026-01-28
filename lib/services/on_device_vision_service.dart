@@ -1,12 +1,10 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../models/waste_classification.dart';
 import '../models/vision_model_config.dart';
 import '../utils/waste_app_logger.dart';
-import '../utils/platform_file_io.dart';
 import 'package:uuid/uuid.dart';
 
 /// Service for on-device vision inference (zero cost)
@@ -59,84 +57,60 @@ class OnDeviceVisionService {
       _isInitialized = true;
       WasteAppLogger.info('On-device vision service initialized successfully');
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to initialize on-device vision service',
-          error: e, stackTrace: s);
+      WasteAppLogger.severe(
+          'Failed to initialize on-device vision service', e, s);
       rethrow;
     }
   }
 
   /// Check if model file exists locally
   Future<bool> _checkModelExists() async {
-    // File system access is not available on web — short-circuit in that case.
-    if (kIsWeb) {
-      WasteAppLogger.info(
-          'Running on web; local model files are not available');
-      return false;
-    }
-
     try {
       final appDir = await getApplicationDocumentsDirectory();
-      final modelDirPath = path.join(appDir.path, 'models');
-      final modelFilePath = path.join(modelDirPath, _getModelFileName());
+      final modelDir = Directory(path.join(appDir.path, 'models'));
+      final modelFile = File(path.join(modelDir.path, _getModelFileName()));
 
-      if (await fileExists(modelFilePath)) {
-        _modelPath = modelFilePath;
+      if (await modelFile.exists()) {
+        _modelPath = modelFile.path;
         return true;
       }
 
       return false;
-    } catch (e, s) {
-      WasteAppLogger.warning('Error checking model existence',
-          error: e, stackTrace: s);
+    } catch (e) {
+      WasteAppLogger.warning('Error checking model existence: $e');
       return false;
     }
   }
 
   /// Load model from assets bundle
   Future<void> _loadModelFromAssets() async {
-    // On web we can't write files to a local filesystem — keep the asset path as the model identifier.
-    final modelFileName = _getModelFileName();
-
-    if (kIsWeb) {
-      try {
-        final assetPath = 'assets/models/$modelFileName';
-        // Attempt to ensure asset is available by loading it
-        await rootBundle.load(assetPath);
-        _modelPath = assetPath;
-        WasteAppLogger.info('Model asset available on web: $assetPath');
-      } catch (e, s) {
-        WasteAppLogger.warning('Model asset not available on web',
-            error: e, stackTrace: s);
-      }
-      return;
-    }
-
     try {
       final appDir = await getApplicationDocumentsDirectory();
-      final modelDirPath = path.join(appDir.path, 'models');
+      final modelDir = Directory(path.join(appDir.path, 'models'));
 
-      await createDirectory(modelDirPath);
+      if (!await modelDir.exists()) {
+        await modelDir.create(recursive: true);
+      }
 
-      final modelFilePath = path.join(modelDirPath, modelFileName);
+      final modelFileName = _getModelFileName();
+      final modelFile = File(path.join(modelDir.path, modelFileName));
 
       // Try to load from assets (if model is bundled)
       // Note: For production, models should be downloaded separately due to size
       try {
         final assetPath = 'assets/models/$modelFileName';
         final data = await rootBundle.load(assetPath);
-        await writeFileBytes(modelFilePath, data.buffer.asUint8List());
-        _modelPath = modelFilePath;
+        await modelFile.writeAsBytes(data.buffer.asUint8List());
+        _modelPath = modelFile.path;
         WasteAppLogger.info('Model loaded from assets: $_modelPath');
-      } catch (e, s) {
-        WasteAppLogger.warning('Model not found in assets',
-            error: e, stackTrace: s);
+      } catch (e) {
+        WasteAppLogger.warning('Model not found in assets: $e');
         // Model needs to be downloaded separately
-        // For now, we'll create a placeholder path
-        _modelPath = modelFilePath;
+        // For now, we'll create a placeholder
+        _modelPath = modelFile.path;
       }
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to load model from assets',
-          error: e, stackTrace: s);
+      WasteAppLogger.severe('Failed to load model from assets', e, s);
       rethrow;
     }
   }
@@ -171,12 +145,6 @@ class OnDeviceVisionService {
     String? region,
     String? classificationId,
   }) async {
-    // This method requires file-system access and is not supported on web.
-    if (kIsWeb) {
-      throw UnsupportedError(
-          'analyzeImage is not supported on web. Use analyzeWebImage instead.');
-    }
-
     if (!_isInitialized) {
       await initialize();
     }
@@ -186,8 +154,8 @@ class OnDeviceVisionService {
       WasteAppLogger.info(
           'Starting on-device analysis with ${_config.modelType}');
 
-      // Read image bytes via platform-abstracted I/O
-      final imageBytes = await readFileBytes(imageFile.path);
+      // Read image bytes
+      final imageBytes = await imageFile.readAsBytes();
 
       // TODO: Implement actual TFLite inference here
       // For now, return a placeholder result indicating on-device analysis
@@ -206,8 +174,7 @@ class OnDeviceVisionService {
         timestamp: DateTime.now(),
       );
     } catch (e, s) {
-      WasteAppLogger.severe('On-device analysis failed',
-          error: e, stackTrace: s);
+      WasteAppLogger.severe('On-device analysis failed', e, s);
       rethrow;
     }
   }
@@ -237,8 +204,7 @@ class OnDeviceVisionService {
         timestamp: DateTime.now(),
       );
     } catch (e, s) {
-      WasteAppLogger.severe('On-device web analysis failed',
-          error: e, stackTrace: s);
+      WasteAppLogger.severe('On-device web analysis failed', e, s);
       rethrow;
     }
   }
@@ -271,27 +237,17 @@ class OnDeviceVisionService {
           'This is a placeholder result. Full on-device inference requires model integration. '
           'Model type: ${_config.modelType.name}. '
           'Please add TFLite models to enable zero-cost on-device analysis.',
-      disposalInstructions: DisposalInstructions(
-        primaryMethod: 'Setup on-device models',
-        steps: [
-          'Add TFLite model files to assets/models/',
-          'Download pre-trained waste classification models',
-          'Or train custom models for your specific use case',
-        ],
-        hasUrgentTimeframe: false,
-      ),
+      disposalInstructions: [
+        'Add TFLite model files to assets/models/',
+        'Download pre-trained waste classification models',
+        'Or train custom models for your specific use case',
+      ],
       visualFeatures: [
         'On-device processing',
         'Zero API cost',
         'Privacy-preserving'
       ],
-      alternatives: [
-        AlternativeClassification(
-          category: 'Cloud Analysis',
-          confidence: 0.8,
-          reason: 'Cloud-based analysis available as fallback',
-        ),
-      ],
+      alternatives: ['Cloud-based analysis available as fallback'],
       region: region ?? 'Global',
       confidence: 0.0, // Indicates placeholder result
       modelSource: 'on-device-${_config.modelType.name}',

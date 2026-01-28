@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../models/waste_classification.dart';
+import '../models/gamification.dart';
 import '../utils/waste_app_logger.dart';
 
 /// Result of a batch operation
@@ -42,7 +43,7 @@ class BatchOperationService {
       BatchOperationService._internal();
   static BatchOperationService get instance => _instance;
 
-  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Batch configuration
   static const int _maxBatchSize = 500; // Firestore limit
@@ -69,7 +70,7 @@ class BatchOperationService {
   Future<void> queueClassification(WasteClassification classification) async {
     _pendingClassifications.add(classification);
 
-    WasteAppLogger.debug('Classification queued for batch operation', context: {
+    WasteAppLogger.debug('Classification queued for batch operation', {
       'service': 'batch_operation',
       'classification_id': classification.id,
       'queue_size': _pendingClassifications.length,
@@ -87,13 +88,12 @@ class BatchOperationService {
   Future<void> queueGamificationUpdate(GamificationUpdate update) async {
     _pendingGamificationUpdates.add(update);
 
-    WasteAppLogger.debug('Gamification update queued for batch operation',
-        context: {
-          'service': 'batch_operation',
-          'user_id': update.userId,
-          'operation_type': update.operationType,
-          'queue_size': _pendingGamificationUpdates.length,
-        });
+    WasteAppLogger.debug('Gamification update queued for batch operation', {
+      'service': 'batch_operation',
+      'user_id': update.userId,
+      'operation_type': update.operationType,
+      'queue_size': _pendingGamificationUpdates.length,
+    });
 
     // Auto-execute if threshold reached
     if (_pendingGamificationUpdates.length >= _autoBatchThreshold) {
@@ -117,7 +117,7 @@ class BatchOperationService {
           List<WasteClassification>.from(_pendingClassifications);
       _pendingClassifications.clear();
 
-      WasteAppLogger.info('Executing classification batch operation', context: {
+      WasteAppLogger.info('Executing classification batch operation', {
         'service': 'batch_operation',
         'operation_count': classificationsToProcess.length,
       });
@@ -152,12 +152,10 @@ class BatchOperationService {
         failedOperations: failedOperations,
       );
     } catch (e) {
-      WasteAppLogger.severe('Classification batch execution failed',
-          error: e,
-          context: {
-            'service': 'batch_operation',
-            'pending_count': _pendingClassifications.length,
-          });
+      WasteAppLogger.severe('Classification batch execution failed', e, null, {
+        'service': 'batch_operation',
+        'pending_count': _pendingClassifications.length,
+      });
 
       return BatchResult(
         success: false,
@@ -183,7 +181,7 @@ class BatchOperationService {
           List<GamificationUpdate>.from(_pendingGamificationUpdates);
       _pendingGamificationUpdates.clear();
 
-      WasteAppLogger.info('Executing gamification batch operation', context: {
+      WasteAppLogger.info('Executing gamification batch operation', {
         'service': 'batch_operation',
         'operation_count': updatesToProcess.length,
       });
@@ -230,12 +228,10 @@ class BatchOperationService {
         failedOperations: failedOperations,
       );
     } catch (e) {
-      WasteAppLogger.severe('Gamification batch execution failed',
-          error: e,
-          context: {
-            'service': 'batch_operation',
-            'pending_count': _pendingGamificationUpdates.length,
-          });
+      WasteAppLogger.severe('Gamification batch execution failed', e, null, {
+        'service': 'batch_operation',
+        'pending_count': _pendingGamificationUpdates.length,
+      });
 
       return BatchResult(
         success: false,
@@ -251,10 +247,10 @@ class BatchOperationService {
   Future<BatchResult> _executeClassificationChunk(
       List<WasteClassification> classifications) async {
     for (var attempt = 1; attempt <= _maxRetries; attempt++) {
-      final batch = _firestore.batch();
-      final operationIds = <String>[];
-
       try {
+        final batch = _firestore.batch();
+        final operationIds = <String>[];
+
         for (final classification in classifications) {
           final docRef = _firestore
               .collection('users')
@@ -268,26 +264,24 @@ class BatchOperationService {
 
         await batch.commit();
 
-        WasteAppLogger.debug('Classification batch chunk executed successfully',
-            context: {
-              'service': 'batch_operation',
-              'chunk_size': classifications.length,
-              'attempt': attempt,
-            });
+        WasteAppLogger.debug(
+            'Classification batch chunk executed successfully', {
+          'service': 'batch_operation',
+          'chunk_size': classifications.length,
+          'attempt': attempt,
+        });
 
         return BatchResult(
           success: true,
           operationsCount: classifications.length,
         );
       } catch (e) {
-        WasteAppLogger.warning('Classification batch chunk failed',
-            error: e,
-            context: {
-              'service': 'batch_operation',
-              'chunk_size': classifications.length,
-              'attempt': attempt,
-              'max_retries': _maxRetries,
-            });
+        WasteAppLogger.warning('Classification batch chunk failed', e, null, {
+          'service': 'batch_operation',
+          'chunk_size': classifications.length,
+          'attempt': attempt,
+          'max_retries': _maxRetries,
+        });
 
         if (attempt == _maxRetries) {
           return BatchResult(
@@ -310,10 +304,10 @@ class BatchOperationService {
   Future<BatchResult> _executeGamificationChunk(
       String userId, List<GamificationUpdate> updates) async {
     for (var attempt = 1; attempt <= _maxRetries; attempt++) {
-      final batch = _firestore.batch();
-      final operationIds = <String>[];
-
       try {
+        final batch = _firestore.batch();
+        final operationIds = <String>[];
+
         // Merge all updates for the same user into a single document update
         final mergedData = <String, dynamic>{};
         final metadata = <String, dynamic>{};
@@ -339,28 +333,25 @@ class BatchOperationService {
 
         await batch.commit();
 
-        WasteAppLogger.debug('Gamification batch chunk executed successfully',
-            context: {
-              'service': 'batch_operation',
-              'user_id': userId,
-              'chunk_size': updates.length,
-              'attempt': attempt,
-            });
+        WasteAppLogger.debug('Gamification batch chunk executed successfully', {
+          'service': 'batch_operation',
+          'user_id': userId,
+          'chunk_size': updates.length,
+          'attempt': attempt,
+        });
 
         return BatchResult(
           success: true,
           operationsCount: updates.length,
         );
       } catch (e) {
-        WasteAppLogger.warning('Gamification batch chunk failed',
-            error: e,
-            context: {
-              'service': 'batch_operation',
-              'user_id': userId,
-              'chunk_size': updates.length,
-              'attempt': attempt,
-              'max_retries': _maxRetries,
-            });
+        WasteAppLogger.warning('Gamification batch chunk failed', e, null, {
+          'service': 'batch_operation',
+          'user_id': userId,
+          'chunk_size': updates.length,
+          'attempt': attempt,
+          'max_retries': _maxRetries,
+        });
 
         if (attempt == _maxRetries) {
           return BatchResult(
@@ -419,7 +410,7 @@ class BatchOperationService {
     _classificationBatchTimer?.cancel();
     _gamificationBatchTimer?.cancel();
 
-    WasteAppLogger.warning('All batch operation queues cleared', context: {
+    WasteAppLogger.warning('All batch operation queues cleared', null, null, {
       'service': 'batch_operation',
     });
   }

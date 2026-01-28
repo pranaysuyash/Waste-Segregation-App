@@ -498,20 +498,24 @@ class StorageService {
 
       // Filter by recyclable status
       if (filterOptions.isRecyclable != null) {
-        if (classification.isRecyclable != filterOptions.isRecyclable)
+        if (classification.isRecyclable != filterOptions.isRecyclable) {
           return false;
+        }
       }
 
       // Filter by compostable status
       if (filterOptions.isCompostable != null) {
-        if (classification.isCompostable != filterOptions.isCompostable)
+        if (classification.isCompostable != filterOptions.isCompostable) {
           return false;
+        }
       }
 
       // Filter by special disposal requirement
       if (filterOptions.requiresSpecialDisposal != null) {
         if (classification.requiresSpecialDisposal !=
-            filterOptions.requiresSpecialDisposal) return false;
+            filterOptions.requiresSpecialDisposal) {
+          return false;
+        }
       }
 
       // Filter by date range

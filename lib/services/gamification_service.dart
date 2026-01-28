@@ -224,7 +224,6 @@ class GamificationService extends ChangeNotifier {
           points: const UserPoints(),
           achievements:
               getDefaultAchievements(), // Provide default achievements
-          discoveredItemIds: const [],
           unlockedHiddenContentIds: const [],
         );
         notifyListeners(); // Notify listeners when profile is created
@@ -279,7 +278,6 @@ class GamificationService extends ChangeNotifier {
           achievements:
               getDefaultAchievements(), // Provide default achievements
           activeChallenges: activeChallenges, // Use safely loaded challenges
-          discoveredItemIds: const [],
           unlockedHiddenContentIds: const [],
         );
 
@@ -326,7 +324,6 @@ class GamificationService extends ChangeNotifier {
         },
         points: const UserPoints(),
         achievements: [], // Empty achievements to prevent further errors
-        discoveredItemIds: const [],
         unlockedHiddenContentIds: const [],
       );
       notifyListeners();
@@ -1934,8 +1931,6 @@ class GamificationService extends ChangeNotifier {
         },
         points: const UserPoints(), // This ensures 0 current points
         achievements: getDefaultAchievements(),
-        discoveredItemIds: const [],
-        unlockedHiddenContentIds: const [],
       );
 
       await box.put(_legacyProfileKey, jsonEncode(freshProfile.toJson()));

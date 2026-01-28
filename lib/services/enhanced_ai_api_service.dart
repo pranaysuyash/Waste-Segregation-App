@@ -196,7 +196,7 @@ class EnhancedAiApiService {
     final openModel = (preferredModel != null && _isOpenAIModel(preferredModel))
         ? preferredModel
         : 'gpt-4o-mini';
-    final geminiModel = ApiConfig.tertiaryModel;
+    const geminiModel = ApiConfig.tertiaryModel;
 
     final openFuture = _analyzeWithOpenAI(
       model: openModel,
@@ -249,7 +249,6 @@ class EnhancedAiApiService {
         minWidth: 800,
         minHeight: 800,
         quality: 85,
-        rotate: 0,
       );
 
       WasteAppLogger.info('Image compressed', context: {
@@ -350,7 +349,7 @@ class EnhancedAiApiService {
 
     // Track actual cost (gpt-4o-mini pricing)
     try {
-      final usage = response.data?['usage'] as Map<String, dynamic>?;
+      final usage = response.data['usage'] as Map<String, dynamic>?;
       if (usage != null) {
         final promptTokens = usage['prompt_tokens'] as int? ?? 0;
         final completionTokens = usage['completion_tokens'] as int? ?? 0;
