@@ -7,6 +7,7 @@
 ## Summary
 
 Implement 5 critical fixes to `enhanced_ai_api_service.dart` that will:
+
 - ✅ Reduce JSON parse failures from ~15% to <1%
 - ✅ Cut costs by 70% ($0.15 → $0.02 per image)
 - ✅ Reduce latency by 60% (8s → 3s)
@@ -15,6 +16,7 @@ Implement 5 critical fixes to `enhanced_ai_api_service.dart` that will:
 ## Required Dependency
 
 Add to `pubspec.yaml`:
+
 ```yaml
 dependencies:
   flutter_image_compress: ^2.3.0
@@ -23,9 +25,11 @@ dependencies:
 ## Fix 1: Add JSON Mode (Lines ~217, ~267)
 
 ### OpenAI Request
+
 **Location:** `_analyzeWithOpenAI` method, in `requestData` map
 
 **Change:**
+
 ```dart
 // BEFORE:
 'max_tokens': enableSegmentation ? 2000 : 1000,
@@ -38,9 +42,11 @@ dependencies:
 ```
 
 ### Gemini Request
+
 **Location:** `_analyzeWithGemini` method, in `generationConfig`
 
 **Change:**
+
 ```dart
 // BEFORE:
 'generationConfig': {
@@ -59,9 +65,11 @@ dependencies:
 ## Fix 2: Remove Regex Parsing (Lines ~396, ~462)
 
 ### OpenAI Response Parsing
+
 **Location:** `_parseOpenAIResponse` method
 
 **Change:**
+
 ```dart
 // BEFORE (lines ~395-401):
 // Parse JSON from content
@@ -77,9 +85,11 @@ final jsonData = json.decode(content) as Map<String, dynamic>;
 ```
 
 ### Gemini Response Parsing
+
 **Location:** `_parseGeminiResponse` method
 
 **Change:**
+
 ```dart
 // BEFORE (lines ~461-467):
 // Parse JSON from text
@@ -97,6 +107,7 @@ final jsonData = json.decode(text) as Map<String, dynamic>;
 ## Fix 3: Add Image Compression
 
 ### Add Import
+
 **Location:** Top of file after `dart:typed_data`
 
 ```dart
@@ -104,6 +115,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 ```
 
 ### Add Compression Method
+
 **Location:** Before `_analyzeWithModel` method (around line 150)
 
 ```dart
@@ -111,7 +123,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 Future<Uint8List> _compressImage(Uint8List bytes) async {
   // If already small, return as-is
   if (bytes.length < 200 * 1024) return bytes;
-  
+
   try {
     final result = await FlutterImageCompress.compressWithList(
       bytes,
@@ -120,13 +132,13 @@ Future<Uint8List> _compressImage(Uint8List bytes) async {
       quality: 85, // Good balance of quality/size
       rotate: 0,
     );
-    
+
     WasteAppLogger.info('Image compressed', context: {
       'original_kb': (bytes.length / 1024).toStringAsFixed(1),
       'compressed_kb': (result.length / 1024).toStringAsFixed(1),
       'reduction': '${((1 - result.length / bytes.length) * 100).toStringAsFixed(0)}%',
     });
-    
+
     return result;
   } catch (e) {
     WasteAppLogger.warning('Image compression failed, using original', error: e);
@@ -136,6 +148,7 @@ Future<Uint8List> _compressImage(Uint8List bytes) async {
 ```
 
 ### Use Compression
+
 **Location:** `_analyzeWithModel` method, at the start
 
 ```dart
@@ -153,6 +166,7 @@ imageBytes: compressedBytes,
 **Location:** `_buildSystemPrompt` method
 
 **Change:**
+
 ```dart
 // BEFORE:
 String _buildSystemPrompt(String region, String language) {
@@ -190,6 +204,7 @@ Language: $language
 **Location:** `_selectOptimalModel` method
 
 **Change:**
+
 ```dart
 // BEFORE (lines ~293-306):
 // Cost optimization logic
@@ -265,6 +280,7 @@ try {
 ## Testing Checklist
 
 After each fix:
+
 - [ ] Run `flutter run` - verify no compile errors
 - [ ] Take photo or upload image
 - [ ] Check console logs for "Image compressed" message
@@ -273,12 +289,12 @@ After each fix:
 
 ## Expected Metrics
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| JSON parse failures | ~15% | <1% | 93% reduction |
-| Avg cost/image | $0.15 | $0.02 | 87% savings |
-| Avg latency | 8s | 3s | 62% faster |
-| Image upload size | 4MB | 300KB | 93% smaller |
+| Metric              | Before | After | Improvement   |
+| ------------------- | ------ | ----- | ------------- |
+| JSON parse failures | ~15%   | <1%   | 93% reduction |
+| Avg cost/image      | $0.15  | $0.02 | 87% savings   |
+| Avg latency         | 8s     | 3s    | 62% faster    |
+| Image upload size   | 4MB    | 300KB | 93% smaller   |
 
 ## What NOT to Change
 
@@ -288,6 +304,7 @@ After each fix:
 - ❌ Don't refactor architecture (yet)
 
 **Note (27 Jan 2026):** Two additional, non-breaking changes were applied in the staging branch:
+
 - **Deduplication default flipped**: `UnifiedApiClient` default now disables `enableRequestDeduplication` (was `true`). This reduces cognitive load and avoids ineffective image dedup attempts. Clients can still opt-in per-instance when needed.
 - **Race-based analysis (opt-in)**: `EnhancedAiApiService.analyzeWithRace(...)` was added. Use `setRacePercentage(0.5)` to route a portion of `analyzeWasteImage` calls to the race method for A/B testing. See `docs/AI_API_RACE_FAULT_TOLERANCE.md` and `docs/smoke_tests/ai_race_ab_test.md` for details.
 

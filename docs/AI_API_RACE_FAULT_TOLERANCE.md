@@ -8,6 +8,7 @@ Status: ✅ Implemented (27 Jan 2026)
 ---
 
 ## Behavior
+
 - Compresses the image before sending (uses existing `_compressImage`).
 - Starts both OpenAI and Gemini requests in parallel with a configurable timeout (default: 15s).
 - Returns the winning `WasteClassification` (first completed future).
@@ -15,6 +16,7 @@ Status: ✅ Implemented (27 Jan 2026)
 - Records model usage success/failure for telemetry.
 
 ## API
+
 - Method signature (in `EnhancedAiApiService`):
 
 ```dart
@@ -32,6 +34,7 @@ Future<WasteClassification> analyzeWithRace({
 - Opt-in A/B routing is supported via `setRacePercentage(double)` on the same service instance. Provide a value between `0.0` and `1.0` (e.g., `0.5` for 50/50 routing).
 
 ## Telemetry
+
 - Logs:
   - `A/B routing: using race-based analysis` (when routing occurs)
   - `Race analysis completed` with `winner_model` and `image_name` context
@@ -39,13 +42,14 @@ Future<WasteClassification> analyzeWithRace({
 - Model usage is recorded with `_recordModelUsage(model, success: true/false)` for post-hoc analysis.
 
 ## Notes & Caveats
+
 - Running both services in parallel may increase total token consumption if both services still bill for in-flight requests; monitor cost if you raise test percentage above ~50% or enable it in production.
 - Timeouts should be conservative (12–20s) until you gather realistic latency metrics in your region and infra.
 
 ---
 
 ## Quick Start
+
 1. In staging, set `aiService.setRacePercentage(0.5);` to route ~50% traffic to the race method.
 2. Run the `docs/smoke_tests/ai_race_ab_test.md` checklist.
 3. Compare latency/success metrics and decide whether to increase percentage or make this the default.
-

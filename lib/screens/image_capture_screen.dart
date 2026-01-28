@@ -307,50 +307,49 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
     queueService
         .queue(
-          imageBytes: imageBytes,
-          region: region,
-          userId: userProfile?.id,
-          imageName: imageName,
-        )
+      imageBytes: imageBytes,
+      region: region,
+      userId: userProfile?.id,
+      imageName: imageName,
+    )
         .then((_) {
-          WasteAppLogger.info('Image queued for offline processing', context: {
-            'service': 'screen',
-            'file': 'image_capture_screen',
-            'imageName': imageName,
-            'region': region,
-          });
+      WasteAppLogger.info('Image queued for offline processing', context: {
+        'service': 'screen',
+        'file': 'image_capture_screen',
+        'imageName': imageName,
+        'region': region,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('Image queued for analysis. Will process when online.'),
+            duration: Duration(seconds: 4),
+          ),
+        );
+        // Navigate back to camera screen after queuing
+        Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                    'Image queued for analysis. Will process when online.'),
-                duration: Duration(seconds: 4),
-              ),
-            );
-            // Navigate back to camera screen after queuing
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) {
-                Navigator.pop(context);
-              }
-            });
-          }
-        })
-        .catchError((e) {
-          WasteAppLogger.severe('Failed to queue image offline',
-              error: e,
-              context: {
-                'service': 'screen',
-                'file': 'image_capture_screen',
-              });
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Failed to queue image: ${e.toString()}'),
-                duration: const Duration(seconds: 4),
-              ),
-            );
+            Navigator.pop(context);
           }
         });
+      }
+    }).catchError((e) {
+      WasteAppLogger.severe('Failed to queue image offline',
+          error: e,
+          context: {
+            'service': 'screen',
+            'file': 'image_capture_screen',
+          });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to queue image: ${e.toString()}'),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    });
   }
 
   Future<void> _analyzeImage() async {

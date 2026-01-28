@@ -149,7 +149,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
                     Icons.arrow_back,
                     color: colorScheme.onSurface,
                   ),
-                  onPressed: _handleReanalyze,
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
                 actions: widget.showActions
                     ? [
@@ -360,12 +360,10 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
     
     // Show achievement celebration
     if (state.newAchievements.isNotEmpty) {
-      showAchievementCelebration(state.newAchievements);
-    }
-    
-    // Trigger haptic feedback on successful save
-    if (state.isSaved) {
-      _triggerHapticFeedback();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        showAchievementCelebration(state.newAchievements);
+      });
     }
     
     // Debug logging
@@ -506,6 +504,7 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
       await pipeline.saveClassificationOnly(widget.classification);
+      _triggerHapticFeedback();
 
       // Track user action (Legacy parity)
       _analyticsService.trackUserAction('classification_save', parameters: {

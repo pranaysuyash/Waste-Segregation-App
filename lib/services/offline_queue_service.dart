@@ -59,7 +59,7 @@ class OfflineQueueService {
   static final OfflineQueueService _instance = OfflineQueueService._internal();
 
   Box<QueuedClassification>? _queueBox;
-  StreamSubscription<ConnectivityResult>? _connectivitySub;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   bool _isProcessing = false;
   bool _isInitialized = false;
 
@@ -83,15 +83,20 @@ class OfflineQueueService {
       _queueCountController.add(_queueBox!.length);
 
       // Listen for connectivity changes
-      _connectivitySub = Connectivity().onConnectivityChanged.listen((result) {
-        if (result != ConnectivityResult.none && !_isProcessing) {
+      _connectivitySub =
+          Connectivity().onConnectivityChanged.listen((results) {
+        final isOnline =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
+        if (isOnline && !_isProcessing) {
           _processQueue();
         }
       });
 
       // Process queue if we're already online
       final current = await Connectivity().checkConnectivity();
-      if (current != ConnectivityResult.none) {
+      final isOnline =
+          current.isNotEmpty && !current.contains(ConnectivityResult.none);
+      if (isOnline) {
         _processQueue();
       }
 
@@ -107,16 +112,16 @@ class OfflineQueueService {
         stackTrace: stackTrace,
       );
 
-      // Set initialized anyway to prevent repeated init attempts
-      _isInitialized = true;
+      // Don't mark as initialized on failure - allow retry
+      rethrow;
     }
   }
 
   /// Check if device is currently offline
   Future<bool> get isOffline async {
     try {
-      final result = await Connectivity().checkConnectivity();
-      return result == ConnectivityResult.none;
+      final results = await Connectivity().checkConnectivity();
+      return results.isEmpty || results.contains(ConnectivityResult.none);
     } catch (e) {
       // If connectivity check fails, assume online (fail-safe)
       return false;
@@ -131,6 +136,13 @@ class OfflineQueueService {
     String? imageName,
   }) async {
     if (!_isInitialized) await init();
+
+    if (_queueBox == null) {
+      WasteAppLogger.warning(
+        'Offline queue unavailable; skipping enqueue',
+      );
+      return;
+    }
 
     try {
       final item = QueuedClassification(
@@ -153,9 +165,13 @@ class OfflineQueueService {
             'image_size_kb': (imageBytes.length / 1024).toStringAsFixed(1),
           });
 
-      AnalyticsService.log('classification.queued_offline', {
-        'queue_size': _queueBox!.length,
-      });
+      AnalyticsService().trackEvent(
+        eventType: 'classification',
+        eventName: 'queued_offline',
+        parameters: {
+          'queue_size': _queueBox!.length,
+        },
+      );
     } catch (e, stackTrace) {
       WasteAppLogger.severe(
         'Failed to queue classification',
@@ -191,7 +207,8 @@ class OfflineQueueService {
       try {
         // Check connectivity before each item
         final connectivity = await Connectivity().checkConnectivity();
-        if (connectivity == ConnectivityResult.none) {
+        if (connectivity.isEmpty ||
+            connectivity.contains(ConnectivityResult.none)) {
           WasteAppLogger.info(
               'Lost connectivity during queue processing, pausing');
           break;
@@ -211,7 +228,7 @@ class OfflineQueueService {
         );
 
         // Save to local storage
-        await StorageService.saveClassification(result);
+        await StorageService().saveClassification(result);
 
         // Remove from queue
         await item.delete();
@@ -243,10 +260,14 @@ class OfflineQueueService {
           await item.delete();
           permanentFailCount++;
 
-          AnalyticsService.log('classification.queue_permanent_fail', {
-            'retry_count': item.retryCount,
-            'error': e.toString(),
-          });
+          AnalyticsService().trackEvent(
+            eventType: 'classification',
+            eventName: 'queue_permanent_fail',
+            parameters: {
+              'retry_count': item.retryCount,
+              'error': e.toString(),
+            },
+          );
         } else {
           // Save updated retry count
           await item.save();
@@ -268,12 +289,16 @@ class OfflineQueueService {
       'remaining': _queueBox!.length,
     });
 
-    AnalyticsService.log('classification.queue_processed', {
-      'success': successCount,
-      'failed': failCount,
-      'permanent_failures': permanentFailCount,
-      'duration_seconds': duration.inSeconds,
-    });
+    AnalyticsService().trackEvent(
+      eventType: 'classification',
+      eventName: 'queue_processed',
+      parameters: {
+        'success': successCount,
+        'failed': failCount,
+        'permanent_failures': permanentFailCount,
+        'duration_seconds': duration.inSeconds,
+      },
+    );
   }
 
   /// Force retry all pending items (user-initiated)
@@ -307,9 +332,13 @@ class OfflineQueueService {
       'items_cleared': count,
     });
 
-    AnalyticsService.log('classification.queue_cleared', {
-      'items_cleared': count,
-    });
+    AnalyticsService().trackEvent(
+      eventType: 'classification',
+      eventName: 'queue_cleared',
+      parameters: {
+        'items_cleared': count,
+      },
+    );
   }
 
   /// Get list of pending items (for UI display)

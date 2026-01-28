@@ -31,7 +31,7 @@ class EnhancedAiApiService {
   final String defaultLanguage;
 
   // A/B routing for race-based analysis (0.0 - 1.0)
-  final Random _random = Random();
+  static final Random _random = Random();
   double _racePercentage = 0.0;
 
   /// Set the fraction of requests that are routed to the race method (0.0 - 1.0)
@@ -234,6 +234,10 @@ class EnhancedAiApiService {
       // Mark both as failures for telemetry
       _recordModelUsage(openModel, success: false);
       _recordModelUsage(geminiModel, success: false);
+
+      if (!enableFallback) {
+        rethrow;
+      }
 
       return WasteClassification.fallback(imageName);
     }

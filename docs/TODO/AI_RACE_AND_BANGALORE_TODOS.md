@@ -12,6 +12,7 @@
 **Integration Complete:** See [TRACK_1_2_CAPTURE_FLOW_INTEGRATION.md](../TRACK_1_2_CAPTURE_FLOW_INTEGRATION.md)
 
 **What Was Integrated:**
+
 - Quality gate check before API analysis (prevents ~30% of poor-quality attempts)
 - Offline queue fallback when connectivity drops
 - AppBar indicators for real-time connectivity/queue status
@@ -19,9 +20,11 @@
 - Automatic queue processing when connectivity returns
 
 **Modified Files:**
+
 - `lib/screens/image_capture_screen.dart` — +300 lines of integration code
 
 **Next Steps:**
+
 - [ ] Test on device with real images
   - [ ] Take clear photo → normal analysis flow
   - [ ] Take blurry photo → quality check dialog
@@ -33,11 +36,13 @@
 ---
 
 ## TODO-001: Enable A/B 50% routing to `analyzeWithRace` in staging
+
 Priority: High ✅
 Owner: @dev (replace with actual assignee)
 ETA: Today (staging deploy) / 72 hours + 3 days of sampling
 
 Checklist:
+
 - [ ] Set `aiService.setRacePercentage(0.5)` in staging configuration (or via a debug/dev flag)
 - [ ] Deploy staging build with telemetry enabled
 - [ ] Run the smoke test harness using `docs/smoke_tests/ai_race_ab_test.md` (500–1000 requests across image sizes)
@@ -46,21 +51,25 @@ Checklist:
 - [ ] If metrics are good, plan progressive rollout: 0.5 → 0.8 → 1.0 (with cost sign-off)
 
 Acceptance criteria:
+
 - Race method median latency < sequential median latency OR success rate significantly improved during partial outages
 - No increase in parse failures or unexpected error rates
 - Cost delta acceptable at 50% traffic
 
 Notes & artifacts:
+
 - See: `docs/AI_API_RACE_FAULT_TOLERANCE.md` (usage) and `docs/smoke_tests/ai_race_ab_test.md` (smoke checklist)
 
 ---
 
 ## TODO-002: Implement Bangalore rules + Thumbs up/down feedback UI (capture corrections)
+
 Priority: High ✅
 Owner: @product / @frontend / @backend (split work between UI and backend)
 ETA: 2–4 days (small incremental rollout)
 
 Checklist:
+
 - [ ] Add `lib/services/bangalore_waste_service.dart` (rules engine) with a small set of verified rules (pizza, styrofoam, batteries, e-waste, plastic bag)
 - [ ] Add `BbmpRule` definitions with `verified` flag and `source` placeholder for research steps
 - [ ] Wire `BangaloreWasteService.applyRules(...)` in the classification flow (one-line injection before navigating to ResultScreen)
@@ -72,21 +81,25 @@ Checklist:
 - [ ] Add a small analytics event `classification.feedback` including `is_correct`, `corrected_to`, `bbmp_rule_applied`
 
 Acceptance criteria:
+
 - Users can submit corrections and corrections appear in `classification_feedback` Firestore collection
 - BBMP overrides apply for pizza boxes, batteries, styrofoam and produce correct UI badge
 - Feedback UI awards points and does not block core flow if Firestore fails (fail silently)
 - Corrections include image hash or compressed image URL for future offline model training
 
 Research & verification tasks (must be done before shipping widely):
+
 - [ ] Verify BBMP rules against official BBMP sources for any rule that claims fines or helplines
 - [ ] Mark unverified rules with UI disclaimer until verified
 
 Notes & artifacts:
+
 - Example service and UI snippets were provided in earlier proposal (use these as implementation source)
 
 ---
 
 ## Reporting & Follow-up
+
 - Create a small dashboard (Grafana/Datadog/Console) to compare race vs sequential metrics (latency, success rate, cost) after A/B run
 - Export corrections (Firestore `classification_feedback`) weekly and tag for manual review; this forms the training dataset
 

@@ -146,10 +146,10 @@ class ImageQualityGate {
         suggestion: 'Photo will be sent to AI for analysis',
       );
 
-      AnalyticsService.log('image.quality_check_error', {
-        'error': e.toString(),
-        'allowed': true,
-      });
+      AnalyticsService().trackError(
+        error: e.toString(),
+        context: {'event': 'image_quality_check_error', 'allowed': true},
+      );
 
       return result;
     }
@@ -194,7 +194,7 @@ class ImageQualityGate {
 
   /// Calculate average brightness of the image
   static Future<double> _averageBrightness(img.Image src) async {
-    var total = 0;
+    num total = 0;
     var count = 0;
 
     // Sample every 8th pixel for performance
@@ -205,7 +205,7 @@ class ImageQualityGate {
       }
     }
 
-    return count > 0 ? total / count : 0;
+    return count > 0 ? (total / count).toDouble() : 0.0;
   }
 
   /// Log quality check result for analytics

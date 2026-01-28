@@ -5,6 +5,7 @@
 Quick summary of parity changes and checks performed:
 
 ## Changes implemented
+
 - Added App Tracking Transparency support on iOS:
   - `NSUserTrackingUsageDescription` key added to `ios/Runner/Info.plist`.
   - `PermissionHandler.checkTrackingPermission()` helper added to request ATT at runtime (non-blocking).
@@ -17,6 +18,7 @@ Quick summary of parity changes and checks performed:
 - MINIMAL MODE behavior clarified and made opt-in via `SKIP_HIVE` define (used to be iOS-only automatic in debug). The app now runs full init by default on both platforms.
 
 ## Parity checklist
+
 - Permissions
   - Camera & Photo library: `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription` already present.
   - Tracking: `NSUserTrackingUsageDescription` added for iOS.
@@ -31,6 +33,7 @@ Quick summary of parity changes and checks performed:
   - Platform specific exceptions remain (e.g., on-device ML acceleration may differ by platform; documented in `APP_KNOWLEDGE_BASE.md`).
 
 ## Next recommended steps
+
 1. Run manual user flows on iOS to confirm ATT prompt, consent UI behavior, and that debug overlay shows expected statuses.
 2. Validate AdMob initialization and push notification registration on iOS via real device and Apple Developer settings.
 3. Add a brief section to `README.md` summarizing platform-specific setup for iOS (APNs, AdMob IDs, Info.plist keys).

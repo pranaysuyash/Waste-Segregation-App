@@ -5,6 +5,7 @@
 Duration: 72 hours of continuous sampling is recommended for initial evaluation.
 
 ## Metrics to collect
+
 - Success rate (per-method): number of successful classifications / total requests
 - End-to-end latency (median, p50/p90/p99) from request start to classification ready
 - Failure modes: parse errors, timeout, token errors, auth errors
@@ -12,6 +13,7 @@ Duration: 72 hours of continuous sampling is recommended for initial evaluation.
 - Winner model distribution for race requests (OpenAI vs Gemini)
 
 ## How to run
+
 1. Deploy staging build with new code.
 2. Configure the service:
    ```dart
@@ -25,11 +27,12 @@ Duration: 72 hours of continuous sampling is recommended for initial evaluation.
 5. Export metrics and compare sequential vs race samples.
 
 ## Acceptance criteria
+
 - Latency: race method median latency < sequential method median latency OR success rate significantly improved under simulated partial outage.
 - Success rate: no higher failure rate for race method.
 - Cost: token consumption increase (if any) remains acceptable at experimental percentage. If costs spike, lower the percentage.
 
 ## Rollout plan
+
 - If race method meets thresholds, increase `_racePercentage` gradually: 0.5 → 0.8 → 1.0 and promote to default (after cost assessment).
 - Add a telemetry dashboard to compare `model_usage` and `model_costs` across methods.
-

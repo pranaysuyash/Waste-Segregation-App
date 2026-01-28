@@ -30,11 +30,11 @@ Future<void> onImageCaptured(Uint8List imageBytes) async {
       ),
     ),
   );
-  
+
   final quality = await ImageQualityGate.check(imageBytes);
-  
+
   Navigator.pop(context); // Hide checking indicator
-  
+
   if (!quality.isValid) {
     // Show quality warning dialog
     final proceed = await showDialog<bool>(
@@ -58,7 +58,7 @@ Future<void> onImageCaptured(Uint8List imageBytes) async {
                 'Details:',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               ),
-              ...quality.metrics!.entries.map((e) => 
+              ...quality.metrics!.entries.map((e) =>
                 Padding(
                   padding: EdgeInsets.only(left: 8, top: 4),
                   child: Text(
@@ -90,10 +90,10 @@ Future<void> onImageCaptured(Uint8List imageBytes) async {
         ],
       ),
     );
-    
+
     if (proceed != true) return; // User chose to retake
   }
-  
+
   // Quality passed or user overrode - proceed with classification
   _classifyImage(imageBytes);
 }
@@ -124,12 +124,12 @@ Add to `main.dart`:
 ```dart
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // ... other initialization
-  
+
   // Initialize offline queue service
   await OfflineQueueService().init();
-  
+
   runApp(MyApp());
 }
 ```
@@ -143,7 +143,7 @@ import 'package:waste_segregation_app/services/offline_queue_service.dart';
 
 Future<void> onCapturePressed(Uint8List imageBytes) async {
   final queueService = OfflineQueueService();
-  
+
   // Check if offline
   if (await queueService.isOffline) {
     // Queue for later processing
@@ -153,7 +153,7 @@ Future<void> onCapturePressed(Uint8List imageBytes) async {
       userId: currentUser?.uid,
       imageName: 'capture_${DateTime.now().millisecondsSinceEpoch}.jpg',
     );
-    
+
     // Show feedback to user
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -176,10 +176,10 @@ Future<void> onCapturePressed(Uint8List imageBytes) async {
         backgroundColor: Colors.orange,
       ),
     );
-    
+
     return;
   }
-  
+
   // Online - proceed normally
   _classifyImage(imageBytes);
 }
@@ -195,7 +195,7 @@ StreamBuilder<int>(
   builder: (context, snapshot) {
     final count = snapshot.data ?? 0;
     if (count == 0) return SizedBox.shrink();
-    
+
     return Badge(
       label: Text('$count'),
       backgroundColor: Colors.orange,
@@ -215,7 +215,7 @@ StreamBuilder<int>(
 void _showQueueDialog(BuildContext context) {
   final queueService = OfflineQueueService();
   final items = queueService.getPendingItems();
-  
+
   showDialog(
     context: context,
     builder: (_) => AlertDialog(
@@ -306,6 +306,7 @@ String _formatTimeAgo(DateTime dateTime) {
 ## Testing Checklist
 
 ### Image Quality Gate
+
 - [ ] Test with good quality image (800x600, well-lit, sharp) → should pass
 - [ ] Test with small image (200x150) → should show "too small" warning
 - [ ] Test with blurry image → should show "too blurry" warning
@@ -316,6 +317,7 @@ String _formatTimeAgo(DateTime dateTime) {
 - [ ] Test with invalid image data → should fail-open and allow
 
 ### Offline Queue
+
 - [ ] Turn off WiFi/cellular → capture should queue instead of fail
 - [ ] Verify queue count badge appears and updates
 - [ ] Turn on connectivity → queue should process automatically

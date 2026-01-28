@@ -24,7 +24,7 @@ void main() {
         0x01, 0x00, // Color planes
         0x18, 0x00, // Bits per pixel (24)
       ];
-      
+
       // Create pixel data
       final pixels = <int>[];
       for (int y = 0; y < height; y++) {
@@ -36,10 +36,10 @@ void main() {
           pixels.addAll([value, value, value]); // RGB
         }
       }
-      
+
       return Uint8List.fromList([...header, ...pixels]);
     }
-    
+
     List<int> intToBytes(int value, int bytes) {
       final result = <int>[];
       for (int i = 0; i < bytes; i++) {
@@ -47,7 +47,7 @@ void main() {
       }
       return result;
     }
-    
+
     test('accepts good quality image', () async {
       final testImage = createTestImage(
         width: 800,
@@ -55,54 +55,54 @@ void main() {
         brightness: 128,
         addNoise: true, // Sharp edges
       );
-      
+
       final result = await ImageQualityGate.check(testImage);
-      
+
       // May fail due to simple BMP not being decodable
       // This is a placeholder - real test needs actual JPG/PNG
       expect(result, isNotNull);
     });
-    
+
     test('rejects too small image', () async {
       // This test demonstrates the concept
       // Actual implementation needs valid image format
-      
+
       // Set minimum dimension
       ImageQualityGate.minDimension = 300;
-      
+
       // Test would need actual small image
       // For now, verify threshold is configurable
       expect(ImageQualityGate.minDimension, 300);
     });
-    
+
     test('thresholds are configurable', () {
       ImageQualityGate.minDimension = 500;
       ImageQualityGate.minVariance = 150.0;
       ImageQualityGate.minBrightness = 50;
       ImageQualityGate.maxBrightness = 240;
-      
+
       expect(ImageQualityGate.minDimension, 500);
       expect(ImageQualityGate.minVariance, 150.0);
       expect(ImageQualityGate.minBrightness, 50);
       expect(ImageQualityGate.maxBrightness, 240);
-      
+
       // Reset to defaults
       ImageQualityGate.minDimension = 300;
       ImageQualityGate.minVariance = 100.0;
       ImageQualityGate.minBrightness = 40;
       ImageQualityGate.maxBrightness = 250;
     });
-    
+
     test('handles invalid image gracefully (fail-open)', () async {
       final invalidBytes = Uint8List.fromList([1, 2, 3, 4, 5]);
-      
+
       final result = await ImageQualityGate.check(invalidBytes);
-      
+
       // Should fail-open and allow image despite error
       expect(result, isNotNull);
       // In fail-open mode, result.isValid could be true OR false depending on decode error handling
     });
-    
+
     test('QualityCheckResult contains expected fields', () {
       final result = QualityCheckResult(
         isValid: false,
@@ -111,7 +111,7 @@ void main() {
         failureType: QualityFailureType.blur,
         metrics: {'test_metric': '123'},
       );
-      
+
       expect(result.isValid, false);
       expect(result.reason, 'Test reason');
       expect(result.suggestion, 'Test suggestion');
@@ -120,14 +120,17 @@ void main() {
       expect(result.userMessage, contains('Test reason'));
       expect(result.userMessage, contains('Test suggestion'));
     });
-    
+
     test('QualityFailureType enum has all expected values', () {
       expect(QualityFailureType.values.length, 5);
-      expect(QualityFailureType.values, contains(QualityFailureType.resolution));
+      expect(
+          QualityFailureType.values, contains(QualityFailureType.resolution));
       expect(QualityFailureType.values, contains(QualityFailureType.blur));
       expect(QualityFailureType.values, contains(QualityFailureType.tooDark));
-      expect(QualityFailureType.values, contains(QualityFailureType.overexposed));
-      expect(QualityFailureType.values, contains(QualityFailureType.decodeError));
+      expect(
+          QualityFailureType.values, contains(QualityFailureType.overexposed));
+      expect(
+          QualityFailureType.values, contains(QualityFailureType.decodeError));
     });
   });
 }
