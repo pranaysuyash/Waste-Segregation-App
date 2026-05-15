@@ -4,9 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'storage_service.dart';
 import '../models/user_profile.dart';
+import '../utils/safe_file_path.dart';
 import '../utils/waste_app_logger.dart';
 
 class GoogleDriveService {
@@ -167,7 +169,13 @@ class GoogleDriveService {
 
       // Create a temporary file
       final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/$fileName');
+      final extension = p.extension(fileName);
+      final safeFileName = sanitizeFileName(
+        fileName,
+        fallback:
+            extension.isEmpty ? 'drive_export.txt' : 'drive_export$extension',
+      );
+      final tempFile = File(safeJoinWithin(tempDir.path, safeFileName));
       await tempFile.writeAsString(content);
 
       // Create drive file metadata

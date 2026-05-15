@@ -3,6 +3,17 @@ import 'dart:js_interop';
 @JS('window')
 external JSObject get _window;
 
+/// Check if window object is available
+bool get hasWindowSupport {
+  try {
+    // External JSObject getters are never null, check by accessing a property
+    _window.toString();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 @JS('window.flutter')
 external JSObject? get _windowFlutter;
 
@@ -11,7 +22,10 @@ external JSObject? get _buildConfig;
 
 bool get hasWebError {
   try {
-    return _buildConfig == null;
+    // Check if flutter object exists by checking buildConfig
+    final config = _buildConfig;
+    final flutter = _windowFlutter;
+    return config == null || flutter == null;
   } catch (e) {
     return true;
   }
@@ -19,6 +33,15 @@ bool get hasWebError {
 
 @JS('navigator')
 external JSObject? get _navigator;
+
+/// Check if navigator object is available
+bool get hasNavigatorSupport {
+  try {
+    return _navigator != null;
+  } catch (e) {
+    return false;
+  }
+}
 
 @JS('navigator.mediaDevices')
 external JSObject? get _navigatorMediaDevices;

@@ -28,6 +28,10 @@ class DeveloperSection extends StatelessWidget {
 
     return Column(
       children: [
+        _buildDeveloperHeader(context),
+        const SizedBox(height: 16),
+        _buildFeatureToggles(context),
+        const SizedBox(height: 16),
         SettingTile(
           icon: Icons.bug_report,
           title: 'Debug Mode',

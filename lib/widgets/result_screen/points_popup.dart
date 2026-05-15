@@ -6,7 +6,6 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../services/haptic_settings_service.dart';
 
 /// Animated popup showing points earned
 class PointsEarnedPopup extends StatefulWidget {

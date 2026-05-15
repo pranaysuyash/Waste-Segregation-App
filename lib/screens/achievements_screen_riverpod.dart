@@ -75,6 +75,13 @@ class _AchievementsScreenRiverpodState
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.achievements),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshProfile,
+            tooltip: 'Refresh achievements',
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [

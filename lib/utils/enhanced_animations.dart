@@ -199,8 +199,8 @@ class WasteAppAnimations {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: isPressed
-                    ? []
-                    : [
+                    ? <BoxShadow>[]
+                    : <BoxShadow>[
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,

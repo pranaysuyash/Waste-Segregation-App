@@ -8,6 +8,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/constants.dart';
 import '../services/enhanced_image_service.dart';
 import 'classification_feedback_widget.dart';
+import '../utils/safe_file_path.dart';
 import '../utils/waste_app_logger.dart';
 
 /// A simplified version of ClassificationCard for list views in the history screen
@@ -603,8 +604,7 @@ class HistoryListItem extends StatelessWidget {
   /// Get full image path from relative path
   Future<String> _getFullImagePath(String relativePath) async {
     final dir = await getApplicationDocumentsDirectory();
-    // iOS & Android store images/…  ➜ was missing in join
-    return path.join(dir.path, 'images', relativePath);
+    return safeJoinWithin(path.join(dir.path, 'images'), relativePath);
   }
 
   Future<void> _persistBytes(Uint8List bytes, String relPath) async {

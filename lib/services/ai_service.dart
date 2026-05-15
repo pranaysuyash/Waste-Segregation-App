@@ -1371,8 +1371,12 @@ Output:
       Uint8List? imageBytes;
 
       // If imageUrl is a file path (mobile), read bytes
-      if (imageUrl != null && !kIsWeb && File(imageUrl).existsSync()) {
-        imageBytes = await File(imageUrl).readAsBytes();
+      if (imageUrl != null && !kIsWeb) {
+        final safeLocalPath =
+            await _imageService.resolveTrustedLocalPath(imageUrl);
+        if (safeLocalPath != null && File(safeLocalPath).existsSync()) {
+          imageBytes = await File(safeLocalPath).readAsBytes();
+        }
       }
       // If imageUrl is a data URL (web), parse bytes
       else if (imageUrl != null &&
@@ -1393,6 +1397,7 @@ Output:
       if (imageBytes == null) {
         WasteAppLogger.info('Operation completed',
             context: {'service': 'ai', 'file': 'ai_service'});
+        throw ArgumentError('No trusted image source available for correction');
       }
 
       final base64Image = imageBytes != null ? _bytesToBase64(imageBytes) : '';

@@ -66,7 +66,9 @@ class JobQueueScreen extends ConsumerWidget {
 
         return RefreshIndicator(
           onRefresh: () async {
-            ref.refresh(userAiJobsProvider(userId));
+            final _ = ref.refresh(userAiJobsProvider(userId));
+            // Wait a moment for the refresh to propagate
+            await Future.delayed(const Duration(milliseconds: 500));
           },
           child: CustomScrollView(
             slivers: [

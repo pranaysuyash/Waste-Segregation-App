@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Agent: Align Context (agent-start)",
+      "type": "shell",
+      "command": "/Users/pranay/Projects/agent-start",
+      "args": [
+        "--skip-index",
+        "--quiet"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Agent: Auto Align On Folder Open (agent-start)",
+      "type": "shell",
+      "command": "/Users/pranay/Projects/agent-start",
+      "args": [
+        "--skip-index",
+        "--quiet"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Agent: Align + Index Project (agent-start)",
+      "type": "shell",
+      "command": "/Users/pranay/Projects/agent-start",
+      "args": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}

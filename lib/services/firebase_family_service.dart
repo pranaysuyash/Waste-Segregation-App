@@ -944,6 +944,20 @@ class FirebaseFamilyService {
     }
   }
 
+  /// Get environmental impact for a family
+  Future<family_models.EnvironmentalImpact> getFamilyEnvironmentalImpact(
+      String familyId) async {
+    final classifications = await getFamilyClassifications(familyId);
+    return _calculateEnvironmentalImpact(classifications);
+  }
+
+  /// Get weekly progress for a family
+  Future<List<family_models.WeeklyProgress>> getFamilyWeeklyProgress(
+      String familyId) async {
+    final classifications = await getFamilyClassifications(familyId);
+    return _calculateWeeklyProgress(classifications);
+  }
+
   /// Calculates environmental impact metrics.
   family_models.EnvironmentalImpact _calculateEnvironmentalImpact(
       List<SharedWasteClassification> classifications) {

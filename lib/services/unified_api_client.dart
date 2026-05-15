@@ -45,6 +45,10 @@ class UnifiedApiClient {
 
     _setupInterceptors();
     _initializeRateLimiter();
+    // Schedule periodic deduplication cache cleanup
+    if (enableRequestDeduplication) {
+      _schedulePeriodicCleanup();
+    }
   }
 
   late final Dio _dio;
@@ -514,6 +518,22 @@ class UnifiedApiClient {
       _pendingRequests.remove(key);
       _requestTimestamps.remove(key);
     }
+
+    if (expiredKeys.isNotEmpty) {
+      WasteAppLogger.fine('Cleaned up deduplication cache', context: {
+        'service': 'unified_api_client',
+        'expired_entries': expiredKeys.length,
+        'remaining_entries': _requestTimestamps.length,
+      });
+    }
+  }
+
+  /// Schedule periodic cleanup of deduplication cache
+  void _schedulePeriodicCleanup() {
+    // Run cleanup every 5 minutes
+    Timer.periodic(const Duration(minutes: 5), (_) {
+      _cleanupDeduplicationCache();
+    });
   }
 
   /// Get client statistics for monitoring

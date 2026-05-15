@@ -219,7 +219,7 @@ class _ResultScreenState extends State<ResultScreen>
             isGoogleSyncEnabled ? 'Saved and synced!' : 'Saved locally!';
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(syncMessage),
-          backgroundColor: Colors.green,
+          backgroundColor: _getCategoryColor(widget.classification.category),
         ));
 
         final haptic = context.read<HapticSettingsService>();

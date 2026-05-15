@@ -465,7 +465,6 @@ class PointsEngine extends ChangeNotifier {
       },
       points: const UserPoints(),
       achievements: [], // Will be populated by GamificationService
-      unlockedHiddenContentIds: const [],
     );
   }
 

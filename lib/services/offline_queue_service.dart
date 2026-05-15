@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:hive/hive.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:uuid/uuid.dart';
-import '../models/waste_classification.dart';
 import 'enhanced_ai_api_service.dart';
 import 'storage_service.dart';
 import 'analytics_service.dart';
@@ -83,8 +82,7 @@ class OfflineQueueService {
       _queueCountController.add(_queueBox!.length);
 
       // Listen for connectivity changes
-      _connectivitySub =
-          Connectivity().onConnectivityChanged.listen((results) {
+      _connectivitySub = Connectivity().onConnectivityChanged.listen((results) {
         final isOnline =
             results.isNotEmpty && !results.contains(ConnectivityResult.none);
         if (isOnline && !_isProcessing) {
@@ -165,7 +163,7 @@ class OfflineQueueService {
             'image_size_kb': (imageBytes.length / 1024).toStringAsFixed(1),
           });
 
-      AnalyticsService().trackEvent(
+      AnalyticsService(StorageService()).trackEvent(
         eventType: 'classification',
         eventName: 'queued_offline',
         parameters: {
@@ -260,7 +258,7 @@ class OfflineQueueService {
           await item.delete();
           permanentFailCount++;
 
-          AnalyticsService().trackEvent(
+          AnalyticsService(StorageService()).trackEvent(
             eventType: 'classification',
             eventName: 'queue_permanent_fail',
             parameters: {
@@ -289,7 +287,7 @@ class OfflineQueueService {
       'remaining': _queueBox!.length,
     });
 
-    AnalyticsService().trackEvent(
+    AnalyticsService(StorageService()).trackEvent(
       eventType: 'classification',
       eventName: 'queue_processed',
       parameters: {
@@ -332,7 +330,7 @@ class OfflineQueueService {
       'items_cleared': count,
     });
 
-    AnalyticsService().trackEvent(
+    AnalyticsService(StorageService()).trackEvent(
       eventType: 'classification',
       eventName: 'queue_cleared',
       parameters: {
@@ -356,11 +354,11 @@ class OfflineQueueService {
         'pending': 0,
       };
     }
-    
+
     // Note: We only track pending items in the queue box
     // Processed items are removed from the queue
     final pending = _queueBox!.length;
-    
+
     return {
       'totalQueued': pending, // Only pending items remain in queue
       'processed': 0, // Processed items are removed

@@ -1,4 +1,9 @@
+import 'package:hive/hive.dart';
+
+part 'token_wallet.g.dart';
+
 /// Token wallet model for AI micro-economy
+@HiveType(typeId: 20)
 class TokenWallet {
   const TokenWallet({
     required this.balance,
@@ -25,18 +30,29 @@ class TokenWallet {
   /// Create a default wallet for new users
   factory TokenWallet.newUser() {
     return TokenWallet(
-      balance: 10, // Welcome bonus: 10 tokens for new users
-      totalEarned: 10,
+      balance: 50, // Welcome bonus: 50 tokens for new users
+      totalEarned: 50,
       totalSpent: 0,
       lastUpdated: DateTime.now(),
     );
   }
 
+  @HiveField(0)
   final int balance; // Current spendable tokens
+
+  @HiveField(1)
   final int totalEarned; // Lifetime tokens earned
+
+  @HiveField(2)
   final int totalSpent; // Lifetime tokens spent
+
+  @HiveField(3)
   final DateTime lastUpdated; // Last balance update
+
+  @HiveField(4)
   final int dailyConversionsUsed; // Points-to-tokens conversions today
+
+  @HiveField(5)
   final DateTime? lastConversionDate; // Last conversion date
 
   /// Check if user can afford a purchase
@@ -113,6 +129,7 @@ class TokenWallet {
 }
 
 /// Token transaction history entry
+@HiveType(typeId: 21)
 class TokenTransaction {
   const TokenTransaction({
     required this.id,
@@ -138,12 +155,25 @@ class TokenTransaction {
     );
   }
 
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final int delta; // Positive for earn, negative for spend
+
+  @HiveField(2)
   final TokenTransactionType type;
+
+  @HiveField(3)
   final DateTime timestamp;
+
+  @HiveField(4)
   final String description; // Human-readable description
+
+  @HiveField(5)
   final String? reference; // Job ID, classification ID, etc.
+
+  @HiveField(6)
   final Map<String, dynamic>? metadata; // Additional context
 
   Map<String, dynamic> toJson() {

@@ -421,8 +421,3 @@ class TokenService extends ChangeNotifier {
     super.dispose();
   }
 }
-
-/// Extension to add unawaited helper
-extension on Future {
-  void unawaited() {}
-}

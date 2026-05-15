@@ -353,8 +353,6 @@ class GamificationRepository {
       },
       points: const UserPoints(),
       achievements: _getDefaultAchievements(),
-      discoveredItemIds: {},
-      unlockedHiddenContentIds: {},
     );
   }
 
@@ -370,8 +368,6 @@ class GamificationRepository {
       },
       points: const UserPoints(),
       achievements: _getDefaultAchievements(),
-      discoveredItemIds: {},
-      unlockedHiddenContentIds: {},
     );
   }
 

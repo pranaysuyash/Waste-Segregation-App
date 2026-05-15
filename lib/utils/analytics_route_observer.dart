@@ -69,7 +69,7 @@ class _AnalyticsRouteAwareState extends ConsumerState<AnalyticsRouteAware>
     _trackScreenEnd();
   }
 
-  @override
+  /// Track route replacement (new navigation pattern in Flutter)
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     WasteAppLogger.info('🧭 Route replaced: ${_getScreenName()}');
     _trackScreenView('replace');

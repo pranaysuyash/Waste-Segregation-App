@@ -158,7 +158,12 @@ class AnalyticsService extends ChangeNotifier {
       _pendingEvents.add(event);
 
       // Save to Firebase immediately (could be batched for efficiency)
-      await _saveEventToFirestore(event);
+      if (_isFirestoreAvailable) {
+        await _saveEventToFirestore(event);
+      } else {
+        // Store locally when Firestore unavailable
+        _storeEventLocally(event);
+      }
 
       notifyListeners();
     } catch (e) {
@@ -687,8 +692,9 @@ class AnalyticsService extends ChangeNotifier {
       eventTypeCounts[event.eventType] =
           (eventTypeCounts[event.eventType] ?? 0) + 1;
 
-      // Track unique users
+      // Track unique users and their event counts
       uniqueUsers.add(event.userId);
+      userCounts[event.userId] = (userCounts[event.userId] ?? 0) + 1;
 
       // Count daily totals
       final dateKey =
@@ -700,10 +706,24 @@ class AnalyticsService extends ChangeNotifier {
       'totalEvents': events.length,
       'uniqueUsers': uniqueUsers.length,
       'eventTypeCounts': eventTypeCounts,
+      'userEventCounts': userCounts,
       'dailyTotals': dailyTotals,
-      'averageEventsPerUser':
-          uniqueUsers.isNotEmpty ? events.length / uniqueUsers.length : 0,
+      'mostActiveUsers': _getMostActiveUsers(userCounts),
+      'averageEventsPerUser': uniqueUsers.isNotEmpty
+          ? events.length / uniqueUsers.length
+          : 0,
     };
+  }
+
+  /// Get the most active users from user counts
+  List<Map<String, dynamic>> _getMostActiveUsers(
+      Map<String, int> userCounts) {
+    final sortedUsers = userCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return sortedUsers.take(10).map((e) => {
+          'userId': e.key,
+          'eventCount': e.value,
+        }).toList();
   }
 
   /// Aggregate content analytics from events
@@ -833,43 +853,25 @@ class AnalyticsService extends ChangeNotifier {
         .length;
   }
 
-  /// Calculates analytics metrics for a user.
-  Map<String, dynamic> _calculateUserAnalytics(List<AnalyticsEvent> events) {
-    final totalEvents = events.length;
-    final uniqueSessions = events.map((e) => e.sessionId).toSet().length;
-
-    // Calculate event type breakdown
-    final eventTypeBreakdown = <String, int>{};
-    for (final event in events) {
-      eventTypeBreakdown[event.eventType] =
-          (eventTypeBreakdown[event.eventType] ?? 0) + 1;
-    }
-
-    // Calculate daily activity
-    final dailyActivity = <String, int>{};
-    for (final event in events) {
-      final dateKey = event.timestamp.toIso8601String().split('T')[0];
-      dailyActivity[dateKey] = (dailyActivity[dateKey] ?? 0) + 1;
-    }
-
-    // Calculate most used features
-    final featureUsage = <String, int>{};
-    for (final event
-        in events.where((e) => e.eventType == AnalyticsEventTypes.userAction)) {
-      featureUsage[event.eventName] = (featureUsage[event.eventName] ?? 0) + 1;
-    }
-
+  /// Get comprehensive analytics summary including user, family, and feature analytics
+  Future<Map<String, dynamic>> getComprehensiveAnalytics({
+    required String userId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    // Get popular content as a proxy for events
+    final popularContent = await getPopularContent(100);
+    
     return {
-      'total_events': totalEvents,
-      'unique_sessions': uniqueSessions,
-      'event_type_breakdown': eventTypeBreakdown,
-      'daily_activity': dailyActivity,
-      'feature_usage': featureUsage,
-      'analysis_period': {
-        'start':
-            events.isNotEmpty ? events.last.timestamp.toIso8601String() : null,
-        'end':
-            events.isNotEmpty ? events.first.timestamp.toIso8601String() : null,
+      'family_analytics': _calculateFamilyAnalytics([]),
+      'popular_features': _calculatePopularFeatures(
+        popularContent.map((c) => c['content_type'] as String? ?? '').toList(),
+        limit: 10,
+      ),
+      'period': {
+        'start': startDate?.toIso8601String(),
+        'end': endDate?.toIso8601String(),
+        'total_events': popularContent.length,
       },
     };
   }

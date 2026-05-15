@@ -233,16 +233,24 @@ class ApiManagementService {
 
   /// Update cost metrics
   void _updateCostMetrics(Map<String, dynamic> clientStats) {
-    const totalCost = 0.0;
-    const totalRequests = 0;
+    var totalCost = 0.0;
+    var totalRequests = 0;
 
     for (final entry in clientStats.entries) {
       final serviceName = entry.key;
       final stats = entry.value as Map<String, dynamic>;
 
-      // Extract cost information if available
-      // This would be enhanced based on actual cost tracking implementation
-      _costMetrics[serviceName] = 0.0; // Placeholder
+      // Extract request count from stats
+      final requestsMade = stats['requests_made'] as int? ?? 0;
+      totalRequests += requestsMade;
+
+      // Calculate estimated cost based on request count
+      // Using approximate cost per request (can be configured per service)
+      final estimatedCostPerRequest = _getEstimatedCostPerRequest(serviceName);
+      final serviceCost = requestsMade * estimatedCostPerRequest;
+      
+      _costMetrics[serviceName] = serviceCost;
+      totalCost += serviceCost;
     }
 
     _costMetrics['total_cost'] = totalCost;
@@ -251,6 +259,26 @@ class ApiManagementService {
         totalRequests > 0 ? totalCost / totalRequests : 0.0;
     _costMetrics['last_updated'] =
         DateTime.now().millisecondsSinceEpoch.toDouble();
+  }
+
+  /// Get estimated cost per request for a service
+  double _getEstimatedCostPerRequest(String serviceName) {
+    // Approximate costs per request (in USD)
+    // These should be configured based on actual API pricing
+    const costMap = {
+      'openai': 0.002, // ~$0.002 per request for GPT-4 Vision
+      'anthropic': 0.003, // ~$0.003 per request for Claude Vision
+      'google': 0.001, // ~$0.001 per request for Gemini
+      'default': 0.001,
+    };
+
+    // Find matching cost or use default
+    for (final entry in costMap.entries) {
+      if (serviceName.toLowerCase().contains(entry.key)) {
+        return entry.value;
+      }
+    }
+    return costMap['default']!;
   }
 
   /// Analyze performance patterns for optimization
@@ -347,10 +375,35 @@ class ApiManagementService {
 
     // Remove old performance metrics (keep last 24 hours)
     final cutoff = now.subtract(const Duration(hours: 24));
-    // Implementation would depend on actual metric storage structure
+    final cutoffMillis = cutoff.millisecondsSinceEpoch.toDouble();
+    
+    // Remove old cost metrics
+    final costKeysToRemove = <String>[];
+    for (final entry in _costMetrics.entries) {
+      if (entry.key.startsWith('snapshot_')) {
+        // Check if this is an old snapshot based on timestamp in key
+        final parts = entry.key.split('_');
+        if (parts.length > 1) {
+          final timestamp = double.tryParse(parts.last);
+          if (timestamp != null && timestamp < cutoffMillis) {
+            costKeysToRemove.add(entry.key);
+          }
+        }
+      }
+    }
+    for (final key in costKeysToRemove) {
+      _costMetrics.remove(key);
+    }
+
+    // Trim health alerts to last 50 entries
+    if (_healthAlerts.length > 50) {
+      _healthAlerts.removeRange(0, _healthAlerts.length - 50);
+    }
 
     WasteAppLogger.fine('Resource cleanup completed', context: {
       'cleanup_time': now.toIso8601String(),
+      'cost_metrics_removed': costKeysToRemove.length,
+      'health_alerts_count': _healthAlerts.length,
     });
   }
 

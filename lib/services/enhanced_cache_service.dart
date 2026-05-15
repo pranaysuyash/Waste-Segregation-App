@@ -665,6 +665,9 @@ class EnhancedCacheService {
     stats['hitRate'] = totalRequests > 0
         ? '${((hits / totalRequests) * 100).toStringAsFixed(1)}%'
         : '0%';
+    stats['missRate'] = totalRequests > 0
+        ? '${((misses / totalRequests) * 100).toStringAsFixed(1)}%'
+        : '0%';
 
     stats['currentSize'] = _cacheBox.length;
     stats['currentSizeBytes'] = _currentCacheSizeBytes;

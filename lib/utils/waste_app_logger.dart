@@ -55,8 +55,9 @@ class WasteAppLogger {
     Map<String, dynamic>? context,
   }) {
     final logger = Logger('WasteApp');
+    final enrichedContext = _enrichContext(context);
     logger.info(
-      context != null ? '$message | $context' : message,
+      enrichedContext != null ? '$message | $enrichedContext' : message,
       error,
       stackTrace,
     );
@@ -69,8 +70,9 @@ class WasteAppLogger {
     Map<String, dynamic>? context,
   }) {
     final logger = Logger('WasteApp');
+    final enrichedContext = _enrichContext(context);
     logger.warning(
-      context != null ? '$message | $context' : message,
+      enrichedContext != null ? '$message | $enrichedContext' : message,
       error,
       stackTrace,
     );
@@ -83,11 +85,25 @@ class WasteAppLogger {
     Map<String, dynamic>? context,
   }) {
     final logger = Logger('WasteApp');
+    final enrichedContext = _enrichContext(context);
     logger.severe(
-      context != null ? '$message | $context' : message,
+      enrichedContext != null ? '$message | $enrichedContext' : message,
       error,
       stackTrace,
     );
+  }
+
+  /// Enriches log context with session, screen, action, and user context
+  static Map<String, dynamic>? _enrichContext(Map<String, dynamic>? context) {
+    final enriched = <String, dynamic>{
+      ...?context,
+      if (_sessionId.isNotEmpty) 'session_id': _sessionId,
+      if (_appVersion != 'unknown') 'app_version': _appVersion,
+      if (_currentScreen != 'unknown') 'screen': _currentScreen,
+      if (_currentAction != 'unknown') 'action': _currentAction,
+      if (_userContext.isNotEmpty) 'user_context': _userContext,
+    };
+    return enriched.isEmpty ? null : enriched;
   }
 
   // Aliases for other common methods used in the app

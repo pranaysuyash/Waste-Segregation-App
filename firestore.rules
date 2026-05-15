@@ -16,6 +16,25 @@ service cloud.firestore {
         && validateGamificationUpdate(resource.data, request.resource.data);
     }
     
+    // AI Jobs - users can only access their own jobs
+    match /ai_jobs/{jobId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Allow creating jobs for authenticated users
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Token Wallets - users can only access their own wallet data
+    match /token_wallets/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Token Transactions - users can only access their own transactions
+    match /token_transactions/{transactionId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Allow creating transactions for authenticated users
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
     // Leaderboards - read all, write only own entry with strict validation
     match /leaderboard_allTime/{userId} {
       allow read: if request.auth != null;

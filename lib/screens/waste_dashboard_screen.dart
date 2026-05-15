@@ -1467,6 +1467,16 @@ class _WebChartWidgetState extends State<WebChartWidget> {
   bool _isLoading = true;
   bool _hasError = false;
 
+  NavigationDecision _restrictNavigation(NavigationRequest request) {
+    final url = request.url;
+    if (url == 'about:blank' || url.startsWith('data:')) {
+      return NavigationDecision.navigate;
+    }
+
+    WasteAppLogger.warning('Blocked unexpected WebView navigation: $url');
+    return NavigationDecision.prevent;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1478,6 +1488,7 @@ class _WebChartWidgetState extends State<WebChartWidget> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
+          onNavigationRequest: _restrictNavigation,
           onPageFinished: (String url) {
             setState(() {
               _isLoading = false;
@@ -1690,6 +1701,16 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
   bool _isLoading = true;
   bool _hasError = false;
 
+  NavigationDecision _restrictNavigation(NavigationRequest request) {
+    final url = request.url;
+    if (url == 'about:blank' || url.startsWith('data:')) {
+      return NavigationDecision.navigate;
+    }
+
+    WasteAppLogger.warning('Blocked unexpected WebView navigation: $url');
+    return NavigationDecision.prevent;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1701,6 +1722,7 @@ class _WebPieChartWidgetState extends State<WebPieChartWidget> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
+          onNavigationRequest: _restrictNavigation,
           onPageFinished: (String url) {
             setState(() {
               _isLoading = false;

@@ -26,13 +26,16 @@ class SmartSuggestionsService {
       final hasUsedOfflineQueue = queueStats['totalQueued']! > 0;
 
       // Analyze classification confidence patterns
-      final lowConfidenceCount = classifications.where((c) => (c.confidence ?? 0) < 0.7).length;
-      final hasLowConfidenceIssues = lowConfidenceCount > classifications.length * 0.3;
+      final lowConfidenceCount =
+          classifications.where((c) => (c.confidence ?? 0) < 0.7).length;
+      final hasLowConfidenceIssues =
+          lowConfidenceCount > classifications.length * 0.3;
 
       // Analyze category distribution
       final categoryCounts = <String, int>{};
       for (final classification in classifications) {
-        categoryCounts[classification.category] = (categoryCounts[classification.category] ?? 0) + 1;
+        categoryCounts[classification.category] =
+            (categoryCounts[classification.category] ?? 0) + 1;
       }
 
       // Generate suggestions based on patterns
@@ -53,7 +56,8 @@ class SmartSuggestionsService {
           .key;
 
       if (categoryCounts.length < 5 && classifications.length >= 5) {
-        suggestions.add(SmartSuggestion.categoryExplorationSuggestion(mostCommonCategory));
+        suggestions.add(
+            SmartSuggestion.categoryExplorationSuggestion(mostCommonCategory));
       }
 
       // 4. Batch processing suggestion
@@ -73,13 +77,13 @@ class SmartSuggestionsService {
         final totalPoints = profile.points.total;
 
         if (totalPoints < 100) {
-          suggestions.add(SmartSuggestion.achievementProgressSuggestion(totalPoints));
+          suggestions
+              .add(SmartSuggestion.achievementProgressSuggestion(totalPoints));
         }
       }
 
       // Limit to top 3 most relevant suggestions
       return suggestions.take(3).toList();
-
     } catch (e) {
       WasteAppLogger.warning('Error generating smart suggestions: $e');
       return [SmartSuggestion.errorSuggestion()];
@@ -99,23 +103,14 @@ class SmartSuggestion {
     this.actionText,
     this.actionRoute,
   });
-
-  final String id;
-  final String title;
-  final String description;
-  final String icon;
-  final String color;
-  final int priority; // 1 = highest, 3 = lowest
-  final String? actionText;
-  final String? actionRoute;
-
   // Factory methods for different suggestion types
 
   factory SmartSuggestion.welcomeSuggestion() {
     return const SmartSuggestion(
       id: 'welcome',
       title: 'Welcome to Waste Segregation!',
-      description: 'Start by taking a photo of waste to get your first classification.',
+      description:
+          'Start by taking a photo of waste to get your first classification.',
       icon: '🎉',
       color: 'green',
       priority: 1,
@@ -128,7 +123,8 @@ class SmartSuggestion {
     return const SmartSuggestion(
       id: 'offline_queue',
       title: 'Try Offline Mode',
-      description: 'Classify waste even without internet! Your photos will be processed when you reconnect.',
+      description:
+          'Classify waste even without internet! Your photos will be processed when you reconnect.',
       icon: '📱',
       color: 'blue',
       priority: 2,
@@ -141,7 +137,8 @@ class SmartSuggestion {
     return const SmartSuggestion(
       id: 'photo_quality',
       title: 'Improve Photo Quality',
-      description: 'Take clearer photos in good lighting for more accurate classifications.',
+      description:
+          'Take clearer photos in good lighting for more accurate classifications.',
       icon: '📸',
       color: 'orange',
       priority: 1,
@@ -154,7 +151,8 @@ class SmartSuggestion {
     return SmartSuggestion(
       id: 'category_exploration',
       title: 'Explore New Categories',
-      description: 'You classify mostly $commonCategory. Try classifying different types of waste!',
+      description:
+          'You classify mostly $commonCategory. Try classifying different types of waste!',
       icon: '🔍',
       color: 'purple',
       priority: 3,
@@ -167,7 +165,8 @@ class SmartSuggestion {
     return const SmartSuggestion(
       id: 'batch_processing',
       title: 'Process Multiple Items',
-      description: 'Take photos of multiple waste items and classify them all at once.',
+      description:
+          'Take photos of multiple waste items and classify them all at once.',
       icon: '📦',
       color: 'teal',
       priority: 2,
@@ -180,7 +179,8 @@ class SmartSuggestion {
     return const SmartSuggestion(
       id: 'community_contribution',
       title: 'Help the Community',
-      description: 'Contribute disposal information for facilities in your area.',
+      description:
+          'Contribute disposal information for facilities in your area.',
       icon: '🤝',
       color: 'green',
       priority: 3,
@@ -196,7 +196,8 @@ class SmartSuggestion {
     return SmartSuggestion(
       id: 'achievement_progress',
       title: 'Achievement Progress',
-      description: 'Earn $pointsNeeded more points to reach $nextMilestone points!',
+      description:
+          'Earn $pointsNeeded more points to reach $nextMilestone points!',
       icon: '🏆',
       color: 'gold',
       priority: 1,
@@ -215,4 +216,13 @@ class SmartSuggestion {
       priority: 3,
     );
   }
+
+  final String id;
+  final String title;
+  final String description;
+  final String icon;
+  final String color;
+  final int priority; // 1 = highest, 3 = lowest
+  final String? actionText;
+  final String? actionRoute;
 }

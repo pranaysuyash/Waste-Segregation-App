@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/service_locator.dart';
 import '../utils/error_handler.dart';
+import '../utils/waste_app_logger.dart';
 import '../models/user_profile.dart';
 import '../models/gamification.dart';
 
@@ -67,6 +68,13 @@ mixin ServiceInitializationMixin<T extends StatefulWidget> on State<T> {
       service: 'service_initialization_mixin',
       file: 'service_initialization_mixin',
     );
+
+    // If initialization failed, update state anyway to prevent infinite loading
+    if (result == null && mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   /// Refresh user data
@@ -93,6 +101,12 @@ mixin ServiceInitializationMixin<T extends StatefulWidget> on State<T> {
       service: 'service_initialization_mixin',
       file: 'service_initialization_mixin',
     );
+
+    // Log if refresh failed
+    if (result == null) {
+      WasteAppLogger.warning('User data refresh failed',
+          context: {'mounted': mounted});
+    }
   }
 
   /// Common sign out logic

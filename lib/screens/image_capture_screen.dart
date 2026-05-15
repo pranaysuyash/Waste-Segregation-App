@@ -324,7 +324,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           const SnackBar(
             content:
                 Text('Image queued for analysis. Will process when online.'),
-            duration: Duration(seconds: 4),
           ),
         );
         // Navigate back to camera screen after queuing
@@ -345,7 +344,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to queue image: ${e.toString()}'),
-            duration: const Duration(seconds: 4),
           ),
         );
       }

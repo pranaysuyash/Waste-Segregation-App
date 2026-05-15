@@ -204,11 +204,11 @@ class PointsMigration {
 
       return {
         'migration_needed': _compareProfiles(legacyProfile, engineProfile),
-        'legacy_points': legacyProfile.points.total ?? 0,
+        'legacy_points': legacyProfile.points.total,
         'engine_points': engineProfile?.points.total ?? 0,
-        'legacy_level': legacyProfile.points.level ?? 1,
+        'legacy_level': legacyProfile.points.level,
         'engine_level': engineProfile?.points.level ?? 1,
-        'legacy_achievements': legacyProfile.achievements.length ?? 0,
+        'legacy_achievements': legacyProfile.achievements.length,
         'engine_achievements': engineProfile?.achievements.length ?? 0,
         'timestamp': DateTime.now().toIso8601String(),
       };

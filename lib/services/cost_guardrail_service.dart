@@ -25,6 +25,8 @@ class CostGuardrailService extends ChangeNotifier {
   // Guardrail state
   bool _batchModeEnforced = false;
   DateTime? _batchModeEnforcedAt;
+  // Tracks last alert sent to prevent spamming
+  // ignore: unused_field
   String? _lastAlertSent;
   final List<CostAlert> _recentAlerts = [];
 
@@ -204,34 +206,52 @@ class CostGuardrailService extends ChangeNotifier {
     required double budget,
     required double spending,
   }) async {
+    // Create alert
     final alert = CostAlert(
-      id: 'budget_exceeded_${period}_${DateTime.now().millisecondsSinceEpoch}',
+      id: 'threshold_${period}_${DateTime.now().millisecondsSinceEpoch}',
       type: CostAlertType.budgetExceeded,
-      severity: CostAlertSeverity.critical,
+      severity: CostAlertSeverity.high,
       period: period,
       percentage: percentage,
       budget: budget,
       spending: spending,
-      message: 'Budget threshold exceeded for $period period',
+      message:
+          'Budget threshold exceeded for $period: ${percentage.toStringAsFixed(1)}%',
       timestamp: DateTime.now(),
     );
 
-    await _sendAlert(alert);
+    // Only send alert if enough time has passed since last alert for this period
+    final alertKey = 'threshold_exceeded_$period';
+    final shouldSendAlert = _shouldSendAlert(alertKey);
+
+    if (shouldSendAlert) {
+      _recentAlerts.add(alert);
+      _alertStream.add(alert);
+      _lastAlertSent = alertKey;
+
+      WasteAppLogger.warning('Cost budget threshold exceeded', context: {
+        'service': 'cost_guardrail_service',
+        'period': period,
+        'percentage': percentage,
+        'budget': budget,
+        'spending': spending,
+      });
+    }
 
     // Enforce batch mode if configured
     if (_forceBatchModeOnThreshold) {
       _updateBatchModeEnforcement(true);
-
-      WasteAppLogger.warning('Enforcing batch mode due to budget threshold',
-          context: {
-            'service': 'cost_guardrail_service',
-            'period': period,
-            'percentage': percentage,
-            'threshold': _budgetThresholdPercentage,
-            'budget': budget,
-            'spending': spending,
-          });
     }
+  }
+
+  /// Check if enough time has passed to send another alert
+  bool _shouldSendAlert(String alertKey) {
+    if (_lastAlertSent != alertKey) return true;
+    // Only send same alert once per hour
+    return _recentAlerts
+            .where((a) =>
+                a.timestamp.isAfter(DateTime.now().subtract(const Duration(hours: 1))))
+            .isEmpty;
   }
 
   /// Check warning thresholds and send appropriate alerts

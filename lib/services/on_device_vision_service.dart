@@ -58,7 +58,7 @@ class OnDeviceVisionService {
       WasteAppLogger.info('On-device vision service initialized successfully');
     } catch (e, s) {
       WasteAppLogger.severe(
-          'Failed to initialize on-device vision service', e, s);
+          'Failed to initialize on-device vision service', error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -110,7 +110,7 @@ class OnDeviceVisionService {
         _modelPath = modelFile.path;
       }
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to load model from assets', e, s);
+      WasteAppLogger.severe('Failed to load model from assets', error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -174,7 +174,7 @@ class OnDeviceVisionService {
         timestamp: DateTime.now(),
       );
     } catch (e, s) {
-      WasteAppLogger.severe('On-device analysis failed', e, s);
+      WasteAppLogger.severe('On-device analysis failed', error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -204,7 +204,7 @@ class OnDeviceVisionService {
         timestamp: DateTime.now(),
       );
     } catch (e, s) {
-      WasteAppLogger.severe('On-device web analysis failed', e, s);
+      WasteAppLogger.severe('On-device web analysis failed', error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -237,17 +237,27 @@ class OnDeviceVisionService {
           'This is a placeholder result. Full on-device inference requires model integration. '
           'Model type: ${_config.modelType.name}. '
           'Please add TFLite models to enable zero-cost on-device analysis.',
-      disposalInstructions: [
-        'Add TFLite model files to assets/models/',
-        'Download pre-trained waste classification models',
-        'Or train custom models for your specific use case',
-      ],
+      disposalInstructions: DisposalInstructions(
+        primaryMethod: 'Model Integration Required',
+        steps: [
+          'Add TFLite model files to assets/models/',
+          'Download pre-trained waste classification models',
+          'Or train custom models for your specific use case',
+        ],
+        hasUrgentTimeframe: false,
+      ),
       visualFeatures: [
         'On-device processing',
         'Zero API cost',
         'Privacy-preserving'
       ],
-      alternatives: ['Cloud-based analysis available as fallback'],
+      alternatives: [
+        AlternativeClassification(
+          category: 'Cloud-based Analysis',
+          confidence: 0.8,
+          reason: 'Available as fallback when on-device models are not ready',
+        ),
+      ],
       region: region ?? 'Global',
       confidence: 0.0, // Indicates placeholder result
       modelSource: 'on-device-${_config.modelType.name}',

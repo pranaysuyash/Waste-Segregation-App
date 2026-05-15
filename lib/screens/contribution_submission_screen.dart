@@ -846,7 +846,7 @@ class _ContributionSubmissionScreenState
   ) async {
     final photoUrls = <String>[];
     final storage = FirebaseStorage.instance;
-    
+
     for (var i = 0; i < images.length; i++) {
       try {
         final imageFile = images[i];
@@ -854,10 +854,10 @@ class _ContributionSubmissionScreenState
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         final fileName = 'contribution_${timestamp}_$i.jpg';
         final path = 'contribution_photos/$userId/$fileName';
-        
+
         // Create storage reference
         final ref = storage.ref().child(path);
-        
+
         // Upload with metadata
         final metadata = SettableMetadata(
           contentType: 'image/jpeg',
@@ -867,11 +867,11 @@ class _ContributionSubmissionScreenState
             'uploadedAt': DateTime.now().toIso8601String(),
           },
         );
-        
+
         // Upload the file
         final uploadTask = ref.putData(imageBytes, metadata);
         final snapshot = await uploadTask;
-        
+
         // Get the download URL
         final downloadUrl = await snapshot.ref.getDownloadURL();
         photoUrls.add(downloadUrl);
@@ -889,7 +889,7 @@ class _ContributionSubmissionScreenState
         }
       }
     }
-    
+
     return photoUrls;
   }
 
@@ -918,9 +918,9 @@ class _ContributionSubmissionScreenState
       // Get current user ID from Firebase Auth
       final currentUser = FirebaseAuth.instance.currentUser;
       final userId = currentUser?.uid ?? 'anonymous';
-      
+
       // Upload photos to Firebase Storage if any
-      List<String> photoUrls = [];
+      var photoUrls = <String>[];
       if (_selectedImages.isNotEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -929,7 +929,7 @@ class _ContributionSubmissionScreenState
             backgroundColor: Colors.blue,
           ),
         );
-        
+
         try {
           photoUrls = await _uploadContributionPhotos(_selectedImages, userId);
         } catch (e) {

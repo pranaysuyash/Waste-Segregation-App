@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
 import 'package:uuid/uuid.dart';
+import 'package:waste_segregation_app/utils/safe_file_path.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Provides helper methods for saving and loading images across
@@ -60,8 +61,10 @@ class EnhancedImageService {
     // Use UUID for atomic file naming to prevent collisions
     final id = const Uuid().v4();
     final extension = fileName != null ? p.extension(fileName) : '.jpg';
-    final name = fileName ?? '$id$extension';
-    final file = File(p.join(imagesDir.path, name));
+    final safeName = fileName != null
+        ? sanitizeFileName(fileName, fallback: '$id$extension')
+        : '$id$extension';
+    final file = File(safeJoinWithin(imagesDir.path, safeName));
     await file.writeAsBytes(bytes, flush: true);
     return file.path;
   }
@@ -103,10 +106,10 @@ class EnhancedImageService {
     // Create unique filename
     final id = const Uuid().v4();
     final name = baseName != null
-        ? '${baseName}_${DateTime.now().millisecondsSinceEpoch}.jpg'
+        ? '${sanitizeFileName(baseName, fallback: id)}_${DateTime.now().millisecondsSinceEpoch}.jpg'
         : '$id.jpg';
 
-    final file = File(p.join(thumbnailsDir.path, name));
+    final file = File(safeJoinWithin(thumbnailsDir.path, name));
     await file.writeAsBytes(thumbnailBytes, flush: true);
 
     // Perform LRU cache maintenance
@@ -155,6 +158,32 @@ class EnhancedImageService {
       }
       await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
     }
+    return null;
+  }
+
+  Future<String?> resolveTrustedLocalPath(String inputPath) async {
+    if (kIsWeb || inputPath.isEmpty) {
+      return null;
+    }
+
+    final dir = await getApplicationDocumentsDirectory();
+    final allowedDirs = [
+      p.join(dir.path, _imagesDirName),
+      p.join(dir.path, _thumbnailsDirName),
+      dir.path,
+    ];
+
+    for (final allowedDir in allowedDirs) {
+      try {
+        final candidate = safeJoinWithin(allowedDir, inputPath);
+        if (await File(candidate).exists()) {
+          return candidate;
+        }
+      } catch (_) {
+        continue;
+      }
+    }
+
     return null;
   }
 

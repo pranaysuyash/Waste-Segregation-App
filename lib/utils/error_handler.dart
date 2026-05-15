@@ -3,11 +3,39 @@ import '../utils/waste_app_logger.dart';
 
 /// Centralized error handling utility to eliminate duplicate error handling patterns
 class ErrorHandler {
+  // Used in showGlobalErrorDialog
+  // ignore: unused_field
   static GlobalKey<NavigatorState>? _navigatorKey;
 
   /// Initialize the error handler with navigator key
   static void initialize(GlobalKey<NavigatorState> navigatorKey) {
     _navigatorKey = navigatorKey;
+  }
+
+  /// Show error dialog using the global navigator (when BuildContext is unavailable)
+  static void showGlobalErrorDialog({
+    required String title,
+    required String message,
+  }) {
+    final context = _navigatorKey?.currentContext;
+    if (context != null && context.mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      WasteAppLogger.warning('Cannot show error dialog - no context available',
+          context: {'title': title, 'message': message});
+    }
   }
 
   /// Handle common async operations with consistent error handling

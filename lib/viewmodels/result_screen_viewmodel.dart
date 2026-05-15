@@ -32,6 +32,8 @@ class ResultScreenViewModel extends ChangeNotifier {
   final WasteClassification classification;
   final StorageService _storageService;
   final GamificationService _gamificationService;
+  // CloudStorage service available for future image backup features
+  // ignore: unused_field
   final CloudStorageService _cloudStorageService;
   final AnalyticsService _analyticsService;
 
@@ -146,7 +148,7 @@ class ResultScreenViewModel extends ChangeNotifier {
 
       final updatedProfile =
           await _gamificationService.getProfile(forceRefresh: true);
-      final afterPoints = updatedProfile.points.total ?? beforePoints;
+      final afterPoints = updatedProfile.points.total;
 
       _pointsEarned = afterPoints - beforePoints;
 
@@ -156,9 +158,8 @@ class ResultScreenViewModel extends ChangeNotifier {
               .toSet() ??
           <String>{};
       _newlyEarnedAchievements = updatedProfile.achievements
-              .where((a) => a.isEarned && !beforeEarnedIds.contains(a.id))
-              .toList() ??
-          [];
+          .where((a) => a.isEarned && !beforeEarnedIds.contains(a.id))
+          .toList();
       _completedChallenge =
           (completedChallenges.isNotEmpty ? completedChallenges.first : null);
 

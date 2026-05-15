@@ -141,16 +141,28 @@ class EnhancedImageProcessingService extends ChangeNotifier
     final results = <ImageProcessingResult>[];
     final semaphore = Semaphore(concurrency);
 
+    // Process images with progress tracking
+    var processedCount = 0;
     final futures = imagePaths.map((path) async {
       await semaphore.acquire();
       try {
-        return await processImageFromPath(path, customConfig: config);
+        final result = await processImageFromPath(path, customConfig: config);
+        processedCount++;
+        WasteAppLogger.fine('Image processing progress', context: {
+          'service': 'enhanced_image_processing',
+          'processed': processedCount,
+          'total': imagePaths.length,
+          'progress_percent':
+              ((processedCount / imagePaths.length) * 100).toStringAsFixed(1),
+        });
+        return result;
       } finally {
         semaphore.release();
       }
     });
 
-    return Future.wait(futures);
+    results.addAll(await Future.wait(futures));
+    return results;
   }
 
   /// Get processing statistics

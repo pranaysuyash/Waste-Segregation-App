@@ -155,6 +155,13 @@ class _ResultScreenV2State extends ConsumerState<ResultScreenV2>
                     ? [
                         IconButton(
                           icon: Icon(
+                            Icons.refresh,
+                            color: colorScheme.onSurface,
+                          ),
+                          onPressed: _handleReanalyze,
+                        ),
+                        IconButton(
+                          icon: Icon(
                             Icons.share,
                             color: colorScheme.onSurface,
                           ),

@@ -455,6 +455,19 @@ class AiJobService {
       final queuedJobs =
           jobs.where((job) => job['status'] == AiJobStatus.queued.name).length;
 
+      // Log queue statistics for monitoring
+      WasteAppLogger.info('Queue health check', context: {
+        'service': 'ai_job_service',
+        'total_jobs': totalJobs,
+        'completed': completedJobs,
+        'failed': failedJobs,
+        'queued': queuedJobs,
+        'completion_rate':
+            totalJobs > 0 ? (completedJobs / totalJobs * 100).toStringAsFixed(1) : '0',
+        'failure_rate':
+            totalJobs > 0 ? (failedJobs / totalJobs * 100).toStringAsFixed(1) : '0',
+      });
+
       // Use the same logic as QueueHealth.get health
       if (queuedJobs > 1000) return QueueHealth.overloaded;
       if (queuedJobs > 500) return QueueHealth.busy;

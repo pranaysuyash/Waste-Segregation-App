@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import '../utils/waste_app_logger.dart';
-import 'analytics_service.dart';
 
 /// Pre-flight quality check to prevent wasting API credits on poor-quality images
 ///
@@ -146,10 +145,8 @@ class ImageQualityGate {
         suggestion: 'Photo will be sent to AI for analysis',
       );
 
-      AnalyticsService().trackError(
-        error: e.toString(),
-        context: {'event': 'image_quality_check_error', 'allowed': true},
-      );
+      // Note: Analytics tracking removed due to static method constraints
+      // Error is logged above via WasteAppLogger
 
       return result;
     }
@@ -216,15 +213,6 @@ class ImageQualityGate {
         'valid': result.isValid,
         'reason': result.reason,
         'failure_type': result.failureType?.name,
-        'duration_ms': durationMs,
-        ...?result.metrics,
-      },
-    );
-
-    AnalyticsService.log(
-      result.isValid ? 'image.quality_passed' : 'image.quality_rejected',
-      {
-        'failure_type': result.failureType?.name ?? 'none',
         'duration_ms': durationMs,
         ...?result.metrics,
       },
