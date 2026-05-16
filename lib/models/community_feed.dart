@@ -19,6 +19,16 @@ class CommunityFeedItem {
     this.points = 0,
   });
 
+  /// Parses timestamp from either Firestore Timestamp or ISO 8601 String.
+  /// Firestore writes use FieldValue.serverTimestamp() which produces Timestamp objects;
+  /// Hive/local storage uses ISO 8601 strings for compatibility.
+  static DateTime _parseTimestamp(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+    return DateTime.now();
+  }
   factory CommunityFeedItem.fromJson(Map<String, dynamic> json) {
     return CommunityFeedItem(
       id: json['id'] ?? '',
@@ -31,7 +41,7 @@ class CommunityFeedItem {
       ),
       title: json['title'] ?? '',
       description: json['description'] ?? '',
-      timestamp: DateTime.tryParse(json['timestamp'] ?? '') ?? DateTime.now(),
+      timestamp: _parseTimestamp(json['timestamp']),
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
       likes: json['likes'] ?? 0,
       likedBy: List<String>.from(json['likedBy'] ?? []),

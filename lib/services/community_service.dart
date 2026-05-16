@@ -5,12 +5,13 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/user_profile.dart';
 import '../models/gamification.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import 'firestore_schema_registry.dart';
 
 /// Service for managing community feed and social features
 class CommunityService {
   late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  static const String _feedCollection = 'community_feed';
-  static const String _statsCollection = 'community_stats';
+  static const String _feedCollection = FirestoreCollections.communityFeed;
+  static const String _statsCollection = FirestoreCollections.communityStats;
   static const String _mainStatsDoc = 'main';
 
   // Initialize with Firestore
@@ -23,7 +24,26 @@ class CommunityService {
   // Add a feed item to Firestore
   Future<void> addFeedItem(CommunityFeedItem item) async {
     try {
-      await _firestore.collection(_feedCollection).add(item.toJson());
+      final data = item.toJson();
+      // Convert timestamp from ISO 8601 String to Firestore Timestamp
+      // Model stores as String for Hive compatibility; Firestore rules require Timestamp
+      data['timestamp'] = FieldValue.serverTimestamp();
+
+      // Validate required fields before writing (catches schema drift early)
+      final errors = FirestoreSchemaValidator.validateRequiredFields(
+        FirestoreCollections.communityFeed, data);
+      if (errors.isNotEmpty) {
+        WasteAppLogger.warning('Community feed schema validation warnings: \$errors');
+        // Continue writing - validation is advisory, not blocking
+      }
+
+      // Apply privacy guard for anonymous posts
+      if (item.isAnonymous) {
+        data['userName'] = 'Anonymous User';
+        data.remove('userAvatar');
+      }
+
+      await _firestore.collection(_feedCollection).add(data);
       await _updateCommunityStatsOnActivity(item);
       WasteAppLogger.info(
           '🌍 Firestore: Community feed item added: ${item.title}');

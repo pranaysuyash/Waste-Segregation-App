@@ -31,6 +31,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/firebase_cleanup_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import '../models/user_profile.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -43,11 +44,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _showDeveloperOptions = false;
   bool _isGoogleSyncEnabled = false;
   DateTime? _lastCloudSync;
+  bool _isLeaderboardOptOut = false;
 
   @override
   void initState() {
     super.initState();
     _loadGoogleSyncSetting();
+    _loadLeaderboardOptOut();
   }
 
   @override
@@ -142,6 +145,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       context, isSignedIn, googleDriveService),
                 );
               },
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Privacy Section Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Text(
+              'Privacy',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+            ),
+          ),
+
+          // Leaderboard Privacy Toggle
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Semantics(
+              label: 'Toggle leaderboard visibility',
+              child: SwitchListTile(
+                title: const Text('Hide from Leaderboard'),
+                subtitle: Text(
+                  _isLeaderboardOptOut
+                      ? 'Your name and photo are hidden on the leaderboard'
+                      : 'Your name and photo are visible on the leaderboard',
+                ),
+                value: _isLeaderboardOptOut,
+                onChanged: (value) async {
+                  await _toggleLeaderboardOptOut(value);
+                },
+                secondary: Icon(
+                  _isLeaderboardOptOut
+                      ? Icons.visibility_off
+                      : Icons.leaderboard,
+                  color: _isLeaderboardOptOut ? Colors.orange : Colors.green,
+                ),
+              ),
             ),
           ),
 
@@ -2077,6 +2120,89 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             backgroundColor: Colors.red,
           ),
+        );
+      }
+    }
+  }
+
+  /// Loads the leaderboard opt-out preference from the user profile.
+  Future<void> _loadLeaderboardOptOut() async {
+    try {
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final userProfile = await storageService.getCurrentUserProfile();
+      if (mounted) {
+        setState(() {
+          final prefs = userProfile?.preferences;
+          _isLeaderboardOptOut = prefs != null &&
+              prefs.containsKey(UserPreferenceKeys.leaderboardOptOut) &&
+              prefs[UserPreferenceKeys.leaderboardOptOut] == true;
+        });
+      }
+    } catch (e) {
+      WasteAppLogger.severe('Error loading leaderboard opt-out setting: \$e');
+    }
+  }
+
+  /// Toggles the leaderboard opt-out preference and persists it.
+  ///
+  /// This updates the UserProfile.preferences map locally (Hive) and
+  /// remotely (Firestore), which ensures the privacy guard in
+  /// CloudStorageService._applyLeaderboardPrivacyGuard() reads the
+  /// correct value on the next leaderboard write.
+  Future<void> _toggleLeaderboardOptOut(bool value) async {
+    try {
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService =
+          Provider.of<CloudStorageService>(context, listen: false);
+
+      final userProfile = await storageService.getCurrentUserProfile();
+      if (userProfile == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('No user profile found. Please sign in first.')),
+          );
+        }
+        return;
+      }
+
+      // Update preferences map, preserving existing entries
+      final updatedPreferences = Map<String, dynamic>.from(
+          userProfile.preferences ?? {});
+      updatedPreferences[UserPreferenceKeys.leaderboardOptOut] = value;
+
+      final updatedProfile = userProfile.copyWith(
+          preferences: updatedPreferences);
+
+      // Save locally (Hive) and remotely (Firestore with privacy guard)
+      await storageService.saveUserProfile(updatedProfile);
+      await cloudStorageService.saveUserProfileToFirestore(updatedProfile);
+
+      // Update the existing leaderboard entry to reflect the new preference immediately.
+      // Without this, the leaderboard would show stale data until the next
+      // gamification-triggered leaderboard write.
+      await cloudStorageService.updateLeaderboardPrivacyPreference(updatedProfile);
+
+      setState(() {
+        _isLeaderboardOptOut = value;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(value
+                ? 'You are now hidden from the leaderboard'
+                : 'You are now visible on the leaderboard'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update leaderboard privacy: \$e')),
         );
       }
     }

@@ -12,6 +12,8 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import '../utils/waste_app_logger.dart';
 import 'dart:io';
+import 'firestore_schema_registry.dart';
+import '../utils/constants.dart';
 
 /// Service for syncing classifications to Firestore cloud storage
 /// Also handles admin data collection for ML training and data recovery
@@ -48,9 +50,10 @@ class CloudStorageService {
       if (useBatching) {
         // OPTIMIZATION: Use batch operations for cost efficiency
         final batch = _batchManager.getBatch('profiles');
-        final userDoc = _firestore.collection('users').doc(userProfile.id);
+        final userDoc = _firestore.collection(FirestoreCollections.users).doc(userProfile.id);
 
-        await batch.addSet(userDoc, userProfile.toJson(), merge: true);
+        final profileData = _applyUserProfilePrivacyGuard(userProfile.toJson());
+        await batch.addSet(userDoc, profileData, merge: true);
 
         // After adding profile, also batch the leaderboard update
         if (userProfile.gamificationProfile != null) {
@@ -63,10 +66,11 @@ class CloudStorageService {
             'Successfully saved user profile and leaderboard via batch.');
       } else {
         // Fallback to individual operations
+        final profileData = _applyUserProfilePrivacyGuard(userProfile.toJson());
         await _firestore
-            .collection('users')
+            .collection(FirestoreCollections.users)
             .doc(userProfile.id)
-            .set(userProfile.toJson(), SetOptions(merge: true));
+            .set(profileData, SetOptions(merge: true));
         WasteAppLogger.info('Successfully saved user profile to Firestore.');
 
         // After successfully saving the profile, update the leaderboard
@@ -97,17 +101,18 @@ class CloudStorageService {
       WasteAppLogger.info(
           'Adding leaderboard update to batch for user $userId');
       final leaderboardDoc =
-          _firestore.collection('leaderboard_allTime').doc(userId);
+          _firestore.collection(FirestoreCollections.leaderboardAllTime).doc(userId);
 
+      final leaderboardBatchData = _applyLeaderboardPrivacyGuard({
+        'userId': userId,
+        'displayName': displayName,
+        'photoUrl': photoUrl,
+        'points': points,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, userProfile);
       await batch.addSet(
         leaderboardDoc,
-        {
-          'userId': userId,
-          'displayName': displayName,
-          'photoUrl': photoUrl,
-          'points': points,
-          'lastUpdated': FieldValue.serverTimestamp(),
-        },
+        leaderboardBatchData,
         merge: true,
       );
     } catch (e, s) {
@@ -131,14 +136,15 @@ class CloudStorageService {
 
     try {
       WasteAppLogger.info('Updating leaderboard for user $userId');
-      await _firestore.collection('leaderboard_allTime').doc(userId).set({
+      final leaderboardData = _applyLeaderboardPrivacyGuard({
         'userId': userId,
         'displayName': displayName,
         'photoUrl': photoUrl,
         'points': points,
-        // 'categoryBreakdown': userProfile.gamificationProfile!.points.categoryPoints,
         'lastUpdated': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      }, userProfile);
+      await _firestore.collection(FirestoreCollections.leaderboardAllTime).doc(userId).set(
+        leaderboardData, SetOptions(merge: true));
       WasteAppLogger.info('Successfully updated leaderboard for user $userId');
     } catch (e, s) {
       WasteAppLogger.severe('Error updating leaderboard',
@@ -231,9 +237,9 @@ class CloudStorageService {
 
       // Update the user's personal collection
       await _firestore
-          .collection('users')
+          .collection(FirestoreCollections.users)
           .doc(userProfile.id)
-          .collection('classifications')
+          .collection(FirestoreCollections.classifications)
           .doc(docId)
           .update({
         ...cloudClassification.toJson(),
@@ -283,9 +289,9 @@ class CloudStorageService {
               classification.copyWith(userId: userProfile.id);
 
           final docRef = _firestore
-              .collection('users')
+              .collection(FirestoreCollections.users)
               .doc(userProfile.id)
-              .collection('classifications')
+              .collection(FirestoreCollections.classifications)
               .doc(docId);
 
           batch.update(docRef, {
@@ -355,9 +361,9 @@ class CloudStorageService {
 
       // 1. Save to user's personal collection
       await _firestore
-          .collection('users')
+          .collection(FirestoreCollections.users)
           .doc(userProfile.id)
-          .collection('classifications')
+          .collection(FirestoreCollections.classifications)
           .doc(docId)
           .set({
         ...cloudClassification.toJson(),
@@ -420,7 +426,7 @@ class CloudStorageService {
 
       final hashedUserId = _hashUserId(classification.userId!);
       await _firestore
-          .collection('admin_classifications')
+          .collection(FirestoreCollections.adminClassifications)
           .doc('${hashedUserId}_${classification.id}')
           .set(adminData, SetOptions(merge: true));
 
@@ -441,7 +447,7 @@ class CloudStorageService {
     try {
       final hashedUserId = _hashUserId(userId);
 
-      await _firestore.collection('admin_user_recovery').doc(hashedUserId).set({
+      await _firestore.collection(FirestoreCollections.adminUserRecovery).doc(hashedUserId).set({
         'lastBackup': FieldValue.serverTimestamp(),
         'classificationCount': FieldValue.increment(1),
         'appVersion': '0.1.6+98',
@@ -461,6 +467,52 @@ class CloudStorageService {
     final bytes = utf8.encode(userId + salt);
     final digest = sha256.convert(bytes);
     return digest.toString();
+  }
+
+  // ============================================================
+  // Privacy Guard Methods
+  // Derived from FirestoreSchemaRegistry PrivacyGuardConfig
+  // ============================================================
+
+  /// Applies privacy guards to leaderboard data before writing.
+  /// If user has opted out of the leaderboard, anonymizes PII fields.
+  Map<String, dynamic> _applyLeaderboardPrivacyGuard(
+    Map<String, dynamic> data,
+    UserProfile userProfile,
+  ) {
+    final sanitized = Map<String, dynamic>.from(data);
+
+    // Check for leaderboard opt-out in user preferences
+    final preferences = userProfile.preferences;
+    final optedOut = preferences != null &&
+        preferences.containsKey(UserPreferenceKeys.leaderboardOptOut) &&
+        preferences[UserPreferenceKeys.leaderboardOptOut] == true;
+
+    if (optedOut) {
+      sanitized['displayName'] = 'Anonymous User';
+      sanitized.remove('photoUrl');
+      WasteAppLogger.info(
+          'Privacy: Leaderboard opt-out applied for user ${userProfile.id}');
+    }
+
+    return sanitized;
+  }
+
+  /// Applies privacy guards to user profile data before writing to Firestore.
+  /// Removes email field per PrivacyGuardConfig — email should come from
+  /// Firebase Auth, not be stored redundantly in Firestore.
+  Map<String, dynamic> _applyUserProfilePrivacyGuard(
+    Map<String, dynamic> data,
+  ) {
+    final sanitized = Map<String, dynamic>.from(data);
+
+    if (sanitized.containsKey('email')) {
+      sanitized.remove('email');
+      WasteAppLogger.info(
+          'Privacy: Email removed from user profile before Firestore write');
+    }
+
+    return sanitized;
   }
 
   /// Check if this classification should be processed for gamification
@@ -525,9 +577,9 @@ class CloudStorageService {
 
       // Get cloud classifications
       final cloudSnapshot = await _firestore
-          .collection('users')
+          .collection(FirestoreCollections.users)
           .doc(userProfile.id)
-          .collection('classifications')
+          .collection(FirestoreCollections.classifications)
           .orderBy('timestamp', descending: true)
           .get();
 
@@ -670,9 +722,9 @@ class CloudStorageService {
           final cloudClassification =
               classification.copyWith(userId: userProfileId);
           final docRef = _firestore
-              .collection('users')
+              .collection(FirestoreCollections.users)
               .doc(userProfileId)
-              .collection('classifications')
+              .collection(FirestoreCollections.classifications)
               .doc(classification.id);
 
           batch.set(
@@ -756,9 +808,9 @@ class CloudStorageService {
 
       // Load classifications from cloud
       final cloudSnapshot = await _firestore
-          .collection('users')
+          .collection(FirestoreCollections.users)
           .doc(userProfile.id)
-          .collection('classifications')
+          .collection(FirestoreCollections.classifications)
           .orderBy('timestamp', descending: true)
           .get();
 
@@ -803,9 +855,9 @@ class CloudStorageService {
 
       // Delete all classifications for this user
       final classificationsQuery = await _firestore
-          .collection('users')
+          .collection(FirestoreCollections.users)
           .doc(userProfile.id)
-          .collection('classifications')
+          .collection(FirestoreCollections.classifications)
           .get();
 
       final batch = _firestore.batch();
@@ -829,7 +881,7 @@ class CloudStorageService {
       ClassificationFeedback feedback) async {
     try {
       await _firestore
-          .collection('classification_feedback')
+          .collection(FirestoreCollections.classificationFeedback)
           .doc(feedback.id)
           .set(feedback.toJson(), SetOptions(merge: true));
     } catch (e) {
@@ -927,6 +979,82 @@ class CloudStorageService {
             'userId': userId,
           });
       rethrow;
+    }
+  }
+
+  // ============================================================
+  // Leaderboard Re-Anonymization
+  // ============================================================
+
+  /// Updates the leaderboard entry to reflect the current privacy preference.
+  ///
+  /// When a user toggles their leaderboard opt-out preference, this method
+  /// updates their existing leaderboard document in Firestore:
+  /// - If opted out: displayName becomes "Anonymous User", photoUrl is removed
+  /// - If opted in: displayName and photoUrl are restored from the user profile
+  ///
+  /// This ensures the leaderboard immediately reflects the user's choice
+  /// without waiting for the next gamification-triggered write.
+  Future<void> updateLeaderboardPrivacyPreference(UserProfile userProfile) async {
+    if (userProfile.id.isEmpty) {
+      WasteAppLogger.info('Cannot update leaderboard privacy: user ID is empty');
+      return;
+    }
+
+    try {
+      final userId = userProfile.id;
+      final preferences = userProfile.preferences;
+      final optedOut = preferences != null &&
+          preferences.containsKey(UserPreferenceKeys.leaderboardOptOut) &&
+          preferences[UserPreferenceKeys.leaderboardOptOut] == true;
+
+      if (optedOut) {
+        // Anonymize the existing leaderboard entry
+        await _firestore
+            .collection(FirestoreCollections.leaderboardAllTime)
+            .doc(userId)
+            .set({
+          'displayName': 'Anonymous User',
+          'lastUpdated': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        // Remove photoUrl by setting to FieldValue.delete() or null
+        await _firestore
+            .collection(FirestoreCollections.leaderboardAllTime)
+            .doc(userId)
+            .update({'photoUrl': FieldValue.delete()});
+        WasteAppLogger.info(
+            'Privacy: Leaderboard entry anonymized for user \$userId');
+      } else {
+        // Restore the user's actual name and photo from their profile
+        final displayName = userProfile.displayName ?? 'Anonymous User';
+        final photoUrl = userProfile.photoUrl;
+
+        final updateData = <String, dynamic>{
+          'displayName': displayName,
+          'lastUpdated': FieldValue.serverTimestamp(),
+        };
+        // Only set photoUrl if it exists; otherwise delete it
+        if (photoUrl != null && photoUrl.isNotEmpty) {
+          updateData['photoUrl'] = photoUrl;
+        } else {
+          updateData['photoUrl'] = FieldValue.delete();
+        }
+
+        await _firestore
+            .collection(FirestoreCollections.leaderboardAllTime)
+            .doc(userId)
+            .set(updateData, SetOptions(merge: true));
+        WasteAppLogger.info(
+            'Privacy: Leaderboard entry restored for user \$userId');
+      }
+    } catch (e, s) {
+      // Log but don't rethrow — the preference toggle itself should succeed
+      // even if the leaderboard update fails. The next gamification-triggered
+      // write will correct any inconsistency.
+      WasteAppLogger.severe(
+          'Error updating leaderboard privacy preference',
+          error: e,
+          stackTrace: s);
     }
   }
 }

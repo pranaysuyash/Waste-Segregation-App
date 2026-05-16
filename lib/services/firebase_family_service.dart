@@ -13,13 +13,15 @@ import '../models/gamification.dart'
 import '../models/shared_waste_classification.dart'
     show SharedWasteClassification;
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import 'firestore_schema_registry.dart';
 
 /// Service for managing family-related data in Firebase Firestore.
 class FirebaseFamilyService {
-  static const String _familiesCollection = 'families';
-  static const String _invitationsCollection = 'invitations';
-  static const String _classificationsCollection = 'shared_classifications';
-  static const String _usersCollection = 'users';
+  // Canonical collection names from FirestoreCollections registry
+  static const String _familiesCollection = FirestoreCollections.families;
+  static const String _invitationsCollection = FirestoreCollections.invitations;
+  static const String _classificationsCollection = FirestoreCollections.sharedClassifications;
+  static const String _usersCollection = FirestoreCollections.users;
 
   late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Uuid _uuid = const Uuid();
@@ -53,11 +55,19 @@ class FirebaseFamilyService {
         settings: family_models.FamilySettings.defaultSettings(),
       );
 
+      // Advisory schema validation before writing to Firestore
+      final familyData = family.toJson();
+      final schemaWarnings = FirestoreSchemaValidator.validateRequiredFields(
+          FirestoreCollections.families, familyData);
+      if (schemaWarnings.isNotEmpty) {
+        WasteAppLogger.warning('Family schema validation warnings: \$schemaWarnings');
+      }
+
       // Save family to Firestore
       await _firestore
           .collection(_familiesCollection)
           .doc(familyId)
-          .set(family.toJson());
+          .set(familyData);
 
       // Update creator's profile to include family ID
       await _updateUserFamilyId(
@@ -339,7 +349,7 @@ class FirebaseFamilyService {
   Future<family_models.FamilyStats> getFamilyStats(String familyId) async {
     try {
       final statsDoc =
-          await _firestore.collection('family_stats').doc(familyId).get();
+          await _firestore.collection(FirestoreCollections.familyStats).doc(familyId).get();
 
       if (statsDoc.exists && statsDoc.data() != null) {
         return family_models.FamilyStats.fromJson(statsDoc.data()!);
@@ -358,7 +368,7 @@ class FirebaseFamilyService {
   /// Updates family stats after a new classification is shared.
   Future<void> _updateFamilyStatsAfterClassification(
       String familyId, int pointsEarned, String category) async {
-    final statsRef = _firestore.collection('family_stats').doc(familyId);
+    final statsRef = _firestore.collection(FirestoreCollections.familyStats).doc(familyId);
 
     await _firestore.runTransaction((transaction) async {
       final snapshot = await transaction.get(statsRef);
@@ -422,7 +432,7 @@ class FirebaseFamilyService {
     );
 
     // Save the newly calculated stats
-    final statsRef = _firestore.collection('family_stats').doc(familyId);
+    final statsRef = _firestore.collection(FirestoreCollections.familyStats).doc(familyId);
     final statsJson = stats.toJson();
     statsJson['lastUpdated'] =
         FieldValue.serverTimestamp(); // Use server timestamp
@@ -477,7 +487,7 @@ class FirebaseFamilyService {
       final snapshot = await _firestore
           .collection(_usersCollection)
           .doc(userId)
-          .collection('classifications')
+          .collection(FirestoreCollections.classifications)
           .get();
 
       return snapshot.docs
@@ -582,10 +592,18 @@ class FirebaseFamilyService {
         familyTags: tags,
       );
 
+      final classificationData = sharedClassification.toJson();
+      // Advisory schema validation for shared classification
+      final schemaWarnings = FirestoreSchemaValidator.validateRequiredFields(
+          FirestoreCollections.sharedClassifications, classificationData);
+      if (schemaWarnings.isNotEmpty) {
+        WasteAppLogger.warning('Shared classification schema validation warnings: \$schemaWarnings');
+      }
+
       await _firestore
           .collection(_classificationsCollection)
           .doc(sharedClassification.id)
-          .set(sharedClassification.toJson());
+          .set(classificationData);
 
       // Update family stats
       await _updateFamilyStatsAfterClassification(
@@ -693,10 +711,18 @@ class FirebaseFamilyService {
         method: method,
       );
 
+      final invitationData = invitation.toJson();
+      // Advisory schema validation for invitation
+      final inviteWarnings = FirestoreSchemaValidator.validateRequiredFields(
+          FirestoreCollections.invitations, invitationData);
+      if (inviteWarnings.isNotEmpty) {
+        WasteAppLogger.warning('Invitation schema validation warnings: \$inviteWarnings');
+      }
+
       await _firestore
           .collection(_invitationsCollection)
           .doc(invitation.id)
-          .set(invitation.toJson());
+          .set(invitationData);
 
       return invitation;
     } catch (e) {

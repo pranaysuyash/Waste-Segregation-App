@@ -75,6 +75,16 @@ class StorageKeys {
   static const String weeklyStatsKey = 'weeklyStats';
 }
 
+/// User preference keys for `UserProfile.preferences`.
+///
+/// These are string keys used inside the `preferences` Map on UserProfile.
+/// Using constants prevents typos and makes preference access grep-able.
+class UserPreferenceKeys {
+  /// When `true`, the user's display name and photo are anonymized on the
+  /// leaderboard. The privacy guard in CloudStorageService reads this key.
+  static const String leaderboardOptOut = 'leaderboardOptOut';
+}
+
 // App Theme Constants
 class AppTheme {
   /// Primary seed color used if dynamic color is not available.
