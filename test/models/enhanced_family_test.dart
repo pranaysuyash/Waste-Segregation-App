@@ -508,42 +508,20 @@ void main() {
 
     group('FamilyStats Class Tests', () {
       test('should create FamilyStats with all fields', () {
-        final environmentalImpact = EnvironmentalImpact(
-          co2Saved: 10.5,
-          treesEquivalent: 2.3,
-          waterSaved: 150.0,
-          lastUpdated: testDateTime,
-        );
-
-        final weeklyProgress = WeeklyProgress(
-          weekStart: testDateTime.subtract(const Duration(days: 7)),
-          weekEnd: testDateTime,
-          classificationsCount: 15,
-          pointsEarned: 75,
-          categoryBreakdown: {'Dry Waste': 10, 'Wet Waste': 5},
-        );
-
         final stats = FamilyStats(
           totalClassifications: 100,
           totalPoints: 500,
           currentStreak: 7,
-          bestStreak: 15,
-          categoryBreakdown: {'Dry Waste': 60, 'Wet Waste': 40},
-          environmentalImpact: environmentalImpact,
-          weeklyProgress: [weeklyProgress],
-          achievementCount: 8,
-          lastUpdated: testDateTime,
+          memberCount: 3,
+          categoryCounts: {'Dry Waste': 60, 'Wet Waste': 40},
         );
 
         expect(stats.totalClassifications, equals(100));
         expect(stats.totalPoints, equals(500));
         expect(stats.currentStreak, equals(7));
-        expect(stats.bestStreak, equals(15));
-        expect(stats.categoryBreakdown['Dry Waste'], equals(60));
-        expect(stats.environmentalImpact.co2Saved, equals(10.5));
-        expect(stats.weeklyProgress.length, equals(1));
-        expect(stats.achievementCount, equals(8));
-        expect(stats.lastUpdated, equals(testDateTime));
+        expect(stats.memberCount, equals(3));
+        expect(stats.categoryCounts['Dry Waste'], equals(60));
+        expect(stats.categoryCounts['Wet Waste'], equals(40));
       });
 
       test('should create empty family stats', () {
@@ -552,11 +530,8 @@ void main() {
         expect(emptyStats.totalClassifications, equals(0));
         expect(emptyStats.totalPoints, equals(0));
         expect(emptyStats.currentStreak, equals(0));
-        expect(emptyStats.bestStreak, equals(0));
-        expect(emptyStats.categoryBreakdown, isEmpty);
-        expect(emptyStats.weeklyProgress, isEmpty);
-        expect(emptyStats.achievementCount, equals(0));
-        expect(emptyStats.lastUpdated, isA<DateTime>());
+        expect(emptyStats.memberCount, equals(0));
+        expect(emptyStats.categoryCounts, isEmpty);
       });
 
       test('should copyWith correctly', () {
@@ -566,14 +541,47 @@ void main() {
           totalClassifications: 50,
           totalPoints: 250,
           currentStreak: 3,
+          memberCount: 2,
         );
 
-        expect(updated.totalClassifications, equals(50)); // Changed
-        expect(updated.totalPoints, equals(250)); // Changed
-        expect(updated.currentStreak, equals(3)); // Changed
-        expect(updated.bestStreak, equals(original.bestStreak)); // Unchanged
-        expect(updated.achievementCount,
-            equals(original.achievementCount)); // Unchanged
+        expect(updated.totalClassifications, equals(50));
+        expect(updated.totalPoints, equals(250));
+        expect(updated.currentStreak, equals(3));
+        expect(updated.memberCount, equals(2));
+        expect(updated.categoryCounts, isEmpty); // Unchanged
+      });
+
+      test('should serialize and deserialize correctly', () {
+        final original = FamilyStats(
+          totalClassifications: 100,
+          totalPoints: 500,
+          currentStreak: 7,
+          memberCount: 3,
+          categoryCounts: {'Recyclable': 60, 'Organic': 40},
+        );
+
+        final json = original.toJson();
+        expect(json['totalClassifications'], equals(100));
+        expect(json['totalPoints'], equals(500));
+        expect(json['currentStreak'], equals(7));
+        expect(json['memberCount'], equals(3));
+        expect(json['categoryCounts'], isA<Map>());
+
+        final recreated = FamilyStats.fromJson(json);
+        expect(recreated.totalClassifications, equals(original.totalClassifications));
+        expect(recreated.totalPoints, equals(original.totalPoints));
+        expect(recreated.currentStreak, equals(original.currentStreak));
+        expect(recreated.memberCount, equals(original.memberCount));
+        expect(recreated.categoryCounts, equals(original.categoryCounts));
+      });
+
+      test('fromJson handles missing fields safely', () {
+        final minimal = FamilyStats.fromJson({});
+        expect(minimal.totalClassifications, equals(0));
+        expect(minimal.totalPoints, equals(0));
+        expect(minimal.currentStreak, equals(0));
+        expect(minimal.memberCount, equals(0));
+        expect(minimal.categoryCounts, isEmpty);
       });
     });
 
