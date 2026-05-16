@@ -311,19 +311,13 @@ class FamilySettings {
     };
   }
 
-  /// Parses leaderboardVisibility from either stable wire values
-  /// (public/membersOnly/adminsOnly) or legacy enum toString values
-  /// (FamilyLeaderboardVisibility.public/etc).
+  /// Parses leaderboardVisibility from stable wire values
+  /// (public/membersOnly/adminsOnly). Unknown/missing defaults to membersOnly.
   static FamilyLeaderboardVisibility _parseLeaderboardVisibility(dynamic value) {
     if (value is FamilyLeaderboardVisibility) return value;
     final str = value?.toString() ?? '';
-    // Try stable wire values first (.name format)
     for (final e in FamilyLeaderboardVisibility.values) {
       if (e.name == str) return e;
-    }
-    // Fallback: try legacy enum toString format
-    for (final e in FamilyLeaderboardVisibility.values) {
-      if (e.toString() == str) return e;
     }
     return FamilyLeaderboardVisibility.membersOnly;
   }

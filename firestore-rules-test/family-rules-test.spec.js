@@ -598,9 +598,12 @@ describe('Family rules', () => {
     );
   });
 
-  // --- Backward compatibility: legacy enum toString values ---
+  // --- Stable wire values only; legacy enum toString is not a valid contract ---
 
-  it('legacy enum toString public value still allows non-member read', async () => {
+  it('legacy enum toString public value is treated as unknown and denies non-member read', async () => {
+    // Pre-launch: only stable wire values are recognized by rules.
+    // "FamilyLeaderboardVisibility.public" is NOT "public", so it falls back
+    // to member-only, correctly denying non-member reads.
     const memberDb = testEnv.authenticatedContext('user-1').firestore();
     const legacyPublicFamily = {
       ...validFamily,
@@ -611,28 +614,10 @@ describe('Family rules', () => {
     };
     await memberDb.collection('families').doc('family-legacy-public').set(legacyPublicFamily);
     await memberDb.collection('family_stats').doc('family-legacy-public').set({ totalClassifications: 10, totalPoints: 100 });
-    // Non-member can read because rules accept legacy public value
-    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
-    await assertSucceeds(
-      nonMemberDb.collection('family_stats').doc('family-legacy-public').get()
-    );
-  });
-
-  it('legacy enum toString membersOnly value denies non-member read', async () => {
-    const memberDb = testEnv.authenticatedContext('user-1').firestore();
-    const legacyMembersOnlyFamily = {
-      ...validFamily,
-      settings: {
-        ...validFamily.settings,
-        leaderboardVisibility: 'FamilyLeaderboardVisibility.membersOnly',
-      },
-    };
-    await memberDb.collection('families').doc('family-legacy-priv').set(legacyMembersOnlyFamily);
-    await memberDb.collection('family_stats').doc('family-legacy-priv').set({ totalClassifications: 5, totalPoints: 50 });
-    // Non-member cannot read
+    // Non-member CANNOT read because legacy value is not recognized as public
     const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
     await assertFails(
-      nonMemberDb.collection('family_stats').doc('family-legacy-priv').get()
+      nonMemberDb.collection('family_stats').doc('family-legacy-public').get()
     );
   });
 });

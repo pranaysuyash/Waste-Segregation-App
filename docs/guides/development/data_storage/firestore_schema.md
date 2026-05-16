@@ -204,7 +204,7 @@ Full field list: see `WasteClassification.fromJson()` in `waste_classification.d
 
 * **Document ID**: `familyId` (matches `families/{familyId}`)
 * **Written by**: `FirebaseFamilyService` — only family members
-* **Privacy**: Reads respect the family's `leaderboardVisibility` setting (`FamilySettings.leaderboardVisibility`): `public` allows any authenticated user to read; `membersOnly` or `adminsOnly` restricts reads to family members (enforced via `canReadFamilyStats` cross-doc lookup). Stable wire values (`public`, `membersOnly`, `adminsOnly`) are now used for serialization; legacy enum `toString()` values (`FamilyLeaderboardVisibility.public`, etc.) are still accepted for backward compatibility. Writes always require family membership regardless of visibility. Family stats contain household activity data and default to member-only access.
+* **Privacy**: Reads respect the family's `leaderboardVisibility` setting (`FamilySettings.leaderboardVisibility`): `public` allows any authenticated user to read; `membersOnly` or `adminsOnly` restricts reads to family members (enforced via `canReadFamilyStats` cross-doc lookup). Stable wire values: `public`, `membersOnly`, `adminsOnly`. Writes always require family membership regardless of visibility. Family stats contain household activity data and default to member-only access.
 
 ---
 

@@ -373,11 +373,9 @@ service cloud.firestore {
     }
     
     // Checks if the family's leaderboardVisibility is set to public.
-    // Accepts both stable wire values ("public") and legacy enum toString
-    // values ("FamilyLeaderboardVisibility.public") for backward compatibility.
+    // Stable wire values: "public", "membersOnly", "adminsOnly".
     function isFamilyStatsPublic(familyData) {
-      let vis = familyData.settings.leaderboardVisibility;
-      return vis == "public" || vis == "FamilyLeaderboardVisibility.public";
+      return familyData.settings.leaderboardVisibility == "public";
     }
     
     // --- Family validation ---

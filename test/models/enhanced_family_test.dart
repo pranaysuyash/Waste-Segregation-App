@@ -824,16 +824,20 @@ void main() {
         expect(admins.leaderboardVisibility, equals(FamilyLeaderboardVisibility.adminsOnly));
       });
 
-      test('fromJson reads legacy enum toString values for backward compat', () {
-        final public = FamilySettings.fromJson(
+      test('fromJson rejects legacy enum toString values, defaults to membersOnly', () {
+        // Pre-launch: only stable wire values are valid.
+        // Legacy enum toString format is not a supported data contract.
+        final legacyPublic = FamilySettings.fromJson(
           {'leaderboardVisibility': 'FamilyLeaderboardVisibility.public'},
         );
-        expect(public.leaderboardVisibility, equals(FamilyLeaderboardVisibility.public));
+        expect(legacyPublic.leaderboardVisibility,
+            equals(FamilyLeaderboardVisibility.membersOnly));
 
-        final members = FamilySettings.fromJson(
+        final legacyMembersOnly = FamilySettings.fromJson(
           {'leaderboardVisibility': 'FamilyLeaderboardVisibility.membersOnly'},
         );
-        expect(members.leaderboardVisibility, equals(FamilyLeaderboardVisibility.membersOnly));
+        expect(legacyMembersOnly.leaderboardVisibility,
+            equals(FamilyLeaderboardVisibility.membersOnly));
       });
 
       test('fromJson defaults to membersOnly for unknown values', () {
