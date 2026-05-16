@@ -26,7 +26,7 @@ const validFamily = {
   updatedAt: new Date().toISOString(),
   members: [{ userId: 'user-1', role: 'admin', joinedAt: new Date().toISOString(), individualStats: { totalPoints: 0, totalClassifications: 0, currentStreak: 0, bestStreak: 0 } }],
   memberUids: ['user-1'],
-  settings: { isPublic: false, allowMemberInvites: true, leaderboardVisibility: 'membersOnly' },
+  settings: { isPublic: false, allowChildInvites: true, leaderboardVisibility: 'FamilyLeaderboardVisibility.membersOnly' },
   isPublic: false,
 };
 
@@ -302,23 +302,19 @@ describe('Family rules', () => {
   });
 
   // --- Family stats (membership-enforced) ---
-  it('family member can read family stats', async () => {
-    // Create family doc and stats doc as user-1 (who is a member)
+  it('family member can read family stats (membersOnly default)', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
     await db.collection('families').doc('family-1').set(validFamily);
     await db.collection('family_stats').doc('family-1').set({ totalClassifications: 0, totalPoints: 0 });
-    // user-1 can read their own family stats
     await assertSucceeds(
       db.collection('family_stats').doc('family-1').get()
     );
   });
 
-  it('non-member cannot read family stats', async () => {
-    // user-1 creates family and stats
+  it('non-member cannot read membersOnly family stats', async () => {
     const memberDb = testEnv.authenticatedContext('user-1').firestore();
     await memberDb.collection('families').doc('family-1').set(validFamily);
     await memberDb.collection('family_stats').doc('family-1').set({ totalClassifications: 0, totalPoints: 0 });
-    // user-2 is NOT in memberUids and cannot read
     const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
     await assertFails(
       nonMemberDb.collection('family_stats').doc('family-1').get()
@@ -329,6 +325,49 @@ describe('Family rules', () => {
     const db = testEnv.unauthenticatedContext().firestore();
     await assertFails(
       db.collection('family_stats').doc('family-1').get()
+    );
+  });
+
+  it('public family stats can be read by any authenticated user', async () => {
+    // Create a family with leaderboardVisibility = public
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    const publicFamily = {
+      ...validFamily,
+      settings: {
+        ...validFamily.settings,
+        leaderboardVisibility: 'FamilyLeaderboardVisibility.public',
+      },
+    };
+    await memberDb.collection('families').doc('family-public').set(publicFamily);
+    await memberDb.collection('family_stats').doc('family-public').set({ totalClassifications: 5, totalPoints: 50 });
+    // user-2 is NOT a member but can read because visibility is public
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
+    await assertSucceeds(
+      nonMemberDb.collection('family_stats').doc('family-public').get()
+    );
+  });
+
+  it('non-member cannot read membersOnly family stats even if another family is public', async () => {
+    // Set up both a public and a membersOnly family
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    const publicFamily = {
+      ...validFamily,
+      settings: {
+        ...validFamily.settings,
+        leaderboardVisibility: 'FamilyLeaderboardVisibility.public',
+      },
+    };
+    await memberDb.collection('families').doc('family-public2').set(publicFamily);
+    await memberDb.collection('family_stats').doc('family-public2').set({ totalClassifications: 5, totalPoints: 50 });
+    await memberDb.collection('families').doc('family-private2').set(validFamily);
+    await memberDb.collection('family_stats').doc('family-private2').set({ totalClassifications: 3, totalPoints: 30 });
+    // user-2 can read public but not private
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
+    await assertSucceeds(
+      nonMemberDb.collection('family_stats').doc('family-public2').get()
+    );
+    await assertFails(
+      nonMemberDb.collection('family_stats').doc('family-private2').get()
     );
   });
 
@@ -457,6 +496,104 @@ describe('Family rules', () => {
     await assertFails(
       nonMemberDb.collection('family_stats').doc('family-stats-no').set({
         totalClassifications: 0,
+      })
+    );
+  });
+
+  // --- Leaderboard visibility enforcement ---
+
+  it('adminsOnly family stats: member can read', async () => {
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    const adminsOnlyFamily = {
+      ...validFamily,
+      settings: {
+        ...validFamily.settings,
+        leaderboardVisibility: 'FamilyLeaderboardVisibility.adminsOnly',
+      },
+    };
+    await memberDb.collection('families').doc('family-admins-only').set(adminsOnlyFamily);
+    await memberDb.collection('family_stats').doc('family-admins-only').set({ totalClassifications: 2, totalPoints: 20 });
+    // user-1 is a member and can read
+    await assertSucceeds(
+      memberDb.collection('family_stats').doc('family-admins-only').get()
+    );
+  });
+
+  it('adminsOnly family stats: non-member cannot read', async () => {
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    const adminsOnlyFamily = {
+      ...validFamily,
+      settings: {
+        ...validFamily.settings,
+        leaderboardVisibility: 'FamilyLeaderboardVisibility.adminsOnly',
+      },
+    };
+    await memberDb.collection('families').doc('family-admins-only2').set(adminsOnlyFamily);
+    await memberDb.collection('family_stats').doc('family-admins-only2').set({ totalClassifications: 2, totalPoints: 20 });
+    // user-2 is NOT a member and cannot read adminsOnly family stats
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
+    await assertFails(
+      nonMemberDb.collection('family_stats').doc('family-admins-only2').get()
+    );
+  });
+
+  it('unknown leaderboardVisibility falls back to member-only', async () => {
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    const unknownVisFamily = {
+      ...validFamily,
+      settings: {
+        ...validFamily.settings,
+        leaderboardVisibility: 'someInvalidValue',
+      },
+    };
+    await memberDb.collection('families').doc('family-unknown-vis').set(unknownVisFamily);
+    await memberDb.collection('family_stats').doc('family-unknown-vis').set({ totalClassifications: 1, totalPoints: 10 });
+    // member can still read
+    await assertSucceeds(
+      memberDb.collection('family_stats').doc('family-unknown-vis').get()
+    );
+    // non-member cannot read (falls back to member-only)
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
+    await assertFails(
+      nonMemberDb.collection('family_stats').doc('family-unknown-vis').get()
+    );
+  });
+
+  it('non-member cannot change leaderboardVisibility', async () => {
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    await memberDb.collection('families').doc('family-vis-guard').set(validFamily);
+    // user-2 is not a member and cannot update family settings
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
+    await assertFails(
+      nonMemberDb.collection('families').doc('family-vis-guard').update({
+        settings: {
+          ...validFamily.settings,
+          leaderboardVisibility: 'FamilyLeaderboardVisibility.public',
+        },
+      })
+    );
+  });
+
+  it('public family stats write still requires membership', async () => {
+    // Even when family stats are public-readable, writes must be member-only
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    const publicFamily = {
+      ...validFamily,
+      settings: {
+        ...validFamily.settings,
+        leaderboardVisibility: 'FamilyLeaderboardVisibility.public',
+      },
+    };
+    await memberDb.collection('families').doc('family-public-write').set(publicFamily);
+    // Non-member can read (public) but cannot write
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
+    await assertSucceeds(
+      nonMemberDb.collection('family_stats').doc('family-public-write').get()
+    );
+    await assertFails(
+      nonMemberDb.collection('family_stats').doc('family-public-write').set({
+        totalClassifications: 999,
+        totalPoints: 9999,
       })
     );
   });

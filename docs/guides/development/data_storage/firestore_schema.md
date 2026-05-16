@@ -204,7 +204,7 @@ Full field list: see `WasteClassification.fromJson()` in `waste_classification.d
 
 * **Document ID**: `familyId` (matches `families/{familyId}`)
 * **Written by**: `FirebaseFamilyService` — only family members
-* **Privacy**: Readable and writable only by family members (enforced via `isFamilyMemberById` cross-doc lookup on `families/{familyId}.memberUids`). Family stats contain household activity data and are not public.
+* **Privacy**: Reads respect the family's `leaderboardVisibility` setting (`FamilySettings.leaderboardVisibility`): `public` allows any authenticated user to read; `membersOnly` or `adminsOnly` restricts reads to family members (enforced via `canReadFamilyStats` cross-doc lookup). Writes always require family membership regardless of visibility. Family stats contain household activity data and default to member-only access.
 
 ---
 

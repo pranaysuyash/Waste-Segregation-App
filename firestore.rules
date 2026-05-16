@@ -147,13 +147,14 @@ service cloud.firestore {
         && resource.data.sharedBy == request.auth.uid;
     }
     
-    // Family stats - only family members can write.
-    // Uses cross-doc get() to look up the family document and verify
-    // that request.auth.uid is in family.memberUids or is createdBy.
-    // family_stats/{familyId} doc ID matches families/{familyId} doc ID.
+    // Family stats - reads respect leaderboardVisibility setting.
+    // membersOnly/adminsOnly: only family members can read.
+    // public: any authenticated user can read (for community discovery).
+    // Writes always require family membership regardless of visibility.
+    // Uses cross-doc get() to look up the family document.
     match /family_stats/{familyId} {
       allow read: if request.auth != null
-        && isFamilyMemberById(familyId, request.auth.uid);
+        && canReadFamilyStats(familyId, request.auth.uid);
       allow create: if request.auth != null
         && isFamilyMemberById(familyId, request.auth.uid);
       allow update: if request.auth != null
@@ -357,6 +358,25 @@ service cloud.firestore {
       let family = get(/databases/$(database)/documents/families/$(familyId));
       return family != null
         && belongsToFamily(family.data, uid);
+    }
+    
+    // Checks whether a user can read family stats based on the
+    // family's leaderboardVisibility setting:
+    // - public: any authenticated user can read
+    // - membersOnly/adminsOnly: only family members can read
+    // Falls back to member-only if the setting is missing or unrecognized.
+    function canReadFamilyStats(familyId, uid) {
+      let family = get(/databases/$(database)/documents/families/$(familyId));
+      return family != null
+        && (isFamilyStatsPublic(family.data)
+          || belongsToFamily(family.data, uid));
+    }
+    
+    // Checks if the family's leaderboardVisibility is set to public.
+    // Dart enum toString() produces "FamilyLeaderboardVisibility.public".
+    function isFamilyStatsPublic(familyData) {
+      return familyData.settings.leaderboardVisibility
+        == "FamilyLeaderboardVisibility.public";
     }
     
     // --- Family validation ---
