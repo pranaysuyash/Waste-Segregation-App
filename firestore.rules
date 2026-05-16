@@ -147,13 +147,18 @@ service cloud.firestore {
         && resource.data.sharedBy == request.auth.uid;
     }
     
-    // Family stats - client writes via FirebaseFamilyService are allowed.
-    // Membership enforcement requires get() cross-doc lookup which adds
-    // complexity. For now, any authenticated user can write stats.
-    // TODO: Tighten to membership check once memberUids is fully migrated.
+    // Family stats - only family members can write.
+    // Uses cross-doc get() to look up the family document and verify
+    // that request.auth.uid is in family.memberUids or is createdBy.
+    // family_stats/{familyId} doc ID matches families/{familyId} doc ID.
     match /family_stats/{familyId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow create: if request.auth != null
+        && isFamilyMemberById(familyId, request.auth.uid);
+      allow update: if request.auth != null
+        && isFamilyMemberById(familyId, request.auth.uid);
+      allow delete: if request.auth != null
+        && isFamilyMemberById(familyId, request.auth.uid);
     }
 
     // ============================================================
@@ -343,6 +348,14 @@ service cloud.firestore {
     function belongsToFamily(familyData, uid) {
       return uid in familyData.memberUids
         || familyData.createdBy == uid;
+    }
+    
+    // Checks membership via cross-doc get() on the families collection.
+    // family_stats/{familyId} doc ID matches families/{familyId}.
+    function isFamilyMemberById(familyId, uid) {
+      let family = get(/databases/$(database)/documents/families/$(familyId));
+      return family != null
+        && belongsToFamily(family.data, uid);
     }
     
     // --- Family validation ---

@@ -301,19 +301,22 @@ describe('Family rules', () => {
     );
   });
 
-  // --- Family stats ---
-  it('authenticated user can read family stats', async () => {
+  // --- Family stats (membership-enforced) ---
+  it('family member can read family stats', async () => {
+    // Create family doc and stats doc as user-1 (who is a member)
     const db = testEnv.authenticatedContext('user-1').firestore();
-    // Create stats doc first (admin context)
-    const adminDb = testEnv.authenticatedContext('admin').firestore();
-    await adminDb.collection('family_stats').doc('family-1').set({ totalClassifications: 0, totalPoints: 0 });
+    await db.collection('families').doc('family-1').set(validFamily);
+    await db.collection('family_stats').doc('family-1').set({ totalClassifications: 0, totalPoints: 0 });
+    // user-1 can read their own family stats
     await assertSucceeds(
       db.collection('family_stats').doc('family-1').get()
     );
   });
 
-  it('authenticated user can write family stats', async () => {
+  it('family member can write family stats', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
+    // Create family doc first so membership check passes
+    await db.collection('families').doc('family-1').set(validFamily);
     await assertSucceeds(
       db.collection('family_stats').doc('family-1').set({
         totalClassifications: 1,
@@ -326,10 +329,53 @@ describe('Family rules', () => {
     );
   });
 
+  it('non-member cannot write family stats', async () => {
+    // user-1 creates the family (they are in memberUids)
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    await memberDb.collection('families').doc('family-1').set(validFamily);
+    // user-2 is NOT in memberUids and should fail
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
+    await assertFails(
+      nonMemberDb.collection('family_stats').doc('family-1').set({
+        totalClassifications: 1,
+        totalPoints: 10,
+      })
+    );
+  });
+
+  it('family creator can write stats via createdBy fallback', async () => {
+    // Test that the family creator (who IS in memberUids for normal docs)
+    // can write stats. The createdBy fallback in belongsToFamily handles
+    // legacy docs that lack memberUids.
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await db.collection('families').doc('family-creator-test').set(validFamily);
+    await assertSucceeds(
+      db.collection('family_stats').doc('family-creator-test').set({
+        totalClassifications: 1,
+        totalPoints: 10,
+        memberCount: 1,
+        currentStreak: 0,
+        categoryCounts: {},
+        lastUpdated: new Date().toISOString(),
+      })
+    );
+  });
+
   it('unauthenticated user cannot write family stats', async () => {
     const db = testEnv.unauthenticatedContext().firestore();
     await assertFails(
       db.collection('family_stats').doc('family-1').set({ totalClassifications: 0 })
+    );
+  });
+
+  it('stats write fails when family doc does not exist', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    // No family doc created for 'family-nonexistent'
+    await assertFails(
+      db.collection('family_stats').doc('family-nonexistent').set({
+        totalClassifications: 1,
+        totalPoints: 10,
+      })
     );
   });
 
@@ -367,8 +413,10 @@ describe('Family rules', () => {
     );
   });
 
-  it('authenticated user can write family stats', async () => {
+  it('family member can write stats via memberUids check', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
+    // Create family doc so the cross-doc get() finds memberUids
+    await db.collection('families').doc('family-stats-test').set(validFamily);
     await assertSucceeds(
       db.collection('family_stats').doc('family-stats-test').set({
         totalClassifications: 1,
@@ -381,10 +429,14 @@ describe('Family rules', () => {
     );
   });
 
-  it('unauthenticated user cannot write family stats', async () => {
-    const db = testEnv.unauthenticatedContext().firestore();
+  it('non-member cannot write stats for that family', async () => {
+    // user-1 creates the family (they are in memberUids)
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    await memberDb.collection('families').doc('family-stats-no').set(validFamily);
+    // user-2 is NOT in memberUids and should fail
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
     await assertFails(
-      db.collection('family_stats').doc('family-stats-no').set({
+      nonMemberDb.collection('family_stats').doc('family-stats-no').set({
         totalClassifications: 0,
       })
     );
