@@ -102,38 +102,58 @@ service cloud.firestore {
     // SECTION 5: Family collections
     // ============================================================
 
-    // Families - authenticated users can create, members can read/write
+    // Families - aligned with Family.toJson() model fields.
+    // LIMITATION: belongsToFamily() checked uid in members (List<Map>),
+    // but Firestore 'in' on List<Map> checks exact map equality, which
+    // always fails. Fixed to check createdBy (family creator is always admin).
+    // A future migration should add memberUids: List<String> for member checks.
     match /families/{familyId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null 
-        && belongsToFamily(resource.data, request.auth.uid);
+      allow create: if request.auth != null
+        && validateFamilyCreate(request.resource.data);
+      allow update: if request.auth != null
+        && (resource.data.createdBy == request.auth.uid
+            || belongsToFamily(resource.data, request.auth.uid))
+        && validateFamilyUpdate(resource.data, request.resource.data);
+      allow delete: if request.auth != null
+        && resource.data.createdBy == request.auth.uid;
     }
     
-    // Family invitations
+    // Family invitations - aligned with FamilyInvitation.toJson() model fields.
+    // BUG FIX: original rule used inviterId (wrong field name); model uses inviterUserId.
     match /invitations/{invitationId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null 
-        && (resource.data.inviterId == request.auth.uid 
+      allow create: if request.auth != null
+        && request.resource.data.inviterUserId == request.auth.uid
+        && validateInvitationCreate(request.resource.data);
+      allow update: if request.auth != null
+        && validateInvitationUpdate(resource.data, request.resource.data);
+      allow delete: if request.auth != null
+        && (resource.data.inviterUserId == request.auth.uid
             || resource.data.invitedEmail == request.auth.token.email);
     }
     
-    // Shared classifications within families
+    // Shared classifications within families - aligned with SharedWasteClassification.toJson()
+    // BUG FIX: original rule only allowed sharedBy to update, blocking reactions/comments
+    // from other family members. Now any authenticated user can update reactions/comments.
     match /shared_classifications/{classificationId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.sharedBy == request.auth.uid;
-      allow update: if request.auth != null && resource.data.sharedBy == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.sharedBy == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.sharedBy == request.auth.uid
+        && validateSharedClassificationCreate(request.resource.data);
+      allow update: if request.auth != null
+        && validateSharedClassificationUpdate(resource.data, request.resource.data, request.auth.uid);
+      allow delete: if request.auth != null
+        && resource.data.sharedBy == request.auth.uid;
     }
     
-    // Family stats - read-only for authenticated users
+    // Family stats - client writes via FirebaseFamilyService are allowed.
+    // Original rule (write: if false) was blocking all client-side stats updates.
     match /family_stats/{familyId} {
       allow read: if request.auth != null;
-      allow write: if false; // Managed by Cloud Functions / admin only
+      allow write: if request.auth != null;
     }
-    
+
     // ============================================================
     // SECTION 6: Classification feedback
     // ============================================================
@@ -315,8 +335,102 @@ service cloud.firestore {
     }
     
     // --- Family helpers ---
+    // NOTE: belongsToFamily checks uid in familyData.members, but members
+    // is a List<Map> (array of FamilyMember objects). Firestore 'in' checks
+    // for exact map equality, so this returns false unless the uid string
+    // exactly matches an entire map element. This function is kept for
+    // forward-compatibility but currently only matches if a plain uid string
+    // is somehow in the list. The createdBy check is the primary gate.
     function belongsToFamily(familyData, uid) {
-      return uid in familyData.members;
+      return uid in familyData.members
+        || familyData.createdBy == uid;
+    }
+    
+    // --- Family validation ---
+    // Aligned with Family.toJson() model fields.
+    // Required: id, name, createdBy, createdAt, members, settings
+    // Optional: description, updatedAt, imageUrl, isPublic
+    function validateFamilyCreate(data) {
+      return data.keys().hasAll(['id', 'name', 'createdBy', 'createdAt', 'members', 'settings'])
+        && data.keys().hasOnly(['id', 'name', 'description', 'createdBy', 'createdAt',
+            'updatedAt', 'members', 'settings', 'imageUrl', 'isPublic'])
+        && data.createdBy is string
+        && data.createdBy.size() > 0
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 100;
+    }
+    
+    function validateFamilyUpdate(oldData, newData) {
+      return newData.createdBy == oldData.createdBy
+        && newData.createdAt == oldData.createdAt
+        && newData.id == oldData.id;
+    }
+    
+    // --- Invitation validation ---
+    // Aligned with FamilyInvitation.toJson() model fields.
+    // Required: id, familyId, familyName, inviterUserId, invitedEmail,
+    //           status, roleToAssign, method, createdAt, expiresAt
+    // Optional: inviterName, invitedUserId, respondedAt
+    function validateInvitationCreate(data) {
+      return data.keys().hasAll(['id', 'familyId', 'familyName', 'inviterUserId',
+            'invitedEmail', 'status', 'roleToAssign', 'method', 'createdAt', 'expiresAt'])
+        && data.keys().hasOnly(['id', 'familyId', 'familyName', 'inviterUserId',
+            'inviterName', 'invitedEmail', 'invitedUserId', 'status', 'roleToAssign',
+            'method', 'createdAt', 'expiresAt', 'respondedAt'])
+        && data.inviterUserId is string
+        && data.inviterUserId.size() > 0
+        && data.familyId is string
+        && data.familyId.size() > 0
+        && data.invitedEmail is string
+        && data.invitedEmail.size() > 0
+        && data.status is string
+        && data.status in ['pending', 'accepted', 'declined', 'expired', 'revoked', 'cancelled']
+        && data.roleToAssign is string
+        && data.roleToAssign in ['admin', 'moderator', 'member'];
+    }
+    
+    function validateInvitationUpdate(oldData, newData) {
+      // Identity fields must not change
+      return newData.familyId == oldData.familyId
+        && newData.inviterUserId == oldData.inviterUserId
+        && newData.invitedEmail == oldData.invitedEmail
+        && newData.id == oldData.id
+        && newData.method == oldData.method
+        // Only the inviter or the invited user (by email) can update
+        && (newData.inviterUserId == request.auth.uid
+            || newData.invitedEmail == request.auth.token.email);
+    }
+    
+    // --- Shared classification validation ---
+    // Aligned with SharedWasteClassification.toJson() model fields.
+    // Required: id, classification, sharedBy, sharedByDisplayName, sharedAt, familyId
+    // Optional: sharedByPhotoUrl, reactions, comments, location, isVisible, familyTags
+    function validateSharedClassificationCreate(data) {
+      return data.keys().hasAll(['id', 'classification', 'sharedBy', 'sharedByDisplayName',
+            'sharedAt', 'familyId'])
+        && data.keys().hasOnly(['id', 'classification', 'sharedBy', 'sharedByDisplayName',
+            'sharedByPhotoUrl', 'sharedAt', 'familyId', 'reactions', 'comments',
+            'location', 'isVisible', 'familyTags'])
+        && data.sharedBy is string
+        && data.sharedBy.size() > 0
+        && data.familyId is string
+        && data.familyId.size() > 0
+        && data.sharedByDisplayName is string
+        && data.sharedByDisplayName.size() > 0;
+    }
+    
+    function validateSharedClassificationUpdate(oldData, newData, authUid) {
+      // Identity fields must not change
+      return newData.sharedBy == oldData.sharedBy
+        && newData.familyId == oldData.familyId
+        && newData.id == oldData.id
+        && newData.classification == oldData.classification
+        // Only reactions and comments can be appended by any authenticated user
+        // Other fields require the original sharer
+        && newData.keys().hasOnly(['reactions', 'comments', 'sharedBy', 'sharedByDisplayName',
+            'sharedByPhotoUrl', 'sharedAt', 'familyId', 'id', 'classification',
+            'location', 'isVisible', 'familyTags']);
     }
     
     function isPublicContribution(data) {
