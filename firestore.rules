@@ -152,7 +152,8 @@ service cloud.firestore {
     // that request.auth.uid is in family.memberUids or is createdBy.
     // family_stats/{familyId} doc ID matches families/{familyId} doc ID.
     match /family_stats/{familyId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null
+        && isFamilyMemberById(familyId, request.auth.uid);
       allow create: if request.auth != null
         && isFamilyMemberById(familyId, request.auth.uid);
       allow update: if request.auth != null

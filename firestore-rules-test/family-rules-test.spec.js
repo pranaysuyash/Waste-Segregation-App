@@ -313,6 +313,25 @@ describe('Family rules', () => {
     );
   });
 
+  it('non-member cannot read family stats', async () => {
+    // user-1 creates family and stats
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    await memberDb.collection('families').doc('family-1').set(validFamily);
+    await memberDb.collection('family_stats').doc('family-1').set({ totalClassifications: 0, totalPoints: 0 });
+    // user-2 is NOT in memberUids and cannot read
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
+    await assertFails(
+      nonMemberDb.collection('family_stats').doc('family-1').get()
+    );
+  });
+
+  it('unauthenticated user cannot read family stats', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(
+      db.collection('family_stats').doc('family-1').get()
+    );
+  });
+
   it('family member can write family stats', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
     // Create family doc first so membership check passes

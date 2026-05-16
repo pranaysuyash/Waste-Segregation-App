@@ -203,8 +203,8 @@ Full field list: see `WasteClassification.fromJson()` in `waste_classification.d
 ## 9. Family Stats (`family_stats`)
 
 * **Document ID**: `familyId` (matches `families/{familyId}`)
-* **Written by**: `FirebaseFamilyService` — only family members can write
-* **Privacy**: Readable by authenticated users; writable only by family members (enforced via `isFamilyMemberById` cross-doc lookup on `families/{familyId}.memberUids`)
+* **Written by**: `FirebaseFamilyService` — only family members
+* **Privacy**: Readable and writable only by family members (enforced via `isFamilyMemberById` cross-doc lookup on `families/{familyId}.memberUids`). Family stats contain household activity data and are not public.
 
 ---
 
