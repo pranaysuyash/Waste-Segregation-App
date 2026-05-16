@@ -59,7 +59,12 @@ class GamificationService extends ChangeNotifier {
     'perfect_week': 50, // Points for using app every day in a week
     'community_challenge':
         30, // Points for participating in community challenge
-  }; // Updated constructor
+    'feedback_provided': 5, // Points for confirming AI classification
+    'correction_provided': 10, // Points for correcting AI classification
+  };
+
+  /// Public read-only access to the points map for consumers like ResultPipeline.
+  static const Map<String, int> pointValues = _pointValues; // Updated constructor
 
   // Initialize Hive box (primarily for challenges, weekly stats if still used this way)
   Future<void> initGamification() async {
@@ -839,7 +844,7 @@ class GamificationService extends ChangeNotifier {
               'service': 'gamification',
               'file': 'gamification_service',
               'achievement_id': achievement.id,
-              'achievement_name': achievement.name,
+              'achievement_name': achievement.title,
             });
           } else if (achievement.progress != progress) {
             newAchievement = achievement.copyWith(progress: progress);
@@ -877,7 +882,7 @@ class GamificationService extends ChangeNotifier {
               'service': 'gamification',
               'file': 'gamification_service',
               'achievement_id': achievement.id,
-              'achievement_name': achievement.name,
+              'achievement_name': achievement.title,
             });
           } else if (achievement.progress != progress) {
             newAchievement = achievement.copyWith(progress: progress);

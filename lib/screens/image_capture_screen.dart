@@ -16,7 +16,7 @@ import '../providers/ai_job_providers.dart';
 import '../providers/app_providers.dart';
 import '../services/image_quality_gate.dart';
 import '../services/offline_queue_service.dart';
-import 'result_screen.dart';
+import 'result_screen_wrapper.dart';
 import '../utils/waste_app_logger.dart';
 
 class ImageCaptureScreen extends ConsumerStatefulWidget {
@@ -573,7 +573,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ResultScreen(
+            builder: (context) => ResultScreenWrapper(
               classification: classification,
             ),
           ),

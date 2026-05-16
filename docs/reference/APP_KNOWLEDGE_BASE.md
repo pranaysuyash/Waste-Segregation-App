@@ -71,8 +71,8 @@
 - **Inference modes (declared):** On-device TFLite (placeholder only), cloud via OpenAI/Gemini APIs; hybrid/batch configs via `VisionModelConfig`.
 - **Reality check:** No model binaries checked in (no `.tflite`/`.onnx`/`.mlmodel` files). On-device path returns a placeholder classification. Cloud path depends on API keys in `.env` (not committed).
 - **App status:** ✅ **Success path verified** (Android screenshot shows working home with gamification stats, action cards). iOS debug uses minimal mode by design. Fixed Firestore batch reuse bug (see `docs/analysis/BLANK_SCREEN_ANALYSIS.md`).
-- **Last verified:** 2026-01-27 (update this date when you touch the file).
-- **Version:** v2.3.0 (per README; documentation overhaul in June 2025; production-ready status claimed).
+- **Last verified:** 2026-05-15 (Result screen consolidation — v1/v2 merged into single Riverpod canonical screen).
+- **Version:** v2.4.0 (Result screen consolidation, feedback pipeline, Firestore rules fix, analyzer zero-error state).
 
 ## System Architecture (Deep Dive)
 
@@ -95,9 +95,8 @@
 
 ### 2. State Management Architecture
 
-- **Riverpod providers:** Used for async data, dependency injection (see `RIVERPOD_MIGRATION_GUIDE.md` for pure Riverpod approach).
-- **Provider (legacy):** Some screens still use `ChangeNotifierProvider`/`Consumer`; migration to Riverpod ongoing.
-- **ViewModels:** MVVM pattern adopted for complex screens (e.g., `ResultScreenViewModel`, gamification providers).
+- **Riverpod (canonical):** Used for async data, dependency injection, and the result screen pipeline. The canonical `ResultScreen` (`lib/screens/result_screen.dart`) uses `ConsumerStatefulWidget` + `ResultPipeline` (`StateNotifier`). See `docs/guides/RIVERPOD_MIGRATION_GUIDE.md`.
+- **Provider (legacy):** Older screens still use `ChangeNotifierProvider`/`Consumer`; migration to Riverpod is ongoing.
 - **Hive boxes:** Persistent storage for classifications, user profiles, settings, offline queue.
 
 ### 3. Networking & API Layer

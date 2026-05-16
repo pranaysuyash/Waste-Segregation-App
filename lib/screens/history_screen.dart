@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/filter_options.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import '../screens/result_screen.dart';
+import '../screens/result_screen_wrapper.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
@@ -692,7 +692,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ResultScreen(
+                      builder: (context) => ResultScreenWrapper(
             classification: classification,
             showActions: false,
           ),
@@ -754,7 +754,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                   const VerticalDivider(width: 1),
                   Expanded(
                     child: _selectedClassification != null
-                        ? ResultScreen(
+                        ? ResultScreenWrapper(
                             classification: _selectedClassification!,
                             showActions: false,
                           )

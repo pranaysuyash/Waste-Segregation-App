@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/gamification.dart';
+import '../models/classification_feedback.dart';
 import '../services/storage_service.dart';
 import '../services/gamification_service.dart';
 import '../services/cloud_storage_service.dart';
@@ -313,6 +314,103 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
           });
       state = state.copyWith(error: error);
       throw Exception(error);
+    }
+  }
+
+  /// Submit user feedback on a classification (confirm or correct)
+  ///
+  /// Saves the updated classification, persists a [ClassificationFeedback]
+  /// record locally and to Firestore, awards gamification points, and
+  /// tracks analytics.
+  ///
+  /// Returns the earned points so the UI can show a popup.
+  Future<int> submitFeedback({
+    required WasteClassification classification,
+    required bool userConfirmed,
+    String? userCorrection,
+    String? userNotes,
+    String? userSuggestedCategory,
+    String? userSuggestedMaterial,
+    String? userSuggestedItemName,
+  }) async {
+    final isCorrection = userConfirmed == false && userSuggestedCategory != null;
+    final action = isCorrection ? 'correction_provided' : 'feedback_provided';
+    final points = GamificationService.pointValues[action] ?? 0;
+
+    try {
+      // 1. Save updated classification locally
+      final updated = classification.copyWith(
+        userConfirmed: userConfirmed,
+        userCorrection: userCorrection,
+        userNotes: userNotes,
+      );
+      await _storageService.saveClassification(updated, force: true);
+
+      // 2. Persist ClassificationFeedback record
+      final profile = await _storageService.getCurrentUserProfile();
+      final feedback = ClassificationFeedback(
+        userId: profile?.id ?? 'unknown',
+        originalClassificationId: classification.id,
+        originalAIItemName: classification.itemName,
+        originalAICategory: classification.category,
+        originalAIMaterial: classification.materialType,
+        originalAIConfidence: classification.confidence,
+        userSuggestedItemName: userSuggestedItemName,
+        userSuggestedCategory: userSuggestedCategory ?? classification.category,
+        userSuggestedMaterial: userSuggestedMaterial,
+        userNotes: userNotes,
+      );
+      await _storageService.saveClassificationFeedback(feedback);
+
+      // 3. Sync to Firestore (non-blocking — fail silently)
+      try {
+        final settings = await _storageService.getSettings();
+        if (settings['isGoogleSyncEnabled'] == true) {
+          await _cloudStorageService.saveClassificationFeedbackToCloud(feedback);
+        }
+      } catch (e) {
+        WasteAppLogger.warning('Feedback cloud sync failed', error: e, context: {
+          'classificationId': classification.id,
+          'service': 'ResultPipeline',
+        });
+      }
+
+      // 4. Award gamification points
+      try {
+        await _gamificationService.addPoints(action, customPoints: points);
+      } catch (e) {
+        WasteAppLogger.warning('Feedback points award failed', error: e);
+      }
+
+      // 5. Track analytics
+      await _analyticsService.trackEvent(
+        eventType: AnalyticsEventTypes.userAction,
+        eventName: 'classification.feedback',
+        parameters: {
+          'is_correct': userConfirmed.toString(),
+          'corrected_to': userSuggestedCategory ?? classification.category,
+          'classification_id': classification.id,
+          'original_category': classification.category,
+        },
+      );
+
+      WasteAppLogger.info('Feedback submitted', context: {
+        'classificationId': classification.id,
+        'action': action,
+        'points': points,
+        'service': 'ResultPipeline',
+      });
+
+      return points;
+    } catch (e, stackTrace) {
+      WasteAppLogger.severe('Feedback submission failed',
+          error: e,
+          stackTrace: stackTrace,
+          context: {
+            'classificationId': classification.id,
+            'service': 'ResultPipeline',
+          });
+      rethrow;
     }
   }
 

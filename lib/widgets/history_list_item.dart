@@ -7,8 +7,8 @@ import 'package:path/path.dart' as path;
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/constants.dart';
 import '../services/enhanced_image_service.dart';
-import 'classification_feedback_widget.dart';
 import '../utils/safe_file_path.dart';
+import '../widgets/correction_dialog.dart';
 import '../utils/waste_app_logger.dart';
 
 /// A simplified version of ClassificationCard for list views in the history screen
@@ -653,69 +653,13 @@ class _CompactFeedbackButton extends StatelessWidget {
   void _showFeedbackDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-        ),
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: 500,
-            maxHeight: MediaQuery.of(context).size.height * 0.85,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Fixed header
-              Container(
-                padding: const EdgeInsets.all(AppTheme.paddingLarge),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(AppTheme.borderRadiusLarge),
-                    topRight: Radius.circular(AppTheme.borderRadiusLarge),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.feedback,
-                      color: AppTheme.primaryColor,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'Help us improve classification',
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeLarge,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimaryColor,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
-                      iconSize: 20,
-                      tooltip: 'Close feedback dialog',
-                    ),
-                  ],
-                ),
-              ),
-              // Scrollable content
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppTheme.paddingLarge),
-                  child: ClassificationFeedbackWidget(
-                    classification: classification,
-                    onFeedbackSubmitted: onFeedbackSubmitted,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+      builder: (context) => CorrectionDialog(
+        classification: classification,
       ),
-    );
+    ).then((corrected) {
+      if (corrected == true) {
+        onFeedbackSubmitted(classification);
+      }
+    });
   }
 }

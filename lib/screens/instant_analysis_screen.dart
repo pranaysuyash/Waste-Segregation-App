@@ -8,7 +8,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/ai_service.dart';
 import '../services/gamification_service.dart';
 import '../widgets/enhanced_analysis_loader.dart';
-import '../screens/result_screen.dart';
+import '../screens/result_screen_wrapper.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Screen that performs instant analysis without showing review screen
@@ -83,7 +83,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
         await Navigator.pushReplacement<void, void>(
           context,
           MaterialPageRoute(
-            builder: (context) => ResultScreen(
+            builder: (context) => ResultScreenWrapper(
               classification: result!,
               autoAnalyze: true,
             ),

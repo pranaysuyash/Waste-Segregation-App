@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import '../screens/result_screen.dart';
+import '../screens/result_screen_wrapper.dart';
 
 /// Handles deep linking for sharing and navigation using app_links
 class DynamicLinkService {
@@ -72,7 +72,7 @@ class DynamicLinkService {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ResultScreen(
+              builder: (_) => ResultScreenWrapper(
                 classification: classification,
                 showActions: false,
               ),

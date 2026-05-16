@@ -145,8 +145,8 @@ dart fix --apply
 ## Architecture Overview
 
 ### State Management
-- **Primary**: Provider pattern for most state management
-- **Secondary**: Riverpod for specific providers (app_providers.dart)
+- **Primary**: Riverpod for the canonical result screen (`lib/screens/result_screen.dart`) and pipeline (`lib/services/result_pipeline.dart`)
+- **Legacy**: Provider still used in some older screens and services
 - **Local Storage**: Hive for offline data persistence
 - **Cloud Sync**: Firebase Firestore for real-time data synchronization
 
@@ -155,7 +155,7 @@ dart fix --apply
 #### AI Classification System
 - **AIService** (`lib/services/ai_service.dart`): Multi-tier AI system with OpenAI (primary) and Gemini (fallback)
 - **CacheService**: SHA-256 based image classification caching
-- **ResultPipeline**: Processes classification results and handles saving
+- **ResultPipeline** (`lib/services/result_pipeline.dart`): StateNotifier-based pipeline that processes all classification business logic — saving, gamification, cloud sync, community posting, and feedback. Includes `submitFeedback()` with ClassificationFeedback record persistence and points award.
 
 #### Storage Architecture
 - **StorageService**: Hive-based local storage for classifications, user profiles, gamification data

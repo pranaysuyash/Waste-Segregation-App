@@ -102,8 +102,6 @@ Future<void> removeUnusedCode() async {
     'lib/services/firebase_family_service.dart:_calculateEnvironmentalImpact',
     'lib/services/firebase_family_service.dart:_calculateWeeklyProgress',
     'lib/widgets/classification_card.dart:_showDetails',
-    'lib/widgets/classification_feedback_widget.dart:_showFullFeedbackDialog',
-    'lib/widgets/classification_feedback_widget.dart:_updateFeedbackTimeframe',
     'lib/widgets/production_error_handler.dart:_buildDebugErrorWidget',
     'lib/widgets/settings/developer_section.dart:_buildDeveloperHeader',
     'lib/widgets/settings/developer_section.dart:_buildFeatureToggles',

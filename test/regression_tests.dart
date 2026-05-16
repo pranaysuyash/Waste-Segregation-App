@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/widgets/classification_feedback_widget.dart';
 import 'package:waste_segregation_app/widgets/history_list_item.dart';
 
 WasteClassification _classification({
@@ -56,30 +55,6 @@ void main() {
     });
 
     group('Layout Overflow Prevention', () {
-      testWidgets('ClassificationFeedbackWidget renders on narrow width',
-          (WidgetTester tester) async {
-        final classification = _classification();
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: SizedBox(
-                width: 250,
-                height: 400,
-                child: ClassificationFeedbackWidget(
-                  classification: classification,
-                  onFeedbackSubmitted: (_) {},
-                  showCompactVersion: true,
-                ),
-              ),
-            ),
-          ),
-        );
-
-        await tester.pump();
-        expect(tester.takeException(), isNull);
-      });
-
       testWidgets('HistoryListItem renders in constrained width',
           (WidgetTester tester) async {
         final classification = _classification(
@@ -95,6 +70,7 @@ void main() {
                 child: HistoryListItem(
                   classification: classification,
                   onTap: () {},
+                  onFeedbackSubmitted: (_) {},
                 ),
               ),
             ),
