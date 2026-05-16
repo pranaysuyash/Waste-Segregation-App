@@ -238,10 +238,11 @@ class CommunityFeedSchema {
 /// Canonical schema for `families` collection.
 ///
 /// Source: Family.toJson() from enhanced_family.dart
-/// NOTE: The old doc listed familyName, familyAdminUids, memberUids, etc.
-/// The actual model uses: id, name, description, createdBy, createdAt, updatedAt,
-/// members (list of embedded FamilyMember), settings (embedded FamilySettings),
-/// imageUrl, isPublic.
+/// Fields: id, name, description, createdBy, createdAt, updatedAt,
+/// members (list of embedded FamilyMember), memberUids (flat List<String> for rules),
+/// settings (embedded FamilySettings), imageUrl, isPublic.
+/// memberUids is derived from members[].userId for Firestore rules membership checks.
+/// Legacy docs without memberUids can derive it from members on read (fromJson).
 class FamiliesSchema {
   static const String collection = FirestoreCollections.families;
 
@@ -256,6 +257,7 @@ class FamiliesSchema {
     SchemaField(name: 'settings', type: 'Map', classification: FieldClassification.private, required: false, description: 'Embedded FamilySettings object'),
     SchemaField(name: 'imageUrl', type: 'String?', classification: FieldClassification.private, required: false),
     SchemaField(name: 'isPublic', type: 'bool', classification: FieldClassification.system, required: false, defaultValue: false),
+    SchemaField(name: 'memberUids', type: 'List<String>', classification: FieldClassification.system, required: false, description: 'Flat list of member user IDs for Firestore rules membership checks. Derived from members[].userId.'),
   ];
 }
 

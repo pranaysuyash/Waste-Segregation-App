@@ -103,13 +103,13 @@ service cloud.firestore {
     // ============================================================
 
     // Families - aligned with Family.toJson() model fields.
-    // LIMITATION: belongsToFamily() checked uid in members (List<Map>),
-    // but Firestore 'in' on List<Map> checks exact map equality, which
-    // always fails. Fixed to check createdBy (family creator is always admin).
-    // A future migration should add memberUids: List<String> for member checks.
+    // memberUids: List<String> is a flat index of member user IDs maintained
+    // alongside members: List<Map>. belongsToFamily() now checks uid in memberUids.
+    // Legacy docs without memberUids fall back to createdBy check.
     match /families/{familyId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null
+        && request.resource.data.createdBy == request.auth.uid
         && validateFamilyCreate(request.resource.data);
       allow update: if request.auth != null
         && (resource.data.createdBy == request.auth.uid
@@ -148,7 +148,9 @@ service cloud.firestore {
     }
     
     // Family stats - client writes via FirebaseFamilyService are allowed.
-    // Original rule (write: if false) was blocking all client-side stats updates.
+    // Membership enforcement requires get() cross-doc lookup which adds
+    // complexity. For now, any authenticated user can write stats.
+    // TODO: Tighten to membership check once memberUids is fully migrated.
     match /family_stats/{familyId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null;
@@ -335,14 +337,11 @@ service cloud.firestore {
     }
     
     // --- Family helpers ---
-    // NOTE: belongsToFamily checks uid in familyData.members, but members
-    // is a List<Map> (array of FamilyMember objects). Firestore 'in' checks
-    // for exact map equality, so this returns false unless the uid string
-    // exactly matches an entire map element. This function is kept for
-    // forward-compatibility but currently only matches if a plain uid string
-    // is somehow in the list. The createdBy check is the primary gate.
+    // Checks if a user is a member of a family using the memberUids index.
+    // memberUids is a flat List<String> maintained by the app alongside members: List<Map>.
+    // Falls back to createdBy check for legacy docs or as admin guarantee.
     function belongsToFamily(familyData, uid) {
-      return uid in familyData.members
+      return uid in familyData.memberUids
         || familyData.createdBy == uid;
     }
     
@@ -351,14 +350,15 @@ service cloud.firestore {
     // Required: id, name, createdBy, createdAt, members, settings
     // Optional: description, updatedAt, imageUrl, isPublic
     function validateFamilyCreate(data) {
-      return data.keys().hasAll(['id', 'name', 'createdBy', 'createdAt', 'members', 'settings'])
+      return data.keys().hasAll(['id', 'name', 'createdBy', 'createdAt', 'members', 'memberUids', 'settings'])
         && data.keys().hasOnly(['id', 'name', 'description', 'createdBy', 'createdAt',
-            'updatedAt', 'members', 'settings', 'imageUrl', 'isPublic'])
+            'updatedAt', 'members', 'memberUids', 'settings', 'imageUrl', 'isPublic'])
         && data.createdBy is string
         && data.createdBy.size() > 0
         && data.name is string
         && data.name.size() > 0
-        && data.name.size() <= 100;
+        && data.name.size() <= 100
+        && data.createdBy in data.memberUids;
     }
     
     function validateFamilyUpdate(oldData, newData) {

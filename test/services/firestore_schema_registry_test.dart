@@ -271,14 +271,13 @@ void main() {
       final schemaFields = FamiliesSchema.fields.map((f) => f.name).toSet();
       expect(schemaFields, containsAll([
         'id', 'name', 'description', 'createdBy', 'createdAt',
-        'updatedAt', 'members', 'settings', 'imageUrl', 'isPublic',
+        'updatedAt', 'members', 'memberUids', 'settings', 'imageUrl', 'isPublic',
       ]));
 
       // Verify the old doc's wrong field names are NOT in the schema
       expect(schemaFields, isNot(contains('familyName')));
       expect(schemaFields, isNot(contains('familyAdminUids')));
-      expect(schemaFields, isNot(contains('memberUids')));
-      expect(schemaFields, isNot(contains('familyCode')));
+            expect(schemaFields, isNot(contains('familyCode')));
       expect(schemaFields, isNot(contains('familyGoals')));
       expect(schemaFields, isNot(contains('familyLeaderboardSettings')));
     });

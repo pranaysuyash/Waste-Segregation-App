@@ -25,6 +25,7 @@ const validFamily = {
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   members: [{ userId: 'user-1', role: 'admin', joinedAt: new Date().toISOString(), individualStats: { totalPoints: 0, totalClassifications: 0, currentStreak: 0, bestStreak: 0 } }],
+  memberUids: ['user-1'],
   settings: { isPublic: false, allowMemberInvites: true, leaderboardVisibility: 'membersOnly' },
   isPublic: false,
 };
@@ -329,6 +330,63 @@ describe('Family rules', () => {
     const db = testEnv.unauthenticatedContext().firestore();
     await assertFails(
       db.collection('family_stats').doc('family-1').set({ totalClassifications: 0 })
+    );
+  });
+
+  // --- memberUids and membership tests ---
+  it('family create succeeds when createdBy is in memberUids', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await assertSucceeds(
+      db.collection('families').doc('family-uid-test').set(validFamily)
+    );
+  });
+
+  it('family create fails when createdBy is not in memberUids', async () => {
+    const db = testEnv.authenticatedContext('user-2').firestore();
+    const badFamily = { ...validFamily, createdBy: 'user-1', memberUids: ['user-2'] };
+    await assertFails(
+      db.collection('families').doc('family-bad-uids').set(badFamily)
+    );
+  });
+
+  it('family create fails when memberUids is missing', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    const noUids = { ...validFamily };
+    delete noUids.memberUids;
+    await assertFails(
+      db.collection('families').doc('family-no-uids').set(noUids)
+    );
+  });
+
+  it('family member can update when uid in memberUids', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await db.collection('families').doc('family-member-test').set(validFamily);
+    // user-1 is in memberUids, so belongsToFamily should return true
+    await assertSucceeds(
+      db.collection('families').doc('family-member-test').update({ name: 'Updated Name' })
+    );
+  });
+
+  it('authenticated user can write family stats', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await assertSucceeds(
+      db.collection('family_stats').doc('family-stats-test').set({
+        totalClassifications: 1,
+        totalPoints: 10,
+        memberCount: 1,
+        currentStreak: 1,
+        categoryCounts: {},
+        lastUpdated: new Date().toISOString(),
+      })
+    );
+  });
+
+  it('unauthenticated user cannot write family stats', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(
+      db.collection('family_stats').doc('family-stats-no').set({
+        totalClassifications: 0,
+      })
     );
   });
 });

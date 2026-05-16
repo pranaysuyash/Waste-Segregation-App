@@ -53,6 +53,7 @@ const familyData = {
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   members: [{ userId: 'user-1', role: 'admin', displayName: 'Test User' }],
+  memberUids: ['user-1'],
   settings: { isPublic: false },
   isPublic: false,
 };

@@ -10,6 +10,7 @@ class Family {
     required this.createdAt,
     this.updatedAt,
     this.members = const [],
+    this.memberUids = const [],
     this.settings = const FamilySettings(),
     this.imageUrl,
     this.isPublic = false,
@@ -29,6 +30,7 @@ class Family {
       createdAt: now,
       updatedAt: now,
       members: [admin],
+      memberUids: [admin.userId],
       settings: FamilySettings.defaultSettings(),
     );
   }
@@ -48,6 +50,12 @@ class Family {
       members: (json['members'] as List<dynamic>? ?? [])
           .map((e) => FamilyMember.fromJson(e as Map<String, dynamic>))
           .toList(),
+      memberUids: (json['memberUids'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          (json['members'] as List<dynamic>? ?? [])
+              .map((e) => (e as Map<String, dynamic>)['userId'] as String)
+              .toList(),
       settings: settingsJson != null
           ? FamilySettings.fromJson(settingsJson)
           : const FamilySettings(),
@@ -64,6 +72,11 @@ class Family {
   final DateTime createdAt;
   final DateTime? updatedAt;
   final List<FamilyMember> members;
+
+  /// Rules-friendly membership index: flat list of user IDs derived from members.
+  /// Used by Firestore rules to check membership without iterating List<Map>.
+  /// Derived from members on read when not present (migration support).
+  final List<String> memberUids;
   final FamilySettings settings;
   final String? imageUrl;
   final bool isPublic;
@@ -96,6 +109,7 @@ class Family {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<FamilyMember>? members,
+    List<String>? memberUids,
     FamilySettings? settings,
     String? imageUrl,
     bool? isPublic,
@@ -108,6 +122,7 @@ class Family {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       members: members ?? this.members,
+      memberUids: memberUids ?? this.memberUids,
       settings: settings ?? this.settings,
       imageUrl: imageUrl ?? this.imageUrl,
       isPublic: isPublic ?? this.isPublic,
@@ -124,6 +139,7 @@ class Family {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'members': members.map((m) => m.toJson()).toList(),
+      'memberUids': memberUids.isNotEmpty ? memberUids : members.map((m) => m.userId).toList(),
       'settings': settings.toJson(),
       'imageUrl': imageUrl,
       'isPublic': isPublic,

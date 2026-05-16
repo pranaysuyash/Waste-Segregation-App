@@ -36,22 +36,23 @@ class FirebaseFamilyService {
       final now = DateTime.now();
 
       // Create the family object
+      final creatorMember = family_models.FamilyMember(
+        userId: creator.id,
+        role: family_models.UserRole.admin,
+        joinedAt: now,
+        individualStats: family_models.UserStats.empty(),
+        displayName: creator.displayName,
+        photoUrl: creator.photoUrl,
+      );
+
       final family = family_models.Family(
         id: familyId,
         name: name,
         createdBy: creator.id,
         createdAt: now,
         updatedAt: now,
-        members: [
-          family_models.FamilyMember(
-            userId: creator.id,
-            role: family_models.UserRole.admin,
-            joinedAt: now,
-            individualStats: family_models.UserStats.empty(),
-            displayName: creator.displayName,
-            photoUrl: creator.photoUrl,
-          ),
-        ],
+        members: [creatorMember],
+        memberUids: [creator.id],
         settings: family_models.FamilySettings.defaultSettings(),
       );
 
@@ -205,7 +206,10 @@ class FirebaseFamilyService {
       );
 
       final updatedMembers = [...family.members, newMember];
-      final updatedFamily = family.copyWith(members: updatedMembers);
+      final updatedFamily = family.copyWith(
+        members: updatedMembers,
+        memberUids: [...family.memberUids, userId],
+      );
 
       await updateFamily(updatedFamily);
       await _updateUserFamilyId(userId, familyId,
@@ -238,7 +242,10 @@ class FirebaseFamilyService {
       final updatedMembers =
           family.members.where((member) => member.userId != userId).toList();
 
-      final updatedFamily = family.copyWith(members: updatedMembers);
+      final updatedFamily = family.copyWith(
+        members: updatedMembers,
+        memberUids: updatedMembers.map((m) => m.userId).toList(),
+      );
       await updateFamily(updatedFamily);
 
       // Remove family ID from user's profile
@@ -285,7 +292,10 @@ class FirebaseFamilyService {
       updatedMembers[memberIndex] =
           updatedMembers[memberIndex].copyWith(role: newFamilyMemberRole);
 
-      final updatedFamily = family.copyWith(members: updatedMembers);
+      final updatedFamily = family.copyWith(
+        members: updatedMembers,
+        memberUids: updatedMembers.map((m) => m.userId).toList(),
+      );
       await updateFamily(updatedFamily);
       await _updateUserFamilyId(userId, familyId,
           newRoleFromProfile); // Pass the original profile role here

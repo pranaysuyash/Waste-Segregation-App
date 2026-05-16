@@ -127,7 +127,8 @@ Full field list: see `WasteClassification.fromJson()` in `waste_classification.d
 | `createdBy` | String | system | User ID who created the family (**NOT "familyAdminUids"**) |
 | `createdAt` | String | system | ISO 8601 |
 | `updatedAt` | String? | system | ISO 8601 |
-| `members` | List<Map> | private | Embedded `FamilyMember` objects (**NOT "memberUids"**) |
+| `members` | List<Map> | private | Embedded `FamilyMember` objects |
+| `memberUids` | List<String> | system | Flat list of member user IDs for Firestore rules membership checks. Derived from `members[].userId`. Legacy docs without this field can derive it on read. |
 | `settings` | Map | private | Embedded `FamilySettings` object (**NOT "familyLeaderboardSettings"**) |
 | `imageUrl` | String? | private | |
 | `isPublic` | bool | system | Default false |

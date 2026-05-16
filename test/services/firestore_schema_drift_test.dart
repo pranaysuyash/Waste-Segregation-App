@@ -163,7 +163,7 @@ void main() {
       // updatedAt, members, settings, imageUrl, isPublic
       final familyJsonFieldKeys = <String>{
         'id', 'name', 'description', 'createdBy', 'createdAt',
-        'updatedAt', 'members', 'settings', 'imageUrl', 'isPublic',
+        'updatedAt', 'members', 'memberUids', 'settings', 'imageUrl', 'isPublic',
       };
 
       final schemaFieldNames =
@@ -176,7 +176,7 @@ void main() {
 
       // Verify the old stale field names are NOT in the schema
       final staleFields = <String>{
-        'familyName', 'familyAdminUids', 'memberUids',
+        'familyName', 'familyAdminUids',
         'familyCode', 'familyGoals', 'familyLeaderboardSettings',
       };
       for (final field in staleFields) {
@@ -307,7 +307,7 @@ void main() {
           FamiliesSchema.fields.map((f) => f.name).toSet();
       final expectedFields = <String>{
         'id', 'name', 'description', 'createdBy', 'createdAt',
-        'updatedAt', 'members', 'settings', 'imageUrl', 'isPublic',
+        'updatedAt', 'members', 'memberUids', 'settings', 'imageUrl', 'isPublic',
       };
 
       expect(schemaFields, containsAll(expectedFields),
@@ -417,7 +417,6 @@ void main() {
       final staleFields = <String>{
         'familyName',    // replaced by 'name'
         'familyAdminUids', // replaced by 'members' with roles
-        'memberUids',    // replaced by 'members'
         'familyCode',    // not in current model
         'familyGoals',   // not in current model
         'familyLeaderboardSettings', // not in current model
