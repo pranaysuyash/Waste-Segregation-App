@@ -61,7 +61,7 @@ class ClassificationFeedback {
     Map<String, dynamic>? deviceInfo,
   }) {
     // Deterministic ID: classificationId + userId ensures one feedback per classification per user
-    final stableId = 'feedback_\${userId}_\${originalClassificationId}';
+    final stableId = 'feedback_${userId}_${originalClassificationId}';
     return ClassificationFeedback(
       id: stableId,
       userId: userId,
@@ -82,7 +82,7 @@ class ClassificationFeedback {
   /// Returns the stable dedup key for a given classification + user combination.
   /// Used to check whether feedback has already been submitted.
   static String dedupKey(String userId, String classificationId) {
-    return 'feedback_\${userId}_\${classificationId}';
+    return 'feedback_${userId}_${classificationId}';
   }
 
   factory ClassificationFeedback.fromJson(Map<String, dynamic> json,
