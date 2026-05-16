@@ -141,9 +141,13 @@ service cloud.firestore {
     match /classification_feedback/{feedbackId} {
       allow create: if request.auth != null
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.keys().hasAll(['userId', 'originalClassificationId', 'feedbackTimestamp']);
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+        && validateClassificationFeedbackCreate(request.resource.data);
+
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && validateClassificationFeedbackUpdate(request.resource.data);
       allow delete: if false;
     }
 
@@ -318,5 +322,56 @@ service cloud.firestore {
     function isPublicContribution(data) {
       return data.status == 'approved' || data.visibility == 'public';
     }
+
+    // --- Classification feedback validation ---
+    // Aligned with ClassificationFeedback.toJson() model fields.
+    // Required: userId, originalClassificationId, originalAIItemName,
+    //           originalAICategory, userSuggestedCategory, feedbackTimestamp,
+    //           reviewStatus, appVersion
+    // Optional: originalAIMaterial, originalAIConfidence, userSuggestedItemName,
+    //           userSuggestedMaterial, userNotes, adminReviewerId,
+    //           adminReviewTimestamp, adminNotes, deviceInfo
+    function validateClassificationFeedbackCreate(data) {
+      return data.keys().hasAll([
+        'userId', 'originalClassificationId', 'originalAIItemName',
+        'originalAICategory', 'userSuggestedCategory', 'feedbackTimestamp',
+        'reviewStatus', 'appVersion'
+      ])
+      && data.keys().hasOnly([
+        'userId', 'originalClassificationId', 'originalAIItemName',
+        'originalAICategory', 'originalAIMaterial', 'originalAIConfidence',
+        'userSuggestedItemName', 'userSuggestedCategory', 'userSuggestedMaterial',
+        'userNotes', 'feedbackTimestamp', 'reviewStatus',
+        'adminReviewerId', 'adminReviewTimestamp', 'adminNotes',
+        'appVersion', 'deviceInfo'
+      ])
+      && data.userId is string
+      && data.userId.size() > 0
+      && data.originalClassificationId is string
+      && data.originalClassificationId.size() > 0
+      && data.originalAIItemName is string
+      && data.originalAICategory is string
+      && data.userSuggestedCategory is string
+      && data.userSuggestedCategory.size() > 0
+      && data.feedbackTimestamp is timestamp
+      && data.reviewStatus is string
+      && data.appVersion is string;
+    }
+    
+    function validateClassificationFeedbackUpdate(data) {
+      // Updates must preserve core identity fields and userId ownership
+      return data.keys().hasAll(['userId', 'originalClassificationId'])
+        && data.userId is string
+        && data.originalClassificationId is string
+        && data.keys().hasOnly([
+          'userId', 'originalClassificationId', 'originalAIItemName',
+          'originalAICategory', 'originalAIMaterial', 'originalAIConfidence',
+          'userSuggestedItemName', 'userSuggestedCategory', 'userSuggestedMaterial',
+          'userNotes', 'feedbackTimestamp', 'reviewStatus',
+          'adminReviewerId', 'adminReviewTimestamp', 'adminNotes',
+          'appVersion', 'deviceInfo'
+        ]);
+    }
+
   }
 }

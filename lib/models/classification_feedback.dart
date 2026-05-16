@@ -42,6 +42,49 @@ class ClassificationFeedback {
         appVersion = appVersion ?? '0.1.0',
         feedbackTimestamp = feedbackTimestamp ?? Timestamp.now();
 
+  /// Creates a ClassificationFeedback with a stable deterministic ID
+  /// derived from classificationId + userId, ensuring idempotency:
+  /// the same user giving the same feedback type for the same classification
+  /// always produces the same ID, preventing duplicates.
+  factory ClassificationFeedback.createStable({
+    required String userId,
+    required String originalClassificationId,
+    required String originalAIItemName,
+    required String originalAICategory,
+    String? originalAIMaterial,
+    double? originalAIConfidence,
+    String? userSuggestedItemName,
+    required String userSuggestedCategory,
+    String? userSuggestedMaterial,
+    String? userNotes,
+    String? appVersion,
+    Map<String, dynamic>? deviceInfo,
+  }) {
+    // Deterministic ID: classificationId + userId ensures one feedback per classification per user
+    final stableId = 'feedback_\${userId}_\${originalClassificationId}';
+    return ClassificationFeedback(
+      id: stableId,
+      userId: userId,
+      originalClassificationId: originalClassificationId,
+      originalAIItemName: originalAIItemName,
+      originalAICategory: originalAICategory,
+      originalAIMaterial: originalAIMaterial,
+      originalAIConfidence: originalAIConfidence,
+      userSuggestedItemName: userSuggestedItemName,
+      userSuggestedCategory: userSuggestedCategory,
+      userSuggestedMaterial: userSuggestedMaterial,
+      userNotes: userNotes,
+      appVersion: appVersion,
+      deviceInfo: deviceInfo,
+    );
+  }
+
+  /// Returns the stable dedup key for a given classification + user combination.
+  /// Used to check whether feedback has already been submitted.
+  static String dedupKey(String userId, String classificationId) {
+    return 'feedback_\${userId}_\${classificationId}';
+  }
+
   factory ClassificationFeedback.fromJson(Map<String, dynamic> json,
       [String? documentId]) {
     return ClassificationFeedback(

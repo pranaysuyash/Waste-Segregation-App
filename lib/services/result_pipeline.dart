@@ -14,6 +14,28 @@ import '../utils/waste_app_logger.dart';
 import '../utils/error_handler.dart';
 import '../providers/app_providers.dart';
 
+/// Result of a feedback submission, carrying outcome details for the UI.
+class FeedbackResult {
+  const FeedbackResult({
+    required this.saved,
+    required this.pointsAwarded,
+    required this.wasDuplicate,
+    required this.cloudSynced,
+  });
+
+  /// Whether the feedback was saved successfully.
+  final bool saved;
+
+  /// Points awarded for this feedback action.
+  final int pointsAwarded;
+
+  /// True if this was a duplicate submission (feedback already existed).
+  final bool wasDuplicate;
+
+  /// Whether the feedback was successfully synced to Firestore.
+  final bool cloudSynced;
+}
+
 /// Pipeline state for tracking the result processing
 class ResultPipelineState {
   const ResultPipelineState({
@@ -317,14 +339,16 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     }
   }
 
-  /// Submit user feedback on a classification (confirm or correct)
+  /// Submit user feedback on a classification (confirm or correct).
   ///
-  /// Saves the updated classification, persists a [ClassificationFeedback]
-  /// record locally and to Firestore, awards gamification points, and
-  /// tracks analytics.
+  /// Uses a stable deterministic feedback ID derived from userId + classificationId
+  /// to prevent duplicate feedback records, duplicate point awards, and duplicate
+  /// analytics events. If feedback for this classification by this user already
+  /// exists locally, the method returns the previously-awarded points without
+  /// re-creating the record.
   ///
-  /// Returns the earned points so the UI can show a popup.
-  Future<int> submitFeedback({
+  /// Returns a [FeedbackResult] with the outcome details.
+  Future<FeedbackResult> submitFeedback({
     required WasteClassification classification,
     required bool userConfirmed,
     String? userCorrection,
@@ -338,6 +362,28 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     final points = GamificationService.pointValues[action] ?? 0;
 
     try {
+      // 0. Idempotency check: if feedback already exists for this classification,
+      // return early with the previously-awarded points and wasDuplicate = true.
+      final profile = await _storageService.getCurrentUserProfile();
+      final userId = profile?.id ?? 'unknown';
+      final dedupKey = ClassificationFeedback.dedupKey(userId, classification.id);
+
+      final existingFeedback = await _storageService.getClassificationFeedback(dedupKey);
+      if (existingFeedback != null) {
+        WasteAppLogger.info('Feedback already submitted for classification',
+            context: {
+              'classificationId': classification.id,
+              'dedupKey': dedupKey,
+              'service': 'ResultPipeline',
+            });
+        return FeedbackResult(
+          saved: true,
+          pointsAwarded: points,
+          wasDuplicate: true,
+          cloudSynced: false,
+        );
+      }
+
       // 1. Save updated classification locally
       final updated = classification.copyWith(
         userConfirmed: userConfirmed,
@@ -346,10 +392,9 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       );
       await _storageService.saveClassification(updated, force: true);
 
-      // 2. Persist ClassificationFeedback record
-      final profile = await _storageService.getCurrentUserProfile();
-      final feedback = ClassificationFeedback(
-        userId: profile?.id ?? 'unknown',
+      // 2. Persist ClassificationFeedback record with stable ID
+      final feedback = ClassificationFeedback.createStable(
+        userId: userId,
         originalClassificationId: classification.id,
         originalAIItemName: classification.itemName,
         originalAICategory: classification.category,
@@ -363,10 +408,12 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       await _storageService.saveClassificationFeedback(feedback);
 
       // 3. Sync to Firestore (non-blocking — fail silently)
+      var cloudSynced = false;
       try {
         final settings = await _storageService.getSettings();
         if (settings['isGoogleSyncEnabled'] == true) {
           await _cloudStorageService.saveClassificationFeedbackToCloud(feedback);
+          cloudSynced = true;
         }
       } catch (e) {
         WasteAppLogger.warning('Feedback cloud sync failed', error: e, context: {
@@ -382,7 +429,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         WasteAppLogger.warning('Feedback points award failed', error: e);
       }
 
-      // 5. Track analytics
+      // 5. Track analytics (once per stable submission)
       await _analyticsService.trackEvent(
         eventType: AnalyticsEventTypes.userAction,
         eventName: 'classification.feedback',
@@ -401,7 +448,12 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         'service': 'ResultPipeline',
       });
 
-      return points;
+      return FeedbackResult(
+        saved: true,
+        pointsAwarded: points,
+        wasDuplicate: false,
+        cloudSynced: cloudSynced,
+      );
     } catch (e, stackTrace) {
       WasteAppLogger.severe('Feedback submission failed',
           error: e,

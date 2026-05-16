@@ -1258,6 +1258,30 @@ class StorageService {
     await box.put(feedback.id, feedback.toJson());
   }
 
+  /// Retrieves a single ClassificationFeedback by its stable dedup key.
+  /// Returns null if no feedback exists for that key.
+  Future<ClassificationFeedback?> getClassificationFeedback(
+      String dedupKey) async {
+    final box = Hive.box(StorageKeys.classificationFeedbackBox);
+    final data = box.get(dedupKey);
+    if (data == null) return null;
+    try {
+      Map<String, dynamic> json;
+      if (data is String) {
+        json = jsonDecode(data);
+      } else if (data is Map<String, dynamic>) {
+        json = data;
+      } else if (data is Map) {
+        json = Map<String, dynamic>.from(data);
+      } else {
+        return null;
+      }
+      return ClassificationFeedback.fromJson(json, dedupKey);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<List<ClassificationFeedback>> getAllClassificationFeedback() async {
     final box = Hive.box(StorageKeys.classificationFeedbackBox);
     final feedbackList = <ClassificationFeedback>[];

@@ -61,7 +61,7 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
 
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
-      await pipeline.submitFeedback(
+      final feedbackResult = await pipeline.submitFeedback(
         classification: widget.classification,
         userConfirmed: _userConfirmed!,
         userCorrection: _selectedCorrection,
@@ -73,12 +73,15 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
 
       if (mounted) {
         Navigator.of(context).pop(true);
+        final message = feedbackResult.wasDuplicate
+            ? 'Already recorded!'
+            : _userConfirmed!
+                ? 'Thanks for confirming! +${feedbackResult.pointsAwarded} points'
+                : 'Correction saved! +${feedbackResult.pointsAwarded} points';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_userConfirmed!
-                ? 'Thanks for confirming! +${_userConfirmed == false ? 10 : 5} points'
-                : 'Correction saved! +10 points'),
-            backgroundColor: Colors.green,
+            content: Text(message),
+            backgroundColor: feedbackResult.wasDuplicate ? Colors.orange : Colors.green,
           ),
         );
       }
