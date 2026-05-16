@@ -325,4 +325,70 @@ void main() {
       });
     });
   });
+
+
+  group('FeedbackResult Tests', () {
+    test('new submission has correct semantics', () {
+      const result = FeedbackResult(
+        saved: true,
+        pointsAwarded: 5,
+        nominalPoints: 5,
+        wasDuplicate: false,
+        cloudSynced: true,
+      );
+
+      expect(result.saved, isTrue);
+      expect(result.pointsAwarded, equals(5));
+      expect(result.nominalPoints, equals(5));
+      expect(result.wasDuplicate, isFalse);
+      expect(result.cloudSynced, isTrue);
+    });
+
+    test('duplicate submission has pointsAwarded=0 and nominalPoints carries point value', () {
+      const result = FeedbackResult(
+        saved: true,
+        pointsAwarded: 0,
+        nominalPoints: 5,
+        wasDuplicate: true,
+        cloudSynced: false,
+      );
+
+      // pointsAwarded must be 0 on duplicate: no points were actually awarded
+      expect(result.pointsAwarded, equals(0));
+      // nominalPoints carries what the points would have been
+      expect(result.nominalPoints, equals(5));
+      expect(result.wasDuplicate, isTrue);
+    });
+
+    test('correction duplicate has nominalPoints=10 and pointsAwarded=0', () {
+      const result = FeedbackResult(
+        saved: true,
+        pointsAwarded: 0,
+        nominalPoints: 10,
+        wasDuplicate: true,
+        cloudSynced: true,
+      );
+
+      expect(result.pointsAwarded, equals(0));
+      expect(result.nominalPoints, equals(10));
+      expect(result.wasDuplicate, isTrue);
+      expect(result.cloudSynced, isTrue);
+    });
+
+    test('cloud dedup detected has cloudSynced=true', () {
+      // When local feedback is cleared but cloud feedback exists,
+      // cloudSynced should be true since the doc exists in Firestore
+      const result = FeedbackResult(
+        saved: true,
+        pointsAwarded: 0,
+        nominalPoints: 5,
+        wasDuplicate: true,
+        cloudSynced: true,
+      );
+
+      expect(result.cloudSynced, isTrue);
+      expect(result.pointsAwarded, equals(0));
+      expect(result.wasDuplicate, isTrue);
+    });
+  });
 }

@@ -891,6 +891,24 @@ class CloudStorageService {
     }
   }
 
+  /// Check whether a classification feedback document already exists in Firestore.
+  /// Used for cloud-side idempotency: if local data was cleared but the stable-ID
+  /// doc already exists in Firestore, we should not re-award points or re-track.
+  Future<bool> checkClassificationFeedbackExists(String feedbackId) async {
+    try {
+      final doc = await _firestore
+          .collection(FirestoreCollections.classificationFeedback)
+          .doc(feedbackId)
+          .get();
+      return doc.exists;
+    } catch (e) {
+      WasteAppLogger.warning(
+          'Failed to check classification feedback existence in cloud',
+          error: e);
+      rethrow;
+    }
+  }
+
   /// Uploads an image file for batch processing and returns a publicly accessible URL
   ///
   /// This method:

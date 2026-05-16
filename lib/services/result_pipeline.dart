@@ -19,6 +19,7 @@ class FeedbackResult {
   const FeedbackResult({
     required this.saved,
     required this.pointsAwarded,
+    required this.nominalPoints,
     required this.wasDuplicate,
     required this.cloudSynced,
   });
@@ -26,8 +27,13 @@ class FeedbackResult {
   /// Whether the feedback was saved successfully.
   final bool saved;
 
-  /// Points awarded for this feedback action.
+  /// Points actually awarded for this action. 0 on duplicate.
   final int pointsAwarded;
+
+  /// The nominal point value for this action type (e.g. 5 or 10),
+  /// regardless of whether points were actually awarded.
+  /// UI can use this for context even on duplicate.
+  final int nominalPoints;
 
   /// True if this was a duplicate submission (feedback already existed).
   final bool wasDuplicate;
@@ -363,14 +369,15 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
 
     try {
       // 0. Idempotency check: if feedback already exists for this classification,
-      // return early with the previously-awarded points and wasDuplicate = true.
+      // return early with pointsAwarded=0 and wasDuplicate=true. No points,
+      // analytics, or cloud sync are repeated for duplicate submissions.
       final profile = await _storageService.getCurrentUserProfile();
       final userId = profile?.id ?? 'unknown';
       final dedupKey = ClassificationFeedback.dedupKey(userId, classification.id);
 
       final existingFeedback = await _storageService.getClassificationFeedback(dedupKey);
       if (existingFeedback != null) {
-        WasteAppLogger.info('Feedback already submitted for classification',
+        WasteAppLogger.info('Feedback already submitted locally',
             context: {
               'classificationId': classification.id,
               'dedupKey': dedupKey,
@@ -378,10 +385,46 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
             });
         return FeedbackResult(
           saved: true,
-          pointsAwarded: points,
+          pointsAwarded: 0,
+          nominalPoints: points,
           wasDuplicate: true,
           cloudSynced: false,
         );
+      }
+
+      // 0b. Cloud dedup check: if local data was cleared but the feedback doc
+      // already exists in Firestore, treat as duplicate to prevent re-awarding.
+      try {
+        final settings = await _storageService.getSettings();
+        if (settings['isGoogleSyncEnabled'] == true) {
+          final cloudExists = await _cloudStorageService
+              .checkClassificationFeedbackExists(dedupKey);
+          if (cloudExists) {
+            WasteAppLogger.info(
+                'Feedback already exists in cloud (local was cleared)',
+                context: {
+                  'classificationId': classification.id,
+                  'dedupKey': dedupKey,
+                  'service': 'ResultPipeline',
+                });
+            return FeedbackResult(
+              saved: true,
+              pointsAwarded: 0,
+              nominalPoints: points,
+              wasDuplicate: true,
+              cloudSynced: true,
+            );
+          }
+        }
+      } catch (e) {
+        // Cloud check failure should not block local submission.
+        // If we can't verify cloud state, proceed with local flow.
+        WasteAppLogger.warning('Cloud dedup check failed, proceeding locally',
+            error: e,
+            context: {
+              'classificationId': classification.id,
+              'service': 'ResultPipeline',
+            });
       }
 
       // 1. Save updated classification locally
@@ -451,6 +494,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       return FeedbackResult(
         saved: true,
         pointsAwarded: points,
+        nominalPoints: points,
         wasDuplicate: false,
         cloudSynced: cloudSynced,
       );
