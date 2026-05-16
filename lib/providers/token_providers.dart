@@ -6,6 +6,7 @@ import '../models/ai_job.dart';
 import '../services/token_service.dart';
 import 'app_providers.dart';
 import '../utils/firebase_gate.dart';
+import '../services/firestore_schema_registry.dart';
 
 /// Provider for the TokenService
 final tokenServiceProvider = Provider<TokenService>((ref) {
@@ -77,7 +78,7 @@ final aiJobQueueProvider = FutureProvider<List<AiJob>>((ref) async {
     AiJobStatus.processing.toString(),
   ];
   final snapshot = await firestore
-      .collection('ai_jobs')
+      .collection(FirestoreCollections.aiJobs)
       .where('status',
           whereIn: activeStatuses)
       .orderBy('createdAt', descending: false)
@@ -94,7 +95,7 @@ final tokenQueueStatsProvider = FutureProvider<QueueStats>((ref) async {
   final now = DateTime.now();
   final oneDayAgo = now.subtract(const Duration(days: 1));
   final snapshot = await firestore
-      .collection('ai_jobs')
+      .collection(FirestoreCollections.aiJobs)
       .where('createdAt', isGreaterThan: Timestamp.fromDate(oneDayAgo))
       .get();
 
@@ -139,7 +140,7 @@ final userJobsProvider =
   }
   final firestore = FirebaseFirestore.instance;
   final snapshot = await firestore
-      .collection('ai_jobs')
+      .collection(FirestoreCollections.aiJobs)
       .where('userId', isEqualTo: userId)
       .orderBy('createdAt', descending: true)
       .limit(50)

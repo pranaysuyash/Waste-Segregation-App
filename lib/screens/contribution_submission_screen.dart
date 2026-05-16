@@ -9,6 +9,7 @@ import '../models/user_contribution.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../utils/firebase_gate.dart';
+import '../services/firestore_schema_registry.dart';
 
 class ContributionSubmissionScreen extends StatefulWidget {
   const ContributionSubmissionScreen({
@@ -1059,7 +1060,7 @@ class _ContributionSubmissionScreenState
 
   Future<void> _submitToFirestore(UserContribution contribution) async {
     await FirebaseFirestore.instance
-        .collection('user_contributions')
+        .collection(FirestoreCollections.userContributions)
         .add(contribution.toJson());
   }
 }

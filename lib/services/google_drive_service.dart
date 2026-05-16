@@ -10,6 +10,7 @@ import 'storage_service.dart';
 import '../models/user_profile.dart';
 import '../utils/safe_file_path.dart';
 import '../utils/waste_app_logger.dart';
+import 'firestore_schema_registry.dart';
 
 class GoogleDriveService {
   GoogleDriveService(this._storageService);
@@ -27,7 +28,7 @@ class GoogleDriveService {
   Future<UserProfile?> _fetchUserProfileFromFirestore(String userId) async {
     try {
       final docSnapshot =
-          await _firestore.collection('users').doc(userId).get();
+          await _firestore.collection(FirestoreCollections.users).doc(userId).get();
       if (docSnapshot.exists && docSnapshot.data() != null) {
         return UserProfile.fromJson(docSnapshot.data()!);
       }
@@ -102,7 +103,7 @@ class GoogleDriveService {
           // Heuristic for new profile
           try {
             await _firestore
-                .collection('users')
+                .collection(FirestoreCollections.users)
                 .doc(userProfile.id)
                 .set(userProfile.toJson(), SetOptions(merge: true));
             WasteAppLogger.info('New UserProfile synced to Firestore',

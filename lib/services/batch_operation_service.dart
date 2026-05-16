@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
+import 'firestore_schema_registry.dart';
 
 /// Result of a batch operation
 class BatchResult {
@@ -257,9 +258,9 @@ class BatchOperationService {
 
         for (final classification in classifications) {
           final docRef = _firestore
-              .collection('users')
+              .collection(FirestoreCollections.users)
               .doc(classification.userId ?? 'guest')
-              .collection('classifications')
+              .collection(FirestoreCollections.classifications)
               .doc(classification.id);
 
           batch.set(docRef, classification.toJson(), SetOptions(merge: true));
@@ -330,9 +331,9 @@ class BatchOperationService {
         mergedData['batchMetadata'] = metadata;
 
         final docRef = _firestore
-            .collection('users')
+            .collection(FirestoreCollections.users)
             .doc(userId)
-            .collection('gamification')
+            .collection(FirestoreCollections.gamification)
             .doc('profile');
 
         batch.set(docRef, mergedData, SetOptions(merge: true));

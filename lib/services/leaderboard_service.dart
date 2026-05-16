@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firestore_schema_registry.dart';
 import '../models/leaderboard.dart'; // Assuming this is where LeaderboardEntry is defined
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class LeaderboardService {
   late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  static const String _leaderboardCollection = 'leaderboard_allTime';
+  static const String _leaderboardCollection = FirestoreCollections.leaderboardAllTime;
 
   /// Fetches the top N leaderboard entries.
   Future<List<LeaderboardEntry>> getTopNEntries(int limit) async {

@@ -9,6 +9,7 @@ import '../services/token_service.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/waste_app_logger.dart';
+import 'firestore_schema_registry.dart';
 
 /// Service for managing AI analysis jobs using OpenAI Batch API
 ///
@@ -34,7 +35,7 @@ class AiJobService {
   final TokenService _tokenService;
   final StorageService _storageService;
 
-  static const String _jobsCollection = 'ai_jobs';
+  static const String _jobsCollection = FirestoreCollections.aiJobs;
   static const String _openaiApiBase = 'https://api.openai.com/v1';
 
   /// Creates a new batch job for AI analysis

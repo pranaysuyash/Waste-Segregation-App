@@ -6,6 +6,7 @@ import '../services/storage_service.dart';
 import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../utils/firebase_gate.dart';
+import '../services/firestore_schema_registry.dart';
 
 class ContributionHistoryScreen extends StatefulWidget {
   const ContributionHistoryScreen({super.key});
@@ -63,7 +64,7 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
               ? const Center(child: CircularProgressIndicator())
               : StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
-                      .collection('user_contributions')
+                      .collection(FirestoreCollections.userContributions)
                       .where('userId', isEqualTo: _currentUserId)
                       .orderBy('timestamp', descending: true)
                       .snapshots(),

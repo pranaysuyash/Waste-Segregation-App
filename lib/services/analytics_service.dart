@@ -7,6 +7,7 @@ import '../services/storage_service.dart';
 import '../services/analytics_consent_manager.dart';
 import '../services/analytics_schema_validator.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import 'firestore_schema_registry.dart';
 
 /// Service for tracking and analyzing user behavior and app usage.
 class AnalyticsService extends ChangeNotifier {
@@ -20,7 +21,7 @@ class AnalyticsService extends ChangeNotifier {
     _initializeSession();
     _initializeFirestore();
   }
-  static const String _analyticsCollection = 'analytics_events';
+  static const String _analyticsCollection = FirestoreCollections.analyticsEvents;
 
   FirebaseFirestore? _firestore;
   final StorageService _storageService;
@@ -782,7 +783,7 @@ class AnalyticsService extends ChangeNotifier {
       }
 
       await _firestore!
-          .collection('analytics_events')
+          .collection(FirestoreCollections.analyticsEvents)
           .doc(event.id)
           .set(event.toJson());
       WasteAppLogger.info('Analytics: Event saved to Firestore successfully');
@@ -815,7 +816,7 @@ class AnalyticsService extends ChangeNotifier {
     for (final event in eventsToProcess) {
       try {
         await _firestore!
-            .collection('analytics_events')
+            .collection(FirestoreCollections.analyticsEvents)
             .doc(event.id)
             .set(event.toJson());
       } catch (e) {
@@ -865,8 +866,14 @@ class AnalyticsService extends ChangeNotifier {
     return {
       'family_analytics': _calculateFamilyAnalytics([]),
       'popular_features': _calculatePopularFeatures(
-        popularContent.map((c) => c['content_type'] as String? ?? '').toList(),
-        limit: 10,
+        popularContent.map((c) {
+          return AnalyticsEvent.create(
+            userId: c['userId'] as String? ?? '',
+            eventType: c['event_type'] as String? ?? 'content',
+            eventName: c['content_type'] as String? ?? 'unknown',
+          );
+        }).toList(),
+        10,
       ),
       'period': {
         'start': startDate?.toIso8601String(),

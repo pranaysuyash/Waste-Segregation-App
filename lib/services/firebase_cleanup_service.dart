@@ -9,6 +9,7 @@ import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/enhanced_storage_service.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import 'firestore_schema_registry.dart';
 
 /// Service to clear Firebase data for testing fresh install experience
 /// This should only be used in development/testing environments
@@ -144,9 +145,9 @@ class FirebaseCleanupService {
         if (collectionName == 'users') {
           // Handle users/{uid}/classifications subcollection
           final subcollectionSnapshot = await _firestore
-              .collection('users')
+              .collection(FirestoreCollections.users)
               .doc(uid)
-              .collection('classifications')
+              .collection(FirestoreCollections.classifications)
               .get();
 
           for (final doc in subcollectionSnapshot.docs) {

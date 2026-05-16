@@ -8,6 +8,7 @@ import 'contribution_history_screen.dart';
 import '../models/user_contribution.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../utils/firebase_gate.dart';
+import '../services/firestore_schema_registry.dart';
 
 class DisposalFacilitiesScreen extends StatefulWidget {
   const DisposalFacilitiesScreen({super.key});
@@ -311,7 +312,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
   Query<Map<String, dynamic>> _buildQuery() {
     try {
       Query<Map<String, dynamic>> query =
-          FirebaseFirestore.instance.collection('disposal_locations');
+          FirebaseFirestore.instance.collection(FirestoreCollections.disposalLocations);
 
       // First apply the most selective filters
       if (_selectedSourceFilter != 'All') {
@@ -338,7 +339,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
       // Fallback to simpler query if indexing fails
       WasteAppLogger.severe('Complex query failed, error: using fallback: $e');
       return FirebaseFirestore.instance
-          .collection('disposal_locations')
+          .collection(FirestoreCollections.disposalLocations)
           .orderBy('name');
     }
   }

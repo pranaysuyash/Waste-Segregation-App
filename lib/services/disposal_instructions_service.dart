@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
+import 'firestore_schema_registry.dart';
 
 /// Service for fetching LLM-generated disposal instructions
 class DisposalInstructionsService {
@@ -48,7 +49,7 @@ class DisposalInstructionsService {
 
       // Check Firestore cache
       final cachedDoc = await _firestore
-          .collection('disposal_instructions')
+          .collection(FirestoreCollections.disposalInstructions)
           .doc(materialId)
           .get();
 
