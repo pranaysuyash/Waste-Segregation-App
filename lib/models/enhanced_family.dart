@@ -244,9 +244,8 @@ class FamilySettings {
           json['shareClassificationsPublicly'] as bool? ?? true,
       showMemberActivityInFeed:
           json['showMemberActivityInFeed'] as bool? ?? true,
-      leaderboardVisibility: FamilyLeaderboardVisibility.values.firstWhere(
-        (e) => e.toString() == json['leaderboardVisibility'],
-        orElse: () => FamilyLeaderboardVisibility.membersOnly,
+      leaderboardVisibility: _parseLeaderboardVisibility(
+        json['leaderboardVisibility'],
       ),
     );
   }
@@ -308,8 +307,25 @@ class FamilySettings {
       'customSettings': customSettings,
       'shareClassificationsPublicly': shareClassificationsPublicly,
       'showMemberActivityInFeed': showMemberActivityInFeed,
-      'leaderboardVisibility': leaderboardVisibility.toString(),
+      'leaderboardVisibility': leaderboardVisibility.name,
     };
+  }
+
+  /// Parses leaderboardVisibility from either stable wire values
+  /// (public/membersOnly/adminsOnly) or legacy enum toString values
+  /// (FamilyLeaderboardVisibility.public/etc).
+  static FamilyLeaderboardVisibility _parseLeaderboardVisibility(dynamic value) {
+    if (value is FamilyLeaderboardVisibility) return value;
+    final str = value?.toString() ?? '';
+    // Try stable wire values first (.name format)
+    for (final e in FamilyLeaderboardVisibility.values) {
+      if (e.name == str) return e;
+    }
+    // Fallback: try legacy enum toString format
+    for (final e in FamilyLeaderboardVisibility.values) {
+      if (e.toString() == str) return e;
+    }
+    return FamilyLeaderboardVisibility.membersOnly;
   }
 }
 

@@ -373,10 +373,11 @@ service cloud.firestore {
     }
     
     // Checks if the family's leaderboardVisibility is set to public.
-    // Dart enum toString() produces "FamilyLeaderboardVisibility.public".
+    // Accepts both stable wire values ("public") and legacy enum toString
+    // values ("FamilyLeaderboardVisibility.public") for backward compatibility.
     function isFamilyStatsPublic(familyData) {
-      return familyData.settings.leaderboardVisibility
-        == "FamilyLeaderboardVisibility.public";
+      let vis = familyData.settings.leaderboardVisibility;
+      return vis == "public" || vis == "FamilyLeaderboardVisibility.public";
     }
     
     // --- Family validation ---

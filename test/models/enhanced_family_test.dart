@@ -364,7 +364,7 @@ void main() {
         expect(json['notifications'], isA<Map<String, dynamic>>());
         expect(json['privacy'], isA<Map<String, dynamic>>());
         expect(json['customSettings'], isA<Map<String, dynamic>>());
-        expect(json['leaderboardVisibility'], contains('membersOnly'));
+        expect(json['leaderboardVisibility'], equals('membersOnly'));
 
         // Test fromJson
         final recreated = FamilySettings.fromJson(json);
@@ -793,6 +793,52 @@ void main() {
             FamilyLeaderboardVisibility.values
                 .contains(FamilyLeaderboardVisibility.adminsOnly),
             isTrue);
+      });
+
+      test('toJson uses stable wire values, not enum toString', () {
+        const settings = FamilySettings(
+          leaderboardVisibility: FamilyLeaderboardVisibility.public,
+        );
+        final json = settings.toJson();
+        expect(json['leaderboardVisibility'], equals('public'));
+
+        const membersOnly = FamilySettings(
+          leaderboardVisibility: FamilyLeaderboardVisibility.membersOnly,
+        );
+        expect(membersOnly.toJson()['leaderboardVisibility'], equals('membersOnly'));
+
+        const adminsOnly = FamilySettings(
+          leaderboardVisibility: FamilyLeaderboardVisibility.adminsOnly,
+        );
+        expect(adminsOnly.toJson()['leaderboardVisibility'], equals('adminsOnly'));
+      });
+
+      test('fromJson reads stable wire values', () {
+        final public = FamilySettings.fromJson({'leaderboardVisibility': 'public'});
+        expect(public.leaderboardVisibility, equals(FamilyLeaderboardVisibility.public));
+
+        final members = FamilySettings.fromJson({'leaderboardVisibility': 'membersOnly'});
+        expect(members.leaderboardVisibility, equals(FamilyLeaderboardVisibility.membersOnly));
+
+        final admins = FamilySettings.fromJson({'leaderboardVisibility': 'adminsOnly'});
+        expect(admins.leaderboardVisibility, equals(FamilyLeaderboardVisibility.adminsOnly));
+      });
+
+      test('fromJson reads legacy enum toString values for backward compat', () {
+        final public = FamilySettings.fromJson(
+          {'leaderboardVisibility': 'FamilyLeaderboardVisibility.public'},
+        );
+        expect(public.leaderboardVisibility, equals(FamilyLeaderboardVisibility.public));
+
+        final members = FamilySettings.fromJson(
+          {'leaderboardVisibility': 'FamilyLeaderboardVisibility.membersOnly'},
+        );
+        expect(members.leaderboardVisibility, equals(FamilyLeaderboardVisibility.membersOnly));
+      });
+
+      test('fromJson defaults to membersOnly for unknown values', () {
+        final unknown = FamilySettings.fromJson({'leaderboardVisibility': 'invalidValue'});
+        expect(unknown.leaderboardVisibility, equals(FamilyLeaderboardVisibility.membersOnly));
       });
     });
 

@@ -254,7 +254,7 @@ class FamiliesSchema {
     SchemaField(name: 'createdAt', type: 'String', classification: FieldClassification.system, required: true, description: 'ISO 8601'),
     SchemaField(name: 'updatedAt', type: 'String?', classification: FieldClassification.system, required: false, description: 'ISO 8601'),
     SchemaField(name: 'members', type: 'List<Map>', classification: FieldClassification.private, required: true, description: 'Embedded list of FamilyMember objects'),
-    SchemaField(name: 'settings', type: 'Map', classification: FieldClassification.private, required: false, description: 'Embedded FamilySettings object. Contains leaderboardVisibility (enum toString: FamilyLeaderboardVisibility.public/membersOnly/adminsOnly) that controls family_stats read access.'),
+    SchemaField(name: 'settings', type: 'Map', classification: FieldClassification.private, required: false, description: 'Embedded FamilySettings object. Contains leaderboardVisibility (stable wire values: public/membersOnly/adminsOnly; legacy enum toString also supported) that controls family_stats read access.'),
     SchemaField(name: 'imageUrl', type: 'String?', classification: FieldClassification.private, required: false),
     SchemaField(name: 'isPublic', type: 'bool', classification: FieldClassification.system, required: false, defaultValue: false),
     SchemaField(name: 'memberUids', type: 'List<String>', classification: FieldClassification.system, required: false, description: 'Flat list of member user IDs for Firestore rules membership checks. Derived from members[].userId.'),

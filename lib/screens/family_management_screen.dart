@@ -492,10 +492,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
           ListTile(
             leading: const Icon(Icons.leaderboard_outlined),
             title: const Text('Family Leaderboard Visibility'),
-            subtitle: Text(currentFamilyData.settings.leaderboardVisibility
-                .toString()
-                .split('.')
-                .last),
+            subtitle: Text(currentFamilyData.settings.leaderboardVisibility.name),
             trailing: canModify ? const Icon(Icons.chevron_right) : null,
             onTap: canModify
                 ? () => _showLeaderboardVisibilityDialog(currentFamilyData)
@@ -965,7 +962,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
               return DropdownMenuItem<
                   family_models.FamilyLeaderboardVisibility>(
                 value: visibility,
-                child: Text(visibility.toString().split('.').last),
+                child: Text(visibility.name),
               );
             }).toList(),
             onChanged: (family_models.FamilyLeaderboardVisibility? newValue) {

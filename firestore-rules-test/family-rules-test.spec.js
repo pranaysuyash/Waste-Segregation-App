@@ -26,7 +26,7 @@ const validFamily = {
   updatedAt: new Date().toISOString(),
   members: [{ userId: 'user-1', role: 'admin', joinedAt: new Date().toISOString(), individualStats: { totalPoints: 0, totalClassifications: 0, currentStreak: 0, bestStreak: 0 } }],
   memberUids: ['user-1'],
-  settings: { isPublic: false, allowChildInvites: true, leaderboardVisibility: 'FamilyLeaderboardVisibility.membersOnly' },
+  settings: { isPublic: false, allowChildInvites: true, leaderboardVisibility: 'membersOnly' },
   isPublic: false,
 };
 
@@ -335,7 +335,7 @@ describe('Family rules', () => {
       ...validFamily,
       settings: {
         ...validFamily.settings,
-        leaderboardVisibility: 'FamilyLeaderboardVisibility.public',
+        leaderboardVisibility: 'public',
       },
     };
     await memberDb.collection('families').doc('family-public').set(publicFamily);
@@ -354,7 +354,7 @@ describe('Family rules', () => {
       ...validFamily,
       settings: {
         ...validFamily.settings,
-        leaderboardVisibility: 'FamilyLeaderboardVisibility.public',
+        leaderboardVisibility: 'public',
       },
     };
     await memberDb.collection('families').doc('family-public2').set(publicFamily);
@@ -508,7 +508,7 @@ describe('Family rules', () => {
       ...validFamily,
       settings: {
         ...validFamily.settings,
-        leaderboardVisibility: 'FamilyLeaderboardVisibility.adminsOnly',
+        leaderboardVisibility: 'adminsOnly',
       },
     };
     await memberDb.collection('families').doc('family-admins-only').set(adminsOnlyFamily);
@@ -525,7 +525,7 @@ describe('Family rules', () => {
       ...validFamily,
       settings: {
         ...validFamily.settings,
-        leaderboardVisibility: 'FamilyLeaderboardVisibility.adminsOnly',
+        leaderboardVisibility: 'adminsOnly',
       },
     };
     await memberDb.collection('families').doc('family-admins-only2').set(adminsOnlyFamily);
@@ -568,7 +568,7 @@ describe('Family rules', () => {
       nonMemberDb.collection('families').doc('family-vis-guard').update({
         settings: {
           ...validFamily.settings,
-          leaderboardVisibility: 'FamilyLeaderboardVisibility.public',
+          leaderboardVisibility: 'public',
         },
       })
     );
@@ -581,7 +581,7 @@ describe('Family rules', () => {
       ...validFamily,
       settings: {
         ...validFamily.settings,
-        leaderboardVisibility: 'FamilyLeaderboardVisibility.public',
+        leaderboardVisibility: 'public',
       },
     };
     await memberDb.collection('families').doc('family-public-write').set(publicFamily);
@@ -595,6 +595,44 @@ describe('Family rules', () => {
         totalClassifications: 999,
         totalPoints: 9999,
       })
+    );
+  });
+
+  // --- Backward compatibility: legacy enum toString values ---
+
+  it('legacy enum toString public value still allows non-member read', async () => {
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    const legacyPublicFamily = {
+      ...validFamily,
+      settings: {
+        ...validFamily.settings,
+        leaderboardVisibility: 'FamilyLeaderboardVisibility.public',
+      },
+    };
+    await memberDb.collection('families').doc('family-legacy-public').set(legacyPublicFamily);
+    await memberDb.collection('family_stats').doc('family-legacy-public').set({ totalClassifications: 10, totalPoints: 100 });
+    // Non-member can read because rules accept legacy public value
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
+    await assertSucceeds(
+      nonMemberDb.collection('family_stats').doc('family-legacy-public').get()
+    );
+  });
+
+  it('legacy enum toString membersOnly value denies non-member read', async () => {
+    const memberDb = testEnv.authenticatedContext('user-1').firestore();
+    const legacyMembersOnlyFamily = {
+      ...validFamily,
+      settings: {
+        ...validFamily.settings,
+        leaderboardVisibility: 'FamilyLeaderboardVisibility.membersOnly',
+      },
+    };
+    await memberDb.collection('families').doc('family-legacy-priv').set(legacyMembersOnlyFamily);
+    await memberDb.collection('family_stats').doc('family-legacy-priv').set({ totalClassifications: 5, totalPoints: 50 });
+    // Non-member cannot read
+    const nonMemberDb = testEnv.authenticatedContext('user-2').firestore();
+    await assertFails(
+      nonMemberDb.collection('family_stats').doc('family-legacy-priv').get()
     );
   });
 });
