@@ -82,7 +82,6 @@ dependencies:
 
   # --- On-Device ML & Computer Vision ---
   # TensorFlow Lite for on-device model inference (zero cost)
-  tflite_flutter: ^0.9.0 # For running TFLite models on device
 
   # NOTE: Removed tflite_flutter_helper due to:
   # - Requires image ^3.0.2 but project uses image ^4.0.17

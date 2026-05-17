@@ -1,17 +1,21 @@
 # Launch Blockers Register
 
-## BLOCKER-001: tflite_flutter build failure (Android)
+## BLOCKER-001: tflite_flutter build failure (Android) — RESOLVED
 
-- **Severity**: Blocker
-- **Evidence**: `flutter build apk --debug` fails with: `Namespace not specified` for `tflite_flutter-0.9.5/android/build.gradle`. This is a known AGP 8.x incompatibility with older Flutter plugins that don't declare a namespace.
-- **User impact**: App cannot be built for Android in current config.
-- **Fix recommendation**: 
-  1. Add `namespace 'com.tfliteflutter.tflite_flutter'` to `android/build.gradle` in the tflite_flutter package (pub cache patch), or
-  2. Use `tflite_flutter` fork with AGP 8.x fix, or
-  3. Add a Gradle subproject fix in `android/settings.gradle` to inject namespace, or
-  4. Migrate to a maintained ML inference plugin (e.g., `onnxruntime` or `google_mlkit_commons`).
-- **Test needed**: `flutter build apk --debug` succeeds.
-- **Status**: Open
+- **Severity**: Resolved (was Blocker)
+- **Evidence**: `tflite_flutter` was an unused dependency (no Dart imports anywhere in production code). `OnDeviceVisionService` only has comments about future TFLite use. No `.tflite` model files exist in assets (only a README). Removing the dependency resolves the AGP 8.x namespace error.
+- **Fix applied**: Removed `tflite_flutter: ^0.9.0` from `pubspec.yaml`.
+- **Product impact**: None. On-device ML inference was not implemented; app uses cloud AI services for classification.
+- **Status**: Resolved
+
+## BLOCKER-002: Android NDK missing CMake toolchain — ENVIRONMENT
+
+- **Severity**: Environment blocker (not code)
+- **Evidence**: `flutter build apk --debug` fails with CMake error: `Could not find toolchain file: .../ndk/27.1.12297006/build/cmake/android.toolchain.cmake`. The NDK installations at `/Users/pranay/Projects/adhoc_resources/ndk/` are stripped/incomplete — they have compiler binaries but no `build/cmake/` directory. The `android.toolchain.cmake` file is missing from all three NDK versions.
+- **User impact**: App cannot build on this machine until NDK is properly installed.
+- **Fix recommendation**: Install a complete NDK via Android Studio SDK Manager or `sdkmanager --install "ndk;27.1.12297006"`. The current NDK directories appear to be partial copies. A fresh install should include `build/cmake/android.toolchain.cmake`.
+- **Test needed**: `flutter build apk --debug` succeeds after proper NDK installation.
+- **Status**: Open (environment, not code)
 
 ## HIGH-001: Firestore rules not deployed
 
