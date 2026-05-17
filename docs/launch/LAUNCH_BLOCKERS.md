@@ -8,14 +8,17 @@
 - **Product impact**: None. On-device ML inference was not implemented; app uses cloud AI services for classification.
 - **Status**: Resolved
 
-## BLOCKER-002: Android NDK missing CMake toolchain — ENVIRONMENT
+## BLOCKER-002: Android NDK missing CMake toolchain — RESOLVED
 
-- **Severity**: Environment blocker (not code)
-- **Evidence**: `flutter build apk --debug` fails with CMake error: `Could not find toolchain file: .../ndk/27.1.12297006/build/cmake/android.toolchain.cmake`. The NDK installations at `/Users/pranay/Projects/adhoc_resources/ndk/` are stripped/incomplete — they have compiler binaries but no `build/cmake/` directory. The `android.toolchain.cmake` file is missing from all three NDK versions.
-- **User impact**: App cannot build on this machine until NDK is properly installed.
-- **Fix recommendation**: Install a complete NDK via Android Studio SDK Manager or `sdkmanager --install "ndk;27.1.12297006"`. The current NDK directories appear to be partial copies. A fresh install should include `build/cmake/android.toolchain.cmake`.
-- **Test needed**: `flutter build apk --debug` succeeds after proper NDK installation.
-- **Status**: Open (environment, not code)
+- **Severity**: Resolved (was Environment blocker)
+- **Evidence**: The NDK at `/Users/pranay/Projects/adhoc_resources/ndk/27.1.12297006` was incomplete (missing `build/cmake/android.toolchain.cmake`). Fixed by uninstalling the broken NDK via `sdkmanager --uninstall`, then reinstalling a complete copy. Also set `ndkVersion = "27.1.12297006"` explicitly in `android/app/build.gradle` instead of using Flutter's default (`26.3.11579264`), which avoids Gradle auto-downloading the older NDK and saves ~3GB disk space.
+- **User impact**: None. App builds successfully.
+- **Fix applied**: 
+  1. Uninstalled incomplete NDK 27.1 via sdkmanager, reinstalled complete version.
+  2. Overrode `ndkVersion` in `android/app/build.gradle` to `"27.1.12297006"` (the locally installed complete NDK) instead of `flutter.ndkVersion` (which resolved to `26.3.11579264`).
+  3. Verified `flutter build apk --debug` produces `build/app/outputs/flutter-apk/app-debug.apk`.
+- **Verification**: `flutter build apk --debug` succeeds; all 82 Dart tests pass; all 80 Firestore emulator rules tests pass.
+- **Status**: Resolved
 
 ## HIGH-001: Firestore rules not deployed
 
