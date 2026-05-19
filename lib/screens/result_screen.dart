@@ -54,7 +54,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late AnalyticsService _analyticsService;
-  
+
   // Gamification state
   bool _hasShownPointsPopup = false;
   bool _hasProcessedGamification = false;
@@ -108,34 +108,42 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         autoAnalyze: widget.autoAnalyze,
       );
     } catch (error, stackTrace) {
-      WasteAppLogger.severe('Failed to process classification in pipeline',
-          error: error,
-          stackTrace: stackTrace,
-          context: {
-            'classificationId': widget.classification.id,
-            'service': 'ResultScreen',
-          });
+      WasteAppLogger.severe(
+        'Failed to process classification in pipeline',
+        error: error,
+        stackTrace: stackTrace,
+        context: {
+          'classificationId': widget.classification.id,
+          'service': 'ResultScreen',
+        },
+      );
     }
   }
 
   void _trackScreenView() {
     // Use Legacy event name for parity
-    _analyticsService.trackScreenView('ResultScreen', parameters: {
-      'classification_id': widget.classification.id,
-      'category': widget.classification.category,
-      'item_name': widget.classification.itemName,
-      'confidence': widget.classification.confidence,
-      'show_actions': widget.showActions,
-      'auto_analyze': widget.autoAnalyze,
-      'version': 'v2',
-    });
-    
+    _analyticsService.trackScreenView(
+      'ResultScreen',
+      parameters: {
+        'classification_id': widget.classification.id,
+        'category': widget.classification.category,
+        'item_name': widget.classification.itemName,
+        'confidence': widget.classification.confidence,
+        'show_actions': widget.showActions,
+        'auto_analyze': widget.autoAnalyze,
+        'version': 'v2',
+      },
+    );
+
     // Also log for debugging
-    WasteAppLogger.aiEvent('result_screen_viewed', context: {
-      'classificationId': widget.classification.id,
-      'category': widget.classification.category,
-      'version': 'v2',
-    });
+    WasteAppLogger.aiEvent(
+      'result_screen_viewed',
+      context: {
+        'classificationId': widget.classification.id,
+        'category': widget.classification.category,
+        'version': 'v2',
+      },
+    );
   }
 
   @override
@@ -143,7 +151,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final pipelineState = ref.watch(resultPipelineProvider);
-    
+
     // Process gamification when pipeline completes
     _processGamificationState(pipelineState);
 
@@ -163,10 +171,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 leading: IconButton(
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: colorScheme.onSurface,
-                  ),
+                  icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 actions: widget.showActions
@@ -179,10 +184,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                           onPressed: _handleReanalyze,
                         ),
                         IconButton(
-                          icon: Icon(
-                            Icons.share,
-                            color: colorScheme.onSurface,
-                          ),
+                          icon: Icon(Icons.share, color: colorScheme.onSurface),
                           onPressed: _handleShare,
                         ),
                       ]
@@ -192,13 +194,16 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               // Content
               SliverToBoxAdapter(
                 child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.1),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: _slideController,
-                    curve: Curves.easeOutCubic,
-                  )),
+                  position:
+                      Tween<Offset>(
+                        begin: const Offset(0, 0.1),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: _slideController,
+                          curve: Curves.easeOutCubic,
+                        ),
+                      ),
                   child: Column(
                     children: [
                       // Hero Header with KPIs
@@ -226,17 +231,23 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
                             // Interactive Tags
                             if (tags.isNotEmpty) ...[
-                              StaggeredTagList(tags: tags.map((t) => InteractiveTag(
-                                text: t.text,
-                                color: t.color,
-                                icon: t.icon,
-                                textColor: t.textColor,
-                                action: t.action,
-                                category: t.category,
-                                subcategory: t.subcategory,
-                                isOutlined: t.isOutlined,
-                                onTap: t.onTap,
-                              )).toList()),
+                              StaggeredTagList(
+                                tags: tags
+                                    .map(
+                                      (t) => InteractiveTag(
+                                        text: t.text,
+                                        color: t.color,
+                                        icon: t.icon,
+                                        textColor: t.textColor,
+                                        action: t.action,
+                                        category: t.category,
+                                        subcategory: t.subcategory,
+                                        isOutlined: t.isOutlined,
+                                        onTap: t.onTap,
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
                               const SizedBox(height: 24),
                             ],
 
@@ -270,32 +281,32 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                             _buildCategorySnapshot(context),
 
                             // Materials & Alternatives
-                            if (_hasMaterialsPreview(widget.classification))
-                              ...[
-                                const SizedBox(height: 16),
-                                _buildMaterialsPreview(context),
-                              ],
+                            if (_hasMaterialsPreview(
+                              widget.classification,
+                            )) ...[
+                              const SizedBox(height: 16),
+                              _buildMaterialsPreview(context),
+                            ],
 
                             // Disposal Checklist
-                            if (_hasDisposalChecklist(widget.classification))
-                              ...[
-                                const SizedBox(height: 16),
-                                _buildDisposalChecklist(context),
-                              ],
+                            if (_hasDisposalChecklist(
+                              widget.classification,
+                            )) ...[
+                              const SizedBox(height: 16),
+                              _buildDisposalChecklist(context),
+                            ],
 
                             // Local Rules (BBMP)
-                            if (_hasLocalRules(widget.classification))
-                              ...[
-                                const SizedBox(height: 16),
-                                _buildLocalRulesCard(context),
-                              ],
+                            if (_hasLocalRules(widget.classification)) ...[
+                              const SizedBox(height: 16),
+                              _buildLocalRulesCard(context),
+                            ],
 
                             // Safety Warnings
-                            if (_hasSafetyWarnings(widget.classification))
-                              ...[
-                                const SizedBox(height: 16),
-                                _buildSafetyWarnings(context),
-                              ],
+                            if (_hasSafetyWarnings(widget.classification)) ...[
+                              const SizedBox(height: 16),
+                              _buildSafetyWarnings(context),
+                            ],
 
                             // Contamination Tips
                             const SizedBox(height: 16),
@@ -304,7 +315,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                             // Challenge Completed
                             if (pipelineState.completedChallenge != null) ...[
                               const SizedBox(height: 16),
-                              _buildCompletedChallengeCard(context, pipelineState),
+                              _buildCompletedChallengeCard(
+                                context,
+                                pipelineState,
+                              ),
                             ],
 
                             // Points earned card
@@ -340,14 +354,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         ),
       ),
     );
-    
+
     // Add achievement celebration overlay
-    return Stack(
-      children: [
-        scaffold,
-        buildAchievementCelebration(),
-      ],
-    );
+    return Stack(children: [scaffold, buildAchievementCelebration()]);
   }
 
   Widget _buildWhyCard(BuildContext context) {
@@ -357,9 +366,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     return Card(
       elevation: 0,
       color: colorScheme.surfaceContainerHighest,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -367,11 +374,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.psychology,
-                  color: colorScheme.primary,
-                  size: 20,
-                ),
+                Icon(Icons.psychology, color: colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   'Why this classification?',
@@ -398,11 +401,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.school,
-                      size: 16,
-                      color: colorScheme.primary,
-                    ),
+                    Icon(Icons.school, size: 16, color: colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(
                       'Learn more about ${widget.classification.category}',
@@ -482,16 +481,21 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
           ),
           TextButton.icon(
             onPressed: () {
-              _analyticsService.trackUserAction('low_confidence_reanalyze',
-                  parameters: {
-                    'original_confidence': widget.classification.confidence.toString(),
-                    'category': widget.classification.category,
-                  });
+              _analyticsService.trackUserAction(
+                'low_confidence_reanalyze',
+                parameters: {
+                  'original_confidence': widget.classification.confidence
+                      .toString(),
+                  'category': widget.classification.category,
+                },
+              );
               Navigator.of(context).pop();
             },
             icon: Icon(Icons.refresh, size: 18, color: Colors.orange.shade800),
-            label: Text('Re-analyze',
-                style: TextStyle(color: Colors.orange.shade800)),
+            label: Text(
+              'Re-analyze',
+              style: TextStyle(color: Colors.orange.shade800),
+            ),
           ),
         ],
       ),
@@ -505,15 +509,17 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     return Card(
       elevation: 0,
       color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.auto_stories, color: theme.colorScheme.primary, size: 20),
+            Icon(
+              Icons.auto_stories,
+              color: theme.colorScheme.primary,
+              size: 20,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -532,23 +538,25 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
   /// Find disposal facilities action.
   void _handleFindFacility() {
-    _analyticsService.trackUserAction('find_facility', parameters: {
-      'category': widget.classification.category,
-      'item': widget.classification.itemName,
-    });
+    _analyticsService.trackUserAction(
+      'find_facility',
+      parameters: {
+        'category': widget.classification.category,
+        'item': widget.classification.itemName,
+      },
+    );
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const DisposalFacilitiesScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const DisposalFacilitiesScreen()),
     );
   }
 
   /// Scan another item action.
   void _handleScanAnother() {
-    _analyticsService.trackUserAction('scan_another', parameters: {
-      'category': widget.classification.category,
-    });
+    _analyticsService.trackUserAction(
+      'scan_another',
+      parameters: {'category': widget.classification.category},
+    );
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const ImageCaptureScreen()),
@@ -560,41 +568,42 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     _analyticsService.trackUserAction('view_analytics_dashboard');
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const WasteDashboardScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const WasteDashboardScreen()),
     );
   }
-  
+
   void _handleEducationalContent() {
     // Track user action (Legacy parity)
-    _analyticsService.trackUserAction('educational_content_viewed', parameters: {
-      'category': widget.classification.category,
-      'item': widget.classification.itemName,
-    });
-    
+    _analyticsService.trackUserAction(
+      'educational_content_viewed',
+      parameters: {
+        'category': widget.classification.category,
+        'item': widget.classification.itemName,
+      },
+    );
+
     // Navigate to educational content
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const EducationalContentScreen()),
     );
   }
-  
+
   /// Process gamification state changes
   void _processGamificationState(ResultPipelineState state) {
     if (_hasProcessedGamification || state.isProcessing) {
       return;
     }
-    
+
     // Mark as processed to prevent duplicate handling
     _hasProcessedGamification = true;
-    
+
     // Show points popup
     if (state.pointsEarned > 0 && !_hasShownPointsPopup) {
       _hasShownPointsPopup = true;
       _showPointsPopup(state.pointsEarned);
     }
-    
+
     // Show achievement celebration
     if (state.newAchievements.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -602,7 +611,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         showAchievementCelebration(state.newAchievements);
       });
     }
-    
+
     // Debug logging
     ResultScreenDebugConfig.logPipelineOutput(
       classificationId: widget.classification.id,
@@ -611,28 +620,31 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       isSaved: state.isSaved,
     );
   }
-  
+
   /// Show animated points popup
   void _showPointsPopup(int points) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.showPointsPopup(points);
-        
+
         // Log analytics
-        WasteAppLogger.aiEvent('points_popup_shown', context: {
-          'classificationId': widget.classification.id,
-          'points': points,
-          'version': 'v2',
-        });
+        WasteAppLogger.aiEvent(
+          'points_popup_shown',
+          context: {
+            'classificationId': widget.classification.id,
+            'points': points,
+            'version': 'v2',
+          },
+        );
       }
     });
   }
-  
+
   /// Trigger haptic feedback
   void _triggerHapticFeedback() {
     try {
       final haptic = HapticSettingsService();
-      if (haptic.enabled && 
+      if (haptic.enabled &&
           widget.classification.category != 'Requires Manual Review') {
         HapticFeedback.lightImpact();
       }
@@ -644,17 +656,23 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
   void _handleDisposeCorrectly() {
     // Track user action (Legacy parity)
-    _analyticsService.trackUserAction('dispose_correctly_tapped', parameters: {
-      'category': widget.classification.category,
-      'item': widget.classification.itemName,
-    });
-    
+    _analyticsService.trackUserAction(
+      'dispose_correctly_tapped',
+      parameters: {
+        'category': widget.classification.category,
+        'item': widget.classification.itemName,
+      },
+    );
+
     // Also log for debugging
-    WasteAppLogger.aiEvent('dispose_correctly_tapped', context: {
-      'classificationId': widget.classification.id,
-      'category': widget.classification.category,
-      'version': 'v2',
-    });
+    WasteAppLogger.aiEvent(
+      'dispose_correctly_tapped',
+      context: {
+        'classificationId': widget.classification.id,
+        'category': widget.classification.category,
+        'version': 'v2',
+      },
+    );
 
     // Show disposal instructions in bottom sheet
     showModalBottomSheet(
@@ -682,10 +700,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurfaceVariant
-                          .withValues(alpha: 0.4),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -694,8 +711,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                   Text(
                     'How to Dispose',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   // Content
@@ -718,22 +735,24 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
   void _handleCorrection() {
     // Track user action (Legacy parity)
-    _analyticsService.trackUserAction('correction_requested', parameters: {
-      'category': widget.classification.category,
-      'item': widget.classification.itemName,
-    });
-    
+    _analyticsService.trackUserAction(
+      'correction_requested',
+      parameters: {
+        'category': widget.classification.category,
+        'item': widget.classification.itemName,
+      },
+    );
+
     // Also log for debugging
-    WasteAppLogger.aiEvent('correction_requested', context: {
-      'classificationId': widget.classification.id,
-      'version': 'v2',
-    });
+    WasteAppLogger.aiEvent(
+      'correction_requested',
+      context: {'classificationId': widget.classification.id, 'version': 'v2'},
+    );
 
     showDialog<bool>(
       context: context,
-      builder: (context) => CorrectionDialog(
-        classification: widget.classification,
-      ),
+      builder: (context) =>
+          CorrectionDialog(classification: widget.classification),
     );
   }
 
@@ -744,10 +763,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       _triggerHapticFeedback();
 
       // Track user action (Legacy parity)
-      _analyticsService.trackUserAction('classification_save', parameters: {
-        'category': widget.classification.category,
-        'item': widget.classification.itemName,
-      });
+      _analyticsService.trackUserAction(
+        'classification_save',
+        parameters: {
+          'category': widget.classification.category,
+          'item': widget.classification.itemName,
+        },
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -775,10 +797,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       await pipeline.shareClassification(widget.classification);
 
       // Track user action (Legacy parity)
-      _analyticsService.trackUserAction('classification_share', parameters: {
-        'category': widget.classification.category,
-        'item': widget.classification.itemName,
-      });
+      _analyticsService.trackUserAction(
+        'classification_share',
+        parameters: {
+          'category': widget.classification.category,
+          'item': widget.classification.itemName,
+        },
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -799,14 +824,17 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       }
     }
   }
-  
+
   void _handleReanalyze() {
     // Track user action (Legacy parity)
-    _analyticsService.trackUserAction('classification_reanalyze', parameters: {
-      'category': widget.classification.category,
-      'item': widget.classification.itemName,
-    });
-    
+    _analyticsService.trackUserAction(
+      'classification_reanalyze',
+      parameters: {
+        'category': widget.classification.category,
+        'item': widget.classification.itemName,
+      },
+    );
+
     // Navigate back to camera
     Navigator.of(context).pop();
   }
@@ -844,9 +872,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildImpactReveal(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final impact = widget.classification
-        .getEnvironmentalImpactScore()
-        .clamp(1.0, 10.0);
+    final impact = widget.classification.getEnvironmentalImpactScore().clamp(
+      1.0,
+      10.0,
+    );
     final eco = (10.0 - impact).clamp(0.0, 10.0);
     final progress = eco / 10.0;
     final color = _impactProgressColor(eco);
@@ -864,9 +893,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               children: [
                 Icon(Icons.auto_awesome, color: cs.primary, size: 20),
                 const SizedBox(width: 8),
-                Text('Impact Reveal',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Impact Reveal',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -890,11 +922,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(eco.toStringAsFixed(1),
-                            style: theme.textTheme.headlineMedium
-                                ?.copyWith(fontWeight: FontWeight.bold)),
-                        Text('eco score',
-                            style: theme.textTheme.labelSmall),
+                        Text(
+                          eco.toStringAsFixed(1),
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text('eco score', style: theme.textTheme.labelSmall),
                       ],
                     ),
                   ],
@@ -902,19 +936,36 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               ),
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(context, Icons.cloud_outlined, 'CO2 impact',
-                _formatCo2Impact(widget.classification)),
-            _buildInfoRow(context, Icons.timelapse, 'Decomposition',
-                _formatDecompositionTime(widget.classification)),
-            _buildInfoRow(context, Icons.recycling, 'Recyclability',
-                _formatRecyclability(widget.classification)),
+            _buildInfoRow(
+              context,
+              Icons.cloud_outlined,
+              'CO2 impact',
+              _formatCo2Impact(widget.classification),
+            ),
+            _buildInfoRow(
+              context,
+              Icons.timelapse,
+              'Decomposition',
+              _formatDecompositionTime(widget.classification),
+            ),
+            _buildInfoRow(
+              context,
+              Icons.recycling,
+              'Recyclability',
+              _formatRecyclability(widget.classification),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+  Widget _buildInfoRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -933,7 +984,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final c = widget.classification;
-    final Color accentColor = cs.primary;
+    final accentColor = cs.primary;
 
     return Card(
       elevation: 0,
@@ -948,17 +999,22 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               children: [
                 Icon(Icons.route, color: accentColor, size: 20),
                 const SizedBox(width: 8),
-                Text('Impact Journey',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Impact Journey',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
             _journeyStep(Icons.label_outline, 'Sorted as', c.category),
-            _journeyStep(Icons.build_circle_outlined, 'Processing',
-                c.disposalInstructions.primaryMethod),
-            _journeyStep(Icons.auto_awesome, 'Next life',
-                _nextLifeText(c)),
+            _journeyStep(
+              Icons.build_circle_outlined,
+              'Processing',
+              c.disposalInstructions.primaryMethod,
+            ),
+            _journeyStep(Icons.auto_awesome, 'Next life', _nextLifeText(c)),
           ],
         ),
       ),
@@ -985,8 +1041,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 2),
                 Text(detail, style: Theme.of(context).textTheme.bodySmall),
               ],
@@ -1007,8 +1065,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       if (mat == 'metal') return 'Recycled metal products';
       return 'Recycling facility';
     }
-    if (c.category.toLowerCase() == 'hazardous waste') return 'Safe disposal facility';
-    if (c.category.toLowerCase() == 'medical waste') return 'Incineration / Treatment';
+    if (c.category.toLowerCase() == 'hazardous waste')
+      return 'Safe disposal facility';
+    if (c.category.toLowerCase() == 'medical waste')
+      return 'Incineration / Treatment';
     return 'Proper disposal route';
   }
 
@@ -1019,11 +1079,17 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     final items = <_SnapshotItem>[
       _SnapshotItem('Recyclable', _boolLabel(c.isRecyclable), Icons.recycling),
       _SnapshotItem('Compostable', _boolLabel(c.isCompostable), Icons.compost),
-      _SnapshotItem('Special Disposal', _boolLabel(c.requiresSpecialDisposal), Icons.warning_amber),
+      _SnapshotItem(
+        'Special Disposal',
+        _boolLabel(c.requiresSpecialDisposal),
+        Icons.warning_amber,
+      ),
       _SnapshotItem('Risk Level', c.riskLevel ?? 'Unknown', Icons.report),
     ];
     if (c.recyclingCode != null) {
-      items.add(_SnapshotItem('Code', c.recyclingCode.toString(), Icons.qr_code_2));
+      items.add(
+        _SnapshotItem('Code', c.recyclingCode.toString(), Icons.qr_code_2),
+      );
     }
 
     return Card(
@@ -1039,9 +1105,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               children: [
                 Icon(Icons.dashboard, color: cs.primary, size: 20),
                 const SizedBox(width: 8),
-                Text('Category Snapshot',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Category Snapshot',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -1051,7 +1120,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               children: items.map((item) {
                 final color = _snapshotColor(item.value);
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
@@ -1062,9 +1134,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                     children: [
                       Icon(item.icon, color: color, size: 16),
                       const SizedBox(width: 6),
-                      Text('${item.label}: ${item.value}',
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(fontWeight: FontWeight.w600, color: color)),
+                      Text(
+                        '${item.label}: ${item.value}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -1098,7 +1174,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final c = widget.classification;
-    final materials = c.materials ?? 
+    final materials =
+        c.materials ??
         (c.materialType != null ? [c.materialType!] : <String>[]);
     final alternatives = c.alternativeOptions ?? const <String>[];
     final relatedItems = c.relatedItems ?? const <String>[];
@@ -1116,9 +1193,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               children: [
                 Icon(Icons.layers_outlined, color: cs.primary, size: 20),
                 const SizedBox(width: 8),
-                Text('Materials & Alternatives',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Materials & Alternatives',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             if (materials.isNotEmpty) ...[
@@ -1157,9 +1237,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: cs.primary.withValues(alpha: 0.4)),
               ),
-              child: Text(item,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: cs.primary, fontWeight: FontWeight.w600)),
+              child: Text(
+                item,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             );
           }).toList(),
         ),
@@ -1168,7 +1252,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   }
 
   bool _hasMaterialsPreview(WasteClassification c) {
-    final materials = c.materials ??
+    final materials =
+        c.materials ??
         (c.materialType != null ? [c.materialType!] : <String>[]);
     return materials.isNotEmpty ||
         (c.alternativeOptions?.isNotEmpty == true) ||
@@ -1194,9 +1279,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               children: [
                 Icon(Icons.checklist, color: cs.primary, size: 20),
                 const SizedBox(width: 8),
-                Text('Disposal Checklist',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Disposal Checklist',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -1208,20 +1296,30 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 24, height: 24,
+                      width: 24,
+                      height: 24,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: cs.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: cs.primary.withValues(alpha: 0.4)),
+                        border: Border.all(
+                          color: cs.primary.withValues(alpha: 0.4),
+                        ),
                       ),
-                      child: Text('$i',
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(fontWeight: FontWeight.bold, color: cs.primary)),
+                      child: Text(
+                        '$i',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: cs.primary,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(entry.value, style: theme.textTheme.bodySmall),
+                      child: Text(
+                        entry.value,
+                        style: theme.textTheme.bodySmall,
+                      ),
                     ),
                   ],
                 ),
@@ -1245,7 +1343,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     final bbmp = c.bbmpComplianceStatus;
     final guideline = c.localGuidelinesReference;
 
-    if (regs.isEmpty && (bbmp == null || bbmp.isEmpty) && (guideline == null || guideline.isEmpty)) {
+    if (regs.isEmpty &&
+        (bbmp == null || bbmp.isEmpty) &&
+        (guideline == null || guideline.isEmpty)) {
       return const SizedBox.shrink();
     }
 
@@ -1262,9 +1362,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               children: [
                 Icon(Icons.gavel, color: cs.primary, size: 20),
                 const SizedBox(width: 8),
-                Text('Local Rules',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Local Rules',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             if (bbmp != null && bbmp.isNotEmpty) ...[
@@ -1277,12 +1380,14 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
             ],
             if (regs.isNotEmpty) ...[
               const SizedBox(height: 12),
-              ...regs.entries.take(3).map((e) =>
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: _buildRuleRow(e.key, e.value),
+              ...regs.entries
+                  .take(3)
+                  .map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: _buildRuleRow(e.key, e.value),
+                    ),
                   ),
-              ),
             ],
           ],
         ),
@@ -1296,11 +1401,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 6, height: 6,
+          width: 6,
+          height: 6,
           margin: const EdgeInsets.only(top: 6),
-          decoration: BoxDecoration(
-            color: cs.primary, shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -1308,8 +1412,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
             text: TextSpan(
               style: Theme.of(context).textTheme.bodySmall,
               children: [
-                TextSpan(text: '$label: ',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                TextSpan(
+                  text: '$label: ',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 TextSpan(text: value),
               ],
             ),
@@ -1357,23 +1463,28 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               children: [
                 Icon(Icons.warning, color: cs.error, size: 20),
                 const SizedBox(width: 8),
-                Text('Safety Warnings',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Safety Warnings',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
-            ...warnings.map((w) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.info_outline, size: 16, color: cs.error),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(w, style: theme.textTheme.bodySmall)),
-                ],
+            ...warnings.map(
+              (w) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline, size: 16, color: cs.error),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(w, style: theme.textTheme.bodySmall)),
+                  ],
+                ),
               ),
-            )),
+            ),
           ],
         ),
       ),
@@ -1390,12 +1501,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildContaminationTips(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final warnings = widget.classification.disposalInstructions.warnings ?? const <String>[];
-    final hints = widget.classification.disposalInstructions.tips ?? const <String>[];
-    final tips = <String>[
-      ...warnings.take(2),
-      ...hints.take(3),
-    ];
+    final warnings =
+        widget.classification.disposalInstructions.warnings ?? const <String>[];
+    final hints =
+        widget.classification.disposalInstructions.tips ?? const <String>[];
+    final tips = <String>[...warnings.take(2), ...hints.take(3)];
 
     return Card(
       elevation: 0,
@@ -1410,34 +1520,46 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               children: [
                 Icon(Icons.cleaning_services, color: cs.primary, size: 20),
                 const SizedBox(width: 8),
-                Text('Contamination Tips',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Contamination Tips',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
             if (tips.isEmpty)
-              Text('Keep recyclables clean and dry.',
-                  style: theme.textTheme.bodySmall)
+              Text(
+                'Keep recyclables clean and dry.',
+                style: theme.textTheme.bodySmall,
+              )
             else
-              ...tips.map((tip) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.check, size: 16, color: cs.primary),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(tip, style: theme.textTheme.bodySmall)),
-                  ],
+              ...tips.map(
+                (tip) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.check, size: 16, color: cs.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(tip, style: theme.textTheme.bodySmall),
+                      ),
+                    ],
+                  ),
                 ),
-              )),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCompletedChallengeCard(BuildContext context, ResultPipelineState state) {
+  Widget _buildCompletedChallengeCard(
+    BuildContext context,
+    ResultPipelineState state,
+  ) {
     final theme = Theme.of(context);
     final challenge = state.completedChallenge!;
     return Card(
@@ -1446,11 +1568,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
         leading: const Icon(Icons.emoji_events, color: Colors.amber, size: 32),
-        title: Text(challenge.title,
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold)),
-        subtitle: Text(challenge.description,
-            style: theme.textTheme.bodySmall),
+        title: Text(
+          challenge.title,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(challenge.description, style: theme.textTheme.bodySmall),
         onTap: () => _showAchievementDetails(challenge),
       ),
     );
@@ -1468,8 +1592,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
           children: [
             Icon(Icons.stars, color: Colors.amber.shade700, size: 24),
             const SizedBox(width: 12),
-            Text('+${state.pointsEarned} points earned',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              '+${state.pointsEarned} points earned',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),

@@ -44,7 +44,7 @@ class ModernCard extends StatelessWidget {
 
     final effectiveRadius = borderRadius ?? AppTheme.borderRadiusLg;
 
-    final Widget cardContent = Material(
+    final cardContent = Material(
       elevation: elevation ?? AppTheme.elevationMd,
       color: enableGlassmorphism
           ? (backgroundColor ?? theme.cardColor).withValues(alpha: opacity)
@@ -54,7 +54,8 @@ class ModernCard extends StatelessWidget {
         margin: margin ?? const EdgeInsets.all(AppTheme.spacingSm),
         padding: padding ?? const EdgeInsets.all(AppTheme.spacingMd),
         decoration: BoxDecoration(
-          border: border ??
+          border:
+              border ??
               (enableGlassmorphism
                   ? Border.all(color: Colors.white.withValues(alpha: 0.2))
                   : null),
@@ -69,10 +70,7 @@ class ModernCard extends StatelessWidget {
         color: Colors.transparent,
         clipBehavior: Clip.hardEdge,
         borderRadius: BorderRadius.circular(effectiveRadius),
-        child: InkWell(
-          onTap: onTap,
-          child: cardContent,
-        ),
+        child: InkWell(onTap: onTap, child: cardContent),
       );
     }
 
@@ -153,10 +151,12 @@ class FeatureCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Responsive padding based on available width
-        final effectivePadding = padding ??
+        final effectivePadding =
+            padding ??
             EdgeInsets.all(
               constraints.maxWidth < 300
-                  ? AppTheme.spacingSm // Smaller padding for narrow screens
+                  ? AppTheme
+                        .spacingSm // Smaller padding for narrow screens
                   : AppTheme.spacingMd, // Standard padding for normal screens
             );
 
@@ -207,10 +207,7 @@ class FeatureCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailing != null) ...[
-                const SizedBox(width: 8),
-                trailing!,
-              ],
+              if (trailing != null) ...[const SizedBox(width: 8), trailing!],
               if (showChevron && onTap != null)
                 Icon(
                   Icons.chevron_right,
@@ -264,8 +261,11 @@ class StatsCard extends StatelessWidget {
                 color: effectiveColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
               ),
-              child:
-                  Icon(icon, color: effectiveColor, size: AppTheme.iconSizeLg),
+              child: Icon(
+                icon,
+                color: effectiveColor,
+                size: AppTheme.iconSizeLg,
+              ),
             ),
             const SizedBox(width: AppTheme.spacingMd),
           ],
@@ -306,10 +306,7 @@ class StatsCard extends StatelessWidget {
           ),
           if (trend != null) ...[
             const SizedBox(width: 8),
-            _TrendIcon(
-              trend: trend!,
-              isPositive: isPositiveTrend,
-            ),
+            _TrendIcon(trend: trend!, isPositive: isPositiveTrend),
           ],
         ],
       ),
@@ -337,10 +334,7 @@ class _TrendIcon extends StatelessWidget {
           color: isPositive ? Colors.red : Colors.green,
         );
       case Trend.flat:
-        return const Icon(
-          Icons.trending_flat,
-          color: Colors.grey,
-        );
+        return const Icon(Icons.trending_flat, color: Colors.grey);
     }
   }
 }
@@ -370,14 +364,12 @@ class ActionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final effectiveColor = color ?? theme.colorScheme.primary;
 
-    final effectiveGradient = gradient ??
+    final effectiveGradient =
+        gradient ??
         LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            effectiveColor,
-            effectiveColor.withValues(alpha: 0.8),
-          ],
+          colors: [effectiveColor, effectiveColor.withValues(alpha: 0.8)],
         );
 
     return ModernCard(
@@ -388,11 +380,7 @@ class ActionCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                icon,
-                color: Colors.white,
-                size: AppTheme.iconSizeXl,
-              ),
+              Icon(icon, color: Colors.white, size: AppTheme.iconSizeXl),
               const SizedBox(height: AppTheme.spacingMd),
               Text(
                 title,
@@ -412,12 +400,7 @@ class ActionCard extends StatelessWidget {
               ],
             ],
           ),
-          if (badge != null)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: badge!,
-            ),
+          if (badge != null) Positioned(top: 0, right: 0, child: badge!),
         ],
       ),
     );
@@ -472,8 +455,9 @@ class ActiveChallengeCard extends StatelessWidget {
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: effectiveColor.withValues(alpha: 0.1),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusSm),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.borderRadiusSm,
+                        ),
                       ),
                       child: Icon(
                         icon,
@@ -541,14 +525,16 @@ class ActiveChallengeCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ClipRRect(
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.borderRadiusXs),
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.borderRadiusXs,
+                      ),
                       child: LinearProgressIndicator(
                         value: clampedProgress,
                         minHeight: isNarrow ? 4 : 6,
                         backgroundColor: effectiveColor.withValues(alpha: 0.2),
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(effectiveColor),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          effectiveColor,
+                        ),
                       ),
                     ),
                   ),
@@ -561,8 +547,9 @@ class ActiveChallengeCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.amber.withValues(alpha: 0.1),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusXs),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.borderRadiusXs,
+                        ),
                         border: Border.all(
                           color: Colors.amber.withValues(alpha: 0.3),
                         ),
@@ -636,13 +623,9 @@ class RecentClassificationCard extends StatelessWidget {
 
     return ModernCard(
       onTap: onTap,
-      margin: const EdgeInsets.symmetric(
-        vertical: AppTheme.spacingXs,
-      ),
+      margin: const EdgeInsets.symmetric(vertical: AppTheme.spacingXs),
       padding: const EdgeInsets.all(AppTheme.spacingMd),
-      border: Border.all(
-        color: effectiveCategoryColor.withValues(alpha: 0.3),
-      ),
+      border: Border.all(color: effectiveCategoryColor.withValues(alpha: 0.3)),
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Determine layout based on available width
@@ -663,7 +646,8 @@ class RecentClassificationCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                    width: isNarrow ? AppTheme.spacingSm : AppTheme.spacingMd),
+                  width: isNarrow ? AppTheme.spacingSm : AppTheme.spacingMd,
+                ),
               ],
 
               // Content
@@ -681,8 +665,9 @@ class RecentClassificationCard extends StatelessWidget {
                             itemName,
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
-                              fontSize:
-                                  isVeryNarrow ? 13 : (isNarrow ? 14 : null),
+                              fontSize: isVeryNarrow
+                                  ? 13
+                                  : (isNarrow ? 14 : null),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -697,8 +682,9 @@ class RecentClassificationCard extends StatelessWidget {
                             _formatDate(timestamp),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
-                              fontSize:
-                                  isVeryNarrow ? 10 : (isNarrow ? 11 : null),
+                              fontSize: isVeryNarrow
+                                  ? 10
+                                  : (isNarrow ? 11 : null),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -756,7 +742,8 @@ class RecentClassificationCard extends StatelessWidget {
     }
 
     // Reserve space for indicators and arrow
-    final indicatorSpace = indicatorCount * (isNarrow ? 18 : 20) +
+    final indicatorSpace =
+        indicatorCount * (isNarrow ? 18 : 20) +
         (indicatorCount > 0 ? AppTheme.spacingXs : 0);
     final availableForBadges =
         availableWidth - indicatorSpace - 24; // 24 for arrow
@@ -772,18 +759,18 @@ class RecentClassificationCard extends StatelessWidget {
           Row(
             children: [
               Flexible(
-                child:
-                    _buildCategoryBadges(categoryColor, isNarrow, isVeryNarrow),
+                child: _buildCategoryBadges(
+                  categoryColor,
+                  isNarrow,
+                  isVeryNarrow,
+                ),
               ),
             ],
           ),
           if (showPropertyIndicators && indicatorCount > 0) ...[
             const SizedBox(height: 4),
             Row(
-              children: [
-                ..._buildPropertyIndicators(isNarrow),
-                const Spacer(),
-              ],
+              children: [..._buildPropertyIndicators(isNarrow), const Spacer()],
             ),
           ],
         ],
@@ -806,7 +793,10 @@ class RecentClassificationCard extends StatelessWidget {
   }
 
   Widget _buildCategoryBadges(
-      Color categoryColor, bool isNarrow, bool isVeryNarrow) {
+    Color categoryColor,
+    bool isNarrow,
+    bool isVeryNarrow,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Row(
@@ -851,8 +841,9 @@ class RecentClassificationCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.05),
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.borderRadiusXs),
+                    borderRadius: BorderRadius.circular(
+                      AppTheme.borderRadiusXs,
+                    ),
                     border: Border.all(
                       color: categoryColor.withValues(alpha: 0.5),
                     ),
@@ -884,11 +875,7 @@ class RecentClassificationCard extends StatelessWidget {
       indicators.add(
         Tooltip(
           message: 'Recyclable',
-          child: Icon(
-            Icons.recycling,
-            size: iconSize,
-            color: Colors.blue,
-          ),
+          child: Icon(Icons.recycling, size: iconSize, color: Colors.blue),
         ),
       );
     }
@@ -897,11 +884,7 @@ class RecentClassificationCard extends StatelessWidget {
       indicators.add(
         Tooltip(
           message: 'Compostable',
-          child: Icon(
-            Icons.eco,
-            size: iconSize,
-            color: Colors.green,
-          ),
+          child: Icon(Icons.eco, size: iconSize, color: Colors.green),
         ),
       );
     }
@@ -933,11 +916,7 @@ class RecentClassificationCard extends StatelessWidget {
 
   Widget _buildImageWidget(double size) {
     if (imageUrl == null) {
-      return Icon(
-        Icons.image,
-        size: size * 0.4,
-        color: Colors.grey,
-      );
+      return Icon(Icons.image, size: size * 0.4, color: Colors.grey);
     }
 
     // For now, return a placeholder - in real implementation, this would handle
@@ -949,11 +928,7 @@ class RecentClassificationCard extends StatelessWidget {
         color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusXs),
       ),
-      child: Icon(
-        Icons.image,
-        size: size * 0.4,
-        color: Colors.grey,
-      ),
+      child: Icon(Icons.image, size: size * 0.4, color: Colors.grey),
     );
   }
 

@@ -3,36 +3,23 @@ import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 import 'package:waste_segregation_app/widgets/result_screen/result_header.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 
-@widgetbook.UseCase(
-  name: 'Default',
-  type: ResultHeader,
-)
+@widgetbook.UseCase(name: 'Default', type: ResultHeader)
 Widget resultHeaderUseCase(BuildContext context) {
   return const _ResultHeaderDemo();
 }
 
-@widgetbook.UseCase(
-  name: 'High Confidence',
-  type: ResultHeader,
-)
+@widgetbook.UseCase(name: 'High Confidence', type: ResultHeader)
 Widget resultHeaderHighConfidenceUseCase(BuildContext context) {
-  return const _ResultHeaderDemo(
-    confidence: 0.95,
-    pointsEarned: 25,
-  );
+  return const _ResultHeaderDemo(confidence: 0.95, pointsEarned: 25);
 }
 
-@widgetbook.UseCase(
-  name: 'Low Confidence',
-  type: ResultHeader,
-)
+@widgetbook.UseCase(name: 'Low Confidence', type: ResultHeader)
 Widget resultHeaderLowConfidenceUseCase(BuildContext context) {
-  return _ResultHeaderDemo(
+  return const _ResultHeaderDemo(
     category: 'Hazardous',
     itemName: 'Battery',
     confidence: 0.65,
     pointsEarned: 5,
-    hasImage: true,
   );
 }
 
@@ -70,7 +57,7 @@ class _ResultHeaderDemo extends StatelessWidget {
       visualFeatures: [
         'metallic surface',
         'cylindrical shape',
-        'recyclable material'
+        'recyclable material',
       ],
       alternatives: [],
       // Mock disposal instructions
@@ -97,8 +84,8 @@ class _ResultHeaderDemo extends StatelessWidget {
                 child: Text(
                   'Result Header Component',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
 
@@ -138,10 +125,8 @@ class _ResultHeaderDemo extends StatelessWidget {
                       children: [
                         Text(
                           'Component Details',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         const Text('• Above-the-fold content (≈60% viewport)'),
@@ -150,15 +135,14 @@ class _ResultHeaderDemo extends StatelessWidget {
                         const Text('• Animated confidence bar'),
                         const Text('• Prominent item name'),
                         const Text(
-                            '• KPI chips (points & environmental impact)'),
+                          '• KPI chips (points & environmental impact)',
+                        ),
                         const Text('• Primary CTA with haptic feedback'),
                         const SizedBox(height: 8),
                         Text(
                           'Current Values:',
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         Text('Category: $category'),
                         Text('Confidence: ${(confidence * 100).round()}%'),

@@ -49,13 +49,9 @@ class _ModernButtonState extends State<ModernButton>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -147,13 +143,10 @@ class _ModernButtonState extends State<ModernButton>
       content = Text(widget.text);
     }
 
-    final Widget button = AnimatedBuilder(
+    final button = AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        );
+        return Transform.scale(scale: _scaleAnimation.value, child: child);
       },
       child: SizedBox(
         width: widget.isExpanded ? double.infinity : null,
@@ -175,10 +168,7 @@ class _ModernButtonState extends State<ModernButton>
 
     // Wrap with tooltip if provided
     if (widget.tooltip != null) {
-      finalButton = Tooltip(
-        message: widget.tooltip!,
-        child: finalButton,
-      );
+      finalButton = Tooltip(message: widget.tooltip!, child: finalButton);
     }
 
     return finalButton;
@@ -466,13 +456,9 @@ class _ModernFABState extends State<ModernFAB>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.9,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.9).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -500,10 +486,7 @@ class _ModernFABState extends State<ModernFAB>
     Widget fab = AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        );
+        return Transform.scale(scale: _scaleAnimation.value, child: child);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -512,8 +495,9 @@ class _ModernFABState extends State<ModernFAB>
             end: Alignment.bottomRight,
             colors: [
               widget.backgroundColor ?? theme.colorScheme.primary,
-              (widget.backgroundColor ?? theme.colorScheme.primary)
-                  .withValues(alpha: 0.8),
+              (widget.backgroundColor ?? theme.colorScheme.primary).withValues(
+                alpha: 0.8,
+              ),
             ],
           ),
           borderRadius: BorderRadius.circular(
@@ -541,8 +525,9 @@ class _ModernFABState extends State<ModernFAB>
             ),
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal:
-                    widget.isExtended ? AppTheme.spacingLg : AppTheme.spacingMd,
+                horizontal: widget.isExtended
+                    ? AppTheme.spacingLg
+                    : AppTheme.spacingMd,
                 vertical: AppTheme.spacingMd,
               ),
               child: Row(
@@ -560,7 +545,8 @@ class _ModernFABState extends State<ModernFAB>
                       child: Text(
                         widget.label!,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: widget.foregroundColor ??
+                          color:
+                              widget.foregroundColor ??
                               theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
@@ -594,24 +580,11 @@ class _ModernFABState extends State<ModernFAB>
 }
 
 /// Button and input field style enums
-enum ModernButtonStyle {
-  filled,
-  outlined,
-  text,
-  glassmorphism,
-}
+enum ModernButtonStyle { filled, outlined, text, glassmorphism }
 
-enum ModernButtonSize {
-  small,
-  medium,
-  large,
-}
+enum ModernButtonSize { small, medium, large }
 
-enum ModernTextFieldStyle {
-  outlined,
-  filled,
-  glassmorphism,
-}
+enum ModernTextFieldStyle { outlined, filled, glassmorphism }
 
 /// Enhanced View All Button with overflow protection and responsive layout
 class ViewAllButton extends StatelessWidget {

@@ -17,6 +17,7 @@ import 'package:waste_segregation_app/services/enhanced_api_error_handler.dart';
 import 'package:uuid/uuid.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/services/local_guidelines_plugin.dart';
+import 'package:waste_segregation_app/utils/production_safety_config.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
@@ -111,6 +112,8 @@ class AiService {
     _dio.options.receiveTimeout = const Duration(seconds: 60);
     _dio.options.sendTimeout = const Duration(seconds: 60);
 
+    _logAiConfigState();
+
     WasteAppLogger.info(
         'AiService initialized with enhanced pricing and error handling',
         context: {
@@ -120,6 +123,23 @@ class AiService {
           'guardrail_service_initialized': true,
           'error_handler_configured': true,
         });
+  }
+
+  void _logAiConfigState() {
+    final provider = ProductionSafetyConfig.isClientAiAllowed
+        ? 'CLIENT-SIDE (allowed)'
+        : 'CLIENT-SIDE (BLOCKED in release)';
+    final openAiConfigured = openAiApiKey.isNotEmpty &&
+        !ProductionSafetyConfig.hasPlaceholderKey(openAiApiKey);
+    final geminiConfigured = geminiApiKey.isNotEmpty &&
+        !ProductionSafetyConfig.hasPlaceholderKey(geminiApiKey);
+
+    WasteAppLogger.info(
+        '[AI CONFIG] Provider: $provider | '
+        'OpenAI configured: $openAiConfigured | '
+        'Gemini configured: $geminiConfigured | '
+        'Release guard: ${kReleaseMode ? "ACTIVE" : "disabled (debug)"}',
+    );
   }
 
   /// Prepares a new cancel token for the next analysis operation.
@@ -620,6 +640,13 @@ Output:
         );
         return result;
       } on Exception catch (openAiError, s) {
+        // Short-circuit on production safety — no retry or Gemini fallback.
+        if (openAiError is ProductionSafetyException) {
+          WasteAppLogger.warning(
+              '[AI SAFETY] Client-side AI blocked in release build.');
+          rethrow;
+        }
+
         WasteAppLogger.severe('OpenAI analysis failed',
             error: openAiError, stackTrace: s);
 
@@ -772,6 +799,13 @@ Output:
         );
         return result;
       } on Exception catch (openAiError, s) {
+        // Short-circuit on production safety — no retry or Gemini fallback.
+        if (openAiError is ProductionSafetyException) {
+          WasteAppLogger.warning(
+              '[AI SAFETY] Client-side AI blocked in release build (web).');
+          rethrow;
+        }
+
         WasteAppLogger.severe('OpenAI analysis failed for web image',
             error: openAiError, stackTrace: s);
 
@@ -948,6 +982,7 @@ Output:
     String? contentHash,
     String? thumbnailPath,
   }) async {
+    ProductionSafetyConfig.guardClientAiCall('OpenAI');
     final operationId = 'openai_analysis_$classificationId';
     final modelKey =
         ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
@@ -1195,6 +1230,7 @@ Output:
     String? contentHash,
     String? thumbnailPath,
   }) async {
+    ProductionSafetyConfig.guardClientAiCall('Gemini');
     final startTime = DateTime.now();
     WasteAppLogger.info('Falling back to Gemini for analysis.');
 
@@ -1356,6 +1392,8 @@ Output:
     String? model,
     List<String>? reanalysisModelsTried,
   }) async {
+    ProductionSafetyConfig.guardClientAiCall('OpenAI (correction)');
+
     WasteAppLogger.info('Operation completed',
         context: {'service': 'ai', 'file': 'ai_service'});
 
@@ -1477,7 +1515,7 @@ Output:
       // Return original classification with user correction noted
       return originalClassification.copyWith(
         userCorrection: userCorrection,
-        disagreementReason: 'Failed to process correction: $e',
+        disagreementReason: 'Failed to process correction.',
         clarificationNeeded: true,
       );
     }

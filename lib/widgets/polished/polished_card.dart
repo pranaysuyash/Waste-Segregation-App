@@ -47,13 +47,13 @@ class _PolishedCardState extends State<PolishedCard>
       duration: widget.animationDuration,
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: AppThemePolish.scalePressed,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation =
+        Tween<double>(begin: 1.0, end: AppThemePolish.scalePressed).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeInOut,
+          ),
+        );
   }
 
   @override
@@ -94,7 +94,7 @@ class _PolishedCardState extends State<PolishedCard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final Widget card = Container(
+    final card = Container(
       margin: widget.margin ?? const EdgeInsets.all(8.0),
       child: Material(
         elevation: widget.elevation ?? AppThemePolish.elevationSubtle,
@@ -119,10 +119,7 @@ class _PolishedCardState extends State<PolishedCard>
       return AnimatedBuilder(
         animation: _scaleAnimation,
         builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: card,
-          );
+          return Transform.scale(scale: _scaleAnimation.value, child: card);
         },
       );
     }

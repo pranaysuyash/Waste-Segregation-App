@@ -80,9 +80,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
       body: Column(
         children: [
           _buildSearchAndFilters(),
-          Expanded(
-            child: _buildFacilitiesList(),
-          ),
+          Expanded(child: _buildFacilitiesList()),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -125,8 +123,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                     )
                   : null,
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppTheme.borderRadiusRegular),
+                borderRadius: BorderRadius.circular(
+                  AppTheme.borderRadiusRegular,
+                ),
               ),
               filled: true,
               fillColor: Colors.white,
@@ -191,8 +190,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         decoration: BoxDecoration(
           color: AppTheme.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-          border:
-              Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -234,8 +234,8 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
           final errorMessage = snapshot.error.toString();
           final isIndexingError =
               errorMessage.contains('failed-precondition') ||
-                  errorMessage.contains('index') ||
-                  errorMessage.contains('composite');
+              errorMessage.contains('index') ||
+              errorMessage.contains('composite');
 
           return Center(
             child: Column(
@@ -258,9 +258,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                   isIndexingError
                       ? 'The database needs indexing for advanced filters. Using simplified view...'
                       : errorMessage,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -311,8 +311,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
 
   Query<Map<String, dynamic>> _buildQuery() {
     try {
-      Query<Map<String, dynamic>> query =
-          FirebaseFirestore.instance.collection(FirestoreCollections.disposalLocations);
+      Query<Map<String, dynamic>> query = FirebaseFirestore.instance.collection(
+        FirestoreCollections.disposalLocations,
+      );
 
       // First apply the most selective filters
       if (_selectedSourceFilter != 'All') {
@@ -345,13 +346,15 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
   }
 
   List<QueryDocumentSnapshot> _filterFacilities(
-      List<QueryDocumentSnapshot> facilities) {
+    List<QueryDocumentSnapshot> facilities,
+  ) {
     return facilities.where((doc) {
       final data = doc.data() as Map<String, dynamic>;
       final name = data['name']?.toString().toLowerCase() ?? '';
       final address = data['address']?.toString().toLowerCase() ?? '';
-      final acceptedMaterials =
-          List<String>.from(data['acceptedMaterials'] ?? []);
+      final acceptedMaterials = List<String>.from(
+        data['acceptedMaterials'] ?? [],
+      );
 
       // Search filter
       if (_searchController.text.isNotEmpty) {
@@ -363,9 +366,11 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
 
       // Material filter
       if (_selectedMaterialFilter != 'All') {
-        final materialFound = acceptedMaterials.any((material) => material
-            .toLowerCase()
-            .contains(_selectedMaterialFilter.toLowerCase()));
+        final materialFound = acceptedMaterials.any(
+          (material) => material.toLowerCase().contains(
+            _selectedMaterialFilter.toLowerCase(),
+          ),
+        );
         if (!materialFound) {
           return false;
         }
@@ -388,8 +393,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color:
-                _getFacilitySourceColor(facility.source).withValues(alpha: 0.1),
+            color: _getFacilitySourceColor(
+              facility.source,
+            ).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -425,11 +431,14 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                   .map(
                     (material) => Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadiusSmall),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.borderRadiusSmall,
+                        ),
                       ),
                       child: Text(
                         material,
@@ -456,14 +465,17 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: facility.isActive
                         ? Colors.green.withValues(alpha: 0.1)
                         : Colors.red.withValues(alpha: 0.1),
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    borderRadius: BorderRadius.circular(
+                      AppTheme.borderRadiusSmall,
+                    ),
                   ),
                   child: Text(
                     facility.isActive ? 'Active' : 'Inactive',
@@ -478,13 +490,17 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: _getFacilitySourceColor(facility.source)
-                        .withValues(alpha: 0.1),
-                    borderRadius:
-                        BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    color: _getFacilitySourceColor(
+                      facility.source,
+                    ).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      AppTheme.borderRadiusSmall,
+                    ),
                   ),
                   child: Text(
                     _getFacilitySourceLabel(facility.source),
@@ -517,26 +533,22 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.location_off,
-              size: 80,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.location_off, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 24),
             Text(
               'No Facilities Found',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 16),
             Text(
               _hasActiveFilters()
                   ? 'Try adjusting your search criteria or filters.'
                   : 'Be the first to add a disposal facility in your area!',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -588,23 +600,25 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
             const SizedBox(height: AppTheme.paddingRegular),
             Text(
               'Filter by Material',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
-            ...(_materialOptions.map((material) => ListTile(
-                  title: Text(material),
-                  trailing: _selectedMaterialFilter == material
-                      ? const Icon(Icons.check, color: AppTheme.primaryColor)
-                      : null,
-                  onTap: () {
-                    setState(() {
-                      _selectedMaterialFilter = material;
-                    });
-                    Navigator.pop(context);
-                  },
-                ))),
+            ...(_materialOptions.map(
+              (material) => ListTile(
+                title: Text(material),
+                trailing: _selectedMaterialFilter == material
+                    ? const Icon(Icons.check, color: AppTheme.primaryColor)
+                    : null,
+                onTap: () {
+                  setState(() {
+                    _selectedMaterialFilter = material;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            )),
           ],
         ),
       ),
@@ -633,9 +647,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
             const SizedBox(height: AppTheme.paddingRegular),
             Text(
               'Filter by Source',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppTheme.paddingRegular),
             ListTile(

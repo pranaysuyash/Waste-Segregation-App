@@ -26,12 +26,14 @@ library;
 class FirestoreCollections {
   // --- User-scoped collections ---
   static const String users = 'users';
-  static const String classifications = 'classifications'; // subcollection of users
+  static const String classifications =
+      'classifications'; // subcollection of users
   static const String gamification = 'gamification';
 
   // --- Leaderboard collections ---
   static const String leaderboardAllTime = 'leaderboard_allTime';
-  static const String leaderboardWeekly = 'leaderboard_weekly'; // defined in rules, not yet in service code
+  static const String leaderboardWeekly =
+      'leaderboard_weekly'; // defined in rules, not yet in service code
 
   // --- Community collections ---
   static const String communityFeed = 'community_feed';
@@ -146,7 +148,8 @@ class SchemaField {
   bool get isPii => classification == FieldClassification.pii;
 
   /// Whether this field should be omitted from leaderboard/public collections.
-  bool get isPrivate => classification == FieldClassification.private ||
+  bool get isPrivate =>
+      classification == FieldClassification.private ||
       classification == FieldClassification.pii;
 }
 
@@ -161,18 +164,90 @@ class UsersSchema {
   static const String collection = FirestoreCollections.users;
 
   static const List<SchemaField> fields = [
-    SchemaField(name: 'id', type: 'String', classification: FieldClassification.system, required: true, description: 'Firebase Auth UID, same as document ID'),
-    SchemaField(name: 'displayName', type: 'String?', classification: FieldClassification.pii, required: false, description: 'User-chosen display name'),
-    SchemaField(name: 'email', type: 'String?', classification: FieldClassification.pii, required: false, description: 'User email from auth provider. PII — consider redacting before Firestore write.'),
-    SchemaField(name: 'photoUrl', type: 'String?', classification: FieldClassification.pii, required: false, description: 'Profile photo URL. Written to leaderboard — needs opt-out.'),
-    SchemaField(name: 'familyId', type: 'String?', classification: FieldClassification.private, required: false, description: 'ID of the family the user belongs to'),
-    SchemaField(name: 'role', type: 'String?', classification: FieldClassification.private, required: false, description: 'UserRole enum as string'),
-    SchemaField(name: 'createdAt', type: 'String?', classification: FieldClassification.system, required: false, description: 'ISO 8601 timestamp'),
-    SchemaField(name: 'lastActive', type: 'String?', classification: FieldClassification.system, required: false, description: 'ISO 8601 timestamp'),
-    SchemaField(name: 'preferences', type: 'Map<String, dynamic>?', classification: FieldClassification.private, required: false, description: 'User preferences map (NOT a separate UserSettings class)'),
-    SchemaField(name: 'gamificationProfile', type: 'Map', classification: FieldClassification.private, required: false, description: 'Embedded GamificationProfile.toJson()'),
-    SchemaField(name: 'tokenWallet', type: 'Map?', classification: FieldClassification.private, required: false, description: 'Embedded TokenWallet.toJson()'),
-    SchemaField(name: 'tokenTransactions', type: 'List<Map>?', classification: FieldClassification.private, required: false, description: 'Embedded token transaction history'),
+    SchemaField(
+      name: 'id',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'Firebase Auth UID, same as document ID',
+    ),
+    SchemaField(
+      name: 'displayName',
+      type: 'String?',
+      classification: FieldClassification.pii,
+      required: false,
+      description: 'User-chosen display name',
+    ),
+    SchemaField(
+      name: 'email',
+      type: 'String?',
+      classification: FieldClassification.pii,
+      required: false,
+      description:
+          'User email from auth provider. PII — consider redacting before Firestore write.',
+    ),
+    SchemaField(
+      name: 'photoUrl',
+      type: 'String?',
+      classification: FieldClassification.pii,
+      required: false,
+      description: 'Profile photo URL. Written to leaderboard — needs opt-out.',
+    ),
+    SchemaField(
+      name: 'familyId',
+      type: 'String?',
+      classification: FieldClassification.private,
+      required: false,
+      description: 'ID of the family the user belongs to',
+    ),
+    SchemaField(
+      name: 'role',
+      type: 'String?',
+      classification: FieldClassification.private,
+      required: false,
+      description: 'UserRole enum as string',
+    ),
+    SchemaField(
+      name: 'createdAt',
+      type: 'String?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'ISO 8601 timestamp',
+    ),
+    SchemaField(
+      name: 'lastActive',
+      type: 'String?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'ISO 8601 timestamp',
+    ),
+    SchemaField(
+      name: 'preferences',
+      type: 'Map<String, dynamic>?',
+      classification: FieldClassification.private,
+      required: false,
+      description: 'User preferences map (NOT a separate UserSettings class)',
+    ),
+    SchemaField(
+      name: 'gamificationProfile',
+      type: 'Map',
+      classification: FieldClassification.private,
+      required: false,
+      description: 'Embedded GamificationProfile.toJson()',
+    ),
+    SchemaField(
+      name: 'tokenWallet',
+      type: 'Map?',
+      classification: FieldClassification.private,
+      required: false,
+      description: 'Embedded TokenWallet.toJson()',
+    ),
+    SchemaField(
+      name: 'tokenTransactions',
+      type: 'List<Map>?',
+      classification: FieldClassification.private,
+      required: false,
+      description: 'Embedded token transaction history',
+    ),
   ];
 }
 
@@ -185,14 +260,59 @@ class ClassificationsSchema {
   static const String collection = FirestoreCollections.classifications;
 
   static const List<SchemaField> keyFields = [
-    SchemaField(name: 'id', type: 'String', classification: FieldClassification.system, required: true, description: 'UUID, same as document ID'),
-    SchemaField(name: 'itemName', type: 'String', classification: FieldClassification.userContent, required: true, description: 'Name of classified waste item'),
-    SchemaField(name: 'category', type: 'String', classification: FieldClassification.userContent, required: true, description: 'Waste category (Wet, Dry, Hazardous, Medical, Non-waste)'),
-    SchemaField(name: 'confidence', type: 'double?', classification: FieldClassification.system, required: false, description: 'AI confidence score 0.0-1.0. NOTE: doc previously called this "accuracy" — incorrect.'),
-    SchemaField(name: 'timestamp', type: 'String', classification: FieldClassification.system, required: true, description: 'ISO 8601 timestamp'),
-    SchemaField(name: 'userId', type: 'String?', classification: FieldClassification.private, required: false, description: 'Owning user ID'),
-    SchemaField(name: 'imageUrl', type: 'String?', classification: FieldClassification.private, required: false, description: 'Cloud storage URL for classification image'),
-    SchemaField(name: 'source', type: 'String?', classification: FieldClassification.system, required: false, description: 'Classification source (e.g., "ai", "manual")'),
+    SchemaField(
+      name: 'id',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'UUID, same as document ID',
+    ),
+    SchemaField(
+      name: 'itemName',
+      type: 'String',
+      classification: FieldClassification.userContent,
+      description: 'Name of classified waste item',
+    ),
+    SchemaField(
+      name: 'category',
+      type: 'String',
+      classification: FieldClassification.userContent,
+      description: 'Waste category (Wet, Dry, Hazardous, Medical, Non-waste)',
+    ),
+    SchemaField(
+      name: 'confidence',
+      type: 'double?',
+      classification: FieldClassification.system,
+      required: false,
+      description:
+          'AI confidence score 0.0-1.0. NOTE: doc previously called this "accuracy" — incorrect.',
+    ),
+    SchemaField(
+      name: 'timestamp',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'ISO 8601 timestamp',
+    ),
+    SchemaField(
+      name: 'userId',
+      type: 'String?',
+      classification: FieldClassification.private,
+      required: false,
+      description: 'Owning user ID',
+    ),
+    SchemaField(
+      name: 'imageUrl',
+      type: 'String?',
+      classification: FieldClassification.private,
+      required: false,
+      description: 'Cloud storage URL for classification image',
+    ),
+    SchemaField(
+      name: 'source',
+      type: 'String?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'Classification source (e.g., "ai", "manual")',
+    ),
   ];
 
   // Full field count: 70+ fields in WasteClassification
@@ -212,19 +332,87 @@ class CommunityFeedSchema {
 
   // What the MODEL actually writes:
   static const List<SchemaField> modelFields = [
-    SchemaField(name: 'id', type: 'String', classification: FieldClassification.system, required: true),
-    SchemaField(name: 'userId', type: 'String', classification: FieldClassification.pii, required: true),
-    SchemaField(name: 'userName', type: 'String', classification: FieldClassification.pii, required: true, description: 'Display name — PII, written to public collection'),
-    SchemaField(name: 'userAvatar', type: 'String?', classification: FieldClassification.pii, required: false, description: 'Avatar URL — PII, written to public collection'),
-    SchemaField(name: 'activityType', type: 'String', classification: FieldClassification.system, required: true, description: 'Enum name: classification|achievement|streak|challenge|milestone|educational'),
-    SchemaField(name: 'title', type: 'String', classification: FieldClassification.userContent, required: true),
-    SchemaField(name: 'description', type: 'String', classification: FieldClassification.userContent, required: true),
-    SchemaField(name: 'timestamp', type: 'String', classification: FieldClassification.system, required: true, description: 'ISO 8601'),
-    SchemaField(name: 'metadata', type: 'Map<String, dynamic>', classification: FieldClassification.userContent, required: false, description: 'Arbitrary metadata, may contain category etc.'),
-    SchemaField(name: 'likes', type: 'int', classification: FieldClassification.aggregate, required: false, defaultValue: 0),
-    SchemaField(name: 'likedBy', type: 'List<String>', classification: FieldClassification.private, required: false, description: 'User IDs who liked — PII concern'),
-    SchemaField(name: 'isAnonymous', type: 'bool', classification: FieldClassification.system, required: false, defaultValue: false),
-    SchemaField(name: 'points', type: 'int', classification: FieldClassification.aggregate, required: false, defaultValue: 0),
+    SchemaField(
+      name: 'id',
+      type: 'String',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'userId',
+      type: 'String',
+      classification: FieldClassification.pii,
+    ),
+    SchemaField(
+      name: 'userName',
+      type: 'String',
+      classification: FieldClassification.pii,
+      description: 'Display name — PII, written to public collection',
+    ),
+    SchemaField(
+      name: 'userAvatar',
+      type: 'String?',
+      classification: FieldClassification.pii,
+      required: false,
+      description: 'Avatar URL — PII, written to public collection',
+    ),
+    SchemaField(
+      name: 'activityType',
+      type: 'String',
+      classification: FieldClassification.system,
+      description:
+          'Enum name: classification|achievement|streak|challenge|milestone|educational',
+    ),
+    SchemaField(
+      name: 'title',
+      type: 'String',
+      classification: FieldClassification.userContent,
+    ),
+    SchemaField(
+      name: 'description',
+      type: 'String',
+      classification: FieldClassification.userContent,
+    ),
+    SchemaField(
+      name: 'timestamp',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'ISO 8601',
+    ),
+    SchemaField(
+      name: 'metadata',
+      type: 'Map<String, dynamic>',
+      classification: FieldClassification.userContent,
+      required: false,
+      description: 'Arbitrary metadata, may contain category etc.',
+    ),
+    SchemaField(
+      name: 'likes',
+      type: 'int',
+      classification: FieldClassification.aggregate,
+      required: false,
+      defaultValue: 0,
+    ),
+    SchemaField(
+      name: 'likedBy',
+      type: 'List<String>',
+      classification: FieldClassification.private,
+      required: false,
+      description: 'User IDs who liked — PII concern',
+    ),
+    SchemaField(
+      name: 'isAnonymous',
+      type: 'bool',
+      classification: FieldClassification.system,
+      required: false,
+      defaultValue: false,
+    ),
+    SchemaField(
+      name: 'points',
+      type: 'int',
+      classification: FieldClassification.aggregate,
+      required: false,
+      defaultValue: 0,
+    ),
   ];
 
   // What the FIRESTORE RULES currently expect (MISMATCH):
@@ -247,17 +435,78 @@ class FamiliesSchema {
   static const String collection = FirestoreCollections.families;
 
   static const List<SchemaField> fields = [
-    SchemaField(name: 'id', type: 'String', classification: FieldClassification.system, required: true, description: 'UUID, same as document ID'),
-    SchemaField(name: 'name', type: 'String', classification: FieldClassification.userContent, required: true, description: 'Family name (NOT "familyName")'),
-    SchemaField(name: 'description', type: 'String?', classification: FieldClassification.userContent, required: false),
-    SchemaField(name: 'createdBy', type: 'String', classification: FieldClassification.system, required: true, description: 'User ID who created the family'),
-    SchemaField(name: 'createdAt', type: 'String', classification: FieldClassification.system, required: true, description: 'ISO 8601'),
-    SchemaField(name: 'updatedAt', type: 'String?', classification: FieldClassification.system, required: false, description: 'ISO 8601'),
-    SchemaField(name: 'members', type: 'List<Map>', classification: FieldClassification.private, required: true, description: 'Embedded list of FamilyMember objects'),
-    SchemaField(name: 'settings', type: 'Map', classification: FieldClassification.private, required: false, description: 'Embedded FamilySettings object. Contains leaderboardVisibility (stable wire values: public/membersOnly/adminsOnly) that controls family_stats read access.'),
-    SchemaField(name: 'imageUrl', type: 'String?', classification: FieldClassification.private, required: false),
-    SchemaField(name: 'isPublic', type: 'bool', classification: FieldClassification.system, required: false, defaultValue: false),
-    SchemaField(name: 'memberUids', type: 'List<String>', classification: FieldClassification.system, required: false, description: 'Flat list of member user IDs for Firestore rules membership checks. Derived from members[].userId.'),
+    SchemaField(
+      name: 'id',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'UUID, same as document ID',
+    ),
+    SchemaField(
+      name: 'name',
+      type: 'String',
+      classification: FieldClassification.userContent,
+      description: 'Family name (NOT "familyName")',
+    ),
+    SchemaField(
+      name: 'description',
+      type: 'String?',
+      classification: FieldClassification.userContent,
+      required: false,
+    ),
+    SchemaField(
+      name: 'createdBy',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'User ID who created the family',
+    ),
+    SchemaField(
+      name: 'createdAt',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'ISO 8601',
+    ),
+    SchemaField(
+      name: 'updatedAt',
+      type: 'String?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'ISO 8601',
+    ),
+    SchemaField(
+      name: 'members',
+      type: 'List<Map>',
+      classification: FieldClassification.private,
+      description: 'Embedded list of FamilyMember objects',
+    ),
+    SchemaField(
+      name: 'settings',
+      type: 'Map',
+      classification: FieldClassification.private,
+      required: false,
+      description:
+          'Embedded FamilySettings object. Contains leaderboardVisibility (stable wire values: public/membersOnly/adminsOnly) that controls family_stats read access.',
+    ),
+    SchemaField(
+      name: 'imageUrl',
+      type: 'String?',
+      classification: FieldClassification.private,
+      required: false,
+    ),
+    SchemaField(
+      name: 'isPublic',
+      type: 'bool',
+      classification: FieldClassification.system,
+      required: false,
+      defaultValue: false,
+    ),
+    SchemaField(
+      name: 'memberUids',
+      type: 'List<String>',
+      classification: FieldClassification.system,
+      required: false,
+      description:
+          'Flat list of member user IDs for Firestore rules membership checks. Derived from members[].userId.',
+    ),
   ];
 }
 
@@ -270,13 +519,53 @@ class LeaderboardAllTimeSchema {
   static const String collection = FirestoreCollections.leaderboardAllTime;
 
   static const List<SchemaField> fields = [
-    SchemaField(name: 'userId', type: 'String', classification: FieldClassification.system, required: true, description: 'Same as document ID and auth UID'),
-    SchemaField(name: 'displayName', type: 'String', classification: FieldClassification.pii, required: true, description: 'User display name — PII in public collection, needs opt-out'),
-    SchemaField(name: 'photoUrl', type: 'String?', classification: FieldClassification.pii, required: false, description: 'Profile photo URL — PII in public collection, needs opt-out'),
-    SchemaField(name: 'points', type: 'int', classification: FieldClassification.aggregate, required: true, description: 'Total points from gamification'),
-    SchemaField(name: 'lastUpdated', type: 'Timestamp', classification: FieldClassification.system, required: true, description: 'Server timestamp via FieldValue.serverTimestamp()'),
-    SchemaField(name: 'rank', type: 'int?', classification: FieldClassification.aggregate, required: false, description: 'Computed rank, not always stored'),
-    SchemaField(name: 'weeklyPoints', type: 'int?', classification: FieldClassification.aggregate, required: false, description: 'Weekly points subtotal, if stored'),
+    SchemaField(
+      name: 'userId',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'Same as document ID and auth UID',
+    ),
+    SchemaField(
+      name: 'displayName',
+      type: 'String',
+      classification: FieldClassification.pii,
+      description:
+          'User display name — PII in public collection, needs opt-out',
+    ),
+    SchemaField(
+      name: 'photoUrl',
+      type: 'String?',
+      classification: FieldClassification.pii,
+      required: false,
+      description:
+          'Profile photo URL — PII in public collection, needs opt-out',
+    ),
+    SchemaField(
+      name: 'points',
+      type: 'int',
+      classification: FieldClassification.aggregate,
+      description: 'Total points from gamification',
+    ),
+    SchemaField(
+      name: 'lastUpdated',
+      type: 'Timestamp',
+      classification: FieldClassification.system,
+      description: 'Server timestamp via FieldValue.serverTimestamp()',
+    ),
+    SchemaField(
+      name: 'rank',
+      type: 'int?',
+      classification: FieldClassification.aggregate,
+      required: false,
+      description: 'Computed rank, not always stored',
+    ),
+    SchemaField(
+      name: 'weeklyPoints',
+      type: 'int?',
+      classification: FieldClassification.aggregate,
+      required: false,
+      description: 'Weekly points subtotal, if stored',
+    ),
   ];
 
   // Fields in LeaderboardEntry model but NOT currently written to Firestore:
@@ -293,11 +582,37 @@ class CommunityStatsSchema {
   static const String mainDocId = 'main';
 
   static const List<SchemaField> fields = [
-    SchemaField(name: 'totalUsers', type: 'int', classification: FieldClassification.aggregate, required: true, defaultValue: 0),
-    SchemaField(name: 'totalClassifications', type: 'int', classification: FieldClassification.aggregate, required: true, defaultValue: 0),
-    SchemaField(name: 'totalPoints', type: 'int', classification: FieldClassification.aggregate, required: true, defaultValue: 0),
-    SchemaField(name: 'categoryBreakdown', type: 'Map<String, int>', classification: FieldClassification.aggregate, required: false),
-    SchemaField(name: 'lastUpdated', type: 'Timestamp', classification: FieldClassification.system, required: false, description: 'Server timestamp'),
+    SchemaField(
+      name: 'totalUsers',
+      type: 'int',
+      classification: FieldClassification.aggregate,
+      defaultValue: 0,
+    ),
+    SchemaField(
+      name: 'totalClassifications',
+      type: 'int',
+      classification: FieldClassification.aggregate,
+      defaultValue: 0,
+    ),
+    SchemaField(
+      name: 'totalPoints',
+      type: 'int',
+      classification: FieldClassification.aggregate,
+      defaultValue: 0,
+    ),
+    SchemaField(
+      name: 'categoryBreakdown',
+      type: 'Map<String, int>',
+      classification: FieldClassification.aggregate,
+      required: false,
+    ),
+    SchemaField(
+      name: 'lastUpdated',
+      type: 'Timestamp',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'Server timestamp',
+    ),
   ];
 }
 
@@ -308,9 +623,23 @@ class ClassificationFeedbackSchema {
   static const String collection = FirestoreCollections.classificationFeedback;
 
   static const List<SchemaField> fields = [
-    SchemaField(name: 'userId', type: 'String', classification: FieldClassification.pii, required: true, description: 'Auth UID of feedback submitter'),
-    SchemaField(name: 'originalClassificationId', type: 'String', classification: FieldClassification.system, required: true, description: 'Reference to original classification document'),
-    SchemaField(name: 'feedbackTimestamp', type: 'Timestamp', classification: FieldClassification.system, required: true),
+    SchemaField(
+      name: 'userId',
+      type: 'String',
+      classification: FieldClassification.pii,
+      description: 'Auth UID of feedback submitter',
+    ),
+    SchemaField(
+      name: 'originalClassificationId',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'Reference to original classification document',
+    ),
+    SchemaField(
+      name: 'feedbackTimestamp',
+      type: 'Timestamp',
+      classification: FieldClassification.system,
+    ),
     // Additional fields from model: correctedCategory, userNotes, etc.
   ];
 }
@@ -322,19 +651,83 @@ class InvitationsSchema {
   static const String collection = FirestoreCollections.invitations;
 
   static const List<SchemaField> fields = [
-    SchemaField(name: 'id', type: 'String', classification: FieldClassification.system, required: true, description: 'UUID, same as document ID'),
-    SchemaField(name: 'familyId', type: 'String', classification: FieldClassification.system, required: true),
-    SchemaField(name: 'familyName', type: 'String', classification: FieldClassification.userContent, required: true),
-    SchemaField(name: 'inviterUserId', type: 'String', classification: FieldClassification.pii, required: true, description: 'Auth UID of inviter'),
-    SchemaField(name: 'inviterName', type: 'String?', classification: FieldClassification.pii, required: false),
-    SchemaField(name: 'invitedEmail', type: 'String', classification: FieldClassification.pii, required: true, description: 'Email of invitee — PII, not for public exposure'),
-    SchemaField(name: 'invitedUserId', type: 'String?', classification: FieldClassification.pii, required: false),
-    SchemaField(name: 'status', type: 'String', classification: FieldClassification.system, required: true, description: 'Enum: pending|accepted|declined|expired|revoked|cancelled'),
-    SchemaField(name: 'roleToAssign', type: 'String', classification: FieldClassification.system, required: true, description: 'Enum: admin|member|child|guest'),
-    SchemaField(name: 'method', type: 'String', classification: FieldClassification.system, required: true, description: 'Enum: email|qr'),
-    SchemaField(name: 'createdAt', type: 'String', classification: FieldClassification.system, required: true, description: 'ISO 8601'),
-    SchemaField(name: 'expiresAt', type: 'String', classification: FieldClassification.system, required: true, description: 'ISO 8601'),
-    SchemaField(name: 'respondedAt', type: 'String?', classification: FieldClassification.system, required: false, description: 'ISO 8601'),
+    SchemaField(
+      name: 'id',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'UUID, same as document ID',
+    ),
+    SchemaField(
+      name: 'familyId',
+      type: 'String',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'familyName',
+      type: 'String',
+      classification: FieldClassification.userContent,
+    ),
+    SchemaField(
+      name: 'inviterUserId',
+      type: 'String',
+      classification: FieldClassification.pii,
+      description: 'Auth UID of inviter',
+    ),
+    SchemaField(
+      name: 'inviterName',
+      type: 'String?',
+      classification: FieldClassification.pii,
+      required: false,
+    ),
+    SchemaField(
+      name: 'invitedEmail',
+      type: 'String',
+      classification: FieldClassification.pii,
+      description: 'Email of invitee — PII, not for public exposure',
+    ),
+    SchemaField(
+      name: 'invitedUserId',
+      type: 'String?',
+      classification: FieldClassification.pii,
+      required: false,
+    ),
+    SchemaField(
+      name: 'status',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'Enum: pending|accepted|declined|expired|revoked|cancelled',
+    ),
+    SchemaField(
+      name: 'roleToAssign',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'Enum: admin|member|child|guest',
+    ),
+    SchemaField(
+      name: 'method',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'Enum: email|qr',
+    ),
+    SchemaField(
+      name: 'createdAt',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'ISO 8601',
+    ),
+    SchemaField(
+      name: 'expiresAt',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'ISO 8601',
+    ),
+    SchemaField(
+      name: 'respondedAt',
+      type: 'String?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'ISO 8601',
+    ),
   ];
 }
 
@@ -345,18 +738,79 @@ class SharedClassificationsSchema {
   static const String collection = FirestoreCollections.sharedClassifications;
 
   static const List<SchemaField> fields = [
-    SchemaField(name: 'id', type: 'String', classification: FieldClassification.system, required: true),
-    SchemaField(name: 'classification', type: 'Map', classification: FieldClassification.userContent, required: true, description: 'Embedded WasteClassification.toJson()'),
-    SchemaField(name: 'sharedBy', type: 'String', classification: FieldClassification.pii, required: true, description: 'Auth UID of sharer'),
-    SchemaField(name: 'sharedByDisplayName', type: 'String', classification: FieldClassification.pii, required: true),
-    SchemaField(name: 'sharedByPhotoUrl', type: 'String?', classification: FieldClassification.pii, required: false),
-    SchemaField(name: 'sharedAt', type: 'String', classification: FieldClassification.system, required: true, description: 'ISO 8601'),
-    SchemaField(name: 'familyId', type: 'String', classification: FieldClassification.system, required: true),
-    SchemaField(name: 'reactions', type: 'List<Map>', classification: FieldClassification.userContent, required: false, defaultValue: '[]'),
-    SchemaField(name: 'comments', type: 'List<Map>', classification: FieldClassification.userContent, required: false, defaultValue: '[]'),
-    SchemaField(name: 'location', type: 'Map?', classification: FieldClassification.userContent, required: false),
-    SchemaField(name: 'isVisible', type: 'bool', classification: FieldClassification.system, required: false, defaultValue: true),
-    SchemaField(name: 'familyTags', type: 'List<String>', classification: FieldClassification.userContent, required: false, defaultValue: '[]'),
+    SchemaField(
+      name: 'id',
+      type: 'String',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'classification',
+      type: 'Map',
+      classification: FieldClassification.userContent,
+      description: 'Embedded WasteClassification.toJson()',
+    ),
+    SchemaField(
+      name: 'sharedBy',
+      type: 'String',
+      classification: FieldClassification.pii,
+      description: 'Auth UID of sharer',
+    ),
+    SchemaField(
+      name: 'sharedByDisplayName',
+      type: 'String',
+      classification: FieldClassification.pii,
+    ),
+    SchemaField(
+      name: 'sharedByPhotoUrl',
+      type: 'String?',
+      classification: FieldClassification.pii,
+      required: false,
+    ),
+    SchemaField(
+      name: 'sharedAt',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'ISO 8601',
+    ),
+    SchemaField(
+      name: 'familyId',
+      type: 'String',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'reactions',
+      type: 'List<Map>',
+      classification: FieldClassification.userContent,
+      required: false,
+      defaultValue: '[]',
+    ),
+    SchemaField(
+      name: 'comments',
+      type: 'List<Map>',
+      classification: FieldClassification.userContent,
+      required: false,
+      defaultValue: '[]',
+    ),
+    SchemaField(
+      name: 'location',
+      type: 'Map?',
+      classification: FieldClassification.userContent,
+      required: false,
+    ),
+    SchemaField(
+      name: 'isVisible',
+      type: 'bool',
+      classification: FieldClassification.system,
+      required: false,
+      defaultValue: true,
+    ),
+    SchemaField(
+      name: 'familyTags',
+      type: 'List<String>',
+      classification: FieldClassification.userContent,
+      required: false,
+      defaultValue: '[]',
+    ),
   ];
 }
 
@@ -404,8 +858,9 @@ class PrivacyGuardConfig {
     PrivacyGuardConfig(
       collection: FirestoreCollections.users,
       piiFieldsToRedact: [],
-      piiFieldsToOmit: ['email'], // email should not be stored in Firestore in production
-      optOutField: null, // always redact email from Firestore user doc
+      piiFieldsToOmit: [
+        'email',
+      ], // email should not be stored in Firestore in production
       description: 'Email should come from Firebase Auth, not Firestore',
     ),
   ];
@@ -413,7 +868,8 @@ class PrivacyGuardConfig {
   /// Check if a field in a collection should be redacted.
   static bool shouldRedact(String collection, String field) {
     for (final guard in allGuards) {
-      if (guard.collection == collection && guard.piiFieldsToRedact.contains(field)) {
+      if (guard.collection == collection &&
+          guard.piiFieldsToRedact.contains(field)) {
         return true;
       }
     }
@@ -423,7 +879,8 @@ class PrivacyGuardConfig {
   /// Check if a field in a collection should be omitted entirely.
   static bool shouldOmit(String collection, String field) {
     for (final guard in allGuards) {
-      if (guard.collection == collection && guard.piiFieldsToOmit.contains(field)) {
+      if (guard.collection == collection &&
+          guard.piiFieldsToOmit.contains(field)) {
         return true;
       }
     }

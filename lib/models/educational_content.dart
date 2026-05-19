@@ -38,6 +38,7 @@ class EducationalContent {
     this.steps,
     this.tags = const [],
     this.isPremium = false,
+    this.isBookmarked = false,
   });
 
   /// Factory method to create article content
@@ -52,6 +53,7 @@ class EducationalContent {
     required int durationMinutes,
     List<String> tags = const [],
     bool isPremium = false,
+    bool isBookmarked = false,
   }) {
     return EducationalContent(
       id: id,
@@ -66,6 +68,7 @@ class EducationalContent {
       dateAdded: DateTime.now(),
       durationMinutes: durationMinutes,
       isPremium: isPremium,
+      isBookmarked: isBookmarked,
       icon: Icons.article,
     );
   }
@@ -82,6 +85,7 @@ class EducationalContent {
     required int durationMinutes,
     List<String> tags = const [],
     bool isPremium = false,
+    bool isBookmarked = false,
   }) {
     return EducationalContent(
       id: id,
@@ -96,6 +100,7 @@ class EducationalContent {
       dateAdded: DateTime.now(),
       durationMinutes: durationMinutes,
       isPremium: isPremium,
+      isBookmarked: isBookmarked,
       icon: Icons.video_library,
     );
   }
@@ -113,6 +118,7 @@ class EducationalContent {
     String? contentText,
     List<String> tags = const [],
     bool isPremium = false,
+    bool isBookmarked = false,
   }) {
     return EducationalContent(
       id: id,
@@ -128,6 +134,7 @@ class EducationalContent {
       dateAdded: DateTime.now(),
       durationMinutes: durationMinutes,
       isPremium: isPremium,
+      isBookmarked: isBookmarked,
       icon: Icons.image,
     );
   }
@@ -144,6 +151,7 @@ class EducationalContent {
     required int durationMinutes,
     List<String> tags = const [],
     bool isPremium = false,
+    bool isBookmarked = false,
   }) {
     return EducationalContent(
       id: id,
@@ -158,6 +166,7 @@ class EducationalContent {
       dateAdded: DateTime.now(),
       durationMinutes: durationMinutes,
       isPremium: isPremium,
+      isBookmarked: isBookmarked,
       icon: Icons.quiz,
     );
   }
@@ -174,6 +183,7 @@ class EducationalContent {
     required int durationMinutes,
     List<String> tags = const [],
     bool isPremium = false,
+    bool isBookmarked = false,
   }) {
     return EducationalContent(
       id: id,
@@ -188,6 +198,7 @@ class EducationalContent {
       dateAdded: DateTime.now(),
       durationMinutes: durationMinutes,
       isPremium: isPremium,
+      isBookmarked: isBookmarked,
       icon: Icons.menu_book,
     );
   }
@@ -203,6 +214,7 @@ class EducationalContent {
     List<String> tags = const [],
     ContentLevel level = ContentLevel.beginner,
     bool isPremium = false,
+    bool isBookmarked = false,
   }) {
     return EducationalContent(
       id: id,
@@ -217,6 +229,7 @@ class EducationalContent {
       dateAdded: DateTime.now(),
       durationMinutes: 1,
       isPremium: isPremium,
+      isBookmarked: isBookmarked,
       icon: Icons.lightbulb_outline,
     );
   }
@@ -243,6 +256,9 @@ class EducationalContent {
 
   /// For tutorials: list of steps
   final List<TutorialStep>? steps;
+
+  /// Whether the content is bookmarked by the user
+  final bool isBookmarked;
 
   /// Get color based on content type
   Color getTypeColor() {
@@ -291,6 +307,49 @@ class EducationalContent {
         return '$hours hour${hours > 1 ? 's' : ''} $mins min';
       }
     }
+  }
+
+  /// Create a copy with updated values
+  EducationalContent copyWith({
+    String? id,
+    String? title,
+    String? description,
+    ContentType? type,
+    String? thumbnailUrl,
+    String? videoUrl,
+    String? contentText,
+    List<String>? categories,
+    List<String>? tags,
+    ContentLevel? level,
+    DateTime? dateAdded,
+    bool? isPremium,
+    int? durationMinutes,
+    IconData? icon,
+    String? imageUrl,
+    List<QuizQuestion>? questions,
+    List<TutorialStep>? steps,
+    bool? isBookmarked,
+  }) {
+    return EducationalContent(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      type: type ?? this.type,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      videoUrl: videoUrl ?? this.videoUrl,
+      contentText: contentText ?? this.contentText,
+      categories: categories ?? this.categories,
+      tags: tags ?? this.tags,
+      level: level ?? this.level,
+      dateAdded: dateAdded ?? this.dateAdded,
+      isPremium: isPremium ?? this.isPremium,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      icon: icon ?? this.icon,
+      imageUrl: imageUrl ?? this.imageUrl,
+      questions: questions ?? this.questions,
+      steps: steps ?? this.steps,
+      isBookmarked: isBookmarked ?? this.isBookmarked,
+    );
   }
 }
 

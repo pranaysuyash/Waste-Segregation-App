@@ -3,6 +3,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Represents a community feed item showing user activities
 class CommunityFeedItem {
+  factory CommunityFeedItem.fromJson(Map<String, dynamic> json) {
+    return CommunityFeedItem(
+      id: json['id'] ?? '',
+      userId: json['userId'] ?? '',
+      userName: json['userName'] ?? 'Anonymous User',
+      userAvatar: json['userAvatar'],
+      activityType: CommunityActivityType.values.firstWhere(
+        (type) => type.name == json['activityType'],
+        orElse: () => CommunityActivityType.classification,
+      ),
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      timestamp: _parseTimestamp(json['timestamp']),
+      metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
+      likes: json['likes'] ?? 0,
+      likedBy: List<String>.from(json['likedBy'] ?? []),
+      isAnonymous: json['isAnonymous'] ?? false,
+      points: json['points'] ?? 0,
+    );
+  }
   const CommunityFeedItem({
     required this.id,
     required this.userId,
@@ -29,26 +49,7 @@ class CommunityFeedItem {
     if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
     return DateTime.now();
   }
-  factory CommunityFeedItem.fromJson(Map<String, dynamic> json) {
-    return CommunityFeedItem(
-      id: json['id'] ?? '',
-      userId: json['userId'] ?? '',
-      userName: json['userName'] ?? 'Anonymous User',
-      userAvatar: json['userAvatar'],
-      activityType: CommunityActivityType.values.firstWhere(
-        (type) => type.name == json['activityType'],
-        orElse: () => CommunityActivityType.classification,
-      ),
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      timestamp: _parseTimestamp(json['timestamp']),
-      metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
-      likes: json['likes'] ?? 0,
-      likedBy: List<String>.from(json['likedBy'] ?? []),
-      isAnonymous: json['isAnonymous'] ?? false,
-      points: json['points'] ?? 0,
-    );
-  }
+
   final String id;
   final String userId;
   final String userName;

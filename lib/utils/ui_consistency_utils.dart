@@ -10,8 +10,10 @@ class UIConsistency {
     final textScaler = MediaQuery.textScalerOf(context);
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
-        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium)
-            .clamp(48.0, double.infinity);
+        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(
+          48.0,
+          double.infinity,
+        );
 
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -30,36 +32,36 @@ class UIConsistency {
       ),
       minimumSize: Size(0, scaledMinHeight),
     ).copyWith(
-      backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return AppTheme.neutralColor;
-          }
-          if (states.contains(WidgetState.pressed)) {
-            return AppTheme.primaryColor.withValues(alpha: 0.8);
-          }
-          return AppTheme.primaryColor;
-        },
-      ),
-      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return Colors.white70;
-          }
-          return Colors.white;
-        },
-      ),
-      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.pressed)) {
-            return Colors.white.withValues(alpha: 0.1);
-          }
-          if (states.contains(WidgetState.hovered)) {
-            return Colors.white.withValues(alpha: 0.05);
-          }
-          return null;
-        },
-      ),
+      backgroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return AppTheme.neutralColor;
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return AppTheme.primaryColor.withValues(alpha: 0.8);
+        }
+        return AppTheme.primaryColor;
+      }),
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return Colors.white70;
+        }
+        return Colors.white;
+      }),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.pressed)) {
+          return Colors.white.withValues(alpha: 0.1);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return Colors.white.withValues(alpha: 0.05);
+        }
+        return null;
+      }),
     );
   }
 
@@ -68,8 +70,10 @@ class UIConsistency {
     final textScaler = MediaQuery.textScalerOf(context);
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
-        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium)
-            .clamp(48.0, double.infinity);
+        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(
+          48.0,
+          double.infinity,
+        );
 
     return OutlinedButton.styleFrom(
       textStyle: const TextStyle(
@@ -86,36 +90,36 @@ class UIConsistency {
       ),
       minimumSize: Size(0, scaledMinHeight),
     ).copyWith(
-      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return AppTheme.neutralColor;
-          }
-          if (states.contains(WidgetState.pressed)) {
-            return AppTheme.primaryColor.withValues(alpha: 0.8);
-          }
-          return AppTheme.primaryColor;
-        },
-      ),
-      side: WidgetStateProperty.resolveWith<BorderSide?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return const BorderSide(color: AppTheme.neutralColor, width: 1.5);
-          }
-          return const BorderSide(color: AppTheme.primaryColor, width: 1.5);
-        },
-      ),
-      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.pressed)) {
-            return AppTheme.primaryColor.withValues(alpha: 0.1);
-          }
-          if (states.contains(WidgetState.hovered)) {
-            return AppTheme.primaryColor.withValues(alpha: 0.05);
-          }
-          return null;
-        },
-      ),
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return AppTheme.neutralColor;
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return AppTheme.primaryColor.withValues(alpha: 0.8);
+        }
+        return AppTheme.primaryColor;
+      }),
+      side: WidgetStateProperty.resolveWith<BorderSide?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return const BorderSide(color: AppTheme.neutralColor, width: 1.5);
+        }
+        return const BorderSide(color: AppTheme.primaryColor, width: 1.5);
+      }),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.pressed)) {
+          return AppTheme.primaryColor.withValues(alpha: 0.1);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return AppTheme.primaryColor.withValues(alpha: 0.05);
+        }
+        return null;
+      }),
     );
   }
 
@@ -142,28 +146,28 @@ class UIConsistency {
       ),
       minimumSize: Size(0, scaledMinHeight),
     ).copyWith(
-      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return AppTheme.neutralColor;
-          }
-          if (states.contains(WidgetState.pressed)) {
-            return AppTheme.primaryColor.withValues(alpha: 0.8);
-          }
-          return AppTheme.primaryColor;
-        },
-      ),
-      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.pressed)) {
-            return AppTheme.primaryColor.withValues(alpha: 0.1);
-          }
-          if (states.contains(WidgetState.hovered)) {
-            return AppTheme.primaryColor.withValues(alpha: 0.05);
-          }
-          return null;
-        },
-      ),
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return AppTheme.neutralColor;
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return AppTheme.primaryColor.withValues(alpha: 0.8);
+        }
+        return AppTheme.primaryColor;
+      }),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.pressed)) {
+          return AppTheme.primaryColor.withValues(alpha: 0.1);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return AppTheme.primaryColor.withValues(alpha: 0.05);
+        }
+        return null;
+      }),
     );
   }
 
@@ -174,8 +178,10 @@ class UIConsistency {
     final textScaler = MediaQuery.textScalerOf(context);
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
-        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium)
-            .clamp(48.0, double.infinity);
+        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(
+          48.0,
+          double.infinity,
+        );
 
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -194,36 +200,36 @@ class UIConsistency {
       ),
       minimumSize: Size(0, scaledMinHeight),
     ).copyWith(
-      backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return AppTheme.neutralColor;
-          }
-          if (states.contains(WidgetState.pressed)) {
-            return destructiveColor.withValues(alpha: 0.8);
-          }
-          return destructiveColor;
-        },
-      ),
-      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return Colors.white70;
-          }
-          return Colors.white;
-        },
-      ),
-      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.pressed)) {
-            return Colors.white.withValues(alpha: 0.1);
-          }
-          if (states.contains(WidgetState.hovered)) {
-            return Colors.white.withValues(alpha: 0.05);
-          }
-          return null;
-        },
-      ),
+      backgroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return AppTheme.neutralColor;
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return destructiveColor.withValues(alpha: 0.8);
+        }
+        return destructiveColor;
+      }),
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return Colors.white70;
+        }
+        return Colors.white;
+      }),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.pressed)) {
+          return Colors.white.withValues(alpha: 0.1);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return Colors.white.withValues(alpha: 0.05);
+        }
+        return null;
+      }),
     );
   }
 
@@ -234,8 +240,10 @@ class UIConsistency {
     final textScaler = MediaQuery.textScalerOf(context);
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
-        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium)
-            .clamp(48.0, double.infinity);
+        (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(
+          48.0,
+          double.infinity,
+        );
 
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -254,36 +262,36 @@ class UIConsistency {
       ),
       minimumSize: Size(0, scaledMinHeight),
     ).copyWith(
-      backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return AppTheme.neutralColor;
-          }
-          if (states.contains(WidgetState.pressed)) {
-            return successColor.withValues(alpha: 0.8);
-          }
-          return successColor;
-        },
-      ),
-      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return Colors.white70;
-          }
-          return Colors.white;
-        },
-      ),
-      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.pressed)) {
-            return Colors.white.withValues(alpha: 0.1);
-          }
-          if (states.contains(WidgetState.hovered)) {
-            return Colors.white.withValues(alpha: 0.05);
-          }
-          return null;
-        },
-      ),
+      backgroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return AppTheme.neutralColor;
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return successColor.withValues(alpha: 0.8);
+        }
+        return successColor;
+      }),
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return Colors.white70;
+        }
+        return Colors.white;
+      }),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.pressed)) {
+          return Colors.white.withValues(alpha: 0.1);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return Colors.white.withValues(alpha: 0.05);
+        }
+        return null;
+      }),
     );
   }
 
@@ -299,7 +307,7 @@ class UIConsistency {
   }) {
     return Builder(
       builder: (context) {
-        final Widget button = ElevatedButton(
+        final button = ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           style: primaryButtonStyle(context),
           child: isLoading
@@ -312,8 +320,9 @@ class UIConsistency {
                   ),
                 )
               : Row(
-                  mainAxisSize:
-                      isExpanded ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisSize: isExpanded
+                      ? MainAxisSize.max
+                      : MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (icon != null) ...[
@@ -341,7 +350,7 @@ class UIConsistency {
   }) {
     return Builder(
       builder: (context) {
-        final Widget button = OutlinedButton(
+        final button = OutlinedButton(
           onPressed: onPressed,
           style: secondaryButtonStyle(context),
           child: Row(

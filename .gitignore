@@ -54,6 +54,10 @@ app.*.map.json
 
 **/.claude/settings.local.json
 
+# Agent session / scratch files (machine-local, regenerated per session)
+**/.agent/
+**/context/agent-start/
+
 # Python asset download scripts
 freepik_badge_downloader.py
 *.asset_downloader.py

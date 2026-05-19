@@ -11,6 +11,16 @@ This document outlines potential areas for further exploration and documentation
 - **Audio Analysis Integration**: Investigate using audio cues (crushing, crinkling, etc.) as supplementary data for classification
 - **Real-time Video Classification**: Create specification for continuous video analysis for moving conveyor belts or waste sorting facilities
 - **Custom Dataset Development**: Document strategy for building a proprietary waste classification dataset specific to regional waste streams
+- **Multi-Model Waste AI Routing**: Explore a task-specific stack for waste detection, segmentation, classification, and disposal guidance instead of a single-model path. This should cover on-device candidates like Gemma 3n, MiniCPM-V, and SmolVLM for local inference, plus cloud fallback tiers for ambiguous or policy-heavy cases.
+
+#### Multi-Model Routing Questions
+
+- Which tasks belong on-device versus cloud-first?
+- Which model should handle segmentation versus classification?
+- Should disposal guidance be a separate reasoning stage from vision classification?
+- What confidence thresholds should trigger fallback from local to cloud?
+- Which local models are realistic for Flutter/mobile deployment in this repo?
+- How do we keep the app fast for simple scans while still handling mixed or cluttered waste images?
 
 ### 2. Edge Computing Optimization
 
@@ -152,6 +162,7 @@ When determining which new documentation areas to pursue, consider the following
 3. Incorporate selected ideas into the unified project roadmap
 4. Assign ownership for developing detailed documentation in priority areas
 5. Establish regular review cycles to identify new opportunities and refine existing ideas
+6. Create a dedicated deep-dive doc if the multi-model routing topic becomes a concrete implementation track
 
 ---
 

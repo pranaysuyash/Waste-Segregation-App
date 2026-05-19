@@ -16,10 +16,7 @@ class AnimationHelpers {
       animation: controller,
       builder: (context, child) {
         return CustomPaint(
-          painter: ParticlePainter(
-            animation: controller,
-            color: color,
-          ),
+          painter: ParticlePainter(animation: controller, color: color),
           size: Size(size, size),
         );
       },
@@ -33,7 +30,7 @@ class AnimationHelpers {
     double size = 100,
   }) {
     // Animation for drawing the checkmark
-    final Animation<double> animation = CurvedAnimation(
+    final animation = CurvedAnimation(
       parent: controller,
       curve: Curves.easeInOut,
     );
@@ -81,16 +78,21 @@ class AnimationHelpers {
 
   /// Creates a bouncing animation for UI elements
   static Animation<double> createBounceAnimation(
-      AnimationController controller) {
+    AnimationController controller,
+  ) {
     return TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.2)
-            .chain(CurveTween(curve: Curves.elasticOut)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 1.2,
+        ).chain(CurveTween(curve: Curves.elasticOut)),
         weight: 40.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
-            .chain(CurveTween(curve: Curves.elasticIn)),
+        tween: Tween<double>(
+          begin: 1.2,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.elasticIn)),
         weight: 60.0,
       ),
     ]).animate(controller);
@@ -98,16 +100,21 @@ class AnimationHelpers {
 
   /// Creates a pulse animation for UI elements
   static Animation<double> createPulseAnimation(
-      AnimationController controller) {
+    AnimationController controller,
+  ) {
     return TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.2)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 1.2,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 50.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
+        tween: Tween<double>(
+          begin: 1.2,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
         weight: 50.0,
       ),
     ]).animate(controller);
@@ -122,12 +129,7 @@ class AnimationHelpers {
     return ColorTween(
       begin: startColor,
       end: endColor,
-    ).animate(
-      CurvedAnimation(
-        parent: controller,
-        curve: Curves.easeIn,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeIn));
   }
 }
 
@@ -166,7 +168,8 @@ class CheckmarkPainter extends CustomPainter {
     // Guard against empty path metrics
     if (pathMetrics.isEmpty) {
       WasteAppLogger.warning(
-          'Warning: Path metrics is empty, error: skipping checkmark animation');
+        'Warning: Path metrics is empty, error: skipping checkmark animation',
+      );
       return;
     }
 
@@ -218,11 +221,7 @@ class ParticlePainter extends CustomPainter {
       // Reduce particle size as they move outward
       final particleSize = (1.0 - animationValue) * 8.0;
 
-      canvas.drawCircle(
-        Offset(x, y),
-        particleSize,
-        paint,
-      );
+      canvas.drawCircle(Offset(x, y), particleSize, paint);
     }
   }
 
@@ -263,20 +262,21 @@ class _ScaleAnimationState extends State<ScaleAnimation>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    );
+    _controller = AnimationController(vsync: this, duration: widget.duration);
 
     _animation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.2)
-            .chain(CurveTween(curve: widget.curve)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 1.2,
+        ).chain(CurveTween(curve: widget.curve)),
         weight: 40.0,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
-            .chain(CurveTween(curve: widget.curve)),
+        tween: Tween<double>(
+          begin: 1.2,
+          end: 1.0,
+        ).chain(CurveTween(curve: widget.curve)),
         weight: 60.0,
       ),
     ]).animate(_controller);
@@ -309,10 +309,7 @@ class _ScaleAnimationState extends State<ScaleAnimation>
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
-        return Transform.scale(
-          scale: _animation.value,
-          child: child,
-        );
+        return Transform.scale(scale: _animation.value, child: child);
       },
       child: widget.child,
     );
@@ -350,23 +347,14 @@ class _FadeSlideAnimationState extends State<FadeSlideAnimation>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    );
+    _controller = AnimationController(vsync: this, duration: widget.duration);
 
-    _fadeAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: widget.curve,
-    );
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: widget.curve);
 
     _slideAnimation = Tween<Offset>(
       begin: widget.startOffset,
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: widget.curve,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: widget.curve));
 
     if (widget.autoPlay) {
       _playAnimation();
@@ -391,10 +379,7 @@ class _FadeSlideAnimationState extends State<FadeSlideAnimation>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: widget.child,
-      ),
+      child: SlideTransition(position: _slideAnimation, child: widget.child),
     );
   }
 }

@@ -38,18 +38,12 @@ class ModernBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(
-              icon,
-              size: _getIconSize(),
-              color: effectiveTextColor,
-            ),
+            Icon(icon, size: _getIconSize(), color: effectiveTextColor),
             const SizedBox(width: 4),
           ],
           Text(
             text,
-            style: _getTextStyle(theme).copyWith(
-              color: effectiveTextColor,
-            ),
+            style: _getTextStyle(theme).copyWith(color: effectiveTextColor),
           ),
         ],
       ),
@@ -60,10 +54,7 @@ class ModernBadge extends StatelessWidget {
     }
 
     if (onTap != null) {
-      badge = GestureDetector(
-        onTap: onTap,
-        child: badge,
-      );
+      badge = GestureDetector(onTap: onTap, child: badge);
     }
 
     return badge;
@@ -171,13 +162,9 @@ class _PulseBadgeState extends State<PulseBadge>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.1,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
     _animationController.repeat(reverse: true);
   }
@@ -234,7 +221,10 @@ class ModernChip extends StatelessWidget {
     return AnimatedContainer(
       duration: AppTheme.animationFast,
       decoration: _getDecoration(
-          theme, effectiveSelectedColor, effectiveUnselectedColor),
+        theme,
+        effectiveSelectedColor,
+        effectiveUnselectedColor,
+      ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -280,7 +270,10 @@ class ModernChip extends StatelessWidget {
   }
 
   BoxDecoration _getDecoration(
-      ThemeData theme, Color selectedColor, Color unselectedColor) {
+    ThemeData theme,
+    Color selectedColor,
+    Color unselectedColor,
+  ) {
     switch (style) {
       case ModernChipStyle.filled:
         return BoxDecoration(
@@ -571,12 +564,16 @@ class ProgressBadge extends StatelessWidget {
                 value: clampedProgress,
                 strokeWidth: effectiveStrokeWidth,
                 backgroundColor: effectiveBackgroundColor,
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(effectiveProgressColor),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  effectiveProgressColor,
+                ),
               ),
               if (text != null || showPercentage)
                 _buildCenterText(
-                    responsiveSize, effectiveProgressColor, clampedProgress),
+                  responsiveSize,
+                  effectiveProgressColor,
+                  clampedProgress,
+                ),
             ],
           ),
         );
@@ -601,8 +598,10 @@ class ProgressBadge extends StatelessWidget {
         }
 
         // Ensure minimum readable size
-        fontSize =
-            fontSize.clamp(8.0, (size * 0.3).clamp(8.0, double.infinity));
+        fontSize = fontSize.clamp(
+          8.0,
+          (size * 0.3).clamp(8.0, double.infinity),
+        );
 
         return FittedBox(
           fit: BoxFit.scaleDown,
@@ -629,21 +628,8 @@ class ProgressBadge extends StatelessWidget {
 }
 
 /// Badge and chip style enums
-enum ModernBadgeStyle {
-  filled,
-  outlined,
-  soft,
-  glassmorphism,
-}
+enum ModernBadgeStyle { filled, outlined, soft, glassmorphism }
 
-enum ModernBadgeSize {
-  small,
-  medium,
-  large,
-}
+enum ModernBadgeSize { small, medium, large }
 
-enum ModernChipStyle {
-  filled,
-  outlined,
-  soft,
-}
+enum ModernChipStyle { filled, outlined, soft }
