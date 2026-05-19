@@ -214,7 +214,24 @@ exports.generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
         }
         catch (error) {
             console.error('Error generating disposal instructions:', error);
-            // Return fallback instructions
+            // ROADMAP FIX: Circuit-breaker pattern with 503 retry-after for retryable errors
+            const isRetryableError = (error.code === 'rate_limit_exceeded' ||
+                error.status === 429 ||
+                error.status === 503 ||
+                error.status === 502 ||
+                error.status === 504 ||
+                (error.message && error.message.includes('timeout')));
+            if (isRetryableError) {
+                console.log('Retryable error detected, returning 503 with retry-after');
+                res.status(503).json({
+                    error: 'Service temporarily unavailable',
+                    retryAfter: 30,
+                    fallback: true,
+                    code: 'retryable_error'
+                });
+                return;
+            }
+            // Return fallback instructions for non-retryable errors
             const fallbackInstructions = {
                 steps: [
                     'Identify the correct waste category for this item',
@@ -258,11 +275,23 @@ exports.testOpenAI = asiaSouth1.https.onRequest((req, res) => {
 });
 // FIXED: Clear all data function that properly awaits all deletions
 exports.clearAllData = asiaSouth1.https.onCall(async (data, context) => {
+    var _a, _b, _c;
     try {
         console.log('🔥 Starting COMPLETE Firestore data clearing...');
-        // Security check - only allow in development/testing
+        // Security check - must be authenticated
         if (!context.auth) {
             throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+        }
+        // Security gate - explicit runtime kill switch required.
+        const clearAllDataEnabled = process.env.CLEAR_ALL_DATA_ENABLED === 'true'
+            || ((_b = (_a = functions.config()) === null || _a === void 0 ? void 0 : _a.safety) === null || _b === void 0 ? void 0 : _b.clear_all_data_enabled) === 'true';
+        if (!clearAllDataEnabled) {
+            throw new functions.https.HttpsError('permission-denied', 'clearAllData is disabled. Set CLEAR_ALL_DATA_ENABLED=true only for controlled environments.');
+        }
+        // Security gate - admin claim required.
+        const isAdmin = ((_c = context.auth.token) === null || _c === void 0 ? void 0 : _c.admin) === true;
+        if (!isAdmin) {
+            throw new functions.https.HttpsError('permission-denied', 'Only admin users can invoke clearAllData.');
         }
         const db = admin.firestore();
         const projectId = process.env.GCLOUD_PROJECT;

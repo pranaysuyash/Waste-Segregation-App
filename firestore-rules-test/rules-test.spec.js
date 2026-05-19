@@ -290,6 +290,47 @@ describe('Firestore Rules Tests', () => {
     );
   });
 
+  it('authenticated user can create own profile document', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await assertSucceeds(
+      db.collection('users').doc('user-1').set({
+        id: 'user-1',
+        displayName: 'Owner',
+      })
+    );
+  });
+
+  it('authenticated user can update own profile without gamification fields', async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().collection('users').doc('user-1').set({
+        id: 'user-1',
+        displayName: 'Owner',
+        photoUrl: null,
+      });
+    });
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await assertSucceeds(
+      db.collection('users').doc('user-1').update({
+        displayName: 'Owner Updated',
+      })
+    );
+  });
+
+  it('authenticated user cannot update a different user profile', async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await context.firestore().collection('users').doc('user-2').set({
+        id: 'user-2',
+        displayName: 'Other',
+      });
+    });
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await assertFails(
+      db.collection('users').doc('user-2').update({
+        displayName: 'Tamper',
+      })
+    );
+  });
+
   // ============================================================
   // 11b. Community stats is read-only for users
   // ============================================================

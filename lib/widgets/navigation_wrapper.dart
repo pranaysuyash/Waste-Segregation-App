@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/premium_service.dart';
 import '../services/ad_service.dart';
 import '../services/navigation_settings_service.dart';
-import '../screens/ultra_modern_home_screen.dart';
+import '../screens/home_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/achievements_screen.dart';
@@ -175,7 +175,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   List<Widget> _getScreens() {
     return [
-      UltraModernHomeScreen(isGuestMode: widget.isGuestMode),
+      HomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
       const SocialScreen(),
@@ -633,7 +633,7 @@ class _AlternativeNavigationWrapperState
 
   List<Widget> _getScreens() {
     return [
-      UltraModernHomeScreen(isGuestMode: widget.isGuestMode),
+      HomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
       const EducationalContentScreen(),
       const SocialScreen(),

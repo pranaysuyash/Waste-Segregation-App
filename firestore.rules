@@ -7,7 +7,9 @@ service cloud.firestore {
 
     // User profiles - users can only read/write their own data
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
       
       // User's personal classifications (subcollection)
       match /classifications/{classificationId} {
@@ -318,14 +320,27 @@ service cloud.firestore {
     
     // --- Gamification validation ---
     function validateGamificationUpdate(oldData, newData) {
-      let oldGamification = oldData.gamificationProfile;
-      let newGamification = newData.gamificationProfile;
+      let oldHasGamification = oldData.keys().hasAny(['gamificationProfile']);
+      let newHasGamification = newData.keys().hasAny(['gamificationProfile']);
+      let oldGamification = oldHasGamification ? oldData.gamificationProfile : null;
+      let newGamification = newHasGamification ? newData.gamificationProfile : null;
       
-      return oldGamification != null 
-        && newGamification != null
-        && validatePointsIncrease(oldGamification, newGamification)
-        && validateAchievementProgress(oldGamification, newGamification)
-        && validateStreakLogic(oldGamification, newGamification);
+      return (
+        // Non-gamification profile update: allow when both absent.
+        (oldGamification == null && newGamification == null)
+        // Initialize gamification for existing profiles with bounded values.
+        || (oldGamification == null
+          && newGamification != null
+          && newGamification.points.total is number
+          && newGamification.points.total >= 0
+          && newGamification.points.total <= 1000)
+        // Normal anti-cheat progression checks when both exist.
+        || (oldGamification != null
+          && newGamification != null
+          && validatePointsIncrease(oldGamification, newGamification)
+          && validateAchievementProgress(oldGamification, newGamification)
+          && validateStreakLogic(oldGamification, newGamification))
+      );
     }
     
     function validatePointsIncrease(oldGamification, newGamification) {

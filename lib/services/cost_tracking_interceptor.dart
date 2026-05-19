@@ -2,12 +2,25 @@ import 'package:dio/dio.dart';
 import '../utils/waste_app_logger.dart';
 
 /// Interceptor for tracking API costs and usage patterns
+///
+/// IMPORTANT: This interceptor provides rough telemetry estimates for usage
+/// analysis. It is not a billing-grade source of truth.
 class CostTrackingInterceptor extends Interceptor {
   CostTrackingInterceptor({
     this.enableDetailedLogging = true,
   });
 
   final bool enableDetailedLogging;
+  static const int _maxServiceTrackers = 32;
+  static const String _unknownService = 'unknown';
+  static const String _customService = 'custom';
+  static const Set<String> _sensitiveHeaders = {
+    'authorization',
+    'x-goog-api-key',
+    'api-key',
+    'cookie',
+    'set-cookie',
+  };
 
   // Cost tracking data
   final Map<String, ServiceCostTracker> _serviceTrackers = {};
@@ -72,13 +85,13 @@ class CostTrackingInterceptor extends Interceptor {
         requestSize: requestSize,
         responseSize: responseSize,
         statusCode: response.statusCode ?? 0,
-        endpoint: response.requestOptions.path,
+        endpoint: _sanitizeEndpoint(response.requestOptions),
       );
 
       if (enableDetailedLogging) {
         WasteAppLogger.info('Cost tracking completed', context: {
           'service': serviceName,
-          'estimated_cost': estimatedCost,
+          'rough_telemetry_cost_estimate': estimatedCost,
           'duration_ms': duration.inMilliseconds,
           'request_size_bytes': requestSize,
           'response_size_bytes': responseSize,
@@ -121,7 +134,7 @@ class CostTrackingInterceptor extends Interceptor {
         requestSize: requestSize,
         responseSize: 0,
         statusCode: err.response?.statusCode ?? 0,
-        endpoint: err.requestOptions.path,
+        endpoint: _sanitizeEndpoint(err.requestOptions),
         isError: true,
       );
 
@@ -130,7 +143,7 @@ class CostTrackingInterceptor extends Interceptor {
             error: err,
             context: {
               'service': serviceName,
-              'estimated_cost': estimatedCost,
+              'rough_telemetry_cost_estimate': estimatedCost,
               'duration_ms': duration.inMilliseconds,
               'request_size_bytes': requestSize,
               'error_type': err.type.name,
@@ -145,24 +158,30 @@ class CostTrackingInterceptor extends Interceptor {
   String _extractServiceName(RequestOptions options) {
     // Check for explicit service name in headers
     final serviceHeader = options.headers['X-Service-Name'] as String?;
-    if (serviceHeader != null) return serviceHeader;
+    if (serviceHeader != null) {
+      return _normalizeServiceName(serviceHeader, source: 'header');
+    }
 
     // Extract from URL
     // NOTE: firebase/firestore must be checked before googleapis.com
     // because firestore.googleapis.com also contains 'googleapis.com'
     final uri = options.uri;
-    if (uri.host.contains('openai.com')) return 'openai';
-    if (uri.host.contains('firebase') || uri.host.contains('firestore')) {
+    final host = uri.host.toLowerCase();
+    if (host.contains('openai.com')) return 'openai';
+    if (host.contains('firestore.googleapis.com') ||
+        host.contains('firebase')) {
       return 'firebase';
     }
-    if (uri.host.contains('googleapis.com')) return 'gemini';
+    if (host.contains('generativelanguage.googleapis.com')) return 'gemini';
+    if (host.contains('storage.googleapis.com')) return 'google_storage';
+    if (host.contains('googleapis.com')) return 'google';
 
     // Check path for service indicators
     if (options.path.contains('/openai/')) return 'openai';
     if (options.path.contains('/gemini/')) return 'gemini';
     if (options.path.contains('/firebase/')) return 'firebase';
 
-    return 'unknown';
+    return _unknownService;
   }
 
   /// Calculate request size in bytes
@@ -171,8 +190,10 @@ class CostTrackingInterceptor extends Interceptor {
 
     // Headers size
     options.headers.forEach((key, value) {
-      size +=
-          key.length + value.toString().length + 4; // +4 for ": " and "\r\n"
+      final lowerKey = key.toLowerCase();
+      final valueLength =
+          _sensitiveHeaders.contains(lowerKey) ? 8 : value.toString().length;
+      size += key.length + valueLength + 4; // +4 for ": " and "\r\n"
     });
 
     // Query parameters size
@@ -264,6 +285,43 @@ class CostTrackingInterceptor extends Interceptor {
     return baseCost * multiplier;
   }
 
+  String _sanitizeEndpoint(RequestOptions options) {
+    var path = options.path;
+    if (path.isEmpty) path = options.uri.path;
+    path = path.split('?').first;
+    final segments = path
+        .split('/')
+        .where((segment) => segment.isNotEmpty)
+        .map((segment) {
+      final isNumeric = RegExp(r'^\d+$').hasMatch(segment);
+      final isUuid = RegExp(
+              r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
+          .hasMatch(segment);
+      final isLongOpaque = segment.length > 20 &&
+          RegExp(r'^[A-Za-z0-9\-_]+$').hasMatch(segment);
+      if (isNumeric || isUuid || isLongOpaque) return ':id';
+      return segment;
+    }).toList();
+    return '/${segments.join('/')}';
+  }
+
+  String _normalizeServiceName(String raw, {required String source}) {
+    final value = raw.trim().toLowerCase();
+    if (value.isEmpty) return _unknownService;
+    if (value == 'openai' ||
+        value == 'gemini' ||
+        value == 'firebase' ||
+        value == 'google' ||
+        value == 'google_storage' ||
+        value == _customService) {
+      return value;
+    }
+    if (source == 'header') {
+      return _customService;
+    }
+    return _unknownService;
+  }
+
   /// Track cost data for a service
   void _trackCost({
     required String serviceName,
@@ -275,9 +333,21 @@ class CostTrackingInterceptor extends Interceptor {
     required String endpoint,
     bool isError = false,
   }) {
-    final tracker = _serviceTrackers.putIfAbsent(
+    final normalizedServiceName = _normalizeServiceName(
       serviceName,
-      () => ServiceCostTracker(serviceName),
+      source: 'runtime',
+    );
+    if (!_serviceTrackers.containsKey(normalizedServiceName) &&
+        _serviceTrackers.length >= _maxServiceTrackers) {
+      final oldestKey = _serviceTrackers.entries
+          .reduce((a, b) =>
+              a.value.lastRequestAt.isBefore(b.value.lastRequestAt) ? a : b)
+          .key;
+      _serviceTrackers.remove(oldestKey);
+    }
+    final tracker = _serviceTrackers.putIfAbsent(
+      normalizedServiceName,
+      () => ServiceCostTracker(normalizedServiceName),
     );
 
     tracker.recordRequest(
@@ -327,10 +397,16 @@ class CostTrackingInterceptor extends Interceptor {
 
   /// Set custom cost for a service
   void setServiceCost(String serviceName, double costPerRequest) {
-    _defaultCosts[serviceName] = costPerRequest;
+    if (!costPerRequest.isFinite || costPerRequest < 0) {
+      throw ArgumentError(
+          'costPerRequest must be finite and non-negative.');
+    }
+    final normalizedServiceName =
+        _normalizeServiceName(serviceName, source: 'runtime');
+    _defaultCosts[normalizedServiceName] = costPerRequest;
 
     WasteAppLogger.info('Service cost updated', context: {
-      'service': serviceName,
+      'service': normalizedServiceName,
       'cost_per_request': costPerRequest,
     });
   }
@@ -342,6 +418,9 @@ class ServiceCostTracker {
 
   final String serviceName;
   final List<RequestCostData> _requests = [];
+  DateTime _lastRequestAt = DateTime.fromMillisecondsSinceEpoch(0);
+
+  DateTime get lastRequestAt => _lastRequestAt;
 
   /// Record a request with cost data
   void recordRequest({
@@ -353,8 +432,9 @@ class ServiceCostTracker {
     required String endpoint,
     bool isError = false,
   }) {
+    _lastRequestAt = DateTime.now();
     _requests.add(RequestCostData(
-      timestamp: DateTime.now(),
+      timestamp: _lastRequestAt,
       cost: cost,
       duration: duration,
       requestSize: requestSize,
@@ -379,7 +459,7 @@ class ServiceCostTracker {
         'total_cost': 0.0,
         'average_cost': 0.0,
         'error_rate': 0.0,
-        'average_duration_ms': 0,
+        'average_duration_ms': 0.0,
         'total_data_bytes': 0,
       };
     }

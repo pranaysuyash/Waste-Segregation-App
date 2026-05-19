@@ -4,11 +4,43 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/result_pipeline.dart';
 import '../utils/error_handler.dart';
 
+/// Result returned by [CorrectionDialog] when it closes.
+///
+/// Carries the user's confirmation or correction details so the caller
+/// can trigger optional re-analysis via AiService.handleUserCorrection().
+class CorrectionResult {
+  const CorrectionResult({
+    required this.userConfirmed,
+    this.userSuggestedCategory,
+    this.userSuggestedItemName,
+    this.userSuggestedMaterial,
+    this.userNotes,
+  });
+
+  /// True = user confirmed the classification; False = user said it was wrong.
+  final bool userConfirmed;
+
+  final String? userSuggestedCategory;
+  final String? userSuggestedItemName;
+  final String? userSuggestedMaterial;
+  final String? userNotes;
+
+  /// Whether the user provided actual correction data (as opposed to just
+  /// confirming). Only meaningful when [userConfirmed] is false.
+  bool get hasCorrectionData =>
+      userSuggestedCategory != null ||
+      userSuggestedItemName != null ||
+      userSuggestedMaterial != null ||
+      (userNotes?.trim().isNotEmpty == true);
+}
+
 /// Correction dialog for the Riverpod-based result screen.
 ///
 /// Provides thumbs-up (confirm) / thumbs-down (correct) feedback, category
 /// correction chips, custom correction input, and optional notes.
 /// All business logic delegates to [ResultPipeline.submitFeedback].
+///
+/// Returns a [CorrectionResult] when popped, or null if dismissed.
 class CorrectionDialog extends ConsumerStatefulWidget {
   const CorrectionDialog({
     super.key,
@@ -70,13 +102,19 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
     return trimmed.isNotEmpty ? trimmed : null;
   }
 
+  /// Whether the user has provided enough input to submit.
+  ///
+  /// - When confirmed correct (true): always has a payload (the confirmation).
+  /// - When not yet selected (null): no payload.
+  /// - When marked wrong (false): must provide at least one correction detail.
   bool get _hasCorrectionPayload {
-    if (_userConfirmed != false) return true;
-    final hasCategory = _resolvedCategory != null;
-    final hasItemName = _resolvedItemName != null;
-    final hasMaterial = _resolvedMaterial != null;
-    final hasNotes = _notesController.text.trim().isNotEmpty;
-    return hasCategory || hasItemName || hasMaterial || hasNotes;
+    if (_userConfirmed == true) return true;
+    if (_userConfirmed == null) return false;
+    // _userConfirmed == false — check for at least one correction detail
+    return _resolvedCategory != null ||
+        _resolvedItemName != null ||
+        _resolvedMaterial != null ||
+        _notesController.text.trim().isNotEmpty;
   }
 
   bool get _canSubmit {
@@ -116,7 +154,15 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
       );
 
       if (mounted) {
-        Navigator.of(context).pop(true);
+        Navigator.of(context).pop(CorrectionResult(
+          userConfirmed: _userConfirmed!,
+          userSuggestedCategory: _resolvedCategory,
+          userSuggestedItemName: _resolvedItemName,
+          userSuggestedMaterial: _resolvedMaterial,
+          userNotes: _notesController.text.trim().isNotEmpty
+              ? _notesController.text.trim()
+              : null,
+        ));
         final message = feedbackResult.wasDuplicate
             ? 'Already recorded!'
             : _userConfirmed!

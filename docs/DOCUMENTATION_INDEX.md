@@ -27,6 +27,20 @@ This document provides a comprehensive index to all project documentation, now p
 
 ---
 
+## 🧭 **EXPLORATION / RESEARCH MAP**
+
+The research-and-exploration layer (what we still need to *learn* to build well), separate from the planning/execution roadmaps (what we plan to *build*).
+
+- **[EXPLORATION_TOPICS.md](EXPLORATION_TOPICS.md)** — Master index of active exploration areas across AI, on-device, data, UX, community, IoT, business, compliance.
+- **[EXPLORATION_FRONTIER.md](EXPLORATION_FRONTIER.md)** — High-ambition frontier bets with explicit "what would have to be true" and kill criteria.
+- **[EXPLORATION_ROADMAP_WHILE_BUILDING.md](EXPLORATION_ROADMAP_WHILE_BUILDING.md)** — Maps exploration topics onto NOW / NEXT / LATER build phases so research runs in parallel with shipping.
+- **[exploration/README.md](exploration/README.md)** — Conventions for per-topic exploration docs.
+- **[exploration/backlog.md](exploration/backlog.md)** — Append-only idea capture before promotion.
+
+Use this map when you need to know **what's still being figured out** vs what's already decided.
+
+---
+
 ## 📁 **ROOT LEVEL FILES**
 
 ### Essential Project Files (Kept at Root)

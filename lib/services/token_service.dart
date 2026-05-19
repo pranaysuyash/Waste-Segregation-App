@@ -29,8 +29,13 @@ class TokenService extends ChangeNotifier {
   // Configuration constants
   static const int pointsToTokenRate = 100; // 100 points = 1 token
   static const int maxDailyConversions = 5; // Max 5 conversions per day
-  static const int welcomeBonus = 10; // 10 tokens for new users
+  static const int welcomeBonus = 50; // 50 tokens for new users (reconciled: was 10 here, 50 in TokenWallet.newUser)
   static const int dailyLoginBonus = 2; // 2 tokens for daily login
+
+  // Phase 0 kill switch: when false, token checks and deductions are skipped
+  // for instant analysis (current behavior). When true, enforcement is active.
+  // Controlled via Remote Config in production; defaults to false for safety.
+  static bool enableTokenEnforcement = false;
 
   /// Get current wallet (cached or fresh)
   TokenWallet? get currentWallet => _cachedWallet;
@@ -48,6 +53,97 @@ class TokenService extends ChangeNotifier {
       // Create emergency fallback wallet
       _cachedWallet = TokenWallet.newUser();
     }
+  }
+
+  /// Phase 0 telemetry: Log token display events (cost shown to user)
+  /// Call this when the UI renders a token cost label.
+  void logTokenDisplayed({
+    required String analysisSpeed,
+    required int tokenCost,
+    required int currentBalance,
+  }) {
+    WasteAppLogger.info('Token cost displayed to user',
+        context: {
+          'component': 'token_economy_telemetry',
+          'event': 'token_displayed',
+          'analysis_speed': analysisSpeed,
+          'token_cost': tokenCost,
+          'current_balance': currentBalance,
+          'can_afford': currentBalance >= tokenCost,
+          'enforcement_enabled': enableTokenEnforcement,
+        });
+  }
+
+  /// Phase 0 telemetry: Log analysis intent (user pressed Analyze button)
+  void logAnalysisIntent({
+    required String analysisSpeed,
+    required int tokenCost,
+    required int currentBalance,
+  }) {
+    WasteAppLogger.info('User initiated analysis',
+        context: {
+          'component': 'token_economy_telemetry',
+          'event': 'analysis_intent',
+          'analysis_speed': analysisSpeed,
+          'token_cost': tokenCost,
+          'current_balance': currentBalance,
+          'can_afford': currentBalance >= tokenCost,
+          'enforcement_enabled': enableTokenEnforcement,
+        });
+  }
+
+  /// Phase 0 telemetry: Log analysis completion (result received)
+  void logAnalysisCompletion({
+    required String analysisSpeed,
+    required int tokensDeducted,
+    required int balanceAfter,
+  }) {
+    WasteAppLogger.info('Analysis completed',
+        context: {
+          'component': 'token_economy_telemetry',
+          'event': 'analysis_completed',
+          'analysis_speed': analysisSpeed,
+          'tokens_deducted': tokensDeducted,
+          'balance_after': balanceAfter,
+          'enforcement_enabled': enableTokenEnforcement,
+        });
+  }
+
+  /// Phase 0 telemetry: Log when enforcement would have blocked but was skipped
+  void logEnforcementSkipped({
+    required String analysisSpeed,
+    required int tokenCost,
+    required int currentBalance,
+  }) {
+    WasteAppLogger.warning('Token enforcement skipped (kill switch off)',
+        context: {
+          'component': 'token_economy_telemetry',
+          'event': 'enforcement_skipped',
+          'analysis_speed': analysisSpeed,
+          'token_cost': tokenCost,
+          'current_balance': currentBalance,
+          'would_have_blocked': currentBalance < tokenCost,
+        });
+  }
+
+  /// Check if user can afford an analysis, respecting the kill switch.
+  /// When enforcement is disabled (Phase 0), always returns true but logs the skip.
+  /// When enforcement is enabled, returns actual affordability.
+  bool canAffordAnalysis(AnalysisSpeed speed) {
+    final cost = speed.cost;
+    final balance = _cachedWallet?.balance ?? 0;
+
+    if (!enableTokenEnforcement) {
+      // Phase 0: log that enforcement was skipped
+      logEnforcementSkipped(
+        analysisSpeed: speed.name,
+        tokenCost: cost,
+        currentBalance: balance,
+      );
+      return true; // Always allow when enforcement is off
+    }
+
+    return balance >= cost;
   }
 
   /// Load wallet from storage

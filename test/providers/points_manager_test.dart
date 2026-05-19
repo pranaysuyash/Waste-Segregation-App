@@ -9,6 +9,7 @@ import 'package:waste_segregation_app/providers/points_manager.dart';
 import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/services/points_engine.dart';
 
 import 'points_manager_test.mocks.dart';
 
@@ -20,6 +21,8 @@ void main() {
     late ProviderContainer container;
 
     setUp(() {
+      // Reset singleton to avoid cross-test state leakage.
+      PointsEngine.resetInstance();
       mockStorageService = MockStorageService();
       mockCloudStorageService = MockCloudStorageService();
 
@@ -40,6 +43,7 @@ void main() {
     });
 
     tearDown(() {
+      PointsEngine.resetInstance();
       container.dispose();
     });
 
@@ -68,8 +72,8 @@ void main() {
             achievements: [],
             activeChallenges: [],
             completedChallenges: [],
-            discoveredItemIds: {},
-            unlockedHiddenContentIds: {},
+            discoveredItemIds: const <String>[],
+            unlockedHiddenContentIds: const <String>[],
           ),
         );
 
@@ -187,8 +191,8 @@ void main() {
             achievements: [],
             activeChallenges: [],
             completedChallenges: [],
-            discoveredItemIds: {},
-            unlockedHiddenContentIds: {},
+            discoveredItemIds: const <String>[],
+            unlockedHiddenContentIds: const <String>[],
           ),
         );
 
@@ -445,8 +449,8 @@ void main() {
                   achievements: [],
                   activeChallenges: [],
                   completedChallenges: [],
-                  discoveredItemIds: {},
-                  unlockedHiddenContentIds: {},
+                  discoveredItemIds: const <String>[],
+                  unlockedHiddenContentIds: const <String>[],
                 ),
               ));
 

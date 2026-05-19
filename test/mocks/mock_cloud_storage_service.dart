@@ -9,7 +9,8 @@ class MockCloudStorageService extends CloudStorageService {
       : super(localStorageService);
 
   @override
-  Future<void> saveUserProfileToFirestore(UserProfile userProfile) async {
+  Future<void> saveUserProfileToFirestore(UserProfile userProfile,
+      {bool useBatching = true}) async {
     // Mock: Just return success
     return;
   }

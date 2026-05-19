@@ -7,6 +7,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/result_pipeline.dart';
 import '../services/haptic_settings_service.dart';
 import '../services/analytics_service.dart';
+import '../services/ai_service.dart';
 import '../providers/app_providers.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/image_capture_screen.dart';
@@ -57,6 +58,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   late AnimationController _slideController;
   late AnalyticsService _analyticsService;
 
+  // Mutable classification — updated after re-analysis
+  late WasteClassification _classification;
+  bool _isReanalyzing = false;
+
+  // Audit trail: set to true when the classification has been re-analyzed
+  bool _wasCorrected = false;
+
   // Gamification state
   bool _hasShownPointsPopup = false;
   bool _hasProcessedGamification = false;
@@ -64,6 +72,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   @override
   void initState() {
     super.initState();
+
+    _classification = widget.classification;
 
     // Use the canonical analytics provider so tests can override it and the
     // result screen does not construct a Firebase-backed service directly.
@@ -108,7 +118,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
       await pipeline.processClassification(
-        widget.classification,
+        _classification,
         autoAnalyze: widget.autoAnalyze,
       );
     } catch (error, stackTrace) {
@@ -117,7 +127,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         error: error,
         stackTrace: stackTrace,
         context: {
-          'classificationId': widget.classification.id,
+          'classificationId': _classification.id,
           'service': 'ResultScreen',
         },
       );
@@ -129,10 +139,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     _analyticsService.trackScreenView(
       'ResultScreen',
       parameters: {
-        'classification_id': widget.classification.id,
-        'category': widget.classification.category,
-        'item_name': widget.classification.itemName,
-        'confidence': widget.classification.confidence,
+        'classification_id': _classification.id,
+        'category': _classification.category,
+        'item_name': _classification.itemName,
+        'confidence': _classification.confidence,
         'show_actions': widget.showActions,
         'auto_analyze': widget.autoAnalyze,
         'version': 'v2',
@@ -143,8 +153,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     WasteAppLogger.aiEvent(
       'result_screen_viewed',
       context: {
-        'classificationId': widget.classification.id,
-        'category': widget.classification.category,
+        'classificationId': _classification.id,
+        'category': _classification.category,
         'version': 'v2',
       },
     );
@@ -160,8 +170,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     _processGamificationState(pipelineState);
 
     // Build tags once
-    final tags = buildClassificationTags(widget.classification);
-    final hasLowConfidence = (widget.classification.confidence ?? 1.0) < 0.7;
+    final tags = buildClassificationTags(_classification);
+    final hasLowConfidence = (_classification.confidence ?? 1.0) < 0.7;
 
     final scaffold = Scaffold(
       backgroundColor: colorScheme.surface,
@@ -211,7 +221,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                     children: [
                       // Hero Header with KPIs
                       ResultHeader(
-                        classification: widget.classification,
+                        classification: _classification,
                         pointsEarned: pipelineState.pointsEarned,
                         onDisposeCorrectly: _handleDisposeCorrectly,
                         heroTag: widget.heroTag,
@@ -227,6 +237,14 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                             // Loading indicator
                             if (pipelineState.isProcessing)
                               _buildLoadingIndicator(context),
+
+                            // Re-analysis audit trail badge
+                            if (_wasCorrected)
+                              _buildCorrectedBadge(context),
+
+                            // Re-analysis in-progress banner
+                            if (_isReanalyzing)
+                              _buildReanalysisBanner(context),
 
                             // Low-confidence warning banner
                             if (hasLowConfidence)
@@ -256,7 +274,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
                             // Disposal Instructions Accordion
                             DisposalAccordion(
-                              classification: widget.classification,
+                              classification: _classification,
                             ),
 
                             const SizedBox(height: 16),
@@ -285,7 +303,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
                             // Materials & Alternatives
                             if (_hasMaterialsPreview(
-                              widget.classification,
+                              _classification,
                             )) ...[
                               const SizedBox(height: 16),
                               _buildMaterialsPreview(context),
@@ -293,20 +311,20 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
                             // Disposal Checklist
                             if (_hasDisposalChecklist(
-                              widget.classification,
+                              _classification,
                             )) ...[
                               const SizedBox(height: 16),
                               _buildDisposalChecklist(context),
                             ],
 
                             // Local Rules (BBMP)
-                            if (_hasLocalRules(widget.classification)) ...[
+                            if (_hasLocalRules(_classification)) ...[
                               const SizedBox(height: 16),
                               _buildLocalRulesCard(context),
                             ],
 
                             // Safety Warnings
-                            if (_hasSafetyWarnings(widget.classification)) ...[
+                            if (_hasSafetyWarnings(_classification)) ...[
                               const SizedBox(height: 16),
                               _buildSafetyWarnings(context),
                             ],
@@ -392,7 +410,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              'Our AI analyzed the visual characteristics, material properties, and recycling guidelines to determine this classification with ${((widget.classification.confidence ?? 0.0) * 100).toInt()}% confidence.',
+              'Our AI analyzed the visual characteristics, material properties, and recycling guidelines to determine this classification with ${((_classification.confidence ?? 0.0) * 100).toInt()}% confidence.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.8),
               ),
@@ -409,7 +427,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                     Icon(Icons.school, size: 16, color: colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(
-                      'Learn more about ${widget.classification.category}',
+                      'Learn more about ${_classification.category}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -448,7 +466,74 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     );
   }
 
+  /// Audit trail badge shown after successful re-analysis.
+  Widget _buildCorrectedBadge(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.edit_note, size: 18, color: Colors.blue.shade700),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Corrected based on your feedback',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: Colors.blue.shade800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Low-confidence warning banner with re-analyze action.
+  /// Re-analysis in-progress banner.
+  Widget _buildReanalysisBanner(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: cs.primaryContainer.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: cs.primary.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: cs.primary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Re-analyzing with your correction…',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: cs.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLowConfidenceBanner(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
@@ -468,7 +553,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Low confidence (${((widget.classification.confidence ?? 0.0) * 100).toInt()}%)',
+                  'Low confidence (${((_classification.confidence ?? 0.0) * 100).toInt()}%)',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.orange.shade800,
@@ -490,8 +575,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                 'low_confidence_reanalyze',
                 parameters: {
                   'original_confidence':
-                      widget.classification.confidence.toString(),
-                  'category': widget.classification.category,
+                      _classification.confidence.toString(),
+                  'category': _classification.category,
                 },
               );
               Navigator.of(context).pop();
@@ -510,7 +595,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   /// Educational "Did You Know?" story card, ported from v1.
   Widget? _buildStoryCards(BuildContext context) {
     final theme = Theme.of(context);
-    final fact = educationalFact(widget.classification);
+    final fact = educationalFact(_classification);
     return Card(
       elevation: 0,
       color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
@@ -546,8 +631,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     _analyticsService.trackUserAction(
       'find_facility',
       parameters: {
-        'category': widget.classification.category,
-        'item': widget.classification.itemName,
+        'category': _classification.category,
+        'item': _classification.itemName,
       },
     );
     Navigator.push(
@@ -560,7 +645,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   void _handleScanAnother() {
     _analyticsService.trackUserAction(
       'scan_another',
-      parameters: {'category': widget.classification.category},
+      parameters: {'category': _classification.category},
     );
     Navigator.pushReplacement(
       context,
@@ -582,8 +667,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     _analyticsService.trackUserAction(
       'educational_content_viewed',
       parameters: {
-        'category': widget.classification.category,
-        'item': widget.classification.itemName,
+        'category': _classification.category,
+        'item': _classification.itemName,
       },
     );
 
@@ -619,7 +704,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
     // Debug logging
     ResultScreenDebugConfig.logPipelineOutput(
-      classificationId: widget.classification.id,
+      classificationId: _classification.id,
       pointsEarned: state.pointsEarned,
       achievementsCount: state.newAchievements.length,
       isSaved: state.isSaved,
@@ -636,7 +721,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         WasteAppLogger.aiEvent(
           'points_popup_shown',
           context: {
-            'classificationId': widget.classification.id,
+            'classificationId': _classification.id,
             'points': points,
             'version': 'v2',
           },
@@ -650,7 +735,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     try {
       final haptic = HapticSettingsService();
       if (haptic.enabled &&
-          widget.classification.category != 'Requires Manual Review') {
+          _classification.category != 'Requires Manual Review') {
         HapticFeedback.lightImpact();
       }
     } catch (e) {
@@ -664,8 +749,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     _analyticsService.trackUserAction(
       'dispose_correctly_tapped',
       parameters: {
-        'category': widget.classification.category,
-        'item': widget.classification.itemName,
+        'category': _classification.category,
+        'item': _classification.itemName,
       },
     );
 
@@ -673,8 +758,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     WasteAppLogger.aiEvent(
       'dispose_correctly_tapped',
       context: {
-        'classificationId': widget.classification.id,
-        'category': widget.classification.category,
+        'classificationId': _classification.id,
+        'category': _classification.category,
         'version': 'v2',
       },
     );
@@ -725,7 +810,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                     child: SingleChildScrollView(
                       controller: scrollController,
                       child: DisposalAccordion(
-                        classification: widget.classification,
+                        classification: _classification,
                       ),
                     ),
                   ),
@@ -738,33 +823,113 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     );
   }
 
-  void _handleCorrection() {
-    // Track user action (Legacy parity)
-    _analyticsService.trackUserAction(
+  Future<void> _handleCorrection() async {
+    // Prevent showing the dialog while a re-analysis is already in progress
+    if (_isReanalyzing) return;
+
+    // Track user action (fire-and-forget — analytics + logging are non-critical)
+    unawaited(_analyticsService.trackUserAction(
       'correction_requested',
       parameters: {
-        'category': widget.classification.category,
-        'item': widget.classification.itemName,
+        'category': _classification.category,
+        'item': _classification.itemName,
       },
-    );
-
-    // Also log for debugging
+    ));
     WasteAppLogger.aiEvent(
       'correction_requested',
-      context: {'classificationId': widget.classification.id, 'version': 'v2'},
+      context: {'classificationId': _classification.id, 'version': 'v2'},
     );
 
-    showDialog<bool>(
+    final result = await showDialog<CorrectionResult>(
       context: context,
       builder: (context) =>
-          CorrectionDialog(classification: widget.classification),
+          CorrectionDialog(classification: _classification),
     );
+
+    // Guard: widget may have been disposed while dialog was open
+    if (!mounted) return;
+
+    // No action if dialog was dismissed or user confirmed
+    if (result == null || result.userConfirmed) return;
+
+    // User provided correction data — trigger re-analysis
+    if (!result.hasCorrectionData) return;
+
+    setState(() => _isReanalyzing = true);
+
+    try {
+      final aiService = _readAiService();
+
+      // Build a correction string from the available fields
+      final parts = <String>[
+        if (result.userSuggestedCategory != null)
+          'Category: ${result.userSuggestedCategory}',
+        if (result.userSuggestedItemName != null)
+          'Item: ${result.userSuggestedItemName}',
+        if (result.userSuggestedMaterial != null)
+          'Material: ${result.userSuggestedMaterial}',
+        if (result.userNotes != null && result.userNotes!.isNotEmpty)
+          'Notes: ${result.userNotes}',
+      ];
+      final correctionText = parts.join('; ');
+
+      final reanalyzed = await aiService.handleUserCorrection(
+        _classification,
+        correctionText,
+        result.userNotes,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _classification = reanalyzed;
+        _isReanalyzing = false;
+        _wasCorrected = true;
+      });
+
+      // Log successful re-analysis
+      WasteAppLogger.aiEvent(
+        'correction_reanalyzed',
+        context: {
+          'originalId': _classification.id,
+          'newCategory': reanalyzed.category,
+          'newItemName': reanalyzed.itemName,
+        },
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Re-analyzed: ${reanalyzed.displayItemLabel} → ${reanalyzed.displayCategoryLabel}',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isReanalyzing = false);
+
+      WasteAppLogger.severe('Re-analysis failed after correction', error: e);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Re-analysis failed: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
+
+  /// Reads the AiService from the provider.
+  /// This is a separate method so it can be overridden in tests.
+  AiService _readAiService() => ref.read(aiServiceProvider);
 
   Future<void> _handleSave() async {
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
-      await pipeline.saveClassificationOnly(widget.classification);
+      await pipeline.saveClassificationOnly(_classification);
       _triggerHapticFeedback();
 
       if (mounted) {
@@ -790,7 +955,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Future<void> _handleShare() async {
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
-      await pipeline.shareClassification(widget.classification);
+      await pipeline.shareClassification(_classification);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -817,8 +982,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     _analyticsService.trackUserAction(
       'classification_reanalyze',
       parameters: {
-        'category': widget.classification.category,
-        'item': widget.classification.itemName,
+        'category': _classification.category,
+        'item': _classification.itemName,
       },
     );
 
@@ -859,7 +1024,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildImpactReveal(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final impact = widget.classification.getEnvironmentalImpactScore().clamp(
+    final impact = _classification.getEnvironmentalImpactScore().clamp(
           1.0,
           10.0,
         );
@@ -927,19 +1092,19 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               context,
               Icons.cloud_outlined,
               'CO2 impact',
-              _formatCo2Impact(widget.classification),
+              _formatCo2Impact(_classification),
             ),
             _buildInfoRow(
               context,
               Icons.timelapse,
               'Decomposition',
-              _formatDecompositionTime(widget.classification),
+              _formatDecompositionTime(_classification),
             ),
             _buildInfoRow(
               context,
               Icons.recycling,
               'Recyclability',
-              _formatRecyclability(widget.classification),
+              _formatRecyclability(_classification),
             ),
           ],
         ),
@@ -973,7 +1138,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildImpactJourney(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final c = widget.classification;
+    final c = _classification;
     final accentColor = cs.primary;
 
     return Card(
@@ -1069,7 +1234,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildCategorySnapshot(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final c = widget.classification;
+    final c = _classification;
     final items = <_SnapshotItem>[
       _SnapshotItem('Recyclable', _boolLabel(c.isRecyclable), Icons.recycling),
       _SnapshotItem('Compostable', _boolLabel(c.isCompostable), Icons.compost),
@@ -1171,7 +1336,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildMaterialsPreview(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final c = widget.classification;
+    final c = _classification;
     final materials = c.normalizedMaterials;
     final alternatives = c.alternativeOptions ?? const <String>[];
     final relatedItems = c.relatedItems ?? const <String>[];
@@ -1281,7 +1446,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildDisposalChecklist(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final steps = widget.classification.disposalInstructions.steps;
+    final steps = _classification.disposalInstructions.steps;
     if (steps.isEmpty) return const SizedBox.shrink();
 
     return Card(
@@ -1356,7 +1521,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildLocalRulesCard(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final c = widget.classification;
+    final c = _classification;
     final regs = c.localRegulations ?? const <String, String>{};
     final bbmp = c.bbmpComplianceStatus;
     final guideline = c.localGuidelinesReference;
@@ -1450,7 +1615,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildSafetyWarnings(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final c = widget.classification;
+    final c = _classification;
     final warnings = <String>[];
     if (c.requiresSpecialDisposal == true) {
       warnings.add('Requires special disposal handling.');
@@ -1518,9 +1683,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final warnings =
-        widget.classification.disposalInstructions.warnings ?? const <String>[];
+        _classification.disposalInstructions.warnings ?? const <String>[];
     final hints =
-        widget.classification.disposalInstructions.tips ?? const <String>[];
+        _classification.disposalInstructions.tips ?? const <String>[];
     final tips = <String>[...warnings.take(2), ...hints.take(3)];
 
     return Card(
@@ -1702,7 +1867,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildFeedbackPrompt(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final confidence = widget.classification.confidence ?? 0.0;
+    final confidence = _classification.confidence ?? 0.0;
     final lowConfidence = confidence < 0.7;
 
     return Card(

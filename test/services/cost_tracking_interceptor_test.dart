@@ -114,8 +114,18 @@ void main() {
       );
       // If no exception was thrown, the cost was used
       final stats = interceptor.getCostStatistics();
-      expect(stats.containsKey('custom_service'), isFalse); // URL doesn't map to 'custom_service'
+      expect(stats.containsKey('custom_service'),
+          isFalse); // header/runtime unknown names are normalized
       expect(stats['summary']['total_requests'], 1); // captured as "unknown"
+    });
+
+    test('setServiceCost() rejects invalid values', () {
+      expect(() => interceptor.setServiceCost('openai', -1.0),
+          throwsArgumentError);
+      expect(() => interceptor.setServiceCost('openai', double.nan),
+          throwsArgumentError);
+      expect(() => interceptor.setServiceCost('openai', double.infinity),
+          throwsArgumentError);
     });
 
     group('Service name extraction (via URL patterns)', () {
@@ -145,6 +155,16 @@ void main() {
         expect(stats['gemini']['total_requests'], 1);
       });
 
+      test('extracts google for generic googleapis endpoints', () {
+        _simulateRequestCycle(
+          interceptor,
+          baseUrl: 'https://example.googleapis.com',
+          path: '/v1/resource',
+        );
+        final stats = interceptor.getCostStatistics();
+        expect(stats['google'], isNotNull);
+      });
+
       test('extracts firebase from firestore/host URLs', () {
         // firestore.googleapis.com contains 'googleapis.com' as a substring,
         // so the extractor must check 'firestore' before 'googleapis.com'.
@@ -171,6 +191,21 @@ void main() {
         final stats = interceptor.getCostStatistics();
         expect(stats['unknown'], isNotNull);
         expect(stats['unknown']['service_name'], 'unknown');
+      });
+
+      test('normalizes untrusted X-Service-Name to custom', () {
+        final options = RequestOptions(
+          baseUrl: 'https://api.example.com',
+          path: '/v1/items',
+          headers: {'X-Service-Name': 'partner-internal-prod'},
+        );
+        interceptor.onRequest(options, _NoOpRequestInterceptorHandler());
+        interceptor.onResponse(
+          Response(requestOptions: options, statusCode: 200, data: {}),
+          _NoOpResponseInterceptorHandler(),
+        );
+        final stats = interceptor.getCostStatistics();
+        expect(stats['custom'], isNotNull);
       });
     });
 
@@ -285,8 +320,20 @@ void main() {
         expect(stats['total_cost'], 0.0);
         expect(stats['average_cost'], 0.0);
         expect(stats['error_rate'], 0.0);
-        expect(stats['average_duration_ms'], 0);
+        expect(stats['average_duration_ms'], 0.0);
         expect(stats['total_data_bytes'], 0);
+      });
+
+      test('stores sanitized endpoint without query or dynamic IDs', () {
+        _simulateRequestCycle(
+          interceptor,
+          baseUrl: 'https://api.openai.com',
+          path:
+              '/users/123e4567-e89b-12d3-a456-426614174000/classifications/987?token=secret',
+        );
+        final stats = interceptor.getCostStatistics();
+        expect(stats['openai']['most_expensive_endpoint'],
+            equals('/users/:id/classifications/:id'));
       });
     });
 
@@ -318,6 +365,30 @@ void main() {
         expect(stats['summary']['average_cost_per_request'], greaterThan(0));
         expect(
             (stats['summary']['tracked_services'] as List).length, 2);
+      });
+
+      test('redacts sensitive header value sizes in request size tracking', () {
+        final opts1 = RequestOptions(
+          baseUrl: 'https://api.openai.com',
+          path: '/v1/chat/completions',
+          headers: {'Authorization': 'Bearer super-long-secret-token'},
+        );
+        final opts2 = RequestOptions(
+          baseUrl: 'https://api.openai.com',
+          path: '/v1/chat/completions',
+          headers: {'Authorization': 'Bearer x'},
+        );
+
+        interceptor.onRequest(opts1, _NoOpRequestInterceptorHandler());
+        interceptor.onRequest(opts2, _NoOpRequestInterceptorHandler());
+
+        final size1 =
+            (opts1.extra['cost_tracking'] as Map<String, dynamic>)['request_size']
+                as int;
+        final size2 =
+            (opts2.extra['cost_tracking'] as Map<String, dynamic>)['request_size']
+                as int;
+        expect(size1, equals(size2));
       });
     });
   });

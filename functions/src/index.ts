@@ -291,9 +291,28 @@ export const clearAllData = asiaSouth1.https.onCall(async (data, context) => {
   try {
     console.log('🔥 Starting COMPLETE Firestore data clearing...');
     
-    // Security check - only allow in development/testing
+    // Security check - must be authenticated
     if (!context.auth) {
       throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+
+    // Security gate - explicit runtime kill switch required.
+    const clearAllDataEnabled = process.env.CLEAR_ALL_DATA_ENABLED === 'true'
+      || functions.config()?.safety?.clear_all_data_enabled === 'true';
+    if (!clearAllDataEnabled) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'clearAllData is disabled. Set CLEAR_ALL_DATA_ENABLED=true only for controlled environments.'
+      );
+    }
+
+    // Security gate - admin claim required.
+    const isAdmin = context.auth.token?.admin === true;
+    if (!isAdmin) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'Only admin users can invoke clearAllData.'
+      );
     }
     
     const db = admin.firestore();

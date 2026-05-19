@@ -69,8 +69,8 @@ void main() {
             claimStatus: ClaimStatus.ineligible,
           ),
         ],
-        discoveredItemIds: {'item1', 'item2'},
-        unlockedHiddenContentIds: {'content1'},
+        discoveredItemIds: ['item1', 'item2'],
+        unlockedHiddenContentIds: ['content1'],
       );
 
       // Setup container with mocked repository
@@ -345,7 +345,7 @@ void main() {
         final wasteAchievement = state.achievements.firstWhere(
           (a) => a.type == AchievementType.wasteIdentified,
         );
-        expect(wasteAchievement.progress, equals(0.6)); // 0.5 + 0.1
+        expect(wasteAchievement.progress, equals(1.5)); // 0.5 + 1 per classification
       });
     });
 
@@ -499,8 +499,8 @@ void main() {
                       ? ClaimStatus.unclaimed
                       : ClaimStatus.ineligible,
                 )),
-        discoveredItemIds: {},
-        unlockedHiddenContentIds: {},
+        discoveredItemIds: const <String>[],
+        unlockedHiddenContentIds: const <String>[],
       );
 
       when(mockRepository.getProfile()).thenAnswer((_) async => largeProfile);

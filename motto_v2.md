@@ -8,6 +8,10 @@ The goal is not to make the smallest patch. The goal is to protect the project, 
 
 ## 1. Core Context Requirements
 
+- **Instruction loop is mandatory**:
+  - Start from `/Users/pranay/AGENTS.md`, then `/Users/pranay/Projects/AGENTS.md`, then repo-local `AGENTS.md` or `CLAUDE.md`, then project context pack files.
+  - If `agent-start` was skipped, failed, or context seems partial/stale, immediately fall back to this motto and re-enter the instruction stack from `/Users/pranay/AGENTS.md` again.
+  - Do not proceed with implementation until this loop is completed and the canonical instruction/context files are loaded.
 - Inspect the codebase, architecture, docs, workflows, tests, configs, data contracts, generated files, and current implementation state before planning or coding.
 - Follow all project guidelines, workflows, conventions, and instruction files.
 - Review all agent/instruction/config files starting from `/Users/pranay/`, including Claude, Qwen, Codex, Copilot, AGENTS files, motto files, session context files, and all related instruction/workflow files.

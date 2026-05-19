@@ -14,9 +14,11 @@ import '../widgets/modern_ui/modern_cards.dart';
 import '../models/token_wallet.dart';
 import '../providers/ai_job_providers.dart';
 import '../providers/app_providers.dart';
+import '../providers/token_providers.dart';
 import '../services/image_quality_gate.dart';
 import '../services/offline_queue_service.dart';
 import 'result_screen_wrapper.dart';
+import 'zero_balance_sheet.dart';
 import '../utils/waste_app_logger.dart';
 
 class ImageCaptureScreen extends ConsumerStatefulWidget {
@@ -359,6 +361,32 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
   Future<void> _analyzeImage() async {
     if (_isAnalyzing || _isCancelled) return;
+
+    // Phase 0: Token economy kill switch and telemetry
+    final tokenService = ref.read(tokenServiceProvider);
+    await tokenService.initialize();
+
+    // Log the user's intent (regardless of enforcement state)
+    tokenService.logAnalysisIntent(
+      analysisSpeed: _selectedSpeed.name,
+      tokenCost: _selectedSpeed.cost,
+      currentBalance: tokenService.currentWallet?.balance ?? 0,
+    );
+
+    // Check affordability (always allows when enforcement is off, blocks when on)
+    if (!tokenService.canAffordAnalysis(_selectedSpeed)) {
+      if (mounted) {
+        ZeroBalanceOptionsSheet.show(
+          context,
+          requiredTokens: _selectedSpeed.cost,
+          onBatchSelected: () {
+            setState(() => _selectedSpeed = AnalysisSpeed.batch);
+            _analyzeImage();
+          },
+        );
+      }
+      return;
+    }
 
     // Track 1 & 2: Quality gate check and offline queue handling
     Uint8List? imageBytes;
@@ -1085,6 +1113,14 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     final speedText =
         _selectedSpeed == AnalysisSpeed.instant ? 'Instant' : 'Batch';
     final tokenCost = _selectedSpeed.cost;
+
+    // Phase 0: Log token cost display event for telemetry
+    final tokenService = ref.read(tokenServiceProvider);
+    tokenService.logTokenDisplayed(
+      analysisSpeed: _selectedSpeed.name,
+      tokenCost: tokenCost,
+      currentBalance: tokenService.currentWallet?.balance ?? 0,
+    );
 
     return SizedBox(
       width: double.infinity,

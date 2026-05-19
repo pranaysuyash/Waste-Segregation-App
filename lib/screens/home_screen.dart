@@ -18,4 +18,3 @@ class HomeScreen extends StatelessWidget {
     return UltraModernHomeScreen(isGuestMode: isGuestMode);
   }
 }
-
