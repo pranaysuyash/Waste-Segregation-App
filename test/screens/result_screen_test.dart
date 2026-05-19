@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' show ProviderScope;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:provider/provider.dart' as provider;
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/filter_options.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/providers/disposal_instructions_provider.dart';
 import 'package:waste_segregation_app/screens/result_screen.dart';
 import 'package:waste_segregation_app/services/analytics_service.dart';
+import 'package:waste_segregation_app/services/ad_service.dart';
+import 'package:waste_segregation_app/services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/services/community_service.dart';
 import 'package:waste_segregation_app/services/disposal_instructions_service.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
+import 'package:waste_segregation_app/services/result_pipeline.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 
 class MockAnalyticsService extends Mock implements AnalyticsService {
@@ -18,7 +22,8 @@ class MockAnalyticsService extends Mock implements AnalyticsService {
   Future<void> trackScreenView(String screenName,
           {Map<String, dynamic>? parameters}) =>
       super.noSuchMethod(
-        Invocation.method(#trackScreenView, [screenName], {#parameters: parameters}),
+        Invocation.method(
+            #trackScreenView, [screenName], {#parameters: parameters}),
         returnValue: Future<void>.value(),
         returnValueForMissingStub: Future<void>.value(),
       ) as Future<void>;
@@ -33,7 +38,8 @@ class MockGamificationService extends Mock implements GamificationService {
           const [],
           {#forceRefresh: forceRefresh},
         ),
-        returnValue: Future<GamificationProfile>.value(const GamificationProfile(
+        returnValue:
+            Future<GamificationProfile>.value(const GamificationProfile(
           userId: 'u1',
           streaks: {},
           points: UserPoints(),
@@ -62,6 +68,12 @@ class MockStorageService extends Mock implements StorageService {
             Future<List<WasteClassification>>.value(const []),
       ) as Future<List<WasteClassification>>;
 }
+
+class MockCloudStorageService extends Mock implements CloudStorageService {}
+
+class MockCommunityService extends Mock implements CommunityService {}
+
+class MockAdService extends Mock implements AdService {}
 
 class FakeDisposalInstructionsService extends DisposalInstructionsService {
   @override
@@ -131,22 +143,33 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            storageServiceProvider.overrideWithValue(storageService),
+            gamificationServiceProvider.overrideWithValue(gamificationService),
+            cloudStorageServiceProvider.overrideWithValue(
+              MockCloudStorageService(),
+            ),
+            communityServiceProvider.overrideWithValue(
+              MockCommunityService(),
+            ),
+            adServiceProvider.overrideWithValue(MockAdService()),
+            analyticsServiceProvider.overrideWithValue(analyticsService),
+            resultPipelineProvider.overrideWith(
+              (ref) => ResultPipeline(
+                storageService,
+                gamificationService,
+                MockCloudStorageService(),
+                MockCommunityService(),
+                MockAdService(),
+                analyticsService,
+              ),
+            ),
             disposalInstructionsServiceProvider
                 .overrideWithValue(FakeDisposalInstructionsService()),
           ],
-          child: provider.MultiProvider(
-            providers: [
-              provider.ChangeNotifierProvider<AnalyticsService>.value(
-                  value: analyticsService),
-              provider.ChangeNotifierProvider<GamificationService>.value(
-                  value: gamificationService),
-              provider.Provider<StorageService>.value(value: storageService),
-            ],
-            child: MaterialApp(
-              home: ResultScreen(
-                classification: _classification(),
-                showActions: false,
-              ),
+          child: MaterialApp(
+            home: ResultScreen(
+              classification: _classification(),
+              showActions: false,
             ),
           ),
         ),
@@ -158,6 +181,71 @@ void main() {
       // Allow staggered list timers/animations to complete so the test binding
       // doesn't report pending timers.
       await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('shows trust prompt and correction entry point', (
+      tester,
+    ) async {
+      final analyticsService = MockAnalyticsService();
+      final gamificationService = MockGamificationService();
+      final storageService = MockStorageService();
+
+      when(analyticsService.trackScreenView('ResultScreen',
+              parameters: anyNamed('parameters')))
+          .thenAnswer((_) async {});
+      when(gamificationService.getProfile()).thenAnswer(
+        (_) async => const GamificationProfile(
+          userId: 'u1',
+          streaks: {},
+          points: UserPoints(total: 10),
+        ),
+      );
+      when(storageService.getAllClassifications())
+          .thenAnswer((_) async => const []);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(storageService),
+            gamificationServiceProvider.overrideWithValue(gamificationService),
+            cloudStorageServiceProvider.overrideWithValue(
+              MockCloudStorageService(),
+            ),
+            communityServiceProvider.overrideWithValue(
+              MockCommunityService(),
+            ),
+            adServiceProvider.overrideWithValue(MockAdService()),
+            analyticsServiceProvider.overrideWithValue(analyticsService),
+            resultPipelineProvider.overrideWith(
+              (ref) => ResultPipeline(
+                storageService,
+                gamificationService,
+                MockCloudStorageService(),
+                MockCommunityService(),
+                MockAdService(),
+                analyticsService,
+              ),
+            ),
+            disposalInstructionsServiceProvider
+                .overrideWithValue(FakeDisposalInstructionsService()),
+          ],
+          child: MaterialApp(
+            home: ResultScreen(
+              classification: _classification(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      expect(find.text('Was this correct?'), findsOneWidget);
+      expect(find.text('Correct it'), findsOneWidget);
+      expect(find.text('Correct'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
     });
   });
 }

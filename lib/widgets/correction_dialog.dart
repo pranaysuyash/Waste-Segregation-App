@@ -24,6 +24,8 @@ class CorrectionDialog extends ConsumerStatefulWidget {
 class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
   bool? _userConfirmed;
   String? _selectedCorrection;
+  final TextEditingController _itemNameController = TextEditingController();
+  final TextEditingController _materialController = TextEditingController();
   final TextEditingController _customController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
   bool _isSubmitting = false;
@@ -38,6 +40,8 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
 
   @override
   void dispose() {
+    _itemNameController.dispose();
+    _materialController.dispose();
     _customController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -51,6 +55,18 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
       return trimmed.isNotEmpty ? trimmed : null;
     }
     return _selectedCorrection;
+  }
+
+  String? get _resolvedItemName {
+    if (_userConfirmed == true) return null;
+    final trimmed = _itemNameController.text.trim();
+    return trimmed.isNotEmpty ? trimmed : null;
+  }
+
+  String? get _resolvedMaterial {
+    if (_userConfirmed == true) return null;
+    final trimmed = _materialController.text.trim();
+    return trimmed.isNotEmpty ? trimmed : null;
   }
 
   Future<void> _submit() async {
@@ -69,6 +85,8 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
             ? _notesController.text.trim()
             : null,
         userSuggestedCategory: _resolvedCategory,
+        userSuggestedItemName: _resolvedItemName,
+        userSuggestedMaterial: _resolvedMaterial,
       );
 
       if (mounted) {
@@ -81,7 +99,8 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
-            backgroundColor: feedbackResult.wasDuplicate ? Colors.orange : Colors.green,
+            backgroundColor:
+                feedbackResult.wasDuplicate ? Colors.orange : Colors.green,
           ),
         );
       }
@@ -120,7 +139,7 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
             ),
             const SizedBox(height: 8),
             Text(
-              '${widget.classification.itemName} → ${widget.classification.category}',
+              '${widget.classification.displayItemLabel} → ${widget.classification.displayCategoryLabel}',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),
@@ -204,6 +223,22 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
               ],
               const SizedBox(height: 12),
               TextField(
+                controller: _itemNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Correct item name (optional)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _materialController,
+                decoration: const InputDecoration(
+                  labelText: 'Correct material (optional)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
                 controller: _notesController,
                 decoration: const InputDecoration(
                   labelText: 'Notes (optional)',
@@ -217,9 +252,8 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
 
             // Submit button
             FilledButton.icon(
-              onPressed: _userConfirmed != null && !_isSubmitting
-                  ? _submit
-                  : null,
+              onPressed:
+                  _userConfirmed != null && !_isSubmitting ? _submit : null,
               icon: _isSubmitting
                   ? const SizedBox(
                       width: 18,

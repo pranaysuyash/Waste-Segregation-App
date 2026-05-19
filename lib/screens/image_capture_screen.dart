@@ -46,6 +46,8 @@ class ImageCaptureScreen extends ConsumerStatefulWidget {
 
 class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     with RestorationMixin, TickerProviderStateMixin {
+  static const bool _isDebugGridSegmentationEnabled =
+      bool.fromEnvironment('ENABLE_DEBUG_GRID_SEGMENTATION');
   bool _isAnalyzing = false;
   bool _isCancelled = false;
 
@@ -77,7 +79,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
     registerForRestoration(_imagePath, 'image_path');
     registerForRestoration(_useSegmentationRestorable, 'use_segmentation');
-    _useSegmentation = _useSegmentationRestorable.value;
+    _useSegmentation =
+        _isDebugGridSegmentationEnabled && _useSegmentationRestorable.value;
     if (_imageFile == null && _imagePath.value != null && !kIsWeb) {
       final file = File(_imagePath.value!);
       if (file.existsSync()) {
@@ -218,6 +221,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   }
 
   Future<void> _runSegmentation() async {
+    if (!_isDebugGridSegmentationEnabled) {
+      throw Exception(
+          'Debug grid segmentation is disabled. Enable ENABLE_DEBUG_GRID_SEGMENTATION for demo mode.');
+    }
     final aiService = ref.read(aiServiceProvider);
     List<Map<String, dynamic>> segments;
     if (kIsWeb) {
@@ -926,12 +933,13 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 _buildScanInsights(),
 
                 // Segmentation toggle with premium feature indication
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.paddingRegular),
-                  child: PremiumSegmentationToggle(
-                    value: _useSegmentation,
-                    onChanged: (bool value) async {
+                if (_isDebugGridSegmentationEnabled)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.paddingRegular),
+                    child: PremiumSegmentationToggle(
+                      value: _useSegmentation,
+                      onChanged: (bool value) async {
                       setState(() {
                         _useSegmentation = value;
                       });
@@ -972,12 +980,14 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                           _selectedSegments.clear();
                         });
                       }
-                    },
+                      },
+                    ),
                   ),
-                ),
 
                 // Segmentation results info
-                if (_useSegmentation && _segments.isNotEmpty)
+                if (_isDebugGridSegmentationEnabled &&
+                    _useSegmentation &&
+                    _segments.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: Row(
@@ -990,7 +1000,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '${_segments.length} objects detected. Tap to select for analysis.',
+                            '${_segments.length} debug grid regions generated. Tap to select for analysis.',
                             style: const TextStyle(
                               fontSize: 14,
                               color: AppTheme.secondaryColor,
@@ -1000,7 +1010,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                       ],
                     ),
                   ),
-                if (_useSegmentation && _segments.isNotEmpty)
+                if (_isDebugGridSegmentationEnabled &&
+                    _useSegmentation &&
+                    _segments.isNotEmpty)
                   _buildDetectedObjectsCard(),
 
                 // Speed selector

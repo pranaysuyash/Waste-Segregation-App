@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/result_pipeline.dart';
 import '../services/haptic_settings_service.dart';
-import '../services/storage_service.dart';
 import '../services/analytics_service.dart';
+import '../providers/app_providers.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/disposal_facilities_screen.dart';
@@ -63,8 +65,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   void initState() {
     super.initState();
 
-    // Initialize analytics (will be properly initialized with context)
-    _analyticsService = AnalyticsService(StorageService());
+    // Use the canonical analytics provider so tests can override it and the
+    // result screen does not construct a Firebase-backed service directly.
+    _analyticsService = ref.read(analyticsServiceProvider);
 
     // Initialize animations
     _fadeController = AnimationController(
@@ -81,16 +84,17 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     _fadeController.forward();
     _slideController.forward();
 
-    // Process classification through pipeline
-    _processClassification();
+    // Defer provider mutations until after the first frame so Riverpod does
+    // not reject state changes during widget construction.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _processClassification();
+      _trackScreenView();
 
-    // Track screen view
-    _trackScreenView();
-
-    // Check retroactive gamification for existing classifications
-    if (!widget.showActions && !widget.autoAnalyze) {
-      _checkRetroactiveGamification();
-    }
+      // Check retroactive gamification for existing classifications
+      if (!widget.showActions && !widget.autoAnalyze) {
+        _checkRetroactiveGamification();
+      }
+    });
   }
 
   @override
@@ -194,16 +198,15 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               // Content
               SliverToBoxAdapter(
                 child: SlideTransition(
-                  position:
-                      Tween<Offset>(
-                        begin: const Offset(0, 0.1),
-                        end: Offset.zero,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: _slideController,
-                          curve: Curves.easeOutCubic,
-                        ),
-                      ),
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.1),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(
+                      parent: _slideController,
+                      curve: Curves.easeOutCubic,
+                    ),
+                  ),
                   child: Column(
                     children: [
                       // Hero Header with KPIs
@@ -331,6 +334,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
                             // Secondary Actions
                             if (widget.showActions) ...[
+                              _buildFeedbackPrompt(context),
+                              const SizedBox(height: 12),
                               ActionRow(
                                 onShare: _handleShare,
                                 onCorrect: _handleCorrection,
@@ -484,8 +489,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               _analyticsService.trackUserAction(
                 'low_confidence_reanalyze',
                 parameters: {
-                  'original_confidence': widget.classification.confidence
-                      .toString(),
+                  'original_confidence':
+                      widget.classification.confidence.toString(),
                   'category': widget.classification.category,
                 },
               );
@@ -711,8 +716,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                   Text(
                     'How to Dispose',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   // Content
@@ -756,14 +761,14 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     );
   }
 
-  void _handleSave() async {
+  Future<void> _handleSave() async {
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
       await pipeline.saveClassificationOnly(widget.classification);
       _triggerHapticFeedback();
 
       // Track user action (Legacy parity)
-      _analyticsService.trackUserAction(
+      await _analyticsService.trackUserAction(
         'classification_save',
         parameters: {
           'category': widget.classification.category,
@@ -791,13 +796,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     }
   }
 
-  void _handleShare() async {
+  Future<void> _handleShare() async {
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
       await pipeline.shareClassification(widget.classification);
 
       // Track user action (Legacy parity)
-      _analyticsService.trackUserAction(
+      await _analyticsService.trackUserAction(
         'classification_share',
         parameters: {
           'category': widget.classification.category,
@@ -873,9 +878,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final impact = widget.classification.getEnvironmentalImpactScore().clamp(
-      1.0,
-      10.0,
-    );
+          1.0,
+          10.0,
+        );
     final eco = (10.0 - impact).clamp(0.0, 10.0);
     final progress = eco / 10.0;
     final color = _impactProgressColor(eco);
@@ -973,7 +978,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         children: [
           Icon(icon, size: 16, color: cs.onSurface.withValues(alpha: 0.6)),
           const SizedBox(width: 8),
-          Text('$label: ', style: TextStyle(fontWeight: FontWeight.w600)),
+          Text(
+            '$label: ',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
           Expanded(child: Text(value)),
         ],
       ),
@@ -1058,17 +1066,21 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   String _nextLifeText(WasteClassification c) {
     if (c.isCompostable == true) return 'Compost / Fertilizer';
     if (c.isRecyclable == true) {
-      final mat = c.materialType?.toLowerCase();
+      final mat = c.normalizedMaterials.isNotEmpty
+          ? c.normalizedMaterials.first.toLowerCase()
+          : null;
       if (mat == 'paper') return 'Recycled paper products';
       if (mat == 'plastic') return 'Recycled plastic products';
       if (mat == 'glass') return 'Recycled glass products';
       if (mat == 'metal') return 'Recycled metal products';
       return 'Recycling facility';
     }
-    if (c.category.toLowerCase() == 'hazardous waste')
+    if (c.category.toLowerCase() == 'hazardous waste') {
       return 'Safe disposal facility';
-    if (c.category.toLowerCase() == 'medical waste')
+    }
+    if (c.category.toLowerCase() == 'medical waste') {
       return 'Incineration / Treatment';
+    }
     return 'Proper disposal route';
   }
 
@@ -1088,7 +1100,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     ];
     if (c.recyclingCode != null) {
       items.add(
-        _SnapshotItem('Code', c.recyclingCode.toString(), Icons.qr_code_2),
+        _SnapshotItem(
+          'Recycling Code',
+          c.displayRecyclingCodeLabel,
+          Icons.qr_code_2,
+        ),
       );
     }
 
@@ -1174,9 +1190,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final c = widget.classification;
-    final materials =
-        c.materials ??
-        (c.materialType != null ? [c.materialType!] : <String>[]);
+    final materials = c.normalizedMaterials;
     final alternatives = c.alternativeOptions ?? const <String>[];
     final relatedItems = c.relatedItems ?? const <String>[];
 
@@ -1204,6 +1218,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
             if (materials.isNotEmpty) ...[
               const SizedBox(height: 12),
               _buildChipRow('Materials', materials),
+            ],
+            if (materials.isEmpty) ...[
+              const SizedBox(height: 12),
+              _buildEmptyFieldNote('Materials unavailable'),
             ],
             if (alternatives.isNotEmpty) ...[
               const SizedBox(height: 12),
@@ -1240,9 +1258,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               child: Text(
                 item,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: cs.primary,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: cs.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             );
           }).toList(),
@@ -1251,10 +1269,28 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     );
   }
 
+  Widget _buildEmptyFieldNote(String label) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontStyle: FontStyle.italic,
+            ),
+      ),
+    );
+  }
+
   bool _hasMaterialsPreview(WasteClassification c) {
-    final materials =
-        c.materials ??
-        (c.materialType != null ? [c.materialType!] : <String>[]);
+    final materials = c.normalizedMaterials;
     return materials.isNotEmpty ||
         (c.alternativeOptions?.isNotEmpty == true) ||
         (c.relatedItems?.isNotEmpty == true);
@@ -1380,9 +1416,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
             ],
             if (regs.isNotEmpty) ...[
               const SizedBox(height: 12),
-              ...regs.entries
-                  .take(3)
-                  .map(
+              ...regs.entries.take(3).map(
                     (e) => Padding(
                       padding: const EdgeInsets.only(bottom: 6),
                       child: _buildRuleRow(e.key, e.value),
@@ -1681,6 +1715,62 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     if (c.isRecyclable == true) return 'Recyclable';
     if (c.isRecyclable == false) return 'Not recyclable';
     return 'Unknown';
+  }
+
+  Widget _buildFeedbackPrompt(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final confidence = widget.classification.confidence ?? 0.0;
+    final lowConfidence = confidence < 0.7;
+
+    return Card(
+      elevation: 0,
+      color: lowConfidence
+          ? cs.secondaryContainer.withValues(alpha: 0.45)
+          : cs.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              lowConfidence ? Icons.help_outline : Icons.fact_check_outlined,
+              color: lowConfidence ? cs.secondary : cs.primary,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Was this correct?',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    lowConfidence
+                        ? 'Help us improve uncertain results with a quick correction.'
+                        : 'You can confirm it or tell us what should change.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: _handleCorrection,
+              child: const Text('Correct it'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // Retroactive gamification check — called from initState

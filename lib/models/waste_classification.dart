@@ -122,6 +122,7 @@ class WasteClassification extends HiveObject {
       userId: userId,
       region: 'Unknown',
       visualFeatures: [],
+      colorCode: '#9E9E9E',
       alternatives: [
         AlternativeClassification(
           category: 'Wet Waste',
@@ -565,6 +566,35 @@ class WasteClassification extends HiveObject {
   /// Gets materials as a list, converting from legacy materialType if needed
   List<String> get normalizedMaterials =>
       materials ?? (materialType != null ? [materialType!] : []);
+
+  /// Canonical material label for display surfaces.
+  String get displayMaterialLabel {
+    final values = normalizedMaterials
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+    if (values.isNotEmpty) {
+      return values.join(', ');
+    }
+    return 'Unknown material';
+  }
+
+  /// Canonical category label for display surfaces.
+  String get displayCategoryLabel {
+    final value = category.trim();
+    return value.isNotEmpty ? value : 'Unknown category';
+  }
+
+  /// Canonical item label for display surfaces.
+  String get displayItemLabel {
+    final value = itemName.trim();
+    return value.isNotEmpty ? value : 'Unknown item';
+  }
+
+  /// Canonical recycling code label for display surfaces.
+  String get displayRecyclingCodeLabel {
+    return recyclingCode != null ? 'Code ${recyclingCode!}' : 'Unknown code';
+  }
 
   /// Calculate dynamic points based on classification richness and environmental impact
   int calculatePoints() {

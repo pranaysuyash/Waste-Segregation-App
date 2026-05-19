@@ -593,53 +593,60 @@ class WasteSegregationApp extends StatelessWidget {
                         openHiveBoxes = HiveBoxManager.instance.openBoxCount;
                       } catch (_) {}
 
-                      final overlay = Stack(
-                        children: [
-                          mediaWrapped,
-                          Positioned(
-                            top: 40,
-                            right: 12,
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.black87,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Init Status',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Firebase: ${firebaseOk ? '✓' : '✗'}',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  Text(
-                                    'Hive boxes: $openHiveBoxes',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  Text(
-                                    'Consent: ${hasConsent ? '✓' : '✗'}',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  Text(
-                                    'API Keys: ${hasApiKeys ? '✓' : '✗'}',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      );
+                      const showInitOverlay =
+                          bool.fromEnvironment('SHOW_INIT_STATUS_OVERLAY');
 
-                      return overlay;
+                      if (showInitOverlay) {
+                        return Stack(
+                          children: [
+                            mediaWrapped,
+                            Positioned(
+                              top: 40,
+                              right: 12,
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.black87,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Init Status',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Firebase: ${firebaseOk ? '✓' : '✗'}',
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                    Text(
+                                      'Hive boxes: $openHiveBoxes',
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                    Text(
+                                      'Consent: ${hasConsent ? '✓' : '✗'}',
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                    Text(
+                                      'API Keys: ${hasApiKeys ? '✓' : '✗'}',
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        );
+                      }
                     }
 
                     return mediaWrapped;

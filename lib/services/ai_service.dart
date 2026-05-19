@@ -14,6 +14,8 @@ import 'package:waste_segregation_app/services/enhanced_image_service.dart';
 import 'package:waste_segregation_app/services/dynamic_pricing_service.dart';
 import 'package:waste_segregation_app/services/cost_guardrail_service.dart';
 import 'package:waste_segregation_app/services/enhanced_api_error_handler.dart';
+import 'package:waste_segregation_app/services/ai_failure.dart';
+import 'package:waste_segregation_app/services/classification_cache_key.dart';
 import 'package:uuid/uuid.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/services/local_guidelines_plugin.dart';
@@ -40,6 +42,12 @@ import 'package:waste_segregation_app/utils/production_safety_config.dart';
 ///   concatenation (`RegExp(r'"([^"]+)"|' + r"'([^']+)'")`) to correctly
 ///   handle both double and single-quoted values.
 class AiService {
+  static const String promptVersion = 'waste-classification-v2';
+  static const String schemaVersion = 'waste-classification-schema-v2';
+  static const String localGuidelinesVersion = 'bbmp-2024';
+  static const bool enableDebugGridSegmentation =
+      bool.fromEnvironment('ENABLE_DEBUG_GRID_SEGMENTATION');
+
   /// Constructs an [AiService].
   ///
   /// Initializes API configurations and the [ClassificationCacheService].
@@ -56,6 +64,10 @@ class AiService {
     DynamicPricingService? pricingService,
     CostGuardrailService? guardrailService,
     EnhancedApiErrorHandler? errorHandler,
+    EnhancedImageService? imageService,
+    Dio? dioClient,
+    Future<String> Function(Uint8List bytes, String imageName)?
+        saveWebImageOverride,
     this.cachingEnabled = true,
     this.defaultRegion = 'Bangalore, IN',
     this.defaultLanguage = 'en',
@@ -66,7 +78,10 @@ class AiService {
         cacheService = cacheService ?? ClassificationCacheService(),
         pricingService = pricingService ?? DynamicPricingService(),
         guardrailService = guardrailService ?? CostGuardrailService(),
-        errorHandler = errorHandler ?? EnhancedApiErrorHandler();
+        errorHandler = errorHandler ?? EnhancedApiErrorHandler(),
+        _imageService = imageService ?? EnhancedImageService(),
+        _dio = dioClient ?? Dio(),
+        _saveWebImageOverride = saveWebImageOverride;
   final String openAiBaseUrl;
   final String openAiApiKey;
   final String geminiBaseUrl;
@@ -77,11 +92,21 @@ class AiService {
   final EnhancedApiErrorHandler errorHandler;
 
   // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
-  final EnhancedImageService _imageService = EnhancedImageService();
+  final EnhancedImageService _imageService;
 
   // Dio client for HTTP requests with cancellation support
-  final Dio _dio = Dio();
+  final Dio _dio;
+  final Future<String> Function(Uint8List bytes, String imageName)?
+      _saveWebImageOverride;
   CancelToken? _cancelToken;
+  int _providerCallCount = 0;
+  int _webSaveCallCount = 0;
+
+  @visibleForTesting
+  int get providerCallCount => _providerCallCount;
+
+  @visibleForTesting
+  int get webSaveCallCount => _webSaveCallCount;
 
   // Simple segmentation parameters - can be adjusted based on needs
   static const int segmentGridSize = 3; // 3x3 grid for basic segmentation
@@ -135,10 +160,10 @@ class AiService {
         !ProductionSafetyConfig.hasPlaceholderKey(geminiApiKey);
 
     WasteAppLogger.info(
-        '[AI CONFIG] Provider: $provider | '
-        'OpenAI configured: $openAiConfigured | '
-        'Gemini configured: $geminiConfigured | '
-        'Release guard: ${kReleaseMode ? "ACTIVE" : "disabled (debug)"}',
+      '[AI CONFIG] Provider: $provider | '
+      'OpenAI configured: $openAiConfigured | '
+      'Gemini configured: $geminiConfigured | '
+      'Release guard: ${kReleaseMode ? "ACTIVE" : "disabled (debug)"}',
     );
   }
 
@@ -211,19 +236,154 @@ class AiService {
   bool get isCancelled => _cancelToken?.isCancelled ?? false;
 
   /// Handles DioException and converts cancellation to a more user-friendly exception
-  void _handleDioException(DioException e) {
+  void _handleDioException(DioException e, {String? provider, String? model}) {
     if (e.type == DioExceptionType.cancel) {
-      throw Exception('Analysis cancelled by user');
+      throw AiFailure(
+        AiFailureKind.cancelled,
+        'Analysis cancelled by user',
+        provider: provider,
+        model: model,
+        cause: e,
+      );
+    } else if (e.type == DioExceptionType.badResponse) {
+      final statusCode = e.response?.statusCode ?? 0;
+      throw AiFailure(
+        _failureKindFromStatus(statusCode),
+        'Provider HTTP error $statusCode: ${e.response?.data}',
+        provider: provider,
+        model: model,
+        cause: e,
+      );
     } else if (e.type == DioExceptionType.connectionTimeout) {
-      throw Exception(
-          'Connection timeout - please check your internet connection');
+      throw AiFailure(
+        AiFailureKind.network,
+        'Connection timeout - please check your internet connection',
+        provider: provider,
+        model: model,
+        cause: e,
+      );
     } else if (e.type == DioExceptionType.receiveTimeout) {
-      throw Exception('Request timeout - the server took too long to respond');
+      throw AiFailure(
+        AiFailureKind.network,
+        'Request timeout - the server took too long to respond',
+        provider: provider,
+        model: model,
+        cause: e,
+      );
     } else if (e.type == DioExceptionType.sendTimeout) {
-      throw Exception('Upload timeout - failed to send image data');
+      throw AiFailure(
+        AiFailureKind.network,
+        'Upload timeout - failed to send image data',
+        provider: provider,
+        model: model,
+        cause: e,
+      );
     } else {
-      throw Exception('Network error: ${e.message}');
+      throw AiFailure(
+        AiFailureKind.network,
+        'Network error: ${e.message}',
+        provider: provider,
+        model: model,
+        cause: e,
+      );
     }
+  }
+
+  AiFailureKind _failureKindFromStatus(int statusCode) {
+    if (statusCode == 400) return AiFailureKind.invalidImage;
+    if (statusCode == 401 || statusCode == 403) return AiFailureKind.auth;
+    if (statusCode == 429) return AiFailureKind.rateLimited;
+    if (statusCode == 503 || statusCode == 502) {
+      return AiFailureKind.providerUnavailable;
+    }
+    return AiFailureKind.unknown;
+  }
+
+  bool _shouldFallbackToGemini(
+      AiFailureKind kind, int retryCount, int maxRetries) {
+    if (retryCount >= maxRetries) return true;
+    return kind == AiFailureKind.invalidImageTooLarge ||
+        kind == AiFailureKind.providerUnavailable;
+  }
+
+  bool _isTerminalFailureKind(AiFailureKind kind) {
+    return kind == AiFailureKind.cancelled ||
+        kind == AiFailureKind.unsafeClientAiBlocked ||
+        kind == AiFailureKind.auth ||
+        kind == AiFailureKind.budgetExceeded;
+  }
+
+  String _buildContextSignature({
+    required String region,
+    required String language,
+    required String provider,
+    required String model,
+  }) {
+    return ClassificationCacheKey.build(
+      imageHash: 'ctx',
+      region: region,
+      language: language,
+      promptVersion: promptVersion,
+      schemaVersion: schemaVersion,
+      localGuidelinesVersion: localGuidelinesVersion,
+      provider: provider,
+      model: model,
+    );
+  }
+
+  String? _buildContextAwareContentHash(
+    String? rawContentHash, {
+    required String region,
+    required String language,
+    required String provider,
+    required String model,
+  }) {
+    if (rawContentHash == null) return null;
+    return '$rawContentHash::${_buildContextSignature(region: region, language: language, provider: provider, model: model)}';
+  }
+
+  @visibleForTesting
+  String buildContextualCacheKey({
+    required String imageHash,
+    required String region,
+    required String language,
+    required String provider,
+    required String model,
+  }) {
+    return ClassificationCacheKey.build(
+      imageHash: imageHash,
+      region: region,
+      language: language,
+      promptVersion: promptVersion,
+      schemaVersion: schemaVersion,
+      localGuidelinesVersion: localGuidelinesVersion,
+      provider: provider,
+      model: model,
+    );
+  }
+
+  @visibleForTesting
+  WasteClassification applyCorrectionProvenance({
+    required WasteClassification corrected,
+    required WasteClassification original,
+    required String provider,
+    required String model,
+    required String userCorrection,
+  }) {
+    final providerModelLabel = '$provider-$model';
+    final mergedReanalysisModels = <String>[
+      ...?original.reanalysisModelsTried,
+      providerModelLabel,
+    ];
+    return corrected.copyWith(
+      imageUrl: original.imageUrl,
+      imageHash: original.imageHash,
+      source: 'ai_reanalysis',
+      modelSource: providerModelLabel,
+      reanalysisModelsTried: mergedReanalysisModels,
+      userCorrection: userCorrection,
+      id: original.id,
+    );
   }
 
   /// System prompt for waste classification expert.
@@ -475,6 +635,13 @@ Output:
       }
     }
 
+    if (compressedBytes.length > maxSizeBytes) {
+      throw AiFailure(
+        AiFailureKind.invalidImageTooLarge,
+        'Image is still too large after compression.',
+      );
+    }
+
     return compressedBytes;
   }
 
@@ -611,9 +778,16 @@ Output:
         WasteAppLogger.info('Generated perceptual hash: $imageHash');
         WasteAppLogger.info('Generated content hash: $contentHash');
 
+        final contextAwareContentHash = _buildContextAwareContentHash(
+          contentHash,
+          region: analysisRegion,
+          language: analysisLang,
+          provider: 'openai',
+          model: ApiConfig.primaryModel,
+        );
         final cachedResult = await cacheService.getCachedClassification(
           imageHash,
-          contentHash: contentHash,
+          contentHash: contextAwareContentHash,
         );
         if (cachedResult != null) {
           WasteAppLogger.cacheEvent('cache_operation', 'classification',
@@ -650,10 +824,17 @@ Output:
         WasteAppLogger.severe('OpenAI analysis failed',
             error: openAiError, stackTrace: s);
 
-        // If it's an image size issue or OpenAI fails, try Gemini
-        if (openAiError.toString().contains('too large') ||
-            openAiError.toString().contains('compression failed') ||
-            retryCount >= maxRetries) {
+        final failureKind =
+            openAiError is AiFailure ? openAiError.kind : AiFailureKind.unknown;
+
+        if (failureKind == AiFailureKind.cancelled ||
+            failureKind == AiFailureKind.unsafeClientAiBlocked ||
+            failureKind == AiFailureKind.auth ||
+            failureKind == AiFailureKind.budgetExceeded) {
+          rethrow;
+        }
+
+        if (_shouldFallbackToGemini(failureKind, retryCount, maxRetries)) {
           WasteAppLogger.info('Falling back to Gemini analysis.');
           final result = await _analyzeWithGemini(
             await permanentFile.readAsBytes(), // Read bytes here
@@ -687,6 +868,8 @@ Output:
         rethrow;
       }
     } catch (e, s) {
+      if (e is ProductionSafetyException) rethrow;
+      if (e is AiFailure && _isTerminalFailureKind(e.kind)) rethrow;
       WasteAppLogger.severe('Top-level analysis failed',
           error: e, stackTrace: s);
       // Ensure fallback also uses the consistent ID
@@ -726,23 +909,22 @@ Output:
     // Early exit for empty image data to prevent processing errors and unnecessary API calls
     if (imageBytes.isEmpty) {
       WasteAppLogger.warning('analyzeWebImage called with empty image data.');
-      // Ensure WasteClassification.fallback sets clarificationNeeded = true and handles an optional reason.
-      // If WasteClassification.fallback doesn't support a 'reason' parameter, it might need adjustment,
-      // or this call simplified. For now, assuming it can take it or ignore it.
-      final savedImagePath = await _imageService
-          .saveImagePermanently(imageBytes, fileName: imageName);
       return WasteClassification.fallback(
-        savedImagePath,
+        imageName.isEmpty ? 'invalid_empty_web_image' : imageName,
         id: currentClassificationId,
-        // reason: 'Input image data was empty.', // Add reason if supported by fallback
       );
     }
 
     // ✅ OPTIMIZATION: Use singleton instance with error handling
     final String savedImagePath;
     try {
-      savedImagePath = await _imageService.saveImagePermanently(imageBytes,
-          fileName: imageName);
+      _webSaveCallCount++;
+      if (_saveWebImageOverride != null) {
+        savedImagePath = await _saveWebImageOverride!(imageBytes, imageName);
+      } else {
+        savedImagePath = await _imageService.saveImagePermanently(imageBytes,
+            fileName: imageName);
+      }
     } catch (e, s) {
       WasteAppLogger.severe('Error saving web image permanently',
           error: e, stackTrace: s);
@@ -771,9 +953,16 @@ Output:
         WasteAppLogger.info(
             'Generated content hash for web image: $contentHash');
 
+        final contextAwareContentHash = _buildContextAwareContentHash(
+          contentHash,
+          region: analysisRegion,
+          language: analysisLang,
+          provider: 'openai',
+          model: ApiConfig.primaryModel,
+        );
         final cachedResult = await cacheService.getCachedClassification(
           imageHash,
-          contentHash: contentHash,
+          contentHash: contextAwareContentHash,
         );
         if (cachedResult != null) {
           WasteAppLogger.cacheEvent('cache_operation', 'classification',
@@ -809,10 +998,17 @@ Output:
         WasteAppLogger.severe('OpenAI analysis failed for web image',
             error: openAiError, stackTrace: s);
 
-        // If it's an image size issue or OpenAI fails, try Gemini
-        if (openAiError.toString().contains('too large') ||
-            openAiError.toString().contains('compression failed') ||
-            retryCount >= maxRetries) {
+        final failureKind =
+            openAiError is AiFailure ? openAiError.kind : AiFailureKind.unknown;
+
+        if (failureKind == AiFailureKind.cancelled ||
+            failureKind == AiFailureKind.unsafeClientAiBlocked ||
+            failureKind == AiFailureKind.auth ||
+            failureKind == AiFailureKind.budgetExceeded) {
+          rethrow;
+        }
+
+        if (_shouldFallbackToGemini(failureKind, retryCount, maxRetries)) {
           WasteAppLogger.info('Falling back to Gemini analysis for web image.');
           final result = await _analyzeWithGemini(
             imageBytes,
@@ -844,8 +1040,11 @@ Output:
 
         rethrow;
       }
-    } catch (e) {
-      WasteAppLogger.severe('Top-level web analysis failed', error: e);
+    } catch (e, s) {
+      if (e is ProductionSafetyException) rethrow;
+      if (e is AiFailure && _isTerminalFailureKind(e.kind)) rethrow;
+      WasteAppLogger.severe('Top-level web analysis failed',
+          error: e, stackTrace: s);
       // Ensure fallback also uses the consistent ID
       return WasteClassification.fallback(
         imageName,
@@ -934,7 +1133,7 @@ Output:
         currentClassificationId,
       );
       return classification;
-    } on Exception {
+    } on Exception catch (e, s) {
       WasteAppLogger.aiEvent('AI operation',
           context: {'service': 'ai', 'file': 'ai_service'});
 
@@ -956,7 +1155,12 @@ Output:
       }
 
       // If all segment analysis retries fail, fall back to non-segmented analysis
-      WasteAppLogger.severe('Error occurred');
+      WasteAppLogger.severe(
+        'Segment analysis failed; falling back to full-image analysis',
+        error: e,
+        stackTrace: s,
+        context: {'classification_id': currentClassificationId},
+      );
       return analyzeWebImage(
         imageBytes,
         imageName,
@@ -982,8 +1186,11 @@ Output:
     String? contentHash,
     String? thumbnailPath,
   }) async {
+    _providerCallCount++;
     ProductionSafetyConfig.guardClientAiCall('OpenAI');
     final operationId = 'openai_analysis_$classificationId';
+    final providerName = 'openai';
+    final modelName = ApiConfig.primaryModel;
     final modelKey =
         ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
     final startTime = DateTime.now();
@@ -992,8 +1199,12 @@ Output:
     final canAffordInstant =
         guardrailService.canUseInstantAnalysis(model: modelKey);
     if (!canAffordInstant) {
-      throw Exception(
-          'Budget exceeded - instant analysis not available. Please use batch mode.');
+      throw AiFailure(
+        AiFailureKind.budgetExceeded,
+        'Budget exceeded - instant analysis not available. Please use batch mode.',
+        provider: providerName,
+        model: modelName,
+      );
     }
 
     // Compress image if needed
@@ -1034,19 +1245,19 @@ Output:
     late final Response response;
     try {
       response = await _dio.post(
-        '${ApiConfig.openAiBaseUrl}/chat/completions',
+        '$openAiBaseUrl/chat/completions',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ${ApiConfig.openAiApiKey}',
+            'Authorization': 'Bearer $openAiApiKey',
           },
         ),
         data: requestBody,
         cancelToken: _cancelToken,
       );
     } on DioException catch (e) {
-      _handleDioException(e);
-      return WasteClassification.fallback(imageName, id: classificationId);
+      _handleDioException(e, provider: providerName, model: modelName);
+      rethrow;
     }
 
     // Enhanced error handling with detailed logging
@@ -1094,6 +1305,8 @@ Output:
         language,
         null,
         classificationId,
+        provider: providerName,
+        model: modelName,
         thumbnailPath: thumbnailPath,
       );
 
@@ -1105,10 +1318,17 @@ Output:
 
       // Cache the result if we have a valid hash
       if (cachingEnabled && imageHash != null) {
+        final contextAwareContentHash = _buildContextAwareContentHash(
+          contentHash,
+          region: region,
+          language: language,
+          provider: providerName,
+          model: modelName,
+        );
         await cacheService.cacheClassification(
           imageHash,
           classification,
-          contentHash: contentHash,
+          contentHash: contextAwareContentHash,
           imageSize: imageBytes.length,
         );
       }
@@ -1137,20 +1357,12 @@ Output:
       }
 
       // Handle specific error codes
-      if (response.statusCode == 400) {
-        throw Exception(
-            'OpenAI Bad Request - Check image format and prompt: ${response.data}');
-      } else if (response.statusCode == 401) {
-        throw Exception(
-            'OpenAI Unauthorized - Check API key: ${response.data}');
-      } else if (response.statusCode == 429) {
-        throw Exception('OpenAI Rate limit exceeded: ${response.data}');
-      } else if (response.statusCode == 503) {
-        throw Exception('OpenAI Service unavailable: ${response.data}');
-      } else {
-        throw Exception(
-            'OpenAI API Error ${response.statusCode}: ${response.data}');
-      }
+      throw AiFailure(
+        _failureKindFromStatus(response.statusCode ?? 0),
+        'OpenAI API Error ${response.statusCode}: ${response.data}',
+        provider: providerName,
+        model: modelName,
+      );
     }
   }
 
@@ -1230,7 +1442,10 @@ Output:
     String? contentHash,
     String? thumbnailPath,
   }) async {
+    _providerCallCount++;
     ProductionSafetyConfig.guardClientAiCall('Gemini');
+    const providerName = 'gemini';
+    final modelName = ApiConfig.tertiaryModel;
     final startTime = DateTime.now();
     WasteAppLogger.info('Falling back to Gemini for analysis.');
 
@@ -1281,8 +1496,8 @@ Output:
         cancelToken: _cancelToken,
       );
     } on DioException catch (e) {
-      _handleDioException(e);
-      return WasteClassification.fallback(imageName, id: classificationId);
+      _handleDioException(e, provider: providerName, model: modelName);
+      rethrow;
     }
 
     if (response.statusCode == 200) {
@@ -1349,6 +1564,8 @@ Output:
           language,
           null,
           classificationId,
+          provider: providerName,
+          model: modelName,
           thumbnailPath: thumbnailPath,
         );
 
@@ -1360,22 +1577,37 @@ Output:
 
         // Cache the result if we have a valid hash
         if (cachingEnabled && imageHash != null) {
+          final contextAwareContentHash = _buildContextAwareContentHash(
+            contentHash,
+            region: region,
+            language: language,
+            provider: providerName,
+            model: modelName,
+          );
           await cacheService.cacheClassification(
             imageHash,
             classification,
-            contentHash: contentHash,
+            contentHash: contextAwareContentHash,
             imageSize: imageBytes.length,
           );
         }
 
         return classification;
       } else {
-        throw Exception('Invalid Gemini response format');
+        throw AiFailure(
+          AiFailureKind.malformedProviderResponse,
+          'Invalid Gemini response format',
+          provider: providerName,
+          model: modelName,
+        );
       }
     } else {
-      WasteAppLogger.severe('Error occurred');
-      throw Exception(
-          'Gemini API Error ${response.statusCode}: ${response.data}');
+      throw AiFailure(
+        _failureKindFromStatus(response.statusCode ?? 0),
+        'Gemini API Error ${response.statusCode}: ${response.data}',
+        provider: providerName,
+        model: modelName,
+      );
     }
   }
 
@@ -1392,17 +1624,16 @@ Output:
     String? model,
     List<String>? reanalysisModelsTried,
   }) async {
-    ProductionSafetyConfig.guardClientAiCall('OpenAI (correction)');
+    ProductionSafetyConfig.guardClientAiCall('AI correction');
 
     WasteAppLogger.info('Operation completed',
         context: {'service': 'ai', 'file': 'ai_service'});
 
     // Determine which model to use for re-analysis
+    final useGeminiProvider =
+        originalClassification.source == 'ai_analysis_gemini';
     final modelToUse = model ??
-        (originalClassification.source == 'ai_analysis_gemini'
-            ? ApiConfig
-                .tertiaryModel // Use Gemini for re-analysis if it was the original source
-            : ApiConfig.primaryModel); // Default to OpenAI
+        (useGeminiProvider ? ApiConfig.tertiaryModel : ApiConfig.primaryModel);
 
     try {
       final imageUrl = originalClassification.imageUrl;
@@ -1442,45 +1673,73 @@ Output:
       final mimeType =
           imageBytes != null ? _detectImageMimeType(imageBytes) : '';
 
-      final requestBody = <String, dynamic>{
-        'model': modelToUse,
-        'messages': [
-          {'role': 'system', 'content': _systemPrompt},
-          {
-            'role': 'user',
-            'content': [
-              {
-                'type': 'text',
-                'text': _getCorrectionPrompt(
-                    originalClassification.toJson(), userCorrection, userReason)
-              },
-              if (imageBytes != null)
-                {
-                  'type': 'image_url',
-                  'image_url': {'url': 'data:$mimeType;base64,$base64Image'}
-                }
-            ]
-          }
-        ],
-        'max_tokens': 1500,
-        'temperature': 0.1
-      };
+      final correctionPrompt = _getCorrectionPrompt(
+          originalClassification.toJson(), userCorrection, userReason);
 
       late final Response response;
       try {
-        response = await _dio.post(
-          '${ApiConfig.openAiBaseUrl}/chat/completions',
-          options: Options(
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ${ApiConfig.openAiApiKey}',
-            },
-          ),
-          data: requestBody,
-          cancelToken: _cancelToken,
-        );
+        if (useGeminiProvider) {
+          final geminiBody = <String, dynamic>{
+            'contents': [
+              {
+                'parts': [
+                  {'text': '$_systemPrompt\n\n$correctionPrompt'},
+                  {
+                    'inline_data': {'mime_type': mimeType, 'data': base64Image}
+                  }
+                ]
+              }
+            ],
+            'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 1500}
+          };
+          response = await _dio.post(
+            '$geminiBaseUrl/models/$modelToUse:generateContent',
+            options: Options(
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': geminiApiKey,
+              },
+            ),
+            data: geminiBody,
+            cancelToken: _cancelToken,
+          );
+        } else {
+          final openAiBody = <String, dynamic>{
+            'model': modelToUse,
+            'messages': [
+              {'role': 'system', 'content': _systemPrompt},
+              {
+                'role': 'user',
+                'content': [
+                  {'type': 'text', 'text': correctionPrompt},
+                  {
+                    'type': 'image_url',
+                    'image_url': {'url': 'data:$mimeType;base64,$base64Image'}
+                  }
+                ]
+              }
+            ],
+            'max_tokens': 1500,
+            'temperature': 0.1
+          };
+          response = await _dio.post(
+            '$openAiBaseUrl/chat/completions',
+            options: Options(
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $openAiApiKey',
+              },
+            ),
+            data: openAiBody,
+            cancelToken: _cancelToken,
+          );
+        }
       } on DioException catch (e) {
-        _handleDioException(e);
+        _handleDioException(
+          e,
+          provider: useGeminiProvider ? 'gemini' : 'openai',
+          model: modelToUse,
+        );
         return originalClassification.copyWith(
           userCorrection: userCorrection,
           disagreementReason: 'Analysis cancelled by user',
@@ -1489,7 +1748,32 @@ Output:
       }
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = response.data;
+        Map<String, dynamic> responseData = response.data;
+        if (useGeminiProvider) {
+          final candidates = responseData['candidates'] as List<dynamic>?;
+          final content = candidates != null &&
+                  candidates.isNotEmpty &&
+                  candidates.first['content'] != null &&
+                  candidates.first['content']['parts'] != null &&
+                  (candidates.first['content']['parts'] as List).isNotEmpty
+              ? candidates.first['content']['parts'][0]['text'] as String?
+              : null;
+          if (content == null || content.isEmpty) {
+            throw AiFailure(
+              AiFailureKind.malformedProviderResponse,
+              'Gemini correction response missing content',
+              provider: 'gemini',
+              model: modelToUse,
+            );
+          }
+          responseData = {
+            'choices': [
+              {
+                'message': {'content': content}
+              }
+            ]
+          };
+        }
         final correctedClassification = _processAiResponseData(
           responseData,
           originalClassification.imageUrl ?? 'correction_update',
@@ -1497,21 +1781,34 @@ Output:
           originalClassification.instructionsLang,
           reanalysisModelsTried,
           originalClassification.id,
+          provider: useGeminiProvider ? 'gemini' : 'openai',
+          model: modelToUse,
         );
 
-        // Preserve some original metadata
-        return correctedClassification.copyWith(
-          imageUrl: originalClassification.imageUrl,
-          imageHash: originalClassification.imageHash,
-          source: originalClassification.source,
+        return applyCorrectionProvenance(
+          corrected: correctedClassification,
+          original: originalClassification,
+          provider: useGeminiProvider ? 'gemini' : 'openai',
+          model: modelToUse,
           userCorrection: userCorrection,
         );
       } else {
-        WasteAppLogger.severe('Error occurred');
-        throw Exception('Failed to process correction: ${response.statusCode}');
+        throw AiFailure(
+          _failureKindFromStatus(response.statusCode ?? 0),
+          'Failed to process correction: ${response.statusCode}',
+          provider: useGeminiProvider ? 'gemini' : 'openai',
+          model: modelToUse,
+        );
       }
-    } catch (e) {
-      WasteAppLogger.severe('Error occurred');
+    } catch (e, s) {
+      WasteAppLogger.severe('Correction flow failed',
+          error: e,
+          stackTrace: s,
+          context: {
+            'model': modelToUse,
+            'provider': useGeminiProvider ? 'gemini' : 'openai',
+            'classification_id': originalClassification.id,
+          });
       // Return original classification with user correction noted
       return originalClassification.copyWith(
         userCorrection: userCorrection,
@@ -1534,6 +1831,8 @@ Output:
     String? instructionsLang,
     List<String>? reanalysisModelsTried,
     String? classificationId, {
+    required String provider,
+    required String model,
     String? thumbnailPath,
   }) {
     try {
@@ -1556,23 +1855,42 @@ Output:
               instructionsLang,
               reanalysisModelsTried,
               classificationId,
+              provider: provider,
+              model: model,
               thumbnailPath: thumbnailPath,
             );
           } catch (jsonError) {
-            WasteAppLogger.severe('Error occurred');
+            WasteAppLogger.severe(
+              'Failed to decode provider response JSON',
+              error: jsonError,
+              context: {
+                'provider': provider,
+                'model': model,
+                'classification_id': classificationId,
+              },
+            );
 
             // Try to extract basic info even if full parsing fails
             return _createFallbackClassification(
               content,
               imagePath,
               region,
+              provider: provider,
+              model: model,
               classificationId: classificationId,
             );
           }
         }
       }
-    } catch (e) {
-      WasteAppLogger.severe('Error occurred');
+    } catch (e, s) {
+      WasteAppLogger.severe('AI response processing failed',
+          error: e,
+          stackTrace: s,
+          context: {
+            'provider': provider,
+            'model': model,
+            'classification_id': classificationId,
+          });
       // Ensure fallback also uses the consistent ID
       return WasteClassification.fallback(imagePath, id: classificationId);
     }
@@ -1711,6 +2029,8 @@ Output:
     String? instructionsLang,
     List<String>? reanalysisModelsTried,
     String? classificationId, {
+    required String provider,
+    required String model,
     String? thumbnailPath,
   }) {
     try {
@@ -1860,15 +2180,15 @@ Output:
         translatedInstructions:
             _parseStringMapSafely(jsonContent['translatedInstructions']),
         modelVersion: _safeStringParse(jsonContent['modelVersion']),
-        modelSource: _safeStringParse(jsonContent['modelSource']) ??
-            'openai-${ApiConfig.primaryModel}',
+        modelSource:
+            _safeStringParse(jsonContent['modelSource']) ?? '$provider-$model',
         processingTimeMs: _parseInt(jsonContent['processingTimeMs']),
         analysisSessionId: _safeStringParse(jsonContent['analysisSessionId']),
         disagreementReason: _safeStringParse(jsonContent['disagreementReason']),
         environmentalImpact:
             _safeStringParse(jsonContent['environmentalImpact']),
         relatedItems: _parseStringListSafely(jsonContent['relatedItems']),
-        source: 'ai_analysis',
+        source: 'ai_analysis_$provider',
         reanalysisModelsTried: reanalysisModelsTried,
         // Enhanced AI Analysis v2.0 fields
         recyclability: _safeStringParse(jsonContent['recyclability']),
@@ -1919,7 +2239,7 @@ Output:
       WasteAppLogger.severe('Error occurred');
       return _createFallbackClassification(
           jsonContent.toString(), imagePath, region,
-          classificationId: classificationId);
+          provider: provider, model: model, classificationId: classificationId);
     }
   }
 
@@ -2080,7 +2400,9 @@ Output:
   /// Assigns moderate confidence and marks clarification as needed.
   WasteClassification _createFallbackClassification(
       String content, String imagePath, String region,
-      {String? classificationId}) {
+      {required String provider,
+      required String model,
+      String? classificationId}) {
     WasteAppLogger.severe(
         'Creating fallback classification due to JSON parsing error.',
         context: {
@@ -2128,6 +2450,13 @@ Output:
     return WasteClassification.fallback(
       imagePath,
       id: classificationId,
+    ).copyWith(
+      itemName: itemName,
+      category: category,
+      explanation: explanation,
+      source: 'ai_analysis_${provider}_fallback',
+      modelSource: '$provider-$model',
+      clarificationNeeded: true,
     );
   }
 
@@ -2141,6 +2470,10 @@ Output:
   ///
   /// For now, it creates a 3x3 grid of segments to demonstrate the functionality.
   Future<List<Map<String, dynamic>>> segmentImage(dynamic imageSource) async {
+    if (!enableDebugGridSegmentation) {
+      throw UnsupportedError(
+          'Segmentation is disabled in production. Enable debug grid segmentation explicitly for demo/testing.');
+    }
     try {
       Uint8List imageBytes;
 
@@ -2159,8 +2492,9 @@ Output:
         throw Exception('Failed to decode image for segmentation');
       }
 
-      WasteAppLogger.cacheEvent('cache_operation', 'classification',
-          context: {'service': 'ai', 'file': 'ai_service'});
+      WasteAppLogger.info(
+        'Generating debug grid segments (not model-based segmentation)',
+      );
 
       // Create a simple grid-based segmentation (3x3 grid)
       final segments = <Map<String, dynamic>>[];

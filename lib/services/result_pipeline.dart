@@ -363,7 +363,8 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     String? userSuggestedMaterial,
     String? userSuggestedItemName,
   }) async {
-    final isCorrection = userConfirmed == false && userSuggestedCategory != null;
+    final isCorrection =
+        userConfirmed == false && userSuggestedCategory != null;
     final action = isCorrection ? 'correction_provided' : 'feedback_provided';
     final points = GamificationService.pointValues[action] ?? 0;
 
@@ -373,16 +374,17 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       // analytics, or cloud sync are repeated for duplicate submissions.
       final profile = await _storageService.getCurrentUserProfile();
       final userId = profile?.id ?? 'unknown';
-      final dedupKey = ClassificationFeedback.dedupKey(userId, classification.id);
+      final dedupKey =
+          ClassificationFeedback.dedupKey(userId, classification.id);
 
-      final existingFeedback = await _storageService.getClassificationFeedback(dedupKey);
+      final existingFeedback =
+          await _storageService.getClassificationFeedback(dedupKey);
       if (existingFeedback != null) {
-        WasteAppLogger.info('Feedback already submitted locally',
-            context: {
-              'classificationId': classification.id,
-              'dedupKey': dedupKey,
-              'service': 'ResultPipeline',
-            });
+        WasteAppLogger.info('Feedback already submitted locally', context: {
+          'classificationId': classification.id,
+          'dedupKey': dedupKey,
+          'service': 'ResultPipeline',
+        });
         return FeedbackResult(
           saved: true,
           pointsAwarded: 0,
@@ -441,7 +443,9 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         originalClassificationId: classification.id,
         originalAIItemName: classification.itemName,
         originalAICategory: classification.category,
-        originalAIMaterial: classification.materialType,
+        originalAIMaterial: classification.normalizedMaterials.isNotEmpty
+            ? classification.normalizedMaterials.first
+            : null,
         originalAIConfidence: classification.confidence,
         userSuggestedItemName: userSuggestedItemName,
         userSuggestedCategory: userSuggestedCategory ?? classification.category,
@@ -455,14 +459,17 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       try {
         final settings = await _storageService.getSettings();
         if (settings['isGoogleSyncEnabled'] == true) {
-          await _cloudStorageService.saveClassificationFeedbackToCloud(feedback);
+          await _cloudStorageService
+              .saveClassificationFeedbackToCloud(feedback);
           cloudSynced = true;
         }
       } catch (e) {
-        WasteAppLogger.warning('Feedback cloud sync failed', error: e, context: {
-          'classificationId': classification.id,
-          'service': 'ResultPipeline',
-        });
+        WasteAppLogger.warning('Feedback cloud sync failed',
+            error: e,
+            context: {
+              'classificationId': classification.id,
+              'service': 'ResultPipeline',
+            });
       }
 
       // 4. Award gamification points

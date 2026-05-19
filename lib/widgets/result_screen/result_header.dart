@@ -126,7 +126,7 @@ class ResultHeader extends ConsumerWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                category,
+                classification.displayCategoryLabel,
                 style: TextStyle(
                   color: _getCategoryColor(category),
                   fontWeight: FontWeight.w600,
@@ -186,13 +186,15 @@ class ResultHeader extends ConsumerWidget {
 
   Widget _buildItemName(BuildContext context, ThemeData theme) {
     return Text(
-      classification.itemName,
+      classification.displayItemLabel,
       style: theme.textTheme.headlineLarge?.copyWith(
         fontSize: 28,
         fontWeight: FontWeight.bold,
         color: theme.colorScheme.onSurface,
       ),
       textAlign: TextAlign.center,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
   }
 

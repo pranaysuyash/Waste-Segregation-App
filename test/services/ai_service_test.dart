@@ -1,6 +1,9 @@
 import 'dart:typed_data'; // Added import
 import 'package:flutter_test/flutter_test.dart';
+import 'package:dio/dio.dart';
 import 'package:waste_segregation_app/services/ai_service.dart';
+import 'package:waste_segregation_app/services/ai_failure.dart';
+import 'package:waste_segregation_app/services/cache_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../test_helper.dart';
 import 'dart:convert';
@@ -51,43 +54,25 @@ void main() {
 
     group('Image Classification', () {
       test('should handle empty image gracefully', () async {
-        // Test that the service handles empty image data appropriately
-        // This should either throw an exception or return a fallback classification
-        try {
-          final result =
-              await aiService.analyzeWebImage(Uint8List(0), 'test.jpg');
-          // If it succeeds, it should return a fallback classification
-          expect(result, isA<WasteClassification>());
-          expect(result.clarificationNeeded, isTrue);
-        } catch (e) {
-          // Exception is also acceptable for empty image data
-          expect(e, isA<Exception>());
-        }
+        final result = await aiService.analyzeWebImage(Uint8List(0), 'test.jpg');
+        expect(result, isA<WasteClassification>());
+        expect(result.clarificationNeeded, isTrue);
+        expect(result.itemName, isNotEmpty);
+        expect(aiService.webSaveCallCount, equals(0));
+        expect(aiService.providerCallCount, equals(0));
       });
 
       test('should handle null or empty image path', () async {
-        try {
-          final result = await aiService.analyzeWebImage(Uint8List(0), '');
-          // If it succeeds, it should return a fallback classification
-          expect(result, isA<WasteClassification>());
-          expect(result.clarificationNeeded, isTrue);
-        } catch (e) {
-          // Exception is also acceptable for null/empty image path
-          expect(e, isA<Exception>());
-        }
+        final result = await aiService.analyzeWebImage(Uint8List(0), '');
+        expect(result, isA<WasteClassification>());
+        expect(result.clarificationNeeded, isTrue);
       });
 
       test('should handle invalid file extension', () async {
-        try {
-          final result =
-              await aiService.analyzeWebImage(Uint8List(0), 'invalid_file.txt');
-          // If it succeeds, it should return a fallback classification
-          expect(result, isA<WasteClassification>());
-          expect(result.clarificationNeeded, isTrue);
-        } catch (e) {
-          // Exception is also acceptable for invalid file extensions
-          expect(e, isA<Exception>());
-        }
+        final result =
+            await aiService.analyzeWebImage(Uint8List(0), 'invalid_file.txt');
+        expect(result, isA<WasteClassification>());
+        expect(result.clarificationNeeded, isTrue);
       });
 
       // Test with mock service to avoid real API calls
@@ -223,32 +208,52 @@ void main() {
     });
 
     group('Error Handling', () {
+      test('should not convert terminal auth failure into fallback', () async {
+        final dio = Dio()
+          ..interceptors.add(
+            InterceptorsWrapper(
+              onRequest: (options, handler) {
+                handler.resolve(Response(
+                  requestOptions: options,
+                  statusCode: 401,
+                  data: {'error': 'unauthorized'},
+                ));
+              },
+            ),
+          );
+        final service = AiService(
+          cachingEnabled: false,
+          dioClient: dio,
+          saveWebImageOverride: (bytes, imageName) async => imageName,
+        );
+
+        expect(
+          () => service.analyzeWebImage(
+            Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3]),
+            'auth_test.jpg',
+          ),
+          throwsA(
+            isA<AiFailure>().having(
+              (f) => f.kind,
+              'kind',
+              AiFailureKind.auth,
+            ),
+          ),
+        );
+      });
+
       test('should handle network errors gracefully', () async {
-        // Test that the service handles network errors appropriately
-        // This should either throw an exception or return a fallback classification
-        try {
-          final result = await aiService.analyzeWebImage(
-              Uint8List(0), 'non_existent_file.jpg');
-          // If it succeeds, it should return a fallback classification
-          expect(result, isA<WasteClassification>());
-          expect(result.clarificationNeeded, isTrue);
-        } catch (e) {
-          // Exception is also acceptable for network errors
-          expect(e, isA<Exception>());
-        }
+        final result = await aiService.analyzeWebImage(
+            Uint8List(0), 'non_existent_file.jpg');
+        expect(result, isA<WasteClassification>());
+        expect(result.clarificationNeeded, isTrue);
       });
 
       test('should handle invalid file formats', () async {
-        try {
-          final result =
-              await aiService.analyzeWebImage(Uint8List(0), 'invalid_file.txt');
-          // If it succeeds, it should return a fallback classification
-          expect(result, isA<WasteClassification>());
-          expect(result.clarificationNeeded, isTrue);
-        } catch (e) {
-          // Exception is also acceptable for invalid file formats
-          expect(e, isA<Exception>());
-        }
+        final result =
+            await aiService.analyzeWebImage(Uint8List(0), 'invalid_file.txt');
+        expect(result, isA<WasteClassification>());
+        expect(result.clarificationNeeded, isTrue);
       });
 
       test('should handle mock API errors', () async {
@@ -278,11 +283,139 @@ void main() {
           cachingEnabled: false,
           defaultRegion: 'Mumbai, IN',
           defaultLanguage: 'hi',
+          openAiBaseUrl: 'https://proxy.example.com/v1',
+          openAiApiKey: 'test-openai-key',
         );
         expect(service, isNotNull);
         expect(service.cachingEnabled, isFalse);
         expect(service.defaultRegion, equals('Mumbai, IN'));
         expect(service.defaultLanguage, equals('hi'));
+        expect(service.openAiBaseUrl, equals('https://proxy.example.com/v1'));
+        expect(service.openAiApiKey, equals('test-openai-key'));
+      });
+
+      test('cache key should change across context dimensions', () {
+        final k1 = aiService.buildContextualCacheKey(
+          imageHash: 'phash_123',
+          region: 'Bangalore, IN',
+          language: 'en',
+          provider: 'openai',
+          model: 'gpt-4.1-nano',
+        );
+        final k2 = aiService.buildContextualCacheKey(
+          imageHash: 'phash_123',
+          region: 'Mumbai, IN',
+          language: 'en',
+          provider: 'openai',
+          model: 'gpt-4.1-nano',
+        );
+        final k3 = aiService.buildContextualCacheKey(
+          imageHash: 'phash_123',
+          region: 'Bangalore, IN',
+          language: 'hi',
+          provider: 'openai',
+          model: 'gpt-4.1-nano',
+        );
+        expect(k1, isNot(k2));
+        expect(k1, isNot(k3));
+      });
+
+      test('cache similarity should remain phash-safe with context-aware content hash', () async {
+        final cache = ClassificationCacheService();
+        await cache.initialize();
+        final classification = WasteClassification(
+          itemName: 'Bottle',
+          category: 'Dry Waste',
+          explanation: 'Test',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Recycle',
+            steps: const ['Step'],
+            hasUrgentTimeframe: false,
+          ),
+          region: 'Bangalore, IN',
+          visualFeatures: const [],
+          alternatives: const [],
+          confidence: 0.8,
+        );
+
+        const cachedHash = 'phash_0000000000000000';
+        const similarHash = 'phash_0000000000000001';
+        const contextA = 'content-hash::ctxA';
+        const contextB = 'content-hash::ctxB';
+
+        await cache.cacheClassification(
+          cachedHash,
+          classification,
+          contentHash: contextA,
+          imageSize: 10,
+        );
+
+        final hitWithSameContext = await cache.getCachedClassification(
+          similarHash,
+          contentHash: contextA,
+        );
+        final missWithDifferentContext = await cache.getCachedClassification(
+          similarHash,
+          contentHash: contextB,
+        );
+
+        expect(hitWithSameContext, isNotNull);
+        expect(missWithDifferentContext, isNull);
+      });
+
+      test('correction provenance should be explicit for openai and gemini', () {
+        final original = WasteClassification(
+          id: 'fixed-id',
+          itemName: 'Original',
+          category: 'Dry Waste',
+          explanation: 'Original',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Recycle',
+            steps: const ['Step'],
+            hasUrgentTimeframe: false,
+          ),
+          region: 'Bangalore, IN',
+          imageUrl: 'img-path',
+          imageHash: 'phash_x',
+          visualFeatures: const [],
+          alternatives: const [],
+        );
+        final corrected = WasteClassification(
+          id: 'temp-id',
+          itemName: 'Corrected',
+          category: 'Dry Waste',
+          explanation: 'Corrected',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Recycle',
+            steps: const ['Step'],
+            hasUrgentTimeframe: false,
+          ),
+          region: 'Bangalore, IN',
+          visualFeatures: const [],
+          alternatives: const [],
+        );
+
+        final openAiProvenance = aiService.applyCorrectionProvenance(
+          corrected: corrected,
+          original: original,
+          provider: 'openai',
+          model: 'gpt-4.1-nano',
+          userCorrection: 'plastic',
+        );
+        final geminiProvenance = aiService.applyCorrectionProvenance(
+          corrected: corrected,
+          original: original,
+          provider: 'gemini',
+          model: 'gemini-2.0-flash',
+          userCorrection: 'metal',
+        );
+
+        expect(openAiProvenance.source, equals('ai_reanalysis'));
+        expect(openAiProvenance.modelSource, equals('openai-gpt-4.1-nano'));
+        expect(openAiProvenance.id, equals('fixed-id'));
+        expect(geminiProvenance.source, equals('ai_reanalysis'));
+        expect(geminiProvenance.modelSource, equals('gemini-gemini-2.0-flash'));
+        expect(geminiProvenance.id, equals('fixed-id'));
       });
     });
 
