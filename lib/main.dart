@@ -50,6 +50,7 @@ import 'screens/offline_mode_settings_screen.dart';
 import 'screens/disposal_facilities_screen.dart';
 import 'screens/impact_dashboard_screen.dart';
 import 'screens/smart_suggestions_screen.dart';
+import 'screens/token_wallet_screen.dart';
 import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart';
 import 'utils/error_handler.dart';
@@ -663,6 +664,7 @@ class WasteSegregationApp extends StatelessWidget {
                         const PremiumFeaturesScreen(),
                     '/premium_features': (context) =>
                         const PremiumFeaturesScreen(),
+                    '/token-wallet': (context) => const TokenWalletScreen(),
                     '/data-export': (context) => const DataExportScreen(),
                     '/offline-settings': (context) =>
                         const OfflineModeSettingsScreen(),

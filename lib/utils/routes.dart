@@ -15,6 +15,7 @@ class Routes {
   static const String premiumFeatures = '/premium_features';
   static const String premiumFeaturesHyphen = '/premium-features';
   static const String premium = '/premium';
+  static const String tokenWallet = '/token-wallet';
   static const String wasteDashboard = '/waste_dashboard';
 
   // Legal routes
@@ -46,6 +47,7 @@ class Routes {
     premiumFeatures,
     premiumFeaturesHyphen,
     premium,
+    tokenWallet,
     wasteDashboard,
     privacyPolicy,
     termsOfService,

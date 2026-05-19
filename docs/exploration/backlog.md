@@ -159,5 +159,8 @@ When an item moves from this backlog into a real exploration doc or into `EXPLOR
 | 2026-05-19 | AI Cost Telemetry & Guardrails | `EXPLORATION_TOPICS.md#10` | Topic seeded. Full doc still to write. |
 | 2026-05-19 | Onboarding & Activation | `EXPLORATION_TOPICS.md#19` | Topic seeded. Full doc still to write. |
 | 2026-05-19 | Privacy / Photo PII | `EXPLORATION_TOPICS.md#32` | Topic seeded. Full doc still to write. |
+| 2026-05-19 | Token Economy & Pricing Coherence | `EXPLORATION_TOPICS.md#27a` | Added after wide-open-brainstorm pressure test (see `../brainstorm_exploration_map_2026-05-19.md`). Active work in flight; references the 9 brainstorm files + `TOKEN_ECONOMY_TODO.md`. |
+| 2026-05-19 | "The dataset is the moat" reframing | `EXPLORATION_TOPICS.md#12` | Reframed Classification History Schema as an asset/moat, not a data-eng cost. Surfaced by Future Self + Strategist roles in the brainstorm. |
+| 2026-05-19 | Dependency view + Archive policy | `EXPLORATION_TOPICS.md` + `exploration/ARCHIVE.md` | Added dependency-view ASCII (sequencing) and created `ARCHIVE.md` for `[KILLED]` / `[✓]` topics so the active index stays the cursor. |
 
 (Append new rows here; never delete — the trail is the value.)

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/token_wallet.dart';
 import '../providers/token_providers.dart';
 import '../utils/constants.dart';
+import '../utils/routes.dart';
 
 class AnalysisSpeedSelector extends ConsumerWidget {
   const AnalysisSpeedSelector({
@@ -290,7 +291,7 @@ class AnalysisSpeedSelector extends ConsumerWidget {
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // TODO: Navigate to token wallet/earning screen
+              Navigator.pushNamed(context, Routes.tokenWallet);
             },
             child: const Text('Earn Tokens'),
           ),

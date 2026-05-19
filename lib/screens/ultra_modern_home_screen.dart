@@ -360,29 +360,31 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                 // Stats chips with impact info
                 Row(
                   children: [
-                    _buildPointsChip(context),
+                    Flexible(child: _buildPointsChip(context)),
                     const SizedBox(width: 8),
-                    _buildTokensChip(context),
+                    Flexible(child: _buildTokensChip(context)),
                     const SizedBox(width: 8),
-                    profileAsync.when(
-                      data: (profile) => _buildStatChip(
-                        '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}',
-                        AppStrings.streak,
-                        Icons.local_fire_department,
-                      ),
-                      loading: () => _buildStatChip(
-                        '...',
-                        AppStrings.streak,
-                        Icons.local_fire_department,
-                      ),
-                      error: (_, __) => _buildStatChip(
-                        '0',
-                        AppStrings.streak,
-                        Icons.local_fire_department,
+                    Flexible(
+                      child: profileAsync.when(
+                        data: (profile) => _buildStatChip(
+                          '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}',
+                          AppStrings.streak,
+                          Icons.local_fire_department,
+                        ),
+                        loading: () => _buildStatChip(
+                          '...',
+                          AppStrings.streak,
+                          Icons.local_fire_department,
+                        ),
+                        error: (_, __) => _buildStatChip(
+                          '0',
+                          AppStrings.streak,
+                          Icons.local_fire_department,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Expanded(child: _buildDaysActiveChip(context)),
+                    Flexible(child: _buildDaysActiveChip(context)),
                   ],
                 ),
               ],

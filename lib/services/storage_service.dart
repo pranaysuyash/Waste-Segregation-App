@@ -19,11 +19,24 @@ import 'enhanced_image_service.dart';
 import 'thumbnail_migration_service.dart';
 import 'hive_manager.dart';
 import '../utils/waste_app_logger.dart';
+import 'classification_storage_service.dart';
+import 'user_profile_storage_service.dart';
 
 class StorageService {
   // Global lock mechanism to prevent concurrent saves across all code paths
   static final Map<String, DateTime> _recentSaves = <String, DateTime>{};
   static final Set<String> _activeSaves = <String>{};
+
+  /// Facade: focused services extracted from the original monolith.
+  /// These are wired at runtime and provide unique API surface
+  /// (getClassificationById, updateUserProfile, getSetting<T>)
+  /// plus delegation for simple persistence operations.
+  /// Complex operations (saveClassification dedup, TypeAdapter format)
+  /// remain in StorageService for backward data compatibility.
+  late final ClassificationStorageService classificationStorage =
+      ClassificationStorageService();
+  late final UserProfileStorageService profileStorage =
+      UserProfileStorageService();
 
   // Initialize Hive database
   static Future<void> initializeHive() async {
@@ -162,7 +175,11 @@ class StorageService {
     return userProfile != null && userProfile.id.isNotEmpty;
   }
 
-  // Classification methods
+  // ---------------------------------------------------------------------------
+  // Classification methods — facade delegates format-safe ops to
+  // ClassificationStorageService; complex methods (TypeAdapter format, hash
+  // dedup) remain inline for backward data compatibility.
+  // ---------------------------------------------------------------------------
   /// Save a classification. If [force] is true, ignore perceptual-hash duplicates.
   Future<void> saveClassification(
     WasteClassification classification, {

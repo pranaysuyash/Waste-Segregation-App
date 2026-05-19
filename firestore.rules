@@ -32,17 +32,6 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
     
-    // Token Wallets - users can only access their own wallet data
-    match /token_wallets/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Token Transactions - users can only access their own transactions
-    match /token_transactions/{transactionId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-    
     // ============================================================
     // SECTION 3: Leaderboard collections
     // ============================================================

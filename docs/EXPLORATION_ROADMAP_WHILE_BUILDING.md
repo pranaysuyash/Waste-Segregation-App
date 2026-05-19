@@ -85,6 +85,14 @@ Goal: the app is reliably classifying, costs are observable and bounded, and tru
 - **De-risk question**: Can a single bad actor or single bad photo currently take the community feed sideways? What's the minimum safety net before any social growth investment?
 - **Output**: `docs/exploration/MODERATION_AND_SAFETY.md` with a tiered escalation policy.
 
+### Track N6 — Token Economy & Pricing Coherence  [IN FLIGHT]
+
+- **Topic**: [Token Economy & Pricing Coherence (🔴, entry 27a)](EXPLORATION_TOPICS.md#27a-token-economy--pricing-coherence---in-flight--2026-05-19)
+- **De-risk question**: What does a token *mean* end-to-end across capture → classify → result → history → premium → settings, and how do we resolve the three-territory contradiction (Instant: labelled 5, charged 0 / Batch: labelled 1, charged 1 / Premium: no token connection)?
+- **Output**: `docs/exploration/TOKEN_ECONOMY_AND_PRICING_COHERENCE.md` distilling the 2026-05-19 brainstorm set, with downstream changes captured in [../TOKEN_ECONOMY_TODO.md](../TOKEN_ECONOMY_TODO.md).
+- **Source artefacts**: the 9 `brainstorm_*_2026-05-19.md` files + synthesis, already in `docs/`.
+- **Built artefact this enables**: a single coherent token ledger across instant / batch / premium surfaces; consistent labels and receipts; defensible premium pitch tied to the same economy.
+
 ---
 
 ## PHASE: NEXT — Quality, Engagement, Region Depth
@@ -190,6 +198,7 @@ These exploration practices apply regardless of phase. Treat them as guardrails.
 | NOW | N3 | Privacy / Photo PII + Retention | 🔴 Partial coverage in `docs/security/`, `docs/legal/` |
 | NOW | N4 | Onboarding Activation | 🔴 Not instrumented |
 | NOW | N5 | Moderation Baseline | 🔴 Not formalised |
+| NOW | N6 | Token Economy & Pricing Coherence | 🔴 IN FLIGHT — 9 brainstorm files + TOKEN_ECONOMY_TODO.md; synthesis pending promotion to `exploration/` |
 | NEXT | X1 | Eval Harness | 🔴 Missing as first-class artefact |
 | NEXT | X2 | Multi-Model Routing + Disposal | 🟡 Seeded |
 | NEXT | X3 | Region-Aware Rulesets | 🔴 Implicit in prompts today |

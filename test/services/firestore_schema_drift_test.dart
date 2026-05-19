@@ -51,18 +51,22 @@ void main() {
       expect(
         modelOnly,
         isEmpty,
-        reason: 'CommunityFeedItem.toJson has fields not in CommunityFeedSchema: '
+        reason:
+            'CommunityFeedItem.toJson has fields not in CommunityFeedSchema: '
             '$modelOnly. Add them to the registry or remove from model.',
       );
       expect(
         schemaOnly,
         isEmpty,
-        reason: 'CommunityFeedSchema has fields not in CommunityFeedItem.toJson: '
+        reason:
+            'CommunityFeedSchema has fields not in CommunityFeedItem.toJson: '
             '$schemaOnly. Update the schema or add to model.',
       );
     });
 
-    test('community_feed timestamp writes use FieldValue.serverTimestamp, not ISO string', () {
+    test(
+        'community_feed timestamp writes use FieldValue.serverTimestamp, not ISO string',
+        () {
       // The toJson method still produces ISO string for Hive/local storage.
       // But Firestore writes must use FieldValue.serverTimestamp().
       // This test documents the contract: toJson is for local storage,
@@ -89,7 +93,9 @@ void main() {
   // 2. LeaderboardEntry model ↔ Registry drift
   // ============================================================
   group('LeaderboardEntry model ↔ Registry', () {
-    test('LeaderboardAllTimeSchema fields cover what cloud_storage_service writes', () {
+    test(
+        'LeaderboardAllTimeSchema fields cover what cloud_storage_service writes',
+        () {
       // cloud_storage_service writes: userId, displayName, photoUrl, points, lastUpdated
       // The model has more fields but the Firestore write path uses a subset
       final serviceWriteFields = <String>{
@@ -106,28 +112,13 @@ void main() {
       // Every field the service writes must be in the schema
       final missing = serviceWriteFields.difference(schemaFieldNames);
       expect(missing, isEmpty,
-          reason: 'cloud_storage_service writes fields not in LeaderboardAllTimeSchema: '
+          reason:
+              'cloud_storage_service writes fields not in LeaderboardAllTimeSchema: '
               '$missing. The Firestore rules will reject these writes.');
 
       // The schema should also cover the model's full toJson output
       // (for future model changes), but the LeaderboardEntry model has many
       // extra fields that are NOT written to Firestore directly.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     });
   });
 
@@ -136,14 +127,22 @@ void main() {
   // ============================================================
   group('UserProfile model ↔ Registry', () {
     test('UsersSchema fields cover UserProfile.toJson keys', () {
-      final schemaFieldNames =
-          UsersSchema.fields.map((f) => f.name).toSet();
+      final schemaFieldNames = UsersSchema.fields.map((f) => f.name).toSet();
 
       // Key fields that MUST be in both
       final mustHaveFields = <String>{
-        'id', 'displayName', 'email', 'photoUrl', 'familyId',
-        'role', 'createdAt', 'lastActive', 'preferences',
-        'gamificationProfile', 'tokenWallet', 'tokenTransactions',
+        'id',
+        'displayName',
+        'email',
+        'photoUrl',
+        'familyId',
+        'role',
+        'createdAt',
+        'lastActive',
+        'preferences',
+        'gamificationProfile',
+        'tokenWallet',
+        'tokenTransactions',
       };
 
       for (final field in mustHaveFields) {
@@ -162,22 +161,34 @@ void main() {
       // Family.toJson produces: id, name, description, createdBy, createdAt,
       // updatedAt, members, settings, imageUrl, isPublic
       final familyJsonFieldKeys = <String>{
-        'id', 'name', 'description', 'createdBy', 'createdAt',
-        'updatedAt', 'members', 'memberUids', 'settings', 'imageUrl', 'isPublic',
+        'id',
+        'name',
+        'description',
+        'createdBy',
+        'createdAt',
+        'updatedAt',
+        'members',
+        'memberUids',
+        'settings',
+        'imageUrl',
+        'isPublic',
       };
 
-      final schemaFieldNames =
-          FamiliesSchema.fields.map((f) => f.name).toSet();
+      final schemaFieldNames = FamiliesSchema.fields.map((f) => f.name).toSet();
 
-      final missingFromSchema = familyJsonFieldKeys.difference(schemaFieldNames);
+      final missingFromSchema =
+          familyJsonFieldKeys.difference(schemaFieldNames);
       expect(missingFromSchema, isEmpty,
           reason: 'Family.toJson produces fields not in FamiliesSchema: '
               '$missingFromSchema');
 
       // Verify the old stale field names are NOT in the schema
       final staleFields = <String>{
-        'familyName', 'familyAdminUids',
-        'familyCode', 'familyGoals', 'familyLeaderboardSettings',
+        'familyName',
+        'familyAdminUids',
+        'familyCode',
+        'familyGoals',
+        'familyLeaderboardSettings',
       };
       for (final field in staleFields) {
         expect(schemaFieldNames, isNot(contains(field)),
@@ -190,7 +201,9 @@ void main() {
   // 5. Firestore Collections coverage
   // ============================================================
   group('FirestoreCollections coverage', () {
-    test('allCollections contains every constant defined in FirestoreCollections', () {
+    test(
+        'allCollections contains every constant defined in FirestoreCollections',
+        () {
       final constants = <String>{
         FirestoreCollections.users,
         FirestoreCollections.classifications,
@@ -206,8 +219,6 @@ void main() {
         FirestoreCollections.familyStats,
         FirestoreCollections.classificationFeedback,
         FirestoreCollections.aiJobs,
-        FirestoreCollections.tokenWallets,
-        FirestoreCollections.tokenTransactions,
         FirestoreCollections.analyticsEvents,
         FirestoreCollections.adminClassifications,
         FirestoreCollections.adminUserRecovery,
@@ -219,12 +230,14 @@ void main() {
 
       for (final constant in constants) {
         expect(FirestoreCollections.allCollections, contains(constant),
-            reason: 'FirestoreCollections.allCollections is missing "$constant". '
+            reason:
+                'FirestoreCollections.allCollections is missing "$constant". '
                 'Every collection constant must appear in allCollections for auditability.');
       }
     });
 
-    test('no service uses a raw collection string not in FirestoreCollections', () {
+    test('no service uses a raw collection string not in FirestoreCollections',
+        () {
       // This test documents the one known exception:
       // analytics_service uses .collection('test') for a debug connectivity check
       // which is NOT a real data collection and does not need a constant.
@@ -234,7 +247,8 @@ void main() {
       //
       // Known raw strings still in codebase:
       // - analytics_service.dart: .collection('test') — debug connectivity, not a data collection
-      expect(true, isTrue); // Placeholder; drift detection is via registry completeness
+      expect(true,
+          isTrue); // Placeholder; drift detection is via registry completeness
     });
   });
 
@@ -242,7 +256,8 @@ void main() {
   // 6. Schema ↔ Firestore Rules drift detection
   // ============================================================
   group('Schema ↔ Firestore Rules drift', () {
-    test('CommunityFeedSchema allowed fields match Firestore rules hasOnly', () {
+    test('CommunityFeedSchema allowed fields match Firestore rules hasOnly',
+        () {
       // The Firestore rules for community_feed use hasOnly with these fields:
       // id, userId, userName, userAvatar, activityType, title, description,
       // timestamp, metadata, likes, likedBy, isAnonymous, points
@@ -255,20 +270,36 @@ void main() {
 
       // Fields that Firestore rules MUST allow (from validateCommunityFeedCreate)
       final rulesRequired = <String>{
-        'id', 'userId', 'activityType', 'title', 'description', 'timestamp',
+        'id',
+        'userId',
+        'activityType',
+        'title',
+        'description',
+        'timestamp',
       };
 
       // Fields that Firestore rules allow (required + optional)
       final rulesAllowed = <String>{
-        'id', 'userId', 'userName', 'userAvatar', 'activityType', 'title',
-        'description', 'timestamp', 'metadata', 'likes', 'likedBy',
-        'isAnonymous', 'points',
+        'id',
+        'userId',
+        'userName',
+        'userAvatar',
+        'activityType',
+        'title',
+        'description',
+        'timestamp',
+        'metadata',
+        'likes',
+        'likedBy',
+        'isAnonymous',
+        'points',
       };
 
       // Every required field in rules must be in schema
       for (final field in rulesRequired) {
         expect(schemaFields, contains(field),
-            reason: 'Rules require "$field" but it is missing from CommunityFeedSchema');
+            reason:
+                'Rules require "$field" but it is missing from CommunityFeedSchema');
       }
 
       // Schema should not have fields that rules would reject
@@ -280,15 +311,22 @@ void main() {
               '$schemaButNotRules. These writes will be rejected by Firestore.');
     });
 
-    test('LeaderboardAllTimeSchema allowed fields match Firestore rules hasOnly', () {
+    test(
+        'LeaderboardAllTimeSchema allowed fields match Firestore rules hasOnly',
+        () {
       // Firestore rules validateLeaderboardEntry hasOnly:
       // userId, points, displayName, lastUpdated, rank, weeklyPoints, photoUrl
       final schemaFields =
           LeaderboardAllTimeSchema.fields.map((f) => f.name).toSet();
 
       final rulesAllowed = <String>{
-        'userId', 'points', 'displayName', 'lastUpdated', 'rank',
-        'weeklyPoints', 'photoUrl',
+        'userId',
+        'points',
+        'displayName',
+        'lastUpdated',
+        'rank',
+        'weeklyPoints',
+        'photoUrl',
       };
 
       // Schema fields should be a subset of rules-allowed (or exactly match)
@@ -303,11 +341,19 @@ void main() {
       // allow create: if request.auth != null;
       // This means any field is allowed. Document the expected fields for
       // future tightening.
-      final schemaFields =
-          FamiliesSchema.fields.map((f) => f.name).toSet();
+      final schemaFields = FamiliesSchema.fields.map((f) => f.name).toSet();
       final expectedFields = <String>{
-        'id', 'name', 'description', 'createdBy', 'createdAt',
-        'updatedAt', 'members', 'memberUids', 'settings', 'imageUrl', 'isPublic',
+        'id',
+        'name',
+        'description',
+        'createdBy',
+        'createdAt',
+        'updatedAt',
+        'members',
+        'memberUids',
+        'settings',
+        'imageUrl',
+        'isPublic',
       };
 
       expect(schemaFields, containsAll(expectedFields),
@@ -331,18 +377,31 @@ void main() {
       // When opted IN, write includes: userId, displayName, photoUrl, points, lastUpdated
       // All are in rules — PASS (photoUrl was the original fix)
       final optedOutFields = <String>{
-        'userId', 'displayName', 'points', 'lastUpdated',
+        'userId',
+        'displayName',
+        'points',
+        'lastUpdated',
       };
       final optedInFields = <String>{
-        'userId', 'displayName', 'photoUrl', 'points', 'lastUpdated',
+        'userId',
+        'displayName',
+        'photoUrl',
+        'points',
+        'lastUpdated',
       };
       final rulesAllowed = <String>{
-        'userId', 'points', 'displayName', 'lastUpdated', 'rank',
-        'weeklyPoints', 'photoUrl',
+        'userId',
+        'points',
+        'displayName',
+        'lastUpdated',
+        'rank',
+        'weeklyPoints',
+        'photoUrl',
       };
 
       expect(optedOutFields.difference(rulesAllowed), isEmpty,
-          reason: 'Opted-out leaderboard write has fields not allowed by rules');
+          reason:
+              'Opted-out leaderboard write has fields not allowed by rules');
       expect(optedInFields.difference(rulesAllowed), isEmpty,
           reason: 'Opted-in leaderboard write has fields not allowed by rules');
     });
@@ -358,13 +417,24 @@ void main() {
         // userAvatar is REMOVED when anonymous
       };
       final rulesAllowed = <String>{
-        'id', 'userId', 'userName', 'userAvatar', 'activityType', 'title',
-        'description', 'timestamp', 'metadata', 'likes', 'likedBy',
-        'isAnonymous', 'points',
+        'id',
+        'userId',
+        'userName',
+        'userAvatar',
+        'activityType',
+        'title',
+        'description',
+        'timestamp',
+        'metadata',
+        'likes',
+        'likedBy',
+        'isAnonymous',
+        'points',
       };
 
       expect(anonymousFields.difference(rulesAllowed), isEmpty,
-          reason: 'Anonymous community feed write has fields not allowed by rules');
+          reason:
+              'Anonymous community feed write has fields not allowed by rules');
     });
 
     test('user profile email removal is safe for Firestore rules', () {
@@ -382,7 +452,8 @@ void main() {
       // Users rules are permissive (any field allowed if auth matches)
       // Just verify email is not in the guard-protected write
       expect(userProfileWriteFields, isNot(contains('email')),
-          reason: 'Email should be removed by privacy guard before Firestore write');
+          reason:
+              'Email should be removed by privacy guard before Firestore write');
     });
   });
 
@@ -397,28 +468,28 @@ void main() {
       // These were in the old stale firestore_schema.md but NOT in the model
       final staleFields = <String>{
         'content', // replaced by 'description'
-        'type',    // replaced by 'activityType'
+        'type', // replaced by 'activityType'
         'imageUrl', // not in CommunityFeedItem model
         'comments', // not in model (uses separate collection?)
-        'tags',     // not in model
+        'tags', // not in model
       };
 
       for (final stale in staleFields) {
         expect(schemaFields, isNot(contains(stale)),
-            reason: 'Stale field "$stale" should not be in CommunityFeedSchema. '
+            reason:
+                'Stale field "$stale" should not be in CommunityFeedSchema. '
                 'It was removed during the schema audit.');
       }
     });
 
     test('FamiliesSchema has no stale field names from old docs', () {
-      final schemaFields =
-          FamiliesSchema.fields.map((f) => f.name).toSet();
+      final schemaFields = FamiliesSchema.fields.map((f) => f.name).toSet();
 
       final staleFields = <String>{
-        'familyName',    // replaced by 'name'
+        'familyName', // replaced by 'name'
         'familyAdminUids', // replaced by 'members' with roles
-        'familyCode',    // not in current model
-        'familyGoals',   // not in current model
+        'familyCode', // not in current model
+        'familyGoals', // not in current model
         'familyLeaderboardSettings', // not in current model
       };
 
@@ -444,7 +515,8 @@ void main() {
       };
       for (final stale in staleFields) {
         expect(schemaFields, isNot(contains(stale)),
-            reason: 'Stale field "$stale" should not be in LeaderboardAllTimeSchema.');
+            reason:
+                'Stale field "$stale" should not be in LeaderboardAllTimeSchema.');
       }
     });
   });

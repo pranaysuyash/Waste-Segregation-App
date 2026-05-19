@@ -1,21 +1,28 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/token_wallet.dart';
 import '../utils/waste_app_logger.dart';
 import 'storage_service.dart';
 import 'cloud_storage_service.dart';
+import '../utils/firebase_gate.dart';
 
 /// Service for managing token micro-economy
 ///
 /// Handles token earning, spending, conversion from points, and transaction history.
 /// Provides atomic operations to prevent race conditions and ensure wallet consistency.
 class TokenService extends ChangeNotifier {
-  TokenService(this._storageService, this._cloudStorageService);
+  TokenService(
+    this._storageService,
+    this._cloudStorageService, {
+    FirebaseFunctions? functionsClient,
+  }) : _functionsClient = functionsClient;
 
   final StorageService _storageService;
   final CloudStorageService _cloudStorageService;
+  final FirebaseFunctions? _functionsClient;
   final Uuid _uuid = const Uuid();
 
   // Cached wallet and transaction history
@@ -29,13 +36,14 @@ class TokenService extends ChangeNotifier {
   // Configuration constants
   static const int pointsToTokenRate = 100; // 100 points = 1 token
   static const int maxDailyConversions = 5; // Max 5 conversions per day
-  static const int welcomeBonus = 50; // 50 tokens for new users (reconciled: was 10 here, 50 in TokenWallet.newUser)
+  static const int welcomeBonus =
+      50; // 50 tokens for new users (reconciled: was 10 here, 50 in TokenWallet.newUser)
   static const int dailyLoginBonus = 2; // 2 tokens for daily login
 
-  // Phase 0 kill switch: when false, token checks and deductions are skipped
-  // for instant analysis (current behavior). When true, enforcement is active.
-  // Controlled via Remote Config in production; defaults to false for safety.
-  static bool enableTokenEnforcement = false;
+  // Runtime controls for enforcement behavior.
+  static bool enableTokenEnforcement = true;
+  static bool enableServerSideValidation = true;
+  static const int premiumInstantDiscountPercent = 50;
 
   /// Get current wallet (cached or fresh)
   TokenWallet? get currentWallet => _cachedWallet;
@@ -62,16 +70,15 @@ class TokenService extends ChangeNotifier {
     required int tokenCost,
     required int currentBalance,
   }) {
-    WasteAppLogger.info('Token cost displayed to user',
-        context: {
-          'component': 'token_economy_telemetry',
-          'event': 'token_displayed',
-          'analysis_speed': analysisSpeed,
-          'token_cost': tokenCost,
-          'current_balance': currentBalance,
-          'can_afford': currentBalance >= tokenCost,
-          'enforcement_enabled': enableTokenEnforcement,
-        });
+    WasteAppLogger.info('Token cost displayed to user', context: {
+      'component': 'token_economy_telemetry',
+      'event': 'token_displayed',
+      'analysis_speed': analysisSpeed,
+      'token_cost': tokenCost,
+      'current_balance': currentBalance,
+      'can_afford': currentBalance >= tokenCost,
+      'enforcement_enabled': enableTokenEnforcement,
+    });
   }
 
   /// Phase 0 telemetry: Log analysis intent (user pressed Analyze button)
@@ -80,16 +87,15 @@ class TokenService extends ChangeNotifier {
     required int tokenCost,
     required int currentBalance,
   }) {
-    WasteAppLogger.info('User initiated analysis',
-        context: {
-          'component': 'token_economy_telemetry',
-          'event': 'analysis_intent',
-          'analysis_speed': analysisSpeed,
-          'token_cost': tokenCost,
-          'current_balance': currentBalance,
-          'can_afford': currentBalance >= tokenCost,
-          'enforcement_enabled': enableTokenEnforcement,
-        });
+    WasteAppLogger.info('User initiated analysis', context: {
+      'component': 'token_economy_telemetry',
+      'event': 'analysis_intent',
+      'analysis_speed': analysisSpeed,
+      'token_cost': tokenCost,
+      'current_balance': currentBalance,
+      'can_afford': currentBalance >= tokenCost,
+      'enforcement_enabled': enableTokenEnforcement,
+    });
   }
 
   /// Phase 0 telemetry: Log analysis completion (result received)
@@ -98,15 +104,14 @@ class TokenService extends ChangeNotifier {
     required int tokensDeducted,
     required int balanceAfter,
   }) {
-    WasteAppLogger.info('Analysis completed',
-        context: {
-          'component': 'token_economy_telemetry',
-          'event': 'analysis_completed',
-          'analysis_speed': analysisSpeed,
-          'tokens_deducted': tokensDeducted,
-          'balance_after': balanceAfter,
-          'enforcement_enabled': enableTokenEnforcement,
-        });
+    WasteAppLogger.info('Analysis completed', context: {
+      'component': 'token_economy_telemetry',
+      'event': 'analysis_completed',
+      'analysis_speed': analysisSpeed,
+      'tokens_deducted': tokensDeducted,
+      'balance_after': balanceAfter,
+      'enforcement_enabled': enableTokenEnforcement,
+    });
   }
 
   /// Phase 0 telemetry: Log when enforcement would have blocked but was skipped
@@ -130,7 +135,26 @@ class TokenService extends ChangeNotifier {
   /// When enforcement is disabled (Phase 0), always returns true but logs the skip.
   /// When enforcement is enabled, returns actual affordability.
   bool canAffordAnalysis(AnalysisSpeed speed) {
-    final cost = speed.cost;
+    return canAffordAnalysisWithPricing(speed);
+  }
+
+  int getAnalysisCost(
+    AnalysisSpeed speed, {
+    bool isPremiumUser = false,
+  }) {
+    if (speed != AnalysisSpeed.instant || !isPremiumUser) {
+      return speed.cost;
+    }
+    final discounted =
+        (speed.cost * (100 - premiumInstantDiscountPercent)) ~/ 100;
+    return discounted.clamp(1, speed.cost);
+  }
+
+  bool canAffordAnalysisWithPricing(
+    AnalysisSpeed speed, {
+    bool isPremiumUser = false,
+  }) {
+    final cost = getAnalysisCost(speed, isPremiumUser: isPremiumUser);
     final balance = _cachedWallet?.balance ?? 0;
 
     if (!enableTokenEnforcement) {
@@ -144,6 +168,28 @@ class TokenService extends ChangeNotifier {
     }
 
     return balance >= cost;
+  }
+
+  Future<TokenWallet> spendAnalysisTokens(
+    AnalysisSpeed speed, {
+    required bool isPremiumUser,
+    required String description,
+    String? reference,
+    Map<String, dynamic>? metadata,
+  }) async {
+    final effectiveCost = getAnalysisCost(speed, isPremiumUser: isPremiumUser);
+    return spendTokens(
+      effectiveCost,
+      description,
+      reference: reference,
+      metadata: {
+        ...?metadata,
+        'analysis_speed': speed.name,
+        'is_premium_user': isPremiumUser,
+        'base_cost': speed.cost,
+        'effective_cost': effectiveCost,
+      },
+    );
   }
 
   /// Load wallet from storage
@@ -240,6 +286,15 @@ class TokenService extends ChangeNotifier {
             'Insufficient tokens. Need $amount, have ${wallet.balance}');
       }
 
+      if (enableServerSideValidation && isFirebaseEnabled) {
+        return _spendTokensWithServerValidation(
+          amount,
+          description,
+          reference: reference,
+          metadata: metadata,
+        );
+      }
+
       // Calculate new wallet state
       final newWallet = wallet.copyWith(
         balance: wallet.balance - amount,
@@ -272,6 +327,47 @@ class TokenService extends ChangeNotifier {
 
       return newWallet;
     });
+  }
+
+  Future<TokenWallet> _spendTokensWithServerValidation(
+    int amount,
+    String description, {
+    String? reference,
+    Map<String, dynamic>? metadata,
+  }) async {
+    final callable = (_functionsClient ??
+            FirebaseFunctions.instanceFor(region: 'asia-south1'))
+        .httpsCallable('spendUserTokens');
+    final response = await callable.call(<String, dynamic>{
+      'amount': amount,
+      'description': description,
+      'reference': reference,
+      'metadata': metadata ?? <String, dynamic>{},
+    });
+
+    final data = Map<String, dynamic>.from(response.data as Map);
+    if (data['success'] != true) {
+      throw Exception(data['error'] ?? 'Server-side token validation failed');
+    }
+
+    final walletJson = Map<String, dynamic>.from(data['wallet'] as Map);
+    final newWallet = TokenWallet.fromJson(walletJson);
+    await _persistWalletAndTransactionsFromServer(
+      newWallet,
+      data['transaction'] is Map
+          ? TokenTransaction.fromJson(
+              Map<String, dynamic>.from(data['transaction'] as Map))
+          : null,
+    );
+
+    WasteAppLogger.gamificationEvent('tokens_spent_server_validated', context: {
+      'description': description,
+      'tokens_spent': amount,
+      'new_balance': newWallet.balance,
+      'reference': reference,
+      'metadata': metadata
+    });
+    return newWallet;
   }
 
   /// Convert points to tokens with daily limit validation
@@ -501,6 +597,31 @@ class TokenService extends ChangeNotifier {
         'transaction_id': transaction.id
       });
     }
+  }
+
+  Future<void> _persistWalletAndTransactionsFromServer(
+    TokenWallet wallet,
+    TokenTransaction? latestTransaction,
+  ) async {
+    _cachedWallet = wallet;
+    notifyListeners();
+
+    final userProfile = await _storageService.getCurrentUserProfile();
+    if (userProfile == null) return;
+
+    final existing =
+        userProfile.tokenTransactions ?? const <TokenTransaction>[];
+    final merged = latestTransaction == null
+        ? existing
+        : <TokenTransaction>[latestTransaction, ...existing].take(200).toList();
+    _cachedTransactions = merged;
+
+    final updated = userProfile.copyWith(
+      tokenWallet: wallet,
+      tokenTransactions: merged,
+      lastActive: DateTime.now(),
+    );
+    await _storageService.saveUserProfile(updated);
   }
 
   /// Check if date is today

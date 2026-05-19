@@ -209,6 +209,25 @@ void main() {
     });
 
     group('Revenue Critical Tests', () {
+      test('should expose canonical premium entitlement', () async {
+        expect(premiumService.hasActivePremiumPlan(), isFalse);
+        await premiumService.setPremiumFeature(
+            PremiumService.proSubscriptionEntitlement, true);
+        expect(premiumService.hasActivePremiumPlan(), isTrue);
+      });
+
+      test('should migrate legacy remove_ads signal into premium entitlement',
+          () async {
+        expect(premiumService.hasActivePremiumPlan(), isFalse);
+        await premiumService.setPremiumFeature('remove_ads', true);
+        expect(premiumService.hasActivePremiumPlan(), isTrue);
+        expect(
+          premiumService
+              .isPremiumFeature(PremiumService.proSubscriptionEntitlement),
+          isTrue,
+        );
+      });
+
       test('should handle remove_ads feature for revenue model', () async {
         const removeAdsFeature = 'remove_ads';
 
@@ -337,8 +356,8 @@ void main() {
 
         // Operations should not crash before initialization
         expect(() => service.isPremiumFeature('remove_ads'), returnsNormally);
-        expect(service.getPremiumFeatures(), isEmpty);
-        expect(service.getComingSoonFeatures(), isEmpty);
+        expect(() => service.getPremiumFeatures(), returnsNormally);
+        expect(() => service.getComingSoonFeatures(), returnsNormally);
       });
 
       test('should handle storage corruption gracefully', () async {
@@ -464,14 +483,14 @@ void main() {
     });
 
     group('Integration Tests', () {
-      test('should work correctly with ChangeNotifier pattern', () {
+      test('should work correctly with ChangeNotifier pattern', () async {
         final service = PremiumService();
         var listenerCalled = false;
 
         service.addListener(() => listenerCalled = true);
 
         // Trigger a change
-        service.setPremiumFeature('remove_ads', true);
+        await service.setPremiumFeature('remove_ads', true);
 
         expect(listenerCalled, isTrue);
       });

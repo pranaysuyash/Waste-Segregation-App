@@ -471,6 +471,9 @@ class ClassificationCacheService {
       count++;
     }
 
+    // Capture size BEFORE deletion for accurate before/after logging
+    final cacheSizeBefore = _cacheBox.length;
+
     // Remove entries and update stats
     for (final key in keysToRemove) {
       final entry = _deserializeEntry(key);
@@ -487,7 +490,7 @@ class ClassificationCacheService {
     WasteAppLogger.cacheEvent('cache_lru_eviction', 'classification', context: {
       'entries_removed': keysToRemove.length,
       'eviction_count': keysToRemove.length,
-      'cache_size_before': _cacheBox.length,
+      'cache_size_before': cacheSizeBefore,
       'cache_size_after': _cacheBox.length,
       'max_cache_size': _maxCacheSize,
       'eviction_percentage':

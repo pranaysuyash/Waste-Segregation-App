@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
 import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
-import 'package:waste_segregation_app/screens/modern_home_screen.dart';
+import 'package:waste_segregation_app/screens/ultra_modern_home_screen.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
-import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/filter_options.dart';
 import 'package:waste_segregation_app/services/ai_service.dart';
 import 'package:waste_segregation_app/services/analytics_service.dart';
 import 'package:waste_segregation_app/services/community_service.dart';
@@ -16,9 +18,16 @@ import '../test_helper.dart';
 // Mock classes
 class MockGamificationService extends Mock implements GamificationService {}
 
-class MockAdService extends Mock implements AdService {}
+class MockStorageService extends Mock implements StorageService {
+  @override
+  Future<List<WasteClassification>> getAllClassifications(
+      {FilterOptions? filterOptions}) async {
+    return [];
+  }
 
-class MockStorageService extends Mock implements StorageService {}
+  @override
+  Future<void> initializeHive() async {}
+}
 
 class MockAiService extends Mock implements AiService {}
 
@@ -60,7 +69,7 @@ void main() {
                         value: '1,234,567,890',
                         icon: Icons.analytics,
                         color: AppTheme.primaryColor,
-                        trend: '+999%',
+                        trend: Trend.up,
                         subtitle:
                             'Really long subtitle that might cause issues',
                       ),
@@ -103,7 +112,7 @@ void main() {
                         value: '999,999',
                         icon: Icons.analytics,
                         color: AppTheme.primaryColor,
-                        trend: '+150%',
+                        trend: Trend.up,
                       ),
                     ),
                     SizedBox(width: 8),
@@ -123,7 +132,7 @@ void main() {
                         value: '1,234,567',
                         icon: Icons.stars,
                         color: Colors.amber,
-                        trend: '+999%',
+                        trend: Trend.up,
                       ),
                     ),
                   ],
@@ -183,35 +192,25 @@ void main() {
     });
 
     group('Home Screen Layout Tests', () {
-      testWidgets('ModernHomeScreen handles small screens without overflow',
+      testWidgets('UltraModernHomeScreen handles small screens without overflow',
           (WidgetTester tester) async {
         await tester.binding
             .setSurfaceSize(const Size(280, 568)); // Very small screen
 
-        // Create mock providers for the home screen
-        final mockGamificationService = MockGamificationService();
-        final mockAdService = MockAdService();
         final mockStorageService = MockStorageService();
-        final mockAiService = MockAiService();
-        final mockAnalyticsService = MockAnalyticsService();
-        final mockCommunityService = MockCommunityService();
+        final mockGamificationService = MockGamificationService();
 
-        // Mock the screen with all required providers
         await tester.pumpWidget(
-          MultiProvider(
-            providers: [
-              Provider<GamificationService>.value(
-                  value: mockGamificationService),
-              ChangeNotifierProvider<AdService>.value(value: mockAdService),
-              Provider<StorageService>.value(value: mockStorageService),
-              Provider<AiService>.value(value: mockAiService),
-              ChangeNotifierProvider<AnalyticsService>.value(
-                  value: mockAnalyticsService),
-              Provider<CommunityService>.value(value: mockCommunityService),
+          ProviderScope(
+            overrides: [
+              storageServiceProvider
+                  .overrideWithValue(mockStorageService),
+              gamificationServiceProvider
+                  .overrideWithValue(mockGamificationService),
             ],
             child: const MaterialApp(
               home: Scaffold(
-                body: ModernHomeScreen(isGuestMode: true),
+                body: UltraModernHomeScreen(isGuestMode: true),
               ),
             ),
           ),
@@ -417,7 +416,7 @@ void main() {
                   value: '1,234,567,890,123,456,789',
                   subtitle:
                       'This is also a very long subtitle that might cause problems if not handled correctly',
-                  trend: '+999,999%',
+                  trend: Trend.up,
                 ),
               ),
             ),

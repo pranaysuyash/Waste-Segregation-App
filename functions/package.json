@@ -8,7 +8,9 @@
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "test:http-guards": "npm run build && node --test test/http_guards.test.js",
+    "test:http-guards:emulator": "npm run build && ENABLE_DIAGNOSTIC_ENDPOINTS=true FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 firebase emulators:exec --project waste-segregation-app-df523 --only auth,functions,firestore \"node --test test/http_guards.emulator.test.js\""
   },
   "engines": {
     "node": "18"
@@ -32,6 +34,8 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2",
     "typescript": "^4.9.0"
   },
   "private": true

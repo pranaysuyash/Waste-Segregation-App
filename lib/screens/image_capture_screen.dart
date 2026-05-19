@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/constants.dart';
@@ -20,6 +21,7 @@ import '../services/offline_queue_service.dart';
 import 'result_screen_wrapper.dart';
 import 'zero_balance_sheet.dart';
 import '../utils/waste_app_logger.dart';
+import '../services/premium_service.dart';
 
 class ImageCaptureScreen extends ConsumerStatefulWidget {
   const ImageCaptureScreen({
@@ -374,11 +376,18 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     );
 
     // Check affordability (always allows when enforcement is off, blocks when on)
-    if (!tokenService.canAffordAnalysis(_selectedSpeed)) {
+    final premiumService = context.read<PremiumService>();
+    final isPremiumUser = premiumService.hasActivePremiumPlan();
+    final effectiveCost = tokenService.getAnalysisCost(_selectedSpeed,
+        isPremiumUser: isPremiumUser);
+    if (!tokenService.canAffordAnalysisWithPricing(
+      _selectedSpeed,
+      isPremiumUser: isPremiumUser,
+    )) {
       if (mounted) {
         ZeroBalanceOptionsSheet.show(
           context,
-          requiredTokens: _selectedSpeed.cost,
+          requiredTokens: effectiveCost,
           onBatchSelected: () {
             setState(() => _selectedSpeed = AnalysisSpeed.batch);
             _analyzeImage();
@@ -602,6 +611,26 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         });
         return;
       }
+
+      if (_selectedSpeed == AnalysisSpeed.instant) {
+        await tokenService.spendAnalysisTokens(
+          _selectedSpeed,
+          isPremiumUser: isPremiumUser,
+          description: 'Instant AI analysis',
+          reference: classification.id,
+          metadata: {
+            'screen': 'image_capture',
+            'segmentation_used':
+                _useSegmentation && _selectedSegments.isNotEmpty,
+          },
+        );
+        tokenService.logAnalysisCompletion(
+          analysisSpeed: _selectedSpeed.name,
+          tokensDeducted: effectiveCost,
+          balanceAfter: tokenService.currentWallet?.balance ?? 0,
+        );
+      }
+
       if (mounted && !_isCancelled) {
         WasteAppLogger.info(
             'Analysis complete, error: navigating to ResultScreen.');
@@ -968,46 +997,47 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                     child: PremiumSegmentationToggle(
                       value: _useSegmentation,
                       onChanged: (bool value) async {
-                      setState(() {
-                        _useSegmentation = value;
-                      });
-                      // Set restoration property safely after state update
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          _useSegmentationRestorable.value = value;
-                        }
-                      });
-                      if (value && _segments.isEmpty) {
-                        // Capture ScaffoldMessenger before async operation
-                        final scaffoldMessenger = ScaffoldMessenger.of(context);
-                        try {
-                          await _runSegmentation();
-                        } catch (e) {
-                          WasteAppLogger.severe('Segmentation failed',
-                              error: e,
-                              context: {
-                                'service': 'screen',
-                                'file': 'image_capture_screen'
-                              });
-                          if (mounted) {
-                            scaffoldMessenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    'Segmentation failed: ${e.toString()}'),
-                                duration: const Duration(seconds: 5),
-                              ),
-                            );
-                            setState(() {
-                              _useSegmentation = false;
-                            });
-                          }
-                        }
-                      } else if (!value) {
                         setState(() {
-                          _segments.clear();
-                          _selectedSegments.clear();
+                          _useSegmentation = value;
                         });
-                      }
+                        // Set restoration property safely after state update
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            _useSegmentationRestorable.value = value;
+                          }
+                        });
+                        if (value && _segments.isEmpty) {
+                          // Capture ScaffoldMessenger before async operation
+                          final scaffoldMessenger =
+                              ScaffoldMessenger.of(context);
+                          try {
+                            await _runSegmentation();
+                          } catch (e) {
+                            WasteAppLogger.severe('Segmentation failed',
+                                error: e,
+                                context: {
+                                  'service': 'screen',
+                                  'file': 'image_capture_screen'
+                                });
+                            if (mounted) {
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Segmentation failed: ${e.toString()}'),
+                                  duration: const Duration(seconds: 5),
+                                ),
+                              );
+                              setState(() {
+                                _useSegmentation = false;
+                              });
+                            }
+                          }
+                        } else if (!value) {
+                          setState(() {
+                            _segments.clear();
+                            _selectedSegments.clear();
+                          });
+                        }
                       },
                     ),
                   ),

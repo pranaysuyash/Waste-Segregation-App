@@ -28,7 +28,7 @@ The application follows a layered architecture with:
 
 ### Key Components
 
-- **AI Service**: Handles image classification using Google's Gemini API
+- **AI Service**: Handles image classification using OpenAI as primary provider with Gemini fallback
 - **Storage Service**: Manages local data using Hive
 - **Google Drive Service**: Provides cloud sync capabilities
 - **Educational Content Service**: Delivers learning materials
@@ -143,7 +143,7 @@ The `CacheStatisticsCard` widget provides real-time visibility into cache perfor
 ### 3. AI Classification Service
 
 #### Overview
-The AI service sends images to Google's Gemini API (with OpenAI fallback) for waste classification.
+The AI service sends images to OpenAI as the primary provider, with Gemini as a fallback for resilience.
 
 #### Key Files
 
@@ -171,7 +171,7 @@ Images are classified into a hierarchical structure:
 
 The service includes:
 - Automatic retries with exponential backoff
-- Fallback to OpenAI when Gemini is unavailable
+- Fallback to Gemini when OpenAI is unavailable
 - Graceful degradation for offline usage via cache
 
 ### 4. Local Storage System
@@ -232,7 +232,7 @@ The app includes a comprehensive gamification system to enhance user engagement.
 - Achievement badges for specific accomplishments
 - Daily streaks with bonuses
 - Weekly challenges
-- Leaderboard (in development)
+- Leaderboard (implemented and extensible)
 
 ## Code Organization
 
@@ -266,9 +266,11 @@ lib/
 
 ### 2. State Management
 
-- Provider is used for state management
+- The app currently uses a mixed model:
+  - Riverpod for newer async/state-notifier flows
+  - Provider/ChangeNotifier for existing service-wired UI flows
 - Avoid direct widget state when possible
-- Use `Consumer` widgets for targeted rebuilds
+- Use targeted rebuild widgets (`Consumer`, `ref.watch`) based on the state system in that module
 
 ### 3. Error Handling
 
@@ -295,12 +297,20 @@ lib/
 
 ### 1. API Integration
 
-The app uses Google's Gemini API via its OpenAI-compatible endpoint with the `gemini-2.0-flash` model. This is implemented in `ai_service.dart`.
+The app uses OpenAI-compatible APIs in `ai_service.dart` with OpenAI models as primary and Gemini as tertiary fallback.
 
 Configuration in `constants.dart`:
 ```dart
-static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
-static const String model = 'gemini-2.0-flash';
+static const String openAiBaseUrl = 'https://api.openai.com/v1';
+static const String primaryModel = String.fromEnvironment(
+  'OPENAI_API_MODEL_PRIMARY',
+  defaultValue: 'gpt-4.1-nano',
+);
+static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
+static const String tertiaryModel = String.fromEnvironment(
+  'GEMINI_API_MODEL',
+  defaultValue: 'gemini-2.0-flash',
+);
 ```
 
 ### 2. Google Drive Integration
@@ -352,28 +362,34 @@ For users who opt in, the app can synchronize classification history to Google D
 
 1. Clone the repository
 2. Run `flutter pub get`
-3. Update API keys in `constants.dart`
-4. Run `flutter pub run build_runner build` to generate code
-5. Use `flutter run` to launch the app
+3. Configure API keys and Firebase values via `--dart-define`/env workflow (do not hardcode keys in source)
+4. Run code generation where needed: `dart run build_runner build`
+5. Use `flutter run` (with required defines) to launch the app
 
 ## Deployment
 
 ### Android
 
 ```bash
-flutter build apk --release
+flutter build apk --release \
+  --dart-define=OPENAI_API_KEY=... \
+  --dart-define=GEMINI_API_KEY=...
 ```
 
 ### iOS
 
 ```bash
-flutter build ios --release
+flutter build ios --release \
+  --dart-define=OPENAI_API_KEY=... \
+  --dart-define=GEMINI_API_KEY=...
 ```
 
 ### Web
 
 ```bash
-flutter build web --release
+flutter build web --release \
+  --dart-define=OPENAI_API_KEY=... \
+  --dart-define=GEMINI_API_KEY=...
 ```
 
 ## Additional Resources
@@ -391,12 +407,25 @@ flutter build web --release
 ## Crash Reporting & Error Handling
 
 - **Crashlytics Integration:**
-  - All errors are reported to Firebase Crashlytics via the centralized `ErrorHandler`.
+  - Fatal framework/platform errors are reported via global handlers configured in `main.dart`.
   - A force crash button is available in the Settings screen (Developer Options) for testing fatal crash reporting.
-  - Non-fatal errors are sent on app startup for verification.
+  - `ErrorHandler` provides app-level error mapping and user feedback; it is not a universal Crashlytics transport by itself.
 - **How to Test:**
   - Use the force crash button in Settings > Developer Options to trigger a fatal crash and verify Crashlytics reporting in the Firebase Console.
   - Check terminal logs for Crashlytics submission messages.
+
+## Testing
+
+- Run focused suites when iterating on a module (providers/services/ui)
+- Run `flutter test` periodically for broad regression visibility
+- For Firestore rules, run emulator-backed tests from `firestore-rules-test/`:
+  - `firebase emulators:exec --only firestore "npm test"`
+- For auth/privacy/security-sensitive changes, run the full baseline runbook:
+  - `docs/security/SECURITY_BASELINE_RUNBOOK.md`
+  - Expected baseline on 2026-05-19:
+    - `functions`: `npm run test:http-guards` -> `6/6` passing
+    - `functions`: `npm run test:http-guards:emulator` -> `2/2` passing
+    - `firestore-rules-test`: `npm run test:emulator` -> `83 passing`
 
 ## Leaderboard Feature
 

@@ -71,9 +71,46 @@ interface DisposalInstructions {
   hasUrgentTimeframe: boolean;
 }
 
+const getBearerToken = (authHeader: string | undefined): string | null => {
+  if (!authHeader) return null;
+  if (!authHeader.startsWith('Bearer ')) return null;
+  const token = authHeader.slice('Bearer '.length).trim();
+  return token.length > 0 ? token : null;
+};
+
+const verifyAdminHttpRequest = async (req: functions.Request): Promise<boolean> => {
+  const token = getBearerToken(req.headers.authorization);
+  if (!token) return false;
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    return decoded.admin === true;
+  } catch {
+    return false;
+  }
+};
+
 export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
   return corsHandler(req, res, async () => {
     try {
+      const requireAuth = (process.env.DISPOSAL_API_REQUIRE_AUTH ?? 'true') === 'true';
+      const allowAnonymous = process.env.ALLOW_ANONYMOUS_DISPOSAL === 'true';
+      if (requireAuth && !allowAnonymous) {
+        const token = getBearerToken(req.headers.authorization);
+        if (!token) {
+          res.status(401).json({
+            error: 'Unauthorized: Bearer token required',
+            hint: 'Set ALLOW_ANONYMOUS_DISPOSAL=true only for controlled environments.'
+          });
+          return;
+        }
+        try {
+          await admin.auth().verifyIdToken(token);
+        } catch {
+          res.status(401).json({ error: 'Unauthorized: invalid token' });
+          return;
+        }
+      }
+
       // Validate request method
       if (req.method !== 'POST') {
         res.status(405).json({ error: 'Method not allowed' });
@@ -276,14 +313,119 @@ export const healthCheck = asiaSouth1.https.onRequest((req, res) => {
 
 // Test endpoint to verify OpenAI configuration
 export const testOpenAI = asiaSouth1.https.onRequest((req, res) => {
-  const apiKey = process.env.OPENAI_API_KEY || functions.config()?.openai?.key;
-  res.json({ 
-    status: 'ok',
-    openaiConfigured: !!apiKey,
-    keySource: process.env.OPENAI_API_KEY ? 'environment' : 'firebase-config',
-    keyLength: apiKey ? apiKey.length : 0,
-    timestamp: new Date().toISOString()
+  const diagnosticsEnabled = process.env.ENABLE_DIAGNOSTIC_ENDPOINTS === 'true'
+    || functions.config()?.safety?.enable_diagnostic_endpoints === 'true';
+  if (!diagnosticsEnabled) {
+    res.status(403).json({ error: 'Diagnostics disabled' });
+    return;
+  }
+
+  verifyAdminHttpRequest(req).then((isAdmin) => {
+    if (!isAdmin) {
+      res.status(403).json({ error: 'Forbidden: admin token required' });
+      return;
+    }
+    const apiKey = process.env.OPENAI_API_KEY || functions.config()?.openai?.key;
+    res.json({
+      status: 'ok',
+      openaiConfigured: !!apiKey,
+      timestamp: new Date().toISOString()
+    });
+  }).catch(() => {
+    res.status(500).json({ error: 'Failed to verify request' });
   });
+});
+
+export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => {
+  if (!context.auth?.uid) {
+    throw new functions.https.HttpsError('unauthenticated', 'Authentication required.');
+  }
+
+  const amount = Number(data?.amount);
+  const description = String(data?.description ?? '').trim();
+  const reference = data?.reference ? String(data.reference) : null;
+  const metadata = (data?.metadata && typeof data.metadata === 'object')
+    ? data.metadata as Record<string, unknown>
+    : {};
+
+  if (!Number.isFinite(amount) || amount <= 0 || !Number.isInteger(amount)) {
+    throw new functions.https.HttpsError('invalid-argument', 'amount must be a positive integer.');
+  }
+  if (!description) {
+    throw new functions.https.HttpsError('invalid-argument', 'description is required.');
+  }
+
+  const uid = context.auth.uid;
+  const db = admin.firestore();
+  const userRef = db.collection('users').doc(uid);
+
+  const result = await db.runTransaction(async (tx) => {
+    const userSnap = await tx.get(userRef);
+    if (!userSnap.exists) {
+      throw new functions.https.HttpsError('not-found', 'User profile not found.');
+    }
+
+    const userData = userSnap.data() ?? {};
+    const walletRaw = (userData.tokenWallet && typeof userData.tokenWallet === 'object')
+      ? userData.tokenWallet as Record<string, unknown>
+      : {};
+
+    const currentBalance = Number(walletRaw.balance ?? 50);
+    const totalEarned = Number(walletRaw.totalEarned ?? 50);
+    const totalSpent = Number(walletRaw.totalSpent ?? 0);
+    const dailyConversionsUsed = Number(walletRaw.dailyConversionsUsed ?? 0);
+    const lastConversionDate = walletRaw.lastConversionDate ?? null;
+
+    if (!Number.isFinite(currentBalance) || currentBalance < amount) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        `Insufficient tokens. Need ${amount}, have ${Number.isFinite(currentBalance) ? currentBalance : 0}.`
+      );
+    }
+
+    const nowIso = new Date().toISOString();
+    const nextWallet = {
+      balance: currentBalance - amount,
+      totalEarned,
+      totalSpent: totalSpent + amount,
+      lastUpdated: nowIso,
+      dailyConversionsUsed,
+      lastConversionDate,
+    };
+
+    const txId = db.collection('_tmp').doc().id;
+    const transaction = {
+      id: txId,
+      delta: -amount,
+      type: 'TokenTransactionType.spend',
+      timestamp: nowIso,
+      description,
+      reference,
+      metadata,
+    };
+
+    const currentTransactions = Array.isArray(userData.tokenTransactions)
+      ? userData.tokenTransactions as unknown[]
+      : [];
+    const updatedTransactions = [transaction, ...currentTransactions].slice(0, 200);
+
+    tx.update(userRef, {
+      tokenWallet: nextWallet,
+      tokenTransactions: updatedTransactions,
+      lastActive: nowIso,
+    });
+
+    return {
+      wallet: nextWallet,
+      transaction,
+    };
+  });
+
+  return {
+    success: true,
+    wallet: result.wallet,
+    transaction: result.transaction,
+  };
 });
 
 // FIXED: Clear all data function that properly awaits all deletions

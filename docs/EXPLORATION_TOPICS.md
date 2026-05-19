@@ -8,6 +8,43 @@
 - [EXPLORATION_ROADMAP_WHILE_BUILDING.md](EXPLORATION_ROADMAP_WHILE_BUILDING.md) — what to explore in parallel with shipping
 - [exploration/](exploration/) — per-topic detailed exploration docs
 - [exploration/backlog.md](exploration/backlog.md) — raw, append-only idea backlog
+- [exploration/ARCHIVE.md](exploration/ARCHIVE.md) — `[KILLED]` and `[✓]` topics moved out of the active index
+- [brainstorm_exploration_map_2026-05-19.md](brainstorm_exploration_map_2026-05-19.md) — wide-open-brainstorm pressure test of this map
+
+---
+
+## Existing Artefacts This Map Builds On
+
+This index is **not Year Zero**. It augments and indexes (does not replace) a substantial body of prior ideation and planning. Anyone working with this map should treat the following as primary source material:
+
+**Planning / roadmap stack** (what we plan to build):
+- [planning/ideas_to_explore.md](planning/ideas_to_explore.md) — long-running ideation capture (Technical / UX / Business)
+- [planning/STRATEGIC_ROADMAP_COMPREHENSIVE.md](planning/STRATEGIC_ROADMAP_COMPREHENSIVE.md) — strategic feature vision
+- [planning/CONSOLIDATED_FUNCTIONAL_IMPROVEMENTS_ROADMAP.md](planning/CONSOLIDATED_FUNCTIONAL_IMPROVEMENTS_ROADMAP.md)
+- [planning/INTEGRATED_DEVELOPMENT_ROADMAP.md](planning/INTEGRATED_DEVELOPMENT_ROADMAP.md)
+- [planning/unified_project_roadmap.md](planning/roadmap/unified_project_roadmap.md)
+- [planning/REMAINING_ROADMAP_ITEMS.md](planning/REMAINING_ROADMAP_ITEMS.md)
+- [planning/roadmap/innovative_features_roadmap.md](planning/roadmap/innovative_features_roadmap.md)
+- [planning/roadmap/DISPOSAL_INSTRUCTIONS_ROADMAP.md](planning/roadmap/DISPOSAL_INSTRUCTIONS_ROADMAP.md)
+- [design/UI_ROADMAP_COMPREHENSIVE.md](design/UI_ROADMAP_COMPREHENSIVE.md)
+
+**Active work in flight (2026-05-19)**:
+- [../TOKEN_ECONOMY_TODO.md](../TOKEN_ECONOMY_TODO.md) — active token economy execution list
+- [brainstorm_strategist_2026-05-19.md](brainstorm_strategist_2026-05-19.md)
+- [brainstorm_champion_2026-05-19.md](brainstorm_champion_2026-05-19.md)
+- [brainstorm_operator_2026-05-19.md](brainstorm_operator_2026-05-19.md)
+- [brainstorm_cartographer_2026-05-19.md](brainstorm_cartographer_2026-05-19.md)
+- [brainstorm_skeptic_2026-05-19.md](brainstorm_skeptic_2026-05-19.md)
+- [brainstorm_trickster_2026-05-19.md](brainstorm_trickster_2026-05-19.md)
+- [brainstorm_executioner_2026-05-19.md](brainstorm_executioner_2026-05-19.md)
+- [brainstorm_future_self_2026-05-19.md](brainstorm_future_self_2026-05-19.md)
+- [brainstorm_synthesis_2026-05-19.md](brainstorm_synthesis_2026-05-19.md)
+- [ai_service_refactor_motto_v2_2026-05-19.md](ai_service_refactor_motto_v2_2026-05-19.md)
+
+**TODO / engineering surface**:
+- [TODO/](TODO/), [code_todos_grep_results.txt](code_todos_grep_results.txt), [todo_grep_results.txt](todo_grep_results.txt)
+
+If you see drift between this index and any of the above, **the source artefact wins**. Update this index, don't fork it.
 
 ---
 
@@ -71,10 +108,11 @@
 │  └── Moderation & Safety          [🔴]        └── Hardware Partners     [🟢] │
 │                                                                               │
 │  BUSINESS & GROWTH                            COMPLIANCE & TRUST              │
-│  ├── Monetization & Pricing Tiers [🟡]        ├── Privacy / Photo PII   [🔴] │
-│  ├── B2B / Enterprise Wedge       [🟢]        ├── Regional Regulations  [🟡] │
-│  ├── Carbon / Impact Accounting   [🟡]        ├── Content Provenance    [🟢] │
-│  └── Distribution & Partnerships  [🟢]        └── Audit / Telemetry     [🟡] │
+│  ├── Token Economy & Pricing      [🔴]        ├── Privacy / Photo PII   [🔴] │
+│  ├── Monetization & Pricing Tiers [🟡]        ├── Regional Regulations  [🟡] │
+│  ├── B2B / Enterprise Wedge       [🟢]        ├── Content Provenance    [🟢] │
+│  ├── Carbon / Impact Accounting   [🟡]        └── Audit / Telemetry     [🟡] │
+│  └── Distribution & Partnerships  [🟢]                                       │
 │                                                                               │
 │  PIPELINE EVOLUTION                                                           │
 │  ├── Capture → Classify → Educate → Dispose → Reward loop                    │
@@ -89,6 +127,67 @@ Legend:
 [🟢] = Low priority — frontier bet, not yet load-bearing
 [ ]  = Not started     [✓] = Completed     [KILLED] = Dropped with rationale
 ```
+
+---
+
+## Dependency View — What Blocks What
+
+The category map above is for **browsing**. This view is for **sequencing**. Don't open a downstream exploration before its upstream is at least sketched.
+
+```diagram
+                       ╭──────────────────────────╮
+                       │  Eval Harness &          │
+                       │  Golden Sets        [🔴] │  ← upstream of all AI work
+                       ╰────────────┬─────────────╯
+                                    │
+            ╭───────────────────────┼────────────────────────╮
+            ▼                       ▼                        ▼
+  ╭──────────────────╮   ╭──────────────────────╮   ╭──────────────────────╮
+  │ Classification   │   │ Multi-Model AI       │   │ Disposal Reasoning   │
+  │ Confidence  [🟡] │   │ Routing         [🔴] │   │ Stage           [🟡] │
+  ╰────────┬─────────╯   ╰──────────┬───────────╯   ╰──────────┬───────────╯
+           │                        │                          │
+           │                        ▼                          ▼
+           │            ╭──────────────────────╮   ╭──────────────────────╮
+           │            │ On-Device Inference  │   │ Region-Aware         │
+           │            │ + Model Cascades[🔴] │   │ Rulesets        [🔴] │
+           │            ╰──────────┬───────────╯   ╰──────────┬───────────╯
+           │                       │                          │
+           └───────────────────────┼──────────────────────────┤
+                                   ▼                          ▼
+                       ╭──────────────────────────────────────────────╮
+                       │  AI Cost Telemetry & Guardrails        [🔴] │
+                       │  (informed by all of the above)              │
+                       ╰──────────────────────────────────────────────╯
+
+  ╭──────────────────────╮   ╭──────────────────────╮   ╭──────────────────────╮
+  │ Classification       │──▶│ Continuous Learning  │──▶│ Active Learning &   │
+  │ History Schema  [🟡] │   │ Loop (F3)            │   │ Hard-Example Mining │
+  │ (the dataset = moat) │   │                      │   │                      │
+  ╰──────────────────────╯   ╰──────────────────────╯   ╰──────────────────────╯
+
+  ╭──────────────────────╮   ╭──────────────────────╮   ╭──────────────────────╮
+  │ Privacy / Photo PII  │──▶│ Data Retention & PII │──▶│ Regional Regulations │
+  │ [🔴]                 │   │ Strategy        [🔴] │   │                 [🟡] │
+  ╰──────────────────────╯   ╰──────────────────────╯   ╰──────────────────────╯
+
+  ╭──────────────────────╮   ╭──────────────────────╮   ╭──────────────────────╮
+  │ Token Economy &      │──▶│ Monetization &       │──▶│ AI Cost Telemetry    │
+  │ Pricing Coherence    │   │ Pricing Tiers   [🟡] │   │ & Guardrails    [🔴] │
+  │ [🔴] (in flight)     │   │                      │   │                      │
+  ╰──────────────────────╯   ╰──────────────────────╯   ╰──────────────────────╯
+
+  ╭──────────────────────╮   ╭──────────────────────╮   ╭──────────────────────╮
+  │ Smart-Bin QR Layer   │──▶│ Municipal APIs       │──▶│ Carbon / Impact      │
+  │ (F5)            [🟢] │   │ (BBMP, etc.)    [🟡] │   │ Accounting      [🟡] │
+  ╰──────────────────────╯   ╰──────────────────────╯   ╰──────────────────────╯
+```
+
+Reading rules:
+
+- Arrows mean **research dependency**, not strict implementation order. You can sketch downstream while upstream is open, but don't *decide* downstream until upstream has an answer.
+- **Eval Harness** is the single most leveraged upstream — without it, no AI-stack change can be trusted. Treat as P0.
+- **Classification History Schema** sits in the centre of the data-flywheel chain — see entry 12 for the reframing.
 
 ---
 
@@ -306,21 +405,31 @@ Legend:
 
 ---
 
-### 12. Classification History Schema 🟡
+### 12. Classification History Schema — *The Dataset Is the Moat* 🟡
 
-**Status**: Stored via `classification_storage_service.dart`, `classification_migration_service.dart`. Schema evolution path under-documented.
+**Status**: Stored via `classification_storage_service.dart`, `classification_migration_service.dart`. Schema evolution path under-documented. **Currently mis-framed as a data-engineering cost; should be framed as the project's primary defensible asset.**
 
-**Overview**: Classification history is the single most valuable user-owned artefact. Today the schema is implicit. We need an explicit contract for migrations, exports, and downstream analytics.
+**Reframing (from brainstorm pressure test, 2026-05-19)**: Every cloud-AI competitor will get to the same model quality we get to. The thing they can't replicate is a labelled, regionally-grounded waste-classification dataset built from real user corrections over years. That dataset lives in this schema. **Treat schema choices as moat choices, not migration choices.**
+
+**Overview**: Classification history is the single most valuable user-owned artefact *and* the project's strongest long-term competitive position. Today the schema is implicit. We need an explicit contract for migrations, exports, downstream analytics, **and training-readiness**.
 
 **Key questions**:
 
 - Versioned schema with explicit migration steps.
 - User-export contract (CSV / JSON / open formats) — relevant to GDPR-style asks.
+- **Training-readiness fields**: what provenance, labels, corrections, region, model-version, prompt-version metadata must each record carry so it's directly usable for fine-tuning or eval-set growth without expensive re-derivation later?
 - Anonymisation strategy if records feed model training.
+- Consent posture that allows this asset to compound (opt-in defaults vs explicit-consent gates).
 
-**Deliverable**: `docs/exploration/CLASSIFICATION_HISTORY_SCHEMA.md`.
+**Asset framing — what we're building, not just what we're storing**:
 
-**Related**: Data Retention & PII, Offline Queue & Sync.
+- The labelled dataset (image × label × correction × region × disposal-outcome) is the input to F3 (Continuous Learning Loop) and F8 (Brand / Manufacturer Closed-Loop Data).
+- Schema decisions today (do we keep the original image? at what resolution? do we record the *correction chain*, not just the latest label?) determine whether the asset compounds or has to be rebuilt.
+- This is upstream of On-Device Inference (training data for distilled models) and Continuous Learning (label source).
+
+**Deliverable**: `docs/exploration/CLASSIFICATION_HISTORY_SCHEMA.md` — explicitly framed as a dataset/moat doc, not just a migration doc.
+
+**Related**: Data Retention & PII (consent posture), Offline Queue & Sync, Eval Harness (downstream consumer), Continuous Learning (downstream consumer), F8 Brand / Manufacturer Data (downstream consumer).
 
 ---
 
@@ -576,6 +685,46 @@ Legend:
 ---
 
 ## BUSINESS & GROWTH
+
+### 27a. Token Economy & Pricing Coherence 🔴 [IN FLIGHT — 2026-05-19]
+
+**Status**: **Active research and execution today.** Multi-role brainstorm produced 9 perspective docs (`brainstorm_*_2026-05-19.md`) plus a [synthesis](brainstorm_synthesis_2026-05-19.md). Execution surface in [../TOKEN_ECONOMY_TODO.md](../TOKEN_ECONOMY_TODO.md). This topic was added to the exploration index on 2026-05-19 after a pressure test showed the map omitting the work actually in flight.
+
+**Overview** (from [Cartographer brainstorm](brainstorm_cartographer_2026-05-19.md)): The current token economy has three disconnected territories — Instant Analysis (labelled "5 tokens" but actually charges 0), Batch Analysis (labelled "1 token", actually charges 1), and Premium (no visible connection to tokens). Users see a price tag that contradicts the receipt. The brain resolves the contradiction by ignoring the sign.
+
+**Key questions** (drawn from the 2026-05-19 brainstorm set):
+
+- **Coherence**: what does a token *mean*, end-to-end, across capture → classify → result → history → premium → settings? One unit, one meaning, one visible balance, one consistent ledger.
+- **Pricing reality vs labelling**: where do labels lie about cost? Where does the receipt match? The "5 tokens, charge 0" contradiction is the canonical bug.
+- **Premium ↔ token economy bridge**: is premium "more tokens", "no tokens", "different tokens", or a separate axis entirely? Today it's a separate universe.
+- **Balance visibility**: when should a user see their token balance, before vs after action?
+- **Abuse / fairness**: anonymous-user economics, free-tier sustainability, what stops a single user from draining the AI cost budget.
+- **Cross-link to AI Cost Telemetry**: the token model is the user-facing layer over real provider cost — see entry 10.
+
+**Asset framing**: token economy clarity is upstream of monetization decisions (entry 28), brand trust, and the credibility of every "premium" surface. It is also the user-visible expression of [AI Cost Telemetry & Guardrails](#10-ai-cost-telemetry--guardrails-) — these two topics must agree on the same conceptual ledger.
+
+**Deliverable**: a coherent token-economy decision doc that resolves the three-territory contradiction. Likely path:
+
+1. Synthesis already exists at [brainstorm_synthesis_2026-05-19.md](brainstorm_synthesis_2026-05-19.md) — promote relevant conclusions into a permanent `docs/exploration/TOKEN_ECONOMY_AND_PRICING_COHERENCE.md`.
+2. That doc must reference [../TOKEN_ECONOMY_TODO.md](../TOKEN_ECONOMY_TODO.md) as the live execution checklist, and update it as decisions land.
+
+**Related**: Monetization & Pricing Tiers (entry 28, downstream), AI Cost Telemetry & Guardrails (entry 10, sibling layer), Onboarding & Activation (entry 19 — first-token UX is part of activation), Audit / Telemetry (entry 35 — token ledger is part of the audit surface).
+
+**Source artefacts (must not be forked)**:
+
+- [brainstorm_strategist_2026-05-19.md](brainstorm_strategist_2026-05-19.md)
+- [brainstorm_champion_2026-05-19.md](brainstorm_champion_2026-05-19.md)
+- [brainstorm_operator_2026-05-19.md](brainstorm_operator_2026-05-19.md)
+- [brainstorm_cartographer_2026-05-19.md](brainstorm_cartographer_2026-05-19.md)
+- [brainstorm_skeptic_2026-05-19.md](brainstorm_skeptic_2026-05-19.md)
+- [brainstorm_trickster_2026-05-19.md](brainstorm_trickster_2026-05-19.md)
+- [brainstorm_executioner_2026-05-19.md](brainstorm_executioner_2026-05-19.md)
+- [brainstorm_future_self_2026-05-19.md](brainstorm_future_self_2026-05-19.md)
+- [brainstorm_synthesis_2026-05-19.md](brainstorm_synthesis_2026-05-19.md)
+- [../TOKEN_ECONOMY_TODO.md](../TOKEN_ECONOMY_TODO.md)
+- [ai_service_refactor_motto_v2_2026-05-19.md](ai_service_refactor_motto_v2_2026-05-19.md) (related refactor of the cost-bearing AI surface)
+
+---
 
 ### 28. Monetization & Pricing Tiers 🟡
 

@@ -10,18 +10,35 @@ class PremiumService extends ChangeNotifier {
     initialize();
   }
   static const String _premiumBoxName = 'premium_features';
+  static const String proSubscriptionEntitlement = 'pro_subscription';
+  static const String legacyPremiumSignal = 'remove_ads';
+  static const bool _enableDebugAutoSeed =
+      bool.fromEnvironment('PREMIUM_DEBUG_AUTO_SEED', defaultValue: false);
   Box<bool>? _premiumBox;
   bool _isInitialized = false;
   bool _isInitializing = false;
+  Future<void>? _initializationFuture;
 
   bool get isInitialized => _isInitialized;
 
   Future<void> initialize() async {
     // Prevent multiple simultaneous initialization attempts
-    if (_isInitialized || _isInitializing) return;
+    if (_isInitialized) return;
+    if (_isInitializing) {
+      await _initializationFuture;
+      return;
+    }
 
     _isInitializing = true;
+    _initializationFuture = _doInitialize();
+    try {
+      await _initializationFuture;
+    } finally {
+      _isInitializing = false;
+    }
+  }
 
+  Future<void> _doInitialize() async {
     try {
       // Check if the box is already open
       if (Hive.isBoxOpen(_premiumBoxName)) {
@@ -30,10 +47,10 @@ class PremiumService extends ChangeNotifier {
         _premiumBox = await Hive.openBox<bool>(_premiumBoxName);
       }
       _isInitialized = true;
+      _migrateLegacyPremiumSignal();
 
-      // Add test features in debug mode for easy testing
-      if (kDebugMode) {
-        // Initialize with test values for development
+      // Opt-in only: do not implicitly grant premium in debug/test runs.
+      if (kDebugMode && _enableDebugAutoSeed) {
         _initTestFeatures();
       }
 
@@ -61,8 +78,6 @@ class PremiumService extends ChangeNotifier {
               'action': 'continue_without_premium_features'
             });
       }
-    } finally {
-      _isInitializing = false;
     }
   }
 
@@ -72,11 +87,26 @@ class PremiumService extends ChangeNotifier {
     return _premiumBox!.get(featureId) ?? false;
   }
 
+  /// Canonical premium-plan entitlement for pricing and plan-level behavior.
+  /// Falls back to legacy signal for backward compatibility with old data.
+  bool hasActivePremiumPlan() {
+    if (_premiumBox == null) return false;
+    return (_premiumBox!.get(proSubscriptionEntitlement) ?? false) ||
+        (_premiumBox!.get(legacyPremiumSignal) ?? false);
+  }
+
   Future<void> setPremiumFeature(String featureId, bool isPremium) async {
     if (!_isInitialized) await initialize();
     if (_premiumBox == null) return;
+    if (!_isKnownFeature(featureId)) return;
 
     await _premiumBox!.put(featureId, isPremium);
+
+    // Keep canonical entitlement in sync when legacy signal is toggled on.
+    if (featureId == legacyPremiumSignal && isPremium) {
+      await _premiumBox!.put(proSubscriptionEntitlement, true);
+    }
+
     notifyListeners();
   }
 
@@ -116,8 +146,17 @@ class PremiumService extends ChangeNotifier {
   void _initTestFeatures() {
     // Enable one premium feature for testing
     if (_premiumBox != null && _premiumBox!.isEmpty) {
-      // Add the "remove ads" feature for testing
-      _premiumBox!.put('remove_ads', true);
+      _premiumBox!.put(proSubscriptionEntitlement, true);
+      _premiumBox!.put(legacyPremiumSignal, true);
+    }
+  }
+
+  void _migrateLegacyPremiumSignal() {
+    if (_premiumBox == null) return;
+    final hasPlan = _premiumBox!.get(proSubscriptionEntitlement) ?? false;
+    final hasLegacy = _premiumBox!.get(legacyPremiumSignal) ?? false;
+    if (!hasPlan && hasLegacy) {
+      _premiumBox!.put(proSubscriptionEntitlement, true);
     }
   }
 
@@ -125,9 +164,16 @@ class PremiumService extends ChangeNotifier {
   Future<void> toggleFeature(String featureId) async {
     if (!_isInitialized) await initialize();
     if (_premiumBox == null) return;
+    if (!_isKnownFeature(featureId)) return;
 
     final currentValue = _premiumBox!.get(featureId) ?? false;
     await _premiumBox!.put(featureId, !currentValue);
     notifyListeners();
+  }
+
+  bool _isKnownFeature(String featureId) {
+    return PremiumFeature.features.any((feature) => feature.id == featureId) ||
+        featureId == proSubscriptionEntitlement ||
+        featureId == legacyPremiumSignal;
   }
 }

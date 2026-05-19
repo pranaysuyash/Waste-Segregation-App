@@ -252,24 +252,31 @@ class StatsCard extends StatelessWidget {
     return ModernCard(
       onTap: onTap,
       padding: const EdgeInsets.all(AppTheme.spacingMd),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Container(
-              padding: const EdgeInsets.all(AppTheme.spacingSm),
-              decoration: BoxDecoration(
-                color: effectiveColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
-              ),
-              child: Icon(
-                icon,
-                color: effectiveColor,
-                size: AppTheme.iconSizeLg,
-              ),
-            ),
-            const SizedBox(width: AppTheme.spacingMd),
-          ],
-          Expanded(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 120;
+          final iconPad = compact ? AppTheme.spacingXs : AppTheme.spacingSm;
+          final iconSize = compact ? AppTheme.iconSizeSm : AppTheme.iconSizeLg;
+          final gap = compact ? AppTheme.spacingXs : AppTheme.spacingMd;
+
+          return Row(
+            children: [
+              if (icon != null) ...[
+                Container(
+                  padding: EdgeInsets.all(iconPad),
+                  decoration: BoxDecoration(
+                    color: effectiveColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: effectiveColor,
+                    size: iconSize,
+                  ),
+                ),
+                SizedBox(width: gap),
+              ],
+              Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -304,11 +311,13 @@ class StatsCard extends StatelessWidget {
               ],
             ),
           ),
-          if (trend != null) ...[
+          if (trend != null && !compact) ...[
             const SizedBox(width: 8),
             _TrendIcon(trend: trend!, isPositive: isPositiveTrend),
           ],
-        ],
+            ],
+          );
+        },
       ),
     );
   }

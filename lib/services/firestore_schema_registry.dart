@@ -51,8 +51,6 @@ class FirestoreCollections {
 
   // --- AI & Token collections ---
   static const String aiJobs = 'ai_jobs';
-  static const String tokenWallets = 'token_wallets';
-  static const String tokenTransactions = 'token_transactions';
 
   // --- Analytics ---
   static const String analyticsEvents = 'analytics_events';
@@ -85,8 +83,6 @@ class FirestoreCollections {
     familyStats,
     classificationFeedback,
     aiJobs,
-    tokenWallets,
-    tokenTransactions,
     analyticsEvents,
     adminClassifications,
     adminUserRecovery,

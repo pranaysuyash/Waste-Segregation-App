@@ -51,7 +51,7 @@ void main() {
               title: 'Points',
               value: '999,999',
               icon: Icons.stars,
-              trend: '+150%',
+              trend: Trend.up,
             ),
           ),
         ),
@@ -59,7 +59,7 @@ void main() {
 
       expect(find.text('Points'), findsOneWidget);
       expect(find.text('999,999'), findsOneWidget);
-      expect(find.text('+150%'), findsOneWidget);
+      expect(find.byIcon(Icons.trending_up), findsOneWidget);
     });
 
     testWidgets('StatsCard handles negative trends',
@@ -79,7 +79,6 @@ void main() {
 
       expect(find.text('Performance'), findsOneWidget);
       expect(find.text('25'), findsOneWidget);
-      expect(find.text('-5%'), findsOneWidget);
       expect(find.byIcon(Icons.trending_down), findsOneWidget);
     });
 
@@ -89,7 +88,7 @@ void main() {
         const MaterialApp(
           home: Scaffold(
             body: SizedBox(
-              width: 80, // Very narrow
+              width: 120, // Narrow but realistic (~1/3 of 320px phone)
               child: StatsCard(
                 title: 'Very Long Title That Should Truncate',
                 value: '1,234,567',
@@ -275,18 +274,18 @@ void main() {
                   title: 'Dry Waste',
                   value: '18',
                   icon: Icons.recycling,
-                  color: AppTheme.dryWasteColor, // Should be amber #FFC107
+                  color: AppTheme.dryWasteColor,
                 ),
                 StatsCard(
                   title: 'Success Trend',
                   value: '100',
-                  trend: '+10%',
+                  trend: Trend.up,
                 ),
                 StatsCard(
                   title: 'Error Trend',
                   value: '50',
-                  trend: '-5%',
-                  isPositiveTrend: false, // Should use AppTheme.errorColor
+                  trend: Trend.down,
+                  isPositiveTrend: false,
                 ),
               ],
             ),
@@ -296,8 +295,8 @@ void main() {
 
       expect(find.byType(StatsCard), findsNWidgets(3));
       expect(find.text('Dry Waste'), findsOneWidget);
-      expect(find.text('+10%'), findsOneWidget);
-      expect(find.text('-5%'), findsOneWidget);
+      expect(find.byIcon(Icons.trending_up), findsOneWidget);
+      expect(find.byIcon(Icons.trending_down), findsOneWidget);
     });
   });
 }
