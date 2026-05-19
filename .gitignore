@@ -128,9 +128,8 @@ waste_app_logs_*.jsonl
 test_output.txt
 debug_output.txt
 
-# Test screenshots
-android_live*.png
-waste_verify_*.png
+# Test screenshots (agent-generated debugging artifacts at project root)
+/*.png
 cachebox.hive
 *.hive
 

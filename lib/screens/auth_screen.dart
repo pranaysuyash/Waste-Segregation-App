@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/google_drive_service.dart';
 import '../utils/constants.dart';
 import '../widgets/navigation_wrapper.dart';
-import '../widgets/global_menu_wrapper.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -45,9 +44,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (user != null && mounted) {
         await navigator.pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const GlobalMenuWrapper(
-              child: MainNavigationWrapper(),
-            ),
+            builder: (context) => const MainNavigationWrapper(),
           ),
         );
       }
@@ -69,9 +66,7 @@ class _AuthScreenState extends State<AuthScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => const GlobalMenuWrapper(
-          child: MainNavigationWrapper(isGuestMode: true),
-        ),
+        builder: (context) => const MainNavigationWrapper(isGuestMode: true),
       ),
     );
   }
@@ -104,171 +99,173 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                // App logo
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: const Icon(
-                    Icons.restore_from_trash,
-                    size: 80,
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
-
-                const SizedBox(height: AppTheme.paddingLarge),
-
-                // App title
-                const Text(
-                  AppStrings.appName,
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-
-                const SizedBox(height: AppTheme.paddingSmall),
-
-                // Community message
-                const Text(
-                  'Join the Eco-Warriors Community',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: AppTheme.paddingSmall),
-
-                // App description
-                const Text(
-                  AppStrings.welcomeMessage,
-                  style: TextStyle(
-                    fontSize: AppTheme.fontSizeMedium,
-                    color: Colors.white70,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: AppTheme.paddingLarge),
-
-                // Impact statistics cards
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildImpactCard(
-                        '50K+',
-                        'Items Classified',
-                        Icons.recycling,
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.paddingSmall),
-                    Expanded(
-                      child: _buildImpactCard(
-                        '2.5T',
-                        'CO₂ Saved',
-                        Icons.eco,
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.paddingSmall),
-                    Expanded(
-                      child: _buildImpactCard(
-                        '10K+',
-                        'Eco-Warriors',
-                        Icons.people,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Web platform warning
-                if (kIsWeb) ...[
-                  const SizedBox(height: AppTheme.paddingRegular),
-                  Container(
-                    padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.2),
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.borderRadiusRegular),
-                      border:
-                          Border.all(color: Colors.red.withValues(alpha: 0.5)),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.warning_amber_rounded,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: AppTheme.paddingSmall),
-                        Expanded(
-                          child: Text(
-                            'Web version has limited functionality. For full features, please use the mobile app.',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: AppTheme.fontSizeSmall,
-                            ),
+                        // App logo
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: const Icon(
+                            Icons.restore_from_trash,
+                            size: 80,
+                            color: AppTheme.primaryColor,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ],
 
-                const SizedBox(height: AppTheme.paddingExtraLarge),
+                        const SizedBox(height: AppTheme.paddingLarge),
 
-                // Google Sign-in card (disabled on web)
-                _buildAuthCard(
-                  onPressed: (kIsWeb || _isLoading)
-                      ? null
-                      : () => _signInWithGoogle(context),
-                  icon: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.0,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppTheme.primaryColor,
+                        // App title
+                        const Text(
+                          AppStrings.appName,
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+
+                        const SizedBox(height: AppTheme.paddingSmall),
+
+                        // Community message
+                        const Text(
+                          'Join the Eco-Warriors Community',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+
+                        const SizedBox(height: AppTheme.paddingSmall),
+
+                        // App description
+                        const Text(
+                          AppStrings.welcomeMessage,
+                          style: TextStyle(
+                            fontSize: AppTheme.fontSizeMedium,
+                            color: Colors.white70,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+
+                        const SizedBox(height: AppTheme.paddingLarge),
+
+                        // Impact statistics cards
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildImpactCard(
+                                '50K+',
+                                'Items Classified',
+                                Icons.recycling,
+                              ),
+                            ),
+                            const SizedBox(width: AppTheme.paddingSmall),
+                            Expanded(
+                              child: _buildImpactCard(
+                                '2.5T',
+                                'CO₂ Saved',
+                                Icons.eco,
+                              ),
+                            ),
+                            const SizedBox(width: AppTheme.paddingSmall),
+                            Expanded(
+                              child: _buildImpactCard(
+                                '10K+',
+                                'Eco-Warriors',
+                                Icons.people,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Web platform warning
+                        if (kIsWeb) ...[
+                          const SizedBox(height: AppTheme.paddingRegular),
+                          Container(
+                            padding:
+                                const EdgeInsets.all(AppTheme.paddingRegular),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(
+                                  AppTheme.borderRadiusRegular),
+                              border: Border.all(
+                                  color: Colors.red.withValues(alpha: 0.5)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: AppTheme.paddingSmall),
+                                Expanded(
+                                  child: Text(
+                                    'Web version has limited functionality. For full features, please use the mobile app.',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: AppTheme.fontSizeSmall,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        )
-                      : const Icon(
-                          Icons.g_mobiledata,
-                          size: 24,
-                          color: Colors.blue,
+                        ],
+
+                        const SizedBox(height: AppTheme.paddingExtraLarge),
+
+                        // Google Sign-in card (disabled on web)
+                        _buildAuthCard(
+                          onPressed: (kIsWeb || _isLoading)
+                              ? null
+                              : () => _signInWithGoogle(context),
+                          icon: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.g_mobiledata,
+                                  size: 24,
+                                  color: Colors.blue,
+                                ),
+                          title: kIsWeb
+                              ? 'Sign In Unavailable on Web'
+                              : AppStrings.signInWithGoogle,
+                          subtitle: 'Sync your progress across devices',
+                          backgroundColor: Colors.white,
+                          textColor: Colors.black87,
                         ),
-                  title: kIsWeb
-                      ? 'Sign In Unavailable on Web'
-                      : AppStrings.signInWithGoogle,
-                  subtitle: 'Sync your progress across devices',
-                  backgroundColor: Colors.white,
-                  textColor: Colors.black87,
-                ),
 
-                const SizedBox(height: AppTheme.paddingRegular),
+                        const SizedBox(height: AppTheme.paddingRegular),
 
-                // Guest mode card
-                _buildAuthCard(
-                  onPressed:
-                      _isLoading ? null : () => _continueAsGuest(context),
-                  icon: const Icon(
-                    Icons.person_outline,
-                    size: 24,
-                    color: Colors.white,
-                  ),
-                  title: AppStrings.continueAsGuest,
-                  subtitle: 'Try the app without signing in',
-                  backgroundColor: Colors.transparent,
-                  textColor: Colors.white,
-                  borderColor: Colors.white,
-                ),
+                        // Guest mode card
+                        _buildAuthCard(
+                          onPressed: _isLoading
+                              ? null
+                              : () => _continueAsGuest(context),
+                          icon: const Icon(
+                            Icons.person_outline,
+                            size: 24,
+                            color: Colors.white,
+                          ),
+                          title: AppStrings.continueAsGuest,
+                          subtitle: 'Try the app without signing in',
+                          backgroundColor: Colors.transparent,
+                          textColor: Colors.white,
+                          borderColor: Colors.white,
+                        ),
                       ],
                     ),
                   ),

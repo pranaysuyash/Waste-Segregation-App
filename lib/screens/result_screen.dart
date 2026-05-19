@@ -767,15 +767,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       await pipeline.saveClassificationOnly(widget.classification);
       _triggerHapticFeedback();
 
-      // Track user action (Legacy parity)
-      await _analyticsService.trackUserAction(
-        'classification_save',
-        parameters: {
-          'category': widget.classification.category,
-          'item': widget.classification.itemName,
-        },
-      );
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -800,15 +791,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
       await pipeline.shareClassification(widget.classification);
-
-      // Track user action (Legacy parity)
-      await _analyticsService.trackUserAction(
-        'classification_share',
-        parameters: {
-          'category': widget.classification.category,
-          'item': widget.classification.itemName,
-        },
-      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

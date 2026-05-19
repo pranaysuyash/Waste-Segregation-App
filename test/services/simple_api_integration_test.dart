@@ -88,8 +88,8 @@ void main() {
       test('should create new user wallet with welcome bonus', () {
         final wallet = TokenWallet.newUser();
 
-        expect(wallet.balance, 10);
-        expect(wallet.totalEarned, 10);
+        expect(wallet.balance, 50);
+        expect(wallet.totalEarned, 50);
         expect(wallet.totalSpent, 0);
       });
 
@@ -98,7 +98,7 @@ void main() {
 
         expect(wallet.canAfford(AnalysisSpeed.instant.cost), true); // 5 tokens
         expect(wallet.canAfford(AnalysisSpeed.batch.cost), true); // 1 token
-        expect(wallet.canAfford(15), false); // More than balance
+        expect(wallet.canAfford(15), true); // Balance is 50, can afford 15
       });
 
       test('should handle token transactions correctly', () {

@@ -31,7 +31,7 @@ void main() {
     test('should create fallback classification', () {
       final classification = WasteClassification.fallback('/path/to/image.jpg');
 
-      expect(classification.itemName, 'Unidentified Item');
+      expect(classification.itemName, 'Unidentified Item - Fallback');
       expect(classification.category, 'Requires Manual Review');
       expect(classification.subcategory, 'Classification Needed');
       expect(classification.explanation,

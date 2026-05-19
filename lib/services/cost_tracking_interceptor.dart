@@ -148,11 +148,14 @@ class CostTrackingInterceptor extends Interceptor {
     if (serviceHeader != null) return serviceHeader;
 
     // Extract from URL
+    // NOTE: firebase/firestore must be checked before googleapis.com
+    // because firestore.googleapis.com also contains 'googleapis.com'
     final uri = options.uri;
     if (uri.host.contains('openai.com')) return 'openai';
+    if (uri.host.contains('firebase') || uri.host.contains('firestore')) {
+      return 'firebase';
+    }
     if (uri.host.contains('googleapis.com')) return 'gemini';
-    if (uri.host.contains('firebase')) return 'firebase';
-    if (uri.host.contains('firestore')) return 'firebase';
 
     // Check path for service indicators
     if (options.path.contains('/openai/')) return 'openai';

@@ -785,19 +785,21 @@ Output:
           provider: 'openai',
           model: ApiConfig.primaryModel,
         );
+        final contextAwareCacheKey = buildContextualCacheKey(
+          imageHash: imageHash,
+          region: analysisRegion,
+          language: analysisLang,
+          provider: 'openai',
+          model: ApiConfig.primaryModel,
+        );
         final cachedResult = await cacheService.getCachedClassification(
-          imageHash,
+          contextAwareCacheKey,
           contentHash: contextAwareContentHash,
         );
         if (cachedResult != null) {
-          WasteAppLogger.cacheEvent('cache_operation', 'classification',
-              context: {'service': 'ai', 'file': 'ai_service'});
           return Future.value(cachedResult.classification
               .copyWith(id: currentClassificationId));
         }
-
-        WasteAppLogger.cacheEvent('cache_operation', 'classification',
-            context: {'service': 'ai', 'file': 'ai_service'});
       }
 
       // Try OpenAI first with compression
@@ -960,19 +962,21 @@ Output:
           provider: 'openai',
           model: ApiConfig.primaryModel,
         );
+        final contextAwareCacheKey = buildContextualCacheKey(
+          imageHash: imageHash,
+          region: analysisRegion,
+          language: analysisLang,
+          provider: 'openai',
+          model: ApiConfig.primaryModel,
+        );
         final cachedResult = await cacheService.getCachedClassification(
-          imageHash,
+          contextAwareCacheKey,
           contentHash: contextAwareContentHash,
         );
         if (cachedResult != null) {
-          WasteAppLogger.cacheEvent('cache_operation', 'classification',
-              context: {'service': 'ai', 'file': 'ai_service'});
           return Future.value(cachedResult.classification
               .copyWith(id: currentClassificationId));
         }
-
-        WasteAppLogger.cacheEvent('cache_operation', 'classification',
-            context: {'service': 'ai', 'file': 'ai_service'});
       }
 
       // Try OpenAI first with compression
@@ -1029,7 +1033,7 @@ Output:
           await Future.delayed(waitTime);
           return analyzeWebImage(
             imageBytes,
-            savedImagePath,
+            imageName,
             retryCount: retryCount + 1,
             maxRetries: maxRetries,
             region: region,
@@ -1325,11 +1329,19 @@ Output:
           provider: providerName,
           model: modelName,
         );
+        final contextAwareCacheKey = buildContextualCacheKey(
+          imageHash: imageHash,
+          region: region,
+          language: language,
+          provider: providerName,
+          model: modelName,
+        );
         await cacheService.cacheClassification(
-          imageHash,
+          contextAwareCacheKey,
           classification,
           contentHash: contextAwareContentHash,
           imageSize: imageBytes.length,
+          entryImageHash: imageHash,
         );
       }
 
@@ -1584,11 +1596,19 @@ Output:
             provider: providerName,
             model: modelName,
           );
+          final contextAwareCacheKey = buildContextualCacheKey(
+            imageHash: imageHash,
+            region: region,
+            language: language,
+            provider: providerName,
+            model: modelName,
+          );
           await cacheService.cacheClassification(
-            imageHash,
+            contextAwareCacheKey,
             classification,
             contentHash: contextAwareContentHash,
             imageSize: imageBytes.length,
+            entryImageHash: imageHash,
           );
         }
 
@@ -1630,8 +1650,11 @@ Output:
         context: {'service': 'ai', 'file': 'ai_service'});
 
     // Determine which model to use for re-analysis
-    final useGeminiProvider =
-        originalClassification.source == 'ai_analysis_gemini';
+    final sourceValue = (originalClassification.source ?? '').toLowerCase();
+    final modelSourceValue =
+        (originalClassification.modelSource ?? '').toLowerCase();
+    final useGeminiProvider = sourceValue.startsWith('ai_analysis_gemini') ||
+        modelSourceValue.contains('gemini');
     final modelToUse = model ??
         (useGeminiProvider ? ApiConfig.tertiaryModel : ApiConfig.primaryModel);
 
@@ -1740,11 +1763,6 @@ Output:
           provider: useGeminiProvider ? 'gemini' : 'openai',
           model: modelToUse,
         );
-        return originalClassification.copyWith(
-          userCorrection: userCorrection,
-          disagreementReason: 'Analysis cancelled by user',
-          clarificationNeeded: true,
-        );
       }
 
       if (response.statusCode == 200) {
@@ -1801,6 +1819,8 @@ Output:
         );
       }
     } catch (e, s) {
+      if (e is ProductionSafetyException) rethrow;
+      if (e is AiFailure && _isTerminalFailureKind(e.kind)) rethrow;
       WasteAppLogger.severe('Correction flow failed',
           error: e,
           stackTrace: s,

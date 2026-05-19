@@ -186,10 +186,10 @@ void main() {
       expect(wrongContentMatch, isNull);
     });
 
-    test('should respect feature flag kill-switch', () async {
+    test('should prevent basic similarity for context-aware entries', () async {
       final classification = _createTestClassification('Kill Switch Test');
 
-      // Store with both hashes
+      // Store entry WITH content hash (context-aware AI result)
       await cacheService.cacheClassification(
         'phash_123456789abcdef4',
         classification,
@@ -199,12 +199,37 @@ void main() {
       // Disable content hash verification
       CacheFeatureFlags.setContentHashVerification(false);
 
-      // Should still work with basic perceptual matching (fallback mode)
+      // Similarity without verification should NOT return context-aware
+      // entries because doing so would bypass region/language/provider
+      // context and potentially return wrong disposal guidance.
       final result = await cacheService.getCachedClassification(
         'phash_123456789abcdef5', // 1 bit different (last char 4->5)
       );
+      expect(result, isNull);
+
+      // Re-enable for other tests
+      CacheFeatureFlags.setContentHashVerification(true);
+    });
+
+    test('should allow basic similarity for context-agnostic entries', () async {
+      final classification = _createTestClassification('Legacy Fallback');
+
+      // Store entry WITHOUT content hash (context-agnostic / legacy)
+      await cacheService.cacheClassification(
+        'phash_aaaaaaaaaaaaaaaa',
+        classification,
+      );
+
+      // Disable content hash verification
+      CacheFeatureFlags.setContentHashVerification(false);
+
+      // Context-agnostic entry (no contentHash) should still work via
+      // basic similarity when verification is disabled.
+      final result = await cacheService.getCachedClassification(
+        'phash_aaaaaaaaaaaaaaab', // 1 bit different
+      );
       expect(result, isNotNull);
-      expect(result!.classification.itemName, equals('Kill Switch Test'));
+      expect(result!.classification.itemName, equals('Legacy Fallback'));
 
       // Re-enable for other tests
       CacheFeatureFlags.setContentHashVerification(true);

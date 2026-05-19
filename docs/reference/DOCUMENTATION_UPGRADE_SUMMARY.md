@@ -30,14 +30,18 @@ This document summarizes the comprehensive documentation upgrades implemented fo
 **File**: `docs/reference/api_documentation/api_specification.md`
 
 **What was added:**
-- Internal service API documentation
-- AI service integration specifications (Gemini, OpenAI, TensorFlow Lite)
-- Firebase service API documentation
-- Platform integration APIs (Camera, Share, Location)
-- Comprehensive error handling patterns
-- Authentication and rate limiting documentation
-- Real request/response examples
-- Testing API utilities
+- Core HTTP client (UnifiedApiClient) — GET, POST, PUT, DELETE, PATCH with versioning and statistics
+- API Client Factory — pre-configured clients for OpenAI, Gemini, Firebase, and custom endpoints
+- AI analysis service — race strategy between OpenAI/Gemini, fallback, reanalysis
+- Error handling — 7 error categories with adaptive retry delays
+- Circuit breaker pattern — 3 states (closed/open/half-open) with configurable thresholds
+- Rate limiting — token bucket with cost-aware variant, per-service defaults
+- Cost tracking — per-request cost, daily/monthly aggregation, budget alerts
+- API management & monitoring — health checks, optimization recommendations, cost analysis
+- Data models — ApiVersion, ApiResponse\<T\>, ApiTiming, CacheInfo, FeedbackResult, ResultPipeline
+- Classification processing pipeline — 5-stage post-classification workflow
+- Default configuration — timeouts, retry counts, circuit breaker parameters
+- API key management — Remote Config service (no hardcoded keys)
 
 **Impact:**
 - Clear API contracts for all services

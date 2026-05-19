@@ -44,18 +44,16 @@ final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
 });
 
 // Classifications provider
-final classificationsProvider =
-    FutureProvider<List<WasteClassification>>((ref) async {
+final classificationsProvider = FutureProvider<List<WasteClassification>>((
+  ref,
+) async {
   final storageService = ref.watch(storageServiceProvider);
   return storageService.getAllClassifications();
 });
 
 /// Ultra-modern home screen with Material 3 design improvements
 class UltraModernHomeScreen extends ConsumerStatefulWidget {
-  const UltraModernHomeScreen({
-    super.key,
-    this.isGuestMode = false,
-  });
+  const UltraModernHomeScreen({super.key, this.isGuestMode = false});
 
   final bool isGuestMode;
 
@@ -104,13 +102,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
       curve: Curves.easeInOut,
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+    );
 
     // Start animations
     _fadeController.forward();
@@ -139,13 +134,14 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
 
     overlay.insert(entry);
     WasteAppLogger.userAction(
-        '🎯 POPUP FIX: Showing points popup on home screen',
-        context: {
-          'points_earned': result.pointsEarned,
-          'achievements_count': result.newlyEarnedAchievements.length,
-          'action': result.action,
-          'ui_element': 'points_popup_home_overlay'
-        });
+      '🎯 POPUP FIX: Showing points popup on home screen',
+      context: {
+        'points_earned': result.pointsEarned,
+        'achievements_count': result.newlyEarnedAchievements.length,
+        'action': result.action,
+        'ui_element': 'points_popup_home_overlay',
+      },
+    );
 
     // Show achievement celebrations if any
     if (result.newlyEarnedAchievements.isNotEmpty) {
@@ -171,12 +167,13 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
 
     overlay.insert(entry);
     WasteAppLogger.userAction(
-        '🎯 POPUP FIX: Showing achievement celebration on home screen',
-        context: {
-          'achievement_title': achievement.title,
-          'achievement_id': achievement.id,
-          'ui_element': 'achievement_popup_home_overlay'
-        });
+      '🎯 POPUP FIX: Showing achievement celebration on home screen',
+      context: {
+        'achievement_title': achievement.title,
+        'achievement_id': achievement.id,
+        'ui_element': 'achievement_popup_home_overlay',
+      },
+    );
   }
 
   @override
@@ -188,6 +185,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
+        top: false,
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: SlideTransition(
@@ -221,12 +219,16 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                             children: [
                               // Active Challenge section
                               _buildActiveChallengeSection(
-                                  context, profileAsync),
+                                context,
+                                profileAsync,
+                              ),
                               const SizedBox(height: 32),
 
                               // Recent Classifications
                               _buildRecentClassifications(
-                                  context, classificationsAsync),
+                                context,
+                                classificationsAsync,
+                              ),
 
                               // Bottom padding for navigation
                               const SizedBox(height: 100),
@@ -246,16 +248,18 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   }
 
   Widget _buildHeroHeader(
-      BuildContext context,
-      AsyncValue<GamificationProfile?> profileAsync,
-      AsyncValue<UserProfile?> userProfileAsync) {
+    BuildContext context,
+    AsyncValue<GamificationProfile?> profileAsync,
+    AsyncValue<UserProfile?> userProfileAsync,
+  ) {
     final hour = DateTime.now().hour;
     final timePhase = _getTimePhase(hour);
     final greeting = _getPersonalizedGreeting(timePhase);
     final gradientColors = _getTimeBasedGradient(hour);
 
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: 220,
+      toolbarHeight: 0,
       pinned: true,
       backgroundColor: Colors.transparent,
       flexibleSpace: FlexibleSpaceBar(
@@ -268,10 +272,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Greeting and user info
@@ -366,15 +370,19 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         AppStrings.streak,
                         Icons.local_fire_department,
                       ),
-                      loading: () => _buildStatChip('...', AppStrings.streak,
-                          Icons.local_fire_department),
+                      loading: () => _buildStatChip(
+                        '...',
+                        AppStrings.streak,
+                        Icons.local_fire_department,
+                      ),
                       error: (_, __) => _buildStatChip(
-                          '0', AppStrings.streak, Icons.local_fire_department),
+                        '0',
+                        AppStrings.streak,
+                        Icons.local_fire_department,
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildDaysActiveChip(context),
-                    ),
+                    Expanded(child: _buildDaysActiveChip(context)),
                   ],
                 ),
               ],
@@ -568,11 +576,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                   color: action.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  action.icon,
-                  color: action.color,
-                  size: 24,
-                ),
+                child: Icon(action.icon, color: action.color, size: 24),
               ),
               const SizedBox(height: 8),
               Text(
@@ -600,7 +604,9 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   }
 
   Widget _buildActiveChallengeSection(
-      BuildContext context, AsyncValue<GamificationProfile?> profileAsync) {
+    BuildContext context,
+    AsyncValue<GamificationProfile?> profileAsync,
+  ) {
     return profileAsync.when(
       data: (profile) {
         if (profile?.activeChallenges == null ||
@@ -683,9 +689,9 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                             randomChallenge.description,
                             style: GoogleFonts.inter(
                               fontSize: 14,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -707,10 +713,12 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                     Expanded(
                       child: LinearProgressIndicator(
                         value: randomChallenge.progress,
-                        backgroundColor:
-                            randomChallenge.color.withValues(alpha: 0.2),
+                        backgroundColor: randomChallenge.color.withValues(
+                          alpha: 0.2,
+                        ),
                         valueColor: AlwaysStoppedAnimation<Color>(
-                            randomChallenge.color),
+                          randomChallenge.color,
+                        ),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -758,8 +766,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     }
   }
 
-  Widget _buildRecentClassifications(BuildContext context,
-      AsyncValue<List<WasteClassification>> classificationsAsync) {
+  Widget _buildRecentClassifications(
+    BuildContext context,
+    AsyncValue<List<WasteClassification>> classificationsAsync,
+  ) {
     return classificationsAsync.when(
       data: (classifications) {
         if (classifications.isEmpty) {
@@ -786,7 +796,8 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const HistoryScreen()),
+                      builder: (context) => const HistoryScreen(),
+                    ),
                   ),
                   child: const Text(AppStrings.viewAll),
                 ),
@@ -794,7 +805,8 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             ),
             const SizedBox(height: 16),
             ...recent.map(
-                (classification) => _buildClassificationCard(classification)),
+              (classification) => _buildClassificationCard(classification),
+            ),
           ],
         );
       },
@@ -820,8 +832,9 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: _getCategoryColor(classification.category)
-                  .withValues(alpha: 0.1),
+              color: _getCategoryColor(
+                classification.category,
+              ).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -1056,10 +1069,8 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         final result = await Navigator.push<GamificationResult>(
           context,
           MaterialPageRoute(
-            builder: (context) => ImageCaptureScreen(
-              xFile: image,
-              webImage: bytes,
-            ),
+            builder: (context) =>
+                ImageCaptureScreen(xFile: image, webImage: bytes),
           ),
         );
 
@@ -1074,9 +1085,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         final result = await Navigator.push<GamificationResult>(
           context,
           MaterialPageRoute(
-            builder: (context) => ImageCaptureScreen(
-              imageFile: file,
-            ),
+            builder: (context) => ImageCaptureScreen(imageFile: file),
           ),
         );
 

@@ -111,10 +111,12 @@ class MockClassificationCacheService extends Mock
     WasteClassification classification, {
     String? contentHash,
     int? imageSize,
+    String? entryImageHash,
   }) async {
     _mockCache[imageHash] = CachedClassification.fromClassification(
-      imageHash,
+      entryImageHash ?? imageHash,
       classification,
+      contentHash: contentHash,
       imageSize: imageSize,
     );
   }

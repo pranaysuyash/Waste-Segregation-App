@@ -363,8 +363,12 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     String? userSuggestedMaterial,
     String? userSuggestedItemName,
   }) async {
-    final isCorrection =
-        userConfirmed == false && userSuggestedCategory != null;
+    final hasCorrectionPayload =
+        (userSuggestedCategory?.trim().isNotEmpty ?? false) ||
+            (userSuggestedItemName?.trim().isNotEmpty ?? false) ||
+            (userSuggestedMaterial?.trim().isNotEmpty ?? false) ||
+            (userNotes?.trim().isNotEmpty ?? false);
+    final isCorrection = userConfirmed == false && hasCorrectionPayload;
     final action = isCorrection ? 'correction_provided' : 'feedback_provided';
     final points = GamificationService.pointValues[action] ?? 0;
 

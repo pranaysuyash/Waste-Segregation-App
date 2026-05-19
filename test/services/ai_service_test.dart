@@ -54,7 +54,8 @@ void main() {
 
     group('Image Classification', () {
       test('should handle empty image gracefully', () async {
-        final result = await aiService.analyzeWebImage(Uint8List(0), 'test.jpg');
+        final result =
+            await aiService.analyzeWebImage(Uint8List(0), 'test.jpg');
         expect(result, isA<WasteClassification>());
         expect(result.clarificationNeeded, isTrue);
         expect(result.itemName, isNotEmpty);
@@ -208,6 +209,41 @@ void main() {
     });
 
     group('Error Handling', () {
+      test('web retries preserve original image name', () async {
+        final savedNames = <String>[];
+        final dio = Dio()
+          ..interceptors.add(
+            InterceptorsWrapper(
+              onRequest: (options, handler) {
+                handler.reject(
+                  DioException(
+                    requestOptions: options,
+                    type: DioExceptionType.connectionTimeout,
+                    message: 'timeout',
+                  ),
+                );
+              },
+            ),
+          );
+        final service = AiService(
+          cachingEnabled: false,
+          dioClient: dio,
+          saveWebImageOverride: (bytes, imageName) async {
+            savedNames.add(imageName);
+            return '/saved/$imageName';
+          },
+        );
+
+        final result = await service.analyzeWebImage(
+          Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3]),
+          'original_name.jpg',
+          maxRetries: 1,
+        );
+
+        expect(result, isA<WasteClassification>());
+        expect(savedNames, equals(['original_name.jpg', 'original_name.jpg']));
+      });
+
       test('should not convert terminal auth failure into fallback', () async {
         final dio = Dio()
           ..interceptors.add(
@@ -320,7 +356,9 @@ void main() {
         expect(k1, isNot(k3));
       });
 
-      test('cache similarity should remain phash-safe with context-aware content hash', () async {
+      test(
+          'cache similarity should remain phash-safe with context-aware content hash',
+          () async {
         final cache = ClassificationCacheService();
         await cache.initialize();
         final classification = WasteClassification(
@@ -363,7 +401,8 @@ void main() {
         expect(missWithDifferentContext, isNull);
       });
 
-      test('correction provenance should be explicit for openai and gemini', () {
+      test('correction provenance should be explicit for openai and gemini',
+          () {
         final original = WasteClassification(
           id: 'fixed-id',
           itemName: 'Original',

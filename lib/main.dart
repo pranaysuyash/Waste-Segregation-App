@@ -50,7 +50,6 @@ import 'screens/offline_mode_settings_screen.dart';
 import 'screens/disposal_facilities_screen.dart';
 import 'screens/impact_dashboard_screen.dart';
 import 'screens/smart_suggestions_screen.dart';
-import 'widgets/global_menu_wrapper.dart';
 import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart';
 import 'utils/error_handler.dart';
@@ -652,35 +651,27 @@ class WasteSegregationApp extends StatelessWidget {
                     return mediaWrapped;
                   },
                   routes: {
-                    '/home': (context) =>
-                        const GlobalMenuWrapper(child: MainNavigationWrapper()),
-                    '/settings': (context) =>
-                        const GlobalMenuWrapper(child: SettingsScreen()),
-                    '/history': (context) =>
-                        const GlobalMenuWrapper(child: HistoryScreen()),
-                    '/achievements': (context) =>
-                        const GlobalMenuWrapper(child: AchievementsScreen()),
-                    '/educational': (context) => const GlobalMenuWrapper(
-                        child: EducationalContentScreen()),
-                    '/analytics': (context) =>
-                        const GlobalMenuWrapper(child: WasteDashboardScreen()),
-                    '/premium': (context) =>
-                        const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
+                    '/home': (context) => const MainNavigationWrapper(),
+                    '/settings': (context) => const SettingsScreen(),
+                    '/history': (context) => const HistoryScreen(),
+                    '/achievements': (context) => const AchievementsScreen(),
+                    '/educational': (context) =>
+                        const EducationalContentScreen(),
+                    '/analytics': (context) => const WasteDashboardScreen(),
+                    '/premium': (context) => const PremiumFeaturesScreen(),
                     '/premium-features': (context) =>
-                        const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
+                        const PremiumFeaturesScreen(),
                     '/premium_features': (context) =>
-                        const GlobalMenuWrapper(child: PremiumFeaturesScreen()),
-                    '/data-export': (context) =>
-                        const GlobalMenuWrapper(child: DataExportScreen()),
-                    '/offline-settings': (context) => const GlobalMenuWrapper(
-                        child: OfflineModeSettingsScreen()),
+                        const PremiumFeaturesScreen(),
+                    '/data-export': (context) => const DataExportScreen(),
+                    '/offline-settings': (context) =>
+                        const OfflineModeSettingsScreen(),
                     '/disposal-facilities': (context) =>
-                        const GlobalMenuWrapper(
-                            child: DisposalFacilitiesScreen()),
+                        const DisposalFacilitiesScreen(),
                     '/impact-dashboard': (context) =>
-                        const GlobalMenuWrapper(child: ImpactDashboardScreen()),
-                    '/smart-suggestions': (context) => const GlobalMenuWrapper(
-                        child: SmartSuggestionsScreen()),
+                        const ImpactDashboardScreen(),
+                    '/smart-suggestions': (context) =>
+                        const SmartSuggestionsScreen(),
                   },
                   home: kDebugMode && _forceDebugHome
                       ? const _DebugHome()

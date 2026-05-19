@@ -8,11 +8,40 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
+/// Safely truncates a hash string for logging preview.
+/// Returns '<empty>' when [value] is null or empty.
+String _previewHash(String? value) {
+  if (value == null || value.isEmpty) return '<empty>';
+  return value.length <= 16 ? value : value.substring(0, 16);
+}
+
+/// Extracts the raw perceptual hash from a cache key.
+///
+/// Context-aware keys follow the format:
+///   `phash_<hex>::region::lang::...`
+/// Raw keys are just:
+///   `phash_<hex>`
+///
+/// In both cases the raw phash prefix up to the first `::` is returned.
+String _rawPhashPrefix(String key) {
+  final sep = key.indexOf('::');
+  return sep == -1 ? key : key.substring(0, sep);
+}
+
 /// Service for caching image classifications
 ///
 /// This service manages the local caching of image classification results
 /// to reduce redundant API calls, improve response times, and ensure
 /// consistent classification results for identical images.
+///
+/// Cache identity:
+///   - Hive key is whatever the caller supplies. When called from
+///     [AiService] the key is a context-aware composite string
+///     (`phash_<hex>::region::lang::...`), so entries for the same image
+///     but different region/language/provider/model are stored separately.
+///   - The raw perceptual hash (used for similarity scanning) is stored
+///     inside [CachedClassification.imageHash] and is extracted via
+///     [_rawPhashPrefix] when the key is composite.
 class ClassificationCacheService {
   /// Constructor
   ClassificationCacheService({
@@ -38,7 +67,11 @@ class ClassificationCacheService {
   };
 
   /// In-memory LRU tracking for faster cache operations
-  /// Maps imageHash to lastAccessed timestamp
+  ///
+  /// Invariant: LRU map order = oldest -> newest.
+  ///   - On load, entries are sorted by lastAccessed ascending.
+  ///   - On access, the key is removed and re-added (moves to end = newest).
+  ///   - On eviction, the front of the map (keys.first) is the oldest.
   final LinkedHashMap<String, DateTime> _lruMap =
       LinkedHashMap<String, DateTime>();
 
@@ -69,26 +102,31 @@ class ClassificationCacheService {
     }
   }
 
-  /// Load the LRU map from the cache box for faster access
+  /// Load the LRU map from the cache box.
+  ///
+  /// Sorted ascending by lastAccessed (oldest first) to match the
+  /// oldest->newest invariant.
   void _loadLruMapFromCache() {
-    for (final String hash in _cacheBox.keys) {
+    for (final String key in _cacheBox.keys) {
       try {
-        final cacheEntry = _deserializeEntry(hash);
+        final cacheEntry = _deserializeEntry(key);
         if (cacheEntry != null) {
-          _lruMap[hash] = cacheEntry.lastAccessed;
+          _lruMap[key] = cacheEntry.lastAccessed;
         }
       } catch (e) {
-        WasteAppLogger.warning('Error loading cache entry', error: e, context: {
-          'hash': hash.substring(0, 16),
-          'action': 'skip_corrupted_entry'
-        });
+        WasteAppLogger.warning('cache_lru_load_skip_corrupted',
+            error: e,
+            context: {
+              'key': _previewHash(key),
+              'action': 'skip_corrupted_entry'
+            });
         // Skip corrupted entries
       }
     }
 
-    // Sort the LRU map by lastAccessed (most recently used first)
+    // Sort oldest first (ascending) = invariant: oldest -> newest
     final sortedEntries = _lruMap.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+      ..sort((a, b) => a.value.compareTo(b.value));
 
     _lruMap.clear();
     for (final entry in sortedEntries) {
@@ -96,170 +134,199 @@ class ClassificationCacheService {
     }
   }
 
-  /// Get a cached classification by image hash
+  /// Get a cached classification by its cache key.
   ///
-  /// This method checks for both exact matches and similar images when using
-  /// perceptual hashing (phash_) prefixes. Uses dual-hash verification to prevent
-  /// false positives: perceptual hash for similarity + content hash for verification.
+  /// [cacheKey] is used directly for exact-match lookup. When supplied by
+  /// [AiService] it is a context-aware composite key that includes the
+  /// image hash, region, language, model, and provider — so cross-context
+  /// collisions are impossible.
   ///
-  /// [imageHash]: The hash of the image to find in cache
-  /// [contentHash]: The content hash for exact verification (required for similarity matching)
-  /// [similarityThreshold]: The maximum number of bits that can differ for similar hashes (default: 6)
-  Future<CachedClassification?> getCachedClassification(String imageHash,
-      {String? contentHash,
-      int similarityThreshold = 6 // LOWERED: from 10 to 6 for stricter matching
-      }) async {
+  /// [contentHash] is verified against the cached entry on both exact and
+  /// similarity paths to prevent false positives.
+  ///
+  /// [similarityThreshold]: The maximum number of bits that can differ for
+  /// similar hashes (default: 6).
+  Future<CachedClassification?> getCachedClassification(
+    String cacheKey, {
+    String? contentHash,
+    int similarityThreshold = 6,
+  }) async {
     try {
       if (!_isInitialized) await initialize();
 
       // Check for exact match first
-      if (_cacheBox.containsKey(imageHash)) {
-        final cacheEntry = _deserializeEntry(imageHash);
-
+      if (_cacheBox.containsKey(cacheKey)) {
+        final cacheEntry = _deserializeEntry(cacheKey);
         if (cacheEntry != null) {
-          // Update stats
-          _statistics['hits']++;
-          WasteAppLogger.cacheEvent('cache_hit', 'classification',
-              hit: true,
-              key: imageHash.substring(0, 16),
-              context: {
-                'match_type': 'exact',
-                'cache_age_minutes':
-                    DateTime.now().difference(cacheEntry.timestamp).inMinutes,
-                'item_name': cacheEntry.classification.itemName
-              });
-
-          // Crashlytics breadcrumb for field debugging (safe for testing)
-          try {
-            FirebaseCrashlytics.instance.log(
-                'CACHE exact_hit hash=${imageHash.substring(0, 16)}... age=${DateTime.now().difference(cacheEntry.timestamp).inMinutes}min');
-          } catch (e) {
-            // Firebase not initialized (testing environment)
-            WasteAppLogger.debug(
-                'Crashlytics not available in testing environment',
-                context: {'error': e.toString()});
-          }
-
-          // Update LRU tracking
-          cacheEntry.markUsed();
-          _lruMap.remove(imageHash);
-          _lruMap[imageHash] = cacheEntry.lastAccessed;
-
-          // Update the stored entry with new access info
-          await _cacheBox.put(imageHash, cacheEntry.serialize());
-
-          return cacheEntry;
-        }
-      }
-
-      // If this is a perceptual hash, check for similar matches with dual-hash verification
-      if (imageHash.startsWith('phash_') &&
-          contentHash != null &&
-          CacheFeatureFlags.contentHashVerificationEnabled) {
-        WasteAppLogger.cacheEvent('similarity_search_started', 'classification',
-            key: imageHash.substring(0, 16),
-            context: {
-              'similarity_threshold': similarityThreshold,
-              'has_content_hash': contentHash != null
-            });
-        final similarHash = await _findSimilarPerceptualHashWithVerification(
-            imageHash, contentHash, similarityThreshold);
-
-        if (similarHash != null) {
-          final cacheEntry = _deserializeEntry(similarHash);
-
-          if (cacheEntry != null) {
-            // Update stats - count as hit but also track similar hits separately
+          // EXACT-MATCH CONTEXT VERIFICATION:
+          // If the caller provided a contentHash (context-aware), verify it
+          // matches the cached entry. Same image hash but different region/
+          // language/provider/model = cache miss here.
+          if (contentHash != null &&
+              cacheEntry.contentHash != null &&
+              cacheEntry.contentHash != contentHash) {
+            WasteAppLogger.cacheEvent(
+                'cache_exact_context_miss', 'classification',
+                key: _previewHash(cacheKey),
+                context: {
+                  'match_type': 'exact_content_mismatch',
+                  'cached_content_hash':
+                      _previewHash(cacheEntry.contentHash),
+                  'requested_content_hash': _previewHash(contentHash),
+                  'item_name': cacheEntry.classification.itemName
+                });
+            // Fall through to similarity search below
+          } else {
+            // Exact context match — return cache hit
             _statistics['hits']++;
-            _statistics['similarHits'] = (_statistics['similarHits'] ?? 0) + 1;
             WasteAppLogger.cacheEvent('cache_hit', 'classification',
                 hit: true,
-                key: imageHash.substring(0, 16),
+                key: _previewHash(cacheKey),
                 context: {
-                  'match_type': 'verified_similar',
-                  'matched_hash': similarHash.substring(0, 16),
-                  'cache_age_minutes':
-                      DateTime.now().difference(cacheEntry.timestamp).inMinutes,
-                  'item_name': cacheEntry.classification.itemName,
-                  'created': cacheEntry.timestamp.toIso8601String(),
-                  'last_accessed': cacheEntry.lastAccessed.toIso8601String()
+                  'match_type': 'exact_verified',
+                  'cache_age_minutes': DateTime.now()
+                      .difference(cacheEntry.timestamp)
+                      .inMinutes,
+                  'item_name': cacheEntry.classification.itemName
                 });
 
             // Crashlytics breadcrumb for field debugging (safe for testing)
             try {
               FirebaseCrashlytics.instance.log(
-                  'CACHE verified_similar_hit original=${imageHash.substring(0, 16)}... matched=${similarHash.substring(0, 16)}... age=${DateTime.now().difference(cacheEntry.timestamp).inMinutes}min');
+                  'CACHE exact_hit key=${_previewHash(cacheKey)}... age=${DateTime.now().difference(cacheEntry.timestamp).inMinutes}min');
             } catch (e) {
               // Firebase not initialized (testing environment)
-              WasteAppLogger.debug(
-                  'Crashlytics not available in testing environment',
-                  context: {'error': e.toString()});
+            }
+
+            // Update LRU tracking: move to end (newest)
+            cacheEntry.markUsed();
+            _lruMap.remove(cacheKey);
+            _lruMap[cacheKey] = cacheEntry.lastAccessed;
+            await _cacheBox.put(cacheKey, cacheEntry.serialize());
+
+            return cacheEntry;
+          }
+        }
+      }
+
+      // Similarity search — only for perceptual hashes with verification
+      if (_isPerceptualHash(cacheKey) &&
+          contentHash != null &&
+          CacheFeatureFlags.contentHashVerificationEnabled) {
+        WasteAppLogger.cacheEvent(
+            'similarity_search_started', 'classification',
+            key: _previewHash(cacheKey),
+            context: {
+              'similarity_threshold': similarityThreshold,
+              'has_content_hash': contentHash != null
+            });
+        final similarKey = await _findSimilarPerceptualHashWithVerification(
+            cacheKey, contentHash, similarityThreshold);
+
+        if (similarKey != null) {
+          final cacheEntry = _deserializeEntry(similarKey);
+          if (cacheEntry != null) {
+            _statistics['hits']++;
+            _statistics['similarHits'] =
+                (_statistics['similarHits'] ?? 0) + 1;
+            WasteAppLogger.cacheEvent('cache_hit', 'classification',
+                hit: true,
+                key: _previewHash(cacheKey),
+                context: {
+                  'match_type': 'verified_similar',
+                  'matched_key': _previewHash(similarKey),
+                  'cache_age_minutes': DateTime.now()
+                      .difference(cacheEntry.timestamp)
+                      .inMinutes,
+                  'item_name': cacheEntry.classification.itemName,
+                  'created': cacheEntry.timestamp.toIso8601String(),
+                  'last_accessed': cacheEntry.lastAccessed.toIso8601String()
+                });
+
+            try {
+              FirebaseCrashlytics.instance.log(
+                  'CACHE verified_similar_hit original=${_previewHash(cacheKey)}... matched=${_previewHash(similarKey)}... age=${DateTime.now().difference(cacheEntry.timestamp).inMinutes}min');
+            } catch (e) {
+              // Firebase not initialized (testing environment)
             }
 
             // Update LRU tracking
             cacheEntry.markUsed();
-            _lruMap.remove(similarHash);
-            _lruMap[similarHash] = cacheEntry.lastAccessed;
-
-            // Update the stored entry with new access info
-            await _cacheBox.put(similarHash, cacheEntry.serialize());
+            _lruMap.remove(similarKey);
+            _lruMap[similarKey] = cacheEntry.lastAccessed;
+            await _cacheBox.put(similarKey, cacheEntry.serialize());
 
             return cacheEntry;
           }
         } else {
           WasteAppLogger.cacheEvent('cache_miss', 'classification',
               hit: false,
-              key: imageHash.substring(0, 16),
+              key: _previewHash(cacheKey),
               context: {
                 'match_type': 'no_verified_similar',
                 'similarity_threshold': similarityThreshold
               });
         }
-      } else if (imageHash.startsWith('phash_') &&
+      } else if (_isPerceptualHash(cacheKey) &&
           !CacheFeatureFlags.contentHashVerificationEnabled) {
+        // --- FALLBACK when content hash verification is disabled ---
+        // For AI classification results this is risky because it bypasses
+        // region/language/provider context and may return wrong disposal
+        // guidance. Only allow fallback for entries explicitly marked as
+        // context-agnostic (contentHash == null).
         WasteAppLogger.cacheEvent(
             'fallback_to_basic_matching', 'classification',
-            key: imageHash.substring(0, 16),
+            key: _previewHash(cacheKey),
             context: {
               'reason': 'content_hash_verification_disabled',
               'similarity_threshold': similarityThreshold
             });
-        final similarHash =
-            await _findSimilarPerceptualHash(imageHash, similarityThreshold);
+        final similarKey =
+            await _findSimilarPerceptualHash(cacheKey, similarityThreshold);
 
-        if (similarHash != null) {
-          final cacheEntry = _deserializeEntry(similarHash);
-
+        if (similarKey != null) {
+          final cacheEntry = _deserializeEntry(similarKey);
           if (cacheEntry != null) {
-            _statistics['hits']++;
-            _statistics['similarHits'] = (_statistics['similarHits'] ?? 0) + 1;
-            WasteAppLogger.cacheEvent('cache_hit', 'classification',
-                hit: true,
-                key: imageHash.substring(0, 16),
-                context: {
-                  'match_type': 'basic_similarity',
-                  'matched_hash': similarHash.substring(0, 16),
-                  'cache_age_minutes':
-                      DateTime.now().difference(cacheEntry.timestamp).inMinutes,
-                  'item_name': cacheEntry.classification.itemName
-                });
+            // Only return context-isolated hits; skip entries with a
+            // contentHash (meaning they are context-specific AI results).
+            if (cacheEntry.contentHash != null) {
+              WasteAppLogger.cacheEvent(
+                  'cache_similarity_basic_skipped_context', 'classification',
+                  context: {
+                    'reason':
+                        'basic_fallback_bypassed_context_aware_entry',
+                    'matched_key': _previewHash(similarKey)
+                  });
+            } else {
+              _statistics['hits']++;
+              _statistics['similarHits'] =
+                  (_statistics['similarHits'] ?? 0) + 1;
+              WasteAppLogger.cacheEvent('cache_hit', 'classification',
+                  hit: true,
+                  key: _previewHash(cacheKey),
+                  context: {
+                    'match_type': 'basic_similarity_context_agnostic',
+                    'matched_key': _previewHash(similarKey),
+                    'cache_age_minutes': DateTime.now()
+                        .difference(cacheEntry.timestamp)
+                        .inMinutes,
+                    'item_name': cacheEntry.classification.itemName
+                  });
 
-            // Update LRU tracking
-            cacheEntry.markUsed();
-            _lruMap.remove(similarHash);
-            _lruMap[similarHash] = cacheEntry.lastAccessed;
+              cacheEntry.markUsed();
+              _lruMap.remove(similarKey);
+              _lruMap[similarKey] = cacheEntry.lastAccessed;
+              await _cacheBox.put(similarKey, cacheEntry.serialize());
 
-            // Update the stored entry with new access info
-            await _cacheBox.put(similarHash, cacheEntry.serialize());
-
-            return cacheEntry;
+              return cacheEntry;
+            }
           }
         }
-      } else if (imageHash.startsWith('phash_') && contentHash == null) {
+      } else if (_isPerceptualHash(cacheKey) && contentHash == null) {
         WasteAppLogger.warning(
-            'Perceptual hash provided without content hash - skipping similarity search',
+            'cache_phash_missing_content_hash_similarity_skipped',
             context: {
-              'hash': imageHash.substring(0, 16),
+              'key': _previewHash(cacheKey),
               'reason': 'missing_content_hash_for_verification'
             });
       }
@@ -268,273 +335,82 @@ class ClassificationCacheService {
       _statistics['misses']++;
       WasteAppLogger.cacheEvent('cache_miss', 'classification',
           hit: false,
-          key: imageHash.substring(0, 16),
+          key: _previewHash(cacheKey),
           context: {
             'match_type': 'no_match',
             'cache_size': _cacheBox.length,
-            'is_perceptual_hash': imageHash.startsWith('phash_')
+            'is_perceptual_hash': _isPerceptualHash(cacheKey)
           });
 
-      // Crashlytics breadcrumb for field debugging (safe for testing)
       try {
         FirebaseCrashlytics.instance.log(
-            'CACHE miss hash=${imageHash.substring(0, 16)}... cache_size=${_cacheBox.length}');
+            'CACHE miss key=${_previewHash(cacheKey)}... cache_size=${_cacheBox.length}');
       } catch (e) {
         // Firebase not initialized (testing environment)
-        WasteAppLogger.debug('Crashlytics not available in testing environment',
-            context: {'error': e.toString()});
       }
 
       return null;
     } catch (e) {
-      WasteAppLogger.severe('Error retrieving from cache', error: e, context: {
-        'hash': imageHash.substring(0, 16),
-        'action': 'treat_as_cache_miss'
-      });
-      // If there's any error, treat it as a cache miss
+      WasteAppLogger.severe('cache_get_error_treat_as_miss',
+          error: e,
+          context: {
+            'key': _previewHash(cacheKey),
+            'action': 'treat_as_cache_miss'
+          });
       _statistics['misses']++;
       return null;
     }
   }
 
-  /// Finds a similar perceptual hash in the cache with content hash verification
+  /// Store a classification result in the cache.
   ///
-  /// Two-stage verification process:
-  /// 1. Find perceptual hashes with small Hamming distance (similarity)
-  /// 2. Verify content hash matches exactly (prevents false positives)
+  /// [cacheKey] is the Hive key. When called from [AiService] it is a
+  /// context-aware composite string so that the same image classified
+  /// under different region/language/provider/model produces distinct
+  /// entries.
   ///
-  /// [pHash]: The perceptual hash to compare (must start with 'phash_')
-  /// [contentHash]: The content hash for exact verification
-  /// [threshold]: Maximum number of bits that can differ (0-64, where lower is more strict)
-  Future<String?> _findSimilarPerceptualHashWithVerification(
-      String pHash, String contentHash, int threshold) async {
-    try {
-      if (!pHash.startsWith('phash_')) {
-        WasteAppLogger.warning('Invalid perceptual hash format', context: {
-          'hash': pHash.substring(0, 16),
-          'reason': 'missing_phash_prefix'
-        });
-        return null;
-      }
-
-      // Extract the hex part
-      final hexHash = pHash.substring(6); // Remove 'phash_' prefix
-      if (hexHash.length != 16) {
-        WasteAppLogger.warning('Invalid perceptual hash length', context: {
-          'hash': pHash.substring(0, 16),
-          'actual_length': hexHash.length,
-          'expected_length': 16
-        });
-        return null; // Should be 16 hex chars (64 bits)
-      }
-
-      // Convert to binary
-      final binaryHash = _hexToBinary(hexHash);
-      if (binaryHash.length != 64) {
-        WasteAppLogger.warning('Invalid binary hash length', context: {
-          'hash': pHash.substring(0, 16),
-          'actual_length': binaryHash.length,
-          'expected_length': 64
-        });
-        return null;
-      }
-
-      WasteAppLogger.cacheEvent('dual_hash_search_started', 'classification',
-          key: pHash.substring(0, 16),
-          context: {
-            'binary_hash_preview': binaryHash.substring(0, 16),
-            'content_hash': contentHash.substring(0, 16),
-            'threshold': threshold
-          });
-
-      // Get all perceptual hashes in cache for faster processing
-      final pHashKeys =
-          _cacheBox.keys.where((key) => key.startsWith('phash_')).toList();
-      WasteAppLogger.cacheEvent(
-          'dual_hash_comparison_started', 'classification', context: {
-        'phash_keys_count': pHashKeys.length,
-        'search_threshold': threshold
-      });
-
-      // Track best match
-      String? bestMatch;
-      var bestDistance =
-          threshold + 1; // Initialize with a value greater than threshold
-      final allDistances = <int>[]; // Track all distances for debugging
-      var verificationAttempts = 0;
-      var verificationFailures = 0;
-
-      // Compare with all perceptual hashes in cache
-      for (final String cachedHash in pHashKeys) {
-        final cachedHexHash = cachedHash.substring(6);
-        if (cachedHexHash.length != 16) continue;
-
-        final cachedBinaryHash = _hexToBinary(cachedHexHash);
-        if (cachedBinaryHash.length != 64) continue;
-
-        // Calculate Hamming distance (number of bits that differ)
-        final distance = _hammingDistance(binaryHash, cachedBinaryHash);
-
-        // Log every distance calculated, even if above threshold
-        WasteAppLogger.cacheEvent('cache_operation', 'classification',
-            context: {'service': 'cache', 'file': 'cache_service'});
-        allDistances.add(distance);
-
-        // If distance is within threshold, verify with content hash
-        if (distance <= threshold) {
-          verificationAttempts++;
-
-          // Get the cached entry to check content hash
-          final cacheEntry = _deserializeEntry(cachedHash);
-          if (cacheEntry != null && cacheEntry.contentHash != null) {
-            WasteAppLogger.cacheEvent('cache_operation', 'classification',
-                context: {'service': 'cache', 'file': 'cache_service'});
-            WasteAppLogger.cacheEvent('cache_operation', 'classification',
-                context: {'service': 'cache', 'file': 'cache_service'});
-            WasteAppLogger.cacheEvent('cache_operation', 'classification',
-                context: {'service': 'cache', 'file': 'cache_service'});
-
-            // Content hash must match exactly for verification
-            if (cacheEntry.contentHash == contentHash) {
-              WasteAppLogger.info('Operation completed',
-                  context: {'service': 'cache', 'file': 'cache_service'});
-
-              // If it's a better match than current best, update it
-              if (distance < bestDistance) {
-                bestDistance = distance;
-                bestMatch = cachedHash;
-
-                // If exact match (distance = 0), return immediately
-                if (distance == 0) break;
-              }
-            } else {
-              verificationFailures++;
-              WasteAppLogger.severe('Error occurred',
-                  context: {'service': 'cache', 'file': 'cache_service'});
-              WasteAppLogger.severe('Error occurred',
-                  context: {'service': 'cache', 'file': 'cache_service'});
-            }
-          } else {
-            WasteAppLogger.warning('Warning occurred',
-                context: {'service': 'cache', 'file': 'cache_service'});
-          }
-        }
-      }
-
-      if (bestMatch != null) {
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'cache', 'file': 'cache_service'});
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'cache', 'file': 'cache_service'});
-      } else {
-        // More detailed logging for debug purposes
-        if (allDistances.isNotEmpty) {
-          allDistances.sort(); // Sort distances for better analysis
-          final minDistance = allDistances.first;
-          WasteAppLogger.severe('Error occurred',
-              context: {'service': 'cache', 'file': 'cache_service'});
-          WasteAppLogger.severe('Error occurred',
-              context: {'service': 'cache', 'file': 'cache_service'});
-
-          if (verificationFailures > 0) {
-            WasteAppLogger.info('Operation completed',
-                context: {'service': 'cache', 'file': 'cache_service'});
-            // Crashlytics breadcrumb for false positive prevention tracking (safe for testing)
-            try {
-              FirebaseCrashlytics.instance.log(
-                  'CACHE prevented_false_positives count=$verificationFailures hash=${pHash.substring(0, 16)}...');
-            } catch (e) {
-              // Firebase not initialized (testing environment)
-              WasteAppLogger.info('Operation completed',
-                  context: {'service': 'cache', 'file': 'cache_service'});
-            }
-          }
-
-          // Log distribution of distances
-          final distCounts = <int, int>{};
-          for (final d in allDistances) {
-            distCounts[d] = (distCounts[d] ?? 0) + 1;
-          }
-          final keys = distCounts.keys.toList()..sort();
-          final distLog = StringBuffer('🔍 DUAL-HASH: Distance distribution: ');
-          for (final k in keys) {
-            distLog.write('$k: ${distCounts[k]} hashes, ');
-          }
-          WasteAppLogger.info('Operation completed',
-              context: {'service': 'cache', 'file': 'cache_service'});
-        } else {
-          WasteAppLogger.severe('Error occurred',
-              context: {'service': 'cache', 'file': 'cache_service'});
-        }
-      }
-
-      return bestMatch;
-    } catch (e) {
-      WasteAppLogger.severe('Error occurred',
-          context: {'service': 'cache', 'file': 'cache_service'});
-      return null;
-    }
-  }
-
-  /// Calculates the Hamming distance between two binary strings
-  /// (the number of positions at which corresponding bits differ)
-  int _hammingDistance(String a, String b) {
-    if (a.length != b.length) {
-      throw ArgumentError('Strings must be of equal length');
-    }
-
-    var distance = 0;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) distance++;
-    }
-
-    return distance;
-  }
-
-  /// Converts a hexadecimal string to a binary string
-  String _hexToBinary(String hex) {
-    var binary = '';
-
-    for (var i = 0; i < hex.length; i++) {
-      // Convert each hex digit to 4 binary digits
-      final value = int.parse(hex[i], radix: 16);
-      final binDigit = value.toRadixString(2).padLeft(4, '0');
-      binary += binDigit;
-    }
-
-    return binary;
-  }
-
-  /// Cache a classification result with the given image hash
+  /// [entryImageHash] — when set, this raw phash is stored in
+  /// [CachedClassification.imageHash] instead of [cacheKey], preserving
+  /// similarity scanning even when the Hive key is composite.
   Future<void> cacheClassification(
-    String imageHash,
+    String cacheKey,
     WasteClassification classification, {
     String? contentHash,
     int? imageSize,
+    String? entryImageHash,
   }) async {
     try {
       if (!_isInitialized) {
-        WasteAppLogger.warning('Cache not initialized, initializing now',
+        WasteAppLogger.warning('cache_auto_initialize_on_store',
             context: {'action': 'auto_initialize_cache'});
         await initialize();
       }
 
-      // Check if this hash already exists (shouldn't happen due to prior check, but just in case)
-      if (_cacheBox.containsKey(imageHash)) {
-        final existingEntry = _deserializeEntry(imageHash);
-        WasteAppLogger.warning(
-            'Hash already exists in cache, updating existing entry',
+      // The imageHash stored inside the CachedClassification entry.
+      // For context-aware keys, entryImageHash preserves the raw phash
+      // so similarity scanning works regardless of Hive key format.
+      final storedImageHash = entryImageHash ?? cacheKey;
+
+      // Check if this key already exists
+      if (_cacheBox.containsKey(cacheKey)) {
+        final existingEntry = _deserializeEntry(cacheKey);
+        WasteAppLogger.cacheEvent(
+            'cache_store_update_existing', 'classification',
+            key: _previewHash(cacheKey),
             context: {
-              'hash': imageHash.substring(0, 16),
-              'existing_timestamp': existingEntry?.timestamp.toIso8601String(),
               'existing_item': existingEntry?.classification.itemName,
-              'new_item': classification.itemName
+              'new_item': classification.itemName,
+              'existing_content_hash':
+                  _previewHash(existingEntry?.contentHash),
+              'new_content_hash': _previewHash(contentHash)
             });
       }
 
-      // Create cache entry with content hash for dual-hash verification
+      // Create cache entry with the raw image hash stored inside
+      // so similarity scanning can compare against it regardless of
+      // the Hive key format.
       final cacheEntry = CachedClassification.fromClassification(
-        imageHash,
+        storedImageHash,
         classification,
         contentHash: contentHash,
         imageSize: imageSize,
@@ -544,11 +420,10 @@ class ClassificationCacheService {
       await _ensureCacheSize();
 
       // Add to cache
-      await _cacheBox.put(imageHash, cacheEntry.serialize());
+      await _cacheBox.put(cacheKey, cacheEntry.serialize());
 
-      // Update LRU tracking
-      _lruMap.remove(imageHash);
-      _lruMap[imageHash] = cacheEntry.lastAccessed;
+      // Update LRU tracking — append to end (newest)
+      _lruMap[cacheKey] = cacheEntry.lastAccessed;
 
       // Update statistics
       _statistics['size'] = _cacheBox.length;
@@ -558,17 +433,18 @@ class ClassificationCacheService {
       }
 
       WasteAppLogger.cacheEvent('cache_store', 'classification',
-          key: imageHash.substring(0, 16),
+          key: _previewHash(cacheKey),
           context: {
             'item_name': classification.itemName,
             'has_content_hash': contentHash != null,
-            'content_hash': contentHash?.substring(0, 16),
+            'content_hash': _previewHash(contentHash),
             'cache_size': _cacheBox.length,
-            'image_size_bytes': imageSize
+            'image_size_bytes': imageSize,
+            'entry_image_hash': _previewHash(storedImageHash)
           });
     } catch (e) {
-      WasteAppLogger.severe('Error caching classification', error: e, context: {
-        'hash': imageHash.substring(0, 16),
+      WasteAppLogger.severe('cache_store_error_continue', error: e, context: {
+        'key': _previewHash(cacheKey),
         'item_name': classification.itemName,
         'action': 'continue_without_caching'
       });
@@ -576,34 +452,46 @@ class ClassificationCacheService {
     }
   }
 
-  /// Ensure the cache doesn't exceed maximum size
+  /// Ensure the cache doesn't exceed maximum size.
+  ///
+  /// Evicts from the front of the LRU map (oldest entries) because the
+  /// LRU invariant is oldest -> newest.
   Future<void> _ensureCacheSize() async {
     if (_cacheBox.length < _maxCacheSize) return;
 
-    // Get the least recently used entries to remove
-    final entriesToRemove = _maxCacheSize * 0.1; // Remove 10% of max cache
+    // Remove 10% of max cache
+    final entriesToRemove = (_maxCacheSize * 0.1).ceil();
     final keysToRemove = <String>[];
-
-    // We'll use the LRU map which is already sorted by access time
     var count = 0;
-    for (final key in _lruMap.keys.toList().reversed) {
+
+    // LRU map is oldest -> newest; oldest is at keys.first
+    for (final key in _lruMap.keys.toList()) {
+      if (count >= entriesToRemove) break;
       keysToRemove.add(key);
       count++;
-      if (count >= entriesToRemove) break;
     }
 
-    // Remove entries
+    // Remove entries and update stats
     for (final key in keysToRemove) {
+      final entry = _deserializeEntry(key);
+      final size = entry?.imageSize ?? 0;
       await _cacheBox.delete(key);
       _lruMap.remove(key);
+      if (size > 0) {
+        _statistics['bytesSaved'] =
+            ((_statistics['bytesSaved'] ?? 0) - size).clamp(0, double.infinity);
+      }
     }
+    _statistics['size'] = _cacheBox.length;
 
-    WasteAppLogger.cacheEvent('cache_eviction', 'classification', context: {
+    WasteAppLogger.cacheEvent('cache_lru_eviction', 'classification', context: {
       'entries_removed': keysToRemove.length,
+      'eviction_count': keysToRemove.length,
+      'cache_size_before': _cacheBox.length,
       'cache_size_after': _cacheBox.length,
       'max_cache_size': _maxCacheSize,
       'eviction_percentage':
-          (entriesToRemove / _maxCacheSize * 100).toStringAsFixed(1)
+          (keysToRemove.length / _maxCacheSize * 100).toStringAsFixed(1)
     });
   }
 
@@ -611,6 +499,9 @@ class ClassificationCacheService {
   Future<void> clearCache() async {
     try {
       if (!_isInitialized) await initialize();
+
+      // Capture size BEFORE clearing
+      final previousSize = _cacheBox.length;
 
       await _cacheBox.clear();
       _lruMap.clear();
@@ -623,21 +514,19 @@ class ClassificationCacheService {
       _statistics['createdAt'] = DateTime.now();
 
       WasteAppLogger.cacheEvent('cache_cleared', 'classification', context: {
-        'previous_size': _cacheBox.length,
+        'previous_size': previousSize,
         'statistics_reset': true
       });
     } catch (e) {
-      WasteAppLogger.severe('Error clearing classification cache',
-          error: e, context: {'cache_size': _cacheBox.length});
+      WasteAppLogger.severe('cache_clear_error', error: e);
       rethrow;
     }
   }
 
-  /// OPTIMIZATION: Clean up expired cache entries based on age
-  /// Call periodically to prevent stale data accumulation
+  /// Clean up expired cache entries based on age.
   ///
-  /// [maxAge]: Maximum age for cache entries (default: 30 days)
-  /// Returns the number of entries removed
+  /// [maxAge]: Maximum age for cache entries (default: 30 days).
+  /// Returns the number of entries removed.
   Future<int> cleanupExpiredEntries(
       {Duration maxAge = const Duration(days: 30)}) async {
     try {
@@ -646,7 +535,6 @@ class ClassificationCacheService {
       final now = DateTime.now();
       final keysToRemove = <String>[];
 
-      // Find entries older than maxAge
       for (final key in _lruMap.keys.toList()) {
         try {
           final entry = _deserializeEntry(key);
@@ -657,30 +545,34 @@ class ClassificationCacheService {
             }
           }
         } catch (e) {
-          // If we can't deserialize, mark for removal
           keysToRemove.add(key);
-          WasteAppLogger.warning('Corrupted cache entry during cleanup',
-              context: {'hash': key.substring(0, 16), 'action': 'removing'});
+          WasteAppLogger.warning(
+              'cache_cleanup_corrupted_entry_removing',
+              context: {
+                'key': _previewHash(key),
+                'action': 'removing'
+              });
         }
       }
 
-      // Remove expired entries
       for (final key in keysToRemove) {
         await _cacheBox.delete(key);
         _lruMap.remove(key);
       }
+      _statistics['size'] = _cacheBox.length;
 
       if (keysToRemove.isNotEmpty) {
-        WasteAppLogger.cacheEvent('cache_cleanup', 'classification', context: {
-          'entries_removed': keysToRemove.length,
-          'max_age_days': maxAge.inDays,
-          'cache_size_after': _cacheBox.length,
-        });
+        WasteAppLogger.cacheEvent('cache_cleanup_expired', 'classification',
+            context: {
+              'entries_removed': keysToRemove.length,
+              'max_age_days': maxAge.inDays,
+              'cache_size_after': _cacheBox.length,
+            });
       }
 
       return keysToRemove.length;
     } catch (e) {
-      WasteAppLogger.severe('Error during cache cleanup', error: e, context: {
+      WasteAppLogger.severe('cache_cleanup_error', error: e, context: {
         'cache_size': _cacheBox.length,
         'max_age_days': maxAge.inDays
       });
@@ -688,31 +580,23 @@ class ClassificationCacheService {
     }
   }
 
-  /// Get cache statistics
+  /// Return cache statistics snapshot.
   Map<String, dynamic> getCacheStatistics() {
     final stats = Map<String, dynamic>.from(_statistics);
 
-    // Calculate hit rate
     final totalRequests = stats['hits'] + stats['misses'];
     stats['hitRate'] = totalRequests > 0
         ? (stats['hits'] / totalRequests * 100).toStringAsFixed(1) + '%'
         : '0%';
 
-    // Calculate similar hit rate when available
     final similarHits = stats['similarHits'] ?? 0;
-    if (similarHits > 0) {
-      final similarHitPercent =
-          (similarHits / stats['hits'] * 100).toStringAsFixed(1);
-      stats['similarHitRate'] = '$similarHitPercent%';
-    } else {
-      stats['similarHitRate'] = '0%';
-    }
+    stats['similarHitRate'] = similarHits > 0 && stats['hits'] > 0
+        ? '${(similarHits / stats['hits'] * 100).toStringAsFixed(1)}%'
+        : '0%';
 
-    // Calculate age
     final age = DateTime.now().difference(stats['createdAt'] as DateTime);
     stats['ageHours'] = age.inHours;
 
-    // Format bytesSaved
     final bytesSaved = stats['bytesSaved'] ?? 0;
     if (bytesSaved > 1024 * 1024) {
       stats['bytesSavedFormatted'] =
@@ -724,15 +608,15 @@ class ClassificationCacheService {
       stats['bytesSavedFormatted'] = '$bytesSaved bytes';
     }
 
-    // Count hash types
+    // Count hash types by inspecting stored entry imageHash
     var pHashCount = 0;
     var standardHashCount = 0;
     var fallbackHashCount = 0;
-
     for (final String key in _cacheBox.keys) {
-      if (key.startsWith('phash_')) {
+      final raw = _rawPhashPrefix(key);
+      if (raw.startsWith('phash_')) {
         pHashCount++;
-      } else if (key.startsWith('fallback_')) {
+      } else if (raw.startsWith('fallback_')) {
         fallbackHashCount++;
       } else {
         standardHashCount++;
@@ -746,136 +630,223 @@ class ClassificationCacheService {
     return stats;
   }
 
-  /// Helper method to deserialize a cache entry
-  CachedClassification? _deserializeEntry(String hash) {
+  // ------------------------------------------------------------------
+  // SIMILARITY SCANNING (perceptual hash Hamming distance + context)
+  // ------------------------------------------------------------------
+
+  /// Finds a similar perceptual hash entry with content hash verification.
+  ///
+  /// Two-stage verification:
+  /// 1. Compute Hamming distance against cached entries' raw phash.
+  /// 2. Verify content hash matches exactly (prevents false positives).
+  Future<String?> _findSimilarPerceptualHashWithVerification(
+      String cacheKey, String contentHash, int threshold) async {
     try {
-      final jsonString = _cacheBox.get(hash);
-      if (jsonString == null) return null;
+      final rawKey = _rawPhashPrefix(cacheKey);
+      final hexHash = _phashHex(rawKey);
+      if (hexHash == null) return null;
 
-      return CachedClassification.deserialize(jsonString);
-    } catch (e) {
-      WasteAppLogger.severe('Error occurred',
-          context: {'service': 'cache', 'file': 'cache_service'});
-      return null;
-    }
-  }
-
-  /// Finds a similar perceptual hash in the cache (basic version without content verification)
-  /// Used as fallback when content hash verification is disabled via kill-switch
-  Future<String?> _findSimilarPerceptualHash(
-      String pHash, int threshold) async {
-    try {
-      if (!pHash.startsWith('phash_')) {
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'cache', 'file': 'cache_service'});
-        return null;
-      }
-
-      // Extract the hex part
-      final hexHash = pHash.substring(6); // Remove 'phash_' prefix
-      if (hexHash.length != 16) {
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'cache', 'file': 'cache_service'});
-        return null; // Should be 16 hex chars (64 bits)
-      }
-
-      // Convert to binary
       final binaryHash = _hexToBinary(hexHash);
-      if (binaryHash.length != 64) {
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'cache', 'file': 'cache_service'});
-        return null;
-      }
+      if (binaryHash.length != 64) return null;
 
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'cache', 'file': 'cache_service'});
-
-      // Get all perceptual hashes in cache for faster processing
+      // Collect all perceptual hash keys from the box
       final pHashKeys =
-          _cacheBox.keys.where((key) => key.startsWith('phash_')).toList();
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'cache', 'file': 'cache_service'});
+          _cacheBox.keys.where((k) => _isPerceptualHash(k)).toList();
+      WasteAppLogger.cacheEvent(
+          'cache_similarity_scan_started', 'classification', context: {
+        'candidates_count': pHashKeys.length,
+        'threshold': threshold,
+        'requested_content_hash': _previewHash(contentHash)
+      });
 
-      // Track best match
       String? bestMatch;
-      var bestDistance =
-          threshold + 1; // Initialize with a value greater than threshold
+      var bestDistance = threshold + 1;
 
-      // Compare with all perceptual hashes in cache
-      for (final String cachedHash in pHashKeys) {
-        final cachedHexHash = cachedHash.substring(6);
-        if (cachedHexHash.length != 16) continue;
+      for (final String cachedKey in pHashKeys) {
+        // Deserialize to get the entry's raw imageHash (it may differ
+        // from the Hive key when context-aware keys are used).
+        final cacheEntry = _deserializeEntry(cachedKey);
+        if (cacheEntry == null) continue;
 
-        final cachedBinaryHash = _hexToBinary(cachedHexHash);
-        if (cachedBinaryHash.length != 64) continue;
+        final entryHex = _phashHex(_rawPhashPrefix(cacheEntry.imageHash));
+        if (entryHex == null) continue;
 
-        // Calculate Hamming distance (number of bits that differ)
-        final distance = _hammingDistance(binaryHash, cachedBinaryHash);
+        final entryBinary = _hexToBinary(entryHex);
+        if (entryBinary.length != 64) continue;
 
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'cache', 'file': 'cache_service'});
+        final distance = _hammingDistance(binaryHash, entryBinary);
 
-        // If distance is within threshold, consider it a match
         if (distance <= threshold) {
-          // If it's a better match than current best, update it
-          if (distance < bestDistance) {
-            bestDistance = distance;
-            bestMatch = cachedHash;
-
-            // If exact match (distance = 0), return immediately
-            if (distance == 0) break;
+          // Candidate within threshold — verify content hash
+          if (cacheEntry.contentHash != null &&
+              cacheEntry.contentHash == contentHash) {
+            if (distance < bestDistance) {
+              bestDistance = distance;
+              bestMatch = cachedKey;
+              if (distance == 0) break;
+            }
+          } else {
+            WasteAppLogger.cacheEvent(
+                'cache_similarity_candidate_rejected_context_mismatch',
+                'classification',
+                context: {
+                  'candidate_key': _previewHash(cachedKey),
+                  'distance': distance,
+                  'reason': cacheEntry.contentHash == null
+                      ? 'entry_missing_content_hash'
+                      : 'content_hash_mismatch'
+                });
           }
         }
       }
 
       if (bestMatch != null) {
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'cache', 'file': 'cache_service'});
-      } else {
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'cache', 'file': 'cache_service'});
+        WasteAppLogger.cacheEvent(
+            'cache_similarity_best_match_found', 'classification',
+            context: {
+              'matched_key': _previewHash(bestMatch),
+              'distance': bestDistance,
+              'threshold': threshold
+            });
       }
 
       return bestMatch;
     } catch (e) {
-      WasteAppLogger.severe('Error occurred',
-          context: {'service': 'cache', 'file': 'cache_service'});
+      WasteAppLogger.severe('cache_similarity_search_error', error: e,
+          context: {'key': _previewHash(cacheKey)});
       return null;
     }
   }
 
-  /// Get the cache box for testing purposes
+  /// Basic perceptual similarity search (no content verification).
+  /// Only used when [CacheFeatureFlags.contentHashVerificationEnabled] is
+  /// false — and even then only for context-agnostic entries
+  /// (contentHash == null).
+  Future<String?> _findSimilarPerceptualHash(
+      String cacheKey, int threshold) async {
+    try {
+      final rawKey = _rawPhashPrefix(cacheKey);
+      final hexHash = _phashHex(rawKey);
+      if (hexHash == null) return null;
+
+      final binaryHash = _hexToBinary(hexHash);
+      if (binaryHash.length != 64) return null;
+
+      String? bestMatch;
+      var bestDistance = threshold + 1;
+
+      final pHashKeys =
+          _cacheBox.keys.where((k) => _isPerceptualHash(k)).toList();
+
+      for (final String cachedKey in pHashKeys) {
+        final cacheEntry = _deserializeEntry(cachedKey);
+        if (cacheEntry == null) continue;
+
+        final entryHex = _phashHex(_rawPhashPrefix(cacheEntry.imageHash));
+        if (entryHex == null) continue;
+
+        final entryBinary = _hexToBinary(entryHex);
+        if (entryBinary.length != 64) continue;
+
+        final distance = _hammingDistance(binaryHash, entryBinary);
+
+        if (distance <= threshold && distance < bestDistance) {
+          bestDistance = distance;
+          bestMatch = cachedKey;
+          if (distance == 0) break;
+        }
+      }
+
+      return bestMatch;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // HELPERS
+  // ------------------------------------------------------------------
+
+  /// Returns true if [key] starts with a perceptual hash prefix.
+  bool _isPerceptualHash(String key) =>
+      _rawPhashPrefix(key).startsWith('phash_');
+
+  /// Extracts the 16-hex-char portion after 'phash_' from a raw hash.
+  /// Returns null on format error.
+  String? _phashHex(String raw) {
+    if (!raw.startsWith('phash_')) return null;
+    final hex = raw.substring(6);
+    if (hex.length != 16) return null;
+    return hex;
+  }
+
+  /// Hamming distance between two equal-length binary strings.
+  int _hammingDistance(String a, String b) {
+    if (a.length != b.length) {
+      throw ArgumentError('Strings must be of equal length');
+    }
+    var distance = 0;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) distance++;
+    }
+    return distance;
+  }
+
+  /// Converts a hexadecimal string to a binary string.
+  String _hexToBinary(String hex) {
+    var binary = '';
+    for (var i = 0; i < hex.length; i++) {
+      final value = int.parse(hex[i], radix: 16);
+      binary += value.toRadixString(2).padLeft(4, '0');
+    }
+    return binary;
+  }
+
+  /// Deserialize a cache entry from its Hive key.
+  CachedClassification? _deserializeEntry(String key) {
+    try {
+      final jsonString = _cacheBox.get(key);
+      if (jsonString == null) return null;
+      return CachedClassification.deserialize(jsonString);
+    } catch (e) {
+      WasteAppLogger.warning('cache_deserialize_corrupted_entry',
+          error: e, context: {'key': _previewHash(key)});
+      return null;
+    }
+  }
+
+  /// Get the cache box for testing purposes.
   Box<String> get cacheBox => _cacheBox;
 }
 
 /// Temporary alias to maintain compatibility with older tests that referenced
-/// `CacheService`. This alias maps the old name to the current
-/// `ClassificationCacheService` implementation.
+/// `CacheService`.
 typedef CacheService = ClassificationCacheService;
 
-/// Feature flags for cache service
+// ------------------------------------------------------------------
+// FEATURE FLAGS
+// ------------------------------------------------------------------
+
+/// Feature flags for cache service.
 class CacheFeatureFlags {
   static bool _contentHashVerificationEnabled = true;
 
-  /// Enable/disable content hash verification (kill-switch for production)
+  /// Enable/disable content hash verification (kill-switch for production).
   static bool get contentHashVerificationEnabled =>
       _contentHashVerificationEnabled;
 
-  /// Set content hash verification state (for testing or remote config)
+  /// Set content hash verification state (for testing or remote config).
   static void setContentHashVerification(bool enabled) {
     _contentHashVerificationEnabled = enabled;
-    WasteAppLogger.info('Operation completed',
-        context: {'service': 'cache', 'file': 'cache_service'});
+    WasteAppLogger.cacheEvent(
+        'cache_feature_flag_content_hash_verification', 'classification',
+        context: {'enabled': enabled});
   }
 
-  /// Initialize feature flags from remote config (placeholder for future implementation)
+  /// Initialize feature flags from remote config (placeholder).
   static Future<void> initialize() async {
     // TODO: Integrate with Firebase Remote Config
-    // final remoteConfig = FirebaseRemoteConfig.instance;
-    // await remoteConfig.fetchAndActivate();
-    // _contentHashVerificationEnabled = remoteConfig.getBool('content_hash_verification_enabled');
-
-    WasteAppLogger.info('Operation completed',
-        context: {'service': 'cache', 'file': 'cache_service'});
+    WasteAppLogger.cacheEvent(
+        'cache_feature_flags_initialized_default', 'classification');
   }
 }
