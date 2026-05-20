@@ -23,7 +23,6 @@ import 'job_queue_screen.dart';
 import 'zero_balance_sheet.dart';
 import '../utils/waste_app_logger.dart';
 import '../services/premium_service.dart';
-import '../models/ai_job.dart';
 import '../widgets/manual_region_selector.dart';
 import 'combined_result_screen.dart';
 
