@@ -32,6 +32,9 @@ class FakePremiumService extends ChangeNotifier implements PremiumService {
 
   @override
   Future<void> toggleFeature(String featureId) async {}
+
+  @override
+  bool hasActivePremiumPlan() => false;
 }
 
 Widget _wrapForTest(Widget child) {

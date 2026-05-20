@@ -2,16 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/test_helper.dart';
-import '../../lib/widgets/settings/setting_tile.dart';
-import '../../lib/widgets/settings/settings_theme.dart';
-import '../../lib/widgets/settings/account_section.dart';
-import '../../lib/widgets/settings/premium_section.dart';
-import '../../lib/widgets/settings/app_settings_section.dart';
+import 'package:waste_segregation_app/widgets/settings/setting_tile.dart';
+import 'package:waste_segregation_app/widgets/settings/settings_theme.dart';
+import 'package:waste_segregation_app/widgets/settings/account_section.dart';
+import 'package:waste_segregation_app/widgets/settings/premium_section.dart';
+import 'package:waste_segregation_app/widgets/settings/app_settings_section.dart';
+import 'package:waste_segregation_app/services/google_drive_service.dart';
+import 'package:waste_segregation_app/services/haptic_settings_service.dart';
+
+class _FakeGoogleDriveService extends GoogleDriveService {
+  _FakeGoogleDriveService() : super(MockStorageService());
+
+  @override
+  Future<bool> isSignedIn() async => false;
+}
+
+class _FakeHapticSettingsService extends HapticSettingsService {
+  bool _enabled = true;
+
+  @override
+  bool get enabled => _enabled;
+
+  @override
+  Future<void> setEnabled(bool value) async {
+    _enabled = value;
+    notifyListeners();
+  }
+}
 
 void main() {
   setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
     await setupFirebaseForTesting();
   });
 
@@ -218,29 +242,37 @@ Widget _buildSettingTileStates() {
 }
 
 Widget _buildSettingsSections(ThemeMode themeMode) {
-  return createTestWidget(
-    child: Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: const SingleChildScrollView(
-        child: Column(
-          children: [
-            AccountSection(),
-            SizedBox(height: 16),
-            PremiumSection(),
-            SizedBox(height: 16),
-            AppSettingsSection(),
-          ],
+  return MultiProvider(
+    providers: [
+      Provider<GoogleDriveService>(create: (_) => _FakeGoogleDriveService()),
+      ChangeNotifierProvider<HapticSettingsService>(
+          create: (_) => _FakeHapticSettingsService()),
+    ],
+    child: createTestWidget(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Settings')),
+        body: const SingleChildScrollView(
+          child: Column(
+            children: [
+              AccountSection(),
+              SizedBox(height: 16),
+              PremiumSection(),
+              SizedBox(height: 16),
+              AppSettingsSection(),
+            ],
+          ),
         ),
       ),
+      theme: themeMode == ThemeMode.dark ? ThemeData.dark() : ThemeData.light(),
     ),
-    theme: themeMode == ThemeMode.dark ? ThemeData.dark() : ThemeData.light(),
   );
 }
 
 Widget _buildAccessibilityFeatures() {
   return MaterialApp(
     home: Scaffold(
-      body: Column(
+      body: SingleChildScrollView(
+        child: Column(
         children: [
           // Semantic labels demo
           Semantics(
@@ -290,6 +322,7 @@ Widget _buildAccessibilityFeatures() {
             ),
           ),
         ],
+        ),
       ),
     ),
   );

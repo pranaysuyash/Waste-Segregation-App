@@ -445,8 +445,10 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
               title: 'Retake Photo',
               subtitle: 'Take a new photo for analysis',
               onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, '/capture');
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/capture',
+                  (route) => false,
+                );
               },
             ),
 

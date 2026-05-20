@@ -768,8 +768,8 @@ void main() {
         },
         points: const UserPoints(total: 500, level: 5),
         activeChallenges: [challenge],
-        discoveredItemIds: {'item1', 'item2', 'item3'},
-        unlockedHiddenContentIds: {'content1', 'content2'},
+        discoveredItemIds: ['item1', 'item2', 'item3'],
+        unlockedHiddenContentIds: ['content1', 'content2'],
       );
 
       expect(profile.achievements, hasLength(1));
@@ -792,7 +792,7 @@ void main() {
           ),
         },
         points: const UserPoints(total: 250, level: 3),
-        discoveredItemIds: {'discover1', 'discover2'},
+        discoveredItemIds: ['discover1', 'discover2'],
         lastDailyEngagementBonusAwardedDate: DateTime.now(),
       );
 
@@ -816,12 +816,12 @@ void main() {
       const newPoints = UserPoints(total: 200, level: 2);
       final updated = original.copyWith(
         points: newPoints,
-        discoveredItemIds: {'new_item'},
+        discoveredItemIds: ['new_item'],
       );
 
       expect(updated.userId, equals('original_user'));
       expect(updated.points.total, equals(200));
-      expect(updated.discoveredItemIds, equals({'new_item'}));
+      expect(updated.discoveredItemIds, equals(['new_item']));
       expect(original.points.total, equals(100));
       expect(original.discoveredItemIds, isEmpty);
     });
@@ -935,7 +935,7 @@ void main() {
                   ),
                 ))),
         points: const UserPoints(total: 10000, level: 100),
-        discoveredItemIds: Set.from(List.generate(1000, (i) => 'item_$i')),
+        discoveredItemIds: List.generate(1000, (i) => 'item_$i'),
       );
 
       expect(largeProfile.achievements, hasLength(100));

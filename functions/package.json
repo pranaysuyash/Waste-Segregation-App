@@ -30,7 +30,8 @@
     "path-to-regexp": "^0.1.13",
     "follow-redirects": "^1.15.12",
     "fast-xml-parser": "^5.7.0",
-    "fast-xml-builder": "^1.1.7"
+    "fast-xml-builder": "^1.1.7",
+    "@tootallnate/once": "^3.0.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",

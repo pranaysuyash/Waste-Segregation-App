@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import '../utils/waste_app_logger.dart';
 import 'enhanced_api_error_handler.dart';
@@ -45,7 +47,6 @@ class UnifiedApiClient {
 
     _setupInterceptors();
     _initializeRateLimiter();
-    // Schedule periodic deduplication cache cleanup
     if (enableRequestDeduplication) {
       _schedulePeriodicCleanup();
     }
@@ -57,6 +58,8 @@ class UnifiedApiClient {
   final bool enableRateLimiting;
   final int maxConcurrentRequests;
 
+  bool _disposed = false;
+
   // Request deduplication
   final Map<String, Future<Response>> _pendingRequests = {};
   final Map<String, DateTime> _requestTimestamps = {};
@@ -67,17 +70,36 @@ class UnifiedApiClient {
   int _activeRequests = 0;
   final List<Completer<void>> _requestQueue = [];
 
+  // Periodic cleanup timer
+  Timer? _cleanupTimer;
+
   // API versioning
   final Map<String, ApiVersion> _apiVersions = {};
   ApiVersion? _defaultVersion;
+
+  static final RegExp _uuidPattern = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+  );
+  static final RegExp _numericPattern = RegExp(r'^\d+$');
+  static final RegExp _longOpaquePattern = RegExp(r'^[A-Za-z0-9\-_]{21,}$');
+
+  static const _sensitiveHeaderKeys = {
+    'authorization',
+    'x-goog-api-key',
+    'api-key',
+    'x-api-key',
+    'cookie',
+    'set-cookie',
+  };
 
   /// Initialize the client with API version configurations
   void configureApiVersions({
     required Map<String, ApiVersion> versions,
     ApiVersion? defaultVersion,
   }) {
-    _apiVersions.clear();
-    _apiVersions.addAll(versions);
+    _apiVersions
+      ..clear()
+      ..addAll(versions);
     _defaultVersion = defaultVersion ?? versions.values.first;
 
     WasteAppLogger.info('API versions configured', context: {
@@ -92,7 +114,6 @@ class UnifiedApiClient {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? headers,
     String? apiVersion,
-    bool enableCache = true,
     Duration? timeout,
     String? operationId,
   }) async {
@@ -102,9 +123,8 @@ class UnifiedApiClient {
       queryParameters: queryParameters,
       headers: headers,
       apiVersion: apiVersion,
-      enableCache: enableCache,
       timeout: timeout,
-      operationId: operationId ?? 'GET_$endpoint',
+      operationId: operationId ?? 'GET',
     );
   }
 
@@ -127,7 +147,7 @@ class UnifiedApiClient {
       headers: headers,
       apiVersion: apiVersion,
       timeout: timeout,
-      operationId: operationId ?? 'POST_$endpoint',
+      operationId: operationId ?? 'POST',
       onSendProgress: onSendProgress,
     );
   }
@@ -150,7 +170,31 @@ class UnifiedApiClient {
       headers: headers,
       apiVersion: apiVersion,
       timeout: timeout,
-      operationId: operationId ?? 'PUT_$endpoint',
+      operationId: operationId ?? 'PUT',
+    );
+  }
+
+  /// Make a PATCH request with unified error handling
+  Future<ApiResponse<T>> patch<T>({
+    required String endpoint,
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Map<String, String>? headers,
+    String? apiVersion,
+    Duration? timeout,
+    String? operationId,
+    ProgressCallback? onSendProgress,
+  }) async {
+    return _executeRequest<T>(
+      method: 'PATCH',
+      endpoint: endpoint,
+      data: data,
+      queryParameters: queryParameters,
+      headers: headers,
+      apiVersion: apiVersion,
+      timeout: timeout,
+      operationId: operationId ?? 'PATCH',
+      onSendProgress: onSendProgress,
     );
   }
 
@@ -170,7 +214,7 @@ class UnifiedApiClient {
       headers: headers,
       apiVersion: apiVersion,
       timeout: timeout,
-      operationId: operationId ?? 'DELETE_$endpoint',
+      operationId: operationId ?? 'DELETE',
     );
   }
 
@@ -182,16 +226,19 @@ class UnifiedApiClient {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? headers,
     String? apiVersion,
-    bool enableCache = false,
     Duration? timeout,
     required String operationId,
     ProgressCallback? onSendProgress,
   }) async {
+    if (_disposed) {
+      throw StateError('UnifiedApiClient has been disposed');
+    }
+
     // Get API version configuration
     final version = _getApiVersion(apiVersion);
     final versionedEndpoint = _buildVersionedEndpoint(endpoint, version);
 
-    // Build request key for deduplication
+    // Build sanitized request key for deduplication
     final requestKey =
         _buildRequestKey(method, versionedEndpoint, queryParameters, data);
 
@@ -199,9 +246,8 @@ class UnifiedApiClient {
     if (enableRequestDeduplication && _isDuplicateRequest(requestKey)) {
       WasteAppLogger.info('Deduplicating request', context: {
         'operation_id': operationId,
-        'request_key': requestKey,
         'method': method,
-        'endpoint': versionedEndpoint,
+        'endpoint': _sanitizePath(versionedEndpoint),
       });
 
       final existingRequest = _pendingRequests[requestKey]!;
@@ -209,49 +255,53 @@ class UnifiedApiClient {
       return _buildApiResponse<T>(response, operationId);
     }
 
-    // Apply rate limiting
-    await _acquireRateLimit(version.serviceName);
-
-    // Execute request with error handling
-    final requestFuture = _errorHandler.executeWithErrorHandling<Response>(
-      serviceName: version.serviceName,
-      operationId: operationId,
-      operation: () => _makeHttpRequest(
-        method: method,
-        endpoint: versionedEndpoint,
-        data: data,
-        queryParameters: queryParameters,
-        headers: _buildHeaders(headers, version),
-        timeout: timeout,
-        onSendProgress: onSendProgress,
-      ),
-      metadata: {
-        'method': method,
-        'endpoint': versionedEndpoint,
-        'api_version': version.version,
-        'has_data': data != null,
-        'query_params': queryParameters?.keys.toList(),
-      },
-    );
-
-    // Store for deduplication
-    if (enableRequestDeduplication) {
-      _pendingRequests[requestKey] = requestFuture;
-      _requestTimestamps[requestKey] = DateTime.now();
-    }
+    // Apply rate limiting (inside try/finally to ensure release)
+    final acquired = <String>{};
 
     try {
+      await _acquireRateLimit(version.serviceName);
+      acquired.add(version.serviceName);
+
+      // Execute request with error handling
+      final requestFuture = _errorHandler.executeWithErrorHandling<Response>(
+        serviceName: version.serviceName,
+        operationId: operationId,
+        operation: () => _makeHttpRequest(
+          method: method,
+          endpoint: versionedEndpoint,
+          data: data,
+          queryParameters: queryParameters,
+          headers: _buildHeaders(headers, version),
+          timeout: timeout,
+          onSendProgress: onSendProgress,
+        ),
+        metadata: {
+          'method': method,
+          'endpoint': _sanitizePath(versionedEndpoint),
+          'api_version': version.version,
+          'has_data': data != null,
+        },
+      );
+
+      // Store for deduplication
+      if (enableRequestDeduplication) {
+        _pendingRequests[requestKey] = requestFuture;
+        _requestTimestamps[requestKey] = DateTime.now();
+      }
+
       final response = await requestFuture;
       return _buildApiResponse<T>(response, operationId);
     } finally {
       // Clean up deduplication cache
       if (enableRequestDeduplication) {
-        _pendingRequests.remove(requestKey);
+        unawaited(_pendingRequests.remove(requestKey));
         _requestTimestamps.remove(requestKey);
       }
 
-      // Release rate limit
-      _releaseRateLimit(version.serviceName);
+      // Release rate limit for each acquired service
+      for (final service in acquired) {
+        _releaseRateLimit(service);
+      }
     }
   }
 
@@ -294,6 +344,14 @@ class UnifiedApiClient {
           queryParameters: queryParameters,
           options: options,
         );
+      case 'PATCH':
+        return _dio.patch(
+          endpoint,
+          data: data,
+          queryParameters: queryParameters,
+          options: options,
+          onSendProgress: onSendProgress,
+        );
       case 'DELETE':
         return _dio.delete(
           endpoint,
@@ -307,7 +365,6 @@ class UnifiedApiClient {
 
   /// Setup request/response interceptors
   void _setupInterceptors() {
-    // Request interceptor
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
         final startTime = DateTime.now();
@@ -315,7 +372,8 @@ class UnifiedApiClient {
 
         WasteAppLogger.info('API Request', context: {
           'method': options.method,
-          'url': options.uri.toString(),
+          'host': options.uri.host,
+          'path': _sanitizePath(options.uri.path),
           'headers': _sanitizeHeaders(options.headers),
           'has_data': options.data != null,
           'timestamp': startTime.toIso8601String(),
@@ -332,7 +390,8 @@ class UnifiedApiClient {
 
         WasteAppLogger.info('API Response', context: {
           'method': response.requestOptions.method,
-          'url': response.requestOptions.uri.toString(),
+          'host': response.requestOptions.uri.host,
+          'path': _sanitizePath(response.requestOptions.uri.path),
           'status_code': response.statusCode,
           'duration_ms': duration.inMilliseconds,
           'response_size': response.data?.toString().length ?? 0,
@@ -348,7 +407,8 @@ class UnifiedApiClient {
 
         WasteAppLogger.warning('API Error', error: error, context: {
           'method': error.requestOptions.method,
-          'url': error.requestOptions.uri.toString(),
+          'host': error.requestOptions.uri.host,
+          'path': _sanitizePath(error.requestOptions.uri.path),
           'error_type': error.type.name,
           'status_code': error.response?.statusCode,
           'duration_ms': duration.inMilliseconds,
@@ -359,13 +419,11 @@ class UnifiedApiClient {
       },
     ));
 
-    // Add cost tracking interceptor
     _dio.interceptors.add(CostTrackingInterceptor());
   }
 
   /// Initialize rate limiting system
   void _initializeRateLimiter() {
-    // Default rate limiters for different services
     _rateLimiters['openai'] = RateLimiter(
       maxRequests: 60,
       windowDuration: const Duration(minutes: 1),
@@ -389,7 +447,6 @@ class UnifiedApiClient {
   Future<void> _acquireRateLimit(String serviceName) async {
     if (!enableRateLimiting) return;
 
-    // Check concurrent request limit
     while (_activeRequests >= maxConcurrentRequests) {
       final completer = Completer<void>();
       _requestQueue.add(completer);
@@ -398,7 +455,6 @@ class UnifiedApiClient {
 
     _activeRequests++;
 
-    // Check service-specific rate limit
     final rateLimiter = _rateLimiters[serviceName];
     if (rateLimiter != null) {
       await rateLimiter.acquire();
@@ -411,10 +467,8 @@ class UnifiedApiClient {
 
     _activeRequests--;
 
-    // Process queued requests
     if (_requestQueue.isNotEmpty) {
-      final completer = _requestQueue.removeAt(0);
-      completer.complete();
+      _requestQueue.removeAt(0).complete();
     }
   }
 
@@ -442,7 +496,6 @@ class UnifiedApiClient {
       ...version.headers,
     };
 
-    // Add version header if specified
     if (version.headerName.isNotEmpty) {
       combinedHeaders[version.headerName] = version.version;
     }
@@ -450,20 +503,21 @@ class UnifiedApiClient {
     return combinedHeaders;
   }
 
-  /// Build request key for deduplication
+  /// Build a stable hashed request key for deduplication
+  /// Uses only sanitized components — never raw body/query.
   String _buildRequestKey(
     String method,
     String endpoint,
     Map<String, dynamic>? queryParameters,
     dynamic data,
   ) {
-    final components = [
-      method,
-      endpoint,
-      queryParameters?.toString() ?? '',
-      data?.toString() ?? '',
-    ];
-    return components.join('|');
+    final sanitizedPath = _sanitizePath(endpoint);
+    final hasQuery = queryParameters != null && queryParameters.isNotEmpty;
+    final hasData = data != null;
+
+    final hashInput = '$method|$sanitizedPath|$hasQuery|$hasData';
+    final hash = sha256.convert(utf8.encode(hashInput));
+    return base64Encode(hash.bytes);
   }
 
   /// Check if request is duplicate within time window
@@ -489,18 +543,30 @@ class UnifiedApiClient {
     );
   }
 
-  /// Sanitize headers for logging (remove sensitive data)
+  /// Sanitize headers for logging (case-insensitive, broader set)
   Map<String, dynamic> _sanitizeHeaders(Map<String, dynamic> headers) {
     final sanitized = Map<String, dynamic>.from(headers);
-    const sensitiveKeys = ['authorization', 'api-key', 'x-api-key', 'bearer'];
-
-    for (final key in sensitiveKeys) {
-      if (sanitized.containsKey(key)) {
+    for (final key in sanitized.keys) {
+      if (_sensitiveHeaderKeys.contains(key.toLowerCase())) {
         sanitized[key] = '***REDACTED***';
       }
     }
-
     return sanitized;
+  }
+
+  /// Sanitize a URI path: strip query params, normalize ID segments
+  String _sanitizePath(String path) {
+    final clean = path.split('?').first;
+    final segments = clean
+        .split('/')
+        .where((s) => s.isNotEmpty)
+        .map((segment) {
+      if (_numericPattern.hasMatch(segment)) return ':id';
+      if (_uuidPattern.hasMatch(segment)) return ':id';
+      if (_longOpaquePattern.hasMatch(segment)) return ':id';
+      return segment;
+    }).toList();
+    return '/${segments.join('/')}';
   }
 
   /// Clean up expired deduplication entries
@@ -530,8 +596,7 @@ class UnifiedApiClient {
 
   /// Schedule periodic cleanup of deduplication cache
   void _schedulePeriodicCleanup() {
-    // Run cleanup every 5 minutes
-    Timer.periodic(const Duration(minutes: 5), (_) {
+    _cleanupTimer = Timer.periodic(const Duration(minutes: 5), (_) {
       _cleanupDeduplicationCache();
     });
   }
@@ -552,10 +617,24 @@ class UnifiedApiClient {
 
   /// Dispose resources
   void dispose() {
+    _disposed = true;
+    _cleanupTimer?.cancel();
+    _cleanupTimer = null;
     _dio.close();
     _pendingRequests.clear();
     _requestTimestamps.clear();
+
+    // Complete queued request completers with an error
+    final queued = List<Completer<void>>.from(_requestQueue);
     _requestQueue.clear();
+    for (final completer in queued) {
+      if (!completer.isCompleted) {
+        completer.completeError(
+          StateError('UnifiedApiClient disposed'),
+        );
+      }
+    }
+
     _rateLimiters.clear();
   }
 }

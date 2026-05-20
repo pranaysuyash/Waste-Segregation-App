@@ -380,8 +380,8 @@ void main() {
             pointsReward: 500,
           ),
         ],
-        discoveredItemIds: {'item1', 'item2', 'item3'},
-        unlockedHiddenContentIds: {'content1'},
+        discoveredItemIds: ['item1', 'item2', 'item3'],
+        unlockedHiddenContentIds: ['content1'],
       );
 
       final profile = UserProfile(

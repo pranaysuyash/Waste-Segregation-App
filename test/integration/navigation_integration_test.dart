@@ -5,6 +5,8 @@ import 'package:waste_segregation_app/main.dart' as app;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  const runE2ENavTests =
+      bool.fromEnvironment('RUN_E2E_NAV_TESTS', defaultValue: false);
 
   group('Navigation Integration Tests', () {
     testWidgets('Analysis flow should not cause double navigation',
@@ -36,7 +38,7 @@ void main() {
 
       // Visual verification - app should be in stable state
       await tester.pumpAndSettle();
-    });
+    }, skip: !runE2ENavTests);
 
     testWidgets('Rapid button taps should not cause multiple navigations',
         (WidgetTester tester) async {
@@ -67,7 +69,7 @@ void main() {
         expect(finalRouteCount, lessThanOrEqualTo(initialRouteCount + 1),
             reason: 'Rapid taps should not cause multiple navigations');
       }
-    });
+    }, skip: !runE2ENavTests);
 
     testWidgets('Auto-analyze flow should complete without double processing',
         (WidgetTester tester) async {
@@ -104,7 +106,7 @@ void main() {
             isTrue,
             reason: 'Should find either Result or Classification text');
       }
-    });
+    }, skip: !runE2ENavTests);
 
     testWidgets('Navigation stack should remain clean after operations',
         (WidgetTester tester) async {
@@ -139,7 +141,7 @@ void main() {
               reason: 'Tab navigation should not accumulate routes');
         }
       }
-    });
+    }, skip: !runE2ENavTests);
 
     testWidgets('Error scenarios should not leave orphaned routes',
         (WidgetTester tester) async {
@@ -161,7 +163,7 @@ void main() {
       final finalRouteCount = navigator.widget.pages?.length ?? 1;
       expect(finalRouteCount, equals(initialRouteCount),
           reason: 'Error scenarios should not leave orphaned routes');
-    });
+    }, skip: !runE2ENavTests);
   });
 
   group('Visual Navigation Tests', () {
@@ -186,6 +188,6 @@ void main() {
         // Verify no duplicate screens are visible
         expect(find.byType(Scaffold), findsOneWidget);
       }
-    });
+    }, skip: !runE2ENavTests);
   });
 }

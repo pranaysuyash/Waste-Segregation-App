@@ -65,8 +65,8 @@ void main() {
         streaks: {},
         points: const UserPoints(total: 100, level: 2),
         achievements: [],
-        discoveredItemIds: {},
-        unlockedHiddenContentIds: {},
+        discoveredItemIds: [],
+        unlockedHiddenContentIds: [],
       );
 
       final userProfile = UserProfile(

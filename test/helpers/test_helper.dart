@@ -31,8 +31,8 @@ class MockStorageService extends StorageService {
         points: const UserPoints(total: 100, level: 2),
         achievements: [],
         streaks: {},
-        discoveredItemIds: {},
-        unlockedHiddenContentIds: {},
+        discoveredItemIds: [],
+        unlockedHiddenContentIds: [],
       ),
     );
   }
@@ -75,8 +75,8 @@ class MockGamificationService extends GamificationService {
       points: const UserPoints(total: 100, level: 2),
       achievements: [],
       streaks: {},
-      discoveredItemIds: {},
-      unlockedHiddenContentIds: {},
+      discoveredItemIds: [],
+      unlockedHiddenContentIds: [],
     );
   }
 }

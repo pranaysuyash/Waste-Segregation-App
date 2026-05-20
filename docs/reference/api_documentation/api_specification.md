@@ -25,22 +25,29 @@ Generic HTTP client wrapping Dio with built-in rate limiting, API versioning, re
 
 ```dart
 UnifiedApiClient({
-  required String baseUrl,
+  String? baseUrl,
   Map<String, String>? defaultHeaders,
-  Duration? timeout,
+  Duration? connectTimeout,
+  Duration? receiveTimeout,
+  Duration? sendTimeout,
+  EnhancedApiErrorHandler? errorHandler,
+  bool enableRequestDeduplication = false,
   bool enableRateLimiting = true,
+  int maxConcurrentRequests = 10,
 })
 ```
 
 ### HTTP Methods
 
-| Method | Signature |
-|--------|-----------|
-| `get` | `Future<ApiResponse<T>> get<T>(String path, {Map<String, dynamic>? queryParams, Map<String, String>? headers, Duration? timeout, String? apiVersion})` |
-| `post` | `Future<ApiResponse<T>> post<T>(String path, {dynamic data, Map<String, String>? headers, Duration? timeout, String? apiVersion})` |
-| `put` | `Future<ApiResponse<T>> put<T>(String path, {dynamic data, Map<String, String>? headers, Duration? timeout, String? apiVersion})` |
-| `delete` | `Future<ApiResponse<T>> delete<T>(String path, {Map<String, String>? headers, Duration? timeout, String? apiVersion})` |
-| `patch` | `Future<ApiResponse<T>> patch<T>(String path, {dynamic data, Map<String, String>? headers, Duration? timeout, String? apiVersion})` |
+All methods return `Future<ApiResponse<T>>` and accept a required named `endpoint` parameter plus optional named parameters.
+
+| Method | Notable parameters |
+|--------|--------------------|
+| `get` | `endpoint`, `queryParameters`, `headers`, `apiVersion`, `timeout`, `operationId` |
+| `post` | `endpoint`, `data`, `queryParameters`, `headers`, `apiVersion`, `timeout`, `operationId`, `onSendProgress` |
+| `put` | `endpoint`, `data`, `queryParameters`, `headers`, `apiVersion`, `timeout`, `operationId` |
+| `patch` | `endpoint`, `data`, `queryParameters`, `headers`, `apiVersion`, `timeout`, `operationId`, `onSendProgress` |
+| `delete` | `endpoint`, `queryParameters`, `headers`, `apiVersion`, `timeout`, `operationId` |
 
 ### Versioning
 
@@ -57,8 +64,17 @@ Registers named API versions (e.g., `'v1'`, `'v1beta'`) with their service endpo
 
 | Method | Return Type | Description |
 |--------|-------------|-------------|
-| `getStatistics()` | `Map<String, dynamic>` | Request count, errors, avg latency per method |
-| `resetStatistics()` | `void` | Resets all statistics counters |
+| `getStatistics()` | `Map<String, dynamic>` | Active requests, queue depth, dedup state, rate-limiter stats, circuit-breaker status, API version info |
+| `dispose()` | `void` | Releases resources: cancels cleanup timer, closes Dio, completes queued requests with error |
+
+### Security & Privacy
+
+- Logged URIs are sanitized: query strings stripped, IDs normalized to `:id`.
+- Headers are redacted case-insensitively: `authorization`, `x-goog-api-key`, `api-key`, `x-api-key`, `cookie`, `set-cookie`.
+- Deduplication keys are hashed from sanitized method/path/query-shape — no raw body or query strings stored. Dedup keys are not logged.
+- Rate-limit acquire/release is wrapped in a single `try/finally` to prevent leaked request counts.
+- Periodic cleanup timer is stored and cancelled in `dispose()`.
+- On `dispose()`, all queued request completers are completed with an error so no future hangs. Subsequent calls throw `StateError`.
 
 ---
 
@@ -298,29 +314,44 @@ CostAwareRateLimiter({
 
 **File:** `lib/services/cost_tracking_interceptor.dart`
 
-Dio interceptor that tracks per-request API costs.
+Dio interceptor that provides rough telemetry estimates for API usage costs. **Not a billing-grade source of truth.** Cost values are approximate and labeled as such in logs.
+
+**IMPORTANT:** This interceptor provides rough telemetry estimates for usage
+analysis. It is **not** a billing-grade source of truth.
 
 | Method | Return Type | Description |
 |--------|-------------|-------------|
-| `getCostSummary()` | `Map<String, dynamic>` | Total cost, request count, avg cost |
-| `getCostByProvider()` | `Map<String, Map<String, dynamic>>` | Cost breakdown by provider |
-| `getDailyCost()` | `Map<String, double>` | Cost aggregated by day |
-| `getMonthlyCost()` | `double` | Total cost for current month |
+| `getCostStatistics()` | `Map<String, dynamic>` | Total cost, request count, avg cost per service (rough telemetry) |
 | `resetCostTracking()` | `void` | Resets all cost counters |
+| `setServiceCost(String serviceName, double costPerRequest)` | `void` | Sets custom cost-per-request for a service |
 
-### Cost Summary Output
+### Cost Statistics Output
 
 ```json
 {
-  "total_cost": 1.23,
-  "total_requests": 150,
-  "average_cost_per_request": 0.0082,
-  "average_cost_per_day": 0.12,
-  "daily_budget": 5.0,
-  "budget_remaining": 3.77,
-  "estimated_monthly_cost": 14.23
+  "openai": {
+    "service_name": "openai",
+    "total_requests": 60,
+    "total_cost": 0.12,
+    "average_cost": 0.002,
+    "error_rate": 0.05,
+    "average_duration_ms": 3200,
+    "total_data_bytes": 450000,
+    "recent_requests_1h": 15,
+    "recent_cost_1h": 0.03,
+    "most_expensive_endpoint": "/v1/chat/completions",
+    "slowest_endpoint": "/v1/chat/completions"
+  },
+  "summary": {
+    "total_cost": 0.12,
+    "total_requests": 60,
+    "average_cost_per_request": 0.002,
+    "tracked_services": ["openai"]
+  }
 }
 ```
+
+Log fields are labeled `rough_telemetry_cost_estimate` to disclaim billing accuracy. Service names are normalized; unknown names from headers become `"custom"`. Tracker count is bounded at 32 services.
 
 ---
 

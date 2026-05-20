@@ -21,7 +21,7 @@ void main() {
                   value: '1,234,567,890',
                   icon: Icons.analytics,
                   color: AppTheme.primaryColor,
-                  trend: '+999%',
+                  trend: Trend.up,
                   subtitle:
                       'Really long subtitle that might cause layout issues',
                 ),
@@ -60,7 +60,7 @@ void main() {
                         value: '999,999',
                         icon: Icons.analytics,
                         color: AppTheme.primaryColor,
-                        trend: '+150%',
+                        trend: Trend.up,
                       ),
                     ),
                     SizedBox(width: 8),
@@ -80,14 +80,14 @@ void main() {
                         value: '1,234,567',
                         icon: Icons.stars,
                         color: Colors.amber,
-                        trend: '+999%',
+                        trend: Trend.up,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+          );
         );
 
         await tester.pump();

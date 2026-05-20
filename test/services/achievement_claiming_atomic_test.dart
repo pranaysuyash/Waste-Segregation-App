@@ -70,8 +70,8 @@ class TestStorageService implements StorageService {
           progress: 0.5,
         ),
       ],
-      discoveredItemIds: {},
-      unlockedHiddenContentIds: {},
+      discoveredItemIds: [],
+      unlockedHiddenContentIds: [],
     );
   }
 

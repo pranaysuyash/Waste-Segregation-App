@@ -502,7 +502,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         expect(service.bottomNavEnabled,
-            isTrue); // i=9, 9%2 != 0, so false -> true
+            isFalse); // i=9, 9%2 != 0, so setBottomNavEnabled(false)
         expect(service.fabEnabled, isTrue); // i=9, 9%3 == 0, so true
         expect(service.navigationStyle, equals('style_9'));
       });
@@ -529,7 +529,7 @@ void main() {
 
         // Final state should be correct
         expect(service.bottomNavEnabled,
-            isTrue); // 99 % 2 != 0, so would set false, but 100-1=99
+            isFalse); // 99 % 2 != 0, so setBottomNavEnabled(false)
         expect(service.fabEnabled, isTrue); // 99 % 3 == 0
         expect(service.navigationStyle, equals('style_4')); // 99 % 5 = 4
       });

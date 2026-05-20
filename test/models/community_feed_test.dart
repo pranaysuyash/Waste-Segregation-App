@@ -428,11 +428,7 @@ void main() {
         final stats = CommunityStats(
           totalUsers: 1000,
           totalClassifications: 5000,
-          totalAchievements: 200,
           totalPoints: 25000,
-          activeToday: 150,
-          activeUsers: 800,
-          weeklyClassifications: 1200,
           categoryBreakdown: {
             'Dry Waste': 2000,
             'Wet Waste': 1500,
@@ -445,11 +441,7 @@ void main() {
 
         expect(stats.totalUsers, equals(1000));
         expect(stats.totalClassifications, equals(5000));
-        expect(stats.totalAchievements, equals(200));
         expect(stats.totalPoints, equals(25000));
-        expect(stats.activeToday, equals(150));
-        expect(stats.activeUsers, equals(800));
-        expect(stats.weeklyClassifications, equals(1200));
         expect(stats.categoryBreakdown.length, equals(5));
         expect(stats.lastUpdated, equals(testTimestamp));
       });
@@ -458,11 +450,7 @@ void main() {
         final original = CommunityStats(
           totalUsers: 500,
           totalClassifications: 2500,
-          totalAchievements: 100,
           totalPoints: 12500,
-          activeToday: 75,
-          activeUsers: 400,
-          weeklyClassifications: 600,
           categoryBreakdown: {
             'Dry Waste': 1000,
             'Wet Waste': 800,
@@ -483,7 +471,7 @@ void main() {
         expect(recreated.totalUsers, equals(original.totalUsers));
         expect(recreated.totalClassifications,
             equals(original.totalClassifications));
-        expect(recreated.totalAchievements, equals(original.totalAchievements));
+        expect(recreated.totalPoints, equals(original.totalPoints));
         expect(recreated.categoryBreakdown, equals(original.categoryBreakdown));
         expect(recreated.lastUpdated, equals(original.lastUpdated));
       });
@@ -492,8 +480,6 @@ void main() {
         final json = {
           'totalUsers': 100,
           'totalClassifications': 500,
-          'totalAchievements': 50,
-          'activeToday': 25,
         };
 
         final stats = CommunityStats.fromJson(json);
@@ -501,18 +487,15 @@ void main() {
         expect(stats.totalUsers, equals(100));
         expect(stats.totalClassifications, equals(500));
         expect(stats.totalPoints, equals(0)); // Default value
-        expect(stats.activeUsers, equals(0)); // Default value
-        expect(stats.weeklyClassifications, equals(0)); // Default value
         expect(stats.categoryBreakdown, isEmpty); // Default empty map
-        expect(stats.lastUpdated, isA<DateTime>());
+        expect(stats.lastUpdated, isNull);
       });
 
       test('should return top categories correctly sorted', () {
         final stats = CommunityStats(
           totalUsers: 100,
           totalClassifications: 1000,
-          totalAchievements: 50,
-          activeToday: 25,
+          totalPoints: 2500,
           categoryBreakdown: {
             'Dry Waste': 400,
             'Wet Waste': 300,
@@ -551,8 +534,7 @@ void main() {
         final stats = CommunityStats(
           totalUsers: 100,
           totalClassifications: 1000,
-          totalAchievements: 50,
-          activeToday: 25,
+          totalPoints: 2500,
           categoryBreakdown: {},
           lastUpdated: testTimestamp,
         );
@@ -586,9 +568,7 @@ void main() {
         final stats = CommunityStats(
           totalUsers: 1000000,
           totalClassifications: 10000000,
-          totalAchievements: 100000,
           totalPoints: 1000000000,
-          activeToday: 50000,
           categoryBreakdown: {
             'Dry Waste': 5000000,
             'Wet Waste': 3000000,

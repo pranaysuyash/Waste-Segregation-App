@@ -29,6 +29,9 @@ class FakePremiumService extends ChangeNotifier implements PremiumService {
   }
 
   @override
+  bool hasActivePremiumPlan() => false;
+
+  @override
   List<PremiumFeature> getPremiumFeatures() => PremiumFeature.features
       .where((feature) => isPremiumFeature(feature.id))
       .map((feature) => PremiumFeature(
