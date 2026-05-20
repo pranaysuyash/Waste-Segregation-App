@@ -6,6 +6,26 @@ The goal is not to make the smallest patch. The goal is to protect the project, 
 
 ---
 
+## 0. Boldness and Long-Term Build Mandate
+
+- Build for the **best app**, not the safest small change.
+- Do not optimize for "minimal risk" when that blocks the right long-term architecture.
+- Prefer bold, durable, first-principles solutions over narrow patchwork.
+- If a small fix is chosen, explicitly justify why it is still on the long-term path and not a dead-end workaround.
+- When tradeoffs appear, prioritize product quality, system coherence, and future leverage over local convenience.
+- Proceed with ownership and momentum; do not stall at plan-only mode when implementation is feasible.
+
+### 0.1 Missed-Anything Sweep (Required Before "Done")
+
+- Re-check instruction stack compliance (including `agent-start` and fallback loop).
+- Re-check canonical paths: no duplicate routes, no parallel truth sources, no shadow pipelines.
+- Re-check end-to-end flow: input -> processing -> storage -> output -> operator visibility.
+- Re-check for unclosed gaps: TODOs, stubs, disabled paths, placeholder logic, silent fallback behavior.
+- Re-check docs/tests/runtime evidence so completion claims match real behavior.
+- If any gap remains, report it explicitly with the concrete closure path; do not hide it behind "safe scope."
+
+---
+
 ## 1. Core Context Requirements
 
 - **Instruction loop is mandatory**:

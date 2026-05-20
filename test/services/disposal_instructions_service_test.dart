@@ -10,13 +10,68 @@ void main() {
       service = DisposalInstructionsService();
     });
 
-    test('should generate material ID correctly', () {
-      // Test the private method through public interface
-      final service = DisposalInstructionsService();
+    test('should build language-aware cache keys', () {
+      final keyEn = service.buildMaterialCacheKey(
+        material: 'plastic bottle',
+        category: 'Dry Waste',
+        lang: 'en',
+      );
+      final keyHi = service.buildMaterialCacheKey(
+        material: 'plastic bottle',
+        category: 'Dry Waste',
+        lang: 'hi',
+      );
 
-      // This will call _generateMaterialId internally
-      expect(() => service.getDisposalInstructions(material: 'plastic bottle'),
-          returnsNormally);
+      expect(keyEn, isNot(equals(keyHi)));
+      expect(keyEn, contains('lang=en'));
+      expect(keyHi, contains('lang=hi'));
+    });
+
+    test('should build unicode-safe cache keys', () {
+      final key = service.buildMaterialCacheKey(
+        material: 'प्लास्टिक बोतल',
+        category: 'Dry Waste',
+        subcategory: 'PET 1',
+        lang: 'hi',
+      );
+
+      expect(key, contains('lang=hi'));
+      expect(key, contains('material='));
+      expect(key, contains('category=dry%20waste'));
+      expect(key, contains('subcategory=pet%201'));
+      expect(key.contains('/'), false);
+    });
+
+    test('should distinguish keys by category and subcategory', () {
+      final key1 = service.buildMaterialCacheKey(
+        material: 'bottle',
+        category: 'Dry Waste',
+        subcategory: 'PET',
+      );
+      final key2 = service.buildMaterialCacheKey(
+        material: 'bottle',
+        category: 'Dry Waste',
+        subcategory: 'HDPE',
+      );
+
+      expect(key1, isNot(equals(key2)));
+    });
+
+    test('should preserve legacy key format compatibility', () {
+      final legacy = service.buildLegacyMaterialId(
+        'plastic bottle',
+        'Dry Waste',
+        'PET 1',
+      );
+      final canonical = service.buildMaterialCacheKey(
+        material: 'plastic bottle',
+        category: 'Dry Waste',
+        subcategory: 'PET 1',
+        lang: 'en',
+      );
+
+      expect(legacy, 'plasticbottle_drywaste_pet1');
+      expect(canonical, isNot(equals(legacy)));
     });
 
     test('should return fallback instructions for wet waste', () async {

@@ -68,8 +68,73 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
   Offset? _dragCurrent;
   bool _isDragging = false;
 
-  // Image render size tracking
-  Size? _imageRenderSize;
+  // Image aspect ratio and loading state
+  double _imageAspectRatio = 16 / 9;
+  bool _dimensionsLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImageDimensions();
+  }
+
+  @override
+  void didUpdateWidget(ManualRegionSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.imageFile != oldWidget.imageFile ||
+        widget.webImageBytes != oldWidget.webImageBytes) {
+      setState(() {
+        _dimensionsLoaded = false;
+      });
+      _loadImageDimensions();
+    }
+  }
+
+  Future<void> _loadImageDimensions() async {
+    try {
+      if (kIsWeb) {
+        if (widget.webImageBytes != null) {
+          final decoded = await decodeImageFromList(widget.webImageBytes!);
+          if (mounted) {
+            setState(() {
+              _imageAspectRatio = decoded.width / decoded.height;
+              _dimensionsLoaded = true;
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              _imageAspectRatio = 1.0;
+              _dimensionsLoaded = true;
+            });
+          }
+        }
+      } else if (widget.imageFile != null) {
+        final bytes = await widget.imageFile!.readAsBytes();
+        final decoded = await decodeImageFromList(bytes);
+        if (mounted) {
+          setState(() {
+            _imageAspectRatio = decoded.width / decoded.height;
+            _dimensionsLoaded = true;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _imageAspectRatio = 1.0;
+            _dimensionsLoaded = true;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _imageAspectRatio = 16 / 9; // safe fallback
+          _dimensionsLoaded = true;
+        });
+      }
+    }
+  }
 
   void _removeRegion(int id) {
     setState(() {
@@ -163,22 +228,36 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_dimensionsLoaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Stack(
           children: [
-            // Image layer
-            Positioned.fill(
-              child: _buildImage(),
+            // Centered Image + Interactive Board locked to the image aspect ratio
+            Center(
+              child: AspectRatio(
+                aspectRatio: _imageAspectRatio,
+                child: LayoutBuilder(
+                  builder: (context, innerConstraints) {
+                    final imageSize = innerConstraints.biggest;
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _buildImage(),
+                        _buildInteractiveOverlay(imageSize),
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
-            // Gesture + overlay layer sized to image
-            Positioned.fill(
-              child: _buildInteractiveOverlay(constraints.biggest),
-            ),
-            // Instruction / controls overlay
+            // Instruction / controls overlay (fixed to screen, not scaling with image)
             if (_regions.isEmpty && !_isDragging)
               _buildInstructionOverlay(),
-            // Region count chip
+            // Region count chip (fixed to screen, not scaling with image)
             if (_regions.isNotEmpty)
               _buildRegionCountChip(),
           ],
@@ -193,7 +272,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       if (widget.webImageBytes != null) {
         imageWidget = Image.memory(
           widget.webImageBytes!,
-          fit: BoxFit.contain,
+          fit: BoxFit.fill,
         );
       } else {
         imageWidget = const Center(child: CircularProgressIndicator());
@@ -202,38 +281,16 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       if (widget.imageFile != null) {
         imageWidget = Image.file(
           widget.imageFile!,
-          fit: BoxFit.contain,
+          fit: BoxFit.fill,
         );
       } else {
         imageWidget = const Center(child: CircularProgressIndicator());
       }
     }
-
-    return InteractiveViewer(
-      minScale: 0.5,
-      maxScale: 4.0,
-      child: Center(
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              _imageRenderSize = constraints.biggest;
-              return Stack(
-                fit: StackFit.expand,
-                children: [Center(child: imageWidget)],
-              );
-            },
-          ),
-        ),
-      ),
-    );
+    return imageWidget;
   }
 
-  Widget _buildInteractiveOverlay(Size stackSize) {
-    // We need the actual image render size from the inner LayoutBuilder.
-    // If not available yet, use a fallback that fills the space.
-    final imageSize = _imageRenderSize ?? stackSize;
-
+  Widget _buildInteractiveOverlay(Size imageSize) {
     return GestureDetector(
       onPanStart: (details) => _onPanStart(details, imageSize),
       onPanUpdate: (details) => _onPanUpdate(details, imageSize),
@@ -247,7 +304,10 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       },
       child: Container(
         color: Colors.transparent,
+        width: double.infinity,
+        height: double.infinity,
         child: Stack(
+          fit: StackFit.expand,
           children: [
             // Existing regions
             ..._regions.map((region) => _buildRegionBox(region, imageSize)),
@@ -275,7 +335,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.teal.withValues(alpha: 0.18),
+              color: Colors.teal.withOpacity(0.18),
               border: Border.all(
                 color: Colors.teal,
                 width: 2,
@@ -341,9 +401,9 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       height: height,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.teal.withValues(alpha: 0.12),
+          color: Colors.teal.withOpacity(0.12),
           border: Border.all(
-            color: Colors.teal.withValues(alpha: 0.8),
+            color: Colors.teal.withOpacity(0.8),
             width: 2,
             style: BorderStyle.solid,
           ),
@@ -361,7 +421,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.72),
+          color: Colors.black.withOpacity(0.72),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -395,7 +455,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.72),
+          color: Colors.black.withOpacity(0.72),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(

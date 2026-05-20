@@ -212,8 +212,12 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                       children: [
                         const SizedBox(height: 24),
 
-                        // Horizontal scrolling action chips
-                        _buildActionChips(context),
+                        // Primary scan CTA
+                        _buildPrimaryScanCTA(context),
+                        const SizedBox(height: 20),
+                        
+                        // Daily progress card
+                        _buildDailyProgressCard(context, classificationsAsync, profileAsync),
                         const SizedBox(height: 20),
 
                         // Near-milestone nudge (one at a time, anti-spam)
@@ -512,108 +516,296 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     );
   }
 
-  Widget _buildActionChips(BuildContext context) {
-    return SizedBox(
-      height: 120,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _getActionItems().length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final action = _getActionItems()[index];
-          return _buildActionCard(action);
-        },
+  Widget _buildPrimaryScanCTA(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          // Main scan button
+          FilledButton.icon(
+            onPressed: _takePhoto,
+            icon: const Icon(Icons.camera_alt, size: 28),
+            label: Text(
+              AppStrings.scanWaste,
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(double.infinity, 72),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Secondary actions row
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _pickImage,
+                  icon: const Icon(Icons.photo_library, size: 20),
+                  label: Text(
+                    AppStrings.openGallery,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _takePhotoInstant,
+                  icon: const Icon(Icons.flash_on, size: 20),
+                  label: Text(
+                    AppStrings.instantMode,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  List<ActionItem> _getActionItems() {
-    return [
-      ActionItem(
-        title: AppStrings.takePhoto,
-        subtitle: AppStrings.reviewAnalyze,
-        icon: Icons.camera_alt,
-        color: const Color(0xFF2196F3),
-        onTap: () => _takePhoto(),
-      ),
-      ActionItem(
-        title: AppStrings.uploadImage,
-        subtitle: AppStrings.fromGallery,
-        icon: Icons.photo_library,
-        color: const Color(0xFF4CAF50),
-        onTap: () => _pickImage(),
-      ),
-      ActionItem(
-        title: AppStrings.instantCamera,
-        subtitle: AppStrings.autoAnalyze,
-        icon: Icons.flash_on,
-        color: const Color(0xFFFF9800),
-        onTap: () => _takePhotoInstant(),
-      ),
-      ActionItem(
-        title: AppStrings.instantUpload,
-        subtitle: AppStrings.autoAnalyze,
-        icon: Icons.bolt,
-        color: const Color(0xFF9C27B0),
-        onTap: () => _pickImageInstant(),
-      ),
-    ];
-  }
+  Widget _buildDailyProgressCard(
+    BuildContext context,
+    AsyncValue<List<WasteClassification>> classificationsAsync,
+    AsyncValue<GamificationProfile?> profileAsync,
+  ) {
+    return classificationsAsync.when(
+      data: (classifications) {
+        final today = DateTime.now();
+        final todayClassifications = classifications.where((c) {
+          return c.timestamp.year == today.year &&
+              c.timestamp.month == today.month &&
+              c.timestamp.day == today.day;
+        }).toList();
 
-  Widget _buildActionCard(ActionItem action) {
-    return AnimatedScale(
-      scale: 1.0,
-      duration: const Duration(milliseconds: 150),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() {}),
-        onTapUp: (_) => setState(() {}),
-        onTapCancel: () => setState(() {}),
-        onTap: action.onTap,
+        final scansToday = todayClassifications.length;
+        const dailyGoal = 10;
+        final progress = (scansToday / dailyGoal).clamp(0.0, 1.0);
+
+        return profileAsync.when(
+          data: (profile) {
+            final totalPoints = profile?.points.total ?? 0;
+            final streakDays = profile?.streaks['daily']?.currentCount ?? 0;
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AchievementsScreen(),
+                  ),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppStrings.dailyProgress,
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimaryContainer,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '$scansToday / $dailyGoal',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer,
+                                  ),
+                                ),
+                                Text(
+                                  AppStrings.scansToday,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer
+                                        .withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.local_fire_department,
+                                      size: 20, color: Colors.orange),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '$streakDays',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.emoji_events,
+                                      size: 20, color: Colors.amber),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '$totalPoints',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      LinearProgressIndicator(
+                        value: progress,
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .onPrimaryContainer
+                            .withValues(alpha: 0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary,
+                        ),
+                        borderRadius: BorderRadius.circular(4),
+                        minHeight: 8,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        );
+      },
+      loading: () => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Container(
-          width: MediaQuery.of(context).size.width *
-              0.32, // Even bigger cards for better interaction
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+          ),
+          child: Row(
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(width: 16),
+              Text(
+                AppStrings.loadingYourData,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: action.color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      error: (error, _) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: GestureDetector(
+          onTap: () {
+            ref.invalidate(classificationsProvider);
+            ref.invalidate(profileProvider);
+          },
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  color: Theme.of(context).colorScheme.onErrorContainer,
                 ),
-                child: Icon(action.icon, color: action.color, size: 24),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                action.title,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurface,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppStrings.errorLoadingData,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                      ),
+                      Text(
+                        AppStrings.tapToRetry,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onErrorContainer
+                              .withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                action.subtitle,
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -923,42 +1115,222 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
           return _buildEmptyState(context);
         }
 
-        final recent = classifications.take(3).toList();
+        final mostRecent = classifications.first;
+        final recent = classifications.skip(1).take(3).toList();
+        
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Continue where you left off card
+            _buildContinueCard(context, mostRecent),
+            const SizedBox(height: 24),
+            
+            // Recent classifications section
+            if (recent.isNotEmpty) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      AppStrings.recentClassifications,
+                      style: GoogleFonts.inter(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HistoryScreen(),
+                      ),
+                    ),
+                    child: const Text(AppStrings.viewAll),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ...recent.map(
+                (classification) => _buildClassificationCard(classification),
+              ),
+            ],
+          ],
+        );
+      },
+      loading: () => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Text(
+              AppStrings.loadingYourData,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
+      error: (error, _) => GestureDetector(
+        onTap: () {
+          ref.invalidate(classificationsProvider);
+        },
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.errorContainer,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppStrings.errorLoadingData,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                    Text(
+                      AppStrings.tapToRetry,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onErrorContainer
+                            .withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContinueCard(BuildContext context, WasteClassification classification) {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HistoryScreen(),
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).colorScheme.secondaryContainer,
+              Theme.of(context).colorScheme.tertiaryContainer,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Expanded(
                   child: Text(
-                    AppStrings.recentClassifications,
+                    AppStrings.continueWhereYouLeftOff,
                     style: GoogleFonts.inter(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const HistoryScreen(),
-                    ),
-                  ),
-                  child: const Text(AppStrings.viewAll),
+                Icon(
+                  Icons.arrow_forward,
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  size: 20,
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            ...recent.map(
-              (classification) => _buildClassificationCard(classification),
+            Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: _getCategoryColor(classification.category)
+                        .withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _getCategoryIcon(classification.category),
+                    color: _getCategoryColor(classification.category),
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        classification.itemName,
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        classification.category,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSecondaryContainer
+                              .withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              AppStrings.viewHistory,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSecondaryContainer
+                    .withValues(alpha: 0.8),
+              ),
             ),
           ],
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => _buildEmptyState(context),
+        ),
+      ),
     );
   }
 

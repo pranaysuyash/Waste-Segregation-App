@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
 import 'firestore_schema_registry.dart';
@@ -15,8 +16,39 @@ class DisposalInstructionsService {
   /// Cache for disposal instructions to avoid repeated API calls
   final Map<String, DisposalInstructions> _cache = {};
 
-  /// Generate a unique material ID for caching
-  String _generateMaterialId(
+  /// Build a canonical cache/document key, including language context.
+  ///
+  /// This is intentionally URI-encoded to preserve uniqueness for non-ASCII
+  /// values while remaining Firestore document ID safe.
+  @visibleForTesting
+  String buildMaterialCacheKey({
+    required String material,
+    String? category,
+    String? subcategory,
+    String lang = 'en',
+  }) {
+    String normalizePart(String value) {
+      final normalized = value.trim().toLowerCase();
+      if (normalized.isEmpty) return 'na';
+      return Uri.encodeComponent(normalized);
+    }
+
+    final parts = [
+      'lang=${normalizePart(lang)}',
+      'material=${normalizePart(material)}',
+    ];
+    if (category != null && category.trim().isNotEmpty) {
+      parts.add('category=${normalizePart(category)}');
+    }
+    if (subcategory != null && subcategory.trim().isNotEmpty) {
+      parts.add('subcategory=${normalizePart(subcategory)}');
+    }
+    return parts.join('__');
+  }
+
+  /// Legacy key format retained for cache migration compatibility.
+  @visibleForTesting
+  String buildLegacyMaterialId(
       String material, String? category, String? subcategory) {
     final parts = [material.toLowerCase().trim()];
     if (category != null) parts.add(category.toLowerCase().trim());
@@ -32,7 +64,12 @@ class DisposalInstructionsService {
     String lang = 'en',
   }) async {
     try {
-      final materialId = _generateMaterialId(material, category, subcategory);
+      final materialId = buildMaterialCacheKey(
+        material: material,
+        category: category,
+        subcategory: subcategory,
+        lang: lang,
+      );
 
       // Check local cache first
       if (_cache.containsKey(materialId)) {
@@ -47,13 +84,15 @@ class DisposalInstructionsService {
         return _cache[materialId]!;
       }
 
-      // Check Firestore cache
-      final cachedDoc = await _firestore
-          .collection(FirestoreCollections.disposalInstructions)
-          .doc(materialId)
-          .get();
+      // Check Firestore cache (new key, then legacy key for migration safety)
+      final firestoreCached = await _loadFromFirestoreCache(
+        materialId: materialId,
+        material: material,
+        category: category,
+        subcategory: subcategory,
+      );
 
-      if (cachedDoc.exists) {
+      if (firestoreCached != null) {
         WasteAppLogger.cacheEvent(
             'cache_hit', 'disposal_instructions_firestore',
             hit: true,
@@ -62,11 +101,11 @@ class DisposalInstructionsService {
               'material': material,
               'category': category,
               'subcategory': subcategory,
-              'source': 'firestore'
+              'source': 'firestore',
+              'cache_key_format': 'canonical_or_legacy'
             });
-        final instructions = _parseFirestoreData(cachedDoc.data()!);
-        _cache[materialId] = instructions;
-        return instructions;
+        _cache[materialId] = firestoreCached;
+        return firestoreCached;
       }
 
       // Generate new instructions via Cloud Function
@@ -100,6 +139,35 @@ class DisposalInstructionsService {
           });
       return _getFallbackInstructions(material, category);
     }
+  }
+
+  Future<DisposalInstructions?> _loadFromFirestoreCache({
+    required String materialId,
+    required String material,
+    String? category,
+    String? subcategory,
+  }) async {
+    final collection =
+        _firestore.collection(FirestoreCollections.disposalInstructions);
+
+    final canonicalDoc = await collection.doc(materialId).get();
+    if (canonicalDoc.exists) {
+      return _parseFirestoreData(canonicalDoc.data()!);
+    }
+
+    final legacyId = buildLegacyMaterialId(material, category, subcategory);
+    if (legacyId == materialId) {
+      return null;
+    }
+
+    final legacyDoc = await collection.doc(legacyId).get();
+    if (!legacyDoc.exists) {
+      return null;
+    }
+
+    WasteAppLogger.info('Disposal instructions loaded via legacy cache key',
+        context: {'legacy_key': legacyId, 'canonical_key': materialId});
+    return _parseFirestoreData(legacyDoc.data()!);
   }
 
   /// Generate instructions via Cloud Function with 503 retry handling

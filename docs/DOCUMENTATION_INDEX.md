@@ -2,7 +2,7 @@
 
 ## Waste Segregation App Documentation Structure
 
-_Last Updated: January 27, 2026_
+_Last Updated: May 20, 2026_
 
 This document provides a comprehensive index to all project documentation, now properly organized in the `docs/` folder for better maintainability and navigation.
 
@@ -61,6 +61,7 @@ Use this map when you need to know **what's still being figured out** vs what's 
 
 - **CODEBASE_DOCS_DISCREPANCY_REPORT.md** - Analysis of code vs documentation discrepancies
 - **CRITICAL_FIXES_ANALYSIS_SUMMARY.md** - Complete analysis of immediate critical fixes (June 2025)
+- **RANDOM_DOCUMENT_AUDIT_TOKEN_ECONOMY_2026-05-19.md** - Token-economy-focused random documentation audit
 
 ### `/docs/archive/` - Archived Documentation
 
@@ -136,6 +137,11 @@ Use this map when you need to know **what's still being figured out** vs what's 
 - **IMPLEMENTATION_COMPLETE.md** - Implementation completion status
 - **REORGANIZATION_SUMMARY.md** - Documentation reorganization summary
 - **current_issues.md** - Current project issues
+
+### `/docs/review/` - Architecture & Product Reality Reviews
+
+- **PHASE0_FILE_AUDIT_2026-05-20.md** - Current-state file audit with risk matrix and ownership mapping
+- **BACKEND_PLATFORM_AND_MONEY_STRATEGY_2026-05-20.md** - Backend, monetization, and operational readiness review
 
 ### `/docs/summaries/` - Summary Documents
 

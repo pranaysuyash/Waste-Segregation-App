@@ -212,3 +212,80 @@ class ResponsiveAppBarTitle extends StatelessWidget {
         : fullTitle;
   }
 }
+
+/// A widget that displays long text with an expand/collapse toggle.
+class ReadMoreText extends StatefulWidget {
+  const ReadMoreText(
+    this.text, {
+    super.key,
+    this.style,
+    this.trimLines = 3,
+    this.colorClickableText,
+  });
+
+  final String text;
+  final TextStyle? style;
+  final int trimLines;
+  final Color? colorClickableText;
+
+  @override
+  State<ReadMoreText> createState() => _ReadMoreTextState();
+}
+
+class _ReadMoreTextState extends State<ReadMoreText> {
+  bool _readMore = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final defaultStyle = widget.style ?? theme.textTheme.bodyMedium;
+    final linkColor = widget.colorClickableText ?? cs.primary;
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final textPainter = TextPainter(
+          text: TextSpan(text: widget.text, style: defaultStyle),
+          maxLines: widget.trimLines,
+          textDirection: TextDirection.ltr,
+        );
+        textPainter.layout(maxWidth: constraints.maxWidth);
+
+        if (!textPainter.didExceedMaxLines) {
+          return Text(
+            widget.text,
+            style: defaultStyle,
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.text,
+              maxLines: _readMore ? widget.trimLines : null,
+              overflow: _readMore ? TextOverflow.ellipsis : null,
+              style: defaultStyle,
+            ),
+            const SizedBox(height: 4),
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _readMore = !_readMore;
+                });
+              },
+              child: Text(
+                _readMore ? 'Read More' : 'Read Less',
+                style: defaultStyle?.copyWith(
+                  color: linkColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+

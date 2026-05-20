@@ -21,8 +21,11 @@ import '../widgets/result_screen/points_popup.dart';
 import '../widgets/result_screen/achievement_wrapper.dart';
 import '../widgets/result_screen/explanation_panel.dart';
 import '../widgets/result_screen/staggered_list.dart';
+import '../widgets/result_screen/materials_preview.dart';
+import '../widgets/result_screen/local_rules_card.dart';
 import '../widgets/interactive_tag.dart';
 import '../widgets/correction_dialog.dart';
+import '../widgets/responsive_text.dart';
 import '../utils/classification_tags.dart';
 import '../utils/waste_app_logger.dart';
 import '../config/debug_config.dart';
@@ -314,11 +317,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                             _buildCategorySnapshot(context),
 
                             // Materials & Alternatives
-                            if (_hasMaterialsPreview(
+                            // Materials & Alternatives
+                            if (MaterialsPreview.hasMaterialsPreview(
                               _classification,
                             )) ...[
                               const SizedBox(height: 16),
-                              _buildMaterialsPreview(context),
+                              MaterialsPreview(classification: _classification),
                             ],
 
                             // Disposal Checklist
@@ -330,9 +334,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                             ],
 
                             // Local Rules (BBMP)
-                            if (_hasLocalRules(_classification)) ...[
+                            if (LocalRulesCard.hasLocalRules(_classification)) ...[
                               const SizedBox(height: 16),
-                              _buildLocalRulesCard(context),
+                              LocalRulesCard(classification: _classification),
                             ],
 
                             // Safety Warnings
@@ -570,8 +574,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
+              child: ReadMoreText(
                 fact,
+                trimLines: 3,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                   height: 1.5,
@@ -1390,115 +1395,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     }
   }
 
-  Widget _buildMaterialsPreview(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final c = _classification;
-    final materials = c.normalizedMaterials;
-    final alternatives = c.alternativeOptions ?? const <String>[];
-    final relatedItems = c.relatedItems ?? const <String>[];
 
-    return Card(
-      elevation: 0,
-      color: cs.surfaceContainerHighest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.layers_outlined, color: cs.primary, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Materials & Alternatives',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            if (materials.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _buildChipRow('Materials', materials),
-            ],
-            if (materials.isEmpty) ...[
-              const SizedBox(height: 12),
-              _buildEmptyFieldNote('Materials unavailable'),
-            ],
-            if (alternatives.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _buildChipRow('Alternatives', alternatives),
-            ],
-            if (relatedItems.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _buildChipRow('Related', relatedItems),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChipRow(String label, List<String> items) {
-    final cs = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: items.take(6).map((item) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: cs.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: cs.primary.withValues(alpha: 0.4)),
-              ),
-              child: Text(
-                item,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: cs.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyFieldNote(String label) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: cs.outline.withValues(alpha: 0.2)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: cs.onSurfaceVariant,
-              fontStyle: FontStyle.italic,
-            ),
-      ),
-    );
-  }
-
-  bool _hasMaterialsPreview(WasteClassification c) {
-    final materials = c.normalizedMaterials;
-    return materials.isNotEmpty ||
-        (c.alternativeOptions?.isNotEmpty == true) ||
-        (c.relatedItems?.isNotEmpty == true);
-  }
 
   Widget _buildDisposalChecklist(BuildContext context) {
     final theme = Theme.of(context);
@@ -1575,99 +1472,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     return c.disposalInstructions.steps.isNotEmpty;
   }
 
-  Widget _buildLocalRulesCard(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final c = _classification;
-    final regs = c.localRegulations ?? const <String, String>{};
-    final bbmp = c.bbmpComplianceStatus;
-    final guideline = c.localGuidelinesReference;
 
-    if (regs.isEmpty &&
-        (bbmp == null || bbmp.isEmpty) &&
-        (guideline == null || guideline.isEmpty)) {
-      return const SizedBox.shrink();
-    }
-
-    return Card(
-      elevation: 0,
-      color: cs.surfaceContainerHighest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.gavel, color: cs.primary, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Local Rules',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            if (bbmp != null && bbmp.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _buildRuleRow('Compliance', bbmp),
-            ],
-            if (guideline != null && guideline.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _buildRuleRow('Guideline', guideline),
-            ],
-            if (regs.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              ...regs.entries.take(3).map(
-                    (e) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: _buildRuleRow(e.key, e.value),
-                    ),
-                  ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRuleRow(String label, String value) {
-    final cs = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          margin: const EdgeInsets.only(top: 6),
-          decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: Theme.of(context).textTheme.bodySmall,
-              children: [
-                TextSpan(
-                  text: '$label: ',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(text: value),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  bool _hasLocalRules(WasteClassification c) {
-    return (c.localRegulations?.isNotEmpty == true) ||
-        (c.bbmpComplianceStatus?.isNotEmpty == true) ||
-        (c.localGuidelinesReference?.isNotEmpty == true);
-  }
 
   Widget _buildSafetyWarnings(BuildContext context) {
     final theme = Theme.of(context);

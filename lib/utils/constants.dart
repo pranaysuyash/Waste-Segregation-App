@@ -35,7 +35,7 @@ class ApiConfig {
   static const String geminiBaseUrl =
       'https://generativelanguage.googleapis.com/v1beta';
   static const String apiKey = String.fromEnvironment('GEMINI_API_KEY',
-      defaultValue: 'your-gemini-api-key-here');
+      defaultValue: 'AIzaSyDYXPY95PneMi0m7UTiI6ciY8sQyst2jV8');
   static const String geminiModel = String.fromEnvironment('GEMINI_API_MODEL',
       defaultValue: 'gemini-2.0-flash');
 }
@@ -391,6 +391,27 @@ class AppStrings {
       'Take your first photo to begin making a positive environmental impact!';
   static const String streak = 'Streak';
   static const String complete = 'Complete';
+
+  // Primary CTA and actions
+  static const String scanWaste = 'Scan Waste';
+  static const String openGallery = 'Gallery';
+  static const String instantMode = 'Instant Mode';
+  static const String scanNow = 'Scan Now';
+  
+  // Daily progress
+  static const String dailyProgress = 'Daily Progress';
+  static const String scansToday = 'Scans Today';
+  static const String dailyGoal = 'Daily Goal';
+  static const String totalPoints = 'Total Points';
+  
+  // Continue section
+  static const String continueWhereYouLeftOff = 'Continue Where You Left Off';
+  static const String viewHistory = 'View History';
+  
+  // Loading and error states
+  static const String loadingYourData = 'Loading your data...';
+  static const String errorLoadingData = 'Error loading data';
+  static const String tapToRetry = 'Tap to retry';
 
   // Time-based greetings
   static const String goodMorning = 'Good morning';

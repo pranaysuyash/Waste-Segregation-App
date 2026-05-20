@@ -103,6 +103,8 @@ class ResultHeader extends ConsumerWidget {
       BuildContext context, ColorScheme colorScheme) {
     final confidence = classification.confidence;
     final category = classification.category;
+    final needsReview = classification.clarificationNeeded == true;
+    final hasLowConfidence = (confidence ?? 1.0) < 0.7;
 
     return Row(
       children: [
@@ -144,12 +146,43 @@ class ResultHeader extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '${((confidence ?? 0.0) * 100).round()}% confidence',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  Text(
+                    '${((confidence ?? 0.0) * 100).round()}% confidence',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                  if (needsReview || hasLowConfidence)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.info_outline, size: 10, color: Colors.orange),
+                          const SizedBox(width: 2),
+                          Text(
+                            needsReview ? 'Needs Review' : 'Low Conf.',
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                ],
               ),
               const SizedBox(height: 4),
               AnimatedContainer(
@@ -200,27 +233,32 @@ class ResultHeader extends ConsumerWidget {
 
   Widget _buildKPIChips(BuildContext context, ColorScheme colorScheme) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         // Points earned chip with animated counter
-        _buildKPIChip(
-          context: context,
-          colorScheme: colorScheme,
-          icon: Icons.stars_rounded,
-          label: 'Points',
-          value: '+$pointsEarned XP',
-          color: Colors.amber,
-          animate: pointsEarned > 0,
+        Expanded(
+          child: _buildKPIChip(
+            context: context,
+            colorScheme: colorScheme,
+            icon: Icons.stars_rounded,
+            label: 'Points',
+            value: '+$pointsEarned XP',
+            color: Colors.amber,
+            animate: pointsEarned > 0,
+          ),
         ),
 
+        const SizedBox(width: 16),
+
         // Environmental impact chip
-        _buildKPIChip(
-          context: context,
-          colorScheme: colorScheme,
-          icon: Icons.eco_rounded,
-          label: 'Impact',
-          value: _getEnvironmentalImpact(),
-          color: Colors.green,
+        Expanded(
+          child: _buildKPIChip(
+            context: context,
+            colorScheme: colorScheme,
+            icon: Icons.eco_rounded,
+            label: 'Impact',
+            value: _getEnvironmentalImpact(),
+            color: Colors.green,
+          ),
         ),
       ],
     );
@@ -236,7 +274,7 @@ class ResultHeader extends ConsumerWidget {
     bool animate = false,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
@@ -245,6 +283,7 @@ class ResultHeader extends ConsumerWidget {
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             icon,
@@ -267,6 +306,8 @@ class ResultHeader extends ConsumerWidget {
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -303,6 +344,18 @@ class ResultHeader extends ConsumerWidget {
   // Helper methods for semantic colors and icons
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
+      case 'dry waste':
+        return Colors.blue;
+      case 'wet waste':
+        return Colors.green;
+      case 'e-waste':
+        return Colors.amber;
+      case 'hazardous waste':
+        return Colors.red;
+      case 'biomedical waste':
+        return Colors.red;
+      case 'requires manual review':
+        return Colors.orange;
       case 'recyclable':
         return Colors.green;
       case 'organic':
@@ -327,6 +380,18 @@ class ResultHeader extends ConsumerWidget {
 
   IconData _getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
+      case 'dry waste':
+        return Icons.recycling_rounded;
+      case 'wet waste':
+        return Icons.eco_rounded;
+      case 'e-waste':
+        return Icons.devices_rounded;
+      case 'hazardous waste':
+        return Icons.warning_rounded;
+      case 'biomedical waste':
+        return Icons.medical_services_rounded;
+      case 'requires manual review':
+        return Icons.help_outline_rounded;
       case 'recyclable':
         return Icons.recycling_rounded;
       case 'organic':

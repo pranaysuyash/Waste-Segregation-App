@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/waste_classification.dart';
+import '../responsive_text.dart';
 
 /// An expandable “Why this classification?” panel for the result screen.
 ///
@@ -277,8 +278,9 @@ class _ExplanationPanelState extends State<ExplanationPanel>
         if (c.explanation.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 6),
-            child: Text(
+            child: ReadMoreText(
               c.explanation,
+              trimLines: 3,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: cs.onSurface.withValues(alpha: 0.85),
                 height: 1.5,
@@ -352,10 +354,12 @@ class _ExplanationPanelState extends State<ExplanationPanel>
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
+                  ReadMoreText(
                     alt.reason,
+                    trimLines: 2,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: cs.onSurfaceVariant,
+                      height: 1.3,
                     ),
                   ),
                 ],
@@ -399,14 +403,38 @@ class _ExplanationPanelState extends State<ExplanationPanel>
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         if (_isLowConfidence)
-          Text(
-            'The AI is uncertain about this classification. '
-            'Consider reviewing the alternatives or providing a clearer image.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: cs.secondary,
-              fontWeight: FontWeight.w500,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: cs.secondary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: cs.secondary.withValues(alpha: 0.25),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: cs.secondary,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'The AI is uncertain about this classification. '
+                    'Consider reviewing the alternatives or providing a clearer image.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: cs.secondary,
+                      fontWeight: FontWeight.w500,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
             ),
           )
         else if (confidence >= 0.9)
@@ -447,10 +475,12 @@ class _ExplanationPanelState extends State<ExplanationPanel>
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
+              child: ReadMoreText(
                 guideline,
+                trimLines: 3,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: cs.onSurface.withValues(alpha: 0.85),
+                  height: 1.4,
                 ),
               ),
             ),

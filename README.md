@@ -2,6 +2,34 @@
 
 A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education, enhanced with world-class recycling research and AI-powered material recognition.
 
+## ⚡ Start Here by Role
+
+- **Product / QA reviewer**
+   - Read this README sections: `Current Status`, `Latest Updates`, and `Troubleshooting`
+   - Run app and validate core user flows (capture, classify, disposal guidance)
+- **Flutter engineer**
+   - Read `docs/APP_KNOWLEDGE_BASE.md` first
+   - Then `docs/DOCUMENTATION_INDEX.md` for targeted deep dives
+- **AI/coding agent**
+   - Read `docs/APP_KNOWLEDGE_BASE.md` (required)
+   - Then `docs/.AGENT_INSTRUCTIONS.md` for execution protocol
+
+## ✅ Quick Sanity Checks
+
+Use these lightweight checks before opening/updating a PR:
+
+```bash
+# From project root
+flutter pub get
+flutter analyze
+flutter test
+```
+
+If you changed docs/contracts, also review:
+
+- `docs/DOCUMENTATION_INDEX.md`
+- `docs/reference/project_README.md`
+
 ## 🎯 **For Developers & AI Agents: Start Here**
 
 **📘 [APP_KNOWLEDGE_BASE.md](docs/APP_KNOWLEDGE_BASE.md)** - **REQUIRED READING**

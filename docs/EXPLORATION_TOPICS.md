@@ -2,7 +2,7 @@
 
 **Purpose**: Living document tracking research areas for the Waste Segregation App
 **Status**: Active — continuously updated as the project evolves
-**Last Updated**: 2026-05-19
+**Last Updated**: 2026-05-20
 **Sibling docs**:
 - [EXPLORATION_FRONTIER.md](EXPLORATION_FRONTIER.md) — high-ambition / "boil the ocean" frontier bets
 - [EXPLORATION_ROADMAP_WHILE_BUILDING.md](EXPLORATION_ROADMAP_WHILE_BUILDING.md) — what to explore in parallel with shipping
@@ -1068,6 +1068,75 @@ New entries are numbered `A1–A25` and grouped into (a) additions to existing c
 **Deliverable**: `docs/exploration/PERSONAL_IMPACT_DASHBOARD_UX.md`.
 
 **Related**: Carbon / Impact Accounting (#30), Habit Formation Loop (#17), Social Sharing (A11).
+
+---
+
+### A10-N1. Navigation Information Architecture & Bottom Nav Design 🟡
+
+**Category**: UX & Engagement
+
+**Status**: Current implementation — 5-tab bottom nav (Home, Scan, History, Social, Achievements) with Settings reachable only via a gear icon in the Home header. `lib/widgets/navigation_wrapper.dart` owns the nav bar; `lib/screens/social_screen.dart` uses an in-screen FAB toggle to switch between Community and Family sub-views.
+
+**Why this is a topic**: The app is scan-centric but the Scan tab sits at position 2 (center-ish) with no persistent FAB pattern. Settings is hidden behind a header icon discoverable only from Home. The Social screen uses an FAB toggle for two sub-views — a pattern that's fragile on small screens and invisible on the Community sub-view at bottom-right. As the app grows, the 5-tab structure may not accommodate new contexts (local guidelines, disposal locations, partner programs) without tab proliferation.
+
+**Key questions**:
+
+- Should the primary CTA (scan) be a persistent FAB overlaid on all tabs, or is a dedicated tab sufficient for this usage pattern?
+- Is 5 tabs too many for a utility app? What's the right grouping model — task-flow (Scan, Review, Share) vs content (Home, Social, Achievements)?
+- Settings discovery: gear icon in header vs Settings tab vs Profile page? Research shows users expect Settings in Profile or nav overflow — a header icon tied to one tab is non-standard.
+- Social FAB toggle (Community ↔ Family): should this be top tab bar, segmented control, or separate bottom-nav tabs?
+- Does the current nav structure communicate "this is a scanning app" immediately to a new user?
+- Returning-user pattern: should the app deep-link back to last scan result or land on Home?
+
+**Deliverable**: `docs/exploration/NAVIGATION_IA.md` — IA options, comparables from scan-centric apps (Yuka, Think Dirty, FoodKeeper), decision framework for FAB-vs-tab, Settings placement recommendation.
+
+**Related**: Onboarding & Activation (entry 19), Persona-Specific Journeys (#16), Home Screen IA (A10-N3).
+
+---
+
+### A10-N2. Mobile UX Patterns for Scan-Centric Utility Apps 🟡
+
+**Category**: UX & Engagement
+
+**Status**: No research doc exists. The app's interaction model is heavily camera-first but the surrounding UI is structured like a content-feed app.
+
+**Why this is a topic**: Scan-centric apps (barcode scanners, plant ID, food label readers) have established UX patterns that differ from social or content apps. The dominant pattern is: persistent viewfinder CTA → instant result → actionable next step → optional save/share. The current app wraps this scan flow inside a content-navigation structure, which may add friction for the primary use case (quick scan while standing at a bin).
+
+**Key questions**:
+
+- What is the minimal tap count from cold launch to classification result? (Target: ≤ 2 taps.)
+- Should the camera open directly on first launch / after onboarding?
+- How do industry-leading scan-centric apps (Yuka, PictureThis, Google Lens) handle the scan→result→action loop?
+- What does "quick re-scan" look like — immediate camera re-open or result-screen back button?
+- Haptics and audio as confirmation signals for scan-centric flows.
+- Offline-first scan: result display should not block on network; how does the current architecture rank against this?
+
+**Deliverable**: `docs/exploration/SCAN_CENTRIC_UX_PATTERNS.md` — competitive teardown of 5 scan-centric apps, pattern matrix, gap analysis against current implementation.
+
+**Related**: Onboarding & Activation (entry 19), Image Quality Gate (entry in services), Navigation IA (A10-N1).
+
+---
+
+### A10-N3. Home Screen Information Architecture 🟡
+
+**Category**: UX & Engagement
+
+**Status**: `lib/screens/home_screen.dart` — SliverAppBar header with gradient, greeting text, 4 stat chips (Points, Tokens, Streak, Days Active); below: quick-actions, recent activity, featured content sections. Header `expandedHeight` tuning has already caused visual bugs (excess blank space, greeting truncation at 360dp logical width).
+
+**Why this is a topic**: The home screen currently tries to do four jobs at once — personal greeting, stats dashboard, quick-action launcher, and activity feed. Each job has a different mental model and visit frequency. The stat chips (Points, Tokens, Streak, Days) are engagement metrics, not decision-making inputs — their placement in a collapsing hero header means they're most prominent when least useful (on first open) and hidden when most relevant (during a session).
+
+**Key questions**:
+
+- What information does a returning daily user need on home vs a new user on first open?
+- Are Points and Tokens useful at a glance, or do they generate anxiety (gamification fatigue)?
+- Should home be a dashboard (current) or a launch pad (large scan CTA + minimal chrome)?
+- Collapsible SliverAppBar vs fixed header — does the collapse serve any interaction or just burn layout space?
+- What should the collapsed/pinned state show? Currently: nothing (toolbarHeight: 0) — is that intentional or a gap?
+- How does the home screen hierarchy change when the user has no scans yet vs 100+ scans?
+
+**Deliverable**: `docs/exploration/HOME_SCREEN_IA.md` — wireframe options (dashboard vs launcher vs hybrid), jobs-to-be-done mapping, progressive disclosure model for new vs returning users.
+
+**Related**: Onboarding & Activation (entry 19), Navigation IA (A10-N1), Personal Impact Dashboard UX (A9), Habit Formation Loop (#17).
 
 ---
 

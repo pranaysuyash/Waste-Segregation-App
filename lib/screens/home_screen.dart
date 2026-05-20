@@ -18,6 +18,7 @@ import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
+import '../screens/settings_screen.dart';
 import '../utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../models/gamification_result.dart';
@@ -271,11 +272,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final greeting = _getPersonalizedGreeting(timePhase);
     final gradientColors = _getTimeBasedGradient(hour);
 
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return SliverAppBar(
-      expandedHeight: 220,
-      toolbarHeight: 0,
+      expandedHeight: topPadding + 160,
+      toolbarHeight: 48,
       pinned: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: gradientColors.first,
+      automaticallyImplyLeading: false,
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: IconButton(
+            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+          ),
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
@@ -286,7 +302,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+            padding: EdgeInsets.fromLTRB(20, topPadding + 12, 20, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -313,7 +329,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   color: Colors.white,
                                   height: 1.1,
                                 ),
-                                maxLines: 1,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               );
                             },
@@ -325,7 +341,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 color: Colors.white,
                                 height: 1.1,
                               ),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                             error: (_, __) => Text(
@@ -336,7 +352,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                 color: Colors.white,
                                 height: 1.1,
                               ),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -354,31 +370,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // Time-aware animated icon
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        _getTimeBasedIcon(timePhase),
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 // Stats chips with impact info
                 Row(
                   children: [
-                    Flexible(child: _buildPointsChip(context)),
+                    Expanded(child: _buildPointsChip(context)),
                     const SizedBox(width: 8),
-                    Flexible(child: _buildTokensChip(context)),
+                    Expanded(child: _buildTokensChip(context)),
                     const SizedBox(width: 8),
-                    Flexible(
+                    Expanded(
                       child: profileAsync.when(
                         data: (profile) => _buildStatChip(
                           '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}',
@@ -398,7 +400,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Flexible(child: _buildDaysActiveChip(context)),
+                    Expanded(child: _buildDaysActiveChip(context)),
                   ],
                 ),
               ],
@@ -425,9 +427,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     return walletAsync.when(
       data: (wallet) =>
-          _buildStatChip('${wallet?.balance ?? 0}', 'Tokens', Icons.bolt),
-      loading: () => _buildStatChip('...', 'Tokens', Icons.bolt),
-      error: (_, __) => _buildStatChip('0', 'Tokens', Icons.bolt),
+          _buildStatChip('${wallet?.balance ?? 0}', 'Token', Icons.bolt),
+      loading: () => _buildStatChip('...', 'Token', Icons.bolt),
+      error: (_, __) => _buildStatChip('0', 'Token', Icons.bolt),
     );
   }
 
@@ -456,30 +458,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               daysActive = 1;
             }
 
-            return _buildStatChip('$daysActive', 'Days Active', Icons.eco);
+            return _buildStatChip('$daysActive', 'Days', Icons.eco);
           },
-          loading: () => _buildStatChip('...', 'Days Active', Icons.eco),
-          error: (_, __) => _buildStatChip('1', 'Days Active', Icons.eco),
+          loading: () => _buildStatChip('...', 'Days', Icons.eco),
+          error: (_, __) => _buildStatChip('1', 'Days', Icons.eco),
         );
       },
-      loading: () => _buildStatChip('...', 'Days Active', Icons.eco),
-      error: (_, __) => _buildStatChip('1', 'Days Active', Icons.eco),
+      loading: () => _buildStatChip('...', 'Days', Icons.eco),
+      error: (_, __) => _buildStatChip('1', 'Days', Icons.eco),
     );
   }
 
   Widget _buildStatChip(String value, String label, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         children: [
           Icon(icon, color: Colors.white, size: 16),
           const SizedBox(width: 4),
-          Flexible(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -491,14 +493,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     fontSize: AppTheme.fontSizeRegular,
                   ),
                   overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
                 Text(
                   label,
                   style: GoogleFonts.inter(
                     color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: AppTheme.fontSizeSmall,
+                    fontSize: 10,
                   ),
                   overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ],
             ),
@@ -1343,20 +1347,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
   }
 
-  IconData _getTimeBasedIcon(String phase) {
-    switch (phase) {
-      case 'morning':
-        return Icons.wb_sunny;
-      case 'afternoon':
-        return Icons.eco;
-      case 'evening':
-        return Icons.wb_twilight;
-      case 'night':
-        return Icons.nights_stay;
-      default:
-        return Icons.eco;
-    }
-  }
 }
 
 class ActionItem {

@@ -33,6 +33,7 @@ import 'services/haptic_settings_service.dart';
 import 'services/community_service.dart';
 import 'services/dynamic_link_service.dart';
 import 'services/cache_service.dart';
+import 'services/firebase_backend_diagnostics_service.dart';
 import 'utils/permission_handler.dart';
 import 'services/local_guidelines_plugin.dart';
 import 'services/hive_box_manager.dart';
@@ -127,6 +128,8 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
   late NavigationSettingsService _navigationSettingsService;
   late HapticSettingsService _hapticSettingsService;
   late CommunityService _communityService;
+  final FirebaseBackendDiagnosticsService _backendDiagnosticsService =
+      FirebaseBackendDiagnosticsService();
 
   @override
   void initState() {
@@ -151,6 +154,7 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       await WasteAppLogger.initialize().timeout(const Duration(seconds: 3));
       _setupErrorHandling();
       WasteAppLogger.debug('BOOT: Logger initialized');
+      unawaited(_backendDiagnosticsService.initialize());
 
       // Consent service should be ready early; if SharedPreferences hangs, we continue with a safe "false" default.
       try {
@@ -307,6 +311,12 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
           error: e, stackTrace: s);
       if (critical) rethrow;
     }
+  }
+
+  @override
+  void dispose() {
+    _backendDiagnosticsService.dispose();
+    super.dispose();
   }
 
   @override

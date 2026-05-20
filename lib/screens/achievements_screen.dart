@@ -1319,7 +1319,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   Row(
                     children: [
                       _buildStatItem(
-                        'Items Identified',
+                        'Identified',
                         _getTotalItemsIdentified(profile).toString(),
                         Icons.search,
                         AppTheme.primaryColor,
@@ -1336,7 +1336,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   Row(
                     children: [
                       _buildStatItem(
-                        'Achievements',
+                        'Achieved',
                         profile.achievements
                             .where((a) => a.isEarned)
                             .length
@@ -1356,7 +1356,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   Row(
                     children: [
                       _buildStatItem(
-                        'Longest Streak',
+                        'Best Streak',
                         '${_getLongestStreak(profile)} days',
                         Icons.local_fire_department,
                         Colors.deepOrange,
@@ -1389,40 +1389,50 @@ class _AchievementsScreenState extends State<AchievementsScreen>
           Card(
             child: Padding(
               padding: const EdgeInsets.all(AppTheme.paddingRegular),
-              child: Column(
-                children: profile.points.categoryPoints.entries.map((entry) {
-                  final categoryName = entry.key;
-                  final points = entry.value;
-                  final itemCount =
-                      (points / 10).round(); // Convert points to item count
-                  return Padding(
-                    padding:
-                        const EdgeInsets.only(bottom: AppTheme.paddingSmall),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: _getCategoryColor(categoryName),
-                            shape: BoxShape.circle,
+              child: profile.points.categoryPoints.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppTheme.paddingRegular),
+                        child: Text(
+                          'No items classified yet',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
+                    )
+                  : Column(
+                      children: profile.points.categoryPoints.entries.map((entry) {
+                        final categoryName = entry.key;
+                        final points = entry.value;
+                        final itemCount =
+                            (points / 10).round();
+                        return Padding(
+                          padding:
+                              const EdgeInsets.only(bottom: AppTheme.paddingSmall),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: _getCategoryColor(categoryName),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(categoryName),
+                              ),
+                              Text(
+                                '$itemCount items',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(categoryName),
-                        ),
-                        Text(
-                          '$itemCount items',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                        );
+                      }).toList(),
                     ),
-                  );
-                }).toList(),
-              ),
             ),
           ),
 
@@ -1555,6 +1565,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                         fontSize: 12,
                         color: Colors.grey.shade700,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       value,

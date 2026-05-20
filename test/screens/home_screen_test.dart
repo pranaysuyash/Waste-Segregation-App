@@ -7,8 +7,7 @@ import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/providers/app_providers.dart' as app_providers;
-import 'package:waste_segregation_app/screens/home_screen.dart';
-import 'package:waste_segregation_app/screens/ultra_modern_home_screen.dart' as home;
+import 'package:waste_segregation_app/screens/home_screen.dart' as home;
 import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/educational_content_service.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
@@ -62,7 +61,7 @@ void main() {
           home.classificationsProvider.overrideWith((ref) async => classifications),
           app_providers.educationalContentServiceProvider.overrideWith((ref) => educationalService),
         ],
-        child: const MaterialApp(home: HomeScreen()),
+        child: const MaterialApp(home: home.HomeScreen()),
       ),
     );
   }
@@ -75,7 +74,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining("Today's Sorting Tip"), findsOneWidget);
+      expect(find.textContaining("Today's sorting tip"), findsOneWidget);
     });
 
     testWidgets('daily tip card has action icon', (
@@ -87,8 +86,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining("Today's Sorting Tip"), findsOneWidget);
-      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      expect(find.textContaining("Today's sorting tip"), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_forward), findsOneWidget);
     });
   });
 

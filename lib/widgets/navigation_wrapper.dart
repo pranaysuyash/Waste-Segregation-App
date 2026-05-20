@@ -12,7 +12,6 @@ import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/social_screen.dart';
-import '../screens/settings_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../widgets/bottom_navigation/modern_bottom_nav.dart';
 import '../widgets/animated_fab.dart';
@@ -195,7 +194,6 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         selectedIcon: Icons.history,
         label: 'History',
       ),
-      // Center item kept empty for FAB
       const BottomNavItem(
         icon: Icons.school_outlined,
         selectedIcon: Icons.school,
@@ -590,16 +588,16 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                   icon: const Icon(Icons.camera_alt),
                   label: const Text('Scan'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
                     elevation: 6,
                     shadowColor:
-                        theme.colorScheme.primary.withValues(alpha: 0.4),
+                        AppTheme.primaryColor.withValues(alpha: 0.4),
                   ),
                 )
               : null,
           floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
+              FloatingActionButtonLocation.endFloat,
         );
       },
     );
@@ -638,7 +636,6 @@ class _AlternativeNavigationWrapperState
       const EducationalContentScreen(),
       const SocialScreen(),
       const AchievementsScreen(),
-      const SettingsScreen(),
     ];
   }
 
