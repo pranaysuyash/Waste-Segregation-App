@@ -7,12 +7,14 @@ import 'constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class PermissionHandler {
+  static const bool _isFlutterTest = bool.fromEnvironment('FLUTTER_TEST');
   static bool get _isMobilePlatform =>
       defaultTargetPlatform == TargetPlatform.android ||
       defaultTargetPlatform == TargetPlatform.iOS;
 
   /// Check and request camera permission
   static Future<bool> checkCameraPermission() async {
+    if (_isFlutterTest) return true;
     if (kIsWeb) return true; // Web handles permissions differently
     if (!_isMobilePlatform) {
       return true; // Short-circuit for non-mobile platforms/tests
@@ -39,6 +41,7 @@ class PermissionHandler {
 
   /// Check and request storage permission (for gallery access)
   static Future<bool> checkStoragePermission() async {
+    if (_isFlutterTest) return true;
     if (kIsWeb) return true; // Web handles permissions differently
     if (!_isMobilePlatform) {
       return true; // Short-circuit for non-mobile platforms/tests

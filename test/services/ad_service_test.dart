@@ -239,29 +239,6 @@ void main() {
       test('should track classification completed correctly', () {
         expect(() => adService.trackClassificationCompleted(), returnsNormally);
       });
-
-      test('should increment classification count', () {
-        expect(() => adService.incrementClassificationCount(), returnsNormally);
-      });
-
-      test('should track classification using convenience method', () {
-        expect(() => adService.trackClassification(), returnsNormally);
-      });
-
-      test('should reset classification count after interstitial', () async {
-        // Track multiple classifications to trigger interstitial
-        for (var i = 0; i < 6; i++) {
-          adService.trackClassificationCompleted();
-        }
-
-        expect(adService.shouldShowInterstitial(), isTrue);
-
-        // Attempt to show interstitial (may fail in test environment)
-        await adService.showInterstitialAd();
-
-        // Classification count should be reset (internal behavior)
-        // We can't directly test this, but we verify the method doesn't crash
-      });
     });
 
     group('Lifecycle Management Tests', () {
@@ -276,7 +253,6 @@ void main() {
         // These operations should not crash after disposal
         expect(() => adService.setPremiumStatus(true), returnsNormally);
         expect(() => adService.setInClassificationFlow(true), returnsNormally);
-        expect(() => adService.trackClassification(), returnsNormally);
       });
 
       test('should not perform operations after disposal', () {
@@ -427,7 +403,7 @@ void main() {
     group('Edge Cases', () {
       test('should handle extremely rapid classification tracking', () {
         for (var i = 0; i < 1000; i++) {
-          adService.trackClassification();
+          adService.trackClassificationCompleted();
         }
         expect(adService, isNotNull);
       });
@@ -442,11 +418,11 @@ void main() {
       });
 
       test('should handle disposal during ad operations', () {
-        adService.trackClassification();
+        adService.trackClassificationCompleted();
         adService.dispose();
 
         // Should not crash after disposal
-        expect(() => adService.trackClassification(), returnsNormally);
+        expect(() => adService.trackClassificationCompleted(), returnsNormally);
       });
     });
   });

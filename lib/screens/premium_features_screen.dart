@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/premium_feature.dart';
 import '../services/premium_service.dart';
@@ -92,12 +91,10 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
                 icon: const Icon(Icons.refresh, color: Colors.orange),
                 onPressed: () async {
                   await premiumService.resetPremiumFeatures();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('All premium features reset')),
-                    );
-                  }
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('All premium features reset')),
+                  );
                 },
                 tooltip: 'Reset all premium features',
               ),
@@ -285,46 +282,32 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
   Widget _buildPurchaseButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ElevatedButton(
-        onPressed: () {
-          // This would normally launch the in-app purchase flow
-          if (kDebugMode) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                    'In-app purchase flow would launch here. Use developer mode to test features.'),
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Premium features coming soon!'),
-              ),
-            );
-          }
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).primaryColor,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.workspace_premium),
-            SizedBox(width: 8),
-            Text(
-              'Upgrade to Premium',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+      child: Column(
+        children: [
+          ElevatedButton.icon(
+            onPressed: null,
+            icon: const Icon(Icons.construction),
+            label: const Text('Coming Soon'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.grey.shade300,
+              disabledBackgroundColor: Colors.grey.shade300,
+              disabledForegroundColor: Colors.grey.shade600,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'In-app purchase is not yet available. Use developer mode to test premium features.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade500,
+            ),
+          ),
+        ],
       ),
     );
   }

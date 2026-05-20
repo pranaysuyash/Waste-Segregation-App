@@ -389,6 +389,7 @@ class DailyTip {
     required this.date,
     this.actionText,
     this.actionLink,
+    this.contentId,
   });
   final String id;
   final String title;
@@ -397,4 +398,32 @@ class DailyTip {
   final DateTime date;
   final String? actionText;
   final String? actionLink;
+
+  /// ID of the related [EducationalContent] item to open when the user taps
+  /// 'Learn more'. If null, the app falls back to opening the educational
+  /// content list filtered by [category].
+  final String? contentId;
+
+  /// Create a copy with updated values.
+  DailyTip copyWith({
+    String? id,
+    String? title,
+    String? content,
+    String? category,
+    DateTime? date,
+    String? actionText,
+    String? actionLink,
+    String? contentId,
+  }) {
+    return DailyTip(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      category: category ?? this.category,
+      date: date ?? this.date,
+      actionText: actionText ?? this.actionText,
+      actionLink: actionLink ?? this.actionLink,
+      contentId: contentId ?? this.contentId,
+    );
+  }
 }

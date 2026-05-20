@@ -18,6 +18,7 @@ class CostTrackingInterceptor extends Interceptor {
     'authorization',
     'x-goog-api-key',
     'api-key',
+    'x-api-key',
     'cookie',
     'set-cookie',
   };

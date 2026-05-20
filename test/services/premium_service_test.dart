@@ -255,9 +255,10 @@ void main() {
         // Test that all premium features can be enabled at once (subscription model)
         const allFeatures = [
           'remove_ads',
-          'theme_customization',
           'offline_mode',
+          'theme_customization',
           'advanced_analytics',
+          'advanced_segmentation',
           'export_data'
         ];
 

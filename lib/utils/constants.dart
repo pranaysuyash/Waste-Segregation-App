@@ -434,6 +434,9 @@ class AppStrings {
   static const String premium = 'Premium';
   static const String allCategories = 'All';
   static const String filterByCategory = 'Filter by category';
+  static const String todaysSortingTip = 'Today\'s Sorting Tip';
+  static const String dailyTipAction = 'Read more';
+  static const String tipCategoryLabel = 'Tip';
 
   // Social Screen
   static const String family = 'Family';

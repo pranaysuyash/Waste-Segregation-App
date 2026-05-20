@@ -50,7 +50,7 @@ class AnalyticsService extends ChangeNotifier {
     _currentSessionId = _uuid.v4();
     _sessionStartTime = DateTime.now();
     _sessionParameters = {
-      'platform': defaultTargetPlatform.toString(),
+      'platform': _normalizedPlatform(),
       'appVersion': '0.1.4+96', // Could be dynamic
       'deviceLocale': 'en_US', // Could be dynamic
     };
@@ -125,7 +125,7 @@ class AnalyticsService extends ChangeNotifier {
       final enhancedParameters = {
         ...parameters,
         'app_version': '0.1.4+96', // TODO: Get from package info
-        'platform': defaultTargetPlatform.name,
+        'platform': _normalizedPlatform(),
         'session_id': _currentSessionId,
         'consent_metadata': consentMetadata,
         'timestamp': DateTime.now().toIso8601String(),
@@ -281,13 +281,27 @@ class AnalyticsService extends ChangeNotifier {
       eventType: AnalyticsEventTypes.session,
       eventName: AnalyticsEventNames.sessionStart,
       parameters: {
-        'device_type': defaultTargetPlatform.name,
-        'app_version': '0.1.4+96', // TODO: Get from package info
-        'platform': defaultTargetPlatform.name,
-        'user_segment': 'standard', // TODO: Determine user segment
         ..._sessionParameters,
+        'device_type': _normalizedPlatform(),
+        'app_version': '0.1.4+96', // TODO: Get from package info
+        'platform': _normalizedPlatform(),
+        'user_segment': 'standard', // TODO: Determine user segment
       },
     );
+  }
+
+  String _normalizedPlatform() {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+        return 'iOS';
+      case TargetPlatform.android:
+        return 'Android';
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        return 'Web';
+    }
   }
 
   /// Tracks session end with session metrics

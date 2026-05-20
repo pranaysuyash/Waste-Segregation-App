@@ -4,21 +4,50 @@ import '../utils/constants.dart';
 import '../utils/waste_app_logger.dart';
 import 'dart:convert';
 
-/// OPTIMIZATION: Focused service for user profile storage operations
+/// ⚠️ CONTAINED EXTRACTION — see StorageService for primary write path.
 ///
-/// Extracted from the 1300+ line StorageService god object.
-/// Handles only user profile-related persistence operations.
+/// This service was extracted from StorageService during Phase 4 architecture
+/// work. It is NOT wired into the app's core profile write path.
 ///
-/// Benefits:
-/// - Single Responsibility Principle
-/// - Easier to test in isolation
-/// - Clear user profile management API
-/// - Better maintainability
+/// Format mismatch:
+///   - StorageService writes via Hive TypeAdapter (binary UserProfile)
+///   - This service writes via jsonEncode(profile.toJson())
+///   - Both write to the same Hive box (StorageKeys.userBox)
+///   - Naive delegation would create dual-format writes in the same box.
+///
+/// Key mismatch (CRITICAL):
+///   - StorageService stores current profile under StorageKeys.userProfileKey
+///     (the constant string 'userProfile')
+///   - This service stores under userProfile.id (a UUID)
+///   - These are NOT equivalent: StorageService.getCurrentUserProfile()
+///     looks for the constant key and would NOT find a record written here.
+///   - This means a naive wire would silently "log out" the current user.
+///
+/// Safe usage:
+///   - Read/helper methods (getSetting<T>, isGoogleSyncEnabled, CSV export)
+///     are format-safe because both services handle multi-format reads.
+///   - Do NOT call saveUserProfile / getCurrentUserProfile from app code —
+///     use StorageService which is the canonical write path.
+///
+/// Roadmap:
+///   A true fix requires unifying on one serialization format (TypeAdapter)
+///   AND resolving the keying difference. That is a migration, not a
+///   refactor, and should not be attempted as a quick fix.
+///
+/// See also: StorageService.profileStorage
 class UserProfileStorageService {
   static const String _userProfileBoxName = StorageKeys.userBox;
   static const String _settingsBoxName = StorageKeys.settingsBox;
 
   /// Save user profile
+  @Deprecated(
+    'Do not use for primary app persistence. StorageService.saveUserProfile '
+    'is the source of truth. Key mismatch: StorageService writes under '
+    'StorageKeys.userProfileKey (\'userProfile\'); this method writes under '
+    'userProfile.id (UUID). Using this for current-user persistence would '
+    'silently log the user out because getCurrentUserProfile() looks for '
+    'the constant key.',
+  )
   Future<void> saveUserProfile(UserProfile userProfile) async {
     try {
       final box = await Hive.openBox(_userProfileBoxName);
@@ -39,6 +68,11 @@ class UserProfileStorageService {
   }
 
   /// Get current user profile
+  @Deprecated(
+    'Key mismatch: StorageService reads from StorageKeys.userProfileKey; '
+    'this method reads the first entry in the box (which may be stored under '
+    'userProfile.id). Use StorageService.getCurrentUserProfile instead.',
+  )
   Future<UserProfile?> getCurrentUserProfile() async {
     try {
       final box = await Hive.openBox(_userProfileBoxName);

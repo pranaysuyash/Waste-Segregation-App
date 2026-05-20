@@ -51,7 +51,8 @@ void main() {
         createdAt: DateTime.now(),
       ));
 
-      analyticsService = AnalyticsService(mockStorageService);
+      analyticsService =
+          AnalyticsService(mockStorageService, enableFirestore: false);
     });
 
     group('Event Tracking', () {
@@ -195,7 +196,8 @@ void main() {
         // Set up mock to return null user profile
         mockStorageService.setMockUserProfile(null);
 
-        final newAnalyticsService = AnalyticsService(mockStorageService);
+        final newAnalyticsService =
+            AnalyticsService(mockStorageService, enableFirestore: false);
 
         // Should not throw when user profile is null
         await newAnalyticsService.trackEvent(
@@ -210,7 +212,8 @@ void main() {
         // Create a mock that throws errors
         final errorMockStorageService = ErrorThrowingMockStorageService();
 
-        final newAnalyticsService = AnalyticsService(errorMockStorageService);
+        final newAnalyticsService =
+            AnalyticsService(errorMockStorageService, enableFirestore: false);
 
         // Should not throw when storage service fails
         expect(

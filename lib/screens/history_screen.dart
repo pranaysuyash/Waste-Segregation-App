@@ -15,15 +15,12 @@ import '../utils/error_handler.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/history_list_item.dart';
 import '../widgets/animations/enhanced_loading_states.dart';
+import '../widgets/animations/empty_state_animations.dart';
 import '../services/analytics_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
-// Suppress cascade_invocations lint for this file where small, deliberate
-// repeated receiver calls (e.g., analytics + navigator) are used for clarity.
-// The remaining analyzer info is informational and not a compile blocker.
 // ignore_for_file: cascade_invocations
 
-/// A screen that displays the complete history of waste classifications with filtering and searching
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({
     super.key,
@@ -38,47 +35,42 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
-  // Current filter options
   FilterOptions _filterOptions = FilterOptions.empty();
 
-  // Pagination state
   int _currentPage = 0;
   final int _itemsPerPage = 20;
   bool _isLoadingMore = false;
   bool _hasMorePages = true;
 
-  // State for search field
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
 
-  // Loading state
   bool _isLoading = true;
 
-  // List of classifications
   List<WasteClassification> _classifications = [];
+  List<WasteClassification> _allClassifications = [];
 
   bool _allowHistoryFeedback = true;
   int _feedbackTimeframeDays = 7;
 
-  // Scroll controller for pagination
   final ScrollController _scrollController = ScrollController();
 
-  // Category filter selections
   final List<String> _selectedCategories = [];
 
-  // List of all possible categories
-  final List<String> _allCategories = [
+  static const List<String> _filterChipLabels = [
+    'All',
     'Wet Waste',
     'Dry Waste',
-    'Hazardous Waste',
-    'Medical Waste',
-    'Non-Waste',
+    'Hazardous',
+    'Manual Review',
+    'Saved',
   ];
 
-  // Selected classification for wide layouts
+  String _activeFilterChip = 'All';
+
   WasteClassification? _selectedClassification;
   final RestorableStringN _selectedClassificationId = RestorableStringN(null);
 
-  // Analytics service
   late AnalyticsService _analyticsService;
 
   @override
@@ -86,16 +78,12 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(
-        _selectedClassificationId, 'selected_classification_id');
+    registerForRestoration(_selectedClassificationId, 'selected_classification_id');
 
-    // When data is loaded, attempt to restore selected classification
-    if (_classifications.isNotEmpty &&
-        _selectedClassificationId.value != null) {
+    if (_classifications.isNotEmpty && _selectedClassificationId.value != null) {
       final id = _selectedClassificationId.value!;
       try {
-        _selectedClassification =
-            _classifications.firstWhere((c) => c.id == id);
+        _selectedClassification = _classifications.firstWhere((c) => c.id == id);
       } catch (_) {
         _selectedClassification = null;
       }
@@ -111,30 +99,29 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
         'filter_subcategory': widget.filterSubcategory,
       });
 
-    // Apply initial filters if provided
     if (widget.filterCategory != null) {
       _selectedCategories.add(widget.filterCategory!);
       _filterOptions = _filterOptions.copyWith(
         categories: [widget.filterCategory!],
       );
+      _activeFilterChip = widget.filterCategory!;
     }
 
     _loadClassifications();
 
-    // Add scroll listener for pagination
     _scrollController.addListener(_scrollListener);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     _selectedClassificationId.dispose();
     super.dispose();
   }
 
-  // Scroll listener for pagination
   void _scrollListener() {
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
@@ -144,7 +131,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
-  // Load classifications with current filters
   Future<void> _loadClassifications() async {
     if (!mounted) return;
 
@@ -155,31 +141,24 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     });
 
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
-      final cloudStorageService =
-          Provider.of<CloudStorageService>(context, listen: false);
+      final storageService = Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
 
-      // Get Google sync and feedback settings
       final settings = await storageService.getSettings();
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
       _allowHistoryFeedback = settings['allowHistoryFeedback'] ?? true;
       _feedbackTimeframeDays = settings['feedbackTimeframeDays'] ?? 7;
 
-      // Load from cloud or local based on sync setting
       final allClassifications = isGoogleSyncEnabled
-          ? await cloudStorageService
-              .getAllClassificationsWithCloudSync(isGoogleSyncEnabled)
-          : await storageService.getAllClassifications(
-              filterOptions: _filterOptions);
+          ? await cloudStorageService.getAllClassificationsWithCloudSync(isGoogleSyncEnabled)
+          : await storageService.getAllClassifications(filterOptions: _filterOptions);
 
-      // Apply filters if not already applied
       final filteredClassifications = isGoogleSyncEnabled
-          ? storageService.applyFiltersToClassifications(
-              allClassifications, _filterOptions)
+          ? storageService.applyFiltersToClassifications(allClassifications, _filterOptions)
           : allClassifications;
 
-      // Get first page
+      _allClassifications = filteredClassifications;
+
       final startIndex = _currentPage * _itemsPerPage;
       final endIndex = startIndex + _itemsPerPage;
       final pageClassifications = filteredClassifications.length > startIndex
@@ -207,7 +186,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
       }
 
       WasteAppLogger.info(
-          '📊 History: Loaded ${pageClassifications.length} classifications (Google sync: $isGoogleSyncEnabled)');
+          'History: Loaded ${pageClassifications.length} classifications (Google sync: $isGoogleSyncEnabled)');
     } catch (e) {
       if (mounted) {
         _showErrorSnackBar('Failed to load classifications: $e');
@@ -221,7 +200,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
-  // Load more classifications for pagination
   Future<void> _loadMoreClassifications() async {
     if (_isLoadingMore || !_hasMorePages || !mounted) return;
 
@@ -230,13 +208,10 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     });
 
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = Provider.of<StorageService>(context, listen: false);
 
-      // Load next page
       final nextPage = _currentPage + 1;
-      final moreClassifications =
-          await storageService.getClassificationsWithPagination(
+      final moreClassifications = await storageService.getClassificationsWithPagination(
         filterOptions: _filterOptions,
         pageSize: _itemsPerPage,
         page: nextPage,
@@ -268,7 +243,50 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
-  // Apply category filters
+  void _onFilterChipSelected(String label) {
+    if (label == 'All') {
+      _activeFilterChip = 'All';
+      _selectedCategories.clear();
+      _applyFilters();
+      return;
+    }
+
+    if (label == 'Saved') {
+      _activeFilterChip = 'Saved';
+      _selectedCategories.clear();
+      _applyFilters();
+      return;
+    }
+
+    _activeFilterChip = label;
+    _selectedCategories.clear();
+    _selectedCategories.add(label);
+    _applyFilters();
+  }
+
+  void _onSearchChanged(String value) {
+    _applyFilters();
+  }
+
+  void _applyFilters() {
+    List<String>? categories;
+    if (_activeFilterChip == 'All' || _activeFilterChip == 'Saved') {
+      categories = null;
+    } else {
+      categories = _selectedCategories.isNotEmpty ? List.from(_selectedCategories) : null;
+    }
+
+    final newFilterOptions = _filterOptions.copyWith(
+      categories: categories,
+      searchText: _searchController.text.isNotEmpty ? _searchController.text : null,
+    );
+
+    setState(() {
+      _filterOptions = newFilterOptions;
+    });
+    _loadClassifications();
+  }
+
   void _applyCategoryFilters(List<String> categories) {
     final newFilterOptions = _filterOptions.copyWith(
       categories: categories.isEmpty ? null : categories,
@@ -282,7 +300,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
-  // Apply date range filter
   void _applyDateRangeFilter(DateTime? startDate, DateTime? endDate) {
     final newFilterOptions = _filterOptions.copyWith(
       startDate: startDate,
@@ -297,17 +314,16 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
-  // Clear all filters
   void _clearFilters() {
     setState(() {
       _filterOptions = FilterOptions.empty();
       _searchController.clear();
       _selectedCategories.clear();
+      _activeFilterChip = 'All';
     });
     _loadClassifications();
   }
 
-  // Change sorting options
   void _changeSorting(SortField sortField, bool sortNewestFirst) {
     final newFilterOptions = _filterOptions.copyWith(
       sortBy: sortField,
@@ -322,7 +338,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
-  // Show date range picker
   Future<void> _showDateRangePicker() async {
     final initialDateRange = DateTimeRange(
       start: _filterOptions.startDate ??
@@ -349,16 +364,11 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     );
 
     if (pickedDateRange != null) {
-      _applyDateRangeFilter(
-        pickedDateRange.start,
-        pickedDateRange.end,
-      );
+      _applyDateRangeFilter(pickedDateRange.start, pickedDateRange.end);
     }
   }
 
-  // Show filter dialog
   Future<void> _showFilterDialog() async {
-    // Track filter dialog open (fire-and-forget)
     unawaited(_analyticsService
         .trackUserAction('open_history_filter_dialog', parameters: {
       'current_active_filters': _isFilterActive(),
@@ -390,7 +400,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _allCategories.map((category) {
+                      children: _allCategoryNames.map((category) {
                         final isSelected =
                             tempSelectedCategories.contains(category);
                         final categoryColor = _getCategoryColor(category);
@@ -525,7 +535,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Track filter application (fire-and-forget)
                     unawaited(_analyticsService
                         .trackUserAction('apply_history_filters', parameters: {
                       'categories_selected': tempSelectedCategories,
@@ -533,9 +542,13 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                     }));
 
                     Navigator.of(context).pop();
-                    // Update selected categories and apply filters
                     _selectedCategories.clear();
                     _selectedCategories.addAll(tempSelectedCategories);
+                    if (tempSelectedCategories.isNotEmpty) {
+                      _activeFilterChip = tempSelectedCategories.first;
+                    } else {
+                      _activeFilterChip = 'All';
+                    }
                     _applyCategoryFilters(_selectedCategories);
                   },
                   style: ElevatedButton.styleFrom(
@@ -552,11 +565,9 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     );
   }
 
-  // Export classifications to CSV
   Future<void> _exportToCSV() async {
     if (!mounted) return;
 
-    // Track export action (fire-and-forget)
     unawaited(
         _analyticsService.trackUserAction('export_history_csv', parameters: {
       'total_classifications': _classifications.length,
@@ -569,15 +580,13 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
         _isLoading = true;
       });
 
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = Provider.of<StorageService>(context, listen: false);
       final csvContent = await storageService.exportClassificationsToCSV(
         filterOptions: _filterOptions,
       );
 
       if (!mounted) return;
 
-      // Share the CSV file
       final directory = await _getTempDirectory();
       final filePath =
           '${directory.path}/waste_classifications_${DateTime.now().millisecondsSinceEpoch}.csv';
@@ -587,7 +596,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
       if (!mounted) return;
 
-      // Share the file
       final result = await Share.shareXFiles(
         [XFile(filePath)],
         subject: 'Waste Classifications Export',
@@ -613,7 +621,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
-  // Get temporary directory for export
   Future<Directory> _getTempDirectory() async {
     if (kIsWeb) {
       throw Exception('Export is not supported on web platform yet');
@@ -622,7 +629,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     return getTemporaryDirectory();
   }
 
-  // Show error snackbar
   void _showErrorSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -634,7 +640,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
-  // Show success snackbar
   void _showSuccessSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -646,12 +651,10 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
-  // Format date helper
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  // Get category color helper
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
       case 'wet waste':
@@ -671,9 +674,41 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
-  // Navigate to classification details
+  List<String> get _allCategoryNames => [
+        'Wet Waste',
+        'Dry Waste',
+        'Hazardous Waste',
+        'Medical Waste',
+        'Non-Waste',
+      ];
+
+  Color _getFilterChipColor(String label) {
+    if (label == 'All') return AppTheme.primaryColor;
+    if (label == 'Saved') return AppTheme.rewardGold;
+    if (label == 'Manual Review') return AppTheme.manualReviewColor;
+    return _getCategoryColor(label);
+  }
+
+  IconData _getFilterChipIcon(String label) {
+    switch (label) {
+      case 'All':
+        return Icons.list;
+      case 'Wet Waste':
+        return Icons.water_drop;
+      case 'Dry Waste':
+        return Icons.recycling;
+      case 'Hazardous':
+        return Icons.warning_amber;
+      case 'Manual Review':
+        return Icons.help_outline;
+      case 'Saved':
+        return Icons.bookmark;
+      default:
+        return Icons.category;
+    }
+  }
+
   void _navigateToClassificationDetails(WasteClassification classification) {
-    // Track viewing classification from history (fire-and-forget)
     unawaited(_analyticsService
         .trackUserAction('view_history_classification', parameters: {
       'classification_id': classification.id,
@@ -692,7 +727,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
       Navigator.push(
         context,
         MaterialPageRoute(
-                      builder: (context) => ResultScreenWrapper(
+          builder: (context) => ResultScreenWrapper(
             classification: classification,
             showActions: false,
           ),
@@ -701,51 +736,16 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     }
   }
 
+  bool get _hasLocalFilter =>
+      _searchController.text.isNotEmpty || _activeFilterChip != 'All';
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 840;
 
-        final listBody = _isLoading
-            ? const HistoryLoadingWidget()
-            : _classifications.isEmpty && !_isFilterActive()
-                ? EmptyStateWidget(
-                    title: 'No History Yet',
-                    message:
-                        'Start classifying items to build your waste history.',
-                    icon: Icons.history_toggle_off_outlined,
-                    actionButton: Builder(
-                      builder: (context) {
-                        final t = AppLocalizations.of(context)!;
-                        return Semantics(
-                          excludeSemantics: true,
-                          hint: t.startClassifyingHint,
-                          button: true,
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.camera_alt),
-                            label: const Text('Start Classifying'),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  )
-                : _classifications.isEmpty && _isFilterActive()
-                    ? EmptyStateWidget(
-                        title: 'No Results Found',
-                        message:
-                            'Try adjusting your filters or clearing them to see more items.',
-                        icon: Icons.filter_alt_off_outlined,
-                        actionButton: ElevatedButton.icon(
-                          icon: const Icon(Icons.clear_all),
-                          label: const Text('Clear Filters'),
-                          onPressed: _clearFilters,
-                        ),
-                      )
-                    : _buildHistoryList();
+        final listBody = _buildListBody();
 
         final scaffoldBody = isWide
             ? Row(
@@ -800,44 +800,210 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     );
   }
 
-  Widget _buildHistoryList() {
-    return RefreshIndicator(
-      onRefresh: _loadClassifications,
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(
-          bottom: AppTheme.paddingRegular + 60, // Extra space for FAB
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+          AppTheme.paddingMedium, AppTheme.paddingSmall, AppTheme.paddingMedium, 0),
+      child: TextField(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        onChanged: (_) => _applyFilters(),
+        decoration: InputDecoration(
+          hintText: 'Search items...',
+          prefixIcon: const Icon(Icons.search, size: 20),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, size: 18),
+                  onPressed: () {
+                    _searchController.clear();
+                    _applyFilters();
+                  },
+                )
+              : null,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.paddingMedium,
+            vertical: AppTheme.paddingSmall,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+          ),
+          filled: true,
+          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
-        itemCount: _classifications.length + (_hasMorePages ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == _classifications.length) {
-            // Loading indicator at the end
-            return const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            );
-          }
+      ),
+    );
+  }
 
-          final classification = _classifications[index];
-          // OPTIMIZATION: RepaintBoundary prevents unnecessary repaints of list items
-          // Each item can repaint independently without affecting other items
-          // ValueKey ensures proper list semantics and prevents widget state issues
-          return RepaintBoundary(
-            child: HistoryListItem(
-              key: ValueKey<String>(classification.id),
-              classification: classification,
-              onTap: () => _navigateToClassificationDetails(classification),
-              onFeedbackSubmitted: _handleFeedbackSubmission,
-              showFeedbackButton: _canProvideFeedback(classification),
+  Widget _buildFilterChips() {
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingMedium),
+        itemCount: _filterChipLabels.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final label = _filterChipLabels[index];
+          final isSelected = _activeFilterChip == label;
+          final chipColor = _getFilterChipColor(label);
+
+          return FilterChip(
+            label: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _getFilterChipIcon(label),
+                  size: 16,
+                  color: isSelected ? Colors.white : chipColor,
+                ),
+                const SizedBox(width: 6),
+                Text(label),
+              ],
             ),
+            selected: isSelected,
+            onSelected: (_) => _onFilterChipSelected(label),
+            selectedColor: chipColor,
+            checkmarkColor: Colors.white,
+            labelStyle: TextStyle(
+              color: isSelected ? Colors.white : chipColor,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              fontSize: 13,
+            ),
+            backgroundColor: chipColor.withValues(alpha: 0.08),
+            showCheckmark: false,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            visualDensity: VisualDensity.compact,
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildListBody() {
+    if (_isLoading) {
+      return const HistoryLoadingWidget();
+    }
+
+    if (_classifications.isEmpty && !_hasLocalFilter) {
+      return EmptyHistoryStateWidget(
+        onStartClassifying: () => Navigator.pop(context),
+        onLearnHowSortingWorks: () => _showLearnMore(),
+      );
+    }
+
+    if (_classifications.isEmpty && _hasLocalFilter) {
+      return EmptyFilteredResultsWidget(
+        onClearFilters: _clearFilters,
+        activeFiltersCount: _countActiveFilters(),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadClassifications,
+      child: Column(
+        children: [
+          _buildSearchBar(),
+          _buildFilterChips(),
+          _buildActiveFilterIndicator(),
+          Expanded(child: _buildHistoryList()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActiveFilterIndicator() {
+    final count = _countActiveFilters();
+    if (count == 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.paddingMedium,
+        vertical: AppTheme.paddingSmall / 2,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.filter_alt, size: 14, color: AppTheme.primaryColor),
+          const SizedBox(width: 4),
+          Text(
+            '$count filter${count != 1 ? 's' : ''} active',
+            style: TextStyle(
+              fontSize: AppTheme.fontSizeSmall,
+              color: AppTheme.primaryColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const Spacer(),
+          TextButton.icon(
+            onPressed: _clearFilters,
+            icon: const Icon(Icons.clear_all, size: 16),
+            label: const Text('Clear', style: TextStyle(fontSize: 12)),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _countActiveFilters() {
+    var count = 0;
+    if (_activeFilterChip != 'All') count++;
+    if (_searchController.text.isNotEmpty) count++;
+    if (_filterOptions.startDate != null || _filterOptions.endDate != null) count++;
+    return count;
+  }
+
+  Widget _buildHistoryList() {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.only(
+        bottom: AppTheme.paddingRegular + 60,
+      ),
+      itemCount: _classifications.length + (_hasMorePages ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == _classifications.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+
+        final classification = _classifications[index];
+        return RepaintBoundary(
+          child: HistoryListItem(
+            key: ValueKey<String>(classification.id),
+            classification: classification,
+            onTap: () => _navigateToClassificationDetails(classification),
+            onFeedbackSubmitted: _handleFeedbackSubmission,
+            showFeedbackButton: _canProvideFeedback(classification),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLearnMore() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Waste sorting guide: Wet waste (food scraps), Dry waste (paper, plastic, metal), Hazardous (batteries, electronics). Take a photo to get started!',
+        ),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'Start Scanning',
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
     );
   }
@@ -845,8 +1011,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   Future<void> _handleFeedbackSubmission(
       WasteClassification updatedClassification) async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = Provider.of<StorageService>(context, listen: false);
       await storageService.saveClassification(updatedClassification);
 
       if (mounted) {
@@ -867,7 +1032,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
         );
       }
 
-      // Refresh list to reflect feedback state
       await _loadClassifications();
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
@@ -892,63 +1056,5 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
   bool _isFilterActive() {
     return _filterOptions.isNotEmpty;
-  }
-}
-
-class EmptyStateWidget extends StatelessWidget {
-  const EmptyStateWidget({
-    super.key,
-    required this.title,
-    required this.message,
-    this.actionButton,
-    this.icon,
-  });
-  final String title;
-  final String message;
-  final Widget? actionButton;
-  final IconData? icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.paddingLarge),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 64,
-                color: Colors.grey.shade400,
-              ),
-              const SizedBox(height: AppTheme.paddingLarge),
-            ],
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimaryColor,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.paddingSmall),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppTheme.textSecondaryColor,
-                fontSize: AppTheme.fontSizeRegular,
-                height: 1.4,
-              ),
-            ),
-            if (actionButton != null) ...[
-              const SizedBox(height: AppTheme.paddingLarge),
-              actionButton!,
-            ],
-          ],
-        ),
-      ),
-    );
   }
 }

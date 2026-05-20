@@ -19,9 +19,13 @@ import '../providers/token_providers.dart';
 import '../services/image_quality_gate.dart';
 import '../services/offline_queue_service.dart';
 import 'result_screen_wrapper.dart';
+import 'job_queue_screen.dart';
 import 'zero_balance_sheet.dart';
 import '../utils/waste_app_logger.dart';
 import '../services/premium_service.dart';
+import '../models/ai_job.dart';
+import '../widgets/manual_region_selector.dart';
+import 'combined_result_screen.dart';
 
 class ImageCaptureScreen extends ConsumerStatefulWidget {
   const ImageCaptureScreen({
@@ -63,6 +67,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   List<Map<String, dynamic>> _segments = [];
   final Set<int> _selectedSegments = {};
   AnalysisSpeed _selectedSpeed = AnalysisSpeed.instant;
+
+  bool _isSelectingRegions = false;
+  List<SelectedRegion> _selectedRegions = [];
 
   final RestorableStringN _imagePath = RestorableStringN(null);
   final RestorableBool _useSegmentationRestorable = RestorableBool(false);
@@ -502,15 +509,19 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           WasteAppLogger.info(
               'Analyzing web image: ${_xFile!.name}, error: size: ${imageBytes.length} bytes');
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
+            final selectedBounds = _selectedSegments.map((i) => _segments[i]).toList();
             if (_selectedSpeed == AnalysisSpeed.instant) {
-              classification = await aiService.analyzeImageSegmentsWeb(
+              final results = await aiService.analyzeImageRegions(
                 imageBytes,
                 _xFile!.name,
-                _selectedSegments.map((i) => _segments[i]).toList(),
+                selectedBounds,
               );
+              classification = results.isNotEmpty
+                  ? results.first
+                  : WasteClassification.fallback(_xFile!.name);
             } else {
               await _createBatchJobWeb(imageBytes, _xFile!.name,
-                  segments: _selectedSegments.map((i) => _segments[i]).toList(),
+                  segments: selectedBounds,
                   useSegmentation: true);
               return;
             }
@@ -537,11 +548,15 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           WasteAppLogger.info(
               'Analyzing web image from bytes, error: size: ${_webImageBytes!.length} bytes');
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
-            classification = await aiService.analyzeImageSegmentsWeb(
+            final selectedBounds = _selectedSegments.map((i) => _segments[i]).toList();
+            final results = await aiService.analyzeImageRegions(
               _webImageBytes!,
               'uploaded_image.jpg',
-              _selectedSegments.map((i) => _segments[i]).toList(),
+              selectedBounds,
             );
+            classification = results.isNotEmpty
+                ? results.first
+                : WasteClassification.fallback('uploaded_image.jpg');
           } else {
             classification = await aiService.analyzeWebImage(
               _webImageBytes!,
@@ -568,16 +583,23 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               context: {'service': 'screen', 'file': 'image_capture_screen'});
           if (await _imageFile!.exists()) {
             if (_useSegmentation && _selectedSegments.isNotEmpty) {
+              final selectedBounds = _selectedSegments.map((i) => _segments[i]).toList();
               if (_selectedSpeed == AnalysisSpeed.instant) {
-                classification = await aiService.analyzeImageSegments(
-                  _imageFile!,
-                  _selectedSegments.map((i) => _segments[i]).toList(),
+                final bytes = await _imageFile!.readAsBytes();
+                final imageName = _imageFile!.path.split('/').last;
+                final results = await aiService.analyzeImageRegions(
+                  bytes,
+                  imageName,
+                  selectedBounds,
                 );
+                classification = results.isNotEmpty
+                    ? results.first
+                    : WasteClassification.fallback(imageName);
               } else {
                 await _createBatchJob(
                   imageFile: _imageFile!,
                   imageName: _imageFile!.path.split('/').last,
-                  segments: _selectedSegments.map((i) => _segments[i]).toList(),
+                  segments: selectedBounds,
                   useSegmentation: true,
                 );
                 return;
@@ -677,7 +699,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     try {
       final userProfile = ref.read(userProfileProvider).value;
       if (userProfile == null) {
-        throw Exception('User not authenticated');
+        throw AuthException('User not authenticated');
+      }
+      if (!_isOnline) {
+        throw OfflineException('No network connection available');
       }
       final batchJobNotifier = ref.read(batchJobCreationProvider.notifier);
       final jobId = await batchJobNotifier.createJob(
@@ -685,21 +710,81 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         imageFile: imageFile,
       );
       if (mounted) {
+        String message;
+        try {
+          final stats = await ref.read(queueStatsProvider.future);
+          final position = stats.queuedJobs + stats.processingJobs + 1;
+          final waitSeconds = stats.estimatedWaitTime.inSeconds;
+          if (waitSeconds > 60) {
+            message =
+                'Job queued at position #$position (~${waitSeconds ~/ 60}m wait)';
+          } else {
+            message = 'Job queued at position #$position (~${waitSeconds}s wait)';
+          }
+        } catch (_) {
+          message = 'Batch job created! Job ID: ${jobId.substring(0, 8)}…';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Batch job created! Job ID: $jobId'),
-            duration: const Duration(seconds: 3),
+            content: Text(message),
+            duration: const Duration(seconds: 4),
             action: SnackBarAction(
               label: 'View Jobs',
               onPressed: () {
-                // TODO: Navigate to job queue screen
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const JobQueueScreen(),
+                  ),
+                );
               },
             ),
           ),
         );
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
-    } catch (e) {
+    } on AuthException catch (e) {
+      WasteAppLogger.severe('Auth failed creating batch job', error: e, context: {
+        'service': 'screen',
+        'file': 'image_capture_screen',
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Please sign in before creating a batch job.'),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        setState(() {
+          _isAnalyzing = false;
+        });
+      }
+    } on OfflineException catch (e) {
+      WasteAppLogger.severe('Offline creating batch job', error: e, context: {
+        'service': 'screen',
+        'file': 'image_capture_screen',
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+                'No internet connection. Batch jobs require an active network.'),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        setState(() {
+          _isAnalyzing = false;
+        });
+      }
+    } on Exception catch (e) {
+      final msg = e.toString();
+      String userMessage;
+      if (msg.contains('token') || msg.contains('budget') || msg.contains('Insufficient')) {
+        userMessage = 'Not enough tokens for batch analysis. Top up your wallet and try again.';
+      } else if (msg.contains('upload') || msg.contains('storage')) {
+        userMessage = 'Image upload failed. Please try again with a smaller image.';
+      } else {
+        userMessage = 'Failed to create batch job. Please try again later.';
+      }
       WasteAppLogger.severe('Failed to create batch job', error: e, context: {
         'service': 'screen',
         'file': 'image_capture_screen',
@@ -707,7 +792,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create batch job: ${e.toString()}'),
+            content: Text(userMessage),
             duration: const Duration(seconds: 5),
           ),
         );
@@ -721,17 +806,14 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   Future<void> _createBatchJobWeb(Uint8List imageBytes, String imageName,
       {List<Map<String, dynamic>>? segments,
       bool useSegmentation = false}) async {
-    // TODO: Implement web batch job creation using Riverpod
-    // For now, show a placeholder
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'Batch job (web) queued! You will be notified when analysis is complete.'),
-          duration: Duration(seconds: 3),
+              'Batch processing on web not yet available. Use the mobile app for batch analysis.'),
+          duration: Duration(seconds: 4),
         ),
       );
-      Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }
 
@@ -885,257 +967,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                     context); // Go back to the previous screen (e.g., camera)
               },
             )
-          : Column(
-              children: [
-                // Image preview
-                Expanded(
-                  child: Center(
-                    child: _useSegmentation
-                        ? Stack(
-                            children: [
-                              _buildImagePreview(),
-                              if (_segments.isNotEmpty)
-                                LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final imageWidth = constraints.maxWidth;
-                                    final imageHeight = constraints.maxHeight;
-
-                                    return Stack(
-                                      children: List.generate(_segments.length,
-                                          (index) {
-                                        // Using segment bounds from Map
-                                        final segment = _segments[index];
-                                        final bounds = segment['bounds']
-                                            as Map<String, dynamic>;
-                                        final left =
-                                            (bounds['x'] as num).toDouble() *
-                                                imageWidth /
-                                                100;
-                                        final top =
-                                            (bounds['y'] as num).toDouble() *
-                                                imageHeight /
-                                                100;
-                                        final width = (bounds['width'] as num)
-                                                .toDouble() *
-                                            imageWidth /
-                                            100;
-                                        final height = (bounds['height'] as num)
-                                                .toDouble() *
-                                            imageHeight /
-                                            100;
-                                        final selected =
-                                            _selectedSegments.contains(index);
-
-                                        return Positioned(
-                                          left: left,
-                                          top: top,
-                                          width: width,
-                                          height: height,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                if (selected) {
-                                                  _selectedSegments
-                                                      .remove(index);
-                                                } else {
-                                                  _selectedSegments.add(index);
-                                                }
-                                              });
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: selected
-                                                    ? AppTheme.secondaryColor
-                                                        .withValues(alpha: 0.3)
-                                                    : Colors.transparent,
-                                                border: Border.all(
-                                                  color: selected
-                                                      ? AppTheme.secondaryColor
-                                                      : Colors.white,
-                                                  width: 2,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                    );
-                                  },
-                                ),
-                            ],
-                          )
-                        : _buildImagePreview(),
-                  ),
-                ),
-
-                // Instructions
-                const ModernCard(
-                  margin:
-                      EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
-                  padding: EdgeInsets.all(AppTheme.paddingRegular),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: AppTheme.primaryColor),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Position the item clearly in the image for best results.',
-                          style: TextStyle(fontSize: AppTheme.fontSizeRegular),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppTheme.paddingSmall),
-                _buildScanInsights(),
-
-                // Segmentation toggle with premium feature indication
-                if (_isDebugGridSegmentationEnabled)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.paddingRegular),
-                    child: PremiumSegmentationToggle(
-                      value: _useSegmentation,
-                      onChanged: (bool value) async {
-                        setState(() {
-                          _useSegmentation = value;
-                        });
-                        // Set restoration property safely after state update
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted) {
-                            _useSegmentationRestorable.value = value;
-                          }
-                        });
-                        if (value && _segments.isEmpty) {
-                          // Capture ScaffoldMessenger before async operation
-                          final scaffoldMessenger =
-                              ScaffoldMessenger.of(context);
-                          try {
-                            await _runSegmentation();
-                          } catch (e) {
-                            WasteAppLogger.severe('Segmentation failed',
-                                error: e,
-                                context: {
-                                  'service': 'screen',
-                                  'file': 'image_capture_screen'
-                                });
-                            if (mounted) {
-                              scaffoldMessenger.showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'Segmentation failed: ${e.toString()}'),
-                                  duration: const Duration(seconds: 5),
-                                ),
-                              );
-                              setState(() {
-                                _useSegmentation = false;
-                              });
-                            }
-                          }
-                        } else if (!value) {
-                          setState(() {
-                            _segments.clear();
-                            _selectedSegments.clear();
-                          });
-                        }
-                      },
-                    ),
-                  ),
-
-                // Segmentation results info
-                if (_isDebugGridSegmentationEnabled &&
-                    _useSegmentation &&
-                    _segments.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.info_outline,
-                          size: 16,
-                          color: AppTheme.secondaryColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            '${_segments.length} debug grid regions generated. Tap to select for analysis.',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: AppTheme.secondaryColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                if (_isDebugGridSegmentationEnabled &&
-                    _useSegmentation &&
-                    _segments.isNotEmpty)
-                  _buildDetectedObjectsCard(),
-
-                // Speed selector
-                const SizedBox(height: 16),
-                AnalysisSpeedSelector(
-                  selectedSpeed: _selectedSpeed,
-                  onSpeedChanged: (AnalysisSpeed speed) {
-                    setState(() {
-                      _selectedSpeed = speed;
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-                _buildAnalysisSummaryCard(),
-
-                // Action buttons
-                Padding(
-                  padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Quick analyze button (prominent)
-                      _buildAnalyzeButton(),
-                      const SizedBox(height: AppTheme.paddingSmall),
-
-                      // Quick action row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton.icon(
-                              onPressed: () => Navigator.pop(context),
-                              icon: const Icon(Icons.arrow_back, size: 18),
-                              label: const Text('Back'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.grey.shade600,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: AppTheme.paddingSmall),
-                          Expanded(
-                            child: TextButton.icon(
-                              onPressed: () {
-                                // Show tip about auto-analyze
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        '💡 Tip: Use camera button with long press for instant analysis!'),
-                                    duration: Duration(seconds: 3),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.flash_on, size: 18),
-                              label: const Text('Quick Tip'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppTheme.primaryColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          : _isSelectingRegions
+              ? _buildRegionSelectionBody()
+              : _buildNormalReviewBody(),
     );
   }
 
@@ -1201,6 +1035,462 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildNormalReviewBody() {
+    return Column(
+      children: [
+        // Image preview
+        Expanded(
+          child: Center(
+            child: _useSegmentation
+                ? Stack(
+                    children: [
+                      _buildImagePreview(),
+                      if (_segments.isNotEmpty)
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final imageWidth = constraints.maxWidth;
+                            final imageHeight = constraints.maxHeight;
+
+                            return Stack(
+                              children: List.generate(_segments.length,
+                                  (index) {
+                                // Using segment bounds from Map
+                                final segment = _segments[index];
+                                final bounds = segment['bounds']
+                                    as Map<String, dynamic>;
+                                final left =
+                                    (bounds['x'] as num).toDouble() *
+                                        imageWidth /
+                                        100;
+                                final top =
+                                    (bounds['y'] as num).toDouble() *
+                                        imageHeight /
+                                        100;
+                                final width = (bounds['width'] as num)
+                                        .toDouble() *
+                                    imageWidth /
+                                    100;
+                                final height = (bounds['height'] as num)
+                                        .toDouble() *
+                                    imageHeight /
+                                    100;
+                                final selected =
+                                    _selectedSegments.contains(index);
+
+                                return Positioned(
+                                  left: left,
+                                  top: top,
+                                  width: width,
+                                  height: height,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (selected) {
+                                          _selectedSegments
+                                              .remove(index);
+                                        } else {
+                                          _selectedSegments.add(index);
+                                        }
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: selected
+                                            ? AppTheme.secondaryColor
+                                                .withValues(alpha: 0.3)
+                                            : Colors.transparent,
+                                        border: Border.all(
+                                          color: selected
+                                              ? AppTheme.secondaryColor
+                                              : Colors.white,
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            );
+                          },
+                        ),
+                    ],
+                  )
+                : _buildImagePreview(),
+          ),
+        ),
+
+        // Instructions
+        const ModernCard(
+          margin:
+              EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
+          padding: EdgeInsets.all(AppTheme.paddingRegular),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline, color: AppTheme.primaryColor),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Position the item clearly in the image for best results.',
+                  style: TextStyle(fontSize: AppTheme.fontSizeRegular),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppTheme.paddingSmall),
+        _buildScanInsights(),
+
+        // Segmentation toggle with premium feature indication
+        if (_isDebugGridSegmentationEnabled)
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.paddingRegular),
+            child: PremiumSegmentationToggle(
+              value: _useSegmentation,
+              onChanged: (bool value) async {
+                setState(() {
+                  _useSegmentation = value;
+                });
+                // Set restoration property safely after state update
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    _useSegmentationRestorable.value = value;
+                  }
+                });
+                if (value && _segments.isEmpty) {
+                  // Capture ScaffoldMessenger before async operation
+                  final scaffoldMessenger =
+                      ScaffoldMessenger.of(context);
+                  try {
+                    await _runSegmentation();
+                  } catch (e) {
+                    WasteAppLogger.severe('Segmentation failed',
+                        error: e,
+                        context: {
+                          'service': 'screen',
+                          'file': 'image_capture_screen'
+                        });
+                    if (mounted) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Segmentation failed: ${e.toString()}'),
+                          duration: const Duration(seconds: 5),
+                        ),
+                      );
+                      setState(() {
+                        _useSegmentation = false;
+                      });
+                    }
+                  }
+                } else if (!value) {
+                  setState(() {
+                    _segments.clear();
+                    _selectedSegments.clear();
+                  });
+                }
+              },
+            ),
+          ),
+
+        // Segmentation results info
+        if (_isDebugGridSegmentationEnabled &&
+            _useSegmentation &&
+            _segments.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: AppTheme.secondaryColor,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${_segments.length} debug grid regions generated. Tap to select for analysis.',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.secondaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (_isDebugGridSegmentationEnabled &&
+            _useSegmentation &&
+            _segments.isNotEmpty)
+          _buildDetectedObjectsCard(),
+
+        // Speed selector
+        const SizedBox(height: 16),
+        AnalysisSpeedSelector(
+          selectedSpeed: _selectedSpeed,
+          onSpeedChanged: (AnalysisSpeed speed) {
+            setState(() {
+              _selectedSpeed = speed;
+            });
+          },
+        ),
+        const SizedBox(height: 12),
+        _buildAnalysisSummaryCard(),
+
+        // Action buttons
+        Padding(
+          padding: const EdgeInsets.all(AppTheme.paddingRegular),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Select multiple items button
+              _buildSelectMultipleItemsButton(),
+              const SizedBox(height: AppTheme.paddingSmall),
+
+              // Quick analyze button (prominent)
+              _buildAnalyzeButton(),
+              const SizedBox(height: AppTheme.paddingSmall),
+
+              // Quick action row
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back, size: 18),
+                      label: const Text('Back'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppTheme.paddingSmall),
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                '💡 Tip: Use camera button with long press for instant analysis!'),
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.flash_on, size: 18),
+                      label: const Text('Quick Tip'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelectMultipleItemsButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () {
+          setState(() {
+            _isSelectingRegions = true;
+            _selectedRegions = [];
+          });
+        },
+        icon: const Icon(Icons.crop_square, size: 20),
+        label: const Text('Select multiple items'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppTheme.primaryColor,
+          side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.4)),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppTheme.paddingRegular,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRegionSelectionBody() {
+    return Column(
+      children: [
+        // Manual region selector with image
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: ManualRegionSelector(
+              imageFile: _imageFile,
+              webImageBytes: _webImageBytes,
+              maxRegions: 3,
+              onRegionsChanged: (regions) {
+                setState(() {
+                  _selectedRegions = regions;
+                });
+              },
+            ),
+          ),
+        ),
+
+        // Confirm / Cancel bar
+        Padding(
+          padding: const EdgeInsets.all(AppTheme.paddingRegular),
+          child: SafeArea(
+            top: false,
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setState(() {
+                        _isSelectingRegions = false;
+                        _selectedRegions = [];
+                      });
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.grey.shade600,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: _selectedRegions.isEmpty
+                        ? null
+                        : _analyzeSelectedRegions,
+                    icon: Icon(
+                      Icons.auto_awesome,
+                      size: 20,
+                      color: _selectedRegions.isEmpty
+                          ? null
+                          : Colors.white,
+                    ),
+                    label: Text(
+                      _selectedRegions.isEmpty
+                          ? 'Analyze 0 items'
+                          : 'Analyze ${_selectedRegions.length} items',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _selectedRegions.isEmpty
+                          ? null
+                          : AppTheme.primaryColor,
+                      foregroundColor: _selectedRegions.isEmpty
+                          ? null
+                          : Colors.white,
+                      disabledBackgroundColor:
+                          Colors.grey.shade300,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.borderRadiusRegular,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _analyzeSelectedRegions() async {
+    if (_selectedRegions.isEmpty) return;
+
+    setState(() {
+      _isAnalyzing = true;
+    });
+
+    try {
+      final aiService = ref.read(aiServiceProvider);
+      final regions = List<SelectedRegion>.from(_selectedRegions);
+
+      Uint8List imageBytes;
+      String imageName;
+
+      if (_webImageBytes != null) {
+        imageBytes = _webImageBytes!;
+        imageName = 'captured_image.jpg';
+      } else if (_imageFile != null) {
+        imageBytes = await _imageFile!.readAsBytes();
+        imageName = _imageFile!.path.split('/').last;
+      } else if (_xFile != null) {
+        imageBytes = await _xFile!.readAsBytes();
+        imageName = _xFile!.name;
+      } else {
+        throw Exception('No image available');
+      }
+
+      final results = await aiService.analyzeImageRegions(
+        imageBytes,
+        imageName,
+        regions.map((r) => r.toBoundsMap()).toList(),
+      );
+
+      if (!mounted) return;
+
+      if (results.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No items could be classified.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        setState(() {
+          _isAnalyzing = false;
+          _isSelectingRegions = false;
+          _selectedRegions = [];
+        });
+        return;
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CombinedResultScreen(
+            classifications: results,
+            imageName: imageName,
+          ),
+        ),
+      ).then((_) {
+        if (mounted) {
+          setState(() {
+            _isSelectingRegions = false;
+            _selectedRegions = [];
+            _isAnalyzing = false;
+          });
+        }
+      });
+    } catch (e) {
+      WasteAppLogger.severe('Failed to analyze regions', error: e, context: {
+        'service': 'screen',
+        'file': 'image_capture_screen'
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Analysis failed: ${e.toString()}'),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        setState(() {
+          _isAnalyzing = false;
+        });
+      }
+    }
   }
 
   Widget _buildAnalysisSummaryCard() {
@@ -1449,13 +1739,19 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       } else {
         return const Center(child: CircularProgressIndicator());
       }
-    } else {
-      // For mobile, use imageFile if available, otherwise convert xFile to File
+    } else if (_imageFile != null || _xFile != null) {
       final file = _imageFile ?? File(_xFile!.path);
       imageWidget = Image.file(
         file,
         fit: BoxFit.contain,
       );
+    } else if (_webImageBytes != null) {
+      imageWidget = Image.memory(
+        _webImageBytes!,
+        fit: BoxFit.contain,
+      );
+    } else {
+      return const Center(child: CircularProgressIndicator());
     }
 
     // Wrap with InteractiveViewer for zoom functionality
@@ -1771,4 +2067,20 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     _queueCountSubscription.cancel();
     super.dispose();
   }
+}
+
+class AuthException implements Exception {
+  const AuthException(this.message);
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+class OfflineException implements Exception {
+  const OfflineException(this.message);
+  final String message;
+
+  @override
+  String toString() => message;
 }

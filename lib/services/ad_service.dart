@@ -51,8 +51,6 @@ class AdService extends ChangeNotifier {
 
   bool _isInitialized = false;
   bool _isInitializing = false;
-  int _classificationCount = 0;
-
   BannerAd? _bannerAd;
   Widget? _cachedBannerWidget;
   String? _currentBannerAdKey;
@@ -516,21 +514,6 @@ class AdService extends ChangeNotifier {
     }
   }
 
-  void incrementClassificationCount() {
-    if (_disposed) return;
-
-    _classificationCount++;
-    if (_classificationCount >= 5 && canShowInterstitialAd) {
-      // Schedule showing ad after the current build cycle
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!_disposed) {
-          showInterstitialAd();
-        }
-      });
-      _classificationCount = 0;
-    }
-  }
-
   @override
   void dispose() {
     _disposed = true;
@@ -539,13 +522,6 @@ class AdService extends ChangeNotifier {
     _cachedBannerWidget = null;
     _currentBannerAdKey = null;
     super.dispose();
-  }
-
-  // Additional method to track classification for ad frequency
-  void trackClassification() {
-    if (!_disposed) {
-      incrementClassificationCount();
-    }
   }
 
   // Method to refresh banner ad (creates a new ad instance)

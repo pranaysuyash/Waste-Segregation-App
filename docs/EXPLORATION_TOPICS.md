@@ -871,3 +871,519 @@ Open questions across the pipeline:
 - **Cadence**: review monthly; refresh priority bands; archive completed/killed topics with rationale.
 - **Drift check**: before opening a new exploration doc, re-read this index and `exploration/backlog.md` to avoid duplicate work.
 - **Cross-references**: any new doc under `docs/exploration/` MUST link back to this index and update the relevant entry status.
+
+---
+
+# Additional Topics Surfaced 2026-05-19 (Code + Industry Scan)
+
+**Provenance**: this section was added after a directed scan of `lib/services/` (73 services), `lib/screens/` (42 screens), `lib/models/` (33 models), `lib/providers/` (14 providers), the `docs/` subfolders (admin/, analytics/, security/, technical/, launch/, etc.), and a 2025–2026 industry literature pass (EU ESPR / Digital Product Passport timelines, VLM-for-waste-classification papers, AMP Robotics / Greyparrot / Recycleye MRF-side competitors, EU Battery Regulation). The first pass of the map (entries 1–35 + 27a) missed the 25+ topics below — they are real, in code, in docs, or in active regulation and should be on the index.
+
+New entries are numbered `A1–A25` and grouped into (a) additions to existing categories, (b) new categories that didn't exist in the first pass, and (c) industry / external signals that aren't a code surface but should be tracked as research inputs.
+
+---
+
+## A — Additions to Existing Categories
+
+### A1. Image Capture & Quality Gate 🔴
+
+**Category**: AI & Vision (upstream of every classification call)
+
+**Status**: Code lives in `lib/services/image_quality_gate.dart`, `enhanced_image_processing_service.dart`, `enhanced_image_service.dart`, `tflite_preprocessing_helper.dart`, `thumbnail_migration_service.dart`. Integration described in [QUALITY_GATE_OFFLINE_QUEUE_INTEGRATION.md](QUALITY_GATE_OFFLINE_QUEUE_INTEGRATION.md). Not yet on the exploration index.
+
+**Why this is a topic, not just code**: Image quality is the single biggest predictor of classification accuracy. "Bad photo → model unsure" is currently indistinguishable from "good photo → model unsure" in the user's experience. The gate is the place where this gets disentangled.
+
+**Key questions**:
+
+- What's the minimum gate (blur / framing / lighting / single-object / object-presence) that catches the bottom 20% of inputs without frustrating users?
+- Does the gate run before or after capture (predict-then-shoot vs. shoot-then-check)?
+- How does the gate signal feed Multi-Model Routing — bad gate score → escalate, skip on-device, or refuse?
+- What does an "improve your photo" coaching UX look like that doesn't read as scolding?
+
+**Deliverable**: `docs/exploration/IMAGE_CAPTURE_AND_QUALITY_GATE.md`.
+
+**Related**: Multi-Model AI Routing (#1), Classification Confidence (#2), On-Device Inference (#6), Onboarding & Activation (#19).
+
+---
+
+### A2. AI Race / Multi-Provider Concurrency 🟡
+
+**Category**: AI & Vision
+
+**Status**: Implemented as opt-in `analyzeWithRace` in `EnhancedAiApiService` — see [AI_API_RACE_FAULT_TOLERANCE.md](AI_API_RACE_FAULT_TOLERANCE.md). Currently behind an A/B percentage. Not yet on the exploration index.
+
+**Why this is a topic**: Racing OpenAI + Gemini in parallel changes the latency story but doubles the per-classification cost. It's an explicit cost-vs-latency-vs-quality trade-off that deserves its own decision, not just a feature flag.
+
+**Key questions**:
+
+- When does race-mode pay for itself (latency-sensitive paths, premium tier, retries after first-pass failure)?
+- Quality ladder: should the second runner be a *cheaper* model (race-to-floor) or an *equivalent* model (race-to-best-of-N)?
+- Cost interaction with token economy (#27a) — is race mode a premium feature or a hidden cost?
+- Telemetry: which provider wins, by which margin, on which input class?
+
+**Deliverable**: `docs/exploration/AI_RACE_AND_MULTI_PROVIDER_CONCURRENCY.md`.
+
+**Related**: Multi-Model AI Routing (#1), AI Cost Telemetry (#10), Token Economy (#27a), AI Failure Taxonomy (A3).
+
+---
+
+### A3. AI Failure Modes Taxonomy 🟡
+
+**Category**: AI & Vision
+
+**Status**: `lib/services/ai_failure.dart` exists; no shared taxonomy doc.
+
+**Why this is a topic**: "AI failed" is the single most user-affecting and least-instrumented event class. Today every failure is collapsed into one. They should be at least: provider error / timeout / safety refusal / parse failure / quality-gate rejection / classification with confidence-too-low / contradictory multi-provider answers.
+
+**Key questions**:
+
+- Which failure modes map to which user-facing copy?
+- Which failures consume tokens, which don't?
+- Which failures should auto-retry, which require user action?
+- How do failure rates trend per provider over time (drift detection)?
+
+**Deliverable**: `docs/exploration/AI_FAILURE_TAXONOMY.md`.
+
+**Related**: Token Economy (#27a — failures must not charge), AI Cost Telemetry (#10), Audit / Telemetry (#35).
+
+---
+
+### A4. Model Lifecycle — Download, Selection, Versioning 🟡
+
+**Category**: On-Device & Edge
+
+**Status**: `lib/services/model_download_service.dart`, `model_selection_service.dart`, `vision_model_config.dart` exist. No exploration topic yet.
+
+**Why this is a topic**: On-device inference (#6) is the *capability*; this is the *operations* — how weights get to the device, how the right model gets picked per device tier, how upgrades roll out, how old versions sunset.
+
+**Key questions**:
+
+- Bundle vs lazy-download vs progressive download strategy.
+- Per-device-tier model selection (NPU presence, RAM, OS version).
+- Versioning + rollback when a downloaded model misbehaves.
+- Signature verification — prevent supply-chain swap of model weights.
+
+**Deliverable**: `docs/exploration/MODEL_LIFECYCLE.md`.
+
+**Related**: On-Device Inference (#6), Battery / Thermal (#8), Eval Harness (#5, gating roll-outs).
+
+---
+
+### A5. Object Detection & Multi-Object Scenes 🟡
+
+**Category**: AI & Vision
+
+**Status**: `lib/services/object_detection_service.dart` exists. Today the dominant path assumes single-object classification.
+
+**Why this is a topic**: Real-world waste is cluttered (kitchen counter, recycling pile, garage clean-out). Without object detection / segmentation, the model is forced to pick one label for a scene that should produce N labels.
+
+**Key questions**:
+
+- When does detection precede classification (multi-object scenes) vs replace it (just count items)?
+- Does detection run on-device with cloud falling back for segmentation?
+- UX: how do you show "5 items detected, classify each"?
+- Performance budget — detection + N classification calls is expensive.
+
+**Deliverable**: `docs/exploration/OBJECT_DETECTION_AND_MULTI_OBJECT.md`.
+
+**Related**: Multi-Model AI Routing (#1), On-Device Inference (#6), Image Capture & Quality Gate (A1).
+
+---
+
+### A6. Smart Suggestions / Next-Best-Action 🟡
+
+**Category**: UX & Engagement
+
+**Status**: `lib/services/smart_suggestions_service.dart`, `lib/screens/smart_suggestions_screen.dart` exist. No exploration topic.
+
+**Why this is a topic**: After a classification, the app can do many things (educate, gamify, suggest related disposal, prompt for community share, route to facility, link to reuse marketplace). Which to surface, when, and why — is its own design problem.
+
+**Key questions**:
+
+- Suggestion ranking model — rules vs learned vs context-aware?
+- How do suggestions degrade gracefully when context is thin (anonymous user, first scan)?
+- Anti-pattern guardrails — when do suggestions feel like nagging?
+
+**Deliverable**: `docs/exploration/SMART_SUGGESTIONS_NEXT_BEST_ACTION.md`.
+
+**Related**: Habit Formation Loop (#17), Onboarding & Activation (#19), Notification Strategy (A12).
+
+---
+
+### A7. Knowledge Verification / Quiz Loop 🟢
+
+**Category**: UX & Engagement
+
+**Status**: `lib/screens/quiz_screen.dart` exists; no exploration topic.
+
+**Why this is a topic**: Quizzes are the only mechanism in the app that verifies the user *learned* something, not just *did* something. Strong tie to the educational mission and to gamification depth (#16).
+
+**Key questions**:
+
+- Adaptive difficulty — quiz from the user's own correction history?
+- Reward asymmetry — should quiz mastery unlock more than scan volume does?
+- Integration with school / classroom B2B wedge (#29).
+
+**Deliverable**: `docs/exploration/KNOWLEDGE_VERIFICATION_QUIZ.md`.
+
+**Related**: Gamification Depth (#16), Habit Formation Loop (#17), B2B / Enterprise Wedge (#29).
+
+---
+
+### A8. AI-Generated Educational Content 🟡
+
+**Category**: UX & Engagement
+
+**Status**: `lib/services/educational_content_service.dart`, `educational_content_analytics_service.dart`, `ai_discovery_content.dart` exist. Mentioned in passing in entry 17 but not as its own topic.
+
+**Why this is a topic**: Generating educational content on demand (LLM) vs curating a fixed library is a fundamentally different operating model — different cost, quality control, freshness, and IP posture.
+
+**Key questions**:
+
+- Generated vs curated vs hybrid — which scales, which is safer?
+- Caching strategy when generated content is per-classification.
+- Content moderation pipeline for LLM-generated material before user exposure.
+- Multilingual generation vs translation.
+
+**Deliverable**: `docs/exploration/AI_GENERATED_EDUCATIONAL_CONTENT.md`.
+
+**Related**: AI Cost Telemetry (#10), Content Provenance (#34), Accessibility & I18n (#18).
+
+---
+
+### A9. Personal Impact Dashboard UX 🟡
+
+**Category**: UX & Engagement (distinct from Carbon Accounting methodology)
+
+**Status**: `lib/screens/impact_dashboard_screen.dart`, `lib/screens/waste_dashboard_screen.dart` exist. Carbon methodology is entry #30; this is the user-facing *presentation* of that data.
+
+**Why a separate topic**: Methodology (what numbers we compute) and presentation (how we make them feel real to the user) have different success criteria. A perfect number presented badly motivates nobody.
+
+**Key questions**:
+
+- Comparison metaphors that work cross-culturally ("X trees" / "Y kg CO₂" / "Z bottles").
+- Honest uncertainty without killing motivation.
+- Personal vs household vs community framing — which the user remembers.
+- Sharing surface — what's the right snippet to post externally?
+
+**Deliverable**: `docs/exploration/PERSONAL_IMPACT_DASHBOARD_UX.md`.
+
+**Related**: Carbon / Impact Accounting (#30), Habit Formation Loop (#17), Social Sharing (A11).
+
+---
+
+## B — New Category: PLATFORM & RELEASE ENGINEERING
+
+The first pass treated platform / release as out-of-scope for *research*. That was wrong — there are real unknowns here that affect product reach.
+
+### A10. iOS / Android / Web Cross-Platform Parity 🟡
+
+**Status**: Active worklog — see [IOS_ANDROID_PARITY.md](IOS_ANDROID_PARITY.md). Web surface in `lib/web_standalone.dart`, `lib/screens/web_fallback_screen.dart`. Cross-platform feature drift recorded but not researched as a category.
+
+**Why this is a topic**: "Where does this feature work?" and "what subset works on iOS / Android / Web?" determines the actual install / activation funnel. On-device inference, ATT, push notifications, and AdMob all diverge per platform.
+
+**Key questions**:
+
+- Which features intentionally diverge (e.g., on-device inference where NPU is available) vs accidentally diverge?
+- Web's role — landing surface, demo, full app, or progressive fallback?
+- Feature-flag visibility per platform.
+
+**Deliverable**: `docs/exploration/CROSS_PLATFORM_PARITY.md`.
+
+**Related**: On-Device Inference (#6), A/B Testing & Feature Flags (A13), Launch / Release (A14).
+
+---
+
+### A11. Notification Strategy 🟡
+
+**Status**: `lib/screens/notification_settings_screen.dart` exists; Firebase Messaging integrated. No notification policy doc.
+
+**Why this is a topic**: Push notifications are the single highest-leverage retention surface — and the single fastest path to uninstall if abused. The design space (transactional / coaching / streak / community / re-engagement / disposal-reminder) is wide and largely unowned.
+
+**Key questions**:
+
+- Which notification classes earn long-term opt-in vs trigger uninstall?
+- Quiet hours / frequency caps.
+- Local-time-aware scheduling (waste collection day reminders) vs server-pushed.
+- Re-engagement cadence for dormant users (entry #19's "returning after N weeks").
+
+**Deliverable**: `docs/exploration/NOTIFICATION_STRATEGY.md`.
+
+**Related**: Onboarding & Activation (#19), Habit Formation Loop (#17), Smart Suggestions (A6).
+
+---
+
+### A12. A/B Testing & Feature Flags 🟡
+
+**Status**: `lib/models/ab_testing_config.dart`, `lib/providers/feature_flags_provider.dart` exist; `analyzeWithRace` already uses an A/B percentage (see A2). No experiment-design or analysis methodology.
+
+**Why this is a topic**: Without an experiment harness, "is this better?" is opinion. The infrastructure to *run* experiments exists; the discipline to *interpret* them doesn't.
+
+**Key questions**:
+
+- Minimum sample size per experiment for the current MAU.
+- Guardrail metrics — what crashes / cost spikes auto-halt an experiment.
+- Naming / lifecycle / cleanup discipline for flags (avoid flag graveyard).
+- Server-driven flags (Firebase Remote Config) vs build-time flags.
+
+**Deliverable**: `docs/exploration/AB_TESTING_AND_FEATURE_FLAGS.md`.
+
+**Related**: Remote Config & Kill Switches (A13), Analytics Schema Governance (A18), AI Cost Telemetry (#10, guardrail metric).
+
+---
+
+### A13. Remote Config & Kill Switches 🟡
+
+**Status**: `lib/services/remote_config_service.dart` exists. Used ad-hoc; no governance doc.
+
+**Why this is a topic**: Remote config is the lever to disable a misbehaving feature without a release. It's load-bearing for safety (model swap rollback, cost spike halt, regional disable) and deserves a deliberate contract.
+
+**Key questions**:
+
+- What MUST be remote-controllable (provider downgrade, on-device tier disable, cost cap)?
+- Fail-safe defaults when remote config is unreachable.
+- Audit log for who flipped what when.
+
+**Deliverable**: `docs/exploration/REMOTE_CONFIG_AND_KILL_SWITCHES.md`.
+
+**Related**: A/B Testing (A12), AI Cost Telemetry (#10), Audit / Telemetry (#35).
+
+---
+
+### A14. Launch Readiness & App Store Compliance 🟡
+
+**Status**: Docs exist — `docs/launch/CLOSED_BETA_SMOKE_CHECKLIST.md`, `docs/launch/LAUNCH_BLOCKERS.md`, `docs/planning/app_store_publication_p0_features.md`. No research-level topic.
+
+**Why this is a topic**: App Store / Play Store rejections (privacy disclosures, ATT, in-app purchase rules, content moderation, kid-targeted features) are recurring product-shaping forces, not one-off chores.
+
+**Key questions**:
+
+- iOS App Store privacy nutrition labels — current vs target state.
+- Play Store data safety form — current vs target state.
+- Kid-targeted policy implications if the product moves toward classroom use (entry #29).
+
+**Deliverable**: `docs/exploration/LAUNCH_AND_STORE_COMPLIANCE.md`.
+
+**Related**: Privacy / Photo PII (#32), Regional Regulations (#33), Moderation & Safety (#23), B2B / School Wedge (#29 / F10).
+
+---
+
+### A15. Account / Identity Lifecycle 🟡
+
+**Status**: `lib/screens/auth_screen.dart`, anonymous-auth flows, `firebase_cleanup_service.dart`, `fresh_start_service.dart` exist. Existing spec: `docs/planning/account_reset_and_delete_specification.md`. No topic in the index.
+
+**Why this is a topic**: The account lifecycle (anonymous → guest → email-verified → social-linked → premium → deleted) determines what data persists, what survives a reinstall, and what an attacker can do. Today these transitions are implicit.
+
+**Key questions**:
+
+- Anonymous-to-identified merge — what carries over (history, gamification points, premium)?
+- Multi-device same-account semantics (already partially in offline queue topic).
+- Account deletion contract — soft vs hard, cascade, refund posture.
+
+**Deliverable**: `docs/exploration/ACCOUNT_IDENTITY_LIFECYCLE.md`.
+
+**Related**: Offline Queue & Sync (#11), Data Retention & PII (#14), Token Economy (#27a, balance on reinstall).
+
+---
+
+## C — New Category: GROWTH & DISTRIBUTION SURFACES
+
+Not on the first-pass map at all. These are the *user-acquisition and revenue* surfaces, distinct from the strategic positioning topics (#28 Monetization, #29 B2B, #31 Distribution).
+
+### A16. Deep Links, Sharing & Viral Loops 🟡
+
+**Status**: `lib/services/dynamic_link_service.dart`, `lib/screens/social_screen.dart`, `shared_waste_classification.dart` exist. No growth-loop doc.
+
+**Why this is a topic**: An app whose classification result can be *shared* and produces a *recipient install* is a fundamentally different growth model than one that doesn't. Dynamic links exist; the loop they enable isn't designed.
+
+**Key questions**:
+
+- What's the most-shareable artifact (a classification card, an impact summary, a streak badge)?
+- Attribution model — does the sharer get rewarded?
+- Deep-link landing UX — open the shared item directly, or land in onboarding?
+
+**Deliverable**: `docs/exploration/DEEP_LINKS_SHARING_VIRAL_LOOPS.md`.
+
+**Related**: Onboarding & Activation (#19), Referral Mechanics (could become A24), Distribution & Partnerships (#31).
+
+---
+
+### A17. Ads / Revenue Diversification 🟢
+
+**Status**: `lib/services/ad_service.dart` exists (AdMob).
+
+**Why this is a topic**: Ads are revenue *and* a tax on UX. The current decision to include AdMob is implicit; the design of where/when/how ads appear, and whether they're worth it vs premium-only, is a real product question.
+
+**Key questions**:
+
+- Eligible ad surfaces vs ad-free surfaces (premium, kid-mode, classroom).
+- Format mix — banner vs interstitial vs rewarded.
+- Are *rewarded* ads a better fit (earn tokens to scan) — direct tie to token economy (#27a)?
+- Brand-safe targeting for a sustainability product.
+
+**Deliverable**: `docs/exploration/ADS_REVENUE_DIVERSIFICATION.md`.
+
+**Related**: Monetization & Pricing Tiers (#28), Token Economy (#27a), Privacy / Photo PII (#32 — ad-tracking interaction).
+
+---
+
+### A18. Analytics Schema Governance 🟡
+
+**Status**: Substantial — `docs/analytics/` (5 docs), `lib/services/analytics_service.dart`, `analytics_schema_validator.dart`, `analytics_models.g.dart`, `analytics_consent_manager.dart`. No exploration entry.
+
+**Why this is a topic**: Analytics events accumulate entropy fast. Without an explicit schema + change-review process, the dashboard "user activated" can mean three things in three months, none documented.
+
+**Key questions**:
+
+- Single source of truth for event names + properties.
+- Backward-compatibility contract for event renames / removals.
+- Tie to consent (`analytics_consent_manager.dart`) — what events fire pre-consent vs post-consent.
+- Auto-generated event catalogue from code for the analytics team.
+
+**Deliverable**: `docs/exploration/ANALYTICS_SCHEMA_GOVERNANCE.md`.
+
+**Related**: Audit / Telemetry (#35), Privacy / Photo PII (#32), A/B Testing (A12 consumer of clean event data).
+
+---
+
+### A19. Consent Architecture 🟡
+
+**Status**: `lib/services/user_consent_service.dart`, `lib/services/analytics_consent_manager.dart`, `lib/screens/consent_dialog_screen.dart` exist. No central consent contract.
+
+**Why this is a topic**: Consent is currently fragmented (analytics consent, ATT, ad consent, training-data consent, photo-upload consent). Users see multiple dialogs; we have no unified record of "what is this user opted into?" Doesn't survive GDPR / DPDP audit.
+
+**Key questions**:
+
+- Single consent ledger per user, versioned.
+- Granular vs blanket consent.
+- Withdrawal mechanics — what happens when consent revoked mid-stream.
+- Consent expiry / re-prompt cadence.
+
+**Deliverable**: `docs/exploration/CONSENT_ARCHITECTURE.md`.
+
+**Related**: Privacy / Photo PII (#32), Data Retention & PII (#14), Regional Regulations (#33), Analytics Schema Governance (A18).
+
+---
+
+## D — New Category: DISPOSAL FACILITIES & LOCAL KNOWLEDGE
+
+A whole product surface absent from the first pass.
+
+### A20. Disposal Facilities Directory 🟡
+
+**Status**: `lib/screens/disposal_facilities_screen.dart`, `facility_detail_screen.dart`, `lib/models/disposal_location.dart`, `lib/services/local_guidelines_plugin.dart` exist. No exploration entry.
+
+**Why this is a topic**: "What is this?" is half the user job. "Where do I take it?" is the other half — and is the bridge into Smart-Bin (#24) and Municipal APIs (#25). Today the directory exists but the data sourcing, freshness, and trust model don't.
+
+**Key questions**:
+
+- Source: crowdsourced / scraped / partner-supplied / hybrid?
+- Verification — flag stale, closed, or wrong-info facilities.
+- User contributions (A21) feed back into the directory.
+- Offline cache for facility list.
+
+**Deliverable**: `docs/exploration/DISPOSAL_FACILITIES_DIRECTORY.md`.
+
+**Related**: Region-Aware Rulesets (#4), Smart-Bin (#24), Municipal APIs (#25), Informal Collector Network (#26).
+
+---
+
+### A21. User Contribution / UGC Pipeline 🟡
+
+**Status**: `lib/screens/contribution_submission_screen.dart`, `contribution_history_screen.dart`, `lib/models/user_contribution.dart` exist. Distinct from community feed (#20).
+
+**Why a separate topic from #20**: Community feed is *social*. Contributions are *data into the system* — new facility, corrected disposal advice, regional rule update, recycling code clarification. Different review pipeline, different incentive design, different trust model.
+
+**Key questions**:
+
+- Review pipeline — what's auto-accepted vs queued for moderator.
+- Reputation system for repeat contributors.
+- Tie to the rules corpus (entry #4) — a contribution that proposes a rule update.
+- Incentive design — tokens? badges? recognition?
+
+**Deliverable**: `docs/exploration/USER_CONTRIBUTION_UGC_PIPELINE.md`.
+
+**Related**: Region-Aware Rulesets (#4), Disposal Facilities Directory (A20), Community Trust Layer (#20), Gamification Depth (#16).
+
+---
+
+### A22. Recycling Code Taxonomy 🟡
+
+**Status**: `lib/models/recycling_code.dart` exists. No exploration entry.
+
+**Why this is a topic**: Plastic recycling codes (resin identification codes #1–#7), paper / cardboard codes, electronics WEEE markings, glass colour codes — the **taxonomy** the app speaks is itself a research surface. Today it's implicit. As the rules corpus (#4) grows, the taxonomy is the join key.
+
+**Key questions**:
+
+- Which taxonomies are first-class (resin codes, GTIN, EU's upcoming DPP IDs, material categories)?
+- Translation layer between user-facing language ("milk carton") and taxonomies ("polycoat #7").
+- Versioning when an authority renames or restructures (e.g., EU code revisions).
+
+**Deliverable**: `docs/exploration/RECYCLING_CODE_TAXONOMY.md`.
+
+**Related**: Region-Aware Rulesets (#4), Disposal Reasoning Stage (#3), Industry Signal A24 (EU DPP).
+
+---
+
+## E — Industry Signals (Research Inputs, Not Code Surfaces)
+
+These are external developments that shape the map's priorities. Track as research, not as build.
+
+### A23. EU Digital Product Passport / ESPR — Industry Signal 🟡
+
+**Why this matters**: The [Ecodesign for Sustainable Products Regulation (ESPR)](https://data.europa.eu/en/news-events/news/eus-digital-product-passport-advancing-transparency-and-sustainability) mandates Digital Product Passports (DPPs) carrying per-product disposal, material, and circularity data starting 2026 (iron/steel) and rolling through 2029 (mattresses/electronics). [Battery passports become mandatory Feb 2027](https://www.circularise.com/blogs/dpps-required-by-eu-legislation-across-sectors).
+
+**Implication for this app**:
+
+- DPPs are an *authoritative* data source for disposal advice — once products carry them, the app's region-aware rulesets (#4) become a *resolver*, not a primary data source. Architectural implication for entry #4.
+- QR / NFC on DPP-carrying products becomes a scan modality that bypasses image classification entirely for in-scope products. New input class.
+- Pilot opportunity: be one of the first consumer apps to *consume* DPPs at scale, not just produce them.
+
+**Deliverable**: `docs/exploration/EU_DPP_ESPR_INTEGRATION.md` — track regulatory timeline, prototype DPP-resolver path, identify product categories where DPP becomes the better classification path than vision.
+
+**Related**: Region-Aware Rulesets (#4), Disposal Reasoning Stage (#3), Recycling Code Taxonomy (A22), Smart-Bin (#24, sibling QR layer).
+
+---
+
+### A24. VLM-for-Waste Research Frontier — Industry Signal 🟢
+
+**Why this matters**: A July 2025 paper ([Malla et al., Waste Management 204](https://www.sciencedirect.com/science/article/pii/S0956053X25003502)) shows targeted prompt engineering raises zero-shot VLM waste-classification accuracy by 9.4% to 90.48% — and full supervised fine-tuning to 97.18%. December 2025 [Novelis](https://novelis.io/research-lab/a-comparative-analysis-of-vision-language-models-for-scalable-waste-recognition/) and [MDPI Sensors 2025](https://www.mdpi.com/1424-8220/25/12/3807) work converges on the same finding: prompt + small-model selection beats heavy retraining for this domain.
+
+**Implication**:
+
+- Prompt-engineering-as-research is now a *measured* discipline for waste, not a vibes exercise. Eval Harness (#5) should be designed to surface prompt-version A/B results as a first-class artefact.
+- Fine-tuned VLMs in the ~3B–8B class look viable for the on-device tier (#6) without giving up much accuracy.
+
+**Deliverable**: lightweight `docs/exploration/VLM_WASTE_RESEARCH_TRACKER.md` — quarterly literature scan with claims-to-evidence map.
+
+**Related**: Eval Harness (#5), Multi-Model AI Routing (#1), On-Device Inference (#6).
+
+---
+
+### A25. MRF-Side Competitors & B2B Reference Customers — Industry Signal 🟢
+
+**Why this matters**: AMP Robotics ([$55M raise](https://novelis.io/research-lab/a-comparative-analysis-of-vision-language-models-for-scalable-waste-recognition/)), Greyparrot, Recycleye, TOMRA — companies doing vision-based sorting at material recovery facility scale. They define the *upper bound* of what computer-vision-for-waste can mean, and they are *exactly* the kind of customer for the brand / manufacturer data flywheel (frontier F8) and B2B wedge (#29).
+
+**Implication**:
+
+- The consumer app's classification quality benchmark should be the published accuracy claims of these MRF systems (industry-defensible reference).
+- Their *failures* (what they can't sort yet) is the most valuable open-research problem and a possible wedge.
+- B2B path: become the *consumer-side data partner* to one of these MRF networks.
+
+**Deliverable**: lightweight `docs/exploration/INDUSTRY_COMPETITIVE_LANDSCAPE.md` — annual refresh, claims-to-evidence map, partnership leads.
+
+**Related**: B2B / Enterprise Wedge (#29), F8 Brand / Manufacturer Closed-Loop Data, Distribution & Partnerships (#31).
+
+---
+
+## Provenance & Sources
+
+- **Code scan**: 73 services, 42 screens, 33 models, 14 providers in `lib/`. Notably new vs first pass: `image_quality_gate.dart`, `model_download_service.dart`, `on_device_vision_service.dart`, `object_detection_service.dart`, `ab_testing_config.dart`, `remote_config_service.dart`, `dynamic_link_service.dart`, `ad_service.dart`, `smart_suggestions_service.dart`, `local_guidelines_plugin.dart`, `analytics_schema_validator.dart`, `user_consent_service.dart`, `disposal_location.dart`, `recycling_code.dart`, `user_contribution.dart`, `ai_failure.dart`, `fresh_start_service.dart`, `firebase_cleanup_service.dart`.
+- **Docs scan**: `docs/admin/` (5 docs), `docs/analytics/` (5 docs), `docs/launch/` (2 docs), `docs/security/` (3 docs), `docs/technical/`, `docs/processes/`, `IOS_ANDROID_PARITY.md`, `AI_API_RACE_FAULT_TOLERANCE.md`, `QUALITY_GATE_OFFLINE_QUEUE_INTEGRATION.md`, `TRACK_1_2_CAPTURE_FLOW_INTEGRATION.md`, `WORKLOG_ADDENDUM_SAST_20260312.md`, `planning/account_reset_and_delete_specification.md`, `planning/app_store_publication_p0_features.md`.
+- **Industry literature pass (2025–2026)**:
+  - [EU's Digital Product Passport — data.europa.eu](https://data.europa.eu/en/news-events/news/eus-digital-product-passport-advancing-transparency-and-sustainability)
+  - [DPPs across EU sectors — Circularise](https://www.circularise.com/blogs/dpps-required-by-eu-legislation-across-sectors)
+  - [DPP compliance 2026 — Climatiq](https://www.climatiq.io/blog/digital-product-passports-what-you-need-to-know-to-be-ready-for-regulatory-compliance-in-2025)
+  - [VLM waste recognition — Malla et al., Waste Management, Aug 2025](https://www.sciencedirect.com/science/article/pii/S0956053X25003502)
+  - [VLM waste recognition comparative — Novelis, Dec 2025](https://novelis.io/research-lab/a-comparative-analysis-of-vision-language-models-for-scalable-waste-recognition/)
+  - [AI for sustainable recycling — MDPI Sensors 2025](https://www.mdpi.com/1424-8220/25/12/3807)
+- **Reading rule**: when any of the above source artefacts disagrees with this index, **the source wins**. Update the index, don't fork.

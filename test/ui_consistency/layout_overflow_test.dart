@@ -82,12 +82,12 @@ void main() {
                         color: Colors.amber,
                         trend: Trend.up,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          );
+          ),
         );
 
         await tester.pump();
@@ -119,7 +119,7 @@ void main() {
                   value: '1,234,567,890,123,456,789,999,888,777',
                   subtitle:
                       'This is also a very long subtitle that might cause problems if not handled correctly by the layout system',
-                  trend: '+999,999,999%',
+                  trend: Trend.up,
                   icon: Icons.analytics,
                 ),
               ),
@@ -156,7 +156,7 @@ void main() {
                     value: '123,456',
                     icon: Icons.analytics,
                     subtitle: 'Scaled text should fit',
-                    trend: '+50%',
+                    trend: Trend.up,
                   ),
                 ),
               ),

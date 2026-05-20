@@ -53,19 +53,16 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
   void initState() {
     super.initState();
 
-    // Primary animation controller for entrance
     _primaryController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
-    // Pulse animation controller for icon
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
-    // Tip animation controller for educational tips
     _tipController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -76,7 +73,6 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
   }
 
   void _setupAnimations() {
-    // Fade animation
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -85,7 +81,6 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
     ));
 
-    // Scale animation
     _scaleAnimation = Tween<double>(
       begin: 0.5,
       end: 1.0,
@@ -94,7 +89,6 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       curve: const Interval(0.2, 0.8, curve: Curves.elasticOut),
     ));
 
-    // Slide animation (from bottom)
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0.0, 0.5),
       end: Offset.zero,
@@ -103,7 +97,6 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
     ));
 
-    // Pulse animation for icon
     _pulseAnimation = Tween<double>(
       begin: 1.0,
       end: 1.15,
@@ -112,7 +105,6 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       curve: Curves.easeInOut,
     ));
 
-    // Educational tip fade animation
     _tipFadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -126,7 +118,6 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
     _primaryController.forward();
 
     if (widget.showPulsingIcon) {
-      // Start pulse animation after entrance completes
       _primaryController.addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           _pulseController.repeat(reverse: true);
@@ -134,7 +125,6 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
       });
     }
 
-    // Show educational tip after a delay
     if (widget.educationalTip != null) {
       Future.delayed(const Duration(milliseconds: 2000), () {
         if (mounted) {
@@ -224,13 +214,11 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Animated icon
         if (widget.icon != null) ...[
           _buildAnimatedIcon(),
           const SizedBox(height: AppTheme.paddingLarge),
         ],
 
-        // Title
         Text(
           widget.title,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -242,7 +230,6 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
 
         const SizedBox(height: AppTheme.paddingSmall),
 
-        // Message
         Text(
           widget.message,
           textAlign: TextAlign.center,
@@ -253,16 +240,19 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
           ),
         ),
 
-        // Educational tip
         if (widget.educationalTip != null) ...[
           const SizedBox(height: AppTheme.paddingRegular),
           _buildEducationalTip(),
         ],
 
-        // Action button
         if (widget.actionButton != null || widget.actionText != null) ...[
           const SizedBox(height: AppTheme.paddingLarge),
           _buildActionButton(),
+        ],
+
+        if (widget.customAnimation != null) ...[
+          const SizedBox(height: AppTheme.paddingSmall),
+          widget.customAnimation!,
         ],
       ],
     );
@@ -376,21 +366,35 @@ class EmptyHistoryStateWidget extends StatelessWidget {
   const EmptyHistoryStateWidget({
     super.key,
     this.onStartClassifying,
+    this.onLearnHowSortingWorks,
   });
 
   final VoidCallback? onStartClassifying;
+  final VoidCallback? onLearnHowSortingWorks;
 
   @override
   Widget build(BuildContext context) {
     return EmptyStateWidget(
-      title: 'No History Yet',
+      title: 'No classifications yet',
       message:
-          'Start classifying items to build your waste history.\nEvery classification helps you learn and track your environmental impact!',
+          'Scan your first item to get started.\nEvery classification helps you learn proper waste sorting!',
       icon: Icons.history_toggle_off_outlined,
       educationalTip:
           'Tip: Take photos of different waste items to learn proper disposal methods',
-      actionText: 'Start Classifying',
+      actionText: 'Scan your first item',
       onActionPressed: onStartClassifying,
+      customAnimation: _buildSecondaryCta(context),
+    );
+  }
+
+  Widget _buildSecondaryCta(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppTheme.paddingSmall),
+      child: TextButton.icon(
+        onPressed: onLearnHowSortingWorks,
+        icon: const Icon(Icons.school_outlined, size: 18),
+        label: const Text('Learn how sorting works'),
+      ),
     );
   }
 }
@@ -655,14 +659,12 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Animated particle trail
             AnimatedBuilder(
               animation: _particleController,
               builder: (context, child) {
                 return Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Outer circle
                     Transform.scale(
                       scale: 0.5 + (_particleAnimation.value * 0.5),
                       child: Container(
@@ -679,7 +681,6 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
                         ),
                       ),
                     ),
-                    // Inner refreshing icon
                     Transform.rotate(
                       angle: _particleAnimation.value * 2 * 3.14159,
                       child: const Icon(
@@ -695,7 +696,6 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
 
             const SizedBox(height: AppTheme.paddingLarge),
 
-            // Loading message
             Text(
               widget.message,
               style: const TextStyle(
@@ -705,7 +705,6 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
               ),
             ),
 
-            // Step indicators
             if (widget.showSteps) ...[
               const SizedBox(height: AppTheme.paddingRegular),
               AnimatedBuilder(
@@ -725,7 +724,6 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
               ),
             ],
 
-            // Educational tips
             if (widget.showEducationalTips) ...[
               const SizedBox(height: AppTheme.paddingLarge),
               AnimatedBuilder(

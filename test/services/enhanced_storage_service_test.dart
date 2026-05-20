@@ -118,23 +118,23 @@ void main() {
       });
 
       test('should handle LRU eviction correctly', () async {
-        // Fill cache beyond MAX_CACHE_SIZE
-        for (var i = 0; i < EnhancedStorageService.MAX_CACHE_SIZE + 10; i++) {
+        // Fill cache beyond maxCacheSize
+        for (var i = 0; i < EnhancedStorageService.maxCacheSize + 10; i++) {
           await service.store('key_$i', 'value_$i');
         }
 
         final stats = service.getCacheStats();
         expect(stats['cache_size'],
-            lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
+            lessThanOrEqualTo(EnhancedStorageService.maxCacheSize));
 
         // Verify that older entries were evicted
         final newValue = await service
-            .get<String>('key_${EnhancedStorageService.MAX_CACHE_SIZE + 5}');
+            .get<String>('key_${EnhancedStorageService.maxCacheSize + 5}');
 
         // key_0 should have been evicted and result in cache miss
-        // key_${MAX_CACHE_SIZE + 5} should be in cache and result in cache hit
+        // key_${maxCacheSize + 5} should be in cache and result in cache hit
         expect(newValue,
-            equals('value_${EnhancedStorageService.MAX_CACHE_SIZE + 5}'));
+            equals('value_${EnhancedStorageService.maxCacheSize + 5}'));
       });
 
       test('should handle cache expiration correctly', () async {
@@ -363,7 +363,7 @@ void main() {
         // Verify cache remains consistent
         final stats = service.getCacheStats();
         expect(stats['cache_size'],
-            lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
+            lessThanOrEqualTo(EnhancedStorageService.maxCacheSize));
       });
 
       test('should maintain performance with large datasets', () async {
@@ -383,7 +383,7 @@ void main() {
         // Verify cache doesn't grow beyond limit
         final stats = service.getCacheStats();
         expect(stats['cache_size'],
-            lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
+            lessThanOrEqualTo(EnhancedStorageService.maxCacheSize));
 
         // Performance should be reasonable (this is a rough check)
         expect(
@@ -586,7 +586,7 @@ void main() {
 
         // Cache size should be bounded
         expect(finalStats['cache_size'],
-            lessThanOrEqualTo(EnhancedStorageService.MAX_CACHE_SIZE));
+            lessThanOrEqualTo(EnhancedStorageService.maxCacheSize));
 
         // Should have reasonable statistics
         expect(finalStats['cache_hits'], isA<int>());

@@ -183,7 +183,7 @@ class PremiumSegmentationToggle extends StatelessWidget {
             onPressed: () {
               Navigator.pop(context);
               // Navigate to premium features screen
-              Navigator.pushNamed(context, '/premium-features');
+              Navigator.pushNamed(context, '/premium');
             },
             icon: const Icon(Icons.workspace_premium),
             label: const Text('Upgrade Now'),

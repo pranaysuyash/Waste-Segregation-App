@@ -30,8 +30,8 @@ void main() {
                 ),
               },
               achievements: [],
-              discoveredItemIds: {},
-              unlockedHiddenContentIds: {},
+              discoveredItemIds: const [],
+              unlockedHiddenContentIds: const [],
             );
           }),
           userProfileProvider.overrideWith((ref) async {
@@ -99,8 +99,8 @@ void main() {
                 ),
               },
               achievements: [],
-              discoveredItemIds: {},
-              unlockedHiddenContentIds: {},
+              discoveredItemIds: const [],
+              unlockedHiddenContentIds: const [],
             );
           }),
           userProfileProvider.overrideWith((ref) async {
@@ -197,8 +197,8 @@ void main() {
               points: const UserPoints(total: 0),
               streaks: {},
               achievements: [],
-              discoveredItemIds: {},
-              unlockedHiddenContentIds: {},
+              discoveredItemIds: const [],
+              unlockedHiddenContentIds: const [],
             );
           }),
           userProfileProvider
@@ -264,8 +264,8 @@ void main() {
                 ),
               },
               achievements: [],
-              discoveredItemIds: {},
-              unlockedHiddenContentIds: {},
+              discoveredItemIds: const [],
+              unlockedHiddenContentIds: const [],
             );
           }),
           userProfileProvider.overrideWith((ref) async {
@@ -320,8 +320,8 @@ void main() {
               points: const UserPoints(total: 1250),
               streaks: {},
               achievements: [],
-              discoveredItemIds: {},
-              unlockedHiddenContentIds: {},
+              discoveredItemIds: const [],
+              unlockedHiddenContentIds: const [],
             );
           }),
           userProfileProvider.overrideWith((ref) async => null),

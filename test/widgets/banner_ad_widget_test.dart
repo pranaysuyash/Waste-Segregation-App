@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/widgets/banner_ad_widget.dart';
 import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
+import '../test_config/plugin_mock_setup.dart';
 import '../test_config/test_app_wrapper.dart';
 
 // Simple mock classes without using mockito
@@ -47,6 +48,8 @@ void main() {
     late MockPremiumService mockPremiumService;
 
     setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      PluginMockSetup.setupAll();
       // Initialize Hive for testing
       await initializeHiveForTesting();
     });

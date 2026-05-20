@@ -1,19 +1,41 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mockito/annotations.dart';
 
-import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
+import 'package:waste_segregation_app/services/storage_service.dart';
 
-@GenerateMocks([])
 void main() {
   group('StorageService - Factory Reset Tests', () {
     late StorageService storageService;
 
     setUpAll(() async {
-      // Initialize Hive for testing
-      await Hive.initFlutter();
+      final tempDir = await Directory.systemTemp.createTemp('hive_storage_test');
+      Hive.init(tempDir.path);
+      if (!Hive.isAdapterRegistered(0)) {
+        Hive.registerAdapter(WasteClassificationAdapter());
+      }
+      if (!Hive.isAdapterRegistered(1)) {
+        Hive.registerAdapter(AlternativeClassificationAdapter());
+      }
+      if (!Hive.isAdapterRegistered(2)) {
+        Hive.registerAdapter(DisposalInstructionsAdapter());
+      }
+      if (!Hive.isAdapterRegistered(3)) {
+        Hive.registerAdapter(UserRoleAdapter());
+      }
+      if (!Hive.isAdapterRegistered(4)) {
+        Hive.registerAdapter(UserProfileAdapter());
+      }
+      await Hive.openBox(StorageKeys.userBox);
+      await Hive.openBox(StorageKeys.classificationsBox);
+      await Hive.openBox(StorageKeys.settingsBox);
+      await Hive.openBox(StorageKeys.cacheBox);
+      await Hive.openBox(StorageKeys.gamificationBox);
+      await Hive.openBox<String>('classificationHashesBox');
     });
 
     setUp(() async {
@@ -21,9 +43,6 @@ void main() {
 
       // Clear any existing test data
       SharedPreferences.setMockInitialValues({});
-
-      // Initialize required Hive boxes
-      await StorageService.initializeHive();
     });
 
     tearDown(() async {

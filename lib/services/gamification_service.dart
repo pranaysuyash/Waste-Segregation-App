@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import '../models/gamification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/educational_content.dart';
+// NearMilestoneNudge is defined in gamification.dart, already imported above
 import '../utils/constants.dart';
 import 'community_service.dart';
 import 'storage_service.dart';
@@ -813,7 +814,6 @@ class GamificationService extends ChangeNotifier {
           context: {'service': 'gamification', 'file': 'gamification_service'});
 
       final updatedAchievements = profile.achievements.map((achievement) {
-        var wasUpdated = false;
         var newAchievement = achievement;
 
         if (achievement.type == AchievementType.wasteIdentified) {
@@ -839,7 +839,6 @@ class GamificationService extends ChangeNotifier {
               earnedOn: DateTime.now(),
               claimStatus: claimStatus,
             );
-            wasUpdated = true;
             WasteAppLogger.info('Achievement earned', context: {
               'service': 'gamification',
               'file': 'gamification_service',
@@ -848,7 +847,6 @@ class GamificationService extends ChangeNotifier {
             });
           } else if (achievement.progress != progress) {
             newAchievement = achievement.copyWith(progress: progress);
-            wasUpdated = true;
             WasteAppLogger.info('Achievement progress updated', context: {
               'service': 'gamification',
               'file': 'gamification_service',
@@ -877,7 +875,6 @@ class GamificationService extends ChangeNotifier {
               earnedOn: DateTime.now(),
               claimStatus: claimStatus,
             );
-            wasUpdated = true;
             WasteAppLogger.info('Achievement earned', context: {
               'service': 'gamification',
               'file': 'gamification_service',
@@ -886,7 +883,6 @@ class GamificationService extends ChangeNotifier {
             });
           } else if (achievement.progress != progress) {
             newAchievement = achievement.copyWith(progress: progress);
-            wasUpdated = true;
             WasteAppLogger.info('Achievement progress updated', context: {
               'service': 'gamification',
               'file': 'gamification_service',
@@ -1251,7 +1247,7 @@ class GamificationService extends ChangeNotifier {
           newProgress = newValue / count;
           updated = true;
         } else if (reqs.containsKey('subcategory') &&
-            classification.subcategory == reqs['subcategory']) {
+            classification.normalizedSubcategory == reqs['subcategory']) {
           // Subcategory-specific challenge
           final int count = reqs['count'] ?? 1;
           final current = (challenge.progress * count).round();
@@ -1999,8 +1995,8 @@ class GamificationService extends ChangeNotifier {
       // Store in a list of archived entries
       final existingArchives =
           box.get('archived_points_list', defaultValue: <String>[]);
-      final archivesList = List<String>.from(existingArchives);
-      archivesList.add(jsonEncode(archiveEntry));
+      final archivesList = List<String>.from(existingArchives)
+        ..add(jsonEncode(archiveEntry));
 
       await box.put('archived_points_list', archivesList);
 
@@ -2374,5 +2370,135 @@ class GamificationService extends ChangeNotifier {
         context: {'service': 'gamification', 'file': 'gamification_service'});
     _cachedProfile = null;
     notifyListeners();
+  }
+
+  /// Returns at most one prioritized "Almost there" nudge.
+  /// Priority order: daily goal > challenge > category achievement > streak milestone.
+  /// Only returns a nudge when the user is exactly 1 step away from the milestone.
+  Future<NearMilestoneNudge?> getNearMilestoneNudge() async {
+    final profile = await getProfile();
+
+    // 1. Daily goal (highest priority)
+    final todayScans = profile.weeklyStats.isNotEmpty
+        ? profile.weeklyStats.firstWhere(
+            (s) => s.weekStartDate.isBefore(DateTime.now()) &&
+                s.weekStartDate
+                    .add(const Duration(days: 7))
+                    .isAfter(DateTime.now()),
+            orElse: () => WeeklyStats(
+              weekStartDate: DateTime.now(),
+            ),
+          ).itemsIdentified
+        : 0;
+    const dailyGoalTarget = 5;
+    if (todayScans < dailyGoalTarget && (dailyGoalTarget - todayScans) == 1) {
+      return NearMilestoneNudge(
+        type: NudgeType.dailyGoal,
+        title: 'Almost there!',
+        message:
+            '1 more scan today to reach your daily goal of $dailyGoalTarget scans',
+        progress: todayScans,
+        target: dailyGoalTarget,
+        priority: NudgePriority.high,
+        iconName: 'flag',
+      );
+    }
+
+    // 2. Challenge near complete
+    final nearCompleteChallenge = profile.activeChallenges.where((c) {
+      return c.isActive && !c.isCompleted && c.progress > 0.5;
+    }).firstWhere(
+      (c) {
+        final count = c.requirements['count'] ?? 1;
+        final current = (c.progress * count).round();
+        return (count - current) == 1;
+      },
+      orElse: () => Challenge(
+        id: '',
+        title: '',
+        description: '',
+        startDate: DateTime.now(),
+        endDate: DateTime.now(),
+        pointsReward: 0,
+        iconName: '',
+        color: Colors.transparent,
+        requirements: {},
+      ),
+    );
+    if (nearCompleteChallenge.id.isNotEmpty) {
+      final count = nearCompleteChallenge.requirements['count'] ?? 1;
+      final current = (nearCompleteChallenge.progress * count).round();
+      return NearMilestoneNudge(
+        type: NudgeType.challengeNearComplete,
+        title: 'Almost there!',
+        message:
+            '1 more to complete "${nearCompleteChallenge.title}" and earn ${nearCompleteChallenge.pointsReward} points',
+        progress: current,
+        target: count,
+        priority: NudgePriority.high,
+        iconName: nearCompleteChallenge.iconName,
+      );
+    }
+
+    // 3. Category achievement (nearest category milestone: 10, 25, 50, 100)
+    const categoryMilestones = [10, 25, 50, 100];
+    for (final entry in profile.points.categoryPoints.entries) {
+      final category = entry.key;
+      final points = entry.value;
+      for (final milestone in categoryMilestones) {
+        if (points < milestone && (milestone - points) == 1) {
+          return NearMilestoneNudge(
+            type: NudgeType.categoryAchievement,
+            title: 'Almost there!',
+            message:
+                '1 more $category scan to reach $milestone points in this category',
+            progress: points,
+            target: milestone,
+            priority: NudgePriority.medium,
+            iconName: 'category',
+          );
+        }
+      }
+    }
+
+    // 4. Streak milestone (nearest: 3, 7, 14, 30, 100)
+    const streakMilestones = [3, 7, 14, 30, 100];
+    final currentStreak = profile.streaks.values.isNotEmpty
+        ? profile.streaks.values.first.currentCount
+        : 0;
+    for (final milestone in streakMilestones) {
+      if (currentStreak < milestone && (milestone - currentStreak) == 1) {
+        return NearMilestoneNudge(
+          type: NudgeType.streakMilestone,
+          title: 'Almost there!',
+          message:
+              'Keep it up tomorrow to reach a $milestone-day streak!',
+          progress: currentStreak,
+          target: milestone,
+          priority: NudgePriority.medium,
+          iconName: 'local_fire_department',
+        );
+      }
+    }
+
+    // 5. Points milestone (fallback)
+    const pointsMilestones = [50, 100, 250, 500, 1000];
+    final totalPoints = profile.points.total;
+    for (final milestone in pointsMilestones) {
+      if (totalPoints < milestone && (milestone - totalPoints) <= 5) {
+        return NearMilestoneNudge(
+          type: NudgeType.streakMilestone,
+          title: 'Almost there!',
+          message:
+              'You are ${milestone - totalPoints} points away from $milestone points',
+          progress: totalPoints,
+          target: milestone,
+          priority: NudgePriority.low,
+          iconName: 'stars',
+        );
+      }
+    }
+
+    return null;
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/enhanced_family.dart' hide UserRole;
 import '../models/family_invitation.dart' show InvitationMethod;
 import '../models/user_profile.dart' show UserRole;
@@ -566,26 +567,18 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
     );
   }
 
-  void _shareViaMessages() {
-    // TODO: Implement share via messages
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Share via messages coming soon!')),
-    );
+  Future<void> _shareInvite({String? subject}) async {
+    final familyCode = widget.family.id;
+    final inviteText = 'Join my family on WasteWise. Family code: $familyCode';
+    final shareText = subject != null ? '$subject\n\n$inviteText' : inviteText;
+    await Share.share(shareText, subject: 'Join my family on WasteWise');
   }
 
-  void _shareViaEmail() {
-    // TODO: Implement share via email
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Share via email coming soon!')),
-    );
-  }
+  void _shareViaMessages() => _shareInvite(subject: 'Join my family on WasteWise');
 
-  void _shareViaOther() {
-    // TODO: Implement generic share
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Generic share coming soon!')),
-    );
-  }
+  void _shareViaEmail() => _shareInvite(subject: 'Invitation to join my family on WasteWise');
+
+  void _shareViaOther() => _shareInvite();
 
   String _getRoleText(UserRole role) {
     switch (role) {

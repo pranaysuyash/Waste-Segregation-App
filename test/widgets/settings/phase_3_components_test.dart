@@ -117,7 +117,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           const StaggeredSettingsAnimation(
-            enableAnimation: false, // Disable animation for testing
+            // Animation toggles were removed from StaggeredSettingsAnimation API.
             children: [
               Text('Staggered Item 1'),
               Text('Staggered Item 2'),
@@ -150,7 +150,7 @@ void main() {
 
       expect(find.text('Expandable Section'), findsOneWidget);
       expect(find.text('Hidden Content'), findsOneWidget);
-      expect(find.byIcon(Icons.expand_more), findsAtLeastNWidget(1));
+      expect(find.byIcon(Icons.expand_more), findsAtLeastNWidgets(1));
 
       // Test tap to collapse
       await tester.tap(find.text('Expandable Section'));

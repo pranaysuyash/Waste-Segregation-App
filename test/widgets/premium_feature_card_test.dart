@@ -427,7 +427,7 @@ void main() {
 
         for (final feature in features) {
           await tester.pumpWidget(createTestWidget(feature: feature));
-          expect(find.text('Advanced Analytics'), findsOneWidget);
+          expect(find.text(feature.title), findsOneWidget);
         }
       });
 
@@ -450,10 +450,10 @@ void main() {
         );
 
         await tester.pumpWidget(createTestWidget(feature: activeFeature));
-        expect(find.text('Advanced Analytics'), findsOneWidget);
+        expect(find.text(activeFeature.title), findsOneWidget);
 
         await tester.pumpWidget(createTestWidget(feature: inactiveFeature));
-        expect(find.text('Advanced Analytics'), findsOneWidget);
+        expect(find.text(inactiveFeature.title), findsOneWidget);
       });
 
       testWidgets('should handle different icon types', (tester) async {
@@ -476,7 +476,7 @@ void main() {
           );
           await tester.pumpWidget(createTestWidget(feature: feature));
 
-          expect(find.text('Advanced Analytics'), findsOneWidget);
+          expect(find.text(feature.title), findsOneWidget);
           expect(find.byType(Icon), findsAtLeastNWidgets(2));
         }
       });

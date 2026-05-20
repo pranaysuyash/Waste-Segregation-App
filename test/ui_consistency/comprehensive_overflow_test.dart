@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
 import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
-import 'package:waste_segregation_app/screens/ultra_modern_home_screen.dart';
+import 'package:waste_segregation_app/screens/home_screen.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
@@ -210,7 +210,7 @@ void main() {
             ],
             child: const MaterialApp(
               home: Scaffold(
-                body: UltraModernHomeScreen(isGuestMode: true),
+                body: HomeScreen(isGuestMode: true),
               ),
             ),
           ),

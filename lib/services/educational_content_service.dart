@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../models/educational_content.dart';
 import 'educational_content_analytics_service.dart' as analytics_service;
 
@@ -28,6 +30,7 @@ class EducationalContentService {
         date: DateTime.now(),
         actionText: 'Learn More',
         actionLink: 'plastic_decomposition',
+        contentId: 'article1',
       ),
       DailyTip(
         id: 'daily_tip2',
@@ -38,6 +41,7 @@ class EducationalContentService {
         date: DateTime.now().subtract(const Duration(days: 1)),
         actionText: 'View Tips',
         actionLink: 'food_waste_tips',
+        contentId: 'article2',
       ),
       DailyTip(
         id: 'daily_tip3',
@@ -48,6 +52,7 @@ class EducationalContentService {
         date: DateTime.now().subtract(const Duration(days: 2)),
         actionText: 'Find Centers',
         actionLink: 'battery_recycling',
+        contentId: 'tip2',
       ),
       DailyTip(
         id: 'daily_tip4',
@@ -58,6 +63,7 @@ class EducationalContentService {
         date: DateTime.now().subtract(const Duration(days: 3)),
         actionText: 'Start Composting',
         actionLink: 'composting_guide',
+        contentId: 'video1',
       ),
       DailyTip(
         id: 'daily_tip5',
@@ -68,6 +74,7 @@ class EducationalContentService {
         date: DateTime.now().subtract(const Duration(days: 4)),
         actionText: 'Recycle Paper',
         actionLink: 'paper_recycling',
+        contentId: 'infographic1',
       ),
       DailyTip(
         id: 'daily_tip6',
@@ -78,6 +85,7 @@ class EducationalContentService {
         date: DateTime.now().subtract(const Duration(days: 5)),
         actionText: 'E-Waste Guide',
         actionLink: 'ewaste_disposal',
+        contentId: 'video2',
       ),
       DailyTip(
         id: 'daily_tip7',
@@ -88,6 +96,7 @@ class EducationalContentService {
         date: DateTime.now().subtract(const Duration(days: 6)),
         actionText: 'Reduction Tips',
         actionLink: 'reduce_waste',
+        contentId: 'article4',
       ),
       DailyTip(
         id: 'daily_tip8',
@@ -98,6 +107,7 @@ class EducationalContentService {
         date: DateTime.now().subtract(const Duration(days: 7)),
         actionText: 'Safe Disposal',
         actionLink: 'medical_disposal',
+        contentId: 'article3',
       ),
     ]);
   }
@@ -414,9 +424,40 @@ class EducationalContentService {
         tags: ['plastic-free', 'kitchen', 'alternatives'],
       ),
     );
+
+    // Recommendation-targeted content
+    _allContent.add(
+      EducationalContent.article(
+        id: 'article5',
+        title: 'How to safely dispose hazardous household items',
+        description:
+            'Practical guide for identifying and disposing of common hazardous waste found in homes, including paints, solvents, pesticides, and cleaning chemicals.',
+        thumbnailUrl: 'assets/images/education/hazardous_disposal.jpg',
+        contentText:
+            'Hazardous household items require special handling to prevent environmental contamination and health risks. Never pour chemicals down the drain. Use designated hazardous waste collection days or permanent drop-off facilities. Store items in original containers with labels intact. Keep them sealed and away from heat sources until disposal.',
+        categories: ['Hazardous Waste', 'Safety'],
+        level: ContentLevel.beginner,
+        durationMinutes: 6,
+        tags: ['hazardous', 'safety', 'disposal', 'household'],
+      ),
+    );
+
+    _allContent.add(
+      EducationalContent.tip(
+        id: 'tip3',
+        title: 'How to take clearer waste photos',
+        description:
+            'Simple photography tips to help the AI identify your waste items accurately.',
+        thumbnailUrl: 'assets/images/education/photo_tips.jpg',
+        contentText:
+            '1. Ensure good lighting – natural daylight works best.\n2. Place the item on a plain, contrasting background.\n3. Keep the camera steady and in focus.\n4. Capture the entire item without cropping important details.\n5. Avoid glare and shadows by diffusing harsh light.\n6. If the item has labels or codes, take a close-up shot as well.',
+        categories: ['General', 'Guide'],
+        tags: ['photo', 'tips', 'ai', 'classification'],
+      ),
+    );
   }
 
-  /// Get a random daily tip
+  /// Get a random daily tip (non-mutating)
   DailyTip getRandomDailyTip() {
     if (_dailyTips.isEmpty) {
       return DailyTip(
@@ -429,16 +470,93 @@ class EducationalContentService {
       );
     }
 
-    _dailyTips.shuffle();
-    return _dailyTips.first;
+    final rng = Random(DateTime.now().millisecondsSinceEpoch);
+    return _dailyTips[rng.nextInt(_dailyTips.length)];
   }
 
-  /// Get a daily tip for a specific day
-  DailyTip getDailyTip({DateTime? date}) {
+  /// Get a daily tip for a specific day, optionally preferring a category.
+  ///
+  /// The tip is deterministically selected from the date alone: same date
+  /// always returns the same tip. If [preferredCategory] is provided and
+  /// content for that category is available for the selected day, the tip
+  /// is rotated to the matching one within the same logical day-window.
+  DailyTip getDailyTip({DateTime? date, String? preferredCategory}) {
+    if (_dailyTips.isEmpty) {
+      return DailyTip(
+        id: 'default',
+        title: 'Reduce, Reuse, Recycle',
+        content:
+            'The three Rs of waste management form the hierarchy for reducing waste. First try to reduce consumption, then reuse items, and finally recycle.',
+        category: 'General',
+        date: date ?? DateTime.now(),
+      );
+    }
+
     final targetDate = date ?? DateTime.now();
-    final day = targetDate.day % _dailyTips.length;
-    return _dailyTips[day];
+    final seed = targetDate.year * 10000 + targetDate.month * 100 + targetDate.day;
+    final rng = Random(seed);
+    final baseIndex = rng.nextInt(_dailyTips.length);
+    var tip = _dailyTips[baseIndex];
+
+    if (preferredCategory != null && preferredCategory.isNotEmpty) {
+      final matchingIdx = _dailyTips.indexWhere(
+        (t) => t.category == preferredCategory,
+      );
+      if (matchingIdx >= 0) {
+        tip = _dailyTips[matchingIdx];
+      }
+    }
+
+    return tip;
   }
+
+  /// Get the daily tip for the home screen, optionally preferring a category.
+  ///
+  /// Uses a stable date hash so the same date always yields the same tip.
+  /// If [preferredCategory] is provided, searches forward from the base
+  /// index for a matching category and falls back to the base index when
+  /// nothing matches.
+  DailyTip getDailyTipForHome({DateTime? date, String? preferredCategory}) {
+    if (_dailyTips.isEmpty) {
+      return _defaultTip(date: date);
+    }
+
+    final targetDate = date ?? DateTime.now();
+    final baseIndex = _stableDateHash(targetDate) % _dailyTips.length;
+    var tip = _dailyTips[baseIndex];
+
+    if (preferredCategory != null && preferredCategory.isNotEmpty) {
+      for (var i = 0; i < _dailyTips.length; i++) {
+        final idx = (baseIndex + i) % _dailyTips.length;
+        if (_categoryMatches(_dailyTips[idx].category, preferredCategory)) {
+          tip = _dailyTips[idx];
+          break;
+        }
+      }
+    }
+
+    return tip.copyWith(date: targetDate);
+  }
+
+  int _stableDateHash(DateTime date) {
+    return date.year * 10000 + date.month * 100 + date.day;
+  }
+
+  bool _categoryMatches(String tipCategory, String? preferred) {
+    if (preferred == null || preferred.isEmpty) return false;
+    final lowerTip = tipCategory.toLowerCase();
+    final lowerPref = preferred.toLowerCase();
+    return lowerTip.contains(lowerPref) || lowerPref.contains(lowerTip);
+  }
+
+  DailyTip _defaultTip({DateTime? date}) => DailyTip(
+        id: 'default',
+        title: 'Reduce, Reuse, Recycle',
+        content:
+            'The three Rs of waste management form the hierarchy for reducing waste. First try to reduce consumption, then reuse items, and finally recycle.',
+        category: 'General',
+        date: date ?? DateTime.now(),
+      );
 
   /// Get all educational content
   List<EducationalContent> getAllContent() {
@@ -549,4 +667,101 @@ class EducationalContentService {
   }
 
   List<EducationalContent> get allContent => _allContent;
+
+  // ==================== RECOMMENDATIONS ====================
+
+  /// Returns the single most relevant educational content for a given classification,
+  /// or null if nothing matches.
+  ///
+  /// Matching logic (deterministic and testable):
+  /// 1. clarificationNeeded / low confidence  -> photo tips
+  /// 2. requiresSpecialDisposal == true      -> hazardous safety guide
+  /// 3. category == 'Hazardous Waste'        -> hazardous safety guide
+  /// 4. category == 'Wet Waste'              -> composting basics
+  /// 5. category == 'Dry Waste' && subcategory/material == plastic -> plastic recycling codes
+  /// 6. category == 'Medical Waste'          -> medical waste safety guidelines
+  /// 7. category match fallback                -> first content matching category
+  /// 8. no match                               -> null (card hidden)
+  EducationalContent? getRecommendationForClassification({
+    required String category,
+    String? subcategory,
+    String? riskLevel,
+    bool? requiresSpecialDisposal,
+    bool? clarificationNeeded,
+    double? confidence,
+  }) {
+    final catLower = category.toLowerCase().trim();
+    final subLower = (subcategory ?? '').toLowerCase().trim();
+    final conf = confidence ?? 1.0;
+    final needsClarification = clarificationNeeded == true || conf < 0.7;
+
+    // 1. Low confidence / needs review -> photo tips
+    if (needsClarification) {
+      final match = _findById('tip3');
+      if (match != null) return match;
+    }
+
+    // 2. Special disposal required -> hazardous safety guide
+    if (requiresSpecialDisposal == true) {
+      final match = _findById('article5');
+      if (match != null) return match;
+    }
+
+    // 3. Hazardous Waste -> hazardous safety guide
+    if (catLower == 'hazardous waste') {
+      final match = _findById('article5');
+      if (match != null) return match;
+    }
+
+    // 4. Wet Waste -> composting basics
+    if (catLower == 'wet waste') {
+      final match = _findById('video1');
+      if (match != null) return match;
+    }
+
+    // 5. Dry Waste + plastic -> plastic recycling codes
+    if (catLower == 'dry waste' &&
+        (subLower == 'plastic' || subLower.contains('plastic'))) {
+      final match = _findById('article1');
+      if (match != null) return match;
+    }
+
+    // 6. Medical Waste -> medical waste safety guidelines
+    if (catLower == 'medical waste') {
+      final match = _findById('article3');
+      if (match != null) return match;
+    }
+
+    // 7. Fallback: first content matching the exact category
+    final fallback = _allContent.firstWhere(
+      (c) => c.categories.any(
+        (cat) => cat.toLowerCase().trim() == catLower,
+      ),
+      orElse: () => _allContent.firstWhere(
+        (c) => c.categories.any(
+          (cat) => cat.toLowerCase().contains(catLower),
+        ),
+        orElse: () => _allContent.first,
+      ),
+    );
+    final matchesExactly = fallback.categories.any(
+      (cat) => cat.toLowerCase().trim() == catLower,
+    );
+    final matchesPartially = fallback.categories.any(
+      (cat) => cat.toLowerCase().contains(catLower),
+    );
+    if (matchesExactly || matchesPartially) {
+      return fallback;
+    }
+
+    return null;
+  }
+
+  EducationalContent? _findById(String id) {
+    try {
+      return _allContent.firstWhere((c) => c.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
 }

@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../models/gamification.dart';
 import '../services/result_pipeline.dart';
 import '../services/haptic_settings_service.dart';
 import '../services/analytics_service.dart';
@@ -18,6 +19,7 @@ import '../widgets/result_screen/disposal_accordion.dart';
 import '../widgets/result_screen/action_row.dart';
 import '../widgets/result_screen/points_popup.dart';
 import '../widgets/result_screen/achievement_wrapper.dart';
+import '../widgets/result_screen/explanation_panel.dart';
 import '../widgets/result_screen/staggered_list.dart';
 import '../widgets/interactive_tag.dart';
 import '../widgets/correction_dialog.dart';
@@ -64,6 +66,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
   // Audit trail: set to true when the classification has been re-analyzed
   bool _wasCorrected = false;
+  bool get hasLowConfidence => (_classification.confidence ?? 1.0) < 0.7;
 
   // Gamification state
   bool _hasShownPointsPopup = false;
@@ -172,6 +175,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     // Build tags once
     final tags = buildClassificationTags(_classification);
     final hasLowConfidence = (_classification.confidence ?? 1.0) < 0.7;
+    final isFallback = _classification.category.toLowerCase() == 'general';
+    final needsReview = _classification.clarificationNeeded == true;
 
     final scaffold = Scaffold(
       backgroundColor: colorScheme.surface,
@@ -246,8 +251,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                             if (_isReanalyzing)
                               _buildReanalysisBanner(context),
 
+                            // Needs-review banner (clarificationNeeded or fallback)
+                            if (needsReview || isFallback)
+                              _buildNeedsReviewBanner(context),
+
                             // Low-confidence warning banner
-                            if (hasLowConfidence)
+                            if (hasLowConfidence && !needsReview && !isFallback)
                               _buildLowConfidenceBanner(context),
 
                             // Interactive Tags
@@ -280,11 +289,14 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                             const SizedBox(height: 16),
 
                             // Why This Classification Card + educational fact
-                            _buildWhyCard(context),
+                            ExplanationPanel(classification: _classification),
                             if (_buildStoryCards(context) != null) ...[
                               const SizedBox(height: 16),
                               _buildStoryCards(context)!,
                             ],
+
+                            // Learn More recommendation card
+                            _buildLearnMoreCard(context),
 
                             const SizedBox(height: 24),
 
@@ -348,6 +360,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                               _buildPointsCard(context, pipelineState),
                             ],
 
+                            // Near-milestone nudge (post-scan progress encouragement)
+                            _buildNearMilestoneNudge(context),
+
                             const SizedBox(height: 24),
 
                             // Secondary Actions
@@ -382,94 +397,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     return Stack(children: [scaffold, buildAchievementCelebration()]);
   }
 
-  Widget _buildWhyCard(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Card(
-      elevation: 0,
-      color: colorScheme.surfaceContainerHighest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.psychology, color: colorScheme.primary, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Why this classification?',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Our AI analyzed the visual characteristics, material properties, and recycling guidelines to determine this classification with ${((_classification.confidence ?? 0.0) * 100).toInt()}% confidence.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.8),
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Educational content link
-            InkWell(
-              onTap: _handleEducationalContent,
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.school, size: 16, color: colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Learn more about ${_classification.category}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward,
-                      size: 14,
-                      color: colorScheme.primary,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  Icons.auto_awesome,
-                  size: 14,
-                  color: colorScheme.primary.withValues(alpha: 0.7),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'Powered by AI Classification',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.primary.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// Audit trail badge shown after successful re-analysis.
   Widget _buildCorrectedBadge(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -592,6 +522,34 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     );
   }
 
+  Widget _buildNeedsReviewBanner(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.amber.shade300),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.help_outline, color: Colors.amber.shade800),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'This result needs review. Please verify before disposal.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.amber.shade900,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Educational "Did You Know?" story card, ported from v1.
   Widget? _buildStoryCards(BuildContext context) {
     final theme = Theme.of(context);
@@ -621,6 +579,105 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Compact "Learn more about this item" recommendation card.
+  Widget _buildLearnMoreCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    final educationalService = ref.read(educationalContentServiceProvider);
+    final recommendation = educationalService.getRecommendationForClassification(
+      category: _classification.category,
+      subcategory: _classification.normalizedSubcategory,
+      riskLevel: _classification.riskLevel,
+      requiresSpecialDisposal: _classification.requiresSpecialDisposal,
+      clarificationNeeded: _classification.clarificationNeeded,
+      confidence: _classification.confidence,
+    );
+
+    if (recommendation == null) return const SizedBox.shrink();
+
+    return Card(
+      elevation: 0,
+      color: cs.primaryContainer.withValues(alpha: 0.25),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: () {
+          _analyticsService.trackUserAction(
+            'learn_more_tapped',
+            parameters: {
+              'content_id': recommendation.id,
+              'content_title': recommendation.title,
+              'category': _classification.category,
+              'item': _classification.itemName,
+            },
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => EducationalContentScreen(
+                initialCategory: recommendation.categories.isNotEmpty
+                    ? recommendation.categories.first
+                    : _classification.category,
+              ),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.menu_book_rounded,
+                  color: cs.primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Learn more',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: cs.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      recommendation.title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: cs.onSurface.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1819,6 +1876,114 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         ),
       ),
     );
+  }
+
+  /// Builds the "Almost there" nudge card shown after a scan when near a milestone.
+  Widget _buildNearMilestoneNudge(BuildContext context) {
+    final gamificationService = ref.watch(gamificationServiceProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return FutureBuilder<NearMilestoneNudge?>(
+      future: gamificationService.getNearMilestoneNudge(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const SizedBox.shrink();
+        }
+
+        final nudge = snapshot.data!;
+        final nudgeColor = _resultNudgeColor(nudge.type);
+
+        return Card(
+          elevation: 0,
+          color: nudgeColor.withValues(alpha: 0.08),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(
+              color: nudgeColor.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: nudgeColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    _resultNudgeIcon(nudge.iconName),
+                    color: nudgeColor,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        nudge.title,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
+                            ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        nudge.message,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      LinearProgressIndicator(
+                        value: nudge.target > 0
+                            ? nudge.progress / nudge.target
+                            : 0,
+                        backgroundColor: nudgeColor.withValues(alpha: 0.12),
+                        valueColor: AlwaysStoppedAnimation<Color>(nudgeColor),
+                        minHeight: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  IconData _resultNudgeIcon(String? iconName) {
+    switch (iconName) {
+      case 'flag':
+        return Icons.flag;
+      case 'local_fire_department':
+        return Icons.local_fire_department;
+      case 'stars':
+        return Icons.stars;
+      case 'category':
+        return Icons.category;
+      default:
+        return Icons.near_me;
+    }
+  }
+
+  Color _resultNudgeColor(NudgeType type) {
+    switch (type) {
+      case NudgeType.dailyGoal:
+        return const Color(0xFF2196F3);
+      case NudgeType.challengeNearComplete:
+        return const Color(0xFFFF9800);
+      case NudgeType.categoryAchievement:
+        return const Color(0xFF4CAF50);
+      case NudgeType.streakMilestone:
+        return const Color(0xFFFF5722);
+    }
   }
 
   void _showAchievementDetails(dynamic achievement) {

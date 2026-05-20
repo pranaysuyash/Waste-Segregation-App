@@ -9,6 +9,7 @@ enum AiFailureKind {
   malformedProviderResponse,
   unsafeClientAiBlocked,
   network,
+  provider,
   unknown,
 }
 

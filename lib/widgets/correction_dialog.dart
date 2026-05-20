@@ -15,6 +15,7 @@ class CorrectionResult {
     this.userSuggestedItemName,
     this.userSuggestedMaterial,
     this.userNotes,
+    this.barcode,
   });
 
   /// True = user confirmed the classification; False = user said it was wrong.
@@ -24,6 +25,7 @@ class CorrectionResult {
   final String? userSuggestedItemName;
   final String? userSuggestedMaterial;
   final String? userNotes;
+  final String? barcode;
 
   /// Whether the user provided actual correction data (as opposed to just
   /// confirming). Only meaningful when [userConfirmed] is false.
@@ -31,7 +33,8 @@ class CorrectionResult {
       userSuggestedCategory != null ||
       userSuggestedItemName != null ||
       userSuggestedMaterial != null ||
-      (userNotes?.trim().isNotEmpty == true);
+      (userNotes?.trim().isNotEmpty == true) ||
+      (barcode?.trim().isNotEmpty == true);
 }
 
 /// Correction dialog for the Riverpod-based result screen.
@@ -60,8 +63,10 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
   final TextEditingController _materialController = TextEditingController();
   final TextEditingController _customController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+  final TextEditingController _barcodeController = TextEditingController();
   bool _isSubmitting = false;
   String? _validationError;
+  bool _hasTriedSubmit = false;
 
   static const List<String> _commonCorrections = [
     'Wet Waste',
@@ -77,6 +82,7 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
     _materialController.dispose();
     _customController.dispose();
     _notesController.dispose();
+    _barcodeController.dispose();
     super.dispose();
   }
 
@@ -107,6 +113,11 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
   /// - When confirmed correct (true): always has a payload (the confirmation).
   /// - When not yet selected (null): no payload.
   /// - When marked wrong (false): must provide at least one correction detail.
+  String? get _resolvedBarcode {
+    final trimmed = _barcodeController.text.trim();
+    return trimmed.isNotEmpty ? trimmed : null;
+  }
+
   bool get _hasCorrectionPayload {
     if (_userConfirmed == true) return true;
     if (_userConfirmed == null) return false;
@@ -114,22 +125,43 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
     return _resolvedCategory != null ||
         _resolvedItemName != null ||
         _resolvedMaterial != null ||
-        _notesController.text.trim().isNotEmpty;
+        _notesController.text.trim().isNotEmpty ||
+        _resolvedBarcode != null;
   }
 
   bool get _canSubmit {
     if (_isSubmitting || _userConfirmed == null) return false;
-    if (_userConfirmed == false) return _hasCorrectionPayload;
+    if (_userConfirmed == false) {
+      if (!_hasCorrectionPayload) return false;
+      // Require at least one meaningful field beyond notes (barcode counts)
+      final hasMeaningfulCorrection =
+          _resolvedCategory != null ||
+          _resolvedItemName != null ||
+          _resolvedMaterial != null ||
+          _resolvedBarcode != null;
+      return hasMeaningfulCorrection;
+    }
     return true;
   }
 
   Future<void> _submit() async {
     if (_isSubmitting) return;
     if (_userConfirmed == null) return;
+
+    _hasTriedSubmit = true;
+
     if (!_hasCorrectionPayload) {
       setState(() {
         _validationError =
             'Add at least one correction detail when marking this as wrong.';
+      });
+      return;
+    }
+
+    if (!_canSubmit) {
+      setState(() {
+        _validationError =
+            'Provide a category, item name, or material.';
       });
       return;
     }
@@ -151,6 +183,7 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
         userSuggestedCategory: _resolvedCategory,
         userSuggestedItemName: _resolvedItemName,
         userSuggestedMaterial: _resolvedMaterial,
+        barcode: _resolvedBarcode,
       );
 
       if (mounted) {
@@ -162,6 +195,7 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
           userNotes: _notesController.text.trim().isNotEmpty
               ? _notesController.text.trim()
               : null,
+          barcode: _resolvedBarcode,
         ));
         final message = feedbackResult.wasDuplicate
             ? 'Already recorded!'
@@ -259,6 +293,13 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
                   'What should it be?',
                   style: theme.textTheme.titleSmall,
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Select a category or provide details below.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -303,33 +344,78 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
                     ),
                   ),
                 ],
+
+                // Inline hint when no correction data is entered
+                if (_userConfirmed == false &&
+                    !_hasCorrectionPayload &&
+                    _hasTriedSubmit)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Provide at least a category, item name, or material.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.error,
+                      ),
+                    ),
+                  ),
+
                 const SizedBox(height: 12),
                 TextField(
                   controller: _itemNameController,
                   onChanged: (_) => setState(() => _validationError = null),
-                  decoration: const InputDecoration(
-                    labelText: 'Correct item name (optional)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'Correct item name',
+                    hintText: 'e.g. Plastic Bottle',
+                    border: const OutlineInputBorder(),
+                    helperText: 'Required if no category is selected',
+                    helperStyle: TextStyle(
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      fontSize: 11,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _materialController,
                   onChanged: (_) => setState(() => _validationError = null),
-                  decoration: const InputDecoration(
-                    labelText: 'Correct material (optional)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'Correct material',
+                    hintText: 'e.g. PET, Glass, Cardboard',
+                    border: const OutlineInputBorder(),
+                    helperText: 'Optional if category is set',
+                    helperStyle: TextStyle(
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      fontSize: 11,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _notesController,
                   onChanged: (_) => setState(() => _validationError = null),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Notes (optional)',
-                    border: OutlineInputBorder(),
+                    hintText: 'Why was this wrong?',
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 2,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _barcodeController,
+                  onChanged: (_) => setState(() => _validationError = null),
+                  decoration: InputDecoration(
+                    labelText: 'Barcode / Product code',
+                    hintText: 'e.g. 8901234567890',
+                    border: const OutlineInputBorder(),
+                    helperText: 'Product lookup coming later',
+                    helperStyle: TextStyle(
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      fontSize: 11,
+                    ),
+                    prefixIcon: const Icon(Icons.qr_code),
+                  ),
+                  keyboardType: TextInputType.number,
                 ),
               ],
 

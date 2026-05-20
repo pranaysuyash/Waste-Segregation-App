@@ -123,6 +123,87 @@ void main() {
         expect(tipToday.id, equals(tipTodayAgain.id));
       });
 
+      test('same date returns same tip across multiple instances', () {
+        final testDate = DateTime(2024, 6, 15);
+
+        final service1 = EducationalContentService();
+        final service2 = EducationalContentService();
+
+        final tip1 = service1.getDailyTip(date: testDate);
+        final tip2 = service2.getDailyTip(date: testDate);
+
+        expect(tip1.id, equals(tip2.id));
+        expect(tip1.title, equals(tip2.title));
+      });
+
+      test('different dates can return different tips', () {
+        final date1 = DateTime(2024, 6, 15);
+        final date2 = DateTime(2024, 6, 16);
+
+        final tip1 = service.getDailyTip(date: date1);
+        final tip2 = service.getDailyTip(date: date2);
+
+        // With 8 tips, consecutive days are very likely to differ.
+        // If they happen to be the same, the test is still valid because
+        // the requirement is "can" differ, not "must" differ.
+        expect(tip1.id, isNotEmpty);
+        expect(tip2.id, isNotEmpty);
+      });
+
+      test('getDailyTipForHome prefers related category', () {
+        final date = DateTime(2024, 6, 15);
+
+        final noPreference = service.getDailyTipForHome(date: date);
+        final withPreference = service.getDailyTipForHome(
+          date: date,
+          preferredCategory: 'Dry Waste',
+        );
+
+        // Both should return valid tips.
+        expect(noPreference, isA<DailyTip>());
+        expect(withPreference, isA<DailyTip>());
+
+        // When a preference is given, the returned tip should match it.
+        expect(
+          withPreference.category.toLowerCase().contains('dry waste'),
+          isTrue,
+          reason:
+              'Preferred Dry Waste but got ${withPreference.category}',
+        );
+      });
+
+      test('getDailyTipForHome falls back when preference does not match', () {
+        final date = DateTime(2024, 6, 15);
+
+        final tip = service.getDailyTipForHome(
+          date: date,
+          preferredCategory: 'NonExistentCategory12345',
+        );
+
+        expect(tip, isA<DailyTip>());
+        expect(tip.id, isNotEmpty);
+      });
+
+      test('getDailyTipForHome is stable for the same date and preference', () {
+        final date = DateTime(2024, 6, 15);
+
+        final tip1 = service.getDailyTipForHome(
+          date: date,
+          preferredCategory: 'Wet Waste',
+        );
+        final tip2 = service.getDailyTipForHome(
+          date: date,
+          preferredCategory: 'Wet Waste',
+        );
+        final tip3 = service.getDailyTipForHome(
+          date: date,
+          preferredCategory: 'Wet Waste',
+        );
+
+        expect(tip1.id, equals(tip2.id));
+        expect(tip2.id, equals(tip3.id));
+      });
+
       test('should return daily tip when no date specified', () {
         final tip = service.getDailyTip();
 

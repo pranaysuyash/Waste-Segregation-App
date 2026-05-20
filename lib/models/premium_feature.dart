@@ -45,6 +45,13 @@ class PremiumFeature {
       route: '/settings/ads',
     ),
     PremiumFeature(
+      id: 'advanced_segmentation',
+      title: 'Advanced Segmentation',
+      description: 'Identify multiple objects in a single image',
+      icon: 'photo_library',
+      route: '/premium',
+    ),
+    PremiumFeature(
       id: 'theme_customization',
       title: 'Theme Customization',
       description: 'Choose between light, dark, and custom theme options',

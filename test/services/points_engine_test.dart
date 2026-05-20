@@ -20,8 +20,8 @@ class TestStorageService implements StorageService {
         streaks: {},
         points: const UserPoints(),
         achievements: [],
-        discoveredItemIds: {},
-        unlockedHiddenContentIds: {},
+        discoveredItemIds: const [],
+        unlockedHiddenContentIds: const [],
       ),
     );
   }

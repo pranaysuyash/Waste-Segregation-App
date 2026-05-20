@@ -124,7 +124,7 @@ class UnifiedApiClient {
       headers: headers,
       apiVersion: apiVersion,
       timeout: timeout,
-      operationId: operationId ?? 'GET',
+      operationId: operationId ?? 'GET_${_sanitizePath(endpoint)}',
     );
   }
 
@@ -147,7 +147,7 @@ class UnifiedApiClient {
       headers: headers,
       apiVersion: apiVersion,
       timeout: timeout,
-      operationId: operationId ?? 'POST',
+      operationId: operationId ?? 'POST_${_sanitizePath(endpoint)}',
       onSendProgress: onSendProgress,
     );
   }
@@ -170,7 +170,7 @@ class UnifiedApiClient {
       headers: headers,
       apiVersion: apiVersion,
       timeout: timeout,
-      operationId: operationId ?? 'PUT',
+      operationId: operationId ?? 'PUT_${_sanitizePath(endpoint)}',
     );
   }
 
@@ -193,7 +193,7 @@ class UnifiedApiClient {
       headers: headers,
       apiVersion: apiVersion,
       timeout: timeout,
-      operationId: operationId ?? 'PATCH',
+      operationId: operationId ?? 'PATCH_${_sanitizePath(endpoint)}',
       onSendProgress: onSendProgress,
     );
   }
@@ -214,7 +214,7 @@ class UnifiedApiClient {
       headers: headers,
       apiVersion: apiVersion,
       timeout: timeout,
-      operationId: operationId ?? 'DELETE',
+      operationId: operationId ?? 'DELETE_${_sanitizePath(endpoint)}',
     );
   }
 
@@ -453,19 +453,21 @@ class UnifiedApiClient {
       await completer.future;
     }
 
-    _activeRequests++;
-
     final rateLimiter = _rateLimiters[serviceName];
     if (rateLimiter != null) {
       await rateLimiter.acquire();
     }
+
+    _activeRequests++;
   }
 
   /// Release rate limit for service
   void _releaseRateLimit(String serviceName) {
     if (!enableRateLimiting) return;
 
-    _activeRequests--;
+    if (_activeRequests > 0) {
+      _activeRequests--;
+    }
 
     if (_requestQueue.isNotEmpty) {
       _requestQueue.removeAt(0).complete();

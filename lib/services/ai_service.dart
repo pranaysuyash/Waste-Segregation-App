@@ -1057,51 +1057,116 @@ Output:
     }
   }
 
-  /// Analyzes an image by segments using the OpenAI API.
-  ///
-  /// This method is for mobile platforms and uses image segmentation
-  /// to analyze specific parts of an image.
-  Future<WasteClassification> analyzeImageSegments(
-    File imageFile,
-    List<Map<String, dynamic>> segments, {
+  /// Analyzes multiple manually selected rectangular regions from an image.
+  /// Each region is cropped and analyzed sequentially.
+  /// Returns a list of [WasteClassification] results, one per region.
+  Future<List<WasteClassification>> analyzeImageRegions(
+    Uint8List imageBytes,
+    String imageName,
+    List<Map<String, dynamic>> regionBounds, {
     String? region,
     String? instructionsLang,
-    String? classificationId,
+  }) async {
+    final results = <WasteClassification>[];
+    for (var i = 0; i < regionBounds.length; i++) {
+      final bounds = regionBounds[i];
+      final classification = await _analyzeSingleRegion(
+        imageBytes,
+        imageName,
+        bounds,
+        region: region,
+        instructionsLang: instructionsLang,
+      );
+      results.add(classification);
+    }
+    return results;
+  }
+
+  /// Analyzes a single cropped region from a mobile [File].
+  Future<WasteClassification> analyzeImageRegion(
+    File imageFile,
+    Map<String, dynamic> regionBounds, {
+    String? region,
+    String? instructionsLang,
   }) async {
     final permanentPath = await _imageService.saveFilePermanently(imageFile);
     final permanentFile = File(permanentPath);
     final imageBytes = await permanentFile.readAsBytes();
-    return _analyzeImageSegmentsInternal(
+    return _analyzeSingleRegion(
       imageBytes,
       permanentFile.path,
-      segments,
+      regionBounds,
       region: region,
       instructionsLang: instructionsLang,
-      classificationId: classificationId,
     );
   }
 
-  /// Analyzes a web image by segments using the OpenAI API.
-  ///
-  /// This method is for web platforms and uses image segmentation
-  /// to analyze specific parts of an image.
-  Future<WasteClassification> analyzeImageSegmentsWeb(
+  /// Analyzes a single cropped region from web [Uint8List].
+  Future<WasteClassification> analyzeWebImageRegion(
     Uint8List imageBytes,
     String imageName,
-    List<Map<String, dynamic>> segments, {
+    Map<String, dynamic> regionBounds, {
     String? region,
     String? instructionsLang,
-    String? classificationId,
   }) async {
-    final savedPath = await _imageService.saveImagePermanently(imageBytes,
-        fileName: imageName);
-    return _analyzeImageSegmentsInternal(
+    return _analyzeSingleRegion(
       imageBytes,
-      savedPath,
-      segments,
+      imageName,
+      regionBounds,
       region: region,
       instructionsLang: instructionsLang,
-      classificationId: classificationId,
+    );
+  }
+
+  /// Internal: crops a single region and analyzes it with OpenAI.
+  Future<WasteClassification> _analyzeSingleRegion(
+    Uint8List imageBytes,
+    String imageName,
+    Map<String, dynamic> bounds, {
+    String? region,
+    String? instructionsLang,
+  }) async {
+    final originalImage = img.decodeImage(imageBytes);
+    if (originalImage == null) {
+      throw Exception('Failed to decode image for region analysis.');
+    }
+
+    final imageWidth = originalImage.width;
+    final imageHeight = originalImage.height;
+
+    final x = ((bounds['x'] as num).toDouble() * imageWidth / 100).round();
+    final y = ((bounds['y'] as num).toDouble() * imageHeight / 100).round();
+    final width =
+        ((bounds['width'] as num).toDouble() * imageWidth / 100).round();
+    final height =
+        ((bounds['height'] as num).toDouble() * imageHeight / 100).round();
+
+    final clampedX = x.clamp(0, imageWidth - 1);
+    final clampedY = y.clamp(0, imageHeight - 1);
+    final clampedWidth = width.clamp(1, imageWidth - clampedX);
+    final clampedHeight = height.clamp(1, imageHeight - clampedY);
+
+    final croppedImage = img.copyCrop(
+      originalImage,
+      x: clampedX,
+      y: clampedY,
+      width: clampedWidth,
+      height: clampedHeight,
+    );
+
+    final croppedBytes = Uint8List.fromList(img.encodeJpg(croppedImage));
+
+    WasteAppLogger.info('Analyzing single cropped region.');
+    WasteAppLogger.info(
+        'Cropped image size: ${(croppedBytes.length / 1024).toStringAsFixed(2)} KB');
+
+    return _analyzeWithOpenAI(
+      croppedBytes,
+      imageName,
+      region ?? defaultRegion,
+      instructionsLang ?? defaultLanguage,
+      null,
+      const Uuid().v4(),
     );
   }
 

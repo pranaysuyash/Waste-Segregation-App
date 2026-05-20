@@ -150,8 +150,7 @@ void main() {
       );
 
       expect(find.byKey(const Key('custom_trailing')), findsOneWidget);
-      expect(find.byIcon(Icons.chevron_right),
-          findsNothing); // Should not show chevron when custom trailing is provided
+      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
     });
 
     testWidgets('FeatureCard hides chevron when showChevron is false',

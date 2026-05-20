@@ -49,6 +49,8 @@ All methods return `Future<ApiResponse<T>>` and accept a required named `endpoin
 | `patch` | `endpoint`, `data`, `queryParameters`, `headers`, `apiVersion`, `timeout`, `operationId`, `onSendProgress` |
 | `delete` | `endpoint`, `queryParameters`, `headers`, `apiVersion`, `timeout`, `operationId` |
 
+Default `operationId` is `METHOD_/sanitized/path` — never contains raw IDs or query strings.
+
 ### Versioning
 
 ```dart
@@ -69,12 +71,14 @@ Registers named API versions (e.g., `'v1'`, `'v1beta'`) with their service endpo
 
 ### Security & Privacy
 
-- Logged URIs are sanitized: query strings stripped, IDs normalized to `:id`.
-- Headers are redacted case-insensitively: `authorization`, `x-goog-api-key`, `api-key`, `x-api-key`, `cookie`, `set-cookie`.
-- Deduplication keys are hashed from sanitized method/path/query-shape — no raw body or query strings stored. Dedup keys are not logged.
-- Rate-limit acquire/release is wrapped in a single `try/finally` to prevent leaked request counts.
-- Periodic cleanup timer is stored and cancelled in `dispose()`.
-- On `dispose()`, all queued request completers are completed with an error so no future hangs. Subsequent calls throw `StateError`.
+- **URLs are not logged raw.** Interceptors log only `host` and `_sanitizePath(path)`.
+- **`_sanitizePath`:** Strips query parameters, normalizes numeric IDs → `:id`, UUIDs → `:id`, and opaque segments ≥21 characters → `:id`.
+- **Headers are redacted case-insensitively:** `authorization`, `x-goog-api-key`, `api-key`, `x-api-key`, `cookie`, `set-cookie`. Any case matches (e.g., `Authorization`, `AUTHORIZATION`).
+- **Deduplication keys are hashed from method + sanitized path + query-shape-only + data-shape-only.** Never includes raw query parameter values or request body content. Dedup keys are not logged.
+- **Rate-limit acquire/release** is wrapped in a single `try/finally`. `_activeRequests` cannot go negative (guarded with `> 0` check).
+- **Periodic cleanup timer** (`Timer? _cleanupTimer`) is stored and cancelled in `dispose()`.
+- **On `dispose()`,** all queued request completers are completed with `StateError` so no future hangs. Subsequent calls throw `StateError`.
+- **Dispose is idempotent.** Calling `dispose()` multiple times is safe.
 
 ---
 
@@ -91,9 +95,9 @@ static UnifiedApiClient getOpenAIClient()
 ```
 
 - **Base URL:** `https://api.openai.com`
-- **Circuit breaker:** Threshold 8 failures, 3-minute timeout
-- **API versions:** `v1` (default), `v1beta` (with `beta` path prefix)
-- **Rate limits:** 60 RPM, 100,000 TPM
+- **Circuit breaker:** Default (5 failures, 5-minute timeout)
+- **API versions:** `v1` (default, `pathPrefix: '/v1'`)
+- **Rate limits:** 60 RPM, 10 burst
 
 ### `getGeminiClient()`
 
@@ -102,9 +106,9 @@ static UnifiedApiClient getGeminiClient()
 ```
 
 - **Base URL:** `https://generativelanguage.googleapis.com`
-- **Circuit breaker:** Threshold 10 failures, 2-minute timeout
-- **API versions:** `v1beta` (default), `v1`
-- **Rate limits:** 60 RPM, 60,000 TPM
+- **Circuit breaker:** Default
+- **API versions:** `v1beta` (default, `pathPrefix: '/v1beta'`), `v1`
+- **Rate limits:** 100 RPM, 15 burst
 
 ### `getFirebaseClient()`
 
@@ -113,9 +117,9 @@ static UnifiedApiClient getFirebaseClient()
 ```
 
 - **Base URL:** Configured at runtime
-- **Circuit breaker:** Threshold 5 failures, 5-minute timeout
+- **Circuit breaker:** Default
 - **API versions:** `v1` (default)
-- **Rate limits:** 120 RPM, 50,000 TPM
+- **Rate limits:** 1000 RPM, 50 burst
 
 ### `getCustomClient()`
 
@@ -224,24 +228,13 @@ Re-runs analysis with the provider NOT used initially. Used for low-confidence r
 
 | Method | Description |
 |--------|-------------|
-| `handleApiError(error, {String? serviceName})` | Classifies error → `ApiError` |
-| `hasRecoverableError(error)` | `true` if safe to retry |
-| `getRetryDelay(error)` | Adaptive delay: 1s network, 30s rate-limit, 1s timeout, 0.5s server |
-| `getUserFriendlyMessage(error)` | User-readable error message |
+| `handleApiError(error, {String? serviceName})` | Not a separate method; classification is done internally via `_classifyError` |
+| `hasRecoverableError(error)` | Not a separate method; retry decision is via `_shouldRetry` |
+| `getRetryDelay(error)` | Not a separate method; backoff is internal `_calculateBackoffDelay` |
+| `executeWithErrorHandling(operation)` | Primary entry point: circuit breaker + retry loop with exponential backoff and jitter |
+| `getCircuitBreakerStatus()` | `Map<String, dynamic>` — current circuit breaker state per service |
 
-### ApiError Structure
-
-```dart
-class ApiError {
-  final String category;       // network, timeout, rate_limit, auth, server, client, unknown
-  final String message;        // Human-readable description
-  final int? statusCode;       // HTTP status code if applicable
-  final dynamic originalError; // Original exception
-  final String? serviceName;   // Service identifier
-  final bool isRecoverable;    // Can be retried
-  final Duration retryDelay;   // Recommended delay before retry
-}
-```
+The error handler is not used standalone; callers go through `executeWithErrorHandling`.
 
 ---
 
@@ -275,13 +268,14 @@ Exponential backoff: `baseDelay * 2^attempt` with jitter.
 
 **File:** `lib/services/rate_limiter.dart`
 
-### RateLimiter (token bucket)
+### RateLimiter (sliding window)
 
 ```dart
 RateLimiter({
-  required int maxRequestsPerMinute,   // RPM
-  required int maxTokensPerMinute,     // TPM
-  String? serviceName,
+  required int maxRequests,
+  required Duration windowDuration,
+  int? burstLimit,
+  bool enableLogging = true,
 })
 ```
 
@@ -291,22 +285,23 @@ Extends `RateLimiter` to track dollar cost alongside token usage.
 
 ```dart
 CostAwareRateLimiter({
-  required int maxRequestsPerMinute,
-  required int maxTokensPerMinute,
-  double costPerRequest = 0.0,
-  double costPerToken = 0.0,
-  String? serviceName,
-  double maxCostPerMinute = double.infinity,
+  required int maxRequests,
+  required Duration windowDuration,
+  int? burstLimit,
+  bool enableLogging = true,
+  required double costPerRequest,
+  required double maxCostPerWindow,
+  double costMultiplier = 1.0,
 })
 ```
 
-### Default Limits
+### Default Limits (in UnifiedApiClient constructor)
 
-| Service | RPM | TPM | Cost/Request | Cost/Token |
-|---------|-----|-----|-------------|------------|
-| OpenAI | 60 | 100,000 | $0.01 (GPT-3.5) / $0.03 (GPT-4) | $0.001/1K (GPT-3.5) / $0.01/1K (GPT-4) |
-| Gemini | 60 | 60,000 | $0.0025 | $0.0005/1K |
-| Firebase | 120 | 50,000 | $0.00 | $0.00 |
+| Service | RPM | Burst |
+|---------|-----|-------|
+| OpenAI | 60 | 10 |
+| Gemini | 100 | 15 |
+| Firebase | 1000 | 50 |
 
 ---
 
@@ -363,24 +358,18 @@ Central monitoring for all API integrations. Used by settings/admin UI.
 
 | Method | Description |
 |--------|-------------|
-| `getHealthStatus()` | Health of all providers (`operational`, `degraded`, `down`) |
-| `getDetailedStatistics()` | Per-provider stats with circuit-breaker and rate-limiter state |
-| `checkProviderHealth(provider)` | Health check for a specific provider |
-| `getOptimizationRecommendations()` | Adaptive recommendations from usage patterns |
-| `getCostAnalysis()` | Cost analysis with daily/monthly breakdowns |
-| `tuneRateLimit(provider, type)` | Adjusts rate limits based on error rates |
-| `getServiceStatusSummary()` | Current status of all monitored services |
-| `resetAllStatistics()` | Resets all monitoring stats |
+| `getStatistics()` | Full map with performance metrics, cost metrics, health alerts, client statistics, AI service statistics |
+| `getHealthStatus()` | Returns `{'overall_status', 'alerts', 'alert_count', 'services_monitored', 'last_check'}` |
+| `getCostSummary()` | Returns `Map<String, dynamic>` of cost metrics (flat map, not daily/monthly breakdown) |
+| `resetStatistics()` | Resets all monitoring stats and health alerts |
+| `updateConfiguration(...)` | Updates monitoring/optimization intervals and toggles |
 
 ### Enums
 
 ```dart
-enum HealthStatus { operational, degraded, down, unknown }
-
 enum OptimizationType {
-  increaseRateLimit, decreaseRateLimit, switchProvider,
-  reduceTimeout, increaseRetry, decreaseRetry,
-  enableCaching, disableCaching,
+  increaseRateLimit, decreaseRateLimit,
+  enableCaching, adjustTimeout,
 }
 ```
 
@@ -511,19 +500,20 @@ class FeedbackResult {
 
 | Context | Default | Configurable |
 |---------|---------|--------------|
-| UnifiedApiClient base | 30s | Via constructor `timeout` |
+| UnifiedApiClient base connect | 30s | Via constructor `connectTimeout` |
+| UnifiedApiClient receive | 60s | Via constructor `receiveTimeout` |
+| UnifiedApiClient send | 30s | Via constructor `sendTimeout` |
 | AI analysis (per provider) | 60s | Via `EnhancedAiApiService` constructor |
-| Retry base delay | 1s | Via `executeWithRetry` `baseDelay` |
-| Circuit breaker (Firebase) | 5 min | Via `getCustomClient()` |
-| Circuit breaker (Gemini) | 2 min | Fixed in `getGeminiClient()` |
-| Circuit breaker (OpenAI) | 3 min | Fixed in `getOpenAIClient()` |
+| Retry base delay | 1s | Via `EnhancedApiErrorHandler` `maxRetries` |
+| Circuit breaker threshold | 5 failures | Via `EnhancedApiErrorHandler` constructor |
+| Circuit breaker timeout | 5 min | Via `EnhancedApiErrorHandler` constructor |
 
 ### Retry Counts
 
 | Context | Default |
 |---------|---------|
 | Standard retry | 3 attempts |
-| Router-based retry | 2 attempts |
+| Circuit breaker half-open | 1 attempt (auto on timeout expiry) |
 
 ---
 

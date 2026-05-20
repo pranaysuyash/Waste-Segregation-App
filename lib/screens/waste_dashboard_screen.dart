@@ -102,9 +102,13 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
     } catch (e) {
       WasteAppLogger.severe('Error loading analytics data: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load data: $e')),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to load data: $e')),
+            );
+          }
+        });
       }
 
       setState(() {

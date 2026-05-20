@@ -1125,6 +1125,70 @@ class AnalyticsEventTypes {
   static const String navigation = 'navigation';
 }
 
+/// Types of near-milestone nudges
+enum NudgeType {
+  dailyGoal,
+  categoryAchievement,
+  streakMilestone,
+  challengeNearComplete,
+}
+
+/// Priority for nudge display (lower number = higher priority)
+enum NudgePriority {
+  high,
+  medium,
+  low,
+}
+
+/// Represents an "Almost there" gamification nudge
+class NearMilestoneNudge {
+  const NearMilestoneNudge({
+    required this.type,
+    required this.title,
+    required this.message,
+    required this.progress,
+    required this.target,
+    required this.priority,
+    this.iconName,
+    this.actionLabel,
+  });
+
+  final NudgeType type;
+  final String title;
+  final String message;
+  final int progress;
+  final int target;
+  final NudgePriority priority;
+  final String? iconName;
+  final String? actionLabel;
+
+  bool get isNear => target > 0 && (target - progress) == 1;
+
+  int get remaining => (target - progress).clamp(0, target);
+
+  NearMilestoneNudge copyWith({
+    NudgeType? type,
+    String? title,
+    String? message,
+    int? progress,
+    int? target,
+    NudgePriority? priority,
+    String? iconName,
+    String? actionLabel,
+  }) {
+    return NearMilestoneNudge(
+      type: type ?? this.type,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      progress: progress ?? this.progress,
+      target: target ?? this.target,
+      priority: priority ?? this.priority,
+      iconName: iconName ?? this.iconName,
+      actionLabel: actionLabel ?? this.actionLabel,
+    );
+  }
+}
+
 /// Common analytics event names.
 class AnalyticsEventNames {
   // Session lifecycle

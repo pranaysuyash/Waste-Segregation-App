@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/models/educational_content.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/services/ad_service.dart';
@@ -98,6 +99,16 @@ final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
 /// Educational content service provider - single source of truth
 final educationalContentServiceProvider =
     Provider<EducationalContentService>((ref) => EducationalContentService());
+
+/// Daily learning tip provider — deterministic per day, category-aware.
+///
+/// If the user has scanned a category recently, the tip will prefer
+/// related content. The tip is stable for the entire calendar day and
+/// only changes across days.
+final dailyLearningTipProvider = Provider<DailyTip>((ref) {
+  final service = ref.watch(educationalContentServiceProvider);
+  return service.getDailyTip();
+});
 
 /// Ad service provider - single source of truth
 final adServiceProvider = Provider<AdService>((ref) => AdService());

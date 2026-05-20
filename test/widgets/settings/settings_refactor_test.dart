@@ -1,16 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waste_segregation_app/l10n/app_localizations.dart';
+import 'package:waste_segregation_app/services/google_drive_service.dart';
+import 'package:waste_segregation_app/services/haptic_settings_service.dart';
 import 'package:waste_segregation_app/widgets/settings/setting_tile.dart';
 import 'package:waste_segregation_app/widgets/settings/settings_theme.dart';
 import 'package:waste_segregation_app/widgets/settings/premium_section.dart';
 import 'package:waste_segregation_app/widgets/settings/app_settings_section.dart';
 import 'package:waste_segregation_app/widgets/settings/legal_support_section.dart';
+import '../../helpers/test_helper.dart';
+
+class _FakeGoogleDriveService extends GoogleDriveService {
+  _FakeGoogleDriveService() : super(MockStorageService());
+
+  @override
+  Future<bool> isSignedIn() async => false;
+}
+
+class _FakeHapticSettingsService extends HapticSettingsService {
+  bool _enabled = true;
+
+  @override
+  bool get enabled => _enabled;
+
+  @override
+  Future<void> setEnabled(bool value) async {
+    _enabled = value;
+    notifyListeners();
+  }
+}
 
 void main() {
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('Settings Refactor Tests', () {
     Widget createTestWidget(Widget child) {
-      return MaterialApp(
-        home: Scaffold(body: child),
+      return MultiProvider(
+        providers: [
+          Provider<GoogleDriveService>(create: (_) => _FakeGoogleDriveService()),
+          ChangeNotifierProvider<HapticSettingsService>(
+              create: (_) => _FakeHapticSettingsService()),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: child),
+        ),
       );
     }
 
@@ -99,7 +144,7 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(
         createTestWidget(
-          const AppSettingsSection(),
+          const SingleChildScrollView(child: AppSettingsSection()),
         ),
       );
 

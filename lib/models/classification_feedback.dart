@@ -37,6 +37,7 @@ class ClassificationFeedback {
       userSuggestedCategory: json['userSuggestedCategory'] as String,
       userSuggestedMaterial: json['userSuggestedMaterial'] as String?,
       userNotes: json['userNotes'] as String?,
+      barcode: json['barcode'] as String?,
       feedbackTimestamp: json['feedbackTimestamp'] as Timestamp?,
       reviewStatus: ReviewStatus.fromString(json['reviewStatus'] as String?),
       adminReviewerId: json['adminReviewerId'] as String?,
@@ -58,6 +59,7 @@ class ClassificationFeedback {
     required this.userSuggestedCategory,
     this.userSuggestedMaterial,
     this.userNotes,
+    this.barcode,
     this.reviewStatus = ReviewStatus.pendingReview,
     this.adminReviewerId,
     this.adminReviewTimestamp,
@@ -84,11 +86,12 @@ class ClassificationFeedback {
     required String userSuggestedCategory,
     String? userSuggestedMaterial,
     String? userNotes,
+    String? barcode,
     String? appVersion,
     Map<String, dynamic>? deviceInfo,
   }) {
     // Deterministic ID: classificationId + userId ensures one feedback per classification per user
-    final stableId = 'feedback_${userId}_${originalClassificationId}';
+    final stableId = 'feedback_${userId}_$originalClassificationId';
     return ClassificationFeedback(
       id: stableId,
       userId: userId,
@@ -101,6 +104,7 @@ class ClassificationFeedback {
       userSuggestedCategory: userSuggestedCategory,
       userSuggestedMaterial: userSuggestedMaterial,
       userNotes: userNotes,
+      barcode: barcode,
       appVersion: appVersion,
       deviceInfo: deviceInfo,
     );
@@ -109,7 +113,7 @@ class ClassificationFeedback {
   /// Returns the stable dedup key for a given classification + user combination.
   /// Used to check whether feedback has already been submitted.
   static String dedupKey(String userId, String classificationId) {
-    return 'feedback_${userId}_${classificationId}';
+    return 'feedback_${userId}_$classificationId';
   }
 
   final String id;
@@ -123,6 +127,7 @@ class ClassificationFeedback {
   final String userSuggestedCategory;
   final String? userSuggestedMaterial;
   final String? userNotes;
+  final String? barcode;
   final Timestamp feedbackTimestamp;
   final ReviewStatus reviewStatus;
   final String? adminReviewerId;
@@ -143,6 +148,7 @@ class ClassificationFeedback {
       'userSuggestedCategory': userSuggestedCategory,
       'userSuggestedMaterial': userSuggestedMaterial,
       'userNotes': userNotes,
+      'barcode': barcode,
       'feedbackTimestamp': feedbackTimestamp,
       'reviewStatus': reviewStatus.value,
       'adminReviewerId': adminReviewerId,

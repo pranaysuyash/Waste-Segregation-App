@@ -231,10 +231,10 @@ void main() {
       });
     });
 
-    group('Accessibility', () {
-      testWidgets('should have proper tooltip for accessibility',
-          (tester) async {
-        await tester.pumpWidget(createTestWidget());
+      group('Accessibility', () {
+        testWidgets('should have proper tooltip for accessibility',
+            (tester) async {
+          await tester.pumpWidget(createTestWidget(tooltip: 'Share'));
 
         expect(find.byTooltip('Share'), findsOneWidget);
       });
@@ -475,7 +475,7 @@ void main() {
     group('Accessibility', () {
       testWidgets('should have proper tooltip for accessibility',
           (tester) async {
-        await tester.pumpWidget(createFABTestWidget());
+        await tester.pumpWidget(createFABTestWidget(tooltip: 'Share'));
 
         expect(find.byTooltip('Share'), findsOneWidget);
       });

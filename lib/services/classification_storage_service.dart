@@ -8,22 +8,47 @@ import '../utils/waste_app_logger.dart';
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
-/// OPTIMIZATION: Focused service for classification storage operations
+/// ⚠️ CONTAINED EXTRACTION — see StorageService for primary write path.
 ///
-/// Extracted from the 1300+ line StorageService god object.
-/// Handles only classification-related persistence operations.
+/// This service was extracted from StorageService during Phase 4 architecture
+/// work. It is NOT wired into the app's core classification write path.
 ///
-/// Benefits:
-/// - Single Responsibility Principle
-/// - Easier to test in isolation
-/// - Reduced coupling
-/// - Clear API surface
-/// - Better maintainability
+/// Format mismatch:
+///   - StorageService writes via Hive TypeAdapter (binary WasteClassification)
+///   - This service writes via jsonEncode(classification.toJson())
+///   - Both write to the same Hive box (StorageKeys.classificationsBox)
+///   - Naive delegation would create dual-format writes in the same box —
+///     a bad steady state because every future reader must parse both formats.
+///
+/// Key mismatch (profile service):
+///   - StorageService stores current profile under StorageKeys.userProfileKey
+///   - UserProfileStorageService stores under userProfile.id (UUID)
+///   - These are NOT equivalent: StorageService.getCurrentUserProfile()
+///     would not find a record written by UserProfileStorageService.
+///
+/// Safe usage:
+///   - Read/helper methods (getClassificationById, getSetting<T>, CSV export)
+///     are format-safe because both services handle multi-format reads.
+///   - Do NOT call saveClassification / saveUserProfile from app code —
+///     use StorageService which is the canonical write path.
+///
+/// Roadmap:
+///   A true fix requires unifying all storage on one serialization format
+///   (TypeAdapter) and resolving the profile keying difference. That is a
+///   migration, not a refactor, and should not be attempted as a quick fix.
+///
+/// See also: StorageService.classificationStorage, StorageService.profileStorage
 class ClassificationStorageService {
   static const String _classificationsBoxName = StorageKeys.classificationsBox;
   static const String _feedbackBoxName = StorageKeys.classificationFeedbackBox;
 
   /// Save or update a classification
+  @Deprecated(
+    'Do not use for primary app persistence. StorageService.saveClassification '
+    'is the source of truth because it writes TypeAdapter objects and maintains '
+    'dedup/hash index compatibility. This method writes JSON strings to the '
+    'same Hive box, creating an unsafe dual-format condition.',
+  )
   Future<void> saveClassification(WasteClassification classification,
       {String? userId}) async {
     try {

@@ -362,12 +362,14 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     String? userSuggestedCategory,
     String? userSuggestedMaterial,
     String? userSuggestedItemName,
+    String? barcode,
   }) async {
     final hasCorrectionPayload =
         (userSuggestedCategory?.trim().isNotEmpty ?? false) ||
             (userSuggestedItemName?.trim().isNotEmpty ?? false) ||
             (userSuggestedMaterial?.trim().isNotEmpty ?? false) ||
-            (userNotes?.trim().isNotEmpty ?? false);
+            (userNotes?.trim().isNotEmpty ?? false) ||
+            (barcode?.trim().isNotEmpty ?? false);
     final isCorrection = userConfirmed == false && hasCorrectionPayload;
     final action = isCorrection ? 'correction_provided' : 'feedback_provided';
     final points = GamificationService.pointValues[action] ?? 0;
@@ -438,6 +440,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         userConfirmed: userConfirmed,
         userCorrection: userCorrection,
         userNotes: userNotes,
+        barcode: barcode?.trim().isNotEmpty == true ? barcode : classification.barcode,
       );
       await _storageService.saveClassification(updated, force: true);
 
@@ -455,6 +458,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         userSuggestedCategory: userSuggestedCategory ?? classification.category,
         userSuggestedMaterial: userSuggestedMaterial,
         userNotes: userNotes,
+        barcode: barcode,
       );
       await _storageService.saveClassificationFeedback(feedback);
 

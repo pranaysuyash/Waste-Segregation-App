@@ -71,4 +71,32 @@ void main() {
     final enabledButton = tester.widget<FilledButton>(submitButton);
     expect(enabledButton.onPressed, isNotNull);
   });
+
+  testWidgets('barcode field is visible in correction dialog', (tester) async {
+    await pumpDialog(tester);
+
+    await tester.tap(find.text('Wrong'));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.qr_code), findsOneWidget);
+    expect(find.text('Barcode / Product code'), findsOneWidget);
+    expect(find.text('Product lookup coming later'), findsOneWidget);
+  });
+
+  testWidgets('barcode alone enables submit for wrong feedback', (tester) async {
+    await pumpDialog(tester);
+
+    await tester.tap(find.text('Wrong'));
+    await tester.pumpAndSettle();
+
+    final submitButton = find.byKey(const Key('correction_submit_button'));
+    expect(tester.widget<FilledButton>(submitButton).onPressed, isNull);
+
+    // Find the barcode text field by label and enter a value
+    final barcodeField = find.widgetWithText(TextField, 'Barcode / Product code');
+    await tester.enterText(barcodeField, '8901234567890');
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<FilledButton>(submitButton).onPressed, isNotNull);
+  });
 }

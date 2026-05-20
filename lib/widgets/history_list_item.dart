@@ -11,7 +11,6 @@ import '../utils/safe_file_path.dart';
 import '../widgets/correction_dialog.dart';
 import '../utils/waste_app_logger.dart';
 
-/// A simplified version of ClassificationCard for list views in the history screen
 class HistoryListItem extends StatelessWidget {
   const HistoryListItem({
     super.key,
@@ -35,6 +34,8 @@ class HistoryListItem extends StatelessWidget {
 
   Widget _buildHistoryListItem(BuildContext context) {
     final categoryColor = _getCategoryColor();
+    final isFallback = classification.category == 'Requires Manual Review' ||
+        classification.clarificationNeeded == true;
 
     return Semantics(
       button: true,
@@ -49,7 +50,10 @@ class HistoryListItem extends StatelessWidget {
             horizontal: AppTheme.paddingRegular),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-          side: BorderSide(color: categoryColor.withValues(alpha: 0.3)),
+          side: BorderSide(
+            color: isFallback ? AppTheme.manualReviewColor.withValues(alpha: 0.5) : categoryColor.withValues(alpha: 0.3),
+            width: isFallback ? 1.5 : 1.0,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -60,33 +64,112 @@ class HistoryListItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top row: Item name, confidence, and thumbnail
+                if (isFallback)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppTheme.manualReviewColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.help_outline,
+                            size: 13, color: AppTheme.manualReviewColor),
+                        SizedBox(width: 4),
+                        Text(
+                          'Needs review',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.manualReviewColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                if (classification.userConfirmed == true)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.verified,
+                            size: 13, color: Colors.green),
+                        SizedBox(width: 4),
+                        Text(
+                          'Confirmed',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.green,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                if (classification.userCorrection != null)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.edit_note,
+                            size: 13, color: Colors.blue),
+                        SizedBox(width: 4),
+                        Text(
+                          'Corrected',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Content area (item name + confidence)
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Item name with tooltip for long names
                           Tooltip(
                             message: classification.itemName,
                             child: Text(
                               classification.itemName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: AppTheme.fontSizeMedium,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimaryColor,
+                                color: isFallback
+                                    ? AppTheme.manualReviewColor
+                                    : AppTheme.textPrimaryColor,
                               ),
-                              maxLines: 2, // Allow 2 lines for long names
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
 
                           const SizedBox(height: 4),
 
-                          // Date and confidence row with better overflow handling
                           Row(
                             children: [
                               const Icon(
@@ -107,40 +190,60 @@ class HistoryListItem extends StatelessWidget {
                                   maxLines: 1,
                                 ),
                               ),
-                              const SizedBox(width: 4), // Reduced spacing
-                              // Confidence badge with flexible sizing
-                              Flexible(
-                                child: Container(
+                              const SizedBox(width: 4),
+                              if (classification.confidence != null && !isFallback)
+                                Flexible(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getConfidenceColor()
+                                          .withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(
+                                          AppTheme.borderRadiusSmall),
+                                      border: Border.all(
+                                        color: _getConfidenceColor(),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      '${((classification.confidence ?? 0.0) * 100).round()}%',
+                                      style: TextStyle(
+                                        color: _getConfidenceColor(),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (isFallback)
+                                Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 6,
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: _getConfidenceColor()
-                                        .withValues(alpha: 0.2),
+                                    color: AppTheme.manualReviewColor
+                                        .withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(
                                         AppTheme.borderRadiusSmall),
-                                    border: Border.all(
-                                      color: _getConfidenceColor(),
-                                    ),
                                   ),
-                                  child: Text(
-                                    '${((classification.confidence ?? 0.0) * 100).round()}%',
+                                  child: const Text(
+                                    '?',
                                     style: TextStyle(
-                                      color: _getConfidenceColor(),
-                                      fontSize: 12,
+                                      color: AppTheme.manualReviewColor,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                         ],
                       ),
                     ),
 
-                    // Thumbnail (if available)
                     if (classification.imageUrl != null) ...[
                       const SizedBox(width: AppTheme.paddingSmall),
                       Semantics(
@@ -162,12 +265,10 @@ class HistoryListItem extends StatelessWidget {
 
                 const SizedBox(height: 4),
 
-                // Tags row with proper wrapping
                 _buildTagsSection(categoryColor),
 
                 const SizedBox(height: 4),
 
-                // Properties indicators row
                 _buildPropertiesRow(context),
               ],
             ),
@@ -177,11 +278,9 @@ class HistoryListItem extends StatelessWidget {
     );
   }
 
-  /// Builds the tags section with proper wrapping to prevent overflow
   Widget _buildTagsSection(Color categoryColor) {
     final tags = <Widget>[];
 
-    // Main category tag
     tags.add(
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -200,7 +299,6 @@ class HistoryListItem extends StatelessWidget {
       ),
     );
 
-    // Subcategory tag if available
     if (classification.subcategory != null) {
       tags.add(
         Container(
@@ -224,7 +322,6 @@ class HistoryListItem extends StatelessWidget {
       );
     }
 
-    // Material type tag if available
     if (classification.materialType != null) {
       tags.add(
         Container(
@@ -255,7 +352,6 @@ class HistoryListItem extends StatelessWidget {
     );
   }
 
-  /// Builds the properties indicators row with overflow handling
   Widget _buildPropertiesRow(BuildContext context) {
     final indicators = <Widget>[];
 
@@ -303,7 +399,6 @@ class HistoryListItem extends StatelessWidget {
 
     return Row(
       children: [
-        // Use Flexible to allow indicators to shrink if needed
         Flexible(
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -316,12 +411,10 @@ class HistoryListItem extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        // Wrap feedback button and chevron in a row with intrinsic width
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (showFeedbackButton) ...[
-              // Use a more compact feedback button for list items
               _CompactFeedbackButton(
                 classification: classification,
                 onFeedbackSubmitted: onFeedbackSubmitted,
@@ -340,7 +433,6 @@ class HistoryListItem extends StatelessWidget {
     );
   }
 
-  /// Gets the category color for styling
   Color _getCategoryColor() {
     switch (classification.category.toLowerCase()) {
       case 'wet waste':
@@ -360,7 +452,6 @@ class HistoryListItem extends StatelessWidget {
     }
   }
 
-  /// Gets the confidence color based on confidence level
   Color _getConfidenceColor() {
     final confidence = classification.confidence ?? 0.0;
     if (confidence >= 0.8) {
@@ -372,7 +463,6 @@ class HistoryListItem extends StatelessWidget {
     }
   }
 
-  /// Formats the date for display
   String _formatDateForDisplay(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -388,14 +478,11 @@ class HistoryListItem extends StatelessWidget {
     }
   }
 
-  /// Formats time as HH:MM
   String _formatTime(DateTime date) {
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
-  /// Builds the image widget based on platform with improved error handling
   Widget _buildImage() {
-    // Try relative path first (new approach)
     if (classification.imageRelativePath != null) {
       return FutureBuilder<String>(
         future: _getFullImagePath(classification.imageRelativePath!),
@@ -417,7 +504,7 @@ class HistoryListItem extends StatelessWidget {
                     height: 50,
                     width: 50,
                     fit: BoxFit.cover,
-                    cacheHeight: 90, // Optimize memory usage
+                    cacheHeight: 90,
                     errorBuilder: (context, error, stackTrace) {
                       WasteAppLogger.severe('Error occurred', context: {
                         'service': 'widget',
@@ -440,8 +527,6 @@ class HistoryListItem extends StatelessWidget {
       );
     }
 
-    // ---------- NEW fallback ----------
-    // If local file missing but Firestore doc has imageUrl (remote URL)
     if (classification.imageRelativePath != null &&
         classification.imageUrl != null &&
         classification.imageUrl!.startsWith('http')) {
@@ -450,7 +535,6 @@ class HistoryListItem extends StatelessWidget {
             .fetchImageWithRetry(classification.imageUrl!),
         builder: (context, snap) {
           if (!snap.hasData) return _buildImagePlaceholder();
-          // Persist to disk so next cold start is instant
           _persistBytes(
             snap.data!,
             classification.imageRelativePath!,
@@ -459,9 +543,7 @@ class HistoryListItem extends StatelessWidget {
         },
       );
     }
-    // -------- END new code ---------
 
-    // Fallback to legacy absolute path logic
     final url = classification.imageUrl;
     WasteAppLogger.info('Operation completed',
         context: {'service': 'widget', 'file': 'history_list_item'});
@@ -471,7 +553,6 @@ class HistoryListItem extends StatelessWidget {
       return _buildImagePlaceholder();
     }
 
-    // For web platform
     if (kIsWeb) {
       if (url.startsWith('web_image:')) {
         try {
@@ -535,7 +616,6 @@ class HistoryListItem extends StatelessWidget {
       return _buildImagePlaceholder();
     }
 
-    // For mobile platforms (file paths)
     final file = File(url);
     return FutureBuilder<bool>(
       future: file.exists(),
@@ -549,7 +629,7 @@ class HistoryListItem extends StatelessWidget {
             height: 50,
             width: 50,
             fit: BoxFit.cover,
-            cacheHeight: 90, // Optimize memory usage
+            cacheHeight: 90,
             errorBuilder: (context, error, stackTrace) {
               WasteAppLogger.severe('Error occurred',
                   context: {'service': 'widget', 'file': 'history_list_item'});
@@ -564,7 +644,6 @@ class HistoryListItem extends StatelessWidget {
     );
   }
 
-  /// Builds a placeholder when image is not available
   Widget _buildImagePlaceholder() {
     return Container(
       height: 50,
@@ -581,7 +660,6 @@ class HistoryListItem extends StatelessWidget {
     );
   }
 
-  /// Returns an icon that represents the classification category
   IconData _getCategoryIcon() {
     switch (classification.category.toLowerCase()) {
       case 'wet waste':
@@ -601,7 +679,6 @@ class HistoryListItem extends StatelessWidget {
     }
   }
 
-  /// Get full image path from relative path
   Future<String> _getFullImagePath(String relativePath) async {
     final dir = await getApplicationDocumentsDirectory();
     return safeJoinWithin(path.join(dir.path, 'images'), relativePath);
@@ -618,7 +695,6 @@ class HistoryListItem extends StatelessWidget {
   }
 }
 
-/// Compact feedback button specifically for list items to save space
 class _CompactFeedbackButton extends StatelessWidget {
   const _CompactFeedbackButton({
     required this.classification,

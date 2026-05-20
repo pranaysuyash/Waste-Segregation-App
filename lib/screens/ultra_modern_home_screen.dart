@@ -15,11 +15,16 @@ import '../screens/history_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
+import '../screens/educational_content_screen.dart';
+import '../screens/content_detail_screen.dart';
+import '../screens/waste_dashboard_screen.dart';
 import '../utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../models/gamification_result.dart';
+import '../models/educational_content.dart';
 import '../widgets/enhanced_gamification_widgets.dart' as widgets;
 import '../widgets/advanced_ui/achievement_celebration.dart';
+import '../widgets/community_impact_card.dart';
 
 // Profile provider using FutureProvider for better performance
 final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
@@ -211,6 +216,12 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         _buildActionChips(context),
                         const SizedBox(height: 20),
 
+                        // Near-milestone nudge (one at a time, anti-spam)
+                        _buildNudgeSection(context),
+
+                        // Community Impact Card (local stats, empty-state CTA)
+                        _buildCommunityImpactCard(context, classificationsAsync),
+
                         // Content with padding
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -222,6 +233,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                                 context,
                                 profileAsync,
                               ),
+                              const SizedBox(height: 32),
+
+                              // Daily Tip
+                              _buildDailyTipCard(context, classificationsAsync),
                               const SizedBox(height: 32),
 
                               // Recent Classifications
@@ -768,6 +783,136 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     }
   }
 
+  Widget _buildDailyTipCard(
+    BuildContext context,
+    AsyncValue<List<WasteClassification>> classificationsAsync,
+  ) {
+    final educationalService = ref.read(educationalContentServiceProvider);
+
+    String? preferredCategory;
+    classificationsAsync.whenData((classifications) {
+      if (classifications.isNotEmpty) {
+        final recent = classifications.first;
+        final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+        if (recent.timestamp.isAfter(sevenDaysAgo)) {
+          preferredCategory = recent.category;
+        }
+      }
+    });
+
+    final tip = educationalService.getDailyTipForHome(
+      preferredCategory: preferredCategory,
+    );
+
+    final categoryColor = _getCategoryColor(tip.category);
+    final categoryIcon = _getCategoryIcon(tip.category);
+
+    return GestureDetector(
+      onTap: () => _openDailyTip(context, tip),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              categoryColor.withValues(alpha: 0.1),
+              categoryColor.withValues(alpha: 0.05),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: categoryColor.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: categoryColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    categoryIcon,
+                    color: categoryColor,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Today's Sorting Tip",
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: categoryColor,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        tip.title,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                  size: 20,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              tip.content,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    height: 1.4,
+                  ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openDailyTip(BuildContext context, DailyTip tip) {
+    final educationalService = ref.read(educationalContentServiceProvider);
+    if (tip.contentId != null && tip.contentId!.isNotEmpty) {
+      final content = educationalService.getContentById(tip.contentId!);
+      if (content != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ContentDetailScreen(contentId: content.id),
+          ),
+        );
+        return;
+      }
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EducationalContentScreen(
+          initialCategory: tip.category,
+        ),
+      ),
+    );
+  }
+
   Widget _buildRecentClassifications(
     BuildContext context,
     AsyncValue<List<WasteClassification>> classificationsAsync,
@@ -886,6 +1031,159 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     );
   }
 
+  /// Builds the "Almost there" nudge card when a near-milestone exists.
+  Widget _buildNudgeSection(BuildContext context) {
+    final gamificationService = ref.watch(gamificationServiceProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return FutureBuilder<NearMilestoneNudge?>(
+      future: gamificationService.getNearMilestoneNudge(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const SizedBox.shrink();
+        }
+
+        final nudge = snapshot.data!;
+        final nudgeColor = _nudgeColor(nudge.type, colorScheme);
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AchievementsScreen(),
+              ),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    nudgeColor.withValues(alpha: 0.12),
+                    nudgeColor.withValues(alpha: 0.04),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: nudgeColor.withValues(alpha: 0.25),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: nudgeColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      _nudgeIcon(nudge.iconName),
+                      color: nudgeColor,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          nudge.title,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          nudge.message,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        LinearProgressIndicator(
+                          value: nudge.target > 0
+                              ? nudge.progress / nudge.target
+                              : 0,
+                          backgroundColor:
+                              nudgeColor.withValues(alpha: 0.15),
+                          valueColor: AlwaysStoppedAnimation<Color>(nudgeColor),
+                          minHeight: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  IconData _nudgeIcon(String? iconName) {
+    switch (iconName) {
+      case 'flag':
+        return Icons.flag;
+      case 'local_fire_department':
+        return Icons.local_fire_department;
+      case 'stars':
+        return Icons.stars;
+      case 'category':
+        return Icons.category;
+      default:
+        return Icons.near_me;
+    }
+  }
+
+  Color _nudgeColor(NudgeType type, ColorScheme colorScheme) {
+    switch (type) {
+      case NudgeType.dailyGoal:
+        return const Color(0xFF2196F3);
+      case NudgeType.challengeNearComplete:
+        return const Color(0xFFFF9800);
+      case NudgeType.categoryAchievement:
+        return const Color(0xFF4CAF50);
+      case NudgeType.streakMilestone:
+        return const Color(0xFFFF5722);
+    }
+  }
+
+  Widget _buildCommunityImpactCard(
+    BuildContext context,
+    AsyncValue<List<WasteClassification>> classificationsAsync,
+  ) {
+    return classificationsAsync.when(
+      data: (classifications) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: CommunityImpactCard(
+          classifications: classifications,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const WasteDashboardScreen(),
+            ),
+          ),
+        ),
+      ),
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
   Widget _buildEmptyState(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(32),
@@ -933,8 +1231,13 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
       case 'dry waste':
       case 'recyclable':
         return const Color(0xFF2196F3);
+      case 'hazardous waste':
       case 'hazardous':
         return const Color(0xFFF44336);
+      case 'medical waste':
+        return const Color(0xFFE91E63);
+      case 'general':
+        return const Color(0xFF9E9E9E);
       default:
         return const Color(0xFF9E9E9E);
     }
@@ -948,8 +1251,13 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
       case 'dry waste':
       case 'recyclable':
         return Icons.recycling;
+      case 'hazardous waste':
       case 'hazardous':
         return Icons.warning;
+      case 'medical waste':
+        return Icons.local_hospital;
+      case 'general':
+        return Icons.lightbulb;
       default:
         return Icons.delete;
     }

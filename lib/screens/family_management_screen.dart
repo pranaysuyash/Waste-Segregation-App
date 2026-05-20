@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/enhanced_family.dart' as family_models;
 import '../models/user_profile.dart' as user_models;
@@ -883,10 +884,11 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
         });
   }
 
-  void _copyFamilyId(family_models.Family family) {
+  Future<void> _copyFamilyId(family_models.Family family) async {
+    await Clipboard.setData(ClipboardData(text: family.id));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Family ID copied: ${family.id}')));
+          const SnackBar(content: Text('Family ID copied to clipboard')));
     }
   }
 
