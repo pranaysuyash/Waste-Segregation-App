@@ -11,7 +11,7 @@ class ServiceSync {
     final adService = Provider.of<AdService>(context, listen: false);
 
     // Update ad service with premium status
-    adService.setPremiumStatus(premiumService.isPremiumFeature('remove_ads'));
+    adService.setPremiumStatus(premiumService.hasActivePremiumPlan());
   }
 
   /// Set context for showing ads appropriately

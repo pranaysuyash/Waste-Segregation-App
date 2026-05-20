@@ -1,0 +1,49 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "No simulator —" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]:
+          - text: No simulator
+          - img [ref=e10]
+        - generic [ref=e12]: —
+      - generic [ref=e13]:
+        - button "Home" [ref=e14] [cursor=pointer]:
+          - img [ref=e15]
+        - button "Show accessibility overlay" [ref=e17] [cursor=pointer]:
+          - img [ref=e18]
+        - button "Rotate device" [ref=e21] [cursor=pointer]:
+          - img [ref=e22]
+    - generic [ref=e26]:
+      - img [ref=e30]
+      - separator "Resize simulator width. Drag the corner or use Left and Right Arrow keys; hold Shift for larger steps.":
+        - img [ref=e32]
+      - generic: 320 × 694
+  - generic [ref=e35]:
+    - button "Open tools panel" [ref=e36] [cursor=pointer]:
+      - img [ref=e37]
+    - button "Open WebKit DevTools" [ref=e39] [cursor=pointer]:
+      - img [ref=e40]
+    - button "Open simulator grid" [ref=e43] [cursor=pointer]:
+      - img [ref=e44]
+  - complementary:
+    - generic:
+      - generic: Tools
+      - button:
+        - img
+  - separator
+  - complementary:
+    - generic:
+      - generic: Simulators
+      - generic:
+        - button:
+          - img
+  - separator
+  - complementary:
+    - generic:
+      - generic: No inspectable Safari or WKWebView targets
+      - button:
+        - img
+    - generic:
+      - generic: Open Safari or an inspectable WKWebView in the simulator.
+  - separator
+  - generic [ref=e50]: live

@@ -103,7 +103,7 @@ If you see drift between this index and any of the above, **the source artefact 
 │                                                                               │
 │  COMMUNITY & SOCIAL                           IoT, SMART CITY & PARTNERS      │
 │  ├── Community Feed Trust Layer   [🟡]        ├── Smart-Bin Integration [🟢] │
-│  ├── Family / Group Mechanics     [🟡]        ├── Municipal APIs (BBMP) [🟡] │
+│  ├── Family / Group Mechanics     [🟡]        ├── Municipal APIs (Global) [🟡] │
 │  ├── Local Reuse Marketplace      [🟢]        ├── Collector Network     [🟢] │
 │  └── Moderation & Safety          [🔴]        └── Hardware Partners     [🟢] │
 │                                                                               │
@@ -274,6 +274,32 @@ Reading rules:
 **Deliverable**: `docs/exploration/REGION_AWARE_RULESETS.md`.
 
 **Related**: Disposal Reasoning Stage, Smart-Bin Integration, Municipal APIs.
+
+---
+
+### 4a. Global Municipal Policy Engine 🔴
+
+**Status**: Active build track (2026-05-20 onward). No longer local-only.
+
+**Overview**: Policy correctness must scale beyond one city. We now have a canonical policy engine + rule-pack registry surface in code (`local_policy_engine.dart`, `local_policy_rule_packs.dart`), and this should be treated as a global municipal platform lane rather than BBMP-only feature work.
+
+**Key questions**:
+
+- How do we represent policy packs per authority/jurisdiction with strict versioning and provenance?
+- What is the plugin + rule-pack contract for adding a new city without app-level branching?
+- Which fields are mandatory in every policy decision for auditability (`rule_pack_id`, `policy_plugin_id`, compliance status, evaluated timestamp)?
+- How do we validate and promote policy packs (draft -> reviewed -> production)?
+- What is the global rollout strategy (India metro tier first, then international jurisdictions)?
+
+**Current code anchors**:
+
+- `lib/services/local_policy_engine.dart` — canonical policy evaluation/apply entrypoint
+- `lib/services/local_policy_rule_packs.dart` — data-driven rule-pack registry
+- `lib/services/local_guidelines_plugin.dart` — multi-city plugin routing scaffolds (BBMP, BMC, MCD)
+
+**Deliverable**: `docs/exploration/GLOBAL_MUNICIPAL_POLICY_ENGINE.md`.
+
+**Related**: Region-Aware Rulesets (#4), Municipal APIs (#25), Regional Regulations (#33), Audit / Telemetry (#35), B2B / Enterprise Wedge (#29).
 
 ---
 
@@ -1441,6 +1467,121 @@ These are external developments that shape the map's priorities. Track as resear
 **Deliverable**: lightweight `docs/exploration/INDUSTRY_COMPETITIVE_LANDSCAPE.md` — annual refresh, claims-to-evidence map, partnership leads.
 
 **Related**: B2B / Enterprise Wedge (#29), F8 Brand / Manufacturer Closed-Loop Data, Distribution & Partnerships (#31).
+
+---
+
+## F — New Category: LOCALITY & CIVIC WASTE INTELLIGENCE
+
+Added 2026-05-20. Long-horizon exploration theme: locality-aware collection data, map-based civic reporting, Waze-style verification, civic-grade trust/reputation (separate from AI tokens), and authority/B2B/B2G dashboards. **Research lane only — not P0.** Canonical track doc: [review/EXPLORATION_AND_RESEARCH_BACKLOG_2026-05-20.md](review/EXPLORATION_AND_RESEARCH_BACKLOG_2026-05-20.md). Entries below are cursors into that doc; the source there wins.
+
+### L1. Locality Collection Data 🟢
+
+**Status**: Seed (2026-05-20). Extends A20 (Disposal Facilities Directory) and `planning/local_recycling_directory.md`. No current code surface for schedules.
+
+**Why this is a topic**: The directory already answers "where do I take it?". The complementary half — "when does collection come to me, and what does it pick up?" — is unbuilt. Schedule + route + disruption data is the lowest-risk wedge in the civic track because it can ship as read-only display before any UGC moderation foundation exists.
+
+**Key questions**:
+
+- Is BBMP / municipal collection schedule data legally republishable?
+- Public collector contact info vs personal phone numbers — where is the line?
+- MVP sourcing: scrape vs partner vs user-contribution vs hybrid?
+
+**Deliverable**: `docs/exploration/LOCALITY_COLLECTION_DATA.md` (assigned to agent task **Civic-A** in the canonical track doc).
+
+**Related**: A20 Disposal Facilities Directory, #25 Municipal APIs (BBMP), #26 Informal Collector Network, #4 Region-Aware Rulesets.
+
+---
+
+### L2. Map-Based Civic Issue Reporting 🟢
+
+**Status**: Seed (2026-05-20). Builds on A21 (UGC Pipeline) and the existing map stack already in `pubspec.yaml` (`flutter_map`, `flutter_map_marker_cluster`, `flutter_map_heatmap`, `geoflutterfire_plus`, `flutter_map_tile_caching`).
+
+**Why this is a topic**: Civic reporting (missed pickup, illegal dumping, overflowing bin, etc.) is a natural product extension but a moderation-cost minefield. Must launch as pilot-scope only (one apartment, school, or ward) and never public until #32 + #23 have a foundation.
+
+**Key questions**:
+
+- Canonical issue-type enum and lifecycle state machine.
+- Pilot-scope gating vs public surface — what changes between them?
+- Duplicate detection (proximity + kind + time window).
+
+**Deliverable**: `docs/exploration/CIVIC_ISSUE_REPORTING_SPEC.md` (agent task **Civic-B**).
+
+**Related**: A21 UGC Pipeline, #20 Community Trust, #23 Moderation & Safety, #32 Privacy / Photo PII.
+
+---
+
+### L3. Waze-Style "Still There?" Verification Loop 🟢
+
+**Status**: Seed (2026-05-20). New surface; no current code.
+
+**Why this is a topic**: A geo-tagged civic issue without a freshness signal becomes a stale-pin graveyard. The Waze "is this roadblock still there?" pattern is the proven lightweight verification mechanism. Trust-weighted aggregation + time decay determines whether an issue is still worth surfacing.
+
+**Key questions**:
+
+- Proximity trigger threshold; per-user / per-day prompt caps to avoid notification fatigue and farming.
+- Confidence formula combining response counts, trust tiers, and time decay.
+- Anti-spam attacks the loop must defeat (drive-by spam, coordinated farming).
+
+**Deliverable**: `docs/exploration/CIVIC_TRUST_AND_VERIFICATION.md` (agent task **Civic-C** — combined with L4).
+
+**Related**: L2, L4, #20 Community Trust, A11 Notification Strategy.
+
+---
+
+### L4. Civic Reputation & Points (Separate from AI Tokens) 🟢
+
+**Status**: Seed (2026-05-20). **Hard constraint: civic reputation must NOT merge into the AI-token ledger.**
+
+**Why this is a topic**: Rewarding civic contributions is necessary for the verification loop to work, but if civic actions earn paid AI tokens, the entire token economy (#27a, `TOKEN_ECONOMY_TODO.md`) becomes farmable through spam reports. A separate `civic_reputation` ledger with no minting path into `tokens` is non-negotiable.
+
+**Key questions**:
+
+- Tier definitions, promotion/demotion rules.
+- Earn / penalty event taxonomy.
+- Code-level enforcement of separation (separate tables, separate services, audit-grep gate).
+
+**Deliverable**: covered in `docs/exploration/CIVIC_TRUST_AND_VERIFICATION.md` (agent task **Civic-C**) with explicit separation contract reviewed against `TOKEN_ECONOMY_TODO.md`.
+
+**Related**: #27a Token Economy & Pricing Coherence (separation contract), #16 Gamification Depth (avoid double-counting), L2, L3.
+
+---
+
+### L5. Authority / NGO / Apartment Sharing & B2B/B2G Validation 🟢
+
+**Status**: Seed (2026-05-20). Builds on #25 (Municipal APIs) and #29 (B2B / Enterprise Wedge); does not replace their ranking.
+
+**Why this is a topic**: The civic data layer only earns its keep if some buyer pays for it. The product surface (WhatsApp report card → email → PDF → CSV → dashboard) and the buyer hypothesis (apartment association, school, NGO, CSR sponsor, municipality, contractor, recycling partner) need to be designed together — and a first paid pilot needs to close within 6 months or the track de-prioritises.
+
+**Key questions**:
+
+- Which buyer has the highest paid-pilot probability within 6 months?
+- Report card and local-language complaint generation (Kannada / Hindi / English).
+- Where does this extend #29 and where does it contradict — and why?
+
+**Deliverables**:
+
+- `docs/exploration/CIVIC_AUTHORITY_SHARING.md` (agent task **Civic-D**) — sharing UX.
+- `docs/exploration/CIVIC_B2B_B2G_VALIDATION.md` (agent task **Civic-F**) — buyer matrix + first paid pilot hypothesis.
+
+**Related**: #25 Municipal APIs (BBMP), #29 B2B / Enterprise Wedge, #28 Monetization & Pricing Tiers, #31 Distribution & Partnerships.
+
+---
+
+### L6. Civic Privacy, Safety & Moderation Foundation 🔴
+
+**Status**: Seed (2026-05-20). **Gates every other L-entry that touches a public surface.** Inherits from #32, #23, #33, A14, A19.
+
+**Why this is a topic**: Civic photos can contain faces, license plates, children, and homes. Civic reports can defame workers, harass contractors, or map unsafe neighbourhoods. False reports can cause real-world harm. Until on-device blur, EXIF strip, coarse-public-location publication, exact-authority-only ACL, takedown SLA, and abuse-report flow are designed, no L-entry ships beyond pilot scope.
+
+**Key questions**:
+
+- On-device face / license-plate blur — feasible on current minimum target device?
+- Two-fidelity coordinate model (`coords_public` coarse vs `coords_exact` ACL-gated) — schema-level enforcement.
+- Moderation cost per 1k reports; bandwidth ceiling for the current team.
+
+**Deliverable**: `docs/exploration/CIVIC_PRIVACY_SAFETY_REVIEW.md` (agent task **Civic-E**).
+
+**Related**: #32 Privacy / Photo PII, #23 Moderation & Safety, #33 Regional Regulations, A14 Launch & Store Compliance, A19 Consent Architecture.
 
 ---
 

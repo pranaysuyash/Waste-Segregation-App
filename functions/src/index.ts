@@ -12,12 +12,22 @@ admin.initializeApp();
 // Configure region for better performance in Asia
 const asiaSouth1 = functions.region('asia-south1');
 
+// Migration bridge for Functions 2nd gen: prefer process.env, keep
+// functions.config() fallback temporarily to avoid breaking existing deploys.
+// TODO(P0-hardening): Remove functions.config() fallback after env rollout is complete.
+const getOpenAiApiKey = (): string | undefined => {
+  return process.env.OPENAI_API_KEY
+    || process.env.OPENAI_KEY
+    || functions.config()?.openai?.key
+    || functions.config()?.openai?.api_key;
+};
+
 // Initialize OpenAI (conditional)
 let openai: OpenAI | null = null;
 try {
-  // Try environment variable first (for local development), then Firebase config (for production)
-  const apiKey = process.env.OPENAI_API_KEY || functions.config()?.openai?.key;
-  
+  // Try environment variable first (for local development), then legacy Firebase config fallback.
+  const apiKey = getOpenAiApiKey();
+
   if (apiKey) {
     openai = new OpenAI({
       apiKey: apiKey,
@@ -325,7 +335,7 @@ export const testOpenAI = asiaSouth1.https.onRequest((req, res) => {
       res.status(403).json({ error: 'Forbidden: admin token required' });
       return;
     }
-    const apiKey = process.env.OPENAI_API_KEY || functions.config()?.openai?.key;
+    const apiKey = getOpenAiApiKey();
     res.json({
       status: 'ok',
       openaiConfigured: !!apiKey,
@@ -641,7 +651,7 @@ export const processBatchJobs = asiaSouth1.pubsub
  * Checks the status of an OpenAI batch job
  */
 async function checkOpenAIBatchStatus(batchId: string): Promise<BatchJobStatus> {
-  const openaiApiKey = functions.config().openai?.key;
+  const openaiApiKey = getOpenAiApiKey();
   
   if (!openaiApiKey) {
     throw new Error('OpenAI API key not configured');
@@ -710,7 +720,10 @@ async function processCompletedJob(jobId: string, outputFileId: string, jobData:
  * Downloads results from OpenAI Files API
  */
 async function downloadOpenAIResults(fileId: string): Promise<string> {
-  const openaiApiKey = functions.config().openai?.key;
+  const openaiApiKey = getOpenAiApiKey();
+  if (!openaiApiKey) {
+    throw new Error('OpenAI API key not configured');
+  }
   
   const response = await axios.get(
     `https://api.openai.com/v1/files/${fileId}/content`,

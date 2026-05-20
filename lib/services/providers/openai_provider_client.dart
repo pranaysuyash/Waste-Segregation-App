@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 
 import '../ai_failure.dart';
+import '../../utils/production_safety_config.dart';
 import 'ai_provider_response.dart';
 
 /// Thin HTTP client for OpenAI Chat Completions.
@@ -49,6 +50,16 @@ class OpenAiProviderClient {
     double temperature = 0.1,
     CancelToken? cancelToken,
   }) async {
+    ProductionSafetyConfig.guardClientAiCall('OpenAI Provider Client');
+    if (ProductionSafetyConfig.hasPlaceholderKey(_apiKey)) {
+      throw AiFailure(
+        AiFailureKind.auth,
+        'OpenAI provider client blocked: placeholder/missing API key.',
+        provider: 'openai',
+        model: _model,
+      );
+    }
+
     final base64Image = base64Encode(imageBytes);
 
     final requestBody = <String, dynamic>{

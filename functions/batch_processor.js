@@ -9,6 +9,15 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+// Migration bridge for Functions 2nd gen: prefer process.env, keep
+// functions.config() fallback until legacy config is fully removed.
+const getOpenAiApiKey = () => {
+  return process.env.OPENAI_API_KEY
+    || process.env.OPENAI_KEY
+    || functions.config().openai?.api_key
+    || functions.config().openai?.key;
+};
+
 /**
  * Cloud Function to process OpenAI batch jobs
  * 
@@ -89,7 +98,7 @@ exports.processBatchJobs = functions.pubsub
  * Checks the status of an OpenAI batch job
  */
 async function checkOpenAIBatchStatus(batchId) {
-  const openaiApiKey = functions.config().openai?.api_key;
+  const openaiApiKey = getOpenAiApiKey();
   
   if (!openaiApiKey) {
     throw new Error('OpenAI API key not configured');
@@ -157,7 +166,10 @@ async function processCompletedJob(jobId, outputFileId, jobData) {
  * Downloads results from OpenAI Files API
  */
 async function downloadOpenAIResults(fileId) {
-  const openaiApiKey = functions.config().openai?.api_key;
+  const openaiApiKey = getOpenAiApiKey();
+  if (!openaiApiKey) {
+    throw new Error('OpenAI API key not configured');
+  }
   
   const response = await axios.get(
     `https://api.openai.com/v1/files/${fileId}/content`,

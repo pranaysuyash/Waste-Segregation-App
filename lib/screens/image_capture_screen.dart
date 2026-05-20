@@ -459,6 +459,27 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       }
     }
 
+    // Quota preflight re-check immediately before network analysis.
+    // Covers long quality-check dialogs / async delays between initial intent
+    // logging and the actual provider call.
+    await tokenService.initialize();
+    if (!tokenService.canAffordAnalysisWithPricing(
+      _selectedSpeed,
+      isPremiumUser: isPremiumUser,
+    )) {
+      if (mounted) {
+        ZeroBalanceOptionsSheet.show(
+          context,
+          requiredTokens: effectiveCost,
+          onBatchSelected: () {
+            setState(() => _selectedSpeed = AnalysisSpeed.batch);
+            _analyzeImage();
+          },
+        );
+      }
+      return;
+    }
+
     setState(() {
       _isAnalyzing = true;
       _isCancelled = false;

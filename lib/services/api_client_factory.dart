@@ -1,4 +1,5 @@
 import '../utils/constants.dart';
+import '../utils/production_safety_config.dart';
 import '../utils/waste_app_logger.dart';
 import 'unified_api_client.dart';
 import 'enhanced_api_error_handler.dart';
@@ -16,6 +17,13 @@ class ApiClientFactory {
         'openai',
         () => EnhancedApiErrorHandler(),
       );
+
+      ProductionSafetyConfig.guardClientAiCall('OpenAI UnifiedApiClient');
+      if (ProductionSafetyConfig.hasPlaceholderKey(ApiConfig.openAiApiKey)) {
+        throw const ProductionSafetyException(
+          'OpenAI client blocked: OPENAI_API_KEY is placeholder/missing. Route through backend gateway or provide a real key in non-release test builds.',
+        );
+      }
 
       final client = UnifiedApiClient(
         baseUrl: ApiConfig.openAiBaseUrl,

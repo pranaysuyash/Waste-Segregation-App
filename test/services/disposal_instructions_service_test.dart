@@ -140,6 +140,19 @@ void main() {
       // This should not throw an exception even if network fails
       expect(() => service.preloadCommonMaterials(), returnsNormally);
     });
+
+    test('should provide resolution metadata contract', () async {
+      final resolution = await service.getDisposalInstructionsWithResolution(
+        material: 'test item',
+        category: 'Dry Waste',
+        lang: 'en',
+      );
+
+      expect(resolution.source, isNotEmpty);
+      expect(resolution.cacheKey, contains('lang=en'));
+      expect(resolution.instructions.primaryMethod, isNotEmpty);
+      expect(resolution.instructions.steps, isNotEmpty);
+    });
   });
 
   group('DisposalInstructions Model', () {

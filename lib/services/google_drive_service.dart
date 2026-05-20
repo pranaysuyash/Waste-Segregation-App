@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -14,12 +15,14 @@ import 'firestore_schema_registry.dart';
 
 class GoogleDriveService {
   GoogleDriveService(this._storageService);
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [
-      'email',
-      'https://www.googleapis.com/auth/drive.file',
-    ],
-  );
+  final GoogleSignIn? _googleSignIn = kIsWeb
+      ? null
+      : GoogleSignIn(
+          scopes: [
+            'email',
+            'https://www.googleapis.com/auth/drive.file',
+          ],
+        );
 
   final StorageService _storageService;
   late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -52,7 +55,13 @@ class GoogleDriveService {
   // Sign in with Google
   Future<GoogleSignInAccount?> signIn() async {
     try {
-      final account = await _googleSignIn.signIn();
+      final googleSignIn = _googleSignIn;
+      if (googleSignIn == null) {
+        throw UnsupportedError(
+          'Google Drive sign-in is not available on web builds.',
+        );
+      }
+      final account = await googleSignIn.signIn();
       if (account != null) {
         final userId = account.id;
         var userProfile = await _fetchUserProfileFromFirestore(userId);
@@ -128,7 +137,10 @@ class GoogleDriveService {
   // Sign out from Google
   Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut();
+      final googleSignIn = _googleSignIn;
+      if (googleSignIn != null) {
+        await googleSignIn.signOut();
+      }
       await _storageService.clearUserInfo();
     } catch (e) {
       WasteAppLogger.severe('Error signing out from Google: $e');
@@ -138,12 +150,20 @@ class GoogleDriveService {
 
   // Check if user is signed in
   Future<bool> isSignedIn() async {
-    return _googleSignIn.isSignedIn();
+    final googleSignIn = _googleSignIn;
+    if (googleSignIn == null) return false;
+    return googleSignIn.isSignedIn();
   }
 
   // Get authenticated HTTP client
   Future<http.Client> _getAuthenticatedHttpClient() async {
-    final account = await _googleSignIn.signInSilently();
+    final googleSignIn = _googleSignIn;
+    if (googleSignIn == null) {
+      throw UnsupportedError(
+        'Google Drive upload and download are not available on web builds.',
+      );
+    }
+    final account = await googleSignIn.signInSilently();
     if (account == null) {
       throw Exception('User not signed in');
     }

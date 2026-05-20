@@ -228,6 +228,8 @@ void main() {
         final service = AiService(
           cachingEnabled: false,
           dioClient: dio,
+          openAiApiKey: 'test-openai-key',
+          geminiApiKey: 'test-gemini-key',
           saveWebImageOverride: (bytes, imageName) async {
             savedNames.add(imageName);
             return '/saved/$imageName';

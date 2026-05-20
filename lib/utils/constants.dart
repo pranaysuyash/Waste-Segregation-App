@@ -35,7 +35,7 @@ class ApiConfig {
   static const String geminiBaseUrl =
       'https://generativelanguage.googleapis.com/v1beta';
   static const String apiKey = String.fromEnvironment('GEMINI_API_KEY',
-      defaultValue: 'AIzaSyDYXPY95PneMi0m7UTiI6ciY8sQyst2jV8');
+      defaultValue: 'your-gemini-api-key-here');
   static const String geminiModel = String.fromEnvironment('GEMINI_API_MODEL',
       defaultValue: 'gemini-2.0-flash');
 }

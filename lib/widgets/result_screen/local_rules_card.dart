@@ -23,7 +23,9 @@ class LocalRulesCard extends StatelessWidget {
     final cs = theme.colorScheme;
     final bbmp = classification.bbmpComplianceStatus;
     final guideline = classification.localGuidelinesReference;
-    final regs = classification.localRegulations ?? const <String, String>{};
+    final regs = _displayRegulations(
+      classification.localRegulations ?? const <String, String>{},
+    );
 
     return Card(
       elevation: 0,
@@ -56,7 +58,7 @@ class LocalRulesCard extends StatelessWidget {
             ],
             if (regs.isNotEmpty) ...[
               const SizedBox(height: 12),
-              ...regs.entries.take(3).map(
+              ...regs.entries.take(4).map(
                     (e) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: _buildRuleRow(context, e.key, e.value),
@@ -107,5 +109,70 @@ class LocalRulesCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Map<String, String> _displayRegulations(Map<String, String> raw) {
+    if (raw.isEmpty) return raw;
+
+    const labelMap = <String, String>{
+      'policy_rule_pack_id': 'Policy Pack',
+      'policy_plugin_id': 'Policy Plugin',
+      'policy_compliance_status': 'Policy Status',
+      'policy_warning_count': 'Policy Warnings',
+      'policy_violation_count': 'Policy Violations',
+      'policy_recommendations': 'Policy Recommendations',
+      'policy_evaluated_at': 'Policy Evaluated At',
+      'color_coding': 'Color Coding',
+      'collection_frequency': 'Collection Frequency',
+      'composting_requirement': 'Composting Requirement',
+      'penalty_non_compliance': 'Penalty',
+      'cleaning_requirement': 'Cleaning Requirement',
+      'segregation_requirement': 'Segregation Requirement',
+      'contact_required': 'Contact Requirement',
+      'storage_requirement': 'Storage Requirement',
+    };
+
+    final preferredOrder = <String>[
+      'policy_compliance_status',
+      'policy_violation_count',
+      'policy_warning_count',
+      'policy_recommendations',
+      'policy_rule_pack_id',
+      'policy_evaluated_at',
+      'color_coding',
+      'collection_frequency',
+      'composting_requirement',
+      'segregation_requirement',
+      'cleaning_requirement',
+      'contact_required',
+      'storage_requirement',
+      'penalty_non_compliance',
+    ];
+
+    final ordered = <MapEntry<String, String>>[];
+    final consumed = <String>{};
+
+    for (final key in preferredOrder) {
+      final value = raw[key];
+      if (value == null || value.trim().isEmpty) continue;
+      consumed.add(key);
+      ordered.add(MapEntry(labelMap[key] ?? _humanizeKey(key), value));
+    }
+
+    for (final entry in raw.entries) {
+      if (consumed.contains(entry.key) || entry.value.trim().isEmpty) continue;
+      ordered.add(MapEntry(
+          labelMap[entry.key] ?? _humanizeKey(entry.key), entry.value.trim()));
+    }
+
+    return Map<String, String>.fromEntries(ordered);
+  }
+
+  String _humanizeKey(String key) {
+    final words = key
+        .split('_')
+        .where((part) => part.trim().isNotEmpty)
+        .map((part) => '${part[0].toUpperCase()}${part.substring(1)}');
+    return words.join(' ');
   }
 }

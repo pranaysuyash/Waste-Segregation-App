@@ -6,6 +6,22 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
 import 'firestore_schema_registry.dart';
 
+class DisposalInstructionResolution {
+  const DisposalInstructionResolution({
+    required this.instructions,
+    required this.source,
+    required this.cacheKey,
+    this.confidence,
+    this.explanation,
+  });
+
+  final DisposalInstructions instructions;
+  final String source;
+  final String cacheKey;
+  final double? confidence;
+  final String? explanation;
+}
+
 /// Service for fetching LLM-generated disposal instructions
 class DisposalInstructionsService {
   static const String _functionUrl =
@@ -63,6 +79,21 @@ class DisposalInstructionsService {
     String? subcategory,
     String lang = 'en',
   }) async {
+    final resolution = await getDisposalInstructionsWithResolution(
+      material: material,
+      category: category,
+      subcategory: subcategory,
+      lang: lang,
+    );
+    return resolution.instructions;
+  }
+
+  Future<DisposalInstructionResolution> getDisposalInstructionsWithResolution({
+    required String material,
+    String? category,
+    String? subcategory,
+    String lang = 'en',
+  }) async {
     try {
       final materialId = buildMaterialCacheKey(
         material: material,
@@ -81,7 +112,11 @@ class DisposalInstructionsService {
               'category': category,
               'subcategory': subcategory
             });
-        return _cache[materialId]!;
+        return DisposalInstructionResolution(
+          instructions: _cache[materialId]!,
+          source: 'cache_local',
+          cacheKey: materialId,
+        );
       }
 
       // Check Firestore cache (new key, then legacy key for migration safety)
@@ -104,7 +139,7 @@ class DisposalInstructionsService {
               'source': 'firestore',
               'cache_key_format': 'canonical_or_legacy'
             });
-        _cache[materialId] = firestoreCached;
+        _cache[materialId] = firestoreCached.instructions;
         return firestoreCached;
       }
 
@@ -125,7 +160,7 @@ class DisposalInstructionsService {
         lang: lang,
       );
 
-      _cache[materialId] = instructions;
+      _cache[materialId] = instructions.instructions;
       return instructions;
     } catch (e) {
       WasteAppLogger.severe('Error fetching disposal instructions',
@@ -137,11 +172,20 @@ class DisposalInstructionsService {
             'language': lang,
             'action': 'fallback_to_default_instructions'
           });
-      return _getFallbackInstructions(material, category);
+      return DisposalInstructionResolution(
+        instructions: _getFallbackInstructions(material, category),
+        source: 'fallback_error',
+        cacheKey: buildMaterialCacheKey(
+          material: material,
+          category: category,
+          subcategory: subcategory,
+          lang: lang,
+        ),
+      );
     }
   }
 
-  Future<DisposalInstructions?> _loadFromFirestoreCache({
+  Future<DisposalInstructionResolution?> _loadFromFirestoreCache({
     required String materialId,
     required String material,
     String? category,
@@ -152,7 +196,14 @@ class DisposalInstructionsService {
 
     final canonicalDoc = await collection.doc(materialId).get();
     if (canonicalDoc.exists) {
-      return _parseFirestoreData(canonicalDoc.data()!);
+      final data = canonicalDoc.data()!;
+      return DisposalInstructionResolution(
+        instructions: _parseFirestoreData(data),
+        source: 'cache_firestore_canonical',
+        cacheKey: materialId,
+        confidence: _extractConfidence(data),
+        explanation: _extractExplanation(data),
+      );
     }
 
     final legacyId = buildLegacyMaterialId(material, category, subcategory);
@@ -167,11 +218,18 @@ class DisposalInstructionsService {
 
     WasteAppLogger.info('Disposal instructions loaded via legacy cache key',
         context: {'legacy_key': legacyId, 'canonical_key': materialId});
-    return _parseFirestoreData(legacyDoc.data()!);
+    final data = legacyDoc.data()!;
+    return DisposalInstructionResolution(
+      instructions: _parseFirestoreData(data),
+      source: 'cache_firestore_legacy',
+      cacheKey: materialId,
+      confidence: _extractConfidence(data),
+      explanation: _extractExplanation(data),
+    );
   }
 
   /// Generate instructions via Cloud Function with 503 retry handling
-  Future<DisposalInstructions> _generateViaCloudFunction({
+  Future<DisposalInstructionResolution> _generateViaCloudFunction({
     required String materialId,
     required String material,
     String? category,
@@ -218,7 +276,13 @@ class DisposalInstructionsService {
                 'response_length': response.body.length
               });
           final data = json.decode(response.body) as Map<String, dynamic>;
-          return _parseCloudFunctionResponse(data);
+          return DisposalInstructionResolution(
+            instructions: _parseCloudFunctionResponse(data),
+            source: 'cloud_function',
+            cacheKey: materialId,
+            confidence: _extractConfidence(data),
+            explanation: _extractExplanation(data),
+          );
         } else if (response.statusCode == 503) {
           // Server is temporarily unavailable - check for retry-after header
           final retryAfterHeader = response.headers['retry-after'];
@@ -317,6 +381,21 @@ class DisposalInstructionsService {
       estimatedTime: data['estimatedTime'],
       hasUrgentTimeframe: data['hasUrgentTimeframe'] ?? false,
     );
+  }
+
+  double? _extractConfidence(Map<String, dynamic> data) {
+    final value = data['confidence'] ?? data['confidenceScore'];
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  String? _extractExplanation(Map<String, dynamic> data) {
+    final value = data['explanation'] ?? data['reasoning'] ?? data['rationale'];
+    if (value is String && value.trim().isNotEmpty) {
+      return value.trim();
+    }
+    return null;
   }
 
   /// Parse Firestore data to DisposalInstructions

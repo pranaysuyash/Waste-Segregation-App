@@ -1,6 +1,6 @@
 # Exploration Backlog — Waste Segregation App
 
-**Last Updated**: 2026-05-19
+**Last Updated**: 2026-05-20
 
 A living, append-only document of areas to explore, ideas to investigate, and potential improvements. **Add items freely** — this is a capture space, not a commitment queue. Items get promoted into [../EXPLORATION_TOPICS.md](../EXPLORATION_TOPICS.md) or a dedicated `docs/exploration/*.md` doc when they're mature enough to act on.
 
@@ -124,6 +124,8 @@ Sources already mined for this initial list:
 - [ ] DPDP Act (India) checklist
 - [ ] GDPR checklist for any EU exposure
 - [ ] COPPA / age-gating for kid users
+- [ ] Global municipal policy engine rollout plan: authority pack lifecycle, promotion gates, and provenance contract (not local-only)
+- [ ] Multi-city rule-pack expansion: BMC Mumbai + MCD Delhi first-class packs, then tier-2 India and international jurisdictions
 - [ ] Provenance metadata per classification (model, prompt version, ruleset version, timestamp)
 - [ ] "Why did the app say that?" explainability surface for advanced users / partners
 - [ ] Audit trail spec: one place to answer "what did the app do for this user, when, and why?"
@@ -136,6 +138,26 @@ Sources already mined for this initial list:
 - [ ] Auto-detect "this is a waste-item scan, not a random photo" so user doesn't have to choose
 - [ ] Re-classification flow — open an old scan, re-run with a newer model
 
+## Locality & Civic Waste Intelligence
+
+Track promoted 2026-05-20. Canonical doc: [../review/EXPLORATION_AND_RESEARCH_BACKLOG_2026-05-20.md](../review/EXPLORATION_AND_RESEARCH_BACKLOG_2026-05-20.md). Map index entries: [F. LOCALITY & CIVIC WASTE INTELLIGENCE → L1–L6](../EXPLORATION_TOPICS.md). Research lane only — not P0. Items below are capture-only; do not commit before the agent tasks (Civic-A…F) in the canonical doc resolve them.
+
+- [x] Locality collection schedule + route + ward / zone data (promoted as L1; agent Civic-A)
+- [x] Map-based civic issue reporting (pilot scope) (promoted as L2; agent Civic-B)
+- [x] Waze-style "is this still here?" verification loop (promoted as L3; agent Civic-C)
+- [x] Civic reputation/points ledger, **separate** from AI tokens (promoted as L4; agent Civic-C separation contract)
+- [x] Authority / NGO / apartment sharing (WhatsApp / email / PDF / CSV / dashboard) (promoted as L5; agents Civic-D + Civic-F)
+- [x] Civic privacy, safety & moderation foundation — gates everything public (promoted as L6; agent Civic-E)
+- [ ] Public bin inventory + fullness + damage reports (L7 candidate)
+- [ ] Collection route reliability score from crowdsourced "truck came at..." signals (L7 candidate)
+- [ ] Apartment / school / NGO modes with role separation (L7 candidate; cross-link #29)
+- [ ] Local marketplace — kabadiwala / compost / e-waste pickup partners (L7 candidate; extends #26)
+- [ ] WhatsApp-first civic flow with local-language complaint generation (L7 candidate)
+- [ ] Local-language layer (Kannada / Hindi / English) + voice notes + low-literacy icons (L7 candidate; cross-link #18)
+- [ ] Open civic API / anonymised public feed (L7 moonshot)
+- [ ] Disposal facility status freshness badge ("last verified") on existing directory (launch-adjacent, low-risk; cross-link A20)
+- [ ] Hyperlocal SEO pages for "<area> e-waste / bulk pickup" — no UGC moderation cost (launch-adjacent)
+
 ## Engineering Health
 
 - [ ] Code TODO sweep — see `code_todos_grep_results.txt`, `todo_grep_results.txt`, `todos_consolidated_raw_2025-06-14.txt`
@@ -144,6 +166,8 @@ Sources already mined for this initial list:
 - [ ] Crash / ANR baseline + budget
 - [ ] Build-time + release-pipeline health audit
 - [ ] Documentation lint — broken cross-doc links, stale dates, drift vs `APP_KNOWLEDGE_BASE.md`
+- [ ] P0 backend hardening closeout audit (client secret blocking, fallback labeling, quota preflight, ads/premium guard, functions.config bridge removal plan) — align with `EXPLORATION_TOPICS.md` #10 (AI Cost Telemetry & Guardrails), #27a (Token Economy & Pricing Coherence), and #32 (Privacy / Photo PII)
+- [ ] App Check + rate-limiting implementation plan with emulator test matrix — link hardening report before execution
 
 ---
 
@@ -163,5 +187,7 @@ When an item moves from this backlog into a real exploration doc or into `EXPLOR
 | 2026-05-19 | "The dataset is the moat" reframing | `EXPLORATION_TOPICS.md#12` | Reframed Classification History Schema as an asset/moat, not a data-eng cost. Surfaced by Future Self + Strategist roles in the brainstorm. |
 | 2026-05-19 | Dependency view + Archive policy | `EXPLORATION_TOPICS.md` + `exploration/ARCHIVE.md` | Added dependency-view ASCII (sequencing) and created `ARCHIVE.md` for `[KILLED]` / `[✓]` topics so the active index stays the cursor. |
 | 2026-05-19 | **Code + industry scan pass** — 25 new topics (A1–A25) | `EXPLORATION_TOPICS.md` "Additional Topics" section | Directed scan of `lib/` (73 services / 42 screens / 33 models / 14 providers) + docs/ subfolders + 2025–26 industry literature. Surfaced: Image Capture & Quality Gate (A1), AI Race / Multi-Provider Concurrency (A2), AI Failure Taxonomy (A3), Model Lifecycle (A4), Object Detection / Multi-Object (A5), Smart Suggestions (A6), Knowledge Verification / Quiz (A7), AI-Generated Educational Content (A8), Personal Impact Dashboard UX (A9), Cross-Platform Parity (A10), Notification Strategy (A11), A/B Testing & Feature Flags (A12), Remote Config & Kill Switches (A13), Launch & Store Compliance (A14), Account / Identity Lifecycle (A15), Deep Links & Viral Loops (A16), Ads / Revenue Diversification (A17), Analytics Schema Governance (A18), Consent Architecture (A19), Disposal Facilities Directory (A20), User Contribution UGC Pipeline (A21), Recycling Code Taxonomy (A22), EU DPP / ESPR signal (A23), VLM-for-Waste research signal (A24), MRF-side Competitors signal (A25). Three new categories: Platform & Release Engineering, Growth & Distribution Surfaces, Disposal Facilities & Local Knowledge. |
+
+| 2026-05-20 | **Locality & Civic Waste Intelligence track** (L1–L6) | `EXPLORATION_TOPICS.md` new section F + `../review/EXPLORATION_AND_RESEARCH_BACKLOG_2026-05-20.md` (canonical) | Long-horizon civic moat: collection schedules, map-based reporting, Waze-style verification, civic reputation (separate from AI tokens), authority/B2B/B2G sharing, privacy/moderation foundation. Reconciles with A20, A21, #20, #23, #24, #25, #26, #27a, #29, #32 and `planning/local_recycling_directory.md`. Research lane — NOT P0. Six agent-ready tasks (Civic-A…F) defined with deliverables, acceptance criteria, out-of-scope, validation. Seven kill criteria defined. Inherits existing map stack (`flutter_map`, `flutter_map_marker_cluster`, `flutter_map_heatmap`, `geoflutterfire_plus`, `flutter_map_tile_caching`) — no new vendor decision needed for MVP. |
 
 (Append new rows here; never delete — the trail is the value.)

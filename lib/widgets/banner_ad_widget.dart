@@ -18,7 +18,7 @@ class BannerAdWidget extends StatelessWidget {
     final premiumService = Provider.of<PremiumService>(context);
 
     // Update ad service with premium status
-    adService.setPremiumStatus(premiumService.isPremiumFeature('remove_ads'));
+    adService.setPremiumStatus(premiumService.hasActivePremiumPlan());
 
     if (showAtBottom) {
       return Positioned(

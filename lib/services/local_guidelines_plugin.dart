@@ -446,6 +446,163 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
   };
 }
 
+/// BMC (Brihanmumbai Municipal Corporation) plugin scaffold.
+///
+/// This starts as a minimal standards-compliant implementation and can evolve
+/// with city-specific compliance rules and disposal overrides.
+class BMCMumbaiPlugin extends LocalGuidelinesPlugin {
+  @override
+  String get pluginId => 'bmc_mumbai';
+
+  @override
+  String get authorityName => 'BMC';
+
+  @override
+  String get guidelinesVersion => 'BMC-2026.1';
+
+  @override
+  String get region => 'Mumbai, IN';
+
+  @override
+  Future<WasteClassification> applyLocalGuidelines(
+      WasteClassification classification) async {
+    final compliance = validateCompliance(classification);
+    return classification.copyWith(
+      localRegulations: getLocalRegulations(classification.category),
+      localGuidelinesVersion: guidelinesVersion,
+      bbmpComplianceStatus: compliance.status,
+      localGuidelinesReference:
+          'BMC-2026-${classification.category.toLowerCase().replaceAll(' ', '_')}',
+    );
+  }
+
+  @override
+  LocalComplianceResult validateCompliance(WasteClassification classification) {
+    final warnings = <String>[];
+    if (classification.category.toLowerCase() == 'hazardous waste' &&
+        classification.requiresSpecialDisposal != true) {
+      warnings.add('Hazardous category should be marked special-disposal.');
+    }
+    return LocalComplianceResult(
+      status: warnings.isEmpty ? 'compliant' : 'requires_attention',
+      violations: const <String>[],
+      warnings: warnings,
+      recommendations: const <String>[
+        'Follow BMC color coding and handover schedule.',
+      ],
+    );
+  }
+
+  @override
+  Map<String, dynamic>? getLocalDisposalInstructions(
+      String category, String? subcategory) {
+    return null;
+  }
+
+  @override
+  Map<String, String> getColorCoding() {
+    return const <String, String>{
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    };
+  }
+
+  @override
+  Map<String, dynamic> getCollectionSchedule() {
+    return const <String, dynamic>{
+      'wet_waste': {'frequency': 'daily'},
+      'dry_waste': {'frequency': 'alternate_days'},
+    };
+  }
+
+  @override
+  Map<String, String> getLocalRegulations(String category) {
+    return const <String, String>{
+      'authority': 'BMC',
+      'city': 'Mumbai',
+    };
+  }
+}
+
+/// MCD (Municipal Corporation of Delhi) plugin scaffold.
+class MCDDelhiPlugin extends LocalGuidelinesPlugin {
+  @override
+  String get pluginId => 'mcd_delhi';
+
+  @override
+  String get authorityName => 'MCD';
+
+  @override
+  String get guidelinesVersion => 'MCD-2026.1';
+
+  @override
+  String get region => 'Delhi, IN';
+
+  @override
+  Future<WasteClassification> applyLocalGuidelines(
+      WasteClassification classification) async {
+    final compliance = validateCompliance(classification);
+    return classification.copyWith(
+      localRegulations: getLocalRegulations(classification.category),
+      localGuidelinesVersion: guidelinesVersion,
+      bbmpComplianceStatus: compliance.status,
+      localGuidelinesReference:
+          'MCD-2026-${classification.category.toLowerCase().replaceAll(' ', '_')}',
+    );
+  }
+
+  @override
+  LocalComplianceResult validateCompliance(WasteClassification classification) {
+    final warnings = <String>[];
+    if (classification.category.toLowerCase() == 'medical waste' &&
+        classification.hasUrgentTimeframe != true) {
+      warnings.add('Medical waste should be marked urgent.');
+    }
+    return LocalComplianceResult(
+      status: warnings.isEmpty ? 'compliant' : 'requires_attention',
+      violations: const <String>[],
+      warnings: warnings,
+      recommendations: const <String>[
+        'Use authorized MCD channels for special categories.',
+      ],
+    );
+  }
+
+  @override
+  Map<String, dynamic>? getLocalDisposalInstructions(
+      String category, String? subcategory) {
+    return null;
+  }
+
+  @override
+  Map<String, String> getColorCoding() {
+    return const <String, String>{
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    };
+  }
+
+  @override
+  Map<String, dynamic> getCollectionSchedule() {
+    return const <String, dynamic>{
+      'wet_waste': {'frequency': 'daily'},
+      'dry_waste': {'frequency': 'alternate_days'},
+    };
+  }
+
+  @override
+  Map<String, String> getLocalRegulations(String category) {
+    return const <String, String>{
+      'authority': 'MCD',
+      'city': 'Delhi',
+    };
+  }
+}
+
 /// Result of local compliance validation
 class LocalComplianceResult {
   const LocalComplianceResult({
@@ -491,6 +648,14 @@ extension DisposalInstructionsExtension on DisposalInstructions {
 /// Local Guidelines Manager to handle multiple plugins
 class LocalGuidelinesManager {
   static final Map<String, LocalGuidelinesPlugin> _plugins = {};
+  static final Map<String, String> _regionAliases = {
+    'bangalore': 'bbmp_bangalore',
+    'bengaluru': 'bbmp_bangalore',
+    'mumbai': 'bmc_mumbai',
+    'bombay': 'bmc_mumbai',
+    'delhi': 'mcd_delhi',
+    'new delhi': 'mcd_delhi',
+  };
 
   /// Register a local guidelines plugin
   static void registerPlugin(LocalGuidelinesPlugin plugin) {
@@ -504,12 +669,19 @@ class LocalGuidelinesManager {
 
   /// Get plugin for a specific region
   static LocalGuidelinesPlugin? getPluginForRegion(String region) {
-    // Simple region matching - can be enhanced
-    if (region.toLowerCase().contains('bangalore') ||
-        region.toLowerCase().contains('bengaluru')) {
-      return _plugins['bbmp_bangalore'];
+    final normalized = region.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+
+    for (final entry in _regionAliases.entries) {
+      if (normalized.contains(entry.key)) {
+        return _plugins[entry.value];
+      }
     }
 
+    // Fallback: direct plugin id lookup support (useful for internal tooling)
+    if (_plugins.containsKey(normalized)) {
+      return _plugins[normalized];
+    }
     return null;
   }
 
@@ -534,9 +706,9 @@ class LocalGuidelinesManager {
 
   /// Initialize default plugins
   static void initializeDefaultPlugins() {
+    if (_plugins.isNotEmpty) return;
     registerPlugin(BBMPBangalorePlugin());
-    // Add more plugins as needed:
-    // registerPlugin(BMCMumbaiPlugin());
-    // registerPlugin(MCDDelhiPlugin());
+    registerPlugin(BMCMumbaiPlugin());
+    registerPlugin(MCDDelhiPlugin());
   }
 }

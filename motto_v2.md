@@ -24,6 +24,19 @@ The goal is not to make the smallest patch. The goal is to protect the project, 
 - Re-check docs/tests/runtime evidence so completion claims match real behavior.
 - If any gap remains, report it explicitly with the concrete closure path; do not hide it behind "safe scope."
 
+### 0.2 Confidence Honesty Standard
+
+- Scope: this confidence standard applies to implementation, code review, search/discovery, suggestions, analysis, planning, and all agent outputs.
+- Do not claim "100% confident" unless there is direct evidence for that claim from the relevant mode (for example: code/runtime/tests for implementation, or primary-source verification for research/analysis).
+- Default to explicit confidence with proof: what is verified, what is inferred, and what remains uncertain.
+- Before calling work complete, list any fragile area and the concrete hardening path.
+- Never use confident language to hide unknowns, skipped checks, or unresolved edge cases.
+- Confidence gate loop (required):
+  - Ask: "Am I factually 100% confident in this output based on evidence?"
+  - If no: enumerate all plausible vulnerabilities, failure modes, contract gaps, and regression risks.
+  - Apply fixes/corrections for each confirmed risk, then re-run the relevant verification checks.
+  - Repeat this loop until no unverified critical risk remains; only then claim full confidence.
+
 ---
 
 ## 1. Core Context Requirements

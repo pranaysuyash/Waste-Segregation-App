@@ -36,6 +36,9 @@ The research-and-exploration layer (what we still need to *learn* to build well)
 - **[EXPLORATION_ROADMAP_WHILE_BUILDING.md](EXPLORATION_ROADMAP_WHILE_BUILDING.md)** — Maps exploration topics onto NOW / NEXT / LATER build phases so research runs in parallel with shipping.
 - **[exploration/README.md](exploration/README.md)** — Conventions for per-topic exploration docs.
 - **[exploration/backlog.md](exploration/backlog.md)** — Append-only idea capture before promotion.
+- **[exploration/ARCHIVE.md](exploration/ARCHIVE.md)** — Killed / superseded exploration topics (skeleton, no entries yet).
+- **[brainstorm_exploration_map_2026-05-19.md](brainstorm_exploration_map_2026-05-19.md)** — Wide-open-brainstorm pressure test of the map; shrink recommendations rejected, additive changes accepted.
+- **[EXPLORATION_MAP_SETUP_SUMMARY_2026-05-19.md](EXPLORATION_MAP_SETUP_SUMMARY_2026-05-19.md)** — Baseline summary of the map setup, brainstorm decision, and code+industry scan pass. Read this first to resume exploration work.
 
 Use this map when you need to know **what's still being figured out** vs what's already decided.
 

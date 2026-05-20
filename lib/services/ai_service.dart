@@ -19,6 +19,7 @@ import 'package:waste_segregation_app/services/classification_cache_key.dart';
 import 'package:uuid/uuid.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/services/local_guidelines_plugin.dart';
+import 'package:waste_segregation_app/services/local_policy_engine.dart';
 import 'package:waste_segregation_app/utils/production_safety_config.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
@@ -65,6 +66,7 @@ class AiService {
     CostGuardrailService? guardrailService,
     EnhancedApiErrorHandler? errorHandler,
     EnhancedImageService? imageService,
+    LocalPolicyEngine? localPolicyEngine,
     Dio? dioClient,
     Future<String> Function(Uint8List bytes, String imageName)?
         saveWebImageOverride,
@@ -80,6 +82,7 @@ class AiService {
         guardrailService = guardrailService ?? CostGuardrailService(),
         errorHandler = errorHandler ?? EnhancedApiErrorHandler(),
         _imageService = imageService ?? EnhancedImageService(),
+        localPolicyEngine = localPolicyEngine ?? const LocalPolicyEngine(),
         _dio = dioClient ?? Dio(),
         _saveWebImageOverride = saveWebImageOverride;
   final String openAiBaseUrl;
@@ -90,6 +93,7 @@ class AiService {
   final DynamicPricingService pricingService;
   final CostGuardrailService guardrailService;
   final EnhancedApiErrorHandler errorHandler;
+  final LocalPolicyEngine localPolicyEngine;
 
   // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
   final EnhancedImageService _imageService;
@@ -1223,6 +1227,15 @@ Output:
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
     final mimeType = _detectImageMimeType(compressedBytes);
 
+    if (ProductionSafetyConfig.hasPlaceholderKey(openAiApiKey)) {
+      throw AiFailure(
+        AiFailureKind.auth,
+        'OpenAI analysis blocked: placeholder/missing API key.',
+        provider: providerName,
+        model: modelName,
+      );
+    }
+
     final openAiBody = <String, dynamic>{
       'model': modelName,
       'messages': [
@@ -1237,7 +1250,10 @@ Output:
             },
             {
               'type': 'image_url',
-              'image_url': {'url': 'data:$mimeType;base64,${_bytesToBase64(compressedBytes)}'}
+              'image_url': {
+                'url':
+                    'data:$mimeType;base64,${_bytesToBase64(compressedBytes)}'
+              }
             }
           ]
         }
@@ -1313,9 +1329,13 @@ Output:
       thumbnailPath: thumbnailPath,
     );
 
-    classification = await LocalGuidelinesManager.applyLocalGuidelines(
-      classification,
-      region,
+    final policyDecision = await localPolicyEngine.applyPolicy(
+      classification: classification,
+      region: region,
+    );
+    classification = _attachPolicyDecisionMetadata(
+      policyDecision.classification,
+      policyDecision,
     );
 
     if (cachingEnabled && imageHash != null) {
@@ -1380,6 +1400,15 @@ Output:
 
     final base64Image = _bytesToBase64(processedBytes);
     final mimeType = _detectImageMimeType(processedBytes);
+
+    if (ProductionSafetyConfig.hasPlaceholderKey(geminiApiKey)) {
+      throw AiFailure(
+        AiFailureKind.auth,
+        'Gemini analysis blocked: placeholder/missing API key.',
+        provider: providerName,
+        model: modelName,
+      );
+    }
 
     WasteAppLogger.info(
         'Sending image to Gemini. Size: ${(processedBytes.length / 1024).toStringAsFixed(2)} KB');
@@ -1489,9 +1518,13 @@ Output:
         );
 
         // Apply Enhanced AI Analysis v2.0 - Local Guidelines
-        classification = await LocalGuidelinesManager.applyLocalGuidelines(
-          classification,
-          region,
+        final policyDecision = await localPolicyEngine.applyPolicy(
+          classification: classification,
+          region: region,
+        );
+        classification = _attachPolicyDecisionMetadata(
+          policyDecision.classification,
+          policyDecision,
         );
 
         // Cache the result if we have a valid hash
@@ -1609,6 +1642,14 @@ Output:
       late final Response response;
       try {
         if (useGeminiProvider) {
+          if (ProductionSafetyConfig.hasPlaceholderKey(geminiApiKey)) {
+            throw AiFailure(
+              AiFailureKind.auth,
+              'Gemini correction blocked: placeholder/missing API key.',
+              provider: 'gemini',
+              model: modelToUse,
+            );
+          }
           final geminiBody = <String, dynamic>{
             'contents': [
               {
@@ -1634,6 +1675,14 @@ Output:
             cancelToken: _cancelToken,
           );
         } else {
+          if (ProductionSafetyConfig.hasPlaceholderKey(openAiApiKey)) {
+            throw AiFailure(
+              AiFailureKind.auth,
+              'OpenAI correction blocked: placeholder/missing API key.',
+              provider: 'openai',
+              model: modelToUse,
+            );
+          }
           final openAiBody = <String, dynamic>{
             'model': modelToUse,
             'messages': [
@@ -2024,7 +2073,7 @@ Output:
         if (itemName.isEmpty) {
           itemName = 'Unidentified Item - Fallback';
           WasteAppLogger.warning(
-              'Could not extract itemName from AI response; defaulting to "Unidentified Item".',
+              'Could not extract itemName from AI response; defaulting to "Unidentified Item - Fallback".',
               context: {'jsonContent': jsonContent});
         }
       }
@@ -2178,6 +2227,51 @@ Output:
     if (value == null) return null;
     if (value is String) return value.trim().isEmpty ? null : value.trim();
     return value.toString().trim().isEmpty ? null : value.toString().trim();
+  }
+
+  WasteClassification _attachPolicyDecisionMetadata(
+    WasteClassification classification,
+    LocalPolicyDecision decision,
+  ) {
+    if (!decision.policyApplied) {
+      return classification;
+    }
+
+    final baseRegulations = Map<String, String>.from(
+      classification.localRegulations ?? const <String, String>{},
+    );
+
+    if (decision.rulePackId != null) {
+      baseRegulations['policy_rule_pack_id'] = decision.rulePackId!;
+    }
+    if (decision.pluginId != null) {
+      baseRegulations['policy_plugin_id'] = decision.pluginId!;
+    }
+    if (decision.complianceStatus != null) {
+      baseRegulations['policy_compliance_status'] = decision.complianceStatus!;
+    }
+    if (decision.warnings.isNotEmpty) {
+      baseRegulations['policy_warning_count'] =
+          decision.warnings.length.toString();
+    }
+    if (decision.violations.isNotEmpty) {
+      baseRegulations['policy_violation_count'] =
+          decision.violations.length.toString();
+    }
+    if (decision.recommendations.isNotEmpty) {
+      baseRegulations['policy_recommendations'] =
+          decision.recommendations.take(3).join(' | ');
+    }
+    baseRegulations['policy_evaluated_at'] =
+        decision.evaluatedAt.toIso8601String();
+
+    return classification.copyWith(
+      localRegulations: baseRegulations,
+      bbmpComplianceStatus:
+          decision.complianceStatus ?? classification.bbmpComplianceStatus,
+      localGuidelinesVersion:
+          decision.guidelinesVersion ?? classification.localGuidelinesVersion,
+    );
   }
 
   /// Safely parses a list of strings from a dynamic input.
