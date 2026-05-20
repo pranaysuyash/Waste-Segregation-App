@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/utils/constants.dart';
 
 void main() {
   group('StorageService - Factory Reset Tests', () {
@@ -33,7 +34,7 @@ void main() {
       await Hive.openBox(StorageKeys.userBox);
       await Hive.openBox(StorageKeys.classificationsBox);
       await Hive.openBox(StorageKeys.settingsBox);
-      await Hive.openBox(StorageKeys.cacheBox);
+      await Hive.openBox<String>(StorageKeys.cacheBox);
       await Hive.openBox(StorageKeys.gamificationBox);
       await Hive.openBox<String>('classificationHashesBox');
     });

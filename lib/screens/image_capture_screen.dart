@@ -1038,11 +1038,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   }
 
   Widget _buildNormalReviewBody() {
-    return Column(
-      children: [
-        // Image preview
-        Expanded(
-          child: Center(
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Image preview
+          Center(
             child: _useSegmentation
                 ? Stack(
                     children: [
@@ -1088,8 +1088,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                                     onTap: () {
                                       setState(() {
                                         if (selected) {
-                                          _selectedSegments
-                                              .remove(index);
+                                          _selectedSegments.remove(index);
                                         } else {
                                           _selectedSegments.add(index);
                                         }
@@ -1119,7 +1118,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                   )
                 : _buildImagePreview(),
           ),
-        ),
 
         // Instructions
         const ModernCard(
@@ -1291,6 +1289,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           ),
         ),
       ],
+      ),
     );
   }
 

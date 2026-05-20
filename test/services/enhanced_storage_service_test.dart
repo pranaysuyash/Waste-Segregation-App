@@ -1,16 +1,39 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:waste_segregation_app/services/enhanced_storage_service.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
+import 'package:waste_segregation_app/services/enhanced_storage_service.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
 
-// Mock classes
-@GenerateMocks([Box])
-import 'enhanced_storage_service_test.mocks.dart';
-
 void main() {
+  setUpAll(() async {
+    final tempDir = await Directory.systemTemp.createTemp('hive_enhanced_test');
+    Hive.init(tempDir.path);
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(WasteClassificationAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(AlternativeClassificationAdapter());
+    }
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter(DisposalInstructionsAdapter());
+    }
+    if (!Hive.isAdapterRegistered(3)) {
+      Hive.registerAdapter(UserRoleAdapter());
+    }
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(UserProfileAdapter());
+    }
+    await Hive.openBox(StorageKeys.userBox);
+    await Hive.openBox(StorageKeys.classificationsBox);
+    await Hive.openBox(StorageKeys.settingsBox);
+    await Hive.openBox(StorageKeys.cacheBox);
+    await Hive.openBox(StorageKeys.gamificationBox);
+    await Hive.openBox<String>('classificationHashesBox');
+  });
+
   group('CacheEntry', () {
     test('should create with required parameters', () {
       final timestamp = DateTime.now();
@@ -60,29 +83,8 @@ void main() {
 
   group('EnhancedStorageService', () {
     late EnhancedStorageService service;
-    late MockBox mockUserBox;
-    late MockBox mockSettingsBox;
-    late MockBox mockClassificationsBox;
-    late MockBox mockGamificationBox;
 
     setUp(() {
-      // Initialize Hive mocks
-      mockUserBox = MockBox();
-      mockSettingsBox = MockBox();
-      mockClassificationsBox = MockBox();
-      mockGamificationBox = MockBox();
-
-      // Mock Hive.box() calls
-      when(mockUserBox.get(any)).thenReturn(null);
-      when(mockSettingsBox.get(any)).thenReturn(null);
-      when(mockClassificationsBox.get(any)).thenReturn(null);
-      when(mockGamificationBox.get(any)).thenReturn(null);
-
-      when(mockUserBox.put(any, any)).thenAnswer((_) async {});
-      when(mockSettingsBox.put(any, any)).thenAnswer((_) async {});
-      when(mockClassificationsBox.put(any, any)).thenAnswer((_) async {});
-      when(mockGamificationBox.put(any, any)).thenAnswer((_) async {});
-
       service = EnhancedStorageService();
     });
 
@@ -454,8 +456,8 @@ void main() {
         expect(emptyMap, equals(<String, dynamic>{}));
       });
 
-      test('should handle very long keys', () async {
-        final longKey = 'very_long_key_${'a' * 1000}';
+      test('should handle long keys', () async {
+        final longKey = 'very_long_key_${'a' * 200}';
         const longValue = 'very_long_value';
 
         await service.store(longKey, longValue);

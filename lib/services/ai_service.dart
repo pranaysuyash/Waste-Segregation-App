@@ -1070,14 +1070,30 @@ Output:
     final results = <WasteClassification>[];
     for (var i = 0; i < regionBounds.length; i++) {
       final bounds = regionBounds[i];
-      final classification = await _analyzeSingleRegion(
-        imageBytes,
-        imageName,
-        bounds,
-        region: region,
-        instructionsLang: instructionsLang,
-      );
-      results.add(classification);
+      try {
+        final classification = await _analyzeSingleRegion(
+          imageBytes,
+          imageName,
+          bounds,
+          region: region,
+          instructionsLang: instructionsLang,
+        );
+        results.add(classification);
+      } catch (e, s) {
+        WasteAppLogger.warning(
+          'Region analysis failed; returning fallback for region',
+          error: e,
+          stackTrace: s,
+          context: {'region_index': i, 'image': imageName},
+        );
+        final fallback = WasteClassification.fallback(imageName);
+        results.add(
+          fallback.copyWith(
+            suggestedAction:
+                'Could not classify selected region ${i + 1}. Please retake a clearer image or manually review.',
+          ),
+        );
+      }
     }
     return results;
   }
@@ -1170,76 +1186,6 @@ Output:
     );
   }
 
-  /// Internal method for analyzing image segments (used by both mobile and web).
-  Future<WasteClassification> _analyzeImageSegmentsInternal(
-    Uint8List imageBytes,
-    String imageName,
-    List<Map<String, dynamic>> segments, {
-    int retryCount = 0,
-    int maxRetries = 3,
-    String? region,
-    String? instructionsLang,
-    String? classificationId,
-  }) async {
-    final analysisRegion = region ?? defaultRegion;
-    final analysisLang = instructionsLang ?? defaultLanguage;
-
-    // Generate a new classification ID if not provided (for initial call)
-    final currentClassificationId = classificationId ?? const Uuid().v4();
-
-    // Check cache if enabled (segmentation results might not be cached by hash directly)
-    // For simplicity, we skip cache for segmented analysis for now as hashes
-    // would be on the full image, not segments.
-
-    // Try OpenAI first with compression
-    try {
-      final classification = await _analyzeWithOpenAISegments(
-        imageBytes,
-        imageName,
-        segments,
-        analysisRegion,
-        analysisLang,
-        currentClassificationId,
-      );
-      return classification;
-    } on Exception catch (e, s) {
-      WasteAppLogger.aiEvent('AI operation',
-          context: {'service': 'ai', 'file': 'ai_service'});
-
-      // Fallback for segment analysis failures
-      if (retryCount < maxRetries) {
-        final waitTime =
-            Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-        await Future.delayed(waitTime);
-        return _analyzeImageSegmentsInternal(
-          imageBytes,
-          imageName,
-          segments,
-          retryCount: retryCount + 1,
-          maxRetries: maxRetries,
-          region: region,
-          instructionsLang: instructionsLang,
-          classificationId: currentClassificationId,
-        );
-      }
-
-      // If all segment analysis retries fail, fall back to non-segmented analysis
-      WasteAppLogger.severe(
-        'Segment analysis failed; falling back to full-image analysis',
-        error: e,
-        stackTrace: s,
-        context: {'classification_id': currentClassificationId},
-      );
-      return analyzeWebImage(
-        imageBytes,
-        imageName,
-        region: analysisRegion,
-        instructionsLang: analysisLang,
-        classificationId: currentClassificationId,
-      );
-    }
-  }
-
   /// Analyzes an image using the OpenAI API.
   ///
   /// Compresses the image if necessary, constructs the request,
@@ -1257,14 +1203,12 @@ Output:
   }) async {
     _providerCallCount++;
     ProductionSafetyConfig.guardClientAiCall('OpenAI');
-    final operationId = 'openai_analysis_$classificationId';
-    final providerName = 'openai';
+    const providerName = 'openai';
     final modelName = ApiConfig.primaryModel;
     final modelKey =
         ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
     final startTime = DateTime.now();
 
-    // Check cost guardrails before proceeding
     final canAffordInstant =
         guardrailService.canUseInstantAnalysis(model: modelKey);
     if (!canAffordInstant) {
@@ -1276,20 +1220,11 @@ Output:
       );
     }
 
-    // Compress image if needed
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
-    final base64Image = _bytesToBase64(compressedBytes);
     final mimeType = _detectImageMimeType(compressedBytes);
 
-    WasteAppLogger.info('Sending image to OpenAI for analysis.');
-    WasteAppLogger.info(
-        'Image size: ${(compressedBytes.length / 1024).toStringAsFixed(2)} KB');
-    WasteAppLogger.info('MIME type: $mimeType');
-    WasteAppLogger.info('Region: $region');
-    WasteAppLogger.info('Language: $language');
-
-    final requestBody = <String, dynamic>{
-      'model': ApiConfig.primaryModel,
+    final openAiBody = <String, dynamic>{
+      'model': modelName,
       'messages': [
         {'role': 'system', 'content': _systemPrompt},
         {
@@ -1298,22 +1233,22 @@ Output:
             {
               'type': 'text',
               'text':
-                  '$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: web upload'
+                  '$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: web upload',
             },
             {
               'type': 'image_url',
-              'image_url': {'url': 'data:$mimeType;base64,$base64Image'}
+              'image_url': {'url': 'data:$mimeType;base64,${_bytesToBase64(compressedBytes)}'}
             }
           ]
         }
       ],
       'max_tokens': 1500,
-      'temperature': 0.1
+      'temperature': 0.1,
     };
 
-    late final Response response;
+    late final Response providerResponse;
     try {
-      response = await _dio.post(
+      providerResponse = await _dio.post(
         '$openAiBaseUrl/chat/completions',
         options: Options(
           headers: {
@@ -1321,7 +1256,7 @@ Output:
             'Authorization': 'Bearer $openAiApiKey',
           },
         ),
-        data: requestBody,
+        data: openAiBody,
         cancelToken: _cancelToken,
       );
     } on DioException catch (e) {
@@ -1329,178 +1264,85 @@ Output:
       rethrow;
     }
 
-    // Enhanced error handling with detailed logging
-    if (response.statusCode == 200) {
-      final endTime = DateTime.now();
-      final processingTime = endTime.difference(startTime);
-
-      WasteAppLogger.info('Received successful response from OpenAI.');
-      final Map<String, dynamic> responseData = response.data;
-
-      // Extract token usage from response
-      final usage = responseData['usage'] as Map<String, dynamic>?;
-      final inputTokens = usage?['prompt_tokens'] ?? 1500; // Fallback estimate
-      final outputTokens =
-          usage?['completion_tokens'] ?? 800; // Fallback estimate
-
-      // Calculate and record cost
-      final cost = pricingService.calculateCost(
-        model: modelKey,
-        inputTokens: inputTokens,
-        outputTokens: outputTokens,
-      );
-
-      // Record spending in guardrail service
-      await guardrailService.recordApiSpending(
-        model: modelKey,
-        cost: cost,
-        inputTokens: inputTokens,
-        outputTokens: outputTokens,
-      );
-
-      WasteAppLogger.info('API cost recorded', context: {
-        'service': 'ai_service',
-        'model': modelKey,
-        'cost': cost,
-        'input_tokens': inputTokens,
-        'output_tokens': outputTokens,
-        'processing_time_ms': processingTime.inMilliseconds,
-      });
-
-      var classification = _processAiResponseData(
-        responseData,
-        imageName,
-        region,
-        language,
-        null,
-        classificationId,
-        provider: providerName,
-        model: modelName,
-        thumbnailPath: thumbnailPath,
-      );
-
-      // Apply Enhanced AI Analysis v2.0 - Local Guidelines
-      classification = await LocalGuidelinesManager.applyLocalGuidelines(
-        classification,
-        region,
-      );
-
-      // Cache the result if we have a valid hash
-      if (cachingEnabled && imageHash != null) {
-        final contextAwareContentHash = _buildContextAwareContentHash(
-          contentHash,
-          region: region,
-          language: language,
-          provider: providerName,
-          model: modelName,
-        );
-        final contextAwareCacheKey = buildContextualCacheKey(
-          imageHash: imageHash,
-          region: region,
-          language: language,
-          provider: providerName,
-          model: modelName,
-        );
-        await cacheService.cacheClassification(
-          contextAwareCacheKey,
-          classification,
-          contentHash: contextAwareContentHash,
-          imageSize: imageBytes.length,
-          entryImageHash: imageHash,
-        );
-      }
-
-      return classification;
-    } else {
-      // ENHANCED ERROR LOGGING
-      WasteAppLogger.severe('OpenAI API request failed.');
-      WasteAppLogger.severe('Status code: ${response.statusCode}');
-      WasteAppLogger.severe('Response body: ${response.data}');
-
-      // Parse error details if available
-      try {
-        final errorData = response.data;
-        if (errorData['error'] != null) {
-          WasteAppLogger.severe(
-              'Error message: ${errorData['error']['message']}');
-          WasteAppLogger.severe('Error type: ${errorData['error']['type']}');
-          if (errorData['error']['code'] != null) {
-            WasteAppLogger.severe('Error code: ${errorData['error']['code']}');
-          }
-        }
-      } catch (e, s) {
-        WasteAppLogger.severe('Failed to parse OpenAI error response.',
-            error: e, stackTrace: s);
-      }
-
-      // Handle specific error codes
+    if (providerResponse.statusCode != 200) {
       throw AiFailure(
-        _failureKindFromStatus(response.statusCode ?? 0),
-        'OpenAI API Error ${response.statusCode}: ${response.data}',
+        AiFailureKind.provider,
+        'OpenAI response failed with status ${providerResponse.statusCode}',
         provider: providerName,
         model: modelName,
       );
     }
-  }
 
-  /// Analyzes an image by segments using the OpenAI API.
-  Future<WasteClassification> _analyzeWithOpenAISegments(
-    Uint8List imageBytes,
-    String imageName,
-    List<Map<String, dynamic>> segments,
-    String region,
-    String language,
-    String classificationId,
-  ) async {
-    // This is a simplified example. Real segmentation would involve
-    // sending multiple requests or a more complex prompt.
-    // For now, we will simulate by analyzing a cropped image of the first segment.
-    if (segments.isEmpty) {
-      // Fallback to full image analysis if no segments
-      return _analyzeWithOpenAI(
-          imageBytes, imageName, region, language, null, classificationId);
-    }
+    final processingTime = DateTime.now().difference(startTime);
+    final responseData = providerResponse.data as Map<String, dynamic>;
+    final usage = responseData['usage'] as Map<String, dynamic>?;
+    final inputTokens = usage?['prompt_tokens'] as int? ?? 1500;
+    final outputTokens = usage?['completion_tokens'] as int? ?? 800;
 
-    final originalImage = img.decodeImage(imageBytes);
-    if (originalImage == null) {
-      throw Exception('Failed to decode image for segmentation.');
-    }
-
-    final firstSegment = segments.first;
-    final bounds = firstSegment['bounds'] as Map<String, dynamic>;
-
-    // Convert percentage coordinates to pixel coordinates
-    final imageWidth = originalImage.width;
-    final imageHeight = originalImage.height;
-
-    final x = ((bounds['x'] as num).toDouble() * imageWidth / 100).round();
-    final y = ((bounds['y'] as num).toDouble() * imageHeight / 100).round();
-    final width =
-        ((bounds['width'] as num).toDouble() * imageWidth / 100).round();
-    final height =
-        ((bounds['height'] as num).toDouble() * imageHeight / 100).round();
-
-    // Ensure coordinates are within image bounds
-    final clampedX = x.clamp(0, imageWidth - 1);
-    final clampedY = y.clamp(0, imageHeight - 1);
-    final clampedWidth = width.clamp(1, imageWidth - clampedX);
-    final clampedHeight = height.clamp(1, imageHeight - clampedY);
-
-    final croppedImage = img.copyCrop(
-      originalImage,
-      x: clampedX,
-      y: clampedY,
-      width: clampedWidth,
-      height: clampedHeight,
+    final cost = pricingService.calculateCost(
+      model: modelKey,
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
     );
 
-    final croppedImageBytes = Uint8List.fromList(img.encodeJpg(croppedImage));
+    await guardrailService.recordApiSpending(
+      model: modelKey,
+      cost: cost,
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+    );
 
-    WasteAppLogger.info('Analyzing cropped segment.');
-    WasteAppLogger.info(
-        'Cropped image size: ${(croppedImageBytes.length / 1024).toStringAsFixed(2)} KB');
-    return _analyzeWithOpenAI(
-        croppedImageBytes, imageName, region, language, null, classificationId);
+    WasteAppLogger.info('API cost recorded', context: {
+      'service': 'ai_service',
+      'model': modelKey,
+      'cost': cost,
+      'input_tokens': inputTokens,
+      'output_tokens': outputTokens,
+      'processing_time_ms': processingTime.inMilliseconds,
+    });
+
+    var classification = _processAiResponseData(
+      responseData,
+      imageName,
+      region,
+      language,
+      null,
+      classificationId,
+      provider: providerName,
+      model: modelName,
+      thumbnailPath: thumbnailPath,
+    );
+
+    classification = await LocalGuidelinesManager.applyLocalGuidelines(
+      classification,
+      region,
+    );
+
+    if (cachingEnabled && imageHash != null) {
+      final contextAwareContentHash = _buildContextAwareContentHash(
+        contentHash,
+        region: region,
+        language: language,
+        provider: providerName,
+        model: modelName,
+      );
+      final contextAwareCacheKey = buildContextualCacheKey(
+        imageHash: imageHash,
+        region: region,
+        language: language,
+        provider: providerName,
+        model: modelName,
+      );
+      await cacheService.cacheClassification(
+        contextAwareCacheKey,
+        classification,
+        contentHash: contextAwareContentHash,
+        imageSize: imageBytes.length,
+        entryImageHash: imageHash,
+      );
+    }
+
+    return classification;
   }
 
   /// Analyzes an image using the Gemini API.

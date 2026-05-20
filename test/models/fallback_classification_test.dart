@@ -11,7 +11,7 @@ void main() {
       final fallback = WasteClassification.fallback(imagePath, userId: userId);
 
       // Verify basic properties
-      expect(fallback.itemName, equals('Unidentified Item'));
+      expect(fallback.itemName, equals('Unidentified Item - Fallback'));
       expect(fallback.category, equals('Requires Manual Review'));
       expect(fallback.subcategory, equals('Classification Needed'));
       expect(fallback.userId, equals(userId));
