@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import '../models/detected_waste_region.dart';
+import '../models/multi_item_classification_result.dart';
 import '../utils/constants.dart';
 import '../utils/design_system.dart';
 import '../widgets/analysis_progress_view.dart';
@@ -1758,11 +1760,43 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         return;
       }
 
+      final pairedCount = regions.length < results.length
+          ? regions.length
+          : results.length;
+      final detectedRegions = List<DetectedWasteRegion>.generate(
+        pairedCount,
+        (index) {
+          final selectedRegion = regions[index];
+          final classification = results[index];
+          return DetectedWasteRegion(
+            boundingBox: NormalizedBoundingBox(
+              left: selectedRegion.left,
+              top: selectedRegion.top,
+              width: selectedRegion.width,
+              height: selectedRegion.height,
+            ),
+            classification: classification,
+            confidence: classification.confidence,
+            userConfirmed: true,
+            label: classification.displayItemLabel,
+          );
+        },
+      );
+      final multiItemResult = MultiItemClassificationResult(
+        sourceImagePath: imageName,
+        sourceImageBytes: imageBytes,
+        regions: detectedRegions,
+        aggregateWarnings: detectedRegions.length > 1
+            ? const ['Review each item before disposal.']
+            : const [],
+      );
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => CombinedResultScreen(
             classifications: results,
+            multiItemResult: multiItemResult,
             imageName: imageName,
           ),
         ),

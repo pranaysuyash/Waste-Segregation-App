@@ -204,6 +204,26 @@ void main() {
       expect(find.byType(ResponsiveAppBarTitle), findsOneWidget);
     });
 
+    testWidgets('ResponsiveAppBarTitle uses exact multi-word abbreviation on narrow screens',
+        (WidgetTester tester) async {
+      const multiWordTitle = 'Waste Segregation Application';
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            appBar: AppBar(
+              title: const SizedBox(
+                width: 150,
+                child: ResponsiveAppBarTitle(title: multiWordTitle),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('WSA'), findsOneWidget);
+    });
+
     testWidgets('ResponsiveAppBarTitle handles single word titles',
         (WidgetTester tester) async {
       const singleWordTitle = 'SuperLongSingleWordTitle';
@@ -222,6 +242,26 @@ void main() {
       );
 
       expect(find.byType(ResponsiveAppBarTitle), findsOneWidget);
+    });
+
+    testWidgets('ResponsiveAppBarTitle truncates a single long word predictably',
+        (WidgetTester tester) async {
+      const singleWordTitle = 'SuperLongSingleWordTitle';
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            appBar: AppBar(
+              title: const SizedBox(
+                width: 150,
+                child: ResponsiveAppBarTitle(title: singleWordTitle),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('SuperLongS...'), findsOneWidget);
     });
 
     testWidgets('ResponsiveAppBarTitle creates proper abbreviations',

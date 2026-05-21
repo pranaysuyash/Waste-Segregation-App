@@ -3,6 +3,22 @@
 ## Overview
 This guide provides step-by-step instructions for manually testing the responsive text fixes for AppBar titles and greeting cards in the Waste Segregation App.
 
+## Source Of Truth
+
+The implementation details that used to live in `docs/implementation/ui/widgets/responsive_appbar_title.md` were folded into this guide so the behavior contract and verification checklist stay in one place.
+
+Current implementation anchors:
+- `lib/widgets/responsive_text.dart`
+- `lib/screens/web_fallback_screen.dart`
+- `lib/web_standalone.dart`
+- `widgetbook/main.dart`
+
+Behavior summary:
+- `ResponsiveAppBarTitle` abbreviates on very narrow widths below 200px.
+- `GreetingText` checks for overflow before switching to auto-sizing.
+- `ResponsiveText.cardTitle` exists as a preset, but active production usage is still limited.
+- The base `ResponsiveText` wrapper supports `semanticsLabel`.
+
 ## Test Environment Setup
 
 ### Prerequisites
@@ -69,6 +85,15 @@ This guide provides step-by-step instructions for manually testing the responsiv
 
 **Pass Criteria**: ✅ Graceful degradation on narrow screens
 
+#### Contract Note
+
+The current implementation uses a 200px breakpoint in `ResponsiveAppBarTitle`:
+- multi-word titles are abbreviated from the first letter of each word
+- single long words are truncated with ellipsis after the first 10 characters
+- the title remains single-line with ellipsis overflow
+
+When testing, confirm the exact visible result rather than only checking that a widget rendered.
+
 ---
 
 ### 2. Greeting Card Tests
@@ -129,6 +154,15 @@ This guide provides step-by-step instructions for manually testing the responsiv
 
 **Pass Criteria**: ✅ Greeting card responsive on narrow screens
 
+#### Contract Note
+
+`GreetingText` first measures the full greeting with `TextPainter` and only uses auto-sizing when the text exceeds the available width.
+
+When testing, confirm:
+- the greeting remains readable at narrow widths
+- the max line behavior stays at 2
+- the fallback path still renders the full greeting when it fits
+
 ---
 
 ### 3. Accessibility Tests
@@ -149,6 +183,10 @@ This guide provides step-by-step instructions for manually testing the responsiv
 
 **Pass Criteria**: ✅ Full accessibility maintained
 
+#### Contract Note
+
+The base `ResponsiveText` API supports `semanticsLabel`, but the specialized wrappers should still be checked for the semantic output users hear in practice.
+
 ---
 
 #### Test 3.2: Font Size Accessibility
@@ -167,6 +205,10 @@ This guide provides step-by-step instructions for manually testing the responsiv
 - No text overflow occurs
 
 **Pass Criteria**: ✅ Responsive to system font size changes
+
+#### Contract Note
+
+This guide should be used to verify whether the UI remains readable at device font extremes without relying only on the golden files.
 
 ---
 
@@ -187,6 +229,10 @@ This guide provides step-by-step instructions for manually testing the responsiv
 - Text renders quickly and consistently
 
 **Pass Criteria**: ✅ No performance impact from responsive text
+
+#### Contract Note
+
+The performance claim in the implementation doc is conditional, not absolute. Treat this as a sanity check against obvious rebuild or overflow regressions, not a full benchmark.
 
 ---
 
@@ -225,6 +271,10 @@ This guide provides step-by-step instructions for manually testing the responsiv
 - No encoding or display issues
 
 **Pass Criteria**: ✅ Special characters handled correctly
+
+#### Contract Note
+
+If a username or title looks short but contains punctuation or unusual spacing, verify the visible text and not just the raw string equality.
 
 ---
 
@@ -288,6 +338,11 @@ flutter test test/golden/responsive_text_golden_test.dart
 # Update golden files if needed
 flutter test test/golden/responsive_text_golden_test.dart --update-goldens
 ```
+
+Relevant automated coverage today:
+- `test/widgets/responsive_text_test.dart`
+- `test/golden/responsive_text_golden_test.dart`
+- `test/ui_consistency/comprehensive_overflow_test.dart` is currently skipped and should be treated as a stale coverage stub until migrated.
 
 ## Success Criteria
 

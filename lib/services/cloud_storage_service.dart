@@ -170,7 +170,17 @@ class CloudStorageService {
     bool processGamification = true,
   }) async {
     // Always save locally first
-    await _localStorageService.saveClassification(classification);
+    final localSaveResult =
+        await _localStorageService.saveClassificationWithResult(classification);
+    if (!localSaveResult.saved && localSaveResult.wasDuplicate) {
+      WasteAppLogger.info('Duplicate classification skipped before cloud sync',
+          context: {
+            'classificationId': classification.id,
+            'contentHash': localSaveResult.contentHash,
+            'service': 'CloudStorageService',
+          });
+      return;
+    }
 
     // Check if we should prevent sync due to fresh start mode
     final shouldPreventSync = await FreshStartService.shouldPreventAutoSync();

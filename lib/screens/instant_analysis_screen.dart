@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/ai_service.dart';
+import '../services/instant_analysis_flow_coordinator.dart';
 import '../utils/ai_error_messages.dart';
 import '../widgets/analysis_progress_view.dart';
 import '../screens/result_screen_wrapper.dart';
@@ -26,6 +27,8 @@ class InstantAnalysisScreen extends StatefulWidget {
 }
 
 class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
+  static const InstantAnalysisFlowCoordinator _flowCoordinator =
+      InstantAnalysisFlowCoordinator();
   bool _isAnalyzing = false;
   bool _isCancelled = false;
   AnalysisProgressStage _analysisStage = AnalysisProgressStage.checkingQuality;
@@ -90,39 +93,32 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
       if (!_isCancelled && mounted) {
         WasteAppLogger.info(
             '✅ Analysis complete - saving classification immediately');
-        setState(() {
-          _analysisStage = AnalysisProgressStage.applyingLocalRules;
-        });
-        await Future<void>.delayed(const Duration(milliseconds: 320));
-        if (_isCancelled || !mounted) return;
-
-        setState(() {
-          _analysisStage = AnalysisProgressStage.success;
-        });
-        await Future<void>.delayed(const Duration(milliseconds: 280));
-        if (_isCancelled || !mounted) return;
-
-        WasteAppLogger.info(
-            '✅ Classification saved - navigating to results screen');
-
-        // Fire-and-forget replacement avoids hanging async completion until the
-        // destination route is popped, which can stall widget tests and callers.
-        unawaited(
-          Navigator.pushReplacement<void, void>(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ResultScreenWrapper(
-                classification: result!,
-                autoAnalyze: true,
+        await _flowCoordinator.completeSuccessFlow(
+          classification: result!,
+          isMounted: () => mounted,
+          isCancelled: () => _isCancelled,
+          setStage: (stage) {
+            if (!mounted) return;
+            setState(() {
+              _analysisStage = stage;
+            });
+          },
+          navigateToResult: (classification) async {
+            WasteAppLogger.info(
+                '✅ Classification saved - navigating to results screen');
+            unawaited(
+              Navigator.pushReplacement<void, void>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ResultScreenWrapper(
+                    classification: classification,
+                    autoAnalyze: true,
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
-
-        // Note: Removed the conflicting Navigator.pop(result) call that was causing
-        // the double navigation issue. The result is now handled entirely by the
-        // ResultScreen, and the parent screen will get the result through the
-        // normal navigation flow.
       }
     } catch (e) {
       if (!_isCancelled && mounted) {

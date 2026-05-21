@@ -131,13 +131,47 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       WasteAppLogger.info('Starting classification processing pipeline',
           context: {
             'classificationId': classificationId,
-            'stage': 'local_save',
-            'service': 'ResultPipeline',
+          'stage': 'local_save',
+          'service': 'ResultPipeline',
           });
 
-      final savedClassification = classification.copyWith(isSaved: true);
-      await _storageService.saveClassification(savedClassification,
-          force: force);
+      final duplicateClassificationId = force
+          ? null
+          : await _storageService.findDuplicateClassificationId(classification);
+      final decoratedClassification = _decorateForPersistence(
+        classification,
+        duplicateClassificationId: duplicateClassificationId,
+      );
+      if (duplicateClassificationId != null) {
+        WasteAppLogger.info('Duplicate candidate detected before save',
+            context: {
+              'classificationId': classificationId,
+              'duplicateClassificationId': duplicateClassificationId,
+              'service': 'ResultPipeline',
+            });
+      }
+      final saveResult = await _storageService.saveClassificationWithResult(
+        decoratedClassification.copyWith(isSaved: true),
+        force: force,
+      );
+      if (saveResult.wasDuplicate) {
+        WasteAppLogger.info('Duplicate classification short-circuited',
+            context: {
+              'classificationId': classificationId,
+              'duplicateClassificationId':
+                  saveResult.duplicateClassificationId,
+              'contentHash': saveResult.contentHash,
+              'service': 'ResultPipeline',
+            });
+        state = state.copyWith(
+          isProcessing: false,
+          isSaved: true,
+        );
+        return;
+      }
+
+      final savedClassification =
+          decoratedClassification.copyWith(isSaved: true);
       enqueueTrainingCandidateInBackground(
         _trainingDataService,
         savedClassification,
@@ -332,9 +366,26 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     try {
       await trackUserAction('classification_save', classification);
 
-      final savedClassification = classification.copyWith(isSaved: true);
-      await _storageService.saveClassification(savedClassification,
-          force: force);
+      final duplicateClassificationId = force
+          ? null
+          : await _storageService.findDuplicateClassificationId(classification);
+      final savedClassification = _decorateForPersistence(
+        classification,
+        duplicateClassificationId: duplicateClassificationId,
+      ).copyWith(isSaved: true);
+      final saveResult = await _storageService.saveClassificationWithResult(
+        savedClassification,
+        force: force,
+      );
+      if (saveResult.wasDuplicate) {
+        state = state.copyWith(isSaved: true);
+        WasteAppLogger.info('Duplicate classification save skipped', context: {
+          'classificationId': classification.id,
+          'duplicateClassificationId': saveResult.duplicateClassificationId,
+          'service': 'ResultPipeline',
+        });
+        return;
+      }
       enqueueTrainingCandidateInBackground(
         _trainingDataService,
         savedClassification,
@@ -604,6 +655,121 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
   /// Reset the pipeline state
   void reset() {
     state = const ResultPipelineState();
+  }
+
+  WasteClassification _decorateForPersistence(
+    WasteClassification classification, {
+    String? duplicateClassificationId,
+  }) {
+    final confidence = classification.confidence;
+    final calibratedConfidence = confidence;
+    final qualityScore = _deriveQualityScore(classification);
+    final qualityReasons = _deriveQualityReasons(classification, confidence);
+    final needsReview = classification.clarificationNeeded == true ||
+        (calibratedConfidence != null && calibratedConfidence < 0.65);
+    final duplicateScore = duplicateClassificationId != null ? 1.0 : 0.0;
+    final routeDecision = _deriveRouteDecision(
+      qualityScore: qualityScore,
+      duplicateHit: duplicateClassificationId != null,
+      needsReview: needsReview,
+    );
+    final routeReason = _deriveRouteReason(
+      qualityReasons: qualityReasons,
+      duplicateHit: duplicateClassificationId != null,
+      needsReview: needsReview,
+      calibratedConfidence: calibratedConfidence,
+    );
+
+    return classification.copyWith(
+      rawConfidence: confidence,
+      calibratedConfidence: calibratedConfidence,
+      needsReview: needsReview,
+      reviewReason: routeReason,
+      qualityScore: qualityScore,
+      qualityReasons: qualityReasons.isEmpty ? null : qualityReasons,
+      duplicateScore: duplicateScore,
+      duplicateClusterId: duplicateClassificationId,
+      routeDecision: routeDecision,
+      routeReason: routeReason,
+      policyPackId: classification.localGuidelinesVersion ?? 'policy-unknown',
+      modelRoute: classification.modelSource ?? 'unknown',
+      routeLatencyMs: classification.processingTimeMs,
+      routeCostUsd: null,
+    );
+  }
+
+  double? _deriveQualityScore(WasteClassification classification) {
+    final metrics = classification.imageMetrics;
+    if (metrics == null || metrics.isEmpty) {
+      return null;
+    }
+    final width = metrics['width'];
+    final height = metrics['height'];
+    if (width == null || height == null || width <= 0 || height <= 0) {
+      return null;
+    }
+    final minEdge = width < height ? width : height;
+    final normalized = (minEdge / 1280.0).clamp(0.0, 1.0);
+    return normalized.toDouble();
+  }
+
+  List<String> _deriveQualityReasons(
+    WasteClassification classification,
+    double? confidence,
+  ) {
+    final reasons = <String>[];
+    if (classification.imageMetrics == null ||
+        classification.imageMetrics!.isEmpty) {
+      reasons.add('missing_image_metrics');
+    }
+    if (classification.clarificationNeeded == true) {
+      reasons.add('clarification_needed');
+    }
+    if (confidence != null && confidence < 0.65) {
+      reasons.add('low_confidence');
+    }
+    if (classification.imageHash == null ||
+        classification.imageHash!.trim().isEmpty) {
+      reasons.add('missing_image_hash');
+    }
+    return reasons;
+  }
+
+  String _deriveRouteDecision({
+    required double? qualityScore,
+    required bool duplicateHit,
+    required bool needsReview,
+  }) {
+    if (duplicateHit) {
+      return 'cache_hit';
+    }
+    if (qualityScore != null && qualityScore < 0.4) {
+      return 'retake';
+    }
+    if (needsReview) {
+      return 'manual_review';
+    }
+    return 'local_first';
+  }
+
+  String _deriveRouteReason({
+    required List<String> qualityReasons,
+    required bool duplicateHit,
+    required bool needsReview,
+    required double? calibratedConfidence,
+  }) {
+    if (duplicateHit) {
+      return 'duplicate_scan_reused';
+    }
+    if (qualityReasons.isNotEmpty) {
+      return qualityReasons.join(',');
+    }
+    if (needsReview) {
+      return calibratedConfidence != null
+          ? 'uncertain_confidence_${calibratedConfidence.toStringAsFixed(2)}'
+          : 'uncertain_classification';
+    }
+    return 'quality_and_confidence_ok';
   }
 }
 

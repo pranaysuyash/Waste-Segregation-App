@@ -7,9 +7,11 @@
 ## What changed
 - Reworked reward popup into a themed `waste action -> collection -> eco reward` sequence.
 - Added a compact waste-action visual in the popup:
-  - recycling icon drops into a collection bin lane
+  - generated eco reward asset drops into a collection bin lane
   - eco impact particles appear on successful collection
   - eco points continue to animate in as collectable chips
+- Added generated project asset:
+  - `assets/images/generated/waste_reward_collection_asset.png`
 - Preserved existing popup API compatibility while extending it:
   - `showPointsPopup(points)` still works
   - optional themed metadata now supported: `actionLabel`, `impactLabel`

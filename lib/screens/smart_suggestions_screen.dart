@@ -189,7 +189,7 @@ class _SmartSuggestionsScreenState extends State<SmartSuggestionsScreen> {
             Text(
               suggestion.description,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: textColor.withOpacity(0.8),
+                    color: textColor.withValues(alpha: 0.8),
                   ),
             ),
             if (suggestion.actionText != null && suggestion.actionRoute != null)

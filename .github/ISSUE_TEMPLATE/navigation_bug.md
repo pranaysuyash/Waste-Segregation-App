@@ -46,7 +46,7 @@ If applicable, add screenshots or screen recordings to help explain the problem.
 - Device: [e.g. iPhone 15, Pixel 7]
 - OS: [e.g. iOS 17.1, Android 14]
 - App Version: [e.g. 2.3.2]
-- Flutter Version: [e.g. 3.16.0]
+- Flutter Version: [e.g. 3.32.2]
 
 ### Console Logs
 Please include relevant console logs, especially navigation-related logs:

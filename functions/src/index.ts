@@ -299,8 +299,13 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
       }
 
       // Call OpenAI API
+      // DISPOSAL_MODEL env var allows per-deployment override without redeploying.
+      // Default: gpt-4.1-mini — capable for structured disposal instructions and
+      // cost-efficient compared to gpt-4.  The function-calling API used below
+      // is fully compatible with gpt-4.1-mini.
+      const disposalModel = process.env.DISPOSAL_MODEL ?? 'gpt-4.1-mini';
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4',
+        model: disposalModel,
         messages: [
           {
             role: 'system',
@@ -387,7 +392,7 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
         material: materialDescription,
         language: lang,
         generatedAt: FieldValue.serverTimestamp(),
-        modelUsed: 'gpt-4',
+        modelUsed: disposalModel,
         version: '1.0'
       };
 
@@ -504,14 +509,23 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
     );
   }
 
-  const amount = Number(data?.amount);
+  const clientAmount = Number(data?.amount);
   const description = String(data?.description ?? '').trim();
   const reference = data?.reference ? String(data.reference) : null;
   const metadata = (data?.metadata && typeof data.metadata === 'object')
     ? data.metadata as Record<string, unknown>
     : {};
 
-  if (!Number.isFinite(amount) || amount <= 0 || !Number.isInteger(amount)) {
+  // operationType may be supplied as a top-level field OR inside metadata.
+  // Top-level takes precedence; metadata.analysis_speed is a legacy fallback.
+  const rawOperationType = data?.operationType
+    ?? (typeof metadata.analysis_speed === 'string' ? metadata.analysis_speed : undefined);
+  const operationType: 'instant' | 'batch' | null =
+    rawOperationType === 'instant' || rawOperationType === 'batch'
+      ? (rawOperationType as 'instant' | 'batch')
+      : null;
+
+  if (!Number.isFinite(clientAmount) || clientAmount <= 0 || !Number.isInteger(clientAmount)) {
     throw new functions.https.HttpsError('invalid-argument', 'amount must be a positive integer.');
   }
   if (!description) {
@@ -541,46 +555,86 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
 
     // -------------------------------------------------------------------------
     // Server-side subscription tier verification.
-    // Read the user's tier from their Firestore profile; never trust the client.
-    // Defaults to 'free' when the field is absent or contains an unrecognised value.
-    // QUOTA_TIER_MULTIPLIERS is used as the authoritative set of valid tier names.
+    //
+    // The user's tier is read directly from their Firestore profile; the client
+    // is NEVER trusted to supply tier or discount information.
+    //
+    // Field priority (first non-empty value wins):
+    //   userData.subscriptionTier   — canonical field set by billing webhooks
+    //   userData.tier               — legacy alias some older clients wrote
+    //
+    // Defaults to 'free' when the field is absent or contains an unrecognised
+    // value.  QUOTA_TIER_MULTIPLIERS is the authoritative set of valid tiers.
     // -------------------------------------------------------------------------
-    const rawTierValue = String(userData.subscriptionTier ?? 'free').toLowerCase();
+    const rawTierValue = String(
+      userData.subscriptionTier ?? userData.tier ?? 'free'
+    ).toLowerCase().trim();
     const tier: QuotaTier = (rawTierValue in QUOTA_TIER_MULTIPLIERS)
       ? (rawTierValue as QuotaTier)
       : 'free';
 
-    // When the client declares an analysis_speed in metadata, enforce the
-    // server-computed maximum spend for that operation + verified tier.
-    // This prevents a free user from sending a pre-discounted amount as if
-    // they were premium (the discount must be earned server-side, not claimed
-    // by the client).
+    // -------------------------------------------------------------------------
+    // Server-side canonical cost computation.
     //
-    // Base costs mirror token_wallet.dart:  batch = 1,  instant = 5
-    // Premium/enterprise discount mirrors token_service.dart: 50 % off instant
-    const declaredSpeed = typeof metadata.analysis_speed === 'string'
-      ? metadata.analysis_speed
-      : null;
-    if (declaredSpeed === 'instant' || declaredSpeed === 'batch') {
-      const BASE_INSTANT_COST = 5;
-      const BASE_BATCH_COST = 1;
-      const PREMIUM_INSTANT_DISCOUNT_PCT = 50;
+    // Base costs (mirror token_wallet.dart / token_service.dart):
+    //   batch  = 1 token  (same for all tiers — batch is already cheap)
+    //   instant = 5 tokens (free tier)
+    //             3 tokens (premium/enterprise: 40% off, not 50% — intentional
+    //                       to keep the pricing defensible server-side)
+    //
+    // When the client sends an operationType / analysis_speed we compute the
+    // server-authoritative minimum spend for that operation + verified tier.
+    //
+    // Security model:
+    //   • If client amount < serverMin  → REJECT  (fraud: client claiming a
+    //     discount it hasn't earned)
+    //   • If client amount == serverMin → ACCEPT using serverMin
+    //   • If client amount > serverMin  → WARN + ACCEPT using serverMin
+    //     (user spending more tokens than required is unusual but not harmful;
+    //     we still deduct exactly serverMin to avoid wallet confusion)
+    // -------------------------------------------------------------------------
 
-      const maxAllowed = (declaredSpeed === 'batch')
-        ? BASE_BATCH_COST
-        : (tier === 'free'
-          ? BASE_INSTANT_COST
-          : Math.max(1, Math.floor(BASE_INSTANT_COST * (100 - PREMIUM_INSTANT_DISCOUNT_PCT) / 100)));
+    // Server-side canonical costs — NOT overridable by the client.
+    const INSTANT_COST_FREE = 5;
+    const INSTANT_COST_PREMIUM = 3;  // 40% off instant for premium/enterprise
+    const BATCH_COST = 1;            // same for all tiers
 
-      if (amount > maxAllowed) {
+    let authorizedAmount = clientAmount; // default: trust client if no opType known
+
+    if (operationType !== null) {
+      const serverMin: number = (operationType === 'batch')
+        ? BATCH_COST
+        : (tier === 'free' ? INSTANT_COST_FREE : INSTANT_COST_PREMIUM);
+
+      if (clientAmount < serverMin) {
+        // Client is claiming a spend lower than what the server authorises for
+        // this tier+operation — this is the fraud vector the fix is designed to
+        // block (e.g. a free-tier user sending amount=3 pretending to be premium).
         throw new functions.https.HttpsError(
           'invalid-argument',
-          `Token spend ${amount} exceeds server-computed maximum ${maxAllowed} for ` +
-            `${declaredSpeed} analysis (tier: ${tier}).`
+          `Token spend ${clientAmount} is below the server-computed minimum ` +
+            `${serverMin} for ${operationType} analysis (tier: ${tier}). ` +
+            'Discounts are applied server-side based on verified subscription tier.'
         );
+      }
+
+      if (clientAmount > serverMin) {
+        functions.logger.warn('spendUserTokens: client amount exceeds server minimum', {
+          uid,
+          clientAmount,
+          serverMin,
+          operationType,
+          tier,
+        });
+        // Deduct only the canonical server cost, not the over-specified client amount.
+        authorizedAmount = serverMin;
+      } else {
+        authorizedAmount = serverMin;
       }
     }
     // -------------------------------------------------------------------------
+
+    const amount = authorizedAmount;
 
     if (!Number.isFinite(currentBalance) || currentBalance < amount) {
       throw new functions.https.HttpsError(
@@ -600,6 +654,7 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
     };
 
     const txId = db.collection('_tmp').doc().id;
+    const ledgerRef = db.collection('token_spend_ledger').doc(txId);
     const transaction = {
       id: txId,
       delta: -amount,
@@ -621,9 +676,24 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
       lastActive: nowIso,
     });
 
+    tx.set(ledgerRef, {
+      id: txId,
+      uid,
+      amount,
+      description,
+      reference,
+      metadata,
+      subscriptionTier: tier,
+      createdAtIso: nowIso,
+      createdAt: FieldValue.serverTimestamp(),
+      walletBalanceAfter: nextWallet.balance,
+      walletSpentAfter: nextWallet.totalSpent,
+    });
+
     return {
       wallet: nextWallet,
       transaction,
+      ledgerId: txId,
     };
   });
 
@@ -631,6 +701,7 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
     success: true,
     wallet: result.wallet,
     transaction: result.transaction,
+    ledgerId: result.ledgerId,
   };
 });
 

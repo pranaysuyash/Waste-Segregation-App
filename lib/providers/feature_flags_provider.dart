@@ -58,8 +58,6 @@ final goldenTestModeFeatureFlagProvider = FutureProvider<bool>((ref) async {
 @Deprecated('Use resultScreenV2FeatureFlagProvider instead')
 final resultsV2EnabledProvider = resultScreenV2FeatureFlagProvider;
 
-@Deprecated('Use homeHeaderV2FeatureFlagProvider instead')
-final homeHeaderV2EnabledProvider = homeHeaderV2FeatureFlagProvider;
 
 @Deprecated('Use accessibilityEnhancedFeatureFlagProvider instead')
 final accessibilityEnhancedProvider = accessibilityEnhancedFeatureFlagProvider;

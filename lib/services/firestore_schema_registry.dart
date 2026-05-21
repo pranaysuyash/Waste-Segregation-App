@@ -167,6 +167,15 @@ class SchemaField {
 class UsersSchema {
   static const String collection = FirestoreCollections.users;
 
+  /// Server-authoritative subscription tier field.
+  ///
+  /// Written by the client purchase/reset flow via PremiumService and read
+  /// by the `spendUserTokens` Cloud Function to enforce token cost discounts
+  /// server-side.  Valid values match QuotaTier in functions/src/rate_limit_config.ts:
+  ///   'free' | 'premium' | 'enterprise'
+  /// Absent field = 'free' (Cloud Function default).
+  static const String subscriptionTierField = 'subscriptionTier';
+
   static const List<SchemaField> fields = [
     SchemaField(
       name: 'id',
@@ -253,6 +262,17 @@ class UsersSchema {
       description: 'Embedded token transaction history',
     ),
     SchemaField(
+      name: subscriptionTierField,
+      type: 'String?',
+      classification: FieldClassification.private,
+      required: false,
+      description:
+          'Server-authoritative subscription tier. Written by PremiumService on '
+          'purchase/restore/reset; read by spendUserTokens Cloud Function to verify '
+          'token cost discounts. Values: free | premium | enterprise. '
+          'Absent = free (server default).',
+    ),
+    SchemaField(
       name: 'trainingConsent',
       type: 'Map',
       classification: FieldClassification.private,
@@ -306,6 +326,41 @@ class ClassificationsSchema {
           'AI confidence score 0.0-1.0. NOTE: doc previously called this "accuracy" — incorrect.',
     ),
     SchemaField(
+      name: 'calibratedConfidence',
+      type: 'double?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'Calibrated confidence after route/pipeline adjustment.',
+    ),
+    SchemaField(
+      name: 'needsReview',
+      type: 'bool?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'Explicit uncertain/ambiguous state for review routing.',
+    ),
+    SchemaField(
+      name: 'routeDecision',
+      type: 'String?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'Route selected by the pipeline (local_first, manual_review, cache_hit, retake).',
+    ),
+    SchemaField(
+      name: 'qualityScore',
+      type: 'double?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'Capture quality signal used for pre-classification gating.',
+    ),
+    SchemaField(
+      name: 'duplicateScore',
+      type: 'double?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'Duplicate / near-duplicate score from hash-based gate.',
+    ),
+    SchemaField(
       name: 'timestamp',
       type: 'String',
       classification: FieldClassification.system,
@@ -334,7 +389,7 @@ class ClassificationsSchema {
     ),
   ];
 
-  // Full field count: 70+ fields in WasteClassification
+  // Full field count: 80+ fields in WasteClassification
   // Key deprecated fields:
   // - 'subcategory' (deprecated, use 'subCategory' for AI v2.0)
   // - 'materialType' (deprecated, use 'materials' list for AI v2.0)

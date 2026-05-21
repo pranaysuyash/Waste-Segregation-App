@@ -105,7 +105,17 @@
   "@dataExportSubtitle": {
     "description": "Subtitle for data export"
   },
-  
+
+  "hapticFeedback": "Haptic Feedback",
+  "@hapticFeedback": {
+    "description": "Haptic feedback setting title"
+  },
+
+  "hapticFeedbackSubtitle": "Vibrate on successful scan",
+  "@hapticFeedbackSubtitle": {
+    "description": "Haptic feedback setting subtitle"
+  },
+
   "navigationSection": "Navigation",
   "@navigationSection": {
     "description": "Header for navigation settings section"
@@ -164,6 +174,16 @@
   "navigationStylesSubtitle": "Try different navigation designs",
   "@navigationStylesSubtitle": {
     "description": "Subtitle for navigation styles demo"
+  },
+
+  "trainingReviewQueue": "Training Review Queue",
+  "@trainingReviewQueue": {
+    "description": "Title for the training review queue"
+  },
+
+  "trainingReviewQueueSubtitle": "Review pending training samples and labels",
+  "@trainingReviewQueueSubtitle": {
+    "description": "Subtitle for the training review queue"
   },
   
   "featuresSection": "Features & Tools",
@@ -297,6 +317,36 @@
   "@developerOptions": {
     "description": "Developer options header"
   },
+
+  "debugMode": "Debug Mode",
+  "@debugMode": {
+    "description": "Developer mode tile title"
+  },
+
+  "debugModeSubtitle": "Enable debug logging",
+  "@debugModeSubtitle": {
+    "description": "Developer mode tile subtitle"
+  },
+
+  "performanceMonitor": "Performance Monitor",
+  "@performanceMonitor": {
+    "description": "Performance monitor tile title"
+  },
+
+  "performanceMonitorSubtitle": "View performance metrics",
+  "@performanceMonitorSubtitle": {
+    "description": "Performance monitor tile subtitle"
+  },
+
+  "resetAppData": "Reset App Data",
+  "@resetAppData": {
+    "description": "Reset app data tile title"
+  },
+
+  "resetAppDataSubtitle": "Clear all app data",
+  "@resetAppDataSubtitle": {
+    "description": "Reset app data tile subtitle"
+  },
   
   "toggleDeveloperMode": "Toggle Developer Mode",
   "@toggleDeveloperMode": {
@@ -341,6 +391,105 @@
   "clearData": "Clear Data",
   "@clearData": {
     "description": "Clear data button text"
+  },
+
+  "testModeFeature": "Test mode: {feature}",
+  "@testModeFeature": {
+    "description": "Developer toggle subtitle for a feature",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+
+  "featureEnabledForTesting": "{feature} {status} for testing",
+  "@featureEnabledForTesting": {
+    "description": "Developer feature toggle feedback message",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+
+  "supportContactComingSoon": "Support contact feature coming soon!",
+  "@supportContactComingSoon": {
+    "description": "Support contact coming soon message"
+  },
+
+  "bugReportComingSoon": "Bug reporting feature coming soon!",
+  "@bugReportComingSoon": {
+    "description": "Bug reporting coming soon message"
+  },
+
+  "rateAppComingSoon": "App rating feature coming soon!",
+  "@rateAppComingSoon": {
+    "description": "Rate app coming soon message"
+  },
+
+  "aboutDialogBodyLine1": "A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.",
+  "@aboutDialogBodyLine1": {
+    "description": "First line of the settings about dialog body"
+  },
+
+  "aboutDialogBodyLine2": "Built with Flutter and powered by AI for accurate waste classification.",
+  "@aboutDialogBodyLine2": {
+    "description": "Second line of the settings about dialog body"
+  },
+
+  "developerModeToggled": "Developer mode {status}",
+  "@developerModeToggled": {
+    "description": "Developer mode feedback message",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+
+  "resettingAllData": "Resetting all data...",
+  "@resettingAllData": {
+    "description": "Loading message while resetting app data"
+  },
+
+  "dataClearingFailed": "Data clearing failed: {error}",
+  "@dataClearingFailed": {
+    "description": "Error message when clearing app data fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "migrationCompleted": "Migration completed: {updated} updated, {skipped} skipped, {errors} errors",
+  "@migrationCompleted": {
+    "description": "Migration success message",
+    "placeholders": {
+      "updated": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "errors": {
+        "type": "int"
+      }
+    }
+  },
+
+  "migrationFailed": "Migration failed: {message}",
+  "@migrationFailed": {
+    "description": "Migration failure message",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
   },
   
   "premiumFeatureTitle": "{feature} - Premium Feature",

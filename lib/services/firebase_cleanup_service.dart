@@ -3,11 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
-import 'package:waste_segregation_app/services/gamification_service.dart';
+import 'package:waste_segregation_app/services/gamification_service.dart' show GamificationService;
 import 'package:waste_segregation_app/services/community_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/enhanced_storage_service.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/services/enhanced_image_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'firestore_schema_registry.dart';
 
@@ -82,6 +83,28 @@ class FirebaseCleanupService {
     try {
       // 1. Wipe Firestore data (cloud and local cache)
       await _wipeCloudAndFirestoreCache(user.uid);
+
+      // 1b. Delete Firebase Storage blobs (batch_images, contribution_photos).
+      //     Must run before user.delete() — storage rules require auth.uid == userId.
+      //     Best-effort: failure is logged but does not abort the rest of the wipe.
+      try {
+        await CloudStorageService(EnhancedStorageService())
+            .deleteUserStorageBlobs(user.uid);
+        WasteAppLogger.info('✅ Firebase Storage blobs deleted for user: ${user.uid}');
+      } catch (e) {
+        WasteAppLogger.severe('❌ Error deleting storage blobs during fresh install: $e');
+        // Non-fatal — continue with account deletion
+      }
+
+      // 1c. Delete on-device image files (images/ and thumbnails/ directories).
+      //     Best-effort: failure is logged but does not abort the rest of the wipe.
+      try {
+        await EnhancedImageService().deleteAll();
+        WasteAppLogger.info('✅ On-device image files deleted during fresh install.');
+      } catch (e) {
+        WasteAppLogger.severe('❌ Error deleting on-device images during fresh install: $e');
+        // Non-fatal — continue with account deletion
+      }
 
       // 2. Erase all local Hive data from disk
       await _resetLocalHive();
@@ -215,6 +238,13 @@ class FirebaseCleanupService {
   /// [ADMIN-ONLY] Deletes all of a specific user's data from Firestore.
   /// This is a server-side operation and does not affect local device data.
   /// Throws an exception if the currently authenticated user is not an admin.
+  ///
+  /// NOTE — Firebase Storage blobs are NOT deleted here. Storage security rules
+  /// enforce `request.auth.uid == userId`, so a client authenticated as the admin
+  /// cannot delete another user's `batch_images/{userId}/` or
+  /// `contribution_photos/{userId}/` objects. Full Storage cleanup for a target user
+  /// requires a privileged server-side path (Firebase Admin SDK or a Cloud Function
+  /// with admin credentials). Track as follow-up: server-side adminDeleteUserStorage.
   Future<void> adminDeleteUser(String userIdToDelete) async {
     await _verifyCurrentUserIsAdmin();
 

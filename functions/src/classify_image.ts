@@ -233,6 +233,9 @@ interface AiCostEvent {
   imageHash: string;
   success: boolean;
   cacheHit: boolean;
+  reservationId?: string | null;
+  requestId?: string | null;
+  route?: string;
 }
 
 interface ServerTokenWallet {
@@ -974,6 +977,7 @@ export const classifyImage = functions
   const analysisLang = (typeof lang === 'string' && lang.trim().length > 0)
     ? lang.trim()
     : 'en';
+  const normalizedRequestId = normalizeRequestId(requestId);
 
   // ------------------------------------------------------------------
   // 4. Server-side hash (authoritative cache key)
@@ -1027,6 +1031,9 @@ export const classifyImage = functions
         imageHash: serverHash,
         success: true,
         cacheHit: true,
+        reservationId: null,
+        requestId: normalizedRequestId,
+        route: 'classifyImage',
       });
 
       // Return the cached result payload (strip internal storage fields).
@@ -1065,7 +1072,7 @@ export const classifyImage = functions
       imageHash: serverHash,
       region: analysisRegion,
       lang: analysisLang,
-      requestId,
+      requestId: normalizedRequestId,
     });
   }
 
@@ -1153,6 +1160,9 @@ export const classifyImage = functions
         imageHash: serverHash,
         success: false,
         cacheHit: false,
+        reservationId: tokenReservation?.reservationId ?? null,
+        requestId: normalizedRequestId,
+        route: 'classifyImage',
       });
 
       throw new functions.https.HttpsError(
@@ -1188,6 +1198,9 @@ export const classifyImage = functions
     imageHash: serverHash,
     success: true,
     cacheHit: false,
+    reservationId: tokenReservation?.reservationId ?? null,
+    requestId: normalizedRequestId,
+    route: 'classifyImage',
   });
 
   // ------------------------------------------------------------------
@@ -1231,6 +1244,7 @@ export const classifyImage = functions
   return {
     classification: classificationResult,
     meta: {
+      route: 'classifyImage',
       provider: usedProvider,
       model: usedModel,
       serverImageHash: serverHash,

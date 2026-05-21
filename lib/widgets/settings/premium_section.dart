@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../screens/premium_features_screen.dart';
+import '../../l10n/app_localizations.dart';
+import '../../utils/routes.dart';
 import 'setting_tile.dart';
 import 'settings_theme.dart';
 
@@ -9,17 +10,16 @@ class PremiumSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section header is handled by parent
-
+        SettingsSectionHeader(title: t.premiumSection),
         SettingTile(
           icon: Icons.workspace_premium,
           iconColor: SettingsTheme.premiumColor,
-          // TODO(i18n): Localize title and subtitle
-          title: 'Premium Features',
-          subtitle: 'Unlock advanced features',
+          title: t.premiumFeatures,
+          subtitle: t.premiumFeaturesSubtitle,
           onTap: () => _navigateToPremiumFeatures(context),
         ),
       ],
@@ -27,11 +27,6 @@ class PremiumSection extends StatelessWidget {
   }
 
   void _navigateToPremiumFeatures(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const PremiumFeaturesScreen(),
-      ),
-    );
+    Navigator.pushNamed(context, Routes.premiumFeatures);
   }
 }

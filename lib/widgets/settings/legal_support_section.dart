@@ -126,6 +126,7 @@ class LegalSupportSection extends StatelessWidget {
   }
 
   void _showAboutDialog(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     showAboutDialog(
       context: context,
       applicationName: 'Waste Segregation App',
@@ -136,36 +137,37 @@ class LegalSupportSection extends StatelessWidget {
         color: Colors.green,
       ),
       children: [
-        const Text(
-            'A smart waste classification app that helps you sort waste correctly and track your environmental impact.'),
+        Text(t.aboutDialogBodyLine1),
         const SizedBox(height: 16),
-        const Text(
-            'Built with Flutter and powered by AI to make waste management easier and more effective.'),
+        Text(t.aboutDialogBodyLine2),
       ],
     );
   }
 
   void _contactSupport(BuildContext context) {
     // TODO: Implement email support functionality
+    final t = AppLocalizations.of(context)!;
     SettingsTheme.showInfoSnackBar(
       context,
-      'Support contact feature coming soon!',
+      t.supportContactComingSoon,
     );
   }
 
   void _reportBug(BuildContext context) {
     // TODO: Implement bug reporting functionality
+    final t = AppLocalizations.of(context)!;
     SettingsTheme.showInfoSnackBar(
       context,
-      'Bug reporting feature coming soon!',
+      t.bugReportComingSoon,
     );
   }
 
   void _rateApp(BuildContext context) {
     // TODO: Implement app rating functionality
+    final t = AppLocalizations.of(context)!;
     SettingsTheme.showInfoSnackBar(
       context,
-      'App rating feature coming soon!',
+      t.rateAppComingSoon,
     );
   }
 }

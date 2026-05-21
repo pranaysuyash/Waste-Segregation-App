@@ -28,15 +28,26 @@ class ProductionSafetyConfig {
   ///
   /// Build flag: `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`
   ///
-  /// This is the CANONICAL backend-routing flag. [BackendProxyProvider.isEnabled]
+  /// This is the CANONICAL backend-routing flag. `BackendProxyProvider.isEnabled`
   /// reads the same dart-define so there is exactly one flag to pass at build
   /// time. Do not add a separate backend-routing flag.
   ///
-  /// `AiService` now treats backend routing as a release-time invariant:
-  /// - release builds fail closed to backend classification path,
-  /// - debug/profile can opt in via `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`.
-  static const bool useBackendAiInRelease =
+  /// Both `AiService` and `EnhancedAiApiService` check this flag:
+  /// - `AiService` treats it as a release-time invariant; release builds fail
+  ///   closed to the backend classification path.
+  /// - `EnhancedAiApiService` checks `_backendRoutingEnabled` (which evaluates
+  ///   this flag) at the top of every public analysis method and routes through
+  ///   `BackendProxyProvider` when true, falling back to direct provider calls
+  ///   only on non-terminal failures in non-fail-closed modes.
+  /// - debug/profile builds can opt in via
+  ///   `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`.
+  static const bool _useBackendClassification =
+      bool.fromEnvironment('USE_BACKEND_CLASSIFICATION');
+  static const bool _useBackendClassificationLegacy =
       bool.fromEnvironment('USE_BACKEND_AI_IN_RELEASE');
+
+  static const bool useBackendAiInRelease =
+      _useBackendClassification || _useBackendClassificationLegacy;
 
   /// Detects placeholder / example API key values so they don't accidentally
   /// get sent to a real provider endpoint.

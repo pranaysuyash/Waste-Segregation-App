@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:waste_segregation_app/models/detected_waste_region.dart';
+import 'package:waste_segregation_app/models/multi_item_classification_result.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/screens/combined_result_screen.dart';
@@ -14,6 +16,7 @@ import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/services/result_pipeline.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/widgets/manual_region_selector.dart';
+import 'package:waste_segregation_app/widgets/per_item_result_card.dart';
 
 /// A minimal valid 1x1 blue PNG used as test image data.
 final Uint8List kTestPng = Uint8List.fromList([
@@ -239,6 +242,93 @@ void main() {
       expect(find.text('Banana Peel'), findsOneWidget);
       expect(find.text('Dry Waste'), findsAtLeastNWidgets(1));
       expect(find.text('Wet Waste'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('renders mixed waste guidance when multi-item data is passed',
+        (tester) async {
+      final classifications = [
+        WasteClassification(
+          id: 'c1',
+          itemName: 'Plastic Bottle',
+          category: 'Dry Waste',
+          explanation: 'Test',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Recycle',
+            steps: const ['Rinse'],
+            hasUrgentTimeframe: false,
+          ),
+          region: 'Test',
+          visualFeatures: const [],
+          alternatives: const [],
+          confidence: 0.9,
+          timestamp: DateTime.now(),
+        ),
+        WasteClassification(
+          id: 'c2',
+          itemName: 'Banana Peel',
+          category: 'Wet Waste',
+          explanation: 'Test',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Compost',
+            steps: const ['Bin'],
+            hasUrgentTimeframe: false,
+          ),
+          region: 'Test',
+          visualFeatures: const [],
+          alternatives: const [],
+          confidence: 0.85,
+          timestamp: DateTime.now(),
+        ),
+      ];
+      final regions = [
+        DetectedWasteRegion(
+          boundingBox: NormalizedBoundingBox(
+            left: 0.0,
+            top: 0.0,
+            width: 0.4,
+            height: 0.4,
+          ),
+          classification: classifications[0],
+          confidence: 0.9,
+          userConfirmed: true,
+          label: 'Plastic Bottle',
+        ),
+        DetectedWasteRegion(
+          boundingBox: NormalizedBoundingBox(
+            left: 0.5,
+            top: 0.5,
+            width: 0.4,
+            height: 0.4,
+          ),
+          classification: classifications[1],
+          confidence: 0.85,
+          userConfirmed: true,
+          label: 'Banana Peel',
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: CombinedResultScreen(
+              classifications: classifications,
+              multiItemResult: MultiItemClassificationResult(
+                sourceImagePath: 'test_image.jpg',
+                regions: regions,
+                mixedWasteGuidance:
+                    'Mixed waste detected. Separate items before disposal.',
+              ),
+              imageName: 'test_image.jpg',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Mixed Waste Detected'), findsOneWidget);
+      expect(find.text('Disposal Summary'), findsOneWidget);
+      expect(find.byType(PerItemResultCard), findsOneWidget);
+      expect(find.textContaining('Separate items before disposal'),
+          findsOneWidget);
     });
 
     testWidgets('renders single classification without errors', (tester) async {

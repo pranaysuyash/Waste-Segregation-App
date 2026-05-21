@@ -94,13 +94,27 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       disposalCostEstimate: fields[84] as double?,
       bbmpComplianceStatus: fields[85] as String?,
       localGuidelinesVersion: fields[86] as String?,
+      qualityScore: fields[87] as double?,
+      qualityReasons: (fields[88] as List?)?.cast<String>(),
+      duplicateScore: fields[89] as double?,
+      duplicateClusterId: fields[90] as String?,
+      rawConfidence: fields[91] as double?,
+      calibratedConfidence: fields[92] as double?,
+      needsReview: fields[93] as bool?,
+      reviewReason: fields[94] as String?,
+      routeDecision: fields[95] as String?,
+      routeReason: fields[96] as String?,
+      policyPackId: fields[97] as String?,
+      modelRoute: fields[98] as String?,
+      routeLatencyMs: fields[99] as int?,
+      routeCostUsd: fields[100] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WasteClassification obj) {
     writer
-      ..writeByte(77)
+      ..writeByte(91)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -254,7 +268,35 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       ..writeByte(85)
       ..write(obj.bbmpComplianceStatus)
       ..writeByte(86)
-      ..write(obj.localGuidelinesVersion);
+      ..write(obj.localGuidelinesVersion)
+      ..writeByte(87)
+      ..write(obj.qualityScore)
+      ..writeByte(88)
+      ..write(obj.qualityReasons)
+      ..writeByte(89)
+      ..write(obj.duplicateScore)
+      ..writeByte(90)
+      ..write(obj.duplicateClusterId)
+      ..writeByte(91)
+      ..write(obj.rawConfidence)
+      ..writeByte(92)
+      ..write(obj.calibratedConfidence)
+      ..writeByte(93)
+      ..write(obj.needsReview)
+      ..writeByte(94)
+      ..write(obj.reviewReason)
+      ..writeByte(95)
+      ..write(obj.routeDecision)
+      ..writeByte(96)
+      ..write(obj.routeReason)
+      ..writeByte(97)
+      ..write(obj.policyPackId)
+      ..writeByte(98)
+      ..write(obj.modelRoute)
+      ..writeByte(99)
+      ..write(obj.routeLatencyMs)
+      ..writeByte(100)
+      ..write(obj.routeCostUsd);
   }
 
   @override

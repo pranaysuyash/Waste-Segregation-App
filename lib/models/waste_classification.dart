@@ -86,6 +86,20 @@ class WasteClassification extends HiveObject {
     this.disposalCostEstimate,
     this.bbmpComplianceStatus,
     this.localGuidelinesVersion,
+    this.qualityScore,
+    this.qualityReasons,
+    this.duplicateScore,
+    this.duplicateClusterId,
+    this.rawConfidence,
+    this.calibratedConfidence,
+    this.needsReview,
+    this.reviewReason,
+    this.routeDecision,
+    this.routeReason,
+    this.policyPackId,
+    this.modelRoute,
+    this.routeLatencyMs,
+    this.routeCostUsd,
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
 
@@ -149,6 +163,14 @@ class WasteClassification extends HiveObject {
       imageUrl: imagePath,
       confidence: 0.0,
       clarificationNeeded: true,
+      rawConfidence: 0.0,
+      calibratedConfidence: 0.0,
+      needsReview: true,
+      reviewReason: 'fallback_classification',
+      routeDecision: 'manual_review',
+      routeReason: 'fallback_classification',
+      policyPackId: 'policy-unknown',
+      modelRoute: 'fallback',
       riskLevel: 'unknown',
       suggestedAction:
           'Please identify the item manually and provide feedback to help improve our AI',
@@ -273,6 +295,24 @@ class WasteClassification extends HiveObject {
       disposalCostEstimate: json['disposalCostEstimate']?.toDouble(),
       bbmpComplianceStatus: json['bbmpComplianceStatus'],
       localGuidelinesVersion: json['localGuidelinesVersion'],
+      qualityScore: json['qualityScore']?.toDouble(),
+      qualityReasons: json['qualityReasons'] != null
+          ? List<String>.from(json['qualityReasons'])
+          : null,
+      duplicateScore: json['duplicateScore']?.toDouble(),
+      duplicateClusterId: json['duplicateClusterId'],
+      rawConfidence: json['rawConfidence']?.toDouble(),
+      calibratedConfidence: json['calibratedConfidence']?.toDouble(),
+      needsReview: json['needsReview'] == true,
+      reviewReason: json['reviewReason'],
+      routeDecision: json['routeDecision'],
+      routeReason: json['routeReason'],
+      policyPackId: json['policyPackId'],
+      modelRoute: json['modelRoute'],
+      routeLatencyMs: json['routeLatencyMs'] is num
+          ? (json['routeLatencyMs'] as num).toInt()
+          : json['routeLatencyMs'],
+      routeCostUsd: json['routeCostUsd']?.toDouble(),
     );
   }
   @HiveField(0)
@@ -521,6 +561,34 @@ class WasteClassification extends HiveObject {
   /// Local guidelines version number
   @HiveField(86)
   final String? localGuidelinesVersion;
+  @HiveField(87)
+  final double? qualityScore;
+  @HiveField(88)
+  final List<String>? qualityReasons;
+  @HiveField(89)
+  final double? duplicateScore;
+  @HiveField(90)
+  final String? duplicateClusterId;
+  @HiveField(91)
+  final double? rawConfidence;
+  @HiveField(92)
+  final double? calibratedConfidence;
+  @HiveField(93)
+  final bool? needsReview;
+  @HiveField(94)
+  final String? reviewReason;
+  @HiveField(95)
+  final String? routeDecision;
+  @HiveField(96)
+  final String? routeReason;
+  @HiveField(97)
+  final String? policyPackId;
+  @HiveField(98)
+  final String? modelRoute;
+  @HiveField(99)
+  final int? routeLatencyMs;
+  @HiveField(100)
+  final double? routeCostUsd;
 
   /// Parse disposal instructions from various input formats
   static DisposalInstructions _parseDisposalInstructions(
@@ -910,6 +978,20 @@ class WasteClassification extends HiveObject {
       'disposalCostEstimate': disposalCostEstimate,
       'bbmpComplianceStatus': bbmpComplianceStatus,
       'localGuidelinesVersion': localGuidelinesVersion,
+      'qualityScore': qualityScore,
+      'qualityReasons': qualityReasons,
+      'duplicateScore': duplicateScore,
+      'duplicateClusterId': duplicateClusterId,
+      'rawConfidence': rawConfidence,
+      'calibratedConfidence': calibratedConfidence,
+      'needsReview': needsReview,
+      'reviewReason': reviewReason,
+      'routeDecision': routeDecision,
+      'routeReason': routeReason,
+      'policyPackId': policyPackId,
+      'modelRoute': modelRoute,
+      'routeLatencyMs': routeLatencyMs,
+      'routeCostUsd': routeCostUsd,
     };
   }
 
@@ -993,6 +1075,20 @@ class WasteClassification extends HiveObject {
     double? disposalCostEstimate,
     String? bbmpComplianceStatus,
     String? localGuidelinesVersion,
+    double? qualityScore,
+    List<String>? qualityReasons,
+    double? duplicateScore,
+    String? duplicateClusterId,
+    double? rawConfidence,
+    double? calibratedConfidence,
+    bool? needsReview,
+    String? reviewReason,
+    String? routeDecision,
+    String? routeReason,
+    String? policyPackId,
+    String? modelRoute,
+    int? routeLatencyMs,
+    double? routeCostUsd,
   }) {
     return WasteClassification(
       id: id ?? this.id,
@@ -1085,6 +1181,20 @@ class WasteClassification extends HiveObject {
       bbmpComplianceStatus: bbmpComplianceStatus ?? this.bbmpComplianceStatus,
       localGuidelinesVersion:
           localGuidelinesVersion ?? this.localGuidelinesVersion,
+      qualityScore: qualityScore ?? this.qualityScore,
+      qualityReasons: qualityReasons ?? this.qualityReasons,
+      duplicateScore: duplicateScore ?? this.duplicateScore,
+      duplicateClusterId: duplicateClusterId ?? this.duplicateClusterId,
+      rawConfidence: rawConfidence ?? this.rawConfidence,
+      calibratedConfidence: calibratedConfidence ?? this.calibratedConfidence,
+      needsReview: needsReview ?? this.needsReview,
+      reviewReason: reviewReason ?? this.reviewReason,
+      routeDecision: routeDecision ?? this.routeDecision,
+      routeReason: routeReason ?? this.routeReason,
+      policyPackId: policyPackId ?? this.policyPackId,
+      modelRoute: modelRoute ?? this.modelRoute,
+      routeLatencyMs: routeLatencyMs ?? this.routeLatencyMs,
+      routeCostUsd: routeCostUsd ?? this.routeCostUsd,
     );
   }
 }

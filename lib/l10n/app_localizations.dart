@@ -63,8 +63,7 @@ import 'app_localizations_kn.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -72,8 +71,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -85,8 +83,7 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -226,6 +223,18 @@ abstract class AppLocalizations {
   /// **'Export your data and history'**
   String get dataExportSubtitle;
 
+  /// Haptic feedback setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Haptic Feedback'**
+  String get hapticFeedback;
+
+  /// Haptic feedback setting subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Vibrate on successful scan'**
+  String get hapticFeedbackSubtitle;
+
   /// Header for navigation settings section
   ///
   /// In en, this message translates to:
@@ -291,6 +300,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try different navigation designs'**
   String get navigationStylesSubtitle;
+
+  /// Title for the training review queue
+  ///
+  /// In en, this message translates to:
+  /// **'Training Review Queue'**
+  String get trainingReviewQueue;
+
+  /// Subtitle for the training review queue
+  ///
+  /// In en, this message translates to:
+  /// **'Review pending training samples and labels'**
+  String get trainingReviewQueueSubtitle;
 
   /// Header for features section
   ///
@@ -442,6 +463,42 @@ abstract class AppLocalizations {
   /// **'DEVELOPER OPTIONS'**
   String get developerOptions;
 
+  /// Developer mode tile title
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Mode'**
+  String get debugMode;
+
+  /// Developer mode tile subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Enable debug logging'**
+  String get debugModeSubtitle;
+
+  /// Performance monitor tile title
+  ///
+  /// In en, this message translates to:
+  /// **'Performance Monitor'**
+  String get performanceMonitor;
+
+  /// Performance monitor tile subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'View performance metrics'**
+  String get performanceMonitorSubtitle;
+
+  /// Reset app data tile title
+  ///
+  /// In en, this message translates to:
+  /// **'Reset App Data'**
+  String get resetAppData;
+
+  /// Reset app data tile subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all app data'**
+  String get resetAppDataSubtitle;
+
   /// Tooltip for developer mode toggle
   ///
   /// In en, this message translates to:
@@ -495,6 +552,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear Data'**
   String get clearData;
+
+  /// Developer toggle subtitle for a feature
+  ///
+  /// In en, this message translates to:
+  /// **'Test mode: {feature}'**
+  String testModeFeature(String feature);
+
+  /// Developer feature toggle feedback message
+  ///
+  /// In en, this message translates to:
+  /// **'{feature} {status} for testing'**
+  String featureEnabledForTesting(String feature, String status);
+
+  /// Support contact coming soon message
+  ///
+  /// In en, this message translates to:
+  /// **'Support contact feature coming soon!'**
+  String get supportContactComingSoon;
+
+  /// Bug reporting coming soon message
+  ///
+  /// In en, this message translates to:
+  /// **'Bug reporting feature coming soon!'**
+  String get bugReportComingSoon;
+
+  /// Rate app coming soon message
+  ///
+  /// In en, this message translates to:
+  /// **'App rating feature coming soon!'**
+  String get rateAppComingSoon;
+
+  /// First line of the settings about dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.'**
+  String get aboutDialogBodyLine1;
+
+  /// Second line of the settings about dialog body
+  ///
+  /// In en, this message translates to:
+  /// **'Built with Flutter and powered by AI for accurate waste classification.'**
+  String get aboutDialogBodyLine2;
+
+  /// Developer mode feedback message
+  ///
+  /// In en, this message translates to:
+  /// **'Developer mode {status}'**
+  String developerModeToggled(String status);
+
+  /// Loading message while resetting app data
+  ///
+  /// In en, this message translates to:
+  /// **'Resetting all data...'**
+  String get resettingAllData;
+
+  /// Error message when clearing app data fails
+  ///
+  /// In en, this message translates to:
+  /// **'Data clearing failed: {error}'**
+  String dataClearingFailed(String error);
+
+  /// Migration success message
+  ///
+  /// In en, this message translates to:
+  /// **'Migration completed: {updated} updated, {skipped} skipped, {errors} errors'**
+  String migrationCompleted(int updated, int skipped, int errors);
+
+  /// Migration failure message
+  ///
+  /// In en, this message translates to:
+  /// **'Migration failed: {message}'**
+  String migrationFailed(String message);
 
   /// Premium feature dialog title
   ///
@@ -983,8 +1112,7 @@ abstract class AppLocalizations {
   String get googleSyncEnabledMessage;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -993,27 +1121,26 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'hi', 'kn'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'hi', 'kn'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en':
-      return AppLocalizationsEn();
-    case 'hi':
-      return AppLocalizationsHi();
-    case 'kn':
-      return AppLocalizationsKn();
+    case 'en': return AppLocalizationsEn();
+    case 'hi': return AppLocalizationsHi();
+    case 'kn': return AppLocalizationsKn();
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.'
+  );
 }

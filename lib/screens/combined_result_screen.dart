@@ -5,6 +5,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/multi_item_classification_result.dart';
 import '../utils/constants.dart';
 import '../widgets/modern_ui/modern_cards.dart';
+import '../widgets/per_item_result_card.dart';
 
 class CombinedResultScreen extends ConsumerWidget {
   const CombinedResultScreen({
@@ -344,6 +345,26 @@ class CombinedResultScreen extends ConsumerWidget {
     WasteClassification classification,
     int index,
   ) {
+    final region = multiItemResult?.regions.length == classifications.length
+        ? multiItemResult!.regions[index]
+        : null;
+    if (region != null) {
+      return PerItemResultCard(
+        region: region,
+        index: index,
+        totalItems: classifications.length,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  _IndividualResultPlaceholder(classification: classification),
+            ),
+          );
+        },
+      );
+    }
+
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 

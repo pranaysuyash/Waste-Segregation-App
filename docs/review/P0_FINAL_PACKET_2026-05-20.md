@@ -4,6 +4,8 @@ Repo: /Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app
 Driver: firebase_task.md (t1-t7) under motto_v2 + AGENTS hierarchy
 Status: COMPLETE
 
+> Historical packet. Superseded for current decision-making by the 2026-05-21 P0 and backend/platform review docs. Keep for audit history only.
+
 1) EXECUTIVE OUTCOME
 - P0 scope t1-t7 is completed.
 - Implementation was applied with minimal-safe hardening patches.

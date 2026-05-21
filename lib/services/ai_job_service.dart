@@ -9,6 +9,7 @@ import '../services/token_service.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/waste_app_logger.dart';
+import '../utils/production_safety_config.dart';
 import 'firestore_schema_registry.dart';
 
 /// Service for managing AI analysis jobs using OpenAI Batch API
@@ -50,6 +51,7 @@ class AiJobService {
     required String userId,
     required File imageFile,
   }) async {
+    ProductionSafetyConfig.guardClientAiCall('OpenAI Batch API');
     try {
       WasteAppLogger.info('Creating batch job for user: $userId', context: {
         'service': 'ai_job_service',

@@ -12,6 +12,8 @@ The Waste Segregation App now uses two distinct AI pipelines:
 
 2. **Disposal instructions** - fully backend. A Firebase Cloud Function (`generateDisposal`) receives text parameters and calls OpenAI GPT-4 to generate localized disposal guidance.
 
+The instant-analysis screen now keeps its success-path handoff in a tiny coordinator (`lib/services/instant_analysis_flow_coordinator.dart`) so the navigation boundary can be tested without the full widget tree. That is an implementation detail of the capture flow, not a separate AI pipeline.
+
 ---
 
 ## Classification flow
@@ -77,6 +79,7 @@ Disposal instructions returned to client
 | Client AI orchestration | `lib/services/ai_service.dart` | Backend proxy routing plus direct OpenAI vision + Gemini fallback |
 | Backend proxy client | `lib/services/providers/backend_proxy_provider.dart` | Calls `classifyImage` callable |
 | Backend classification function | `functions/src/classify_image.ts` | Authenticated, rate-limited image classification proxy |
+| Instant analysis flow coordinator | `lib/services/instant_analysis_flow_coordinator.dart` | Isolated success-path stage timing + result navigation handoff for `InstantAnalysisScreen` |
 | OpenAI provider | `lib/services/providers/openai_provider_client.dart` | HTTP calls to OpenAI API |
 | Gemini provider | `lib/services/providers/gemini_provider_client.dart` | HTTP calls to Gemini API |
 | Image persistence | `lib/services/image_service.dart` | `saveFilePermanently()` - called before AI |

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/models/educational_content.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/ai_service.dart';
 import 'package:waste_segregation_app/services/analytics_consent_manager.dart';
@@ -144,6 +145,13 @@ final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
         error: e, context: {'action': 'return_null_profile'});
     return null;
   }
+});
+
+/// Classifications provider - all historical waste scans from local storage
+final classificationsProvider =
+    FutureProvider<List<WasteClassification>>((ref) async {
+  final storageService = ref.watch(storageServiceProvider);
+  return storageService.getAllClassifications();
 });
 
 /// Home header v2 feature flag provider for A/B testing

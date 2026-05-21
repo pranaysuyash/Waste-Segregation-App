@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/navigation_settings_service.dart';
 import '../../widgets/animations/settings_animations.dart';
 import '../../utils/routes.dart';
@@ -12,10 +13,11 @@ class NavigationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section header is handled by parent
+        SettingsSectionHeader(title: t.navigationSection),
 
         Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -33,20 +35,17 @@ class NavigationSection extends StatelessWidget {
                     color: SettingsTheme.navigationColor,
                   ),
                 ),
-                // TODO(i18n): Localize title and subtitle
-                title: const Text(
-                  'Navigation Settings',
+                title: Text(
+                  t.navigationSettings,
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),
-                subtitle: const Text('Customize navigation behavior'),
+                subtitle: Text(t.navigationSettingsSubtitle),
                 children: [
                   Semantics(
-                    // TODO(i18n): Localize semantic label
-                    label: 'Toggle bottom navigation bar',
+                    label: t.toggleBottomNavigation,
                     child: AnimatedSettingsToggle(
-                      // TODO(i18n): Localize title and subtitle
-                      title: 'Bottom Navigation',
-                      subtitle: 'Show bottom navigation bar',
+                      title: t.bottomNavigation,
+                      subtitle: t.bottomNavigationSubtitle,
                       value: navSettings.bottomNavEnabled,
                       onChanged: (value) => _toggleBottomNav(
                         context,
@@ -56,12 +55,10 @@ class NavigationSection extends StatelessWidget {
                     ),
                   ),
                   Semantics(
-                    // TODO(i18n): Localize semantic label
-                    label: 'Toggle floating camera button',
+                    label: t.toggleFloatingCameraButton,
                     child: SwitchListTile(
-                      // TODO(i18n): Localize title and subtitle
-                      title: const Text('Camera Button (FAB)'),
-                      subtitle: const Text('Show floating camera button'),
+                      title: Text(t.cameraButton),
+                      subtitle: Text(t.cameraButtonSubtitle),
                       value: navSettings.fabEnabled,
                       onChanged: (value) => _toggleFab(
                         context,
@@ -71,23 +68,24 @@ class NavigationSection extends StatelessWidget {
                     ),
                   ),
                   ListTile(
-                    // TODO(i18n): Localize title and subtitle
-                    title: const Text('Navigation Style'),
-                    subtitle: Text('Current: ${navSettings.navigationStyle}'),
+                    title: Text(t.navigationStyle),
+                    subtitle: Text(
+                      t.navigationStyleCurrent(navSettings.navigationStyle),
+                    ),
                     trailing: DropdownButton<String>(
                       value: navSettings.navigationStyle,
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 'glassmorphism',
-                          child: Text('Glassmorphism'),
+                          child: Text(t.glassmorphism),
                         ),
                         DropdownMenuItem(
                           value: 'material3',
-                          child: Text('Material 3'),
+                          child: Text(t.material3),
                         ),
                         DropdownMenuItem(
                           value: 'floating',
-                          child: Text('Floating'),
+                          child: Text(t.floating),
                         ),
                       ],
                       onChanged: (value) => _changeNavigationStyle(
@@ -107,9 +105,8 @@ class NavigationSection extends StatelessWidget {
         SettingTile(
           icon: Icons.navigation,
           iconColor: SettingsTheme.navigationColor,
-          // TODO(i18n): Localize title and subtitle
-          title: 'Navigation Styles',
-          subtitle: 'Try different navigation designs',
+          title: t.navigationStyles,
+          subtitle: t.navigationStylesSubtitle,
           trailing: _buildNewBadge(),
           onTap: () => _navigateToNavigationDemo(context),
         ),
@@ -145,10 +142,10 @@ class NavigationSection extends StatelessWidget {
   ) async {
     await navSettings.setBottomNavEnabled(value);
     if (context.mounted) {
-      // TODO(i18n): Localize feedback message
+      final t = AppLocalizations.of(context)!;
       SettingsTheme.showInfoSnackBar(
         context,
-        'Bottom navigation ${value ? 'enabled' : 'disabled'}',
+        t.bottomNavEnabled(value ? t.enabled : t.disabled),
       );
     }
   }
@@ -160,10 +157,10 @@ class NavigationSection extends StatelessWidget {
   ) async {
     await navSettings.setFabEnabled(value);
     if (context.mounted) {
-      // TODO(i18n): Localize feedback message
+      final t = AppLocalizations.of(context)!;
       SettingsTheme.showInfoSnackBar(
         context,
-        'Camera button ${value ? 'enabled' : 'disabled'}',
+        t.cameraButtonEnabled(value ? t.enabled : t.disabled),
       );
     }
   }
@@ -176,10 +173,10 @@ class NavigationSection extends StatelessWidget {
     if (value != null) {
       await navSettings.setNavigationStyle(value);
       if (context.mounted) {
-        // TODO(i18n): Localize feedback message
+        final t = AppLocalizations.of(context)!;
         SettingsTheme.showInfoSnackBar(
           context,
-          'Navigation style changed to $value',
+          t.navigationStyleChanged(value),
         );
       }
     }

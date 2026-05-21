@@ -57,7 +57,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
         // Only show developer mode toggle when developer features are enabled
         if (DeveloperConfig.canShowDeveloperOptions)
           Semantics(
-            label: 'Toggle Developer Mode',
+            label: l10n.toggleDeveloperMode,
             button: true,
             child: IconButton(
               icon: Icon(
@@ -67,7 +67,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
                 color: _showDeveloperOptions ? Colors.yellow : Colors.white,
               ),
               onPressed: _toggleDeveloperMode,
-              tooltip: 'Toggle Developer Mode',
+              tooltip: l10n.toggleDeveloperMode,
             ),
           ),
       ],
@@ -89,6 +89,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
   }
 
   List<Widget> _buildSections() {
+    final t = AppLocalizations.of(context)!;
     return [
       const AccountSection(),
       const SettingsSectionSpacer(),
@@ -108,8 +109,8 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
         SettingTile(
           icon: Icons.fact_check,
           iconColor: Colors.blue,
-          title: 'Training Review Queue',
-          subtitle: 'Review pending training samples and labels',
+          title: t.trainingReviewQueue,
+          subtitle: t.trainingReviewQueueSubtitle,
           onTap: () => Navigator.pushNamed(
             context,
             Routes.trainingReviewQueue,
@@ -128,10 +129,12 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
     HapticFeedback.selectionClick();
 
     // Show feedback
+    final t = AppLocalizations.of(context)!;
     SettingsTheme.showInfoSnackBar(
       context,
-      // TODO(i18n): Localize
-      'Developer mode ${_showDeveloperOptions ? 'enabled' : 'disabled'}',
+      t.developerModeToggled(
+        _showDeveloperOptions ? t.enabled : t.disabled,
+      ),
     );
   }
 }

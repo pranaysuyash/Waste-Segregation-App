@@ -106,6 +106,13 @@ class _FakePremiumService extends ChangeNotifier implements PremiumService {
     _features.clear();
     notifyListeners();
   }
+
+  @override
+  Future<void> setPremiumPlanEntitlement(bool isPremium) async {
+    await setPremiumFeature(PremiumService.proSubscriptionEntitlement, isPremium);
+    _features[PremiumService.legacyPremiumSignal] = isPremium;
+    notifyListeners();
+  }
 }
 
 class _RouteTarget extends StatelessWidget {

@@ -81,6 +81,17 @@ class AdService extends ChangeNotifier {
   void setPremiumStatus(bool hasPremium) {
     if (_hasPremium != hasPremium) {
       _hasPremium = hasPremium;
+      if (_hasPremium) {
+        _classificationsSinceLastAd = 0;
+        _bannerAd?.dispose();
+        _bannerAd = null;
+        _interstitialAd?.dispose();
+        _interstitialAd = null;
+        _cachedBannerWidget = null;
+        _currentBannerAdKey = null;
+      } else if (_isInitialized && _canRequestAds && !_disposed && !kIsWeb) {
+        _loadBannerAd();
+      }
       // Use post-frame callback to avoid calling notifyListeners during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

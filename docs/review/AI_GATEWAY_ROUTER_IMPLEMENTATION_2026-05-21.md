@@ -53,7 +53,7 @@ ClassificationProvider (abstract interface)
   └─ LocalVlmProvider       — on-device stub (UnimplementedError)
 ```
 
-In release builds the entire chain is: backend gateway first, no client-side AI key needed.
+In release builds the entire chain is backend gateway first for both `AiService` and `EnhancedAiApiService`, with no client-side AI key needed for the canonical production path.
 
 ---
 

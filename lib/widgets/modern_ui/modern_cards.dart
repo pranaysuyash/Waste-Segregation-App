@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 import 'modern_badges.dart';
+import '../responsive_text.dart';
 
 /// Enum to represent trend direction for stats
 enum Trend { up, down, flat }
@@ -184,13 +185,12 @@ class FeatureCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    ResponsiveText.cardTitle(
                       title,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      semanticsLabel: title,
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),

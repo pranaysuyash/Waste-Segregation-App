@@ -10,6 +10,7 @@ import 'token_service.dart';
 import '../models/token_wallet.dart';
 import 'analytics_service.dart';
 import '../utils/waste_app_logger.dart';
+import '../utils/production_safety_config.dart';
 
 part 'offline_queue_service.g.dart';
 
@@ -208,140 +209,144 @@ class OfflineQueueService {
     var permanentFailCount = 0;
     var insufficientTokenBlocks = 0;
 
-    for (final item in items) {
-      try {
-        // Check connectivity before each item
-        final connectivity = await Connectivity().checkConnectivity();
-        if (connectivity.isEmpty ||
-            connectivity.contains(ConnectivityResult.none)) {
-          WasteAppLogger.info(
-              'Lost connectivity during queue processing, pausing');
-          break;
-        }
-
-        // Process the classification
-        WasteAppLogger.info('Processing queued item', context: {
-          'queue_id': item.id,
-          'retry_count': item.retryCount,
-          'queued_at': item.queuedAt.toIso8601String(),
-        });
-
+    try {
+      for (final item in items) {
         try {
-          await tokenService.spendAnalysisTokens(
-            AnalysisSpeed.batch,
-            isPremiumUser: false,
-            description: 'Offline queued analysis',
-            reference: item.id,
-            metadata: {
-              'source': 'offline_queue',
-              'queued_at': item.queuedAt.toIso8601String(),
-              'retry_count': item.retryCount,
-            },
-          );
-        } catch (spendError, spendStackTrace) {
-          final message = spendError.toString();
-          if (message.contains('Insufficient tokens')) {
-            insufficientTokenBlocks++;
-            WasteAppLogger.warning(
-              'Queue processing paused due to insufficient tokens',
-              error: spendError,
-              stackTrace: spendStackTrace,
-              context: {
-                'queue_id': item.id,
-                'remaining': _queueBox!.length,
-              },
-            );
-            AnalyticsService(StorageService()).trackEvent(
-              eventType: 'classification',
-              eventName: 'queue_blocked_insufficient_tokens',
-              parameters: {
-                'queue_id': item.id,
-                'remaining': _queueBox!.length,
-              },
-            );
+          // Check connectivity before each item
+          final connectivity = await Connectivity().checkConnectivity();
+          if (connectivity.isEmpty ||
+              connectivity.contains(ConnectivityResult.none)) {
+            WasteAppLogger.info(
+                'Lost connectivity during queue processing, pausing');
             break;
           }
-          rethrow;
-        }
 
-        final result = await EnhancedAiApiService().analyzeWasteImage(
-          imageBytes: item.imageBytes,
-          imageName: item.imageName ?? 'offline_item',
-          region: item.region,
-        );
-
-        // Save to local storage
-        await StorageService().saveClassification(result);
-
-        // Remove from queue
-        await item.delete();
-        successCount++;
-
-        WasteAppLogger.info('Queue item processed successfully', context: {
-          'queue_id': item.id,
-          'item_name': result.itemName,
-          'category': result.category,
-        });
-
-        // Optional: Show notification
-        // await _notifyCompletion(result);
-      } catch (e, stackTrace) {
-        try {
-          await tokenService.earnTokens(
-            AnalysisSpeed.batch.cost,
-            TokenTransactionType.refund,
-            'Offline queue processing failed - token refund',
-            reference: item.id,
-            metadata: {
-              'source': 'offline_queue',
-              'retry_count': item.retryCount,
-              'error': e.toString(),
-            },
-          );
-        } catch (refundError, refundStackTrace) {
-          WasteAppLogger.severe(
-            'Failed to refund offline queue token after processing failure',
-            error: refundError,
-            stackTrace: refundStackTrace,
-            context: {'queue_id': item.id},
-          );
-        }
-
-        item.retryCount++;
-
-        WasteAppLogger.warning(
-          'Failed to process queue item',
-          error: e,
-          stackTrace: stackTrace,
-          context: {
+          // Process the classification
+          WasteAppLogger.info('Processing queued item', context: {
             'queue_id': item.id,
             'retry_count': item.retryCount,
-          },
-        );
+            'queued_at': item.queuedAt.toIso8601String(),
+          });
 
-        if (item.retryCount >= 3) {
-          // Give up after 3 retries
+          try {
+            await tokenService.spendAnalysisTokens(
+              AnalysisSpeed.batch,
+              isPremiumUser: false,
+              description: 'Offline queued analysis',
+              reference: item.id,
+              metadata: {
+                'source': 'offline_queue',
+                'queued_at': item.queuedAt.toIso8601String(),
+                'retry_count': item.retryCount,
+              },
+            );
+          } catch (spendError, spendStackTrace) {
+            final message = spendError.toString();
+            if (message.contains('Insufficient tokens')) {
+              insufficientTokenBlocks++;
+              WasteAppLogger.warning(
+                'Queue processing paused due to insufficient tokens',
+                error: spendError,
+                stackTrace: spendStackTrace,
+                context: {
+                  'queue_id': item.id,
+                  'remaining': _queueBox!.length,
+                },
+              );
+              AnalyticsService(StorageService()).trackEvent(
+                eventType: 'classification',
+                eventName: 'queue_blocked_insufficient_tokens',
+                parameters: {
+                  'queue_id': item.id,
+                  'remaining': _queueBox!.length,
+                },
+              );
+              break;
+            }
+            rethrow;
+          }
+
+          final result = await EnhancedAiApiService().analyzeWasteImage(
+            imageBytes: item.imageBytes,
+            imageName: item.imageName ?? 'offline_item',
+            region: item.region,
+          );
+
+          // Save to local storage
+          await StorageService().saveClassification(result);
+
+          // Remove from queue
           await item.delete();
-          permanentFailCount++;
+          successCount++;
 
-          AnalyticsService(StorageService()).trackEvent(
-            eventType: 'classification',
-            eventName: 'queue_permanent_fail',
-            parameters: {
+          WasteAppLogger.info('Queue item processed successfully', context: {
+            'queue_id': item.id,
+            'item_name': result.itemName,
+            'category': result.category,
+          });
+
+          // Optional: Show notification
+          // await _notifyCompletion(result);
+        } catch (e, stackTrace) {
+          // Safety exceptions are terminal — do not retry.
+          if (e is ProductionSafetyException) rethrow;
+          try {
+            await tokenService.earnTokens(
+              AnalysisSpeed.batch.cost,
+              TokenTransactionType.refund,
+              'Offline queue processing failed - token refund',
+              reference: item.id,
+              metadata: {
+                'source': 'offline_queue',
+                'retry_count': item.retryCount,
+                'error': e.toString(),
+              },
+            );
+          } catch (refundError, refundStackTrace) {
+            WasteAppLogger.severe(
+              'Failed to refund offline queue token after processing failure',
+              error: refundError,
+              stackTrace: refundStackTrace,
+              context: {'queue_id': item.id},
+            );
+          }
+
+          item.retryCount++;
+
+          WasteAppLogger.warning(
+            'Failed to process queue item',
+            error: e,
+            stackTrace: stackTrace,
+            context: {
+              'queue_id': item.id,
               'retry_count': item.retryCount,
-              'error': e.toString(),
             },
           );
-        } else {
-          // Save updated retry count
-          await item.save();
-          failCount++;
+
+          if (item.retryCount >= 3) {
+            // Give up after 3 retries
+            await item.delete();
+            permanentFailCount++;
+
+            AnalyticsService(StorageService()).trackEvent(
+              eventType: 'classification',
+              eventName: 'queue_permanent_fail',
+              parameters: {
+                'retry_count': item.retryCount,
+                'error': e.toString(),
+              },
+            );
+          } else {
+            // Save updated retry count
+            await item.save();
+            failCount++;
+          }
         }
       }
+    } finally {
+      _queueCountController.add(_queueBox?.length ?? 0);
+      _isProcessing = false;
     }
-
-    _queueCountController.add(_queueBox!.length);
-    _isProcessing = false;
 
     final duration = DateTime.now().difference(startTime);
 

@@ -1762,8 +1762,6 @@ Output:
   }) async {
     ProductionSafetyConfig.guardClientAiCall('AI correction');
 
-    WasteAppLogger.info('Operation completed',
-        context: {'service': 'ai', 'file': 'ai_service'});
 
     // Determine which model to use for re-analysis
     final sourceValue = (originalClassification.source ?? '').toLowerCase();
@@ -1803,8 +1801,6 @@ Output:
       }
 
       if (imageBytes == null) {
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'ai', 'file': 'ai_service'});
         throw ArgumentError('No trusted image source available for correction');
       }
 

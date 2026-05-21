@@ -1,7 +1,13 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import '../utils/waste_app_logger.dart';
 import 'package:hive/hive.dart';
+
 import '../models/premium_feature.dart';
+import '../utils/waste_app_logger.dart';
+import 'firestore_schema_registry.dart';
 
 class PremiumService extends ChangeNotifier {
   // Constructor now initializes immediately
@@ -107,6 +113,26 @@ class PremiumService extends ChangeNotifier {
       await _premiumBox!.put(proSubscriptionEntitlement, true);
     }
 
+    // Propagate tier change to Firestore so the server-side spendUserTokens
+    // guard can verify discounts without trusting the client.
+    //
+    // - proSubscriptionEntitlement set/cleared → sync directly
+    // - legacyPremiumSignal set to true       → also elevates to premium
+    if (featureId == proSubscriptionEntitlement) {
+      unawaited(_syncTierToFirestore(isPremium));
+    } else if (featureId == legacyPremiumSignal && isPremium) {
+      unawaited(_syncTierToFirestore(true));
+    }
+
+    notifyListeners();
+  }
+
+  /// Preferred entry point for purchase and restore flows.
+  /// Keeps canonical and legacy premium flags aligned.
+  Future<void> setPremiumPlanEntitlement(bool isPremium) async {
+    await setPremiumFeature(proSubscriptionEntitlement, isPremium);
+    if (_premiumBox == null) return;
+    await _premiumBox!.put(legacyPremiumSignal, isPremium);
     notifyListeners();
   }
 
@@ -139,7 +165,50 @@ class PremiumService extends ChangeNotifier {
     if (_premiumBox == null) return;
 
     await _premiumBox!.clear();
+    // Propagate revocation to Firestore so the server-side guard enforces
+    // free-tier caps immediately after a reset (dev/debug/support action).
+    unawaited(_syncTierToFirestore(false));
     notifyListeners();
+  }
+
+  /// Writes the server-authoritative subscription tier to Firestore so that
+  /// Cloud Functions (e.g. `spendUserTokens`) can verify it without trusting
+  /// any client-supplied values.
+  ///
+  /// Fire-and-forget: a Firestore failure is logged but never surfaces to the
+  /// caller — the local Hive entitlement is always the source of truth for
+  /// client-side feature gates, while Firestore is the source of truth for
+  /// server-side enforcement.
+  Future<void> _syncTierToFirestore(bool isPremium) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null || uid.isEmpty) {
+        WasteAppLogger.info(
+          'subscriptionTier Firestore sync skipped: no authenticated user.',
+        );
+        return;
+      }
+      final tier = isPremium ? 'premium' : 'free';
+      await FirebaseFirestore.instance
+          .collection(FirestoreCollections.users)
+          .doc(uid)
+          .set(
+            {UsersSchema.subscriptionTierField: tier},
+            SetOptions(merge: true),
+          );
+      WasteAppLogger.info(
+        'subscriptionTier synced to Firestore',
+        context: {'tier': tier},
+      );
+    } catch (e, s) {
+      WasteAppLogger.warning(
+        'Failed to sync subscriptionTier to Firestore (non-fatal); '
+        'server-side token guard will default to free tier until next sync.',
+        error: e,
+        stackTrace: s,
+        context: {'isPremium': isPremium},
+      );
+    }
   }
 
   // Initialize test features for development environment
@@ -157,6 +226,9 @@ class PremiumService extends ChangeNotifier {
     final hasLegacy = _premiumBox!.get(legacyPremiumSignal) ?? false;
     if (!hasPlan && hasLegacy) {
       _premiumBox!.put(proSubscriptionEntitlement, true);
+      // Ensure the Firestore tier is brought in sync for users who are being
+      // migrated from the legacy signal so the server-side guard sees 'premium'.
+      unawaited(_syncTierToFirestore(true));
     }
   }
 

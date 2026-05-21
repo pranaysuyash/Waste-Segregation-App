@@ -3,6 +3,8 @@
 Date: 2026-05-20
 Repo: `/Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app`
 
+> Historical runtime report. Superseded by the later 2026-05-21 verification and architecture review set.
+
 ## Goal
 
 Exercise the app end to end in a real runtime, using the available local simulator/browser tooling, and document what actually works versus what blocks the flow.

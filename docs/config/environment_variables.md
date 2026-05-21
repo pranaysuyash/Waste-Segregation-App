@@ -37,7 +37,8 @@ Release safety behavior (`lib/utils/production_safety_config.dart` + `lib/servic
 - To allow direct client provider calls in release (private/internal testing only):
   - ALLOW_CLIENT_AI_IN_RELEASE=true
 - Optional explicit backend routing define (debug/profile opt-in and release documentation alignment):
-  - USE_BACKEND_AI_IN_RELEASE=true
+  - USE_BACKEND_CLASSIFICATION=true
+  - USE_BACKEND_AI_IN_RELEASE=true  # legacy alias, kept for compatibility
 
 Model selection overrides (optional):
 - OPENAI_API_MODEL_PRIMARY (default: gpt-4.1-nano)
@@ -93,6 +94,8 @@ Required closure steps:
 
 ## 5) Validation checklist
 - Flutter release build without ALLOW_CLIENT_AI_IN_RELEASE blocks direct client AI calls.
+- Backend classification can be enabled with USE_BACKEND_CLASSIFICATION (preferred)
+  or the legacy USE_BACKEND_AI_IN_RELEASE alias.
 - Web Firebase initialization succeeds via Dart-defined options (not manual HTML config).
 - Backend resolves secret values from process.env.
 - `npm --prefix functions run test:key-resolution` passes.

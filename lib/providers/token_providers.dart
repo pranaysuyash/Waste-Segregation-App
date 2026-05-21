@@ -62,8 +62,10 @@ final analysisSpeedProvider = StateProvider<AnalysisSpeed>((ref) {
   return AnalysisSpeed.batch;
 });
 
-/// Provider for checking if instant analysis is affordable
-final instantAnalysisAffordableProvider = Provider<bool>((ref) {
+/// Provider for checking if the user's token wallet can cover instant analysis.
+/// This is token-economy affordability — distinct from cost-guardrail
+/// affordability in cost_management_providers.dart.
+final tokenWalletInstantAffordableProvider = Provider<bool>((ref) {
   return ref.watch(canAffordProvider(AnalysisSpeed.instant.cost));
 });
 

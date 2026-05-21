@@ -258,9 +258,15 @@ WidgetbookCategory _componentCategory() {
                     label: 'Loading',
                     initialValue: false,
                   );
-                  final outlined = context.knobs.boolean(
-                    label: 'Outlined',
-                    initialValue: false,
+                  final style = context.knobs.list<ModernButtonStyle>(
+                    label: 'Style',
+                    options: const [
+                      ModernButtonStyle.filled,
+                      ModernButtonStyle.outlined,
+                      ModernButtonStyle.text,
+                      ModernButtonStyle.glassmorphism,
+                    ],
+                    initialOption: ModernButtonStyle.filled,
                   );
                   final width = context.knobs.double.slider(
                     label: 'Width',
@@ -279,9 +285,7 @@ WidgetbookCategory _componentCategory() {
                           child: ModernButton(
                             text: label,
                             isLoading: isLoading,
-                            style: outlined
-                                ? ModernButtonStyle.outlined
-                                : ModernButtonStyle.filled,
+                            style: style,
                             onPressed: _noop,
                           ),
                         ),
@@ -290,6 +294,123 @@ WidgetbookCategory _componentCategory() {
                           helperText,
                           style: Theme.of(context).textTheme.bodyMedium,
                           textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Card Studio',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'Editable',
+                builder: (context) {
+                  final title = context.knobs.string(
+                    label: 'Title',
+                    initialValue: 'Design with intent',
+                  );
+                  final body = context.knobs.string(
+                    label: 'Body',
+                    initialValue:
+                        'Explore how the same layout feels in different colors, elevations, and spacing.',
+                  );
+                  final primary = context.knobs.color(
+                    label: 'Primary',
+                    initialValue: AppTheme.primaryColor,
+                  );
+                  final secondary = context.knobs.color(
+                    label: 'Secondary',
+                    initialValue: AppTheme.secondaryColor,
+                  );
+                  final radius = context.knobs.double.slider(
+                    label: 'Radius',
+                    initialValue: 16,
+                    min: 0,
+                    max: 28,
+                    divisions: 14,
+                  );
+                  final elevation = context.knobs.double.slider(
+                    label: 'Elevation',
+                    initialValue: 2,
+                    min: 0,
+                    max: 12,
+                    divisions: 12,
+                  );
+
+                  return _surface(
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ModernCard(
+                          child: Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(radius),
+                              border: Border.all(
+                                color: secondary.withValues(alpha: 0.18),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(body),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    _ColorSwatch(
+                                      label: 'Primary',
+                                      color: primary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    _ColorSwatch(
+                                      label: 'Secondary',
+                                      color: secondary,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(radius),
+                            color: Theme.of(context).colorScheme.surface,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: elevation * 2,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            'Elevation preview',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                          ),
                         ),
                       ],
                     ),
@@ -397,6 +518,412 @@ WidgetbookCategory _componentCategory() {
                         darkMode: darkMode,
                         colorScheme: scheme,
                       ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Color Studio',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'Matrix',
+                builder: (context) {
+                  final palette = context.knobs.list<String>(
+                    label: 'Palette',
+                    options: const ['Ocean', 'Forest', 'Sunset'],
+                    initialOption: 'Ocean',
+                  );
+                  final darkMode = context.knobs.boolean(
+                    label: 'Dark mode',
+                    initialValue: false,
+                  );
+                  final buttonStyle = context.knobs.list<ModernButtonStyle>(
+                    label: 'Button style',
+                    options: const [
+                      ModernButtonStyle.filled,
+                      ModernButtonStyle.outlined,
+                      ModernButtonStyle.text,
+                      ModernButtonStyle.glassmorphism,
+                    ],
+                    initialOption: ModernButtonStyle.filled,
+                  );
+                  final buttonSize = context.knobs.list<ModernButtonSize>(
+                    label: 'Button size',
+                    options: const [
+                      ModernButtonSize.small,
+                      ModernButtonSize.medium,
+                      ModernButtonSize.large,
+                    ],
+                    initialOption: ModernButtonSize.medium,
+                  );
+                  final badgeStyle = context.knobs.list<ModernBadgeStyle>(
+                    label: 'Badge style',
+                    options: const [
+                      ModernBadgeStyle.filled,
+                      ModernBadgeStyle.outlined,
+                      ModernBadgeStyle.soft,
+                      ModernBadgeStyle.glassmorphism,
+                    ],
+                    initialOption: ModernBadgeStyle.soft,
+                  );
+                  final badgeSize = context.knobs.list<ModernBadgeSize>(
+                    label: 'Badge size',
+                    options: const [
+                      ModernBadgeSize.small,
+                      ModernBadgeSize.medium,
+                      ModernBadgeSize.large,
+                    ],
+                    initialOption: ModernBadgeSize.medium,
+                  );
+                  final chipStyle = context.knobs.list<ModernChipStyle>(
+                    label: 'Chip style',
+                    options: const [
+                      ModernChipStyle.filled,
+                      ModernChipStyle.outlined,
+                      ModernChipStyle.soft,
+                    ],
+                    initialOption: ModernChipStyle.soft,
+                  );
+                  final chipMultiSelect = context.knobs.boolean(
+                    label: 'Chip multi-select',
+                    initialValue: true,
+                  );
+                  final chipSelectedColor = context.knobs.color(
+                    label: 'Chip selected color',
+                    initialValue: _buildExplorationScheme(
+                      palette,
+                      darkMode: darkMode,
+                    ).primary,
+                  );
+                  final textFieldEnabled = context.knobs.boolean(
+                    label: 'Field enabled',
+                    initialValue: true,
+                  );
+                  final textFieldReadOnly = context.knobs.boolean(
+                    label: 'Field read-only',
+                    initialValue: false,
+                  );
+                  final textFieldObscure = context.knobs.boolean(
+                    label: 'Field obscure',
+                    initialValue: false,
+                  );
+                  final textFieldError = context.knobs.string(
+                    label: 'Field error',
+                    initialValue: '',
+                  );
+                  final buttonLoading = context.knobs.boolean(
+                    label: 'Button loading',
+                    initialValue: false,
+                  );
+                  final buttonExpanded = context.knobs.boolean(
+                    label: 'Button expanded',
+                    initialValue: false,
+                  );
+                  final buttonTooltip = context.knobs.string(
+                    label: 'Button tooltip',
+                    initialValue: 'Open scan flow',
+                  );
+                  final buttonLabel = context.knobs.string(
+                    label: 'Button label',
+                    initialValue: 'Scan Waste',
+                  );
+                  final badgeText = context.knobs.string(
+                    label: 'Badge text',
+                    initialValue: 'Eco Hero',
+                  );
+                  final badgePulse = context.knobs.boolean(
+                    label: 'Badge pulse',
+                    initialValue: true,
+                  );
+                  final fieldHelp = context.knobs.string(
+                    label: 'Field helper',
+                    initialValue:
+                        'Watch how the same palette affects text, chip, badge, and button surfaces.',
+                  );
+                  final fieldLabel = context.knobs.string(
+                    label: 'Field label',
+                    initialValue: 'Item name',
+                  );
+                  final fieldHint = context.knobs.string(
+                    label: 'Field hint',
+                    initialValue: 'e.g. Plastic bottle',
+                  );
+                  final featureTitle = context.knobs.string(
+                    label: 'Feature title',
+                    initialValue: 'Quick Scan',
+                  );
+                  final featureSubtitle = context.knobs.string(
+                    label: 'Feature subtitle',
+                    initialValue: 'Instant waste category result',
+                  );
+                  final featureChevron = context.knobs.boolean(
+                    label: 'Feature chevron',
+                    initialValue: true,
+                  );
+                  final statsTrend = context.knobs.list<Trend>(
+                    label: 'Stats trend',
+                    options: const [Trend.up, Trend.flat, Trend.down],
+                    initialOption: Trend.up,
+                  );
+                  final statsValue = context.knobs.string(
+                    label: 'Stats value',
+                    initialValue: '128 pts',
+                  );
+                  final statsSubtitle = context.knobs.string(
+                    label: 'Stats subtitle',
+                    initialValue: 'from 14 scans',
+                  );
+                  final toggleValue = context.knobs.boolean(
+                    label: 'Toggle value',
+                    initialValue: true,
+                  );
+
+                  final scheme = _buildExplorationScheme(
+                    palette,
+                    darkMode: darkMode,
+                  );
+
+                  return Theme(
+                    data: ThemeData(
+                      colorScheme: scheme,
+                      useMaterial3: true,
+                    ),
+                    child: _surface(
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Color and state matrix',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              _ColorSwatch(
+                                label: 'Primary',
+                                color: scheme.primary,
+                              ),
+                              _ColorSwatch(
+                                label: 'Secondary',
+                                color: scheme.secondary,
+                              ),
+                              _ColorSwatch(
+                                label: 'Surface',
+                                color: scheme.surface,
+                              ),
+                              _ColorSwatch(
+                                label: 'Success',
+                                color: AppTheme.successColor,
+                              ),
+                              _ColorSwatch(
+                                label: 'Warning',
+                                color: AppTheme.warningColor,
+                              ),
+                              _ColorSwatch(
+                                label: 'Error',
+                                color: AppTheme.errorColor,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          ModernButton(
+                            text: buttonLabel,
+                            icon: Icons.camera_alt,
+                            style: buttonStyle,
+                            size: buttonSize,
+                            isLoading: buttonLoading,
+                            isExpanded: buttonExpanded,
+                            tooltip: buttonTooltip.isEmpty
+                                ? null
+                                : buttonTooltip,
+                            onPressed: _noop,
+                          ),
+                          const SizedBox(height: 12),
+                          ModernBadge(
+                            text: badgeText,
+                            icon: Icons.verified,
+                            style: badgeStyle,
+                            size: badgeSize,
+                            showPulse: badgePulse,
+                            backgroundColor: scheme.primary,
+                          ),
+                          const SizedBox(height: 12),
+                          WasteCategoryBadge(
+                            category:
+                                chipMultiSelect ? 'Dry Waste' : 'Wet Waste',
+                            style: badgeStyle == ModernBadgeStyle.glassmorphism
+                                ? ModernBadgeStyle.soft
+                                : badgeStyle,
+                            size: badgeSize,
+                          ),
+                          const SizedBox(height: 12),
+                          ModernChipGroup(
+                            options: const [
+                              'Dry',
+                              'Wet',
+                              'Hazardous',
+                              'Medical',
+                            ],
+                            selectedOptions: chipMultiSelect
+                                ? const ['Dry', 'Wet']
+                                : const ['Dry'],
+                            multiSelect: chipMultiSelect,
+                            style: chipStyle,
+                            selectedColor: chipSelectedColor,
+                          ),
+                          const SizedBox(height: 12),
+                          ModernTextField(
+                            labelText: fieldLabel,
+                            hintText: fieldHint,
+                            helperText: fieldHelp,
+                            errorText: textFieldError.isEmpty
+                                ? null
+                                : textFieldError,
+                            prefixIcon: Icons.search,
+                            suffixIcon:
+                                textFieldEnabled && !textFieldReadOnly
+                                    ? Icons.clear
+                                    : null,
+                            onSuffixIconPressed:
+                                textFieldEnabled && !textFieldReadOnly
+                                    ? _noop
+                                    : null,
+                            enabled: textFieldEnabled,
+                            readOnly: textFieldReadOnly,
+                            obscureText: textFieldObscure,
+                          ),
+                          const SizedBox(height: 12),
+                          FeatureCard(
+                            icon: Icons.recycling,
+                            title: featureTitle,
+                            subtitle: featureSubtitle,
+                            iconColor: scheme.primary,
+                            showChevron: featureChevron,
+                            onTap: _noop,
+                          ),
+                          const SizedBox(height: 12),
+                          StatsCard(
+                            title: 'Weekly impact',
+                            value: statsValue,
+                            subtitle: statsSubtitle,
+                            icon: Icons.eco,
+                            color: scheme.secondary,
+                            trend: statsTrend,
+                            isPositiveTrend: statsTrend != Trend.down,
+                          ),
+                          const SizedBox(height: 12),
+                          SettingToggleTile(
+                            icon: Icons.dark_mode,
+                            title: 'Dark mode preview',
+                            subtitle:
+                                'See how toggles feel against the current palette.',
+                            value: toggleValue,
+                            onChanged: (_) {},
+                            enabled: textFieldEnabled,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Input Studio',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'Editable',
+                builder: (context) {
+                  final labelText = context.knobs.string(
+                    label: 'Label',
+                    initialValue: 'Item name',
+                  );
+                  final hintText = context.knobs.string(
+                    label: 'Hint',
+                    initialValue: 'Enter a waste item',
+                  );
+                  final helperText = context.knobs.string(
+                    label: 'Helper',
+                    initialValue:
+                        'Use this to see spacing, hint flow, and state styling.',
+                  );
+                  final errorText = context.knobs.string(
+                    label: 'Error',
+                    initialValue: '',
+                  );
+                  final badgeText = context.knobs.string(
+                    label: 'Badge',
+                    initialValue: 'Eco Hero',
+                  );
+                  final badgePulse = context.knobs.boolean(
+                    label: 'Badge pulse',
+                    initialValue: true,
+                  );
+                  final chipLabel = context.knobs.string(
+                    label: 'Chip',
+                    initialValue: 'Dry Waste',
+                  );
+                  final chipSelected = context.knobs.boolean(
+                    label: 'Chip selected',
+                    initialValue: true,
+                  );
+                  final infoValue = context.knobs.string(
+                    label: 'Info value',
+                    initialValue: '12.5 kg',
+                  );
+                  final inputStyle = context.knobs.list<ModernChipStyle>(
+                    label: 'Chip style',
+                    options: const [
+                      ModernChipStyle.filled,
+                      ModernChipStyle.outlined,
+                      ModernChipStyle.soft,
+                    ],
+                    initialOption: ModernChipStyle.filled,
+                  );
+
+                  return _surface(
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ModernTextField(
+                          labelText: labelText,
+                          hintText: hintText,
+                          helperText: helperText,
+                          errorText: errorText.isEmpty ? null : errorText,
+                          prefixIcon: Icons.search,
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          alignment: WrapAlignment.center,
+                          children: [
+                            ModernBadge(
+                              text: badgeText,
+                              icon: Icons.verified,
+                              showPulse: badgePulse,
+                            ),
+                            ModernChip(
+                              label: chipLabel,
+                              isSelected: chipSelected,
+                              icon: Icons.recycling,
+                              style: inputStyle,
+                            ),
+                            ModernInfoTile(
+                              icon: Icons.eco,
+                              label: 'CO2 Saved',
+                              value: infoValue,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -2572,6 +3099,17 @@ class _TokenPlaygroundCard extends StatelessWidget {
                 _ColorSwatch(label: 'Accent', color: accentColor),
               ],
             ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: const [
+                _SemanticSwatch(label: 'Success', color: AppTheme.successColor),
+                _SemanticSwatch(label: 'Warning', color: AppTheme.warningColor),
+                _SemanticSwatch(label: 'Error', color: AppTheme.errorColor),
+                _SemanticSwatch(label: 'Info', color: AppTheme.infoColor),
+              ],
+            ),
           ],
         ),
       ),
@@ -2672,6 +3210,52 @@ class _ThemeMatrixCard extends StatelessWidget {
 
 class _ColorSwatch extends StatelessWidget {
   const _ColorSwatch({
+    required this.label,
+    required this.color,
+  });
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final isLight =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.light;
+
+    return SizedBox(
+      width: 110,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 42,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          Text(
+            '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isLight ? Colors.black87 : Colors.black54,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SemanticSwatch extends StatelessWidget {
+  const _SemanticSwatch({
     required this.label,
     required this.color,
   });

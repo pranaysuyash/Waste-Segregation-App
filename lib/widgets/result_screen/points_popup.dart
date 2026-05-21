@@ -245,12 +245,12 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
       animation: _actionController,
       builder: (context, _) {
         final t = Curves.easeOutCubic.transform(_actionController.value);
-        final dropY = -56 + (66 * t);
+        final dropY = -58 + (68 * t);
         final burstOpacity = (t > 0.55 ? ((t - 0.55) / 0.45) : 0.0).clamp(
           0.0,
           1.0,
         );
-        final iconScale = (1.0 - (0.2 * t)).clamp(0.78, 1.0);
+        final assetScale = (0.92 + (0.08 * (1 - t))).clamp(0.82, 1.0);
         final cs = Theme.of(context).colorScheme;
 
         return Stack(
@@ -273,8 +273,13 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
             Positioned(
               top: dropY,
               child: Transform.scale(
-                scale: iconScale,
-                child: Icon(Icons.recycling, size: 18, color: cs.primary),
+                scale: assetScale,
+                child: Image.asset(
+                  'assets/images/generated/waste_reward_collection_asset.png',
+                  width: 132,
+                  height: 132,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
             Positioned(

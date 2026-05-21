@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/premium_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/cloud_storage_service.dart';
@@ -26,6 +27,8 @@ class DeveloperSection extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final t = AppLocalizations.of(context)!;
+
     return Column(
       children: [
         _buildDeveloperHeader(context),
@@ -34,20 +37,20 @@ class DeveloperSection extends StatelessWidget {
         const SizedBox(height: 16),
         SettingTile(
           icon: Icons.bug_report,
-          title: 'Debug Mode',
-          subtitle: 'Enable debug logging',
+          title: t.debugMode,
+          subtitle: t.debugModeSubtitle,
           onTap: () {},
         ),
         SettingTile(
           icon: Icons.analytics,
-          title: 'Performance Monitor',
-          subtitle: 'View performance metrics',
+          title: t.performanceMonitor,
+          subtitle: t.performanceMonitorSubtitle,
           onTap: () {},
         ),
         SettingTile(
           icon: Icons.refresh,
-          title: 'Reset App Data',
-          subtitle: 'Clear all app data',
+          title: t.resetAppData,
+          subtitle: t.resetAppDataSubtitle,
           onTap: () {},
         ),
         const SizedBox(height: 16),
@@ -57,6 +60,7 @@ class DeveloperSection extends StatelessWidget {
   }
 
   Widget _buildDeveloperHeader(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -64,11 +68,8 @@ class DeveloperSection extends StatelessWidget {
           children: [
             const Icon(Icons.bug_report, color: SettingsTheme.developerColor),
             const SizedBox(width: 8),
-            Text(
-              // TODO(i18n): Localize developer mode title
-              'DEVELOPER OPTIONS',
-              style: SettingsTheme.developerModeTitle(context),
-            ),
+            Text(t.developerOptions,
+                style: SettingsTheme.developerModeTitle(context)),
             const Spacer(),
             Consumer<PremiumService>(
               builder: (context, premiumService, child) {
@@ -77,57 +78,43 @@ class DeveloperSection extends StatelessWidget {
                     context,
                     premiumService,
                   ),
-                  child: const Text('Reset All'),
+                  child: Text(t.resetAll),
                 );
               },
             ),
           ],
         ),
         const SizedBox(height: 4),
-        Text(
-          // TODO(i18n): Localize developer mode subtitle
-          'Toggle features for testing',
-          style: SettingsTheme.developerModeSubtitle(context),
-        ),
+        Text(t.toggleFeaturesForTesting,
+            style: SettingsTheme.developerModeSubtitle(context)),
       ],
     );
   }
 
   Widget _buildFeatureToggles(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Consumer<PremiumService>(
       builder: (context, premiumService, child) {
         return Column(
           children: [
             _buildTestModeFeature(
-              context,
-              'Remove Ads',
-              'remove_ads',
-              premiumService,
-            ),
+                context, t.removeAds, 'remove_ads', premiumService),
             _buildTestModeFeature(
               context,
-              'Theme Customization',
+              t.themeCustomization,
               'theme_customization',
               premiumService,
             ),
             _buildTestModeFeature(
-              context,
-              'Offline Mode',
-              'offline_mode',
-              premiumService,
-            ),
+                context, t.offlineMode, 'offline_mode', premiumService),
             _buildTestModeFeature(
               context,
-              'Advanced Analytics',
+              t.advancedAnalyticsFeature,
               'advanced_analytics',
               premiumService,
             ),
             _buildTestModeFeature(
-              context,
-              'Data Export',
-              'export_data',
-              premiumService,
-            ),
+                context, t.exportData, 'export_data', premiumService),
           ],
         );
       },
@@ -140,18 +127,17 @@ class DeveloperSection extends StatelessWidget {
     String featureKey,
     PremiumService premiumService,
   ) {
+    final t = AppLocalizations.of(context)!;
     return SwitchListTile(
-      // TODO(i18n): Localize feature titles
       title: Text(title),
-      subtitle: Text('Test mode: ${featureKey.replaceAll('_', ' ')}'),
+      subtitle: Text(t.testModeFeature(featureKey.replaceAll('_', ' '))),
       value: premiumService.isPremiumFeature(featureKey),
       onChanged: (value) async {
         // await premiumService.togglePremiumFeature(featureKey, value); // TODO: Check correct method name
         if (context.mounted) {
-          // TODO(i18n): Localize feedback message
           SettingsTheme.showInfoSnackBar(
             context,
-            '$title ${value ? 'enabled' : 'disabled'} for testing',
+            t.featureEnabledForTesting(title, value ? t.enabled : t.disabled),
           );
         }
       },
@@ -159,6 +145,7 @@ class DeveloperSection extends StatelessWidget {
   }
 
   Widget _buildDangerousActions(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Column(
       children: [
         // Crash test button (secure debug only)
@@ -166,7 +153,7 @@ class DeveloperSection extends StatelessWidget {
           _buildDangerButton(
             context,
             icon: Icons.warning,
-            label: 'Force Crash (Crashlytics Test)',
+            label: t.forceCrashTest,
             color: SettingsTheme.dangerColor,
             onPressed: () => _forceCrash(context),
           ),
@@ -177,7 +164,7 @@ class DeveloperSection extends StatelessWidget {
         _buildDangerButton(
           context,
           icon: Icons.delete_forever,
-          label: 'Clear All Data (Fresh Install)',
+          label: t.clearFirebaseDataFresh,
           color: SettingsTheme.dangerColor,
           onPressed: () => _confirmAndClearAllData(context),
         ),
@@ -188,7 +175,7 @@ class DeveloperSection extends StatelessWidget {
         _buildDangerButton(
           context,
           icon: Icons.update,
-          label: 'Migrate Old Classifications',
+          label: t.migrateOldClassifications,
           color: SettingsTheme.successColor,
           onPressed: () => _runClassificationMigration(context),
         ),
@@ -224,10 +211,10 @@ class DeveloperSection extends StatelessWidget {
   ) async {
     await premiumService.resetPremiumFeatures();
     if (context.mounted) {
-      // TODO(i18n): Localize success message
+      final t = AppLocalizations.of(context)!;
       SettingsTheme.showSuccessSnackBar(
         context,
-        'All premium features reset',
+        t.allPremiumFeaturesReset,
       );
     }
   }
@@ -237,17 +224,17 @@ class DeveloperSection extends StatelessWidget {
   }
 
   void _confirmAndClearAllData(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Clear All Data?'),
-          content: const Text(
-              'This will clear all local and cloud data to simulate a fresh install. This action cannot be undone.'),
+          title: Text(t.clearFirebaseData),
+          content: Text(t.clearFirebaseDataBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(t.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -257,7 +244,7 @@ class DeveloperSection extends StatelessWidget {
               style: TextButton.styleFrom(
                 foregroundColor: SettingsTheme.dangerColor,
               ),
-              child: const Text('Clear All Data'),
+              child: Text(t.clearData),
             ),
           ],
         );
@@ -266,6 +253,7 @@ class DeveloperSection extends StatelessWidget {
   }
 
   Future<void> _performFullDataClear(BuildContext context) async {
+    final t = AppLocalizations.of(context)!;
     await DialogHelper.loading(
       context,
       () async {
@@ -274,19 +262,20 @@ class DeveloperSection extends StatelessWidget {
         // Reinitialize Hive boxes after reset to prevent "Box has already been closed" errors
         await StorageService.reinitializeAfterReset();
       },
-      message: 'Clearing all data...',
+      message: t.resettingAllData,
     ).then((_) {
       if (context.mounted) {
         SettingsTheme.showSuccessSnackBar(
           context,
-          'All data cleared successfully!',
+          t.allDataClearedSuccessfully,
         );
       }
     }).catchError((e) {
       if (context.mounted) {
+        final t = AppLocalizations.of(context)!;
         SettingsTheme.showErrorSnackBar(
           context,
-          'Data clearing failed: ${e.toString()}',
+          t.dataClearingFailed(e.toString()),
         );
       }
     });
@@ -294,6 +283,7 @@ class DeveloperSection extends StatelessWidget {
 
   Future<void> _runClassificationMigration(BuildContext context) async {
     try {
+      final t = AppLocalizations.of(context)!;
       final storageService = context.read<StorageService>();
       final cloudStorageService = context.read<CloudStorageService>();
       final migrationService = ClassificationMigrationService(
@@ -306,24 +296,27 @@ class DeveloperSection extends StatelessWidget {
 
       if (context.mounted) {
         if (result.success) {
-          // TODO(i18n): Localize success message
           SettingsTheme.showSuccessSnackBar(
             context,
-            'Migration completed: ${result.updated} updated, ${result.skipped} skipped, ${result.errors} errors',
+            t.migrationCompleted(
+              result.updated,
+              result.skipped,
+              result.errors,
+            ),
           );
         } else {
           SettingsTheme.showErrorSnackBar(
             context,
-            'Migration failed: ${result.message}',
+            t.migrationFailed(result.message),
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
-        // TODO(i18n): Localize error message
+        final t = AppLocalizations.of(context)!;
         SettingsTheme.showErrorSnackBar(
           context,
-          'Migration failed: ${e.toString()}',
+          t.migrationFailed(e.toString()),
         );
       }
     }

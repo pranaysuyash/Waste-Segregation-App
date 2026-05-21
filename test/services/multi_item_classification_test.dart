@@ -133,7 +133,7 @@ void main() {
   });
 
   group('MultiItemClassificationResult', () {
-    List<DetectedWasteRegion> _sampleRegions() {
+    List<DetectedWasteRegion> sampleRegions() {
       return [
         DetectedWasteRegion(
           boundingBox: NormalizedBoundingBox(
@@ -187,7 +187,7 @@ void main() {
     test('detects multiple items', () {
       final result = MultiItemClassificationResult(
         sourceImagePath: '/test/image.jpg',
-        regions: _sampleRegions(),
+        regions: sampleRegions(),
       );
       expect(result.hasMultipleItems, true);
       expect(result.itemCount, 2);
@@ -196,7 +196,7 @@ void main() {
     test('detects single item', () {
       final result = MultiItemClassificationResult(
         sourceImagePath: '/test/image.jpg',
-        regions: [_sampleRegions().first],
+        regions: [sampleRegions().first],
       );
       expect(result.hasMultipleItems, false);
       expect(result.itemCount, 1);
@@ -205,7 +205,7 @@ void main() {
     test('detects mixed categories', () {
       final result = MultiItemClassificationResult(
         sourceImagePath: '/test/image.jpg',
-        regions: _sampleRegions(),
+        regions: sampleRegions(),
       );
       expect(result.hasMixedCategories, true);
       expect(result.uniqueCategories.length, 2);
@@ -214,7 +214,7 @@ void main() {
     test('groups regions by category', () {
       final result = MultiItemClassificationResult(
         sourceImagePath: '/test/image.jpg',
-        regions: _sampleRegions(),
+        regions: sampleRegions(),
       );
       final grouped = result.regionsByCategory;
       expect(grouped.keys.length, 2);
@@ -223,7 +223,7 @@ void main() {
     });
 
     test('allConfirmed returns false when some unconfirmed', () {
-      final regions = _sampleRegions();
+      final regions = sampleRegions();
       regions[1] = regions[1].copyWith(userConfirmed: false);
       final result = MultiItemClassificationResult(
         sourceImagePath: '/test/image.jpg',
@@ -236,7 +236,7 @@ void main() {
     test('allConfirmed returns true when all confirmed', () {
       final result = MultiItemClassificationResult(
         sourceImagePath: '/test/image.jpg',
-        regions: _sampleRegions(),
+        regions: sampleRegions(),
       );
       expect(result.allConfirmed, true);
     });
@@ -244,7 +244,7 @@ void main() {
     test('provides primary disposal guidance for mixed waste', () {
       final result = MultiItemClassificationResult(
         sourceImagePath: '/test/image.jpg',
-        regions: _sampleRegions(),
+        regions: sampleRegions(),
       );
       final guidance = result.primaryDisposalGuidance;
       expect(guidance, isNotNull);
@@ -252,7 +252,7 @@ void main() {
     });
 
     test('provides primary disposal guidance for single category', () {
-      final sameCategory = _sampleRegions()
+      final sameCategory = sampleRegions()
           .map((r) => r.copyWith(
               classification:
                   r.classification?.copyWith(category: 'Dry Waste')))
@@ -268,7 +268,7 @@ void main() {
 
     test('inferMixedWasteGuidance detects hazardous + regular mix', () {
       final regions = [
-        _sampleRegions()[0],
+        sampleRegions()[0],
         DetectedWasteRegion(
           boundingBox: NormalizedBoundingBox(
             left: 0.3,
@@ -300,7 +300,7 @@ void main() {
     });
 
     test('classifiedRegions returns only regions with classifications', () {
-      final regions = _sampleRegions();
+      final regions = sampleRegions();
       regions.add(DetectedWasteRegion(
         boundingBox: NormalizedBoundingBox(
           left: 0.0,
@@ -320,7 +320,7 @@ void main() {
     test('JSON round trip with regions', () {
       final original = MultiItemClassificationResult(
         sourceImagePath: '/test/image.jpg',
-        regions: _sampleRegions(),
+        regions: sampleRegions(),
         mixedWasteGuidance: 'Separate before disposal',
       );
       final json = original.toJson();

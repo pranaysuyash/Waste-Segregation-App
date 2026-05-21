@@ -508,10 +508,6 @@ class HistoryListItem extends StatelessWidget {
                     },
                   );
                 }
-                WasteAppLogger.info('Operation completed', context: {
-                  'service': 'widget',
-                  'file': 'history_list_item'
-                });
                 return _buildImagePlaceholder();
               },
             );
@@ -539,11 +535,7 @@ class HistoryListItem extends StatelessWidget {
     }
 
     final url = classification.imageUrl;
-    WasteAppLogger.info('Operation completed',
-        context: {'service': 'widget', 'file': 'history_list_item'});
     if (url == null) {
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'widget', 'file': 'history_list_item'});
       return _buildImagePlaceholder();
     }
 
@@ -575,12 +567,8 @@ class HistoryListItem extends StatelessWidget {
               },
             );
           } else {
-            WasteAppLogger.info('Operation completed',
-                context: {'service': 'widget', 'file': 'history_list_item'});
           }
         } catch (e) {
-          WasteAppLogger.info('Operation completed',
-              context: {'service': 'widget', 'file': 'history_list_item'});
         }
         return _buildImagePlaceholder();
       }
@@ -631,8 +619,6 @@ class HistoryListItem extends StatelessWidget {
             },
           );
         }
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'widget', 'file': 'history_list_item'});
         return _buildImagePlaceholder();
       },
     );

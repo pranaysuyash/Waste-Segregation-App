@@ -4,6 +4,8 @@ Repo: /Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app
 Date: 2026-05-20
 Scope: firebase_task.md active list t1-t7 (executed under motto_v2 + AGENTS stack)
 
+> Historical review packet. Superseded by the 2026-05-21 backend gateway, AI truth map, and platform decision records.
+
 ## 1) Executive conclusion
 P0 hardening execution for t1-t7 is complete.
 No blocking gap remains inside this scope.

@@ -4,6 +4,8 @@ Date: 2026-05-20
 Repo: /Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app
 Scope: Mandatory Phase 0 file inspection from firebase_task.md lines 78-143
 
+> Historical audit artifact. Keep as the original Phase 0 inspection record; current decisions live in the 2026-05-21 review set.
+
 ## Summary
 - Required files listed: 39
 - Present in repo: 36

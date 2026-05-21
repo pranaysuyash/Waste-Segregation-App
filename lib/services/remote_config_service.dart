@@ -60,6 +60,14 @@ class RemoteConfigService {
         'cost_guardrails_enabled': true,
         'budget_threshold_percentage': 80,
         'force_batch_mode_on_threshold': true,
+
+        // Backend classification and monetization controls
+        'use_backend_classification': true,
+        'classify_image_token_cost': 5,
+        'classify_image_premium_discount_percent': 50,
+        'daily_free_classifications': 5,
+        'premium_ad_free_enabled': true,
+        'interstitial_every_n_classifications': 5,
       });
 
       // Configure fetch settings

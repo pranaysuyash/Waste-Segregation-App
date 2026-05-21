@@ -54,8 +54,6 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     final pointsEngine = context.read<PointsEngineProvider>().pointsEngine;
 
     try {
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
 
       // Add timeout to prevent infinite loading
       await pointsEngine.initialize().timeout(
@@ -68,8 +66,6 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         },
       );
 
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
 
       if (mounted) {
         setState(() {
@@ -91,8 +87,6 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
       // Try to force a profile creation as last resort
       try {
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'screen', 'file': 'achievements_screen'});
 
         // Force create a basic profile if none exists
         if (pointsEngine.currentProfile == null) {
@@ -128,8 +122,6 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
   Future<void> _refreshProfile() async {
     try {
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
 
       if (mounted) {
         setState(() {
@@ -138,8 +130,6 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       }
 
       await context.read<PointsEngineProvider>().pointsEngine.refresh();
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
     } catch (e) {
       WasteAppLogger.severe('Error occurred',
           context: {'service': 'screen', 'file': 'achievements_screen'});
@@ -210,17 +200,9 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                 final pointsProvider = context.watch<PointsEngineProvider>();
                 final profile = pointsProvider.pointsEngine.currentProfile;
 
-                WasteAppLogger.info('Operation completed', context: {
-                  'service': 'screen',
-                  'file': 'achievements_screen'
-                });
 
                 // Show loading state
                 if (profile == null && _isLoadingProfile) {
-                  WasteAppLogger.info('Operation completed', context: {
-                    'service': 'screen',
-                    'file': 'achievements_screen'
-                  });
                   return const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -289,10 +271,6 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                   );
                 }
 
-                WasteAppLogger.info('Operation completed', context: {
-                  'service': 'screen',
-                  'file': 'achievements_screen'
-                });
 
                 return TabBarView(
                   controller: _tabController,
@@ -492,20 +470,6 @@ class _AchievementsScreenState extends State<AchievementsScreen>
 
     // DEBUGGING: Log achievement state for "Waste Apprentice"
     if (achievement.id == 'waste_apprentice') {
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'screen', 'file': 'achievements_screen'});
     }
 
     return Card(

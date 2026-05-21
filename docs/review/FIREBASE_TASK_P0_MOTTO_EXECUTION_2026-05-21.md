@@ -9,7 +9,7 @@ Scope: Complete remaining P0 money-gate and release safety hardening in firebase
 Mapped surfaces before implementation:
 
 1. Client routing surface
-- `lib/services/ai_service.dart` used backend path only when `USE_BACKEND_AI_IN_RELEASE=true`.
+- `lib/services/ai_service.dart` had backend routing available via `USE_BACKEND_AI_IN_RELEASE`, but release did not yet hard-enforce the backend route as an invariant.
 - In release, direct provider paths were blocked by safety guard, but backend routing was not hard invariant in routing logic.
 - Result: release behavior depended on mixed flags and fallback branches, not a single enforced routing invariant.
 

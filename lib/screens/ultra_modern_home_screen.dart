@@ -26,35 +26,6 @@ import '../widgets/enhanced_gamification_widgets.dart' as widgets;
 import '../widgets/advanced_ui/achievement_celebration.dart';
 import '../widgets/community_impact_card.dart';
 
-// Profile provider using FutureProvider for better performance
-final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
-  final gamificationService = ref.watch(gamificationServiceProvider);
-  try {
-    return await gamificationService.getProfile();
-  } catch (e) {
-    WasteAppLogger.severe('Error loading profile: $e');
-    return null;
-  }
-});
-
-// User profile provider for getting actual user name
-final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
-  final storageService = ref.watch(storageServiceProvider);
-  try {
-    return await storageService.getCurrentUserProfile();
-  } catch (e) {
-    WasteAppLogger.severe('Error loading user profile: $e');
-    return null;
-  }
-});
-
-// Classifications provider
-final classificationsProvider = FutureProvider<List<WasteClassification>>((
-  ref,
-) async {
-  final storageService = ref.watch(storageServiceProvider);
-  return storageService.getAllClassifications();
-});
 
 /// Ultra-modern home screen with Material 3 design improvements
 class UltraModernHomeScreen extends ConsumerStatefulWidget {

@@ -250,6 +250,20 @@ class TrainingDataService {
       'clarificationNeeded': c.clarificationNeeded,
       'riskLevel': c.riskLevel,
       'barcodePresent': c.barcode?.trim().isNotEmpty == true,
+      'qualityScore': c.qualityScore,
+      'qualityReasons': c.qualityReasons,
+      'duplicateScore': c.duplicateScore,
+      'duplicateClusterId': c.duplicateClusterId,
+      'rawConfidence': c.rawConfidence ?? c.confidence,
+      'calibratedConfidence': c.calibratedConfidence ?? c.confidence,
+      'needsReview': c.needsReview,
+      'reviewReason': c.reviewReason,
+      'routeDecision': c.routeDecision,
+      'routeReason': c.routeReason,
+      'policyPackId': c.policyPackId,
+      'modelRoute': c.modelRoute,
+      'routeLatencyMs': c.routeLatencyMs,
+      'routeCostUsd': c.routeCostUsd,
     };
   }
 

@@ -4,6 +4,8 @@ Repo: /Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app
 Driver: firebase_task.md (P0/t1-t7 execution)
 Status: Complete (implementation + validation executed for t1-t7)
 
+> Historical execution report. Superseded by the 2026-05-21 backend and truth-map review set for current-state decisions.
+
 ## Active Task
 Execute firebase_task.md P0 list (t1-t7) under motto_v2 discipline, with verifiable hardening changes and validation evidence.
 

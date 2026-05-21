@@ -216,7 +216,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.16.0'
+          flutter-version: '3.32.2'
       
       # Automated linting and formatting
       - name: Format Check

@@ -22,6 +22,20 @@ import '../utils/waste_app_logger.dart';
 import 'classification_storage_service.dart';
 import 'user_profile_storage_service.dart';
 
+class ClassificationSaveResult {
+  const ClassificationSaveResult({
+    required this.saved,
+    required this.wasDuplicate,
+    required this.contentHash,
+    this.duplicateClassificationId,
+  });
+
+  final bool saved;
+  final bool wasDuplicate;
+  final String contentHash;
+  final String? duplicateClassificationId;
+}
+
 class StorageService {
   // Global lock mechanism to prevent concurrent saves across all code paths
   static final Map<String, DateTime> _recentSaves = <String, DateTime>{};
@@ -225,53 +239,65 @@ class StorageService {
     WasteClassification classification, {
     bool force = false,
   }) async {
+    await saveClassificationWithResult(classification, force: force);
+  }
+
+  String _buildClassificationContentHash(
+    WasteClassification classification,
+    DateTime timestamp,
+  ) {
+    return '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}_${timestamp.year}${timestamp.month}${timestamp.day}${timestamp.hour}';
+  }
+
+  Future<ClassificationSaveResult> saveClassificationWithResult(
+    WasteClassification classification, {
+    bool force = false,
+  }) async {
     StoragePerformanceMonitor.startOperation('saveClassification');
-    // Create a unique content hash to prevent duplicates
-    // Include timestamp hour to allow same object at different times/scales
     final now = DateTime.now();
-    final contentHash =
-        '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}_${now.year}${now.month}${now.day}${now.hour}';
+    final userProfile = await getCurrentUserProfile();
+    final currentUserId = userProfile?.id ?? 'guest_user';
+    final classificationWithUserId =
+        classification.copyWith(userId: currentUserId);
+    final contentHash = _buildClassificationContentHash(
+      classificationWithUserId,
+      now,
+    );
 
     if (!force) {
-      // Check if this exact content was saved recently (within 60 seconds)
       final recentSaveTime = _recentSaves[contentHash];
       if (recentSaveTime != null &&
           now.difference(recentSaveTime).inSeconds < 60) {
-        // Skip logging for recent duplicate saves to reduce spam
-        return;
+        StoragePerformanceMonitor.endOperation('saveClassification');
+        return ClassificationSaveResult(
+          saved: false,
+          wasDuplicate: true,
+          contentHash: contentHash,
+        );
       }
     }
 
-    // Check if this classification ID is currently being saved
     if (_activeSaves.contains(classification.id)) {
-      // Skip logging for concurrent saves to reduce spam
-      return;
+      StoragePerformanceMonitor.endOperation('saveClassification');
+      return ClassificationSaveResult(
+        saved: false,
+        wasDuplicate: true,
+        contentHash: contentHash,
+      );
     }
 
-    // Add to active saves to prevent concurrent processing
     _activeSaves.add(classification.id);
 
     try {
       final classificationsBox = Hive.box(StorageKeys.classificationsBox);
       final hashesBox = Hive.box<String>('classificationHashesBox');
 
-      // Get current user ID
-      final userProfile = await getCurrentUserProfile();
-      final currentUserId = userProfile?.id ?? 'guest_user';
-
-      // Ensure the classification has the correct user ID
-      final classificationWithUserId =
-          classification.copyWith(userId: currentUserId);
-
       if (!force) {
-        // O(1) duplicate check using secondary index
         final existingClassificationId = hashesBox.get(contentHash);
         if (existingClassificationId != null) {
-          // Check if the existing classification still exists
           final existingClassification =
               classificationsBox.get(existingClassificationId);
           if (existingClassification != null) {
-            // Duplicate found - only log occasionally to reduce spam
             if (DateTime.now().millisecondsSinceEpoch % 10 == 0) {
               WasteAppLogger.debug('Duplicate classification skipped',
                   context: {
@@ -283,23 +309,24 @@ class StorageService {
                   });
             }
             _recentSaves[contentHash] = now;
-            return;
+            return ClassificationSaveResult(
+              saved: false,
+              wasDuplicate: true,
+              contentHash: contentHash,
+              duplicateClassificationId: existingClassificationId,
+            );
           } else {
-            // Clean up orphaned hash entry
             await hashesBox.delete(contentHash);
           }
         }
       }
 
-      // Use Hive transaction to keep both boxes in sync
       await Hive.box(StorageKeys.classificationsBox)
           .put(classification.id, classificationWithUserId);
       await hashesBox.put(contentHash, classification.id);
 
-      // Record this save to prevent immediate duplicates
       _recentSaves[contentHash] = now;
 
-      // Clean up old entries (keep only last 50 entries)
       if (_recentSaves.length > 50) {
         final oldestEntries = _recentSaves.entries.toList()
           ..sort((a, b) => a.value.compareTo(b.value));
@@ -308,7 +335,6 @@ class StorageService {
         }
       }
 
-      // Classification saved successfully - only log occasionally
       if (DateTime.now().millisecondsSinceEpoch % 25 == 0) {
         WasteAppLogger.debug('Classification saved successfully', context: {
           'service': 'storage',
@@ -317,11 +343,40 @@ class StorageService {
           'category': classification.category
         });
       }
+
+      return ClassificationSaveResult(
+        saved: true,
+        wasDuplicate: false,
+        contentHash: contentHash,
+      );
     } finally {
-      // Always remove from active saves
       _activeSaves.remove(classification.id);
       StoragePerformanceMonitor.endOperation('saveClassification');
     }
+  }
+
+  Future<String?> findDuplicateClassificationId(
+    WasteClassification classification,
+  ) async {
+    final userProfile = await getCurrentUserProfile();
+    final currentUserId = userProfile?.id ?? 'guest_user';
+    final normalized = classification.copyWith(userId: currentUserId);
+    final now = DateTime.now();
+    final contentHash = _buildClassificationContentHash(normalized, now);
+    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+    final hashesBox = Hive.box<String>('classificationHashesBox');
+    final existingClassificationId = hashesBox.get(contentHash);
+    if (existingClassificationId == null) {
+      return null;
+    }
+
+    final existingClassification = classificationsBox.get(existingClassificationId);
+    if (existingClassification != null) {
+      return existingClassificationId;
+    }
+
+    await hashesBox.delete(contentHash);
+    return null;
   }
 
   Future<List<WasteClassification>> getAllClassifications(
@@ -386,8 +441,6 @@ class StorageService {
             classification =
                 WasteClassification.fromJson(Map<String, dynamic>.from(data));
           } else {
-            WasteAppLogger.warning('Warning occurred',
-                context: {'service': 'storage', 'file': 'storage_service'});
             await classificationsBox.delete(key);
             corruptedEntries++;
             continue;
@@ -806,8 +859,6 @@ class StorageService {
     // Prevent storing timestamps far in the future which could happen due to
     // clock issues or bad data.
     if (timestamp.isAfter(DateTime.now().add(const Duration(minutes: 1)))) {
-      WasteAppLogger.warning('Warning occurred',
-          context: {'service': 'storage', 'file': 'storage_service'});
       return;
     }
 
@@ -1022,16 +1073,12 @@ class StorageService {
         final keyCount = prefs.getKeys().length;
         // Use atomic clear() instead of per-key loop for better performance
         await prefs.clear();
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'storage', 'file': 'storage_service'});
       } catch (prefsError) {
         WasteAppLogger.severe('Error occurred',
             context: {'service': 'storage', 'file': 'storage_service'});
         // Don't rethrow - this shouldn't block the entire factory reset
       }
 
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
       WasteAppLogger.severe('Error occurred',
           context: {'service': 'storage', 'file': 'storage_service'});
@@ -1059,8 +1106,6 @@ class StorageService {
       final eventsJson =
           events.map((event) => jsonEncode(event.toJson())).toList();
       await box.put('pending_events', jsonEncode(eventsJson));
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
       WasteAppLogger.severe('Error occurred',
           context: {'service': 'storage', 'file': 'storage_service'});
@@ -1208,8 +1253,6 @@ class StorageService {
               key, jsonEncode(migratedClassification.toJson()));
           migratedCount++;
 
-          WasteAppLogger.info('Operation completed',
-              context: {'service': 'storage', 'file': 'storage_service'});
         }
       } catch (e) {
         WasteAppLogger.severe('Error occurred',
@@ -1218,8 +1261,6 @@ class StorageService {
       }
     }
 
-    WasteAppLogger.info('Operation completed',
-        context: {'service': 'storage', 'file': 'storage_service'});
     return migratedCount;
   }
 
@@ -1243,8 +1284,6 @@ class StorageService {
     final userProfile = await getCurrentUserProfile();
     final currentUserId = userProfile?.id ?? 'guest_user';
 
-    WasteAppLogger.info('Operation completed',
-        context: {'service': 'storage', 'file': 'storage_service'});
 
     // Load all classifications
     final allKeys = classificationsBox.keys.toList();
@@ -1282,8 +1321,6 @@ class StorageService {
           // This is a duplicate, mark for deletion
           keysToDelete.add(key);
           duplicatesFound++;
-          WasteAppLogger.info('Operation completed',
-              context: {'service': 'storage', 'file': 'storage_service'});
         } else {
           // First occurrence, keep it
           seenClassifications[contentHash] = key;
@@ -1301,8 +1338,6 @@ class StorageService {
       await classificationsBox.delete(key);
     }
 
-    WasteAppLogger.info('Operation completed',
-        context: {'service': 'storage', 'file': 'storage_service'});
     return duplicatesFound;
   }
 
@@ -1367,8 +1402,6 @@ class StorageService {
   /// Trigger migration of old classifications to update imageUrl fields
   Future<void> migrateOldClassifications() async {
     try {
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'storage', 'file': 'storage_service'});
 
       // Create cloud storage service instance
       final cloudStorageService = CloudStorageService(this);
@@ -1391,8 +1424,6 @@ class StorageService {
   /// Migrate existing classifications to generate missing thumbnails
   Future<void> migrateThumbnails() async {
     try {
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'storage', 'file': 'storage_service'});
 
       // Create image service instance
       final imageService = EnhancedImageService();
@@ -1414,8 +1445,6 @@ class StorageService {
   /// Clean up orphaned thumbnails that no longer have corresponding classifications
   Future<void> cleanUpOrphanedThumbnails() async {
     try {
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'storage', 'file': 'storage_service'});
 
       // Get all classifications and extract valid thumbnail paths
       final classifications = await getAllClassifications();
@@ -1432,8 +1461,6 @@ class StorageService {
       final imageService = EnhancedImageService();
       await imageService.cleanUpOrphanedThumbnails(validThumbnailPaths);
 
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'storage', 'file': 'storage_service'});
     } catch (e) {
       WasteAppLogger.severe('Error occurred',
           context: {'service': 'storage', 'file': 'storage_service'});
@@ -1443,8 +1470,6 @@ class StorageService {
   /// Migrate existing absolute image paths to relative paths
   Future<void> migrateImagePathsToRelative() async {
     try {
-      WasteAppLogger.info('Operation completed',
-          context: {'service': 'storage', 'file': 'storage_service'});
 
       final classifications = await getAllClassifications();
       var hasChanges = false;
@@ -1466,8 +1491,6 @@ class StorageService {
               imageRelativePath: relativePath,
             );
             hasChanges = true;
-            WasteAppLogger.info('Operation completed',
-                context: {'service': 'storage', 'file': 'storage_service'});
           }
         }
       }
@@ -1480,11 +1503,7 @@ class StorageService {
         for (final classification in classifications) {
           await box.add(classification);
         }
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'storage', 'file': 'storage_service'});
       } else {
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'storage', 'file': 'storage_service'});
       }
     } catch (e) {
       WasteAppLogger.severe('Error occurred',

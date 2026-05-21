@@ -125,6 +125,14 @@ const isAdminContext = (context: functions.https.CallableContext): boolean => {
 
 const deleteTrainingImageIfPresent = async (storagePath: unknown): Promise<void> => {
   if (typeof storagePath !== 'string' || storagePath.length === 0) return;
+  if (process.env.FUNCTIONS_EMULATOR === 'true'
+    && !process.env.FIREBASE_STORAGE_EMULATOR_HOST
+    && !process.env.STORAGE_EMULATOR_HOST) {
+    functions.logger.info('Skipping training image deletion because storage emulator is not configured', {
+      storagePath,
+    });
+    return;
+  }
   try {
     await admin.storage().bucket().file(storagePath).delete({ ignoreNotFound: true });
   } catch (error) {
@@ -201,6 +209,22 @@ export const enqueueTrainingCandidate = asiaSouth1.https.onCall(async (data, con
     confidence: classification.confidence ?? null,
     region: classification.region ?? null,
   };
+  const pipeline = {
+    qualityScore: classification.qualityScore ?? null,
+    qualityReasons: classification.qualityReasons ?? [],
+    duplicateScore: classification.duplicateScore ?? null,
+    duplicateClusterId: classification.duplicateClusterId ?? null,
+    rawConfidence: classification.rawConfidence ?? classification.confidence ?? null,
+    calibratedConfidence: classification.calibratedConfidence ?? classification.confidence ?? null,
+    needsReview: classification.needsReview ?? null,
+    reviewReason: classification.reviewReason ?? null,
+    routeDecision: classification.routeDecision ?? null,
+    routeReason: classification.routeReason ?? null,
+    policyPackId: classification.policyPackId ?? null,
+    modelRoute: classification.modelRoute ?? classification.modelSource ?? null,
+    routeLatencyMs: classification.routeLatencyMs ?? classification.processingTimeMs ?? null,
+    routeCostUsd: classification.routeCostUsd ?? null,
+  };
   const riskSignals = likelySensitiveFromSignals({
     category: modelPrediction.category as string | null,
     subcategory: modelPrediction.subcategory as string | null,
@@ -253,6 +277,7 @@ export const enqueueTrainingCandidate = asiaSouth1.https.onCall(async (data, con
         },
       },
       modelPrediction,
+      pipeline,
       userFeedback: null,
       review: {
         status: riskSignals.reviewStatus,
@@ -518,48 +543,57 @@ const shouldCleanupCandidate = (
   return status === 'deleted' || status === 'rejected';
 };
 
+export const runTrainingReviewCleanup = async (
+  db: FirebaseFirestore.Firestore,
+  options?: { retentionDays?: number },
+): Promise<{ scanned: number; cleaned: number }> => {
+  const retentionDaysRaw = Number(options?.retentionDays ?? process.env.TRAINING_REVIEW_RETENTION_DAYS ?? 30);
+  const retentionDays = Number.isFinite(retentionDaysRaw) && retentionDaysRaw > 0
+    ? retentionDaysRaw
+    : 30;
+  const cutoffMillis = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
+  const cutoffDate = new Date(cutoffMillis);
+
+  const snapshot = await db.collection('training_candidates')
+    .where('updatedAt', '<=', cutoffDate)
+    .limit(400)
+    .get();
+
+  let cleaned = 0;
+  const batch = db.batch();
+  for (const doc of snapshot.docs) {
+    const data = doc.data();
+    if (!shouldCleanupCandidate(data, cutoffMillis)) continue;
+    const storagePath = data?.image?.storagePath;
+    await deleteTrainingImageIfPresent(storagePath);
+    batch.set(doc.ref, {
+      image: {
+        storagePath: null,
+        cleanedUpAt: FieldValue.serverTimestamp(),
+      },
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    cleaned += 1;
+  }
+
+  if (cleaned > 0) {
+    await batch.commit();
+  }
+
+  return { scanned: snapshot.size, cleaned };
+};
+
 export const cleanupTrainingReviewImages = asiaSouth1.pubsub
   .schedule('every 24 hours')
   .timeZone('UTC')
   .onRun(async () => {
     const db = admin.firestore();
-    const retentionDaysRaw = Number(process.env.TRAINING_REVIEW_RETENTION_DAYS ?? 30);
-    const retentionDays = Number.isFinite(retentionDaysRaw) && retentionDaysRaw > 0
-      ? retentionDaysRaw
-      : 30;
-    const cutoffMillis = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
-    const cutoffDate = new Date(cutoffMillis);
-
-    const snapshot = await db.collection('training_candidates')
-      .where('updatedAt', '<=', cutoffDate)
-      .limit(400)
-      .get();
-
-    let cleaned = 0;
-    const batch = db.batch();
-    for (const doc of snapshot.docs) {
-      const data = doc.data();
-      if (!shouldCleanupCandidate(data, cutoffMillis)) continue;
-      const storagePath = data?.image?.storagePath;
-      await deleteTrainingImageIfPresent(storagePath);
-      batch.set(doc.ref, {
-        image: {
-          storagePath: null,
-          cleanedUpAt: FieldValue.serverTimestamp(),
-        },
-        updatedAt: FieldValue.serverTimestamp(),
-      }, { merge: true });
-      cleaned += 1;
-    }
-
-    if (cleaned > 0) {
-      await batch.commit();
-    }
+    const result = await runTrainingReviewCleanup(db);
 
     functions.logger.info('Training review cleanup run complete', {
-      scanned: snapshot.size,
-      cleaned,
-      retentionDays,
+      scanned: result.scanned,
+      cleaned: result.cleaned,
+      retentionDays: Number(process.env.TRAINING_REVIEW_RETENTION_DAYS ?? 30) || 30,
     });
     return null;
   });
@@ -569,4 +603,5 @@ export const __testables = {
   isAdminContext,
   likelySensitiveFromSignals,
   shouldCleanupCandidate,
+  runTrainingReviewCleanup,
 };

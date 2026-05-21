@@ -13,6 +13,7 @@
     "test:key-resolution": "npm run build && node --test test/openai_key_resolution.test.js",
     "test:training-data": "npm run build && node --test test/training_data.test.js",
     "test:classify-image": "npm run build && node --test test/classify_image.test.js",
+    "test:training-data:emulator": "npm run build && ENABLE_DIAGNOSTIC_ENDPOINTS=true ALLOW_TRAINING_REVIEW_NON_ADMIN=false FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 firebase emulators:exec --project waste-segregation-app-df523 --only auth,functions,firestore \"node --test test/training_data.emulator.test.js\"",
     "test:http-guards:emulator": "npm run build && ENABLE_DIAGNOSTIC_ENDPOINTS=true FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 firebase emulators:exec --project waste-segregation-app-df523 --only auth,functions,firestore \"node --test test/http_guards.emulator.test.js\""
   },
   "engines": {

@@ -5,6 +5,8 @@
 **Track lane**: Research & exploration only. **Do not** merge into launch hardening or token-economy P0 work.
 **Author intent**: Captured from user addendum 2026-05-20 ("Locality, Collection Intelligence, Civic Reporting, and Community Verification Track") and reconciled with the existing exploration map.
 
+> Historical exploration seed. Keep as the original 2026-05-20 track record; current launch decisions live in the 2026-05-21 review set.
+
 ---
 
 ## 0. Purpose & Lane Discipline

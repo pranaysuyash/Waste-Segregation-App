@@ -306,10 +306,13 @@ class TokenService extends ChangeNotifier {
         } on FirebaseFunctionsException catch (e) {
           // Guest-mode resilience:
           // If there is no authenticated Firebase user, server validation will
-          // reject with unauthenticated. In that case, keep UX non-blocking by
-          // falling back to local wallet deduction.
+          // reject with unauthenticated. In release builds we keep that
+          // rejection authoritative; local fallback is only allowed in
+          // non-release contexts where Firebase is unavailable and the session
+          // is explicitly guest-only.
           if (e.code == 'unauthenticated' &&
-              _isGuestSessionWithoutFirebaseAuth()) {
+              _isGuestSessionWithoutFirebaseAuth() &&
+              _canFallbackToLocalSpend()) {
             WasteAppLogger.warning(
               'Server token spend failed for guest session; falling back to local spend.',
               context: {
@@ -389,6 +392,11 @@ class TokenService extends ChangeNotifier {
       // Firebase Auth might be unavailable in local test/offline contexts.
       return true;
     }
+  }
+
+  bool _canFallbackToLocalSpend() {
+    if (kReleaseMode) return false;
+    return !enableServerSideValidation || !isFirebaseEnabled;
   }
 
   Future<TokenWallet> _spendTokensLocally({

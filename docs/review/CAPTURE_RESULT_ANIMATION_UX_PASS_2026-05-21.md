@@ -35,6 +35,7 @@ Create a coherent, stateful animation and messaging flow from capture to result,
   - `checkingQuality` → `uploading` → `analyzingImage` → `applyingLocalRules` → `success`.
 - Added retry path `_retryAnalysis()`.
 - Removed direct call site for a second `GamificationService.processAnalysisCompleted` trigger to avoid duplicate gamification/analytics behavior in the instant flow.
+- Extracted the success-path timing + navigation handoff into `lib/services/instant_analysis_flow_coordinator.dart` so route handoff can be tested without the full widget tree.
 
 ### 4) Result screen progress integration
 - `lib/screens/result_screen.dart` now maps pipeline state into the same shared component via:
@@ -83,6 +84,7 @@ Create a coherent, stateful animation and messaging flow from capture to result,
 
 ## Widget Tests Added
 - New file: `test/widgets/analysis_progress_view_test.dart`
+- Added a deterministic contract test for the instant-analysis success coordinator in `test/widgets/navigation_test.dart`.
 - Coverage added for:
   - checkingQuality messaging
   - queuedOffline queue-position messaging

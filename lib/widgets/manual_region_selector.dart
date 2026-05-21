@@ -359,7 +359,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.teal.withOpacity(0.18),
+              color: Colors.teal.withValues(alpha: 0.18),
               border: Border.all(color: Colors.teal, width: 2),
               borderRadius: BorderRadius.circular(4),
             ),
@@ -418,8 +418,8 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       height: height,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.teal.withOpacity(0.12),
-          border: Border.all(color: Colors.teal.withOpacity(0.8), width: 2),
+          color: Colors.teal.withValues(alpha: 0.12),
+          border: Border.all(color: Colors.teal.withValues(alpha: 0.8), width: 2),
           borderRadius: BorderRadius.circular(4),
         ),
       ),
@@ -434,7 +434,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.72),
+          color: Colors.black.withValues(alpha: 0.72),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -464,7 +464,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.72),
+          color: Colors.black.withValues(alpha: 0.72),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(

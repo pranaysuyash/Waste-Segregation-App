@@ -34,8 +34,9 @@ import 'classification_provider.dart';
 ///
 /// ## Usage
 ///
-/// Enable via `--dart-define=USE_BACKEND_AI_IN_RELEASE=true` at build time
-/// (canonical flag — same as [ProductionSafetyConfig.useBackendAiInRelease]).
+/// Enable via `--dart-define=USE_BACKEND_CLASSIFICATION=true` at build time
+/// (legacy alias: `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`).
+/// Same flag is exposed via [ProductionSafetyConfig.useBackendAiInRelease].
 /// [AiService] checks [BackendProxyProvider.isEnabled] and, when true,
 /// uses this provider as the primary route before OpenAI/Gemini.
 class BackendProxyProvider implements ClassificationProvider {
@@ -73,14 +74,19 @@ class BackendProxyProvider implements ClassificationProvider {
 
   /// Whether the backend proxy should be used in the current build.
   ///
-  /// Canonical dart-define: `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`
+  /// Canonical dart-define: `--dart-define=USE_BACKEND_CLASSIFICATION=true`
+  /// Legacy alias: `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`
   ///
   /// This reads the same flag as [ProductionSafetyConfig.useBackendAiInRelease]
-  /// so there is exactly ONE build flag that controls backend routing.
-  /// Do not add a separate backend-routing define — use the canonical flag
-  /// above.
-  static const bool isEnabled =
+  /// so there is exactly ONE logical build switch that controls backend
+  /// routing, while preserving backward compatibility with the legacy alias.
+  static const bool _useBackendClassification =
+      bool.fromEnvironment('USE_BACKEND_CLASSIFICATION');
+  static const bool _useBackendClassificationLegacy =
       bool.fromEnvironment('USE_BACKEND_AI_IN_RELEASE');
+
+  static const bool isEnabled =
+      _useBackendClassification || _useBackendClassificationLegacy;
 
   /// Sends a classifyImage request to the backend callable function.
   ///

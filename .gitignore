@@ -53,6 +53,7 @@ app.*.map.json
 /android/app/.cxx/
 
 **/.claude/settings.local.json
+.claude/
 
 # Local Git ignore extensions (machine-specific)
 .gitignore_addon
@@ -142,6 +143,7 @@ debug_output.txt
 # Test screenshots (agent-generated debugging artifacts at project root)
 /*.png
 cachebox.hive
+cachebox.lock
 *.hive
 /settingsbox.lock
 

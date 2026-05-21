@@ -170,6 +170,18 @@ Why this next task matters:
 - It reduces the trust gap between “the app answered” and “the app answered through the right path.”
 - It prepares the codebase for a later Cloud Run expansion without forcing a replatform today.
 
+## Implementation delta from this pass
+
+The repo now reflects the following concrete changes:
+
+- Backend classification routing now accepts the canonical `USE_BACKEND_CLASSIFICATION` flag and preserves the older alias for compatibility.
+- Client-side token spending no longer silently falls back to local spend in release builds when server validation fails.
+- Server token spend now writes an explicit ledger record in Firestore for auditability.
+- Classification cost telemetry now carries reservation and request identifiers so spend and usage can be correlated.
+- Premium activation now has a canonical setter that keeps the legacy ad-removal flag aligned.
+- Premium activation now clears live ad objects immediately so premium state takes effect without waiting for a later refresh.
+- Remote Config defaults now include explicit backend classification and monetization knobs.
+
 ## Selected focus area
 
 If we pick one long-term area that is clearly under-built and strategically important, it is this:

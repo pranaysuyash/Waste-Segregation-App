@@ -52,8 +52,6 @@ class PointsManager extends AsyncNotifier<UserPoints> {
     try {
       // Validate custom points usage
       if (customPoints != null && !action.supportsCustomPoints) {
-        WasteAppLogger.warning('Warning occurred',
-            context: {'service': 'points_manager', 'file': 'points_manager'});
       }
 
       final newPoints = await _pointsEngine.addPoints(
@@ -196,14 +194,6 @@ class PointsManager extends AsyncNotifier<UserPoints> {
       final difference = (points.total - categorySum).abs();
 
       if (difference > tolerance) {
-        WasteAppLogger.warning('Warning occurred',
-            context: {'service': 'points_manager', 'file': 'points_manager'});
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'points_manager', 'file': 'points_manager'});
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'points_manager', 'file': 'points_manager'});
-        WasteAppLogger.info('Operation completed',
-            context: {'service': 'points_manager', 'file': 'points_manager'});
 
         // Log for analytics but don't fail the operation
         // In production, this could trigger a background sync

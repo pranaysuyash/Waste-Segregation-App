@@ -291,7 +291,8 @@ Do not fine-tune first. Build an eval harness first:
   actions now mark candidates excluded and attempt to remove review images from
   storage.
 - Retention cleanup scaffold: scheduled function `cleanupTrainingReviewImages`
-  runs daily and purges old review/deleted image paths from storage metadata.
+  runs daily and delegates to reusable helper `runTrainingReviewCleanup`; the
+  helper is now emulator-tested against old deleted/rejected candidates.
 - Reviewer audit trail: moderation/revocation actions are recorded in
   `training_review_audit` with actor, action, candidate/status context, and
   timestamp.
@@ -321,6 +322,8 @@ Current validation should cover:
 - direct client rules deny `training_*` collections;
 - functions compile;
 - training-data helper tests run in `functions/test/training_data.test.js`;
+- emulator callable lifecycle test:
+  `npm run test:training-data:emulator` (`enqueue -> queue(admin gate) -> review -> revoke`);
 - dataset exporter dry-run excludes unsafe rows.
 
 Next tests to add:

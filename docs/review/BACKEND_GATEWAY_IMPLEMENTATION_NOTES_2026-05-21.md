@@ -40,6 +40,14 @@ A Flutter provider that calls the `classifyImage` callable function. It:
 
 `AiService` now routes classification through the backend proxy in release, and can opt into the backend path in debug/profile via `USE_BACKEND_AI_IN_RELEASE`.
 
+### 5. `lib/services/enhanced_ai_api_service.dart`
+
+`EnhancedAiApiService` now follows the same release invariant:
+
+- release: backend proxy first, direct provider clients are not initialized unless the fallback path is actually needed
+- debug/profile: backend proxy is available when the canonical backend-routing flag is enabled
+- direct provider fallback remains available only for non-release fallback flows
+
 ---
 
 ## How routing works now
