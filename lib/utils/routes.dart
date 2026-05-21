@@ -12,6 +12,7 @@ class Routes {
   static const String dataExport = '/data_export';
   static const String navigationDemo = '/navigation_demo';
   static const String modernUIShowcase = '/modern_ui_showcase';
+  static const String trainingReviewQueue = '/training_review_queue';
   static const String premiumFeatures = '/premium_features';
   static const String premiumFeaturesHyphen = '/premium-features';
   static const String premium = '/premium';
@@ -44,6 +45,7 @@ class Routes {
     dataExport,
     navigationDemo,
     modernUIShowcase,
+    trainingReviewQueue,
     premiumFeatures,
     premiumFeaturesHyphen,
     premium,

@@ -13,11 +13,15 @@ class PointsEarnedPopup extends StatefulWidget {
     super.key,
     required this.points,
     required this.onDismiss,
+    this.actionLabel,
+    this.impactLabel,
     this.duration = const Duration(seconds: 2),
   });
 
   final int points;
   final VoidCallback onDismiss;
+  final String? actionLabel;
+  final String? impactLabel;
   final Duration duration;
 
   @override
@@ -28,6 +32,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
     with TickerProviderStateMixin {
   late AnimationController _controller;
   late AnimationController _coinController;
+  late AnimationController _actionController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
   late Animation<Offset> _slideAnimation;
@@ -51,6 +56,10 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
     );
     _coinController = AnimationController(
       duration: const Duration(milliseconds: 1050),
+      vsync: this,
+    );
+    _actionController = AnimationController(
+      duration: const Duration(milliseconds: 950),
       vsync: this,
     );
 
@@ -103,7 +112,11 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
   }
 
   void _startAnimation() async {
-    await Future.wait([_controller.forward(), _coinController.forward()]);
+    await Future.wait([
+      _controller.forward(),
+      _coinController.forward(),
+      _actionController.forward(),
+    ]);
 
     // Auto-dismiss after display duration
     await Future.delayed(widget.duration);
@@ -117,6 +130,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
   void dispose() {
     _controller.dispose();
     _coinController.dispose();
+    _actionController.dispose();
     super.dispose();
   }
 
@@ -150,6 +164,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
                 alignment: Alignment.center,
                 clipBehavior: Clip.none,
                 children: [
+                  _buildWasteActionVisual(),
                   ..._buildCoins(),
                   GestureDetector(
                     onTap: _collectNow,
@@ -205,9 +220,82 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
                 fontWeight: FontWeight.w600,
               ),
             ),
+            if (widget.actionLabel != null || widget.impactLabel != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                [
+                  if (widget.actionLabel != null) widget.actionLabel!,
+                  if (widget.impactLabel != null) widget.impactLabel!,
+                ].join(' • '),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildWasteActionVisual() {
+    return AnimatedBuilder(
+      animation: _actionController,
+      builder: (context, _) {
+        final t = Curves.easeOutCubic.transform(_actionController.value);
+        final dropY = -56 + (66 * t);
+        final burstOpacity = (t > 0.55 ? ((t - 0.55) / 0.45) : 0.0).clamp(
+          0.0,
+          1.0,
+        );
+        final iconScale = (1.0 - (0.2 * t)).clamp(0.78, 1.0);
+        final cs = Theme.of(context).colorScheme;
+
+        return Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              top: 52,
+              child: Container(
+                width: 44,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: cs.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: cs.tertiary.withValues(alpha: 0.5)),
+                ),
+                child: Icon(Icons.delete_outline, size: 14, color: cs.tertiary),
+              ),
+            ),
+            Positioned(
+              top: dropY,
+              child: Transform.scale(
+                scale: iconScale,
+                child: Icon(Icons.recycling, size: 18, color: cs.primary),
+              ),
+            ),
+            Positioned(
+              top: 40 - (18 * burstOpacity),
+              child: Opacity(
+                opacity: burstOpacity,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.eco, size: 12, color: cs.secondary),
+                    const SizedBox(width: 4),
+                    Icon(Icons.water_drop_outlined, size: 12, color: cs.primary),
+                    const SizedBox(width: 4),
+                    Icon(Icons.bolt, size: 12, color: cs.tertiary),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -303,11 +391,15 @@ class PointsPopupOverlay extends StatelessWidget {
   const PointsPopupOverlay({
     super.key,
     required this.points,
+    this.actionLabel,
+    this.impactLabel,
     required this.isVisible,
     required this.onDismiss,
   });
 
   final int points;
+  final String? actionLabel;
+  final String? impactLabel;
   final bool isVisible;
   final VoidCallback onDismiss;
 
@@ -323,6 +415,8 @@ class PointsPopupOverlay extends StatelessWidget {
         child: Center(
           child: PointsEarnedPopup(
             points: points,
+            actionLabel: actionLabel,
+            impactLabel: impactLabel,
             onDismiss: onDismiss,
           ),
         ),
@@ -333,13 +427,19 @@ class PointsPopupOverlay extends StatelessWidget {
 
 /// Extension to show points popup as overlay
 extension PointsPopupExtension on BuildContext {
-  void showPointsPopup(int points) {
+  void showPointsPopup(
+    int points, {
+    String? actionLabel,
+    String? impactLabel,
+  }) {
     final overlay = Overlay.of(this);
     late OverlayEntry entry;
 
     entry = OverlayEntry(
       builder: (context) => PointsPopupOverlay(
         points: points,
+        actionLabel: actionLabel,
+        impactLabel: impactLabel,
         isVisible: true,
         onDismiss: () => entry.remove(),
       ),

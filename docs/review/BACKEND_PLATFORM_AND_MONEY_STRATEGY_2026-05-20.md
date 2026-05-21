@@ -4,6 +4,9 @@ Repo: /Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app
 Scope source: firebase_task.md
 Status: complete (full firebase_task.md strategy/report scope covered)
 
+> Superseded by [docs/review/BACKEND_PLATFORM_AND_MONEY_STRATEGY_2026-05-21.md](/Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app/docs/review/BACKEND_PLATFORM_AND_MONEY_STRATEGY_2026-05-21.md) and [docs/review/AI_PIPELINE_TRUTH_MAP_2026-05-21.md](/Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app/docs/review/AI_PIPELINE_TRUTH_MAP_2026-05-21.md).
+> Keep this file as historical context only.
+
 ## Active Task
 Full strategy/report scope from firebase_task.md is complete. Next step is implementation execution only, if requested.
 

@@ -30,6 +30,8 @@ import '../widgets/responsive_text.dart';
 import '../utils/classification_tags.dart';
 import '../utils/waste_app_logger.dart';
 import '../config/debug_config.dart';
+import '../utils/design_system.dart';
+import '../widgets/analysis_progress_view.dart';
 
 /// ResultScreen — Canonical result screen implementation.
 ///
@@ -75,6 +77,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   // Gamification state
   bool _hasShownPointsPopup = false;
   bool _hasProcessedGamification = false;
+  bool _isRetryingPipeline = false;
 
   @override
   void initState() {
@@ -121,12 +124,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     super.dispose();
   }
 
-  Future<void> _processClassification() async {
+  Future<void> _processClassification({bool force = false}) async {
     try {
       final pipeline = ref.read(resultPipelineProvider.notifier);
       await pipeline.processClassification(
         _classification,
         autoAnalyze: widget.autoAnalyze,
+        force: force,
       );
     } catch (error, stackTrace) {
       WasteAppLogger.severe(
@@ -139,6 +143,49 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         },
       );
     }
+  }
+
+  Future<void> _retryClassificationProcessing() async {
+    if (_isRetryingPipeline) return;
+    _isRetryingPipeline = true;
+
+    setState(() {
+      _hasProcessedGamification = false;
+      _hasShownPointsPopup = false;
+    });
+
+    try {
+      await _processClassification(force: true);
+    } finally {
+      if (mounted) {
+        _isRetryingPipeline = false;
+      }
+    }
+  }
+
+  AnalysisProgressStage _pipelineProgressStage(
+      ResultPipelineState pipelineState) {
+    if (pipelineState.error != null) {
+      return AnalysisProgressStage.failedRetryable;
+    }
+    if (pipelineState.isProcessing) {
+      return AnalysisProgressStage.applyingLocalRules;
+    }
+    final shouldShowFallback = _classification.clarificationNeeded == true ||
+        _classification.category.toLowerCase() == 'requires manual review';
+    return shouldShowFallback
+        ? AnalysisProgressStage.fallback
+        : AnalysisProgressStage.success;
+  }
+
+  String _pipelineStatusMessage(ResultPipelineState pipelineState) {
+    if (pipelineState.error != null) {
+      return AiErrorMessages.toUserMessage(pipelineState.error!);
+    }
+    if (pipelineState.isProcessing) {
+      return 'Applying local rules, saving, and preparing rewards.';
+    }
+    return '';
   }
 
   void _trackScreenView() {
@@ -243,9 +290,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Column(
                           children: [
-                            // Loading indicator
-                            if (pipelineState.isProcessing)
-                              _buildLoadingIndicator(context),
+                            // Processing state
+                            if (pipelineState.isProcessing ||
+                                pipelineState.error != null)
+                              _buildPipelineProgress(context, pipelineState),
 
                             // Re-analysis audit trail badge
                             if (_wasCorrected) _buildCorrectedBadge(context),
@@ -776,7 +824,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   void _showPointsPopup(int points) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.showPointsPopup(points);
+        context.showPointsPopup(
+          points,
+          actionLabel: _buildRewardActionLabel(),
+          impactLabel: _buildRewardImpactLabel(),
+        );
 
         // Log analytics
         WasteAppLogger.aiEvent(
@@ -789,6 +841,18 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         );
       }
     });
+  }
+
+  String _buildRewardActionLabel() {
+    final category = _classification.category.trim();
+    if (category.isEmpty) return 'Waste sorted correctly';
+    return '$category disposed right';
+  }
+
+  String? _buildRewardImpactLabel() {
+    final co2 = _classification.co2Impact;
+    if (co2 == null || co2 <= 0) return null;
+    return '${co2.toStringAsFixed(1)}kg CO2 impact handled';
   }
 
   /// Trigger haptic feedback
@@ -1055,28 +1119,33 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   // Ported features from v1
   // ---------------------------------------------------------------------------
 
-  Widget _buildLoadingIndicator(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget _buildPipelineProgress(
+      BuildContext context, ResultPipelineState pipelineState) {
+    final stage = _pipelineProgressStage(pipelineState);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            'Processing...',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
+      child: AnalysisProgressView(
+        stage: stage,
+        statusMessage: _pipelineStatusMessage(pipelineState),
+        localRuleChipText: pipelineState.isProcessing
+            ? 'Applying local rules and saving your scan result.'
+            : null,
+        confidenceText: _classification.confidence != null
+            ? 'Confidence: ${(_classification.confidence! * 100).round()}%'
+            : null,
+        resultCategoryColor:
+            WasteAppDesignSystem.getCategoryColor(_classification.category),
+        onRetry: stage == AnalysisProgressStage.failedRetryable
+            ? _retryClassificationProcessing
+            : null,
+        onCancel: stage == AnalysisProgressStage.failedRetryable ||
+                stage == AnalysisProgressStage.checkingQuality
+            ? () => Navigator.of(context).pop()
+            : null,
+        onContinue: null,
+        showRetry: stage == AnalysisProgressStage.failedRetryable,
+        showCancel: false,
       ),
     );
   }

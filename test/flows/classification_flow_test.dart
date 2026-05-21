@@ -1,18 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/services/gamification_service.dart';
-
-class MockGamificationService extends Mock implements GamificationService {}
 
 void main() {
-  late MockGamificationService mockGamificationService;
-
-  setUp(() {
-    mockGamificationService = MockGamificationService();
-  });
-
   group('Classification model sanity checks', () {
     test('constructs with expected fields', () {
       final classification = WasteClassification(
@@ -42,7 +32,7 @@ void main() {
   });
 
   group('Gamification profile basics', () {
-    test('getProfile resolves from service mock', () async {
+    test('profile model carries expected fields', () {
       final profile = GamificationProfile(
         userId: 'test_user',
         points: const UserPoints(total: 5, level: 1),
@@ -56,12 +46,8 @@ void main() {
         },
       );
 
-      when(mockGamificationService.getProfile())
-          .thenAnswer((_) async => profile);
-
-      final result = await mockGamificationService.getProfile();
-      expect(result.userId, equals('test_user'));
-      expect(result.streaks.keys, contains('daily_classification'));
+      expect(profile.userId, equals('test_user'));
+      expect(profile.streaks.keys, contains('daily_classification'));
     });
   });
 }

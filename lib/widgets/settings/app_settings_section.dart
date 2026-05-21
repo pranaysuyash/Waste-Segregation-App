@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../screens/theme_settings_screen.dart';
-import '../../screens/notification_settings_screen.dart';
-import '../../screens/offline_mode_settings_screen.dart';
-import '../../screens/data_export_screen.dart';
+import '../../utils/routes.dart';
 import '../../services/haptic_settings_service.dart';
 import 'setting_tile.dart';
 import 'settings_theme.dart';
@@ -72,38 +69,18 @@ class AppSettingsSection extends StatelessWidget {
   }
 
   void _navigateToThemeSettings(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ThemeSettingsScreen(),
-      ),
-    );
+    Navigator.pushNamed(context, Routes.themeSettings);
   }
 
   void _navigateToNotificationSettings(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const NotificationSettingsScreen(),
-      ),
-    );
+    Navigator.pushNamed(context, Routes.notificationSettings);
   }
 
   void _navigateToOfflineSettings(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const OfflineModeSettingsScreen(),
-      ),
-    );
+    Navigator.pushNamed(context, Routes.offlineModeSettings);
   }
 
   void _navigateToDataExport(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const DataExportScreen(),
-      ),
-    );
+    Navigator.pushNamed(context, Routes.dataExport);
   }
 }

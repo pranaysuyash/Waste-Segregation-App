@@ -79,6 +79,7 @@ dependencies:
 
   flutter_markdown: any
   flutter_image_compress: ^2.3.0
+  firebase_app_check: ^0.3.2+10
 
   # --- On-Device ML & Computer Vision ---
   # TensorFlow Lite for on-device model inference (zero cost)

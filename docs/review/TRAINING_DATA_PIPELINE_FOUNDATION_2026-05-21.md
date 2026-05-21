@@ -292,6 +292,9 @@ Do not fine-tune first. Build an eval harness first:
   storage.
 - Retention cleanup scaffold: scheduled function `cleanupTrainingReviewImages`
   runs daily and purges old review/deleted image paths from storage metadata.
+- Reviewer audit trail: moderation/revocation actions are recorded in
+  `training_review_audit` with actor, action, candidate/status context, and
+  timestamp.
 
 ## Risks
 
@@ -301,6 +304,10 @@ Do not fine-tune first. Build an eval harness first:
   this with stronger CV/OCR moderation before broad rollout.
 - Admin review should rely on strict admin claims in production; non-admin
   review override is emulator-only.
+- Production env controls needed:
+  - `TRAINING_DATA_HMAC_SECRET` (required)
+  - `TRAINING_REVIEW_RETENTION_DAYS` (optional, default `30`)
+  - `ALLOW_TRAINING_REVIEW_NON_ADMIN` should remain unset in production
 - Existing historical docs still contain old ML-preservation language in
   archived sections; current policy pointers were added to the active risky
   docs.

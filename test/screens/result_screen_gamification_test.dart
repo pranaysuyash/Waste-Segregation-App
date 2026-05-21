@@ -19,8 +19,8 @@ void main() {
       );
 
       expect(find.text('+50'), findsOneWidget);
-      expect(find.text('Points Earned!'), findsOneWidget);
-      expect(find.byIcon(Icons.auto_awesome), findsOneWidget);
+      expect(find.text('Eco Points Earned!'), findsOneWidget);
+      expect(find.byIcon(Icons.recycling), findsOneWidget);
 
       // Animation (1.5s) + auto-dismiss delay (2s).
       await tester.pump(const Duration(milliseconds: 1600));
@@ -62,4 +62,3 @@ void main() {
     });
   });
 }
-

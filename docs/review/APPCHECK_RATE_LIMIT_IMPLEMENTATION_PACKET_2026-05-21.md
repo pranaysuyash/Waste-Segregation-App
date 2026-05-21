@@ -2,26 +2,29 @@
 
 Date: 2026-05-21
 Repo: /Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app
-Objective: close abuse/cost exposure on AI and token endpoints without broad architecture migration.
+Objective: record the current abuse/cost posture on AI and token endpoints and capture the remaining hardening work without a broad architecture migration.
 
-## 1) Current exposure snapshot
-- HTTP endpoints (`generateDisposal`, `testOpenAI`) can be hammered if auth/diagnostics toggles are misconfigured.
-- Callable endpoint (`spendUserTokens`) has auth checks but App Check verification is currently not enforced.
-- Emulator logs show callable request verification with `app: MISSING` in local runs.
+## 1) Current state snapshot
+- `classifyImage` is live as a Firebase HTTPS callable and already enforces auth, optional App Check, Firestore rate limiting, token reservation, provider fallback, cache writes, and cost telemetry.
+- `spendUserTokens` is live as a Firebase callable and already enforces auth, optional App Check, and a backend rate limit.
+- `generateDisposal` is live as an HTTP route and already has auth gating plus rate limiting behavior in the function layer.
+- `testOpenAI` and `clearAllData` are admin/diagnostic surfaces that remain intentionally gated by environment flags and admin checks.
+- The main remaining risk is not "missing implementation" so much as rollout discipline, config drift, and making sure fallback or diagnostics states are never mistaken for healthy success.
 
-## 2) Target controls
+## 2) Implemented controls
 
 ### Control A: App Check enforcement
 Scope:
 - Enforce App Check at Firebase backend entry points for production traffic.
 
-Implementation intent:
+Implementation state:
 1. Client:
-   - Initialize Firebase App Check for Android/iOS/Web in startup path.
-   - Use debug provider only in dev/test builds.
+   - Client App Check initialization still needs verification in the startup path for each production platform.
+   - Debug providers should stay limited to development and emulator flows.
 2. Backend:
-   - For callable: reject requests with missing/invalid app attestation in production mode.
-   - For HTTP endpoints: require auth + app verification for cost-bearing routes.
+   - Callable and backend gates already reject or fail closed according to the configured production safety flags.
+   - `classifyImage` and `spendUserTokens` already enforce App Check when the production flag requires it.
+   - HTTP endpoints continue to use auth/role/env checks plus rate limiting rather than a second route fork.
 
 Files likely touched:
 - `lib/main.dart`
@@ -33,17 +36,15 @@ Files likely touched:
 Scope:
 - Limit expensive endpoints by user and by IP/device fallback.
 
-Recommended policy (initial):
-- `generateDisposal`: burst 5/min per uid; sustained 60/hour per uid; anonymous fallback 10/hour per IP.
-- `spendUserTokens`: 30/min per uid (anti-replay and abuse guard).
-- `testOpenAI`, `clearAllData`: admin-only plus strict low-rate caps.
+Implemented state:
+- `classifyImage` has a rolling per-UID limit.
+- `spendUserTokens` has a backend rate limit.
+- `generateDisposal`, `testOpenAI`, and `clearAllData` are all guarded by explicit auth/admin/environment checks in the function layer.
 
-Implementation approach:
-- Add a lightweight limiter service in functions layer:
-  - key: `${route}:${uid-or-ip}:${window}`
-  - storage: Firestore doc counters with TTL window fields
-  - operation: transaction increment + threshold check
-- Hard-fail with explicit 429-style response schema.
+Remaining hardening:
+- Keep the current rate-limit windows documented in the canonical truth table.
+- Add or update tests whenever a new expensive backend path is introduced.
+- Preserve one response shape for rate-limit failures so clients can show a clear retry state.
 
 Files likely touched:
 - `functions/src/index.ts`
@@ -55,21 +56,25 @@ All blocked requests should return explicit machine-readable payload:
 - `retry_after_seconds` for throttled requests
 - `request_id` for tracing
 
+Current note:
+- Some routes already return structured error bodies or Firebase callable failures.
+- Any new blocking behavior should match the existing response style rather than inventing a second error vocabulary.
+
 ## 4) Rollout plan
-1. Add instrumentation-only mode (log violations, do not block) for 48h.
-2. Enable blocking on `testOpenAI` and `clearAllData` first.
-3. Enable blocking on `generateDisposal` and `spendUserTokens`.
-4. Monitor reject rates and false positives; tune windows.
+1. Verify the currently deployed App Check and rate-limit flags in the release environment.
+2. Keep diagnostics/admin routes disabled outside controlled environments.
+3. Monitor reject rates, fallback rates, and token-spend anomalies.
+4. Tune only if the live traffic pattern shows false positives or cost leakage.
 
 ## 5) Validation matrix
 - Unit/integration:
   - valid app + valid auth => allowed
-  - missing app token => blocked in prod mode
-  - over limit => blocked with retry-after
+  - missing app token => blocked in prod mode where enforcement is enabled
+  - over limit => blocked with a clear retry path
 - Commands:
   - `npm --prefix functions run test:http-guards`
   - `npm --prefix functions run test:http-guards:emulator`
-  - add dedicated limiter tests once implemented
+  - add or refresh dedicated limiter tests whenever a new limit window is added
 
 ## 6) Non-goals
 - No platform migration.
@@ -78,6 +83,6 @@ All blocked requests should return explicit machine-readable payload:
 
 ## 7) Launch gate
 Monetized launch should not proceed until:
-- App Check enforcement is active for cost-bearing endpoints.
+- App Check enforcement is verified in the production configuration.
 - Rate limits are active for AI and token spend paths.
-- Monitoring dashboard confirms control effectiveness.
+- Monitoring confirms fallback, retry, and reject rates are within expected bounds.

@@ -55,19 +55,10 @@ class AnalysisProgressView extends StatefulWidget {
 }
 
 class _AnalysisProgressViewState extends State<AnalysisProgressView> {
-  late AnalysisProgressStage _previousStage;
-
-  @override
-  void initState() {
-    super.initState();
-    _previousStage = widget.stage;
-  }
-
   @override
   void didUpdateWidget(covariant AnalysisProgressView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.stage != widget.stage) {
-      _previousStage = oldWidget.stage;
       _triggerStageHaptic(widget.stage);
     }
   }

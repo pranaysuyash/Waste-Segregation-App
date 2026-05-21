@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/navigation_settings_service.dart';
 import '../../widgets/animations/settings_animations.dart';
-import '../../screens/navigation_demo_screen.dart';
+import '../../utils/routes.dart';
 import 'setting_tile.dart';
 import 'settings_theme.dart';
 
@@ -186,11 +186,6 @@ class NavigationSection extends StatelessWidget {
   }
 
   void _navigateToNavigationDemo(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const NavigationDemoScreen(),
-      ),
-    );
+    Navigator.pushNamed(context, Routes.navigationDemo);
   }
 }

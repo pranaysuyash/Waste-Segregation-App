@@ -40,21 +40,28 @@ import 'services/local_guidelines_plugin.dart';
 import 'services/hive_box_manager.dart';
 import 'screens/auth_screen.dart';
 import 'screens/consent_dialog_screen.dart';
+import 'screens/data_export_screen.dart';
+import 'screens/disposal_facilities_screen.dart';
+import 'screens/impact_dashboard_screen.dart';
+import 'screens/legal_document_screen.dart';
+import 'screens/modern_ui_showcase_screen.dart';
+import 'screens/navigation_demo_screen.dart';
+import 'screens/notification_settings_screen.dart';
+import 'screens/offline_mode_settings_screen.dart';
+import 'screens/premium_features_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/training_review_queue_screen.dart';
+import 'screens/theme_settings_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/history_screen.dart';
 import 'screens/achievements_screen.dart';
 import 'screens/educational_content_screen.dart';
 import 'screens/waste_dashboard_screen.dart';
-import 'screens/premium_features_screen.dart';
-import 'screens/data_export_screen.dart';
-import 'screens/offline_mode_settings_screen.dart';
-import 'screens/disposal_facilities_screen.dart';
-import 'screens/impact_dashboard_screen.dart';
 import 'screens/smart_suggestions_screen.dart';
 import 'screens/token_wallet_screen.dart';
 import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart';
+import 'utils/routes.dart';
 import 'utils/error_handler.dart';
 import 'utils/developer_config.dart';
 import 'utils/waste_app_logger.dart';
@@ -271,9 +278,8 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       unawaited(_premiumService
           .initialize()
           .catchError((e) => WasteAppLogger.severe('Premium init failed: $e')));
-      unawaited(_purchaseService
-          .initialize()
-          .catchError((e) => WasteAppLogger.severe('Purchase init failed: $e')));
+      unawaited(_purchaseService.initialize().catchError(
+          (e) => WasteAppLogger.severe('Purchase init failed: $e')));
       unawaited(_adService
           .initialize()
           .catchError((e) => WasteAppLogger.severe('Ad init failed: $e')));
@@ -532,8 +538,7 @@ class WasteSegregationApp extends StatelessWidget {
           ChangeNotifierProvider<GamificationService>.value(
               value: gamificationService),
           ChangeNotifierProvider<PremiumService>.value(value: premiumService),
-          ChangeNotifierProvider<PurchaseService>.value(
-              value: purchaseService),
+          ChangeNotifierProvider<PurchaseService>.value(value: purchaseService),
           ChangeNotifierProvider<AdService>.value(value: adService),
           ChangeNotifierProvider<NavigationSettingsService>.value(
               value: navigationSettingsService),
@@ -674,28 +679,50 @@ class WasteSegregationApp extends StatelessWidget {
                     return mediaWrapped;
                   },
                   routes: {
-                    '/home': (context) => const MainNavigationWrapper(),
-                    '/settings': (context) => const SettingsScreen(),
+                    Routes.home: (context) => const MainNavigationWrapper(),
+                    Routes.settings: (context) => const SettingsScreen(),
+                    Routes.auth: (context) => const AuthScreen(),
                     '/history': (context) => const HistoryScreen(),
                     '/achievements': (context) => const AchievementsScreen(),
                     '/educational': (context) =>
                         const EducationalContentScreen(),
-                    '/analytics': (context) => const WasteDashboardScreen(),
-                    '/premium': (context) => const PremiumFeaturesScreen(),
-                    '/premium-features': (context) =>
+                    Routes.wasteDashboard: (context) =>
+                        const WasteDashboardScreen(),
+                    Routes.premium: (context) => const PremiumFeaturesScreen(),
+                    Routes.premiumFeatures: (context) =>
                         const PremiumFeaturesScreen(),
-                    '/premium_features': (context) =>
+                    Routes.premiumFeaturesHyphen: (context) =>
                         const PremiumFeaturesScreen(),
                     '/token-wallet': (context) => const TokenWalletScreen(),
-                    '/data-export': (context) => const DataExportScreen(),
-                    '/offline-settings': (context) =>
+                    Routes.dataExport: (context) => const DataExportScreen(),
+                    Routes.offlineModeSettings: (context) =>
                         const OfflineModeSettingsScreen(),
+                    Routes.themeSettings: (context) =>
+                        const ThemeSettingsScreen(),
+                    Routes.notificationSettings: (context) =>
+                        const NotificationSettingsScreen(),
+                    Routes.navigationDemo: (context) =>
+                        const NavigationDemoScreen(),
+                    Routes.modernUIShowcase: (context) =>
+                        const ModernUIShowcaseScreen(),
+                    Routes.trainingReviewQueue: (context) =>
+                        const TrainingReviewQueueScreen(),
                     '/disposal-facilities': (context) =>
                         const DisposalFacilitiesScreen(),
                     '/impact-dashboard': (context) =>
                         const ImpactDashboardScreen(),
                     '/smart-suggestions': (context) =>
                         const SmartSuggestionsScreen(),
+                    Routes.privacyPolicy: (context) =>
+                        const LegalDocumentScreen(
+                          title: 'Privacy Policy',
+                          assetPath: 'assets/docs/privacy_policy.md',
+                        ),
+                    Routes.termsOfService: (context) =>
+                        const LegalDocumentScreen(
+                          title: 'Terms of Service',
+                          assetPath: 'assets/docs/terms_of_service.md',
+                        ),
                   },
                   home: kDebugMode && _forceDebugHome
                       ? const _DebugHome()

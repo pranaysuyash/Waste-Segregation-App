@@ -1,10 +1,9 @@
-// Barrel file for all settings widgets
+// Barrel file for settings widgets and compatibility exports
 export 'setting_tile.dart';
 export 'settings_theme.dart' hide SettingsSectionHeader, SettingsSectionSpacer;
 export 'account_section.dart';
 export 'features_section.dart';
 
-// Placeholder sections that need to be implemented
 export 'premium_section.dart';
 export 'app_settings_section.dart';
 export 'navigation_section.dart';

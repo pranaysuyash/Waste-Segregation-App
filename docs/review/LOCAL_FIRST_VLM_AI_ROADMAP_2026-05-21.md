@@ -431,15 +431,15 @@ Without an eval harness, threshold tuning is guesswork. The harness is upstream 
 
 ## 12. Migration Path
 
-### Phase 0: Pre-conditions (do these now, before any Layer work)
+### Phase 0: Pre-conditions (mostly complete; keep these aligned as the cascade evolves)
 
-Before building any new layer, close two gaps that affect everything downstream:
+Before building any new layer, close and preserve the gaps that affect everything downstream:
 
-1. **Add `BackendProxyProvider`** — a Firebase `classifyImage` function that acts as the gateway between Flutter client and AI providers for cloud classifications. This enables:
-   - Server-side cost tracking per user (client-side `ai_cost_tracker.dart` is tamper-susceptible)
-   - App Check enforcement on classification (not just disposal)
-   - Future provider swap without app release
-   - The on-device guard (`ProductionSafetyConfig.guardClientAiCall`) becomes less critical once the proxy exists
+1. **Keep `BackendProxyProvider` as the canonical cloud route** — the Firebase `classifyImage` callable is already live and routes cloud classifications through a server-side gateway. This enables:
+   - Server-side auth, App Check, and rate limiting on classification
+   - Server-side cost tracking and cache telemetry
+   - Future provider swaps without app release
+   - A release-safe path that does not depend on client API keys
 
 2. **Add classification source field** — extend `WasteClassification` model with a `classificationLayer` enum field (`layer0_barcode`, `layer0_histogram`, `layer1_on_device`, `layer2_cloud_cheap`, `layer3_cloud_strong`). This is cost-free to add now and enables telemetry for all future phases.
 
@@ -457,18 +457,16 @@ Tasks:
 
 **Estimated effort**: 2–3 weeks.
 
-### Phase 2: Backend Proxy (classifyImage Firebase Function)
+### Phase 2: Backend Proxy (completed)
 
 **Target**: Route cloud classifications through Firebase instead of direct from client.
 
 Tasks:
-- Add `classifyImage` HTTP function to `functions/src/index.ts`
-- Function receives: image bytes (base64), region, language, user ID
-- Function calls OpenAI/Gemini, returns `WasteClassification` JSON
-- App Check enforcement on this endpoint (inherits from `generateDisposal` pattern)
-- Cost recorded server-side (Firestore `cost_ledger` collection)
-- Update `AiService._analyzeWithOpenAI()` to call the Firebase proxy instead of OpenAI directly in release builds
-- `ProductionSafetyConfig.guardClientAiCall` can be relaxed once proxy is live
+- `classifyImage` callable is already implemented in `functions/src/classify_image.ts`
+- `classifyImage` is exported from `functions/src/index.ts`
+- `AiService` now routes release classification through `BackendProxyProvider`
+- Release remains fail-closed to the backend path
+- Keep the direct client path only for controlled debug/profile and fallback flows
 
 **Estimated effort**: 1–2 weeks.
 
@@ -510,7 +508,7 @@ Tasks:
 | Item | Why pre-launch |
 |---|---|
 | `ProductionSafetyConfig` guard — ensure no direct API keys in release build | Security P0 |
-| Backend proxy `classifyImage` (Phase 2) | Cost protection; App Check enforcement |
+| Backend proxy `classifyImage` (Phase 2) | Done; cost protection and App Check enforcement now exist |
 | `classificationLayer` telemetry field | Required to measure all other phases |
 | Offline degradation UX | Users in low-connectivity areas see coherent experience |
 
@@ -529,7 +527,7 @@ Tasks:
 ```
 Month 1:  Phase 0 (proxy scaffold) + classificationLayer field
 Month 2:  Layer 0 deterministic classifier (Phase 1)
-Month 3:  Backend proxy live (Phase 2)
+Month 3:  Backend proxy live and release routing hardened
 Month 4-5: On-device MobileNetV3 integration (Phase 3, part 1)
 Month 6:  SmolVLM-500M integration + eval harness baseline (Phase 3, part 2)
 Month 7+: Threshold calibration + full cascade routing (Phase 4)

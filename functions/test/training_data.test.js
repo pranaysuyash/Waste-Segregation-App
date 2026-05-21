@@ -59,3 +59,29 @@ test('shouldCleanupCandidate only returns true for aged deleted or rejected rows
     false,
   );
 });
+
+test('isAdminContext enforces admin in production and allows emulator override', () => {
+  const prevEmulator = process.env.FUNCTIONS_EMULATOR;
+  const prevOverride = process.env.ALLOW_TRAINING_REVIEW_NON_ADMIN;
+
+  process.env.FUNCTIONS_EMULATOR = 'false';
+  process.env.ALLOW_TRAINING_REVIEW_NON_ADMIN = 'true';
+  assert.equal(
+    __testables.isAdminContext({ auth: { token: { admin: false } } }),
+    false,
+  );
+  assert.equal(
+    __testables.isAdminContext({ auth: { token: { admin: true } } }),
+    true,
+  );
+
+  process.env.FUNCTIONS_EMULATOR = 'true';
+  process.env.ALLOW_TRAINING_REVIEW_NON_ADMIN = 'true';
+  assert.equal(
+    __testables.isAdminContext({ auth: { token: { admin: false } } }),
+    true,
+  );
+
+  process.env.FUNCTIONS_EMULATOR = prevEmulator;
+  process.env.ALLOW_TRAINING_REVIEW_NON_ADMIN = prevOverride;
+});

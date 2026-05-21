@@ -117,6 +117,7 @@ temp/
 *_temp.txt
 *_backup.*
 temp_msg.txt
+/test_fixes.dart
 
 # Coverage reports
 coverage/

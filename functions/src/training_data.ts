@@ -376,6 +376,15 @@ export const revokeTrainingConsent = asiaSouth1.https.onCall(async (data, contex
   });
   await batch.commit();
 
+  await db.collection('training_review_audit').add({
+    action: 'revoke_training_consent',
+    actorUid: uid,
+    actorRole: context.auth?.token?.admin === true ? 'admin' : 'user',
+    userIdHash,
+    markedCandidates: candidates.size,
+    createdAt: FieldValue.serverTimestamp(),
+  });
+
   return {
     markedCandidates: candidates.size,
   };
@@ -483,6 +492,17 @@ export const reviewTrainingCandidate = asiaSouth1.https.onCall(async (data, cont
     }, { merge: true });
   });
 
+  await db.collection('training_review_audit').add({
+    action: 'review_training_candidate',
+    actorUid: reviewerUid,
+    actorRole: context.auth?.token?.admin === true ? 'admin' : 'unknown',
+    candidateId,
+    status,
+    eligible: isEligible,
+    notes: notes ?? null,
+    createdAt: FieldValue.serverTimestamp(),
+  });
+
   return { candidateId, status, eligible: isEligible };
 });
 
@@ -546,6 +566,7 @@ export const cleanupTrainingReviewImages = asiaSouth1.pubsub
 
 export const __testables = {
   detectSensitiveTextInNotes,
+  isAdminContext,
   likelySensitiveFromSignals,
   shouldCleanupCandidate,
 };

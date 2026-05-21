@@ -4,9 +4,9 @@
 > See: `docs/review/AI_PIPELINE_TRUTH_MAP_2026-05-21.md` for current state.
 >
 > Known discrepancies:
-> - `classifyImage` Cloud Function does not exist — classification is Flutter client-side
+> - `classifyImage` Cloud Function now exists and is live for backend-proxy classification in release
 > - Primary/fallback providers are reversed: OpenAI is primary, Gemini is fallback
-> - Rate limits are 25/min (not 50/day or 10/min)
+> - Rate limits are split: 25/min for disposal, 40/min for token spend, 10/min for `classifyImage`
 > - Raw images ARE stored on-device permanently before analysis
 > - App Check is conditional (not fail-closed)
 > - "Migration Completed" claims in the implementation examples are aspirational; keys are still injected via `String.fromEnvironment` at build time
@@ -24,6 +24,7 @@ The app currently uses the following external API services:
 - **Firebase Authentication**: For user authentication (Google Sign-In)
 
 Based on the video demo review, API key security considerations need to be strengthened as the app moves toward production.
+The current codebase now also includes a live backend classification proxy, so the remaining work here is to keep this guide aligned with the canonical path rather than the older client-only story.
 
 ## API Key Storage
 
@@ -47,6 +48,7 @@ flutter run --dart-define=GEMINI_API_KEY=your_api_key_here --dart-define=OPENAI_
 ### Backend Proxy Approach
 
 The recommended approach for securing API keys in production is to route all requests through a secure backend service that holds the actual API keys.
+That recommendation has since been implemented for the classification path in the current codebase; the sample below remains useful as an architectural explanation, but it is no longer purely aspirational.
 
 #### Implementation Architecture
 ```

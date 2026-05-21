@@ -8,8 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/constants.dart';
+import '../utils/design_system.dart';
 import '../widgets/analysis_progress_view.dart';
-import '../widgets/enhanced_analysis_loader.dart';
 import '../widgets/premium_segmentation_toggle.dart';
 import '../widgets/analysis_speed_selector.dart';
 import '../widgets/modern_ui/modern_cards.dart';
@@ -294,15 +294,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         'captured_image.jpg';
   }
 
-  bool _hasLocalRulesApplied() {
-    final region = _pendingClassification?.region ??
-        _pendingClassification?.regionNormalized?.trim();
-    if (region != null && region.isNotEmpty) {
-      return true;
-    }
-    return false;
-  }
-
   String? _localRuleChipLabel() {
     final region = _pendingClassification?.region;
     if (_analysisStage == AnalysisProgressStage.applyingLocalRules) {
@@ -342,14 +333,20 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   Future<void> _showResultOrFallback(WasteClassification classification) async {
     if (!mounted || _isCancelled) return;
 
+    _pendingClassification = classification;
+    _setAnalysisStage(AnalysisProgressStage.applyingLocalRules);
+
+    // Let users perceive the local rule pass before outcome is surfaced.
+    await Future<void>.delayed(const Duration(milliseconds: 320));
+    if (!mounted || _isCancelled) return;
+
     if (_isFallbackClassification(classification)) {
       _setAnalysisStage(AnalysisProgressStage.fallback);
-      _pendingClassification = classification;
       return;
     }
 
     _setAnalysisStage(AnalysisProgressStage.success);
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     if (!mounted || _isCancelled) return;
 
     await _navigateToResult(classification);
@@ -377,6 +374,64 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         });
       }
     }
+  }
+
+  Widget _buildAnalysisProgressView() {
+    return AnalysisProgressView(
+      stage: _analysisStage,
+      imageName: _currentImageName(),
+      offlineQueueCount: _pendingQueueItems,
+      queuePosition: _queuedPositionHint,
+      localRuleChipText: _localRuleChipLabel(),
+      statusMessage: _analysisErrorMessage,
+      confidenceText: _analysisConfidenceText(),
+      resultCategoryColor: WasteAppDesignSystem.getCategoryColor(
+          _pendingClassification?.category ?? ''),
+      onRetry: _analysisStage == AnalysisProgressStage.failedRetryable
+          ? _retryAnalysis
+          : null,
+      onCancel: _analysisStage == AnalysisProgressStage.failedRetryable ||
+              _analysisStage == AnalysisProgressStage.checkingQuality ||
+              _analysisStage == AnalysisProgressStage.uploading ||
+              _analysisStage == AnalysisProgressStage.analyzingImage ||
+              _analysisStage == AnalysisProgressStage.applyingLocalRules
+          ? _cancelAnalysis
+          : null,
+      onContinue: _analysisStage == AnalysisProgressStage.fallback ||
+              _analysisStage == AnalysisProgressStage.success
+          ? () {
+              final classification = _pendingClassification;
+              if (classification != null) {
+                _navigateToResult(classification);
+              }
+            }
+          : null,
+      showRetry: _analysisStage == AnalysisProgressStage.failedRetryable,
+      showCancel: _analysisStage != AnalysisProgressStage.success,
+    );
+  }
+
+  Future<void> _retryAnalysis() async {
+    final hasImageSource = kIsWeb
+        ? (_webImageBytes != null || _xFile != null)
+        : (_imageFile != null || _xFile != null);
+    if (!hasImageSource &&
+        (_imageFile == null && _xFile == null && _webImageBytes == null)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No image available to retry.')),
+        );
+      }
+      return;
+    }
+    _setAnalysisStage(AnalysisProgressStage.checkingQuality);
+    if (mounted) {
+      setState(() {
+        _isCancelled = false;
+        _analysisErrorMessage = null;
+      });
+    }
+    await _analyzeImage();
   }
 
   void _cancelAnalysis() {
@@ -518,7 +573,12 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         .join(' ');
   }
 
-  void _queueAnalysisOffline(Uint8List imageBytes) {
+  Future<void> _queueAnalysisOffline(Uint8List imageBytes) async {
+    setState(() {
+      _isAnalyzing = true;
+      _analysisErrorMessage = null;
+      _analysisStage = AnalysisProgressStage.queuedOffline;
+    });
     final queueService = OfflineQueueService();
     final userProfile = ref.read(userProfileProvider).value;
     const region = 'auto'; // Default region for offline queue
@@ -526,14 +586,16 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         _xFile?.name ??
         'captured_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-    queueService
-        .queue(
-      imageBytes: imageBytes,
-      region: region,
-      userId: userProfile?.id,
-      imageName: imageName,
-    )
-        .then((_) {
+    try {
+      setState(() {
+        _queuedPositionHint = queueService.pendingCount + 1;
+      });
+      await queueService.queue(
+        imageBytes: imageBytes,
+        region: region,
+        userId: userProfile?.id,
+        imageName: imageName,
+      );
       WasteAppLogger.info(
         'Image queued for offline processing',
         context: {
@@ -543,6 +605,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           'region': region,
         },
       );
+      _setAnalysisStage(AnalysisProgressStage.success);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -551,14 +614,17 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             ),
           ),
         );
-        // Navigate back to camera screen after queuing
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            Navigator.pop(context);
-          }
-        });
       }
-    }).catchError((e) {
+
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      setState(() {
+        _analysisStage = AnalysisProgressStage.failedRetryable;
+        _analysisErrorMessage = 'Failed to queue image offline. Try again.';
+      });
       WasteAppLogger.severe(
         'Failed to queue image offline',
         error: e,
@@ -569,11 +635,22 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           SnackBar(content: Text('Failed to queue image: ${e.toString()}')),
         );
       }
+    }
+
+    setState(() {
+      _isAnalyzing = false;
+      _queuedPositionHint = null;
     });
   }
 
   Future<void> _analyzeImage() async {
     if (_isAnalyzing || _isCancelled) return;
+
+    setState(() {
+      _isAnalyzing = true;
+      _analysisErrorMessage = null;
+      _analysisStage = AnalysisProgressStage.checkingQuality;
+    });
 
     await _refreshGuardrailMode(showUserNotice: true);
 
@@ -600,6 +677,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       isPremiumUser: isPremiumUser,
     )) {
       if (mounted) {
+        if (_isAnalyzing) {
+          setState(() {
+            _isAnalyzing = false;
+          });
+        }
         ZeroBalanceOptionsSheet.show(
           context,
           requiredTokens: effectiveCost,
@@ -645,6 +727,12 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 'User chose to retake image',
                 context: {'service': 'screen', 'file': 'image_capture_screen'},
               );
+              if (mounted) {
+                setState(() {
+                  _isAnalyzing = false;
+                  _analysisStage = AnalysisProgressStage.checkingQuality;
+                });
+              }
               return;
             }
           }
@@ -664,7 +752,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       if (imageBytes != null && imageBytes.isNotEmpty) {
         // Queue the classification for later processing
         if (mounted) {
-          _queueAnalysisOffline(imageBytes);
+          await _queueAnalysisOffline(imageBytes);
+        } else {
+          setState(() {
+            _isAnalyzing = false;
+          });
         }
         return;
       }
@@ -694,8 +786,12 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     setState(() {
       _isAnalyzing = true;
       _isCancelled = false;
+      _analysisStage = AnalysisProgressStage.uploading;
     });
     try {
+      if (mounted) {
+        _setAnalysisStage(AnalysisProgressStage.analyzingImage);
+      }
       final aiService = ref.read(aiServiceProvider);
       late WasteClassification classification;
       if (kIsWeb) {
@@ -908,19 +1004,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         WasteAppLogger.info(
           'Analysis complete, error: navigating to ResultScreen.',
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                ResultScreenWrapper(classification: classification),
-          ),
-        ).then((_) {
-          if (mounted) {
-            setState(() {
-              _isAnalyzing = false;
-            });
-          }
-        });
+        await _showResultOrFallback(classification);
       }
     } catch (e, s) {
       WasteAppLogger.severe(
@@ -931,15 +1015,17 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       );
       if (mounted && !_isCancelled) {
         final userMessage = AiErrorMessages.toUserMessage(e);
+        setState(() {
+          _analysisErrorMessage = userMessage;
+          _analysisStage = AnalysisProgressStage.failedRetryable;
+          _isAnalyzing = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(userMessage),
             duration: const Duration(seconds: 5),
           ),
         );
-        setState(() {
-          _isAnalyzing = false;
-        });
       }
     }
   }
@@ -1106,40 +1192,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     if (widget.autoAnalyze) {
       return Scaffold(
         body: _isAnalyzing
-            ? EnhancedAnalysisLoader(
-                imageName: _imageFile?.path.split('/').last ??
-                    _xFile?.name ??
-                    'captured_image.jpg',
-                onCancel: () {
-                  // Cancel the AI service analysis
-                  final aiService = ref.read(aiServiceProvider);
-                  aiService.cancelAnalysis();
-
-                  setState(() {
-                    _isCancelled = true;
-                    _isAnalyzing = false;
-                  });
-                  WasteAppLogger.info(
-                    'Analysis cancelled by user.',
-                    context: {
-                      'service': 'screen',
-                      'file': 'image_capture_screen',
-                    },
-                  );
-
-                  // Show cancellation feedback
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Analysis cancelled.'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                  // Navigate back to home screen
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                },
-              )
+            ? _buildAnalysisProgressView()
             : const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1199,42 +1252,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         ],
       ),
       body: _isAnalyzing
-          ? EnhancedAnalysisLoader(
-              imageName: _imageFile?.path.split('/').last ??
-                  _xFile?.name ??
-                  'captured_image.jpg',
-              onCancel: () {
-                // Cancel the AI service analysis
-                final aiService = ref.read(aiServiceProvider);
-                aiService.cancelAnalysis();
-
-                setState(() {
-                  _isCancelled = true;
-                  _isAnalyzing = false;
-                });
-                WasteAppLogger.info(
-                  'Analysis cancelled by user.',
-                  context: {
-                    'service': 'screen',
-                    'file': 'image_capture_screen',
-                  },
-                );
-
-                // Show cancellation feedback
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Analysis cancelled.'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-                // Navigate back if cancelled
-                Navigator.pop(
-                  context,
-                ); // Go back to the previous screen (e.g., camera)
-              },
-            )
+          ? _buildAnalysisProgressView()
           : _isSelectingRegions
               ? _buildRegionSelectionBody()
               : _buildNormalReviewBody(),

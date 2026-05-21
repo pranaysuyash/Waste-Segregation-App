@@ -18,6 +18,7 @@ The current decision is to postpone full-model fine-tuning until we have:
 - Master index: [../EXPLORATION_TOPICS.md](../EXPLORATION_TOPICS.md)
 - Raw capture: [../exploration/backlog.md](../exploration/backlog.md)
 - Baseline references: [../review/AI_EVAL_HARNESS_IMPLEMENTATION_PACKET_2026-05-21.md](../review/AI_EVAL_HARNESS_IMPLEMENTATION_PACKET_2026-05-21.md), [../AI_API_RACE_FAULT_TOLERANCE.md](../AI_API_RACE_FAULT_TOLERANCE.md)
+- Issue review packet: [../review/multi_model_ai_stack_issue_review_2026-05-21.md](../review/multi_model_ai_stack_issue_review_2026-05-21.md)
 - Execution docs:
   - [MULTI_MODEL_AI_STACK_CONTRACTS.md](./MULTI_MODEL_AI_STACK_CONTRACTS.md)
   - [MULTI_MODEL_AI_STACK_PHASE1_EXECUTION.md](./MULTI_MODEL_AI_STACK_PHASE1_EXECUTION.md)

@@ -2,21 +2,20 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../models/multi_item_classification_result.dart';
 import '../utils/constants.dart';
 import '../widgets/modern_ui/modern_cards.dart';
 
-/// Screen that shows combined results for multiple classified regions.
-///
-/// Groups results by category and shows a summary list.
-/// MVP: simple list with category grouping.
 class CombinedResultScreen extends ConsumerWidget {
   const CombinedResultScreen({
     super.key,
     required this.classifications,
+    this.multiItemResult,
     this.imageName = 'Captured image',
   });
 
   final List<WasteClassification> classifications;
+  final MultiItemClassificationResult? multiItemResult;
   final String imageName;
 
   Map<String, List<WasteClassification>> _groupByCategory() {
@@ -27,11 +26,15 @@ class CombinedResultScreen extends ConsumerWidget {
     return map;
   }
 
+  bool get _hasMixedCategories =>
+      multiItemResult?.hasMixedCategories ?? false;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final grouped = _groupByCategory();
+    final total = classifications.length;
 
     return Scaffold(
       backgroundColor: cs.surface,
@@ -49,20 +52,34 @@ class CombinedResultScreen extends ConsumerWidget {
           icon: Icon(Icons.arrow_back, color: cs.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('Multi-Item Results'),
+        title: Text(total > 1 ? 'Multi-Item Results' : 'Result'),
       ),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Summary header
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: _buildSummaryHeader(cs, theme),
+                child: _buildSummaryHeader(cs, theme, total),
               ),
             ),
 
-            // Grouped results
+            if (_hasMixedCategories)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildMixedWasteGuidance(theme, cs),
+                ),
+              ),
+
+            if (_hasMixedCategories)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: _buildDisposalSummary(theme, cs),
+                ),
+              ),
+
             ...grouped.entries.expand((entry) {
               final category = entry.key;
               final items = entry.value;
@@ -125,7 +142,6 @@ class CombinedResultScreen extends ConsumerWidget {
               ];
             }),
 
-            // Bottom padding
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
@@ -142,8 +158,7 @@ class CombinedResultScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryHeader(ColorScheme cs, ThemeData theme) {
-    final total = classifications.length;
+  Widget _buildSummaryHeader(ColorScheme cs, ThemeData theme, int total) {
     final categories = _groupByCategory().keys.toList();
 
     return ModernCard(
@@ -154,15 +169,15 @@ class CombinedResultScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.auto_awesome,
+              Icon(
+                total > 1 ? Icons.list_alt : Icons.auto_awesome,
                 color: AppTheme.primaryColor,
                 size: 24,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Analysis Complete',
+                  total > 1 ? 'Items Found' : 'Analysis Complete',
                   style: theme.textTheme.titleLarge?.copyWith(
                     color: cs.onSurface,
                     fontWeight: FontWeight.bold,
@@ -202,6 +217,134 @@ class CombinedResultScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildMixedWasteGuidance(ThemeData theme, ColorScheme cs) {
+    final guidance = multiItemResult!.primaryDisposalGuidance;
+    final warnings = multiItemResult!.aggregateWarnings;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.amber.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.amber.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.info_outline,
+                  color: Colors.amber, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Mixed Waste Detected',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber.shade800,
+                ),
+              ),
+            ],
+          ),
+          if (guidance != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              guidance,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: cs.onSurface,
+                height: 1.4,
+              ),
+            ),
+          ],
+          if (warnings.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            ...warnings.map((w) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('• ', style: TextStyle(fontSize: 14)),
+                      Expanded(
+                        child: Text(w,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.amber.shade800,
+                            )),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDisposalSummary(ThemeData theme, ColorScheme cs) {
+    final categories = multiItemResult!.regionsByCategory;
+
+    return ModernCard(
+      padding: const EdgeInsets.all(16),
+      backgroundColor: cs.surfaceContainerLow,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Disposal Summary',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...categories.entries.map((entry) {
+            final catColor = _categoryColor(entry.key);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: catColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${entry.key} — ${entry.value.first.classification?.disposalInstructions.primaryMethod ?? 'Review pending'}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: catColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${entry.value.length}',
+                      style: TextStyle(
+                        color: catColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   Widget _buildItemCard(
     BuildContext context,
     WasteClassification classification,
@@ -213,17 +356,18 @@ class CombinedResultScreen extends ConsumerWidget {
     return Card(
       elevation: 0,
       color: cs.surfaceContainerHighest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: _categoryColor(
-              classification.category,
-            ).withValues(alpha: 0.15),
+            color: _categoryColor(classification.category)
+                .withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -250,12 +394,11 @@ class CombinedResultScreen extends ConsumerWidget {
         ),
         trailing: Icon(Icons.chevron_right, color: cs.onSurfaceVariant),
         onTap: () {
-          // Navigate to individual result for this classification
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  _IndividualResultPlaceholder(classification: classification),
+              builder: (_) => _IndividualResultPlaceholder(
+                  classification: classification),
             ),
           );
         },
@@ -274,8 +417,6 @@ class CombinedResultScreen extends ConsumerWidget {
   }
 }
 
-/// Lightweight placeholder for drilling into a single result from combined view.
-/// In a full implementation this would reuse the canonical ResultScreen.
 class _IndividualResultPlaceholder extends StatelessWidget {
   const _IndividualResultPlaceholder({required this.classification});
 

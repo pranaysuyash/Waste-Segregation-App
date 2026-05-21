@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../models/detected_waste_region.dart';
+import '../models/multi_item_classification_result.dart';
 import '../models/vision_model_config.dart';
 import '../utils/waste_app_logger.dart';
 
@@ -26,6 +28,19 @@ class DetectedObject {
       'boundingBox': boundingBox.toJson(),
       'hasSegmentationMask': segmentationMask != null,
     };
+  }
+
+  DetectedWasteRegion toDetectedWasteRegion() {
+    return DetectedWasteRegion(
+      boundingBox: NormalizedBoundingBox(
+        left: boundingBox.x / 1000.0,
+        top: boundingBox.y / 1000.0,
+        width: boundingBox.width / 1000.0,
+        height: boundingBox.height / 1000.0,
+      ),
+      label: className,
+      confidence: confidence,
+    );
   }
 }
 
@@ -327,6 +342,48 @@ class ObjectDetectionService {
       'segmentation_enabled': _config.enableSegmentation,
       'confidence_threshold': _config.confidenceThreshold,
     };
+  }
+
+  Future<MultiItemClassificationResult> classifyMultiItemRegions(
+    File imageFile,
+    List<DetectedWasteRegion> regions, {
+    String? region,
+  }) async {
+    try {
+      final results = <DetectedWasteRegion>[];
+      for (final wasteRegion in regions) {
+        final classification = await classifyDetectedObjects(
+          imageFile,
+          [
+            DetectedObject(
+              className: wasteRegion.label ?? 'unknown',
+              confidence: wasteRegion.confidence ?? 0.5,
+              boundingBox: BoundingBox(
+                x: wasteRegion.boundingBox.left * 1000,
+                y: wasteRegion.boundingBox.top * 1000,
+                width: wasteRegion.boundingBox.width * 1000,
+                height: wasteRegion.boundingBox.height * 1000,
+              ),
+            ),
+          ],
+          region: region,
+        );
+        results.add(
+          wasteRegion.copyWith(classification: classification),
+        );
+      }
+
+      return MultiItemClassificationResult(
+        sourceImagePath: imageFile.path,
+        regions: results,
+        mixedWasteGuidance:
+            MultiItemClassificationResult.inferMixedWasteGuidance(results),
+      );
+    } catch (e, s) {
+      WasteAppLogger.severe('Multi-item classification failed',
+          error: e, stackTrace: s);
+      rethrow;
+    }
   }
 
   /// Dispose resources

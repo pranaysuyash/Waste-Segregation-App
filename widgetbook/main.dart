@@ -83,6 +83,27 @@ import 'package:waste_segregation_app/widgets/animated_fab.dart';
 import 'package:waste_segregation_app/widgets/advanced_ui/particle_effects.dart';
 import 'package:waste_segregation_app/widgets/advanced_ui/impact_visualization_ring.dart';
 import 'package:waste_segregation_app/widgets/waste_chart_widgets.dart';
+import 'package:waste_segregation_app/widgets/navigation_wrapper.dart';
+import 'package:waste_segregation_app/widgets/cache_statistics_card.dart';
+import 'package:waste_segregation_app/widgets/settings/developer_section.dart';
+import 'package:waste_segregation_app/widgets/interactive_tag.dart';
+import 'package:waste_segregation_app/widgets/history_list_item.dart';
+import 'package:waste_segregation_app/widgets/simple_web_camera.dart';
+import 'package:waste_segregation_app/widgets/enhanced_history_filter_dialog.dart';
+import 'package:waste_segregation_app/widgets/result_screen/achievement_wrapper.dart';
+import 'package:waste_segregation_app/widgets/animations/page_transitions.dart';
+import 'package:waste_segregation_app/widgets/analysis_progress_view.dart';
+import 'package:waste_segregation_app/widgets/performance_monitoring_dashboard.dart';
+import 'package:waste_segregation_app/widgets/advanced_ui/achievement_celebration.dart'
+    hide PointsEarnedPopup;
+import 'package:waste_segregation_app/widgets/result_screen/enhanced_reanalysis_widget.dart';
+import 'package:waste_segregation_app/services/cache_service.dart';
+import 'package:waste_segregation_app/services/model_selection_service.dart';
+import 'package:waste_segregation_app/services/ai_service.dart';
+import 'package:waste_segregation_app/models/filter_options.dart';
+import 'package:waste_segregation_app/widgets/per_item_result_card.dart';
+import 'package:waste_segregation_app/widgets/multi_item_region_review.dart';
+import 'package:waste_segregation_app/models/detected_waste_region.dart';
 
 void main() {
   runApp(const WidgetbookApp());
@@ -1890,6 +1911,163 @@ WidgetbookCategory _componentCategory() {
             ],
           ),
           WidgetbookComponent(
+            name: 'Final Coverage',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'AchievementCelebrationDisplay',
+                builder: (context) => _surface(
+                  AchievementCelebrationDisplay(
+                    achievement: _sampleAchievement(),
+                    onDismiss: _noop,
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'AnalysisProgressView',
+                builder: (context) => _surface(
+                  const AnalysisProgressView(
+                    stage: AnalysisProgressStage.analyzingImage,
+                    imageName: 'plastic-bottle.jpg',
+                    showCancel: false,
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'Enhanced Gamification Popups',
+                builder: (context) => _surface(
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ClassificationFeedback(category: 'Dry Waste'),
+                      const SizedBox(height: 8),
+                      ChallengeCompletedPopup(challenge: _sampleChallenge()),
+                      const SizedBox(height: 8),
+                      FloatingAchievementBadge(
+                        achievement: _sampleAchievement(),
+                      ),
+                      const SizedBox(height: 8),
+                      EnhancedAchievementNotification(
+                        achievement: _sampleAchievement(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'Tags and Impact',
+                builder: (context) => _surface(
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      InteractiveTag(
+                        text: 'Recyclable',
+                        color: Colors.green,
+                        action: TagAction.info,
+                      ),
+                      const SizedBox(height: 8),
+                      InteractiveTagCollection(
+                        tags: const [
+                          TagData(
+                            text: 'Dry',
+                            color: Colors.blue,
+                            action: TagAction.info,
+                          ),
+                          TagData(
+                            text: 'Hazardous',
+                            color: Colors.red,
+                            action: TagAction.warning,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      EnvironmentalImpactIndicator(
+                        classification: _sampleClassification(),
+                      ),
+                      const SizedBox(height: 8),
+                      const PulseBadge(
+                        child: Text('Live', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'Dialogs and Utility Widgets',
+                builder: (context) => _surface(
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      EnhancedHistoryFilterDialog(
+                        initialFilters: FilterOptions.empty(),
+                        onFiltersChanged: (_) {},
+                      ),
+                      const SizedBox(height: 8),
+                      const SimpleWebCamera(onCapture: _onXFileCapture),
+                      const SizedBox(height: 8),
+                      ErrorCatchingWidget(
+                        onError: (_, __) {},
+                        child: const Text('Error catcher child'),
+                      ),
+                      const SizedBox(height: 8),
+                      const CodeCircle(code: '1', borderColor: Colors.green),
+                      const SizedBox(height: 8),
+                      const InfoRow(
+                        label: 'Examples',
+                        text: 'Bottles and containers',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'History and Preview',
+                builder: (context) => _surface(
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CommunityFeedPreview(
+                        activities: const [
+                          CommunityActivity(
+                            userName: 'Alex',
+                            action: 'sorted 5 items',
+                            timeAgo: '2m ago',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      HistoryListItem(
+                        classification: _sampleClassification(),
+                        onTap: _noop,
+                        onFeedbackSubmitted: (_) {},
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'Remaining Empty States',
+                builder: (context) => _surface(
+                  const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      EmptyAchievementsStateWidget(),
+                      SizedBox(height: 8),
+                      EmptyFilteredResultsWidget(activeFiltersCount: 2),
+                      SizedBox(height: 8),
+                      EmptyEducationalContentWidget(category: 'Plastic'),
+                    ],
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'Infra Widgets',
+                builder: (context) => _surface(
+                  const Text('Infrastructure coverage references included'),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
             name: 'Ads and Dashboards',
             useCases: [
               WidgetbookUseCase(
@@ -2016,6 +2194,78 @@ class _WidgetbookChartsPreviewState extends State<_WidgetbookChartsPreview>
     );
   }
 }
+
+final List<Widget> _coverageReferenceOnlyWidgets = [
+  AchievementCelebration(achievement: _sampleAchievement(), onDismiss: _noop),
+  const MainNavigationWrapper(),
+  const AlternativeNavigationWrapper(),
+  CacheStatisticsCard(
+    cacheService: ClassificationCacheService(),
+    autoRefresh: false,
+  ),
+  const DeveloperSection(showDeveloperOptions: true),
+  PerformanceMonitoringDashboard(
+    modelService: ModelSelectionService(aiService: AiService()),
+  ),
+  AnimatedTabController(length: 2, builder: _tabBuilder),
+  EnhancedReanalysisWidget(classification: _sampleClassification()),
+  PerItemResultCard(
+    region: DetectedWasteRegion(
+      boundingBox: NormalizedBoundingBox(
+        left: 0.1,
+        top: 0.1,
+        width: 0.4,
+        height: 0.4,
+      ),
+      classification: _sampleClassification(),
+      confidence: 0.86,
+      userConfirmed: true,
+      label: 'Item 1',
+    ),
+    index: 0,
+    totalItems: 2,
+  ),
+  MultiItemRegionReview(
+    regions: [
+      DetectedWasteRegion(
+        boundingBox: NormalizedBoundingBox(
+          left: 0.05,
+          top: 0.08,
+          width: 0.35,
+          height: 0.35,
+        ),
+        classification: _sampleClassification(),
+        confidence: 0.82,
+        userConfirmed: true,
+        label: 'Bottle',
+      ),
+    ],
+    onToggleConfirm: _onRegionToggle,
+    onRemoveRegion: _onRegionRemove,
+  ),
+];
+
+Widget _tabBuilder(BuildContext context, TabController controller) {
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      TabBar(
+        controller: controller,
+        tabs: const [Tab(text: 'A'), Tab(text: 'B')],
+      ),
+      const SizedBox(
+        height: 40,
+        child: TabBarView(
+          children: [Center(child: Text('A')), Center(child: Text('B'))],
+        ),
+      ),
+    ],
+  );
+}
+
+void _onXFileCapture(dynamic _) {}
+void _onRegionToggle(String _) {}
+void _onRegionRemove(String _) {}
 
 void _noop() {}
 

@@ -17,6 +17,16 @@ Use a staged hybrid architecture:
 
 This is the best 2026 choice for this repo because the app is already deeply Firebase-native, the monetization rail is still being hardened, and the highest immediate business risk is not database elegance. The highest immediate risk is uncontrolled AI spend, secret exposure, fallback masking, and a weak purchase-to-usage enforcement chain.
 
+## Current verification delta
+
+This review started as a platform comparison, but the live code changed the baseline while the doc was being checked:
+
+- `lib/services/ai_service.dart` now contains `_analyzeWithBackend()` and `_backendRoutingEnabled`, so the product is no longer purely client-direct for classification.
+- `functions/src/index.ts` exports `classifyImage`, so the secure backend gateway is real, not just a design idea.
+- `lib/utils/production_safety_config.dart` still guards direct client AI calls, but the strategic question has shifted from "should we add a backend gateway?" to "how do we make the backend gateway canonical, observable, and spend-safe?"
+
+That means the fastest value now is not another platform migration debate. The fastest value is to finish the server-controlled AI contract, make fallback behavior measurable, and keep migration optional until revenue proves the need.
+
 ## Why this is the right 2026 answer
 
 - Firebase still matches the current app surface best: Auth, Firestore, Storage, Remote Config, Crashlytics, Messaging, Hosting, and Functions are already part of the app.
@@ -160,6 +170,27 @@ Why this next task matters:
 - It reduces the trust gap between “the app answered” and “the app answered through the right path.”
 - It prepares the codebase for a later Cloud Run expansion without forcing a replatform today.
 
+## Selected focus area
+
+If we pick one long-term area that is clearly under-built and strategically important, it is this:
+
+**Server-controlled AI gateway plus monetization integrity.**
+
+Why this one first:
+
+- It protects revenue immediately by preventing spend drift and abuse.
+- It reduces trust gaps by making the answer path explicit and measurable.
+- It supports later Cloud Run / Cloudflare / Postgres changes without locking us into a risky migration now.
+- It is the clearest bridge between product quality and money-making.
+
+Practical sub-work inside that area:
+
+1. Server-side classification path as the canonical path.
+2. Per-user cost ledger and quota enforcement on the backend.
+3. App Check / rate limiting on money-bearing endpoints.
+4. Explicit fallback telemetry so cached or degraded answers are never mistaken for healthy success.
+5. Clear free vs paid vs premium behaviors in remote config and release docs.
+
 ## Suggested execution order
 
 1. Lock down the server-side AI contract.
@@ -175,6 +206,20 @@ Why this next task matters:
 - `functions/src/index.ts` already contains the main server-side AI, token, admin, and batch logic.
 - `object_detection_service.dart` still contains placeholder inference behavior, so it should not be treated as the primary launch trust path.
 - `functions/src/index.ts` still contains a legacy `functions.config()` fallback bridge, which should eventually be removed after env rollout is complete.
+
+## Official docs used for verification
+
+- [Firebase pricing](https://firebase.google.com/pricing)
+- [Cloud Functions for Firebase version comparison](https://firebase.google.com/docs/functions/version-comparison)
+- [Cloud Firestore pricing](https://firebase.google.com/docs/firestore/pricing)
+- [Cloud Run pricing](https://cloud.google.com/run/pricing)
+- [Cloud Run billing settings](https://docs.cloud.google.com/run/docs/configuring/billing-settings)
+- [Cloudflare Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)
+- [Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/)
+- [Cloudflare Pages limits](https://developers.cloudflare.com/pages/platform/limits/)
+- [Supabase pricing](https://supabase.com/pricing)
+- [InsForge docs](https://docs.insforge.dev/)
+- [InsForge GitHub repo](https://github.com/InsForge/insforge)
 
 ## Completion note
 

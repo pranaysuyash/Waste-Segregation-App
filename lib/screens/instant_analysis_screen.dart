@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,9 +7,8 @@ import 'package:flutter/foundation.dart';
 
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/ai_service.dart';
-import '../services/gamification_service.dart';
 import '../utils/ai_error_messages.dart';
-import '../widgets/enhanced_analysis_loader.dart';
+import '../widgets/analysis_progress_view.dart';
 import '../screens/result_screen_wrapper.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
@@ -28,6 +28,8 @@ class InstantAnalysisScreen extends StatefulWidget {
 class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
   bool _isAnalyzing = false;
   bool _isCancelled = false;
+  AnalysisProgressStage _analysisStage = AnalysisProgressStage.checkingQuality;
+  String? _analysisErrorMessage;
 
   @override
   void initState() {
@@ -43,11 +45,18 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
 
     setState(() {
       _isAnalyzing = true;
+      _analysisErrorMessage = null;
+      _analysisStage = AnalysisProgressStage.checkingQuality;
     });
 
     try {
       WasteAppLogger.info(
           '🚀 Auto-analyze enabled - starting analysis immediately');
+      if (mounted) {
+        setState(() {
+          _analysisStage = AnalysisProgressStage.uploading;
+        });
+      }
 
       final aiService = Provider.of<AiService>(context, listen: false);
       WasteClassification? result;
@@ -58,6 +67,11 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
         if (bytes.isEmpty) {
           throw Exception('Failed to read image data - empty bytes');
         }
+        if (mounted) {
+          setState(() {
+            _analysisStage = AnalysisProgressStage.analyzingImage;
+          });
+        }
         result = await aiService.analyzeWebImage(bytes, widget.image.name);
       } else {
         // Mobile platform
@@ -65,28 +79,42 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
         if (!await file.exists()) {
           throw Exception('Image file does not exist: ${widget.image.path}');
         }
+        if (mounted) {
+          setState(() {
+            _analysisStage = AnalysisProgressStage.analyzingImage;
+          });
+        }
         result = await aiService.analyzeImage(file);
       }
 
       if (!_isCancelled && mounted) {
         WasteAppLogger.info(
             '✅ Analysis complete - saving classification immediately');
+        setState(() {
+          _analysisStage = AnalysisProgressStage.applyingLocalRules;
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 320));
+        if (_isCancelled || !mounted) return;
 
-        // Save the classification immediately using gamification service to trigger all hooks
-        final gamificationService =
-            Provider.of<GamificationService>(context, listen: false);
-        await gamificationService.processClassification(result);
+        setState(() {
+          _analysisStage = AnalysisProgressStage.success;
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 280));
+        if (_isCancelled || !mounted) return;
 
         WasteAppLogger.info(
             '✅ Classification saved - navigating to results screen');
 
-        // Navigate to results screen and wait for it to complete
-        await Navigator.pushReplacement<void, void>(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResultScreenWrapper(
-              classification: result!,
-              autoAnalyze: true,
+        // Fire-and-forget replacement avoids hanging async completion until the
+        // destination route is popped, which can stall widget tests and callers.
+        unawaited(
+          Navigator.pushReplacement<void, void>(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResultScreenWrapper(
+                classification: result!,
+                autoAnalyze: true,
+              ),
             ),
           ),
         );
@@ -99,13 +127,17 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
     } catch (e) {
       if (!_isCancelled && mounted) {
         WasteAppLogger.severe('Error during instant analysis: $e');
+        setState(() {
+          _analysisErrorMessage = AiErrorMessages.toUserMessage(e);
+          _analysisStage = AnalysisProgressStage.failedRetryable;
+          _isAnalyzing = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AiErrorMessages.toUserMessage(e)),
+            content: Text(_analysisErrorMessage!),
             backgroundColor: Colors.red,
           ),
         );
-        Navigator.of(context).pop();
       }
     } finally {
       if (mounted) {
@@ -116,6 +148,16 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
     }
   }
 
+  Future<void> _retryAnalysis() async {
+    if (_isAnalyzing) return;
+    setState(() {
+      _isCancelled = false;
+      _analysisErrorMessage = null;
+      _analysisStage = AnalysisProgressStage.checkingQuality;
+    });
+    await _startInstantAnalysis();
+  }
+
   void _cancelAnalysis() {
     // Cancel the AI service analysis
     final aiService = Provider.of<AiService>(context, listen: false);
@@ -124,6 +166,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
     setState(() {
       _isCancelled = true;
       _isAnalyzing = false;
+      _analysisStage = AnalysisProgressStage.checkingQuality;
     });
     WasteAppLogger.info('Analysis cancelled by user');
 
@@ -136,17 +179,37 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
         ),
       );
     }
-    // Navigate back to home screen
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    // Navigate back to home screen.
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _isAnalyzing
-          ? EnhancedAnalysisLoader(
+      body: _isAnalyzing ||
+              _analysisStage == AnalysisProgressStage.failedRetryable
+          ? AnalysisProgressView(
+              stage: _analysisStage,
               imageName: widget.image.name,
-              onCancel: _cancelAnalysis,
+              statusMessage: _analysisErrorMessage,
+              localRuleChipText:
+                  'Applying disposal rules and processing result.',
+              onCancel: _analysisStage ==
+                          AnalysisProgressStage.failedRetryable ||
+                      _analysisStage == AnalysisProgressStage.checkingQuality ||
+                      _analysisStage == AnalysisProgressStage.uploading ||
+                      _analysisStage == AnalysisProgressStage.analyzingImage ||
+                      _analysisStage == AnalysisProgressStage.applyingLocalRules
+                  ? _cancelAnalysis
+                  : null,
+              onRetry: _analysisStage == AnalysisProgressStage.failedRetryable
+                  ? _retryAnalysis
+                  : null,
+              showRetry:
+                  _analysisStage == AnalysisProgressStage.failedRetryable,
+              showCancel: _analysisStage != AnalysisProgressStage.success,
             )
           : const Center(
               child: Column(

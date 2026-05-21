@@ -28,6 +28,7 @@ Sources already mined for this initial list:
 - [ ] Prompt versioning + per-prompt eval scores (no prompt change without an eval pass)
 - [ ] Hard-example mining from user corrections — weekly cycle
 - [x] Multi-Model AI Stack Roadmap (quality gate + detection/segmentation + classifier + routing + privacy + active learning + eval/data quality loop) for post-classifier growth. Promoted as `EXPLORATION_TOPICS.md#1a`.
+- [x] **MULTI_ITEM_SEGMENTATION_UX_V1** — Manual region + scaffolded segmentation with `DetectedWasteRegion`/`MultiItemClassificationResult` abstractions. Delivered `docs/review/MULTI_ITEM_SEGMENTATION_UX_V1_2026-05-21.md`. Backlog items below remain for ML model integration.
 - [ ] Multi-frame / burst-capture mode for cluttered or hard scenes
 - [ ] Audio cues (crunching plastic, paper rustle) as supplementary signal
 - [ ] Brand / SKU recognition with explicit privacy & accuracy boundaries
@@ -36,7 +37,11 @@ Sources already mined for this initial list:
 
 ## On-Device & Edge
 
-- [ ] Evaluate Gemma 3n, MiniCPM-V, SmolVLM, MobileSAM, Apple Vision for the common case
+- [x] Evaluate MiniCPM-V 4.6, Gemma 4 4B/shrdlu, MobileSAM, Qwen3-VL for on-device waste classification. Full survey in `docs/review/MULTI_ITEM_SEGMENTATION_UX_V1_2026-05-21.md#7.2-vision-language-models-vlms-for-region-classification`.
+- [ ] Benchmark MiniCPM-V 4.6 vs Gemma 4 4B on actual waste crop classification accuracy
+- [ ] Build MobileSAM → ONNX → TFLite pipeline and test on mid-tier Android device
+- [ ] Build MiniCPM-V 4.6 on-device integration (flutter_llama.cpp or similar) for region classification
+- [x] **Full segmentation model exploration (May 2026)** — Wide-open sweep covering SAM 3 (848M, text-prompted concept seg), SAM 2.1 (38.9M-224M), MobileSAM (9.66M), EdgeSAM (~5M), EfficientSAM (30M), FastSAM (68M), YOLOv8/v11 (3M+), GridSegmentation, MiniCPM-V 4.6 (1.3B, on-device VLM), MiniCPM-o 4.5 (9B, omnimodal), Gemma 4 4B/9B/shrdlu/E2B-it (MediaPipe), Qwen3-VL, InternVL-3.5, Gemini 2.5, GPT-5, Grounding-SAM, Roboflow API. Pipeline recommendation: YOLOv11 detect → crop → MiniCPM-V 4.6 on-device classify, with SAM 2.1/Gemini as premium fallback. See `docs/review/MULTI_ITEM_SEGMENTATION_UX_V1_2026-05-21.md#7-full-model-exploration-map`.
 - [ ] Bundle-vs-lazy-download strategy for model weights (APK size guardrail)
 - [ ] iOS vs Android parity matrix for on-device inference
 - [ ] Battery / thermal / memory budget benchmark on representative mid-tier devices

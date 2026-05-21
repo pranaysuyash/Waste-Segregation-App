@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../utils/routes.dart';
 import '../l10n/app_localizations.dart';
 import '../services/premium_service.dart';
 import '../services/ad_service.dart';
@@ -17,23 +18,12 @@ import '../utils/constants.dart';
 import '../utils/app_version.dart';
 import '../utils/developer_config.dart';
 import '../widgets/animations/settings_animations.dart';
-import 'premium_features_screen.dart';
-import 'theme_settings_screen.dart';
-import 'waste_dashboard_screen.dart';
-import 'legal_document_screen.dart';
-import 'offline_mode_settings_screen.dart';
-import 'data_export_screen.dart';
-import 'navigation_demo_screen.dart';
-import 'modern_ui_showcase_screen.dart';
-import 'auth_screen.dart';
-import 'notification_settings_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/enhanced_image_service.dart';
 import '../services/firebase_cleanup_service.dart';
 import '../services/training_data_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
-import 'training_review_queue_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -257,12 +247,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: Text(l10n.premiumFeaturesSubtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PremiumFeaturesScreen(),
-                  ),
-                );
+                Navigator.pushNamed(context, Routes.premiumFeatures);
               },
             ),
           ),
@@ -443,13 +428,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       side: const BorderSide(color: Colors.blue),
                     ),
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const TrainingReviewQueueScreen(),
-                        ),
-                      );
+                      Navigator.pushNamed(context, Routes.trainingReviewQueue);
                     },
                   ),
                   // Test new home screen implementation
@@ -581,12 +560,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: const Text('Customize app appearance'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ThemeSettingsScreen(),
-                  ),
-                );
+                Navigator.pushNamed(context, Routes.themeSettings);
               },
             ),
           ),
@@ -610,12 +584,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: const Text('Manage your notifications'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationSettingsScreen(),
-                  ),
-                );
+                Navigator.pushNamed(context, Routes.notificationSettings);
               },
             ),
           ),
@@ -656,12 +625,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NavigationDemoScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, Routes.navigationDemo);
             },
           ),
           const Divider(),
@@ -688,12 +652,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ModernUIShowcaseScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, Routes.modernUIShowcase);
             },
           ),
           const Divider(),
@@ -707,12 +666,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context, premiumService.isPremiumFeature('offline_mode')),
             onTap: () {
               if (premiumService.isPremiumFeature('offline_mode')) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const OfflineModeSettingsScreen(),
-                  ),
-                );
+                Navigator.pushNamed(context, Routes.offlineModeSettings);
               } else {
                 _showPremiumFeaturePrompt(context, 'Offline Mode');
               }
@@ -729,12 +683,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context, premiumService.isPremiumFeature('advanced_analytics')),
             onTap: () {
               if (premiumService.isPremiumFeature('advanced_analytics')) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const WasteDashboardScreen(),
-                  ),
-                );
+                Navigator.pushNamed(context, Routes.wasteDashboard);
               } else {
                 _showPremiumFeaturePrompt(context, 'Advanced Analytics');
               }
@@ -772,12 +721,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context, premiumService.isPremiumFeature('export_data')),
             onTap: () {
               if (premiumService.isPremiumFeature('export_data')) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DataExportScreen(),
-                  ),
-                );
+                Navigator.pushNamed(context, Routes.dataExport);
               } else {
                 _showPremiumFeaturePrompt(context, 'Data Export');
               }
@@ -1054,16 +998,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             title: const Text('Privacy Policy'),
                             onTap: () {
                               Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const LegalDocumentScreen(
-                                    title: 'Privacy Policy',
-                                    assetPath: 'assets/docs/privacy_policy.md',
-                                  ),
-                                ),
-                              );
+                              Navigator.pushNamed(
+                                  context, Routes.privacyPolicy);
                             },
                           ),
                           ListTile(
@@ -1071,16 +1007,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             title: const Text('Terms of Service'),
                             onTap: () {
                               Navigator.pop(context);
-                              Navigator.push(
+                              Navigator.pushNamed(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const LegalDocumentScreen(
-                                    title: 'Terms of Service',
-                                    assetPath:
-                                        'assets/docs/terms_of_service.md',
-                                  ),
-                                ),
+                                Routes.termsOfService,
                               );
                             },
                           ),
@@ -1133,16 +1062,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: TextButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const LegalDocumentScreen(
-                                    title: 'Privacy Policy',
-                                    assetPath: 'assets/docs/privacy_policy.md',
-                                  ),
-                                ),
-                              );
+                              Navigator.pushNamed(
+                                  context, Routes.privacyPolicy);
                             },
                             child: const Text('Privacy Policy'),
                           ),
@@ -1152,16 +1073,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: TextButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              Navigator.push(
+                              Navigator.pushNamed(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const LegalDocumentScreen(
-                                    title: 'Terms of Service',
-                                    assetPath:
-                                        'assets/docs/terms_of_service.md',
-                                  ),
-                                ),
+                                Routes.termsOfService,
                               );
                             },
                             child: const Text('Terms of Service'),
@@ -1294,10 +1208,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Navigator.pop(context); // Close loading dialog
 
                     // Navigate back to auth screen
-                    Navigator.pushAndRemoveUntil(
+                    Navigator.pushNamedAndRemoveUntil(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const AuthScreen()),
+                      Routes.auth,
                       (route) => false,
                     );
                   }
@@ -1338,9 +1251,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.pop(context); // Close dialog
 
                 // Navigate to auth screen
-                Navigator.pushAndRemoveUntil(
+                Navigator.pushNamedAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const AuthScreen()),
+                  Routes.auth,
                   (route) => false,
                 );
               },
@@ -1369,12 +1282,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PremiumFeaturesScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, Routes.premiumFeatures);
             },
             child: const Text('See Premium Features'),
           ),
@@ -1770,8 +1678,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // After everything, if successful, navigate to AuthScreen
                 // Check mounted status before navigation as well
                 if (success && currentCapturedContext.mounted) {
-                  Navigator.of(currentCapturedContext).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  Navigator.of(currentCapturedContext).pushNamedAndRemoveUntil(
+                    Routes.auth,
                     (Route<dynamic> route) => false,
                   );
                 } else if (!success && currentCapturedContext.mounted) {
@@ -2101,8 +2009,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (context.mounted) {
                   Navigator.pop(context); // Close loading dialog
                   // Immediately navigate to AuthScreen to force full UI reset
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    Routes.auth,
                     (Route<dynamic> route) => false,
                   );
                   ScaffoldMessenger.of(context).showSnackBar(

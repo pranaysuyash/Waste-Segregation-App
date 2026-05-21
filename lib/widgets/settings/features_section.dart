@@ -124,15 +124,10 @@ class FeaturesSection extends StatelessWidget {
     BuildContext context,
     PremiumService premiumService,
   ) {
-    final t = AppLocalizations.of(context)!;
     if (premiumService.isPremiumFeature('offline_mode')) {
-      // Navigate to offline mode settings
-      // This would be implemented when the screen is available
-      SettingsTheme.showInfoSnackBar(
-        context,
-        t.offlineModeComingSoon,
-      );
+      Navigator.pushNamed(context, Routes.offlineModeSettings);
     } else {
+      final t = AppLocalizations.of(context)!;
       _showPremiumFeaturePrompt(context, t.offlineMode);
     }
   }
