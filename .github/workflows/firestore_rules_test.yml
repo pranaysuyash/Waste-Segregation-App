@@ -51,7 +51,7 @@ jobs:
           testEnv = await initializeTestEnvironment({
             projectId: 'waste-segregation-test',
             firestore: {
-              rules: fs.readFileSync('firestore.rules', 'utf8'),
+              rules: fs.readFileSync(require('path').resolve(__dirname, '../../firestore.rules'), 'utf8'),
             },
           });
         });
