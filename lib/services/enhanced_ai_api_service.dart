@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:math';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../utils/production_safety_config.dart';
 import '../utils/waste_app_logger.dart';
 import '../utils/constants.dart';
 import 'api_client_factory.dart';
@@ -313,6 +314,7 @@ class EnhancedAiApiService {
     required String language,
     bool enableSegmentation = false,
   }) async {
+    ProductionSafetyConfig.guardClientAiCall('OpenAI');
     final base64Image = base64Encode(imageBytes);
 
     final requestData = {
@@ -386,6 +388,7 @@ class EnhancedAiApiService {
     required String language,
     bool enableSegmentation = false,
   }) async {
+    ProductionSafetyConfig.guardClientAiCall('Gemini');
     final base64Image = base64Encode(imageBytes);
 
     final requestData = {

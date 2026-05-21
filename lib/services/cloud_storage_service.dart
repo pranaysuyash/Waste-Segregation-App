@@ -868,11 +868,61 @@ class CloudStorageService {
       await batch.commit();
 
       WasteAppLogger.info(
+          'Successfully cleared Firestore data for user ${userProfile.id}');
+
+      // Best-effort: delete Firebase Storage blobs — failure is non-fatal
+      try {
+        await deleteUserStorageBlobs(userProfile.id);
+      } catch (e, s) {
+        WasteAppLogger.severe('Error deleting user storage blobs',
+            error: e, stackTrace: s);
+      }
+
+      WasteAppLogger.info(
           'Successfully cleared all cloud data for user ${userProfile.id}');
     } catch (e, s) {
       WasteAppLogger.severe('Error clearing cloud data',
           error: e, stackTrace: s);
       rethrow;
+    }
+  }
+
+  /// Delete all Firebase Storage blobs belonging to [userId].
+  ///
+  /// Removes objects under:
+  /// - `batch_images/{userId}/`   (uploaded for batch AI processing)
+  /// - `contribution_photos/{userId}/`  (user-contributed photos)
+  ///
+  /// Missing paths are silently skipped; per-file errors are logged but
+  /// do not abort the remaining deletions.
+  Future<void> deleteUserStorageBlobs(String userId) async {
+    if (userId.isEmpty) return;
+
+    final storage = FirebaseStorage.instance;
+    final storagePaths = [
+      'batch_images/$userId',
+      'contribution_photos/$userId',
+    ];
+
+    for (final path in storagePaths) {
+      try {
+        final listResult = await storage.ref().child(path).listAll();
+        for (final item in listResult.items) {
+          try {
+            await item.delete();
+          } catch (e) {
+            WasteAppLogger.severe('storage_blob_delete_failed',
+                context: {'path': item.fullPath}, error: e);
+          }
+        }
+        WasteAppLogger.info('storage_blobs_deleted',
+            context: {'path': path, 'count': listResult.items.length});
+      } catch (e) {
+        // Path may not exist (FirebaseException code 'object-not-found') — safe to skip
+        WasteAppLogger.info('storage_path_skip',
+            context: {'path': path, 'reason': 'not_found_or_inaccessible'},
+            error: e);
+      }
     }
   }
 

@@ -29,6 +29,7 @@ import 'auth_screen.dart';
 import 'notification_settings_screen.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
+import '../services/enhanced_image_service.dart';
 import '../services/firebase_cleanup_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
@@ -353,8 +354,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         side: const BorderSide(color: Colors.orange),
                       ),
                       onPressed: () {
-                        _showFactoryResetDialog(context, storageService,
-                            analyticsService, premiumService);
+                        final cloudStorageService =
+                            Provider.of<CloudStorageService>(context,
+                                listen: false);
+                        _showFactoryResetDialog(
+                            context,
+                            storageService,
+                            analyticsService,
+                            premiumService,
+                            cloudStorageService);
                       },
                     ),
                   // Firebase cleanup button (debug only)
@@ -1568,6 +1576,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     StorageService storageService,
     AnalyticsService analyticsService,
     PremiumService premiumService,
+    CloudStorageService cloudStorageService,
   ) {
     showDialog(
       context: context,
@@ -1591,8 +1600,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text('• All classification history'),
             Text('• All gamification progress (points, streaks, achievements)'),
             Text('• All user preferences and settings'),
-            Text('• All cached data'),
+            Text('• All cached data and saved images'),
             Text('• All premium feature settings'),
+            Text('• All cloud data and uploaded images'),
             SizedBox(height: 12),
             Text(
               'This action cannot be undone!',
@@ -1656,6 +1666,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (storageService is EnhancedStorageService) {
                   storageService.clearCache();
                 }
+
+                // Delete on-device image files (images/ and thumbnails/)
+                await EnhancedImageService().deleteAll();
+
+                // Delete Firestore classification docs and Firebase Storage blobs
+                await cloudStorageService.clearCloudData();
 
                 success = true;
                 snackBarMessage = 'App has been reset to factory settings';
