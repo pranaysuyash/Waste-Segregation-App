@@ -185,23 +185,6 @@ final homeHeaderV2EnabledProvider = FutureProvider<bool>((ref) async {
   return remoteConfig.getBool('home_header_v2_enabled', defaultValue: true);
 });
 
-/// Batch mode enforcement status provider - for UI updates
-final batchModeEnforcedProvider = StreamProvider<bool>((ref) {
-  final guardrailService = ref.watch(costGuardrailServiceProvider);
-  return guardrailService.batchModeEnforced;
-});
-
-/// Budget utilization provider - for cost monitoring widgets
-final budgetUtilizationProvider = StreamProvider<Map<String, double>>((ref) {
-  final guardrailService = ref.watch(costGuardrailServiceProvider);
-  return guardrailService.budgetUtilization;
-});
-
-/// Cost alerts provider - for alert notifications
-final costAlertsProvider = StreamProvider<CostAlert>((ref) {
-  final guardrailService = ref.watch(costGuardrailServiceProvider);
-  return guardrailService.costAlerts;
-});
 
 /// Enhanced Ai service provider with cost management integration
 final aiServiceProvider = Provider<AiService>((ref) {
