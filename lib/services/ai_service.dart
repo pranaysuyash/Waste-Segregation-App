@@ -69,6 +69,7 @@ class AiService {
     this.cachingEnabled = true,
     this.defaultRegion = 'Bangalore, IN',
     this.defaultLanguage = 'en',
+
     /// Optional injectable [ClassificationProvider] for the backend path.
     ///
     /// When null (the default), [_analyzeWithBackend] creates a

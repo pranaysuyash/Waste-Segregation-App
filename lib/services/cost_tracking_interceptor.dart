@@ -290,16 +290,14 @@ class CostTrackingInterceptor extends Interceptor {
     var path = options.path;
     if (path.isEmpty) path = options.uri.path;
     path = path.split('?').first;
-    final segments = path
-        .split('/')
-        .where((segment) => segment.isNotEmpty)
-        .map((segment) {
+    final segments =
+        path.split('/').where((segment) => segment.isNotEmpty).map((segment) {
       final isNumeric = RegExp(r'^\d+$').hasMatch(segment);
       final isUuid = RegExp(
               r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
           .hasMatch(segment);
-      final isLongOpaque = segment.length > 20 &&
-          RegExp(r'^[A-Za-z0-9\-_]+$').hasMatch(segment);
+      final isLongOpaque =
+          segment.length > 20 && RegExp(r'^[A-Za-z0-9\-_]+$').hasMatch(segment);
       if (isNumeric || isUuid || isLongOpaque) return ':id';
       return segment;
     }).toList();
@@ -399,8 +397,7 @@ class CostTrackingInterceptor extends Interceptor {
   /// Set custom cost for a service
   void setServiceCost(String serviceName, double costPerRequest) {
     if (!costPerRequest.isFinite || costPerRequest < 0) {
-      throw ArgumentError(
-          'costPerRequest must be finite and non-negative.');
+      throw ArgumentError('costPerRequest must be finite and non-negative.');
     }
     final normalizedServiceName =
         _normalizeServiceName(serviceName, source: 'runtime');

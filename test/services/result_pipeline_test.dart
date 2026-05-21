@@ -326,7 +326,6 @@ void main() {
     });
   });
 
-
   group('FeedbackResult Tests', () {
     test('new submission has correct semantics', () {
       const result = FeedbackResult(
@@ -344,7 +343,9 @@ void main() {
       expect(result.cloudSynced, isTrue);
     });
 
-    test('duplicate submission has pointsAwarded=0 and nominalPoints carries point value', () {
+    test(
+        'duplicate submission has pointsAwarded=0 and nominalPoints carries point value',
+        () {
       const result = FeedbackResult(
         saved: true,
         pointsAwarded: 0,

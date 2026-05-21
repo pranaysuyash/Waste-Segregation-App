@@ -84,8 +84,8 @@ class _ResultHeaderDemo extends StatelessWidget {
                 child: Text(
                   'Result Header Component',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ),
 
@@ -125,7 +125,9 @@ class _ResultHeaderDemo extends StatelessWidget {
                       children: [
                         Text(
                           'Component Details',
-                          style: Theme.of(context).textTheme.titleMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
@@ -141,7 +143,9 @@ class _ResultHeaderDemo extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           'Current Values:',
-                          style: Theme.of(context).textTheme.bodyMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         Text('Category: $category'),

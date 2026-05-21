@@ -51,7 +51,9 @@ class HistoryListItem extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
           side: BorderSide(
-            color: isFallback ? AppTheme.manualReviewColor.withValues(alpha: 0.5) : categoryColor.withValues(alpha: 0.3),
+            color: isFallback
+                ? AppTheme.manualReviewColor.withValues(alpha: 0.5)
+                : categoryColor.withValues(alpha: 0.3),
             width: isFallback ? 1.5 : 1.0,
           ),
         ),
@@ -67,11 +69,12 @@ class HistoryListItem extends StatelessWidget {
                 if (isFallback)
                   Container(
                     margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppTheme.manualReviewColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusSmall),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
@@ -90,21 +93,20 @@ class HistoryListItem extends StatelessWidget {
                       ],
                     ),
                   ),
-
                 if (classification.userConfirmed == true)
                   Container(
                     margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: Colors.green.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusSmall),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.verified,
-                            size: 13, color: Colors.green),
+                        Icon(Icons.verified, size: 13, color: Colors.green),
                         SizedBox(width: 4),
                         Text(
                           'Confirmed',
@@ -117,21 +119,20 @@ class HistoryListItem extends StatelessWidget {
                       ],
                     ),
                   ),
-
                 if (classification.userCorrection != null)
                   Container(
                     margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      borderRadius:
+                          BorderRadius.circular(AppTheme.borderRadiusSmall),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.edit_note,
-                            size: 13, color: Colors.blue),
+                        Icon(Icons.edit_note, size: 13, color: Colors.blue),
                         SizedBox(width: 4),
                         Text(
                           'Corrected',
@@ -144,7 +145,6 @@ class HistoryListItem extends StatelessWidget {
                       ],
                     ),
                   ),
-
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -167,9 +167,7 @@ class HistoryListItem extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-
                           const SizedBox(height: 4),
-
                           Row(
                             children: [
                               const Icon(
@@ -191,7 +189,8 @@ class HistoryListItem extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 4),
-                              if (classification.confidence != null && !isFallback)
+                              if (classification.confidence != null &&
+                                  !isFallback)
                                 Flexible(
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
@@ -243,7 +242,6 @@ class HistoryListItem extends StatelessWidget {
                         ],
                       ),
                     ),
-
                     if (classification.imageUrl != null) ...[
                       const SizedBox(width: AppTheme.paddingSmall),
                       Semantics(
@@ -262,13 +260,9 @@ class HistoryListItem extends StatelessWidget {
                     ],
                   ],
                 ),
-
                 const SizedBox(height: 4),
-
                 _buildTagsSection(categoryColor),
-
                 const SizedBox(height: 4),
-
                 _buildPropertiesRow(context),
               ],
             ),

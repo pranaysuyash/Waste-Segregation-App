@@ -78,14 +78,14 @@ void main() {
     });
 
     test('should convert type to and from string', () {
-      expect(
-          contributionTypeToString(ContributionType.newFacility), 'NEW_FACILITY');
+      expect(contributionTypeToString(ContributionType.newFacility),
+          'NEW_FACILITY');
       expect(
           contributionTypeToString(ContributionType.editHours), 'EDIT_HOURS');
       expect(contributionTypeFromString('NEW_FACILITY'),
           ContributionType.newFacility);
-      expect(contributionTypeFromString('EDIT_HOURS'),
-          ContributionType.editHours);
+      expect(
+          contributionTypeFromString('EDIT_HOURS'), ContributionType.editHours);
     });
 
     test('should convert status to and from string', () {

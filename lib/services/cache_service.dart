@@ -175,8 +175,7 @@ class ClassificationCacheService {
                 key: _previewHash(cacheKey),
                 context: {
                   'match_type': 'exact_content_mismatch',
-                  'cached_content_hash':
-                      _previewHash(cacheEntry.contentHash),
+                  'cached_content_hash': _previewHash(cacheEntry.contentHash),
                   'requested_content_hash': _previewHash(contentHash),
                   'item_name': cacheEntry.classification.itemName
                 });
@@ -189,9 +188,8 @@ class ClassificationCacheService {
                 key: _previewHash(cacheKey),
                 context: {
                   'match_type': 'exact_verified',
-                  'cache_age_minutes': DateTime.now()
-                      .difference(cacheEntry.timestamp)
-                      .inMinutes,
+                  'cache_age_minutes':
+                      DateTime.now().difference(cacheEntry.timestamp).inMinutes,
                   'item_name': cacheEntry.classification.itemName
                 });
 
@@ -218,8 +216,7 @@ class ClassificationCacheService {
       if (_isPerceptualHash(cacheKey) &&
           contentHash != null &&
           CacheFeatureFlags.contentHashVerificationEnabled) {
-        WasteAppLogger.cacheEvent(
-            'similarity_search_started', 'classification',
+        WasteAppLogger.cacheEvent('similarity_search_started', 'classification',
             key: _previewHash(cacheKey),
             context: {
               'similarity_threshold': similarityThreshold,
@@ -232,17 +229,15 @@ class ClassificationCacheService {
           final cacheEntry = _deserializeEntry(similarKey);
           if (cacheEntry != null) {
             _statistics['hits']++;
-            _statistics['similarHits'] =
-                (_statistics['similarHits'] ?? 0) + 1;
+            _statistics['similarHits'] = (_statistics['similarHits'] ?? 0) + 1;
             WasteAppLogger.cacheEvent('cache_hit', 'classification',
                 hit: true,
                 key: _previewHash(cacheKey),
                 context: {
                   'match_type': 'verified_similar',
                   'matched_key': _previewHash(similarKey),
-                  'cache_age_minutes': DateTime.now()
-                      .difference(cacheEntry.timestamp)
-                      .inMinutes,
+                  'cache_age_minutes':
+                      DateTime.now().difference(cacheEntry.timestamp).inMinutes,
                   'item_name': cacheEntry.classification.itemName,
                   'created': cacheEntry.timestamp.toIso8601String(),
                   'last_accessed': cacheEntry.lastAccessed.toIso8601String()
@@ -298,8 +293,7 @@ class ClassificationCacheService {
               WasteAppLogger.cacheEvent(
                   'cache_similarity_basic_skipped_context', 'classification',
                   context: {
-                    'reason':
-                        'basic_fallback_bypassed_context_aware_entry',
+                    'reason': 'basic_fallback_bypassed_context_aware_entry',
                     'matched_key': _previewHash(similarKey)
                   });
             } else {
@@ -405,8 +399,7 @@ class ClassificationCacheService {
             context: {
               'existing_item': existingEntry?.classification.itemName,
               'new_item': classification.itemName,
-              'existing_content_hash':
-                  _previewHash(existingEntry?.contentHash),
+              'existing_content_hash': _previewHash(existingEntry?.contentHash),
               'new_content_hash': _previewHash(contentHash)
             });
       }
@@ -521,10 +514,8 @@ class ClassificationCacheService {
       _statistics['bytesSaved'] = 0;
       _statistics['createdAt'] = DateTime.now();
 
-      WasteAppLogger.cacheEvent('cache_cleared', 'classification', context: {
-        'previous_size': previousSize,
-        'statistics_reset': true
-      });
+      WasteAppLogger.cacheEvent('cache_cleared', 'classification',
+          context: {'previous_size': previousSize, 'statistics_reset': true});
     } catch (e) {
       WasteAppLogger.severe('cache_clear_error', error: e);
       rethrow;
@@ -554,12 +545,8 @@ class ClassificationCacheService {
           }
         } catch (e) {
           keysToRemove.add(key);
-          WasteAppLogger.warning(
-              'cache_cleanup_corrupted_entry_removing',
-              context: {
-                'key': _previewHash(key),
-                'action': 'removing'
-              });
+          WasteAppLogger.warning('cache_cleanup_corrupted_entry_removing',
+              context: {'key': _previewHash(key), 'action': 'removing'});
         }
       }
 
@@ -661,11 +648,12 @@ class ClassificationCacheService {
       final pHashKeys =
           _cacheBox.keys.where((k) => _isPerceptualHash(k)).toList();
       WasteAppLogger.cacheEvent(
-          'cache_similarity_scan_started', 'classification', context: {
-        'candidates_count': pHashKeys.length,
-        'threshold': threshold,
-        'requested_content_hash': _previewHash(contentHash)
-      });
+          'cache_similarity_scan_started', 'classification',
+          context: {
+            'candidates_count': pHashKeys.length,
+            'threshold': threshold,
+            'requested_content_hash': _previewHash(contentHash)
+          });
 
       String? bestMatch;
       var bestDistance = threshold + 1;
@@ -720,8 +708,8 @@ class ClassificationCacheService {
 
       return bestMatch;
     } catch (e) {
-      WasteAppLogger.severe('cache_similarity_search_error', error: e,
-          context: {'key': _previewHash(cacheKey)});
+      WasteAppLogger.severe('cache_similarity_search_error',
+          error: e, context: {'key': _previewHash(cacheKey)});
       return null;
     }
   }

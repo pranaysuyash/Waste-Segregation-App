@@ -37,7 +37,9 @@ void main() {
 
         expect(stopwatch.elapsedMilliseconds, lessThan(5000),
             reason: 'Home screen should load within a practical CI threshold');
-      }, skip: true // Requires bundled GoogleFonts test assets for Inter family.
+      },
+          skip:
+              true // Requires bundled GoogleFonts test assets for Inter family.
           );
 
       testWidgets('History screen loads within 1.5 seconds',
@@ -50,23 +52,29 @@ void main() {
         stopwatch.stop();
 
         expect(stopwatch.elapsedMilliseconds, lessThan(5000),
-            reason: 'History screen should load within a practical CI threshold');
-      }, skip: true // Requires bundled GoogleFonts test assets for Inter family.
+            reason:
+                'History screen should load within a practical CI threshold');
+      },
+          skip:
+              true // Requires bundled GoogleFonts test assets for Inter family.
           );
 
       testWidgets('Educational content screen loads within 2 seconds',
           (WidgetTester tester) async {
         final stopwatch = Stopwatch()..start();
 
-        await tester.pumpWidget(
-            _appWithProviders(const EducationalContentScreen()));
+        await tester
+            .pumpWidget(_appWithProviders(const EducationalContentScreen()));
 
         await tester.pumpAndSettle();
         stopwatch.stop();
 
         expect(stopwatch.elapsedMilliseconds, lessThan(6000),
-            reason: 'Educational screen should load within a practical CI threshold');
-      }, skip: true // Requires bundled GoogleFonts test assets for Inter family.
+            reason:
+                'Educational screen should load within a practical CI threshold');
+      },
+          skip:
+              true // Requires bundled GoogleFonts test assets for Inter family.
           );
     });
 
@@ -221,7 +229,9 @@ void main() {
         // Ensure we don't regress beyond 20% of baseline
         expect(loadTime, lessThan(6000),
             reason: 'Performance should remain within practical CI threshold');
-      }, skip: true // Requires bundled GoogleFonts test assets for Inter family.
+      },
+          skip:
+              true // Requires bundled GoogleFonts test assets for Inter family.
           );
     });
   });

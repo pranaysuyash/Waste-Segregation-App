@@ -493,7 +493,8 @@ class EducationalContentService {
     }
 
     final targetDate = date ?? DateTime.now();
-    final seed = targetDate.year * 10000 + targetDate.month * 100 + targetDate.day;
+    final seed =
+        targetDate.year * 10000 + targetDate.month * 100 + targetDate.day;
     final rng = Random(seed);
     final baseIndex = rng.nextInt(_dailyTips.length);
     var tip = _dailyTips[baseIndex];

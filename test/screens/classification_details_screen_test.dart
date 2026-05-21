@@ -40,7 +40,8 @@ void main() {
     testWidgets('renders item name in app bar', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ClassificationDetailsScreen(classification: _sharedClassification()),
+          home: ClassificationDetailsScreen(
+              classification: _sharedClassification()),
         ),
       );
 
@@ -49,4 +50,3 @@ void main() {
     });
   });
 }
-

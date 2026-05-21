@@ -1,4 +1,5 @@
-import 'package:waste_segregation_app/models/waste_classification.dart' show WasteClassification;
+import 'package:waste_segregation_app/models/waste_classification.dart'
+    show WasteClassification;
 import 'package:waste_segregation_app/services/ai_service.dart' show AiService;
 
 import '../../models/waste_classification.dart' show WasteClassification;

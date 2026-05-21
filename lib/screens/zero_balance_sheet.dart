@@ -60,7 +60,8 @@ class ZeroBalanceOptionsSheet extends ConsumerWidget {
           // Header
           Row(
             children: [
-              Icon(Icons.token_outlined, color: theme.colorScheme.error, size: 28),
+              Icon(Icons.token_outlined,
+                  color: theme.colorScheme.error, size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

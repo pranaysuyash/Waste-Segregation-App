@@ -1,11 +1,11 @@
 /// Golden tests for ResultPipeline
-/// 
+///
 /// These tests verify that ResultPipeline produces consistent, expected output
 /// for canonical classification fixtures. They catch regressions in:
 /// - Gamification calculation
 /// - State transitions
 /// - Side effects (save, sync, etc.)
-/// 
+///
 /// Run: flutter test test/services/result_pipeline_golden_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
@@ -34,12 +34,12 @@ void main() {
 
       test('disposal instructions are complete', () {
         final instructions = fixture.disposalInstructions;
-        
+
         expect(instructions.primaryMethod, isNotEmpty);
         expect(instructions.steps, isNotEmpty);
         expect(instructions.warnings, isNotEmpty);
         expect(instructions.tips, isNotEmpty);
-        
+
         // Verify specific content that should not change
         expect(instructions.steps[0], contains('Empty'));
         expect(instructions.warnings?[0], contains('burn'));
@@ -154,13 +154,13 @@ void main() {
       test('all fixtures have required fields', () {
         for (final fixture in allClassificationFixtures) {
           // Required identifiers
-          expect(fixture.id, isNotEmpty, 
+          expect(fixture.id, isNotEmpty,
               reason: '${fixture.itemName} missing id');
           expect(fixture.itemName, isNotEmpty,
               reason: '${fixture.id} missing itemName');
           expect(fixture.category, isNotEmpty,
               reason: '${fixture.id} missing category');
-          
+
           // Required disposal info
           expect(fixture.disposalInstructions, isNotNull,
               reason: '${fixture.id} missing disposalInstructions');
@@ -168,7 +168,7 @@ void main() {
               reason: '${fixture.id} missing primaryMethod');
           expect(fixture.disposalInstructions.steps, isNotEmpty,
               reason: '${fixture.id} missing steps');
-          
+
           // Required metadata
           expect(fixture.confidence, greaterThanOrEqualTo(0.0),
               reason: '${fixture.id} invalid confidence');
@@ -215,7 +215,8 @@ void main() {
           expect(
             fixture.requiresSpecialDisposal,
             true,
-            reason: '${fixture.id} is high risk but not marked special disposal',
+            reason:
+                '${fixture.id} is high risk but not marked special disposal',
           );
           expect(
             fixture.riskLevel,
@@ -229,7 +230,7 @@ void main() {
     group('Category Coverage', () {
       test('all major categories have fixtures', () {
         final categories = fixturesByCategory.keys.toList();
-        
+
         expect(categories, contains('Dry Waste'));
         expect(categories, contains('Wet Waste'));
         expect(categories, contains('E-Waste'));
@@ -263,7 +264,7 @@ void main() {
       test('fixture IDs are unique', () {
         final ids = allClassificationFixtures.map((f) => f.id).toList();
         final uniqueIds = ids.toSet();
-        
+
         expect(
           uniqueIds.length,
           ids.length,

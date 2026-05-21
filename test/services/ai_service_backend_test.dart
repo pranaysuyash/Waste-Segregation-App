@@ -186,7 +186,8 @@ void main() {
       expect(p.estimatedCostPerCall, isNull);
     });
 
-    test('_FakeBackendProxy.analyze() increments callCount and returns response',
+    test(
+        '_FakeBackendProxy.analyze() increments callCount and returns response',
         () async {
       final fake = _FakeBackendProxy(response: _successResponse());
       expect(fake.callCount, equals(0));
@@ -339,7 +340,8 @@ void main() {
   // -------------------------------------------------------------------------
   group('_FakeBackendProxy exception propagation', () {
     test('network AiFailure is thrown by fake', () async {
-      final networkError = AiFailure(AiFailureKind.network, 'connection refused');
+      final networkError =
+          AiFailure(AiFailureKind.network, 'connection refused');
       final fake = _FakeBackendProxy(exception: networkError);
 
       await expectLater(

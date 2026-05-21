@@ -211,7 +211,8 @@ void main() {
       CacheFeatureFlags.setContentHashVerification(true);
     });
 
-    test('should allow basic similarity for context-agnostic entries', () async {
+    test('should allow basic similarity for context-agnostic entries',
+        () async {
       final classification = _createTestClassification('Legacy Fallback');
 
       // Store entry WITHOUT content hash (context-agnostic / legacy)

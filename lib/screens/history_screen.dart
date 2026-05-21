@@ -77,12 +77,15 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
-    registerForRestoration(_selectedClassificationId, 'selected_classification_id');
+    registerForRestoration(
+        _selectedClassificationId, 'selected_classification_id');
 
-    if (_classifications.isNotEmpty && _selectedClassificationId.value != null) {
+    if (_classifications.isNotEmpty &&
+        _selectedClassificationId.value != null) {
       final id = _selectedClassificationId.value!;
       try {
-        _selectedClassification = _classifications.firstWhere((c) => c.id == id);
+        _selectedClassification =
+            _classifications.firstWhere((c) => c.id == id);
       } catch (_) {
         _selectedClassification = null;
       }
@@ -140,8 +143,10 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     });
 
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
-      final cloudStorageService = Provider.of<CloudStorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService =
+          Provider.of<CloudStorageService>(context, listen: false);
 
       final settings = await storageService.getSettings();
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
@@ -149,11 +154,14 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
       _feedbackTimeframeDays = settings['feedbackTimeframeDays'] ?? 7;
 
       final allClassifications = isGoogleSyncEnabled
-          ? await cloudStorageService.getAllClassificationsWithCloudSync(isGoogleSyncEnabled)
-          : await storageService.getAllClassifications(filterOptions: _filterOptions);
+          ? await cloudStorageService
+              .getAllClassificationsWithCloudSync(isGoogleSyncEnabled)
+          : await storageService.getAllClassifications(
+              filterOptions: _filterOptions);
 
       final filteredClassifications = isGoogleSyncEnabled
-          ? storageService.applyFiltersToClassifications(allClassifications, _filterOptions)
+          ? storageService.applyFiltersToClassifications(
+              allClassifications, _filterOptions)
           : allClassifications;
 
       _allClassifications = filteredClassifications;
@@ -207,10 +215,12 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     });
 
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
 
       final nextPage = _currentPage + 1;
-      final moreClassifications = await storageService.getClassificationsWithPagination(
+      final moreClassifications =
+          await storageService.getClassificationsWithPagination(
         filterOptions: _filterOptions,
         pageSize: _itemsPerPage,
         page: nextPage,
@@ -272,12 +282,15 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     if (_activeFilterChip == 'All' || _activeFilterChip == 'Saved') {
       categories = null;
     } else {
-      categories = _selectedCategories.isNotEmpty ? List.from(_selectedCategories) : null;
+      categories = _selectedCategories.isNotEmpty
+          ? List.from(_selectedCategories)
+          : null;
     }
 
     final newFilterOptions = _filterOptions.copyWith(
       categories: categories,
-      searchText: _searchController.text.isNotEmpty ? _searchController.text : null,
+      searchText:
+          _searchController.text.isNotEmpty ? _searchController.text : null,
     );
 
     setState(() {
@@ -579,7 +592,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
         _isLoading = true;
       });
 
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final csvContent = await storageService.exportClassificationsToCSV(
         filterOptions: _filterOptions,
       );
@@ -801,8 +815,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          AppTheme.paddingMedium, AppTheme.paddingSmall, AppTheme.paddingMedium, 0),
+      padding: const EdgeInsets.fromLTRB(AppTheme.paddingMedium,
+          AppTheme.paddingSmall, AppTheme.paddingMedium, 0),
       child: TextField(
         controller: _searchController,
         focusNode: _searchFocusNode,
@@ -952,7 +966,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     var count = 0;
     if (_activeFilterChip != 'All') count++;
     if (_searchController.text.isNotEmpty) count++;
-    if (_filterOptions.startDate != null || _filterOptions.endDate != null) count++;
+    if (_filterOptions.startDate != null || _filterOptions.endDate != null)
+      count++;
     return count;
   }
 
@@ -1010,7 +1025,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   Future<void> _handleFeedbackSubmission(
       WasteClassification updatedClassification) async {
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       await storageService.saveClassification(updatedClassification);
 
       if (mounted) {

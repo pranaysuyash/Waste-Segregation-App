@@ -254,8 +254,8 @@ void main() {
     test('provides primary disposal guidance for single category', () {
       final sameCategory = _sampleRegions()
           .map((r) => r.copyWith(
-              classification: r.classification?.copyWith(
-                  category: 'Dry Waste')))
+              classification:
+                  r.classification?.copyWith(category: 'Dry Waste')))
           .toList();
       final result = MultiItemClassificationResult(
         sourceImagePath: '/test/image.jpg',

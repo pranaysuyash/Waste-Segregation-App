@@ -100,8 +100,7 @@ void main() {
       final storageService = MockStorageService();
       final gamificationService = MockGamificationService();
 
-      when(gamificationService.syncGamificationData())
-          .thenAnswer((_) async {});
+      when(gamificationService.syncGamificationData()).thenAnswer((_) async {});
       when(gamificationService.syncWeeklyStatsWithClassifications())
           .thenAnswer((_) async {});
       when(storageService.getAllClassifications()).thenAnswer((_) async => []);
@@ -127,17 +126,18 @@ void main() {
       final storageService = MockStorageService();
       final gamificationService = MockGamificationService();
       final classifications = [
-        buildClassification('Plastic Bottle', 'Dry Waste', hoursAgo: 1, recyclable: true),
+        buildClassification('Plastic Bottle', 'Dry Waste',
+            hoursAgo: 1, recyclable: true),
         buildClassification('Food Scraps', 'Wet Waste', hoursAgo: 2),
         buildClassification('Old Battery', 'Hazardous Waste', hoursAgo: 3),
-        buildClassification('Glass Jar', 'Dry Waste', hoursAgo: 4, recyclable: true),
+        buildClassification('Glass Jar', 'Dry Waste',
+            hoursAgo: 4, recyclable: true),
       ];
       final profile = buildProfile();
       final pointsProvider =
           FakePointsEngineProvider(FakePointsEngine(profile));
 
-      when(gamificationService.syncGamificationData())
-          .thenAnswer((_) async {});
+      when(gamificationService.syncGamificationData()).thenAnswer((_) async {});
       when(gamificationService.syncWeeklyStatsWithClassifications())
           .thenAnswer((_) async {});
       when(storageService.getAllClassifications())
@@ -167,7 +167,9 @@ void main() {
       expect(find.text('Recent Classifications'), findsOneWidget);
       expect(find.text('Your Environmental Impact'), findsOneWidget);
       expect(find.text('Your Gamification Progress'), findsOneWidget);
-      expect(find.text('Leaderboard coming soon! Compete with others to see who\'s the top recycler.'),
+      expect(
+          find.text(
+              'Leaderboard coming soon! Compete with others to see who\'s the top recycler.'),
           findsOneWidget);
       expect(find.text('Dry Waste'), findsWidgets);
       expect(find.text('Wet Waste'), findsWidgets);

@@ -18,7 +18,8 @@ void main() {
       consentManager = AnalyticsConsentManager();
       validator = AnalyticsSchemaValidator();
       storageService = StorageService();
-      analyticsService = AnalyticsService(storageService, enableFirestore: false);
+      analyticsService =
+          AnalyticsService(storageService, enableFirestore: false);
     });
 
     group('AnalyticsConsentManager', () {
@@ -84,7 +85,8 @@ void main() {
 
         final result = await validator.validateEvent(event);
         expect(result.isValid, false);
-        expect(result.errors.any((e) => e.contains('processing_duration_ms')), true);
+        expect(result.errors.any((e) => e.contains('processing_duration_ms')),
+            true);
         expect(result.errors.any((e) => e.contains('confidence_score')), true);
       });
 
@@ -101,7 +103,8 @@ void main() {
         );
 
         final result = await validator.validateEvent(event);
-        expect(result.warnings.any((w) => w.toLowerCase().contains('email')), true);
+        expect(result.warnings.any((w) => w.toLowerCase().contains('email')),
+            true);
       });
     });
 

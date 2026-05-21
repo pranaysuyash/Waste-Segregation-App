@@ -6,7 +6,8 @@ import 'package:waste_segregation_app/models/educational_content.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/providers/app_providers.dart' as app_providers;
+import 'package:waste_segregation_app/providers/app_providers.dart'
+    as app_providers;
 import 'package:waste_segregation_app/screens/home_screen.dart' as home;
 import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/educational_content_service.dart';
@@ -52,14 +53,17 @@ void main() {
   }) {
     return provider_pkg.MultiProvider(
       providers: [
-        provider_pkg.ChangeNotifierProvider<AdService>(create: (_) => AdService()),
+        provider_pkg.ChangeNotifierProvider<AdService>(
+            create: (_) => AdService()),
       ],
       child: ProviderScope(
         overrides: [
           home.profileProvider.overrideWith((ref) async => mockProfile),
           home.userProfileProvider.overrideWith((ref) async => mockUserProfile),
-          home.classificationsProvider.overrideWith((ref) async => classifications),
-          app_providers.educationalContentServiceProvider.overrideWith((ref) => educationalService),
+          home.classificationsProvider
+              .overrideWith((ref) async => classifications),
+          app_providers.educationalContentServiceProvider
+              .overrideWith((ref) => educationalService),
         ],
         child: const MaterialApp(home: home.HomeScreen()),
       ),

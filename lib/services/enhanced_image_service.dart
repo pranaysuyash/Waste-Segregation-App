@@ -56,8 +56,11 @@ class EnhancedImageService {
     final file = File(safeJoinWithin(imagesDir.path, safeName));
     await file.writeAsBytes(bytes, flush: true);
 
-    WasteAppLogger.info('image_save_started',
-        context: {'path': file.path, 'size_bytes': bytes.length, 'mime': detectedMime});
+    WasteAppLogger.info('image_save_started', context: {
+      'path': file.path,
+      'size_bytes': bytes.length,
+      'mime': detectedMime
+    });
     return file.path;
   }
 
@@ -129,14 +132,16 @@ class EnhancedImageService {
     final int thumbHeight;
     if (oriented.width >= oriented.height) {
       thumbWidth = 256;
-      thumbHeight = (oriented.height * 256 / oriented.width).round().clamp(1, 256);
+      thumbHeight =
+          (oriented.height * 256 / oriented.width).round().clamp(1, 256);
     } else {
       thumbHeight = 256;
-      thumbWidth = (oriented.width * 256 / oriented.height).round().clamp(1, 256);
+      thumbWidth =
+          (oriented.width * 256 / oriented.height).round().clamp(1, 256);
     }
 
-    final thumb = img.copyResize(oriented,
-        width: thumbWidth, height: thumbHeight);
+    final thumb =
+        img.copyResize(oriented, width: thumbWidth, height: thumbHeight);
 
     return Uint8List.fromList(img.encodeJpg(thumb, quality: 80));
   }
@@ -154,17 +159,15 @@ class EnhancedImageService {
 
     for (var attempt = 0; attempt < retries; attempt++) {
       try {
-        final response = await http
-            .get(Uri.parse(url))
-            .timeout(_networkTimeout);
+        final response =
+            await http.get(Uri.parse(url)).timeout(_networkTimeout);
 
         if (response.statusCode != 200) {
-          WasteAppLogger.severe('network_image_fetch_failed',
-              context: {
-                'status_code': response.statusCode,
-                'attempt': attempt + 1,
-                'host': uri.host,
-              });
+          WasteAppLogger.severe('network_image_fetch_failed', context: {
+            'status_code': response.statusCode,
+            'attempt': attempt + 1,
+            'host': uri.host,
+          });
           continue;
         }
 
@@ -175,22 +178,20 @@ class EnhancedImageService {
         }
 
         if (response.bodyBytes.length > _maxDownloadBytes) {
-          WasteAppLogger.severe('network_image_fetch_failed',
-              context: {
-                'reason': 'exceeds_max_size',
-                'size_bytes': response.bodyBytes.length,
-                'max_bytes': _maxDownloadBytes,
-              });
+          WasteAppLogger.severe('network_image_fetch_failed', context: {
+            'reason': 'exceeds_max_size',
+            'size_bytes': response.bodyBytes.length,
+            'max_bytes': _maxDownloadBytes,
+          });
           return null;
         }
 
         if (!_isImageBytes(response.bodyBytes)) {
-          WasteAppLogger.severe('network_image_fetch_failed',
-              context: {
-                'reason': 'not_an_image',
-                'content_type': response.headers['content-type'] ?? 'unknown',
-                'attempt': attempt + 1,
-              });
+          WasteAppLogger.severe('network_image_fetch_failed', context: {
+            'reason': 'not_an_image',
+            'content_type': response.headers['content-type'] ?? 'unknown',
+            'attempt': attempt + 1,
+          });
           continue;
         }
 
@@ -238,9 +239,8 @@ class EnhancedImageService {
     if (p.isAbsolute(inputPath)) {
       final normalizedInput = p.normalize(inputPath);
       for (final prefix in allowedPrefixes) {
-        final prefixWithSep = prefix.endsWith(p.separator)
-            ? prefix
-            : '$prefix${p.separator}';
+        final prefixWithSep =
+            prefix.endsWith(p.separator) ? prefix : '$prefix${p.separator}';
         if (normalizedInput == prefix ||
             normalizedInput.startsWith(prefixWithSep)) {
           if (await File(normalizedInput).exists()) {
@@ -308,29 +308,26 @@ class EnhancedImageService {
           currentCount--;
           currentSizeBytes -= entry.stat.size;
           removed++;
-          WasteAppLogger.info('thumbnail_cache_evicted',
-              context: {
-                'filename': p.basename(entry.file.path),
-                'size_bytes': entry.stat.size,
-              });
+          WasteAppLogger.info('thumbnail_cache_evicted', context: {
+            'filename': p.basename(entry.file.path),
+            'size_bytes': entry.stat.size,
+          });
         } catch (e) {
           WasteAppLogger.severe('thumbnail_cache_evict_failed',
-              context: {'filename': p.basename(entry.file.path)},
-              error: e);
+              context: {'filename': p.basename(entry.file.path)}, error: e);
         }
       }
 
       if (removed > 0) {
-        WasteAppLogger.info('thumbnail_cache_maintained',
-            context: {
-              'removed_count': removed,
-              'remaining_count': currentCount,
-              'remaining_size_mb': (currentSizeBytes / (1024 * 1024)).toStringAsFixed(1),
-            });
+        WasteAppLogger.info('thumbnail_cache_maintained', context: {
+          'removed_count': removed,
+          'remaining_count': currentCount,
+          'remaining_size_mb':
+              (currentSizeBytes / (1024 * 1024)).toStringAsFixed(1),
+        });
       }
     } catch (e) {
-      WasteAppLogger.severe('thumbnail_cache_maintenance_failed',
-          error: e);
+      WasteAppLogger.severe('thumbnail_cache_maintenance_failed', error: e);
     }
   }
 
@@ -359,8 +356,7 @@ class EnhancedImageService {
               orphansRemoved++;
             } catch (e) {
               WasteAppLogger.severe('orphaned_thumbnail_delete_failed',
-                  context: {'filename': p.basename(entity.path)},
-                  error: e);
+                  context: {'filename': p.basename(entity.path)}, error: e);
             }
           }
         }
@@ -424,16 +420,17 @@ class EnhancedImageService {
             removedCount++;
           } catch (e) {
             WasteAppLogger.severe('temp_image_delete_failed',
-                context: {'filename': p.basename(entity.path)},
-                error: e);
+                context: {'filename': p.basename(entity.path)}, error: e);
           }
         }
       }
     }
 
     if (removedCount > 0) {
-      WasteAppLogger.info('temp_images_cleaned',
-          context: {'removed_count': removedCount, 'older_than_hours': olderThan.inHours});
+      WasteAppLogger.info('temp_images_cleaned', context: {
+        'removed_count': removedCount,
+        'older_than_hours': olderThan.inHours
+      });
     }
   }
 
@@ -441,8 +438,11 @@ class EnhancedImageService {
 
   String _saveWebImageAsDataUrl(Uint8List bytes, String mimeType) {
     final base64Data = base64Encode(bytes);
-    WasteAppLogger.info('image_save_started',
-        context: {'format': 'web_data_url', 'mime': mimeType, 'size_bytes': bytes.length});
+    WasteAppLogger.info('image_save_started', context: {
+      'format': 'web_data_url',
+      'mime': mimeType,
+      'size_bytes': bytes.length
+    });
     return 'web_image:data:$mimeType;base64,$base64Data';
   }
 
@@ -451,7 +451,10 @@ class EnhancedImageService {
   String _detectImageMime(Uint8List bytes) {
     if (bytes.length < 4) return 'image/jpeg';
 
-    if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) {
+    if (bytes[0] == 0x89 &&
+        bytes[1] == 0x50 &&
+        bytes[2] == 0x4E &&
+        bytes[3] == 0x47) {
       return 'image/png';
     }
     if (bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46) {
@@ -461,7 +464,10 @@ class EnhancedImageService {
       return 'image/jpeg';
     }
     if (bytes.length >= 12 &&
-        bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50) {
+        bytes[8] == 0x57 &&
+        bytes[9] == 0x45 &&
+        bytes[10] == 0x42 &&
+        bytes[11] == 0x50) {
       return 'image/webp';
     }
     if (bytes[0] == 0x42 && bytes[1] == 0x4D) {
@@ -492,7 +498,8 @@ class EnhancedImageService {
   bool _isImageBytes(Uint8List bytes) {
     if (bytes.length < 4) return false;
     final mime = _detectImageMime(bytes);
-    return mime != 'image/jpeg' || (bytes[0] == 0xFF && (bytes[1] & 0xE0) == 0xE0);
+    return mime != 'image/jpeg' ||
+        (bytes[0] == 0xFF && (bytes[1] & 0xE0) == 0xE0);
   }
 
   bool _isAllowedScheme(Uri uri) {

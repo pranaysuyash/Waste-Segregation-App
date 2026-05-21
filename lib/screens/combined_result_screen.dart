@@ -26,8 +26,7 @@ class CombinedResultScreen extends ConsumerWidget {
     return map;
   }
 
-  bool get _hasMixedCategories =>
-      multiItemResult?.hasMixedCategories ?? false;
+  bool get _hasMixedCategories => multiItemResult?.hasMixedCategories ?? false;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,7 +62,6 @@ class CombinedResultScreen extends ConsumerWidget {
                 child: _buildSummaryHeader(cs, theme, total),
               ),
             ),
-
             if (_hasMixedCategories)
               SliverToBoxAdapter(
                 child: Padding(
@@ -71,7 +69,6 @@ class CombinedResultScreen extends ConsumerWidget {
                   child: _buildMixedWasteGuidance(theme, cs),
                 ),
               ),
-
             if (_hasMixedCategories)
               SliverToBoxAdapter(
                 child: Padding(
@@ -79,7 +76,6 @@ class CombinedResultScreen extends ConsumerWidget {
                   child: _buildDisposalSummary(theme, cs),
                 ),
               ),
-
             ...grouped.entries.expand((entry) {
               final category = entry.key;
               final items = entry.value;
@@ -141,7 +137,6 @@ class CombinedResultScreen extends ConsumerWidget {
                 ),
               ];
             }),
-
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
@@ -236,8 +231,7 @@ class CombinedResultScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.info_outline,
-                  color: Colors.amber, size: 20),
+              const Icon(Icons.info_outline, color: Colors.amber, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Mixed Waste Detected',
@@ -321,8 +315,8 @@ class CombinedResultScreen extends ConsumerWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: catColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -356,18 +350,16 @@ class CombinedResultScreen extends ConsumerWidget {
     return Card(
       elevation: 0,
       color: cs.surfaceContainerHighest,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: _categoryColor(classification.category)
-                .withValues(alpha: 0.15),
+            color:
+                _categoryColor(classification.category).withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -397,8 +389,8 @@ class CombinedResultScreen extends ConsumerWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => _IndividualResultPlaceholder(
-                  classification: classification),
+              builder: (_) =>
+                  _IndividualResultPlaceholder(classification: classification),
             ),
           );
         },

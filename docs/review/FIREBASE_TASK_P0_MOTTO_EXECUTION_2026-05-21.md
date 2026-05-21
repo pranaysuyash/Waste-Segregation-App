@@ -9,7 +9,7 @@ Scope: Complete remaining P0 money-gate and release safety hardening in firebase
 Mapped surfaces before implementation:
 
 1. Client routing surface
-- `lib/services/ai_service.dart` used backend path only when `USE_BACKEND_CLASSIFICATION=true`.
+- `lib/services/ai_service.dart` used backend path only when `USE_BACKEND_AI_IN_RELEASE=true`.
 - In release, direct provider paths were blocked by safety guard, but backend routing was not hard invariant in routing logic.
 - Result: release behavior depended on mixed flags and fallback branches, not a single enforced routing invariant.
 
@@ -31,7 +31,7 @@ Changes:
 - Added `_backendRoutingEnabled` and `_backendRoutingFailClosed` invariants.
 - Classification routing now:
   - release: backend classify path is mandatory (fail-closed)
-  - debug/profile: backend path optional via `USE_BACKEND_CLASSIFICATION`
+  - debug/profile: backend path optional via `USE_BACKEND_AI_IN_RELEASE`
 - Backend failure fallback to direct provider now allowed only in non-release path.
 - Updated warnings to make fallback scope explicit.
 

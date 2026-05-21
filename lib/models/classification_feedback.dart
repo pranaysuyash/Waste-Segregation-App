@@ -41,9 +41,9 @@ class ClassificationFeedback {
     String? appVersion,
     this.deviceInfo,
     Timestamp? feedbackTimestamp,
-  }) : id = id ?? const Uuid().v4(),
-       appVersion = appVersion ?? '0.1.0',
-       feedbackTimestamp = feedbackTimestamp ?? Timestamp.now();
+  })  : id = id ?? const Uuid().v4(),
+        appVersion = appVersion ?? '0.1.0',
+        feedbackTimestamp = feedbackTimestamp ?? Timestamp.now();
   factory ClassificationFeedback.fromJson(
     Map<String, dynamic> json, [
     String? documentId,

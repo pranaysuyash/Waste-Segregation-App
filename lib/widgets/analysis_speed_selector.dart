@@ -333,8 +333,8 @@ class AnalysisSpeedSelector extends ConsumerWidget {
   void _showBatchEnforcedDialog(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-            'Batch mode is enforced right now due to AI cost guardrails.'),
+        content:
+            Text('Batch mode is enforced right now due to AI cost guardrails.'),
         duration: Duration(seconds: 3),
       ),
     );

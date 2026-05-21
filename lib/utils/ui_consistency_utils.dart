@@ -11,9 +11,9 @@ class UIConsistency {
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
         (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(
-          48.0,
-          double.infinity,
-        );
+      48.0,
+      double.infinity,
+    );
 
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -71,9 +71,9 @@ class UIConsistency {
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
         (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(
-          48.0,
-          double.infinity,
-        );
+      48.0,
+      double.infinity,
+    );
 
     return OutlinedButton.styleFrom(
       textStyle: const TextStyle(
@@ -179,9 +179,9 @@ class UIConsistency {
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
         (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(
-          48.0,
-          double.infinity,
-        );
+      48.0,
+      double.infinity,
+    );
 
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -241,9 +241,9 @@ class UIConsistency {
     final scaleFactor = textScaler.scale(AppTheme.fontSizeMedium);
     final scaledMinHeight =
         (AppTheme.buttonHeightMd * scaleFactor / AppTheme.fontSizeMedium).clamp(
-          48.0,
-          double.infinity,
-        );
+      48.0,
+      double.infinity,
+    );
 
     return ElevatedButton.styleFrom(
       elevation: AppTheme.elevationSm,
@@ -320,9 +320,8 @@ class UIConsistency {
                   ),
                 )
               : Row(
-                  mainAxisSize: isExpanded
-                      ? MainAxisSize.max
-                      : MainAxisSize.min,
+                  mainAxisSize:
+                      isExpanded ? MainAxisSize.max : MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (icon != null) ...[

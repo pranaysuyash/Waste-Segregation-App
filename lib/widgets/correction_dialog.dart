@@ -134,8 +134,7 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
     if (_userConfirmed == false) {
       if (!_hasCorrectionPayload) return false;
       // Require at least one meaningful field beyond notes (barcode counts)
-      final hasMeaningfulCorrection =
-          _resolvedCategory != null ||
+      final hasMeaningfulCorrection = _resolvedCategory != null ||
           _resolvedItemName != null ||
           _resolvedMaterial != null ||
           _resolvedBarcode != null;
@@ -160,8 +159,7 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
 
     if (!_canSubmit) {
       setState(() {
-        _validationError =
-            'Provide a category, item name, or material.';
+        _validationError = 'Provide a category, item name, or material.';
       });
       return;
     }
@@ -369,7 +367,8 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
                     border: const OutlineInputBorder(),
                     helperText: 'Required if no category is selected',
                     helperStyle: TextStyle(
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       fontSize: 11,
                     ),
                   ),
@@ -384,7 +383,8 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
                     border: const OutlineInputBorder(),
                     helperText: 'Optional if category is set',
                     helperStyle: TextStyle(
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       fontSize: 11,
                     ),
                   ),
@@ -410,7 +410,8 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
                     border: const OutlineInputBorder(),
                     helperText: 'Product lookup coming later',
                     helperStyle: TextStyle(
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       fontSize: 11,
                     ),
                     prefixIcon: const Icon(Icons.qr_code),

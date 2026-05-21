@@ -201,7 +201,9 @@ void main() {
     );
   });
 
-  test('spendTokens fails fast when enforcement is on but server validation is off', () async {
+  test(
+      'spendTokens fails fast when enforcement is on but server validation is off',
+      () async {
     storage.seedProfile(_baseProfile(
       wallet: TokenWallet(
         balance: 12,
@@ -221,7 +223,8 @@ void main() {
     }
   });
 
-  test('spendTokens falls back to local spend for guest when server returns unauthenticated',
+  test(
+      'spendTokens falls back to local spend for guest when server returns unauthenticated',
       () async {
     final mockFunctions = _MockFirebaseFunctions();
     final mockCallable = _MockHttpsCallable();
@@ -254,7 +257,8 @@ void main() {
     TokenService.enableServerSideValidation = true;
 
     if (isFirebaseEnabled) {
-      final updated = await guestTokenService.spendTokens(5, 'Instant analysis');
+      final updated =
+          await guestTokenService.spendTokens(5, 'Instant analysis');
       expect(updated.balance, 7);
       expect(updated.totalSpent, 13);
       final txns = await guestTokenService.getTransactionHistory();

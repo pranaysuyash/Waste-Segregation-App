@@ -148,15 +148,18 @@ void main() {
       });
 
       test('same service with different path is not equal', () {
-        final a = ApiVersion(version: 'v1', serviceName: 'test', pathPrefix: '/v1');
-        final b = ApiVersion(version: 'v1', serviceName: 'test', pathPrefix: '/v2');
+        final a =
+            ApiVersion(version: 'v1', serviceName: 'test', pathPrefix: '/v1');
+        final b =
+            ApiVersion(version: 'v1', serviceName: 'test', pathPrefix: '/v2');
         expect(a, isNot(equals(b)));
       });
     });
 
     group('toString', () {
       test('includes key fields', () {
-        final version = ApiVersion(version: 'v2', serviceName: 'mysvc', pathPrefix: '/v2');
+        final version =
+            ApiVersion(version: 'v2', serviceName: 'mysvc', pathPrefix: '/v2');
         final str = version.toString();
         expect(str, contains('v2'));
         expect(str, contains('mysvc'));

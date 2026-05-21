@@ -48,8 +48,7 @@ class DetectedWasteRegion {
   factory DetectedWasteRegion.fromJson(Map<String, dynamic> json) =>
       DetectedWasteRegion(
         id: json['id'],
-        boundingBox:
-            NormalizedBoundingBox.fromJson(json['boundingBox']),
+        boundingBox: NormalizedBoundingBox.fromJson(json['boundingBox']),
         cropPath: json['cropPath'],
         cropBytes: json['hasCropBytes'] == true ? [] : null,
         classification: json['classification'] != null
@@ -61,15 +60,15 @@ class DetectedWasteRegion {
       );
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'boundingBox': boundingBox.toJson(),
-    'cropPath': cropPath,
-    'hasCropBytes': cropBytes != null,
-    'classification': classification?.toJson(),
-    'confidence': confidence,
-    'userConfirmed': userConfirmed,
-    'label': label,
-  };
+        'id': id,
+        'boundingBox': boundingBox.toJson(),
+        'cropPath': cropPath,
+        'hasCropBytes': cropBytes != null,
+        'classification': classification?.toJson(),
+        'confidence': confidence,
+        'userConfirmed': userConfirmed,
+        'label': label,
+      };
 }
 
 class NormalizedBoundingBox {
@@ -120,18 +119,17 @@ class NormalizedBoundingBox {
 
     if (interLeft >= interRight || interTop >= interBottom) return 0.0;
 
-    final interArea =
-        (interRight - interLeft) * (interBottom - interTop);
+    final interArea = (interRight - interLeft) * (interBottom - interTop);
     final unionArea = area + other.area - interArea;
     return unionArea > 0 ? interArea / unionArea : 0.0;
   }
 
   Map<String, dynamic> toJson() => {
-    'left': left,
-    'top': top,
-    'width': width,
-    'height': height,
-  };
+        'left': left,
+        'top': top,
+        'width': width,
+        'height': height,
+      };
 }
 
 enum RegionDetectionSource {

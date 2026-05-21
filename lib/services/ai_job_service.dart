@@ -463,10 +463,12 @@ class AiJobService {
         'completed': completedJobs,
         'failed': failedJobs,
         'queued': queuedJobs,
-        'completion_rate':
-            totalJobs > 0 ? (completedJobs / totalJobs * 100).toStringAsFixed(1) : '0',
-        'failure_rate':
-            totalJobs > 0 ? (failedJobs / totalJobs * 100).toStringAsFixed(1) : '0',
+        'completion_rate': totalJobs > 0
+            ? (completedJobs / totalJobs * 100).toStringAsFixed(1)
+            : '0',
+        'failure_rate': totalJobs > 0
+            ? (failedJobs / totalJobs * 100).toStringAsFixed(1)
+            : '0',
       });
 
       // Use the same logic as QueueHealth.get health

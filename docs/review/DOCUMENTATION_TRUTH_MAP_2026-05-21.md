@@ -90,7 +90,7 @@ Conclusion: docs claiming "no backend classifyImage" are stale.
 Contradiction:
 - Docs claiming classification is strictly client-direct only.
 Verified code:
-- Backend route is available behind `USE_BACKEND_CLASSIFICATION` and used before direct provider path.
+- Backend route is available behind `USE_BACKEND_AI_IN_RELEASE` and used before direct provider path.
 
 Conclusion: architecture is now hybrid-capable, not strictly client-only.
 

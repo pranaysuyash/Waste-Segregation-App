@@ -65,7 +65,8 @@ class GamificationService extends ChangeNotifier {
   };
 
   /// Public read-only access to the points map for consumers like ResultPipeline.
-  static const Map<String, int> pointValues = _pointValues; // Updated constructor
+  static const Map<String, int> pointValues =
+      _pointValues; // Updated constructor
 
   // Initialize Hive box (primarily for challenges, weekly stats if still used this way)
   Future<void> initGamification() async {
@@ -115,19 +116,17 @@ class GamificationService extends ChangeNotifier {
           // Verify the data was stored correctly
           final verifyData = box.get(_defaultChallengesKey);
           if (verifyData == null) {
-            WasteAppLogger.severe('Cache write verification failed',
-                context: {
-                  'service': 'gamification',
-                  'file': 'gamification_service',
-                  'key': _defaultChallengesKey,
-                });
+            WasteAppLogger.severe('Cache write verification failed', context: {
+              'service': 'gamification',
+              'file': 'gamification_service',
+              'key': _defaultChallengesKey,
+            });
           } else {
-            WasteAppLogger.info('Cache write verified successfully',
-                context: {
-                  'service': 'gamification',
-                  'file': 'gamification_service',
-                  'data_length': verifyData.toString().length,
-                });
+            WasteAppLogger.info('Cache write verified successfully', context: {
+              'service': 'gamification',
+              'file': 'gamification_service',
+              'data_length': verifyData.toString().length,
+            });
           }
           WasteAppLogger.cacheEvent('cache_operation', 'classification',
               context: {
@@ -2380,15 +2379,18 @@ class GamificationService extends ChangeNotifier {
 
     // 1. Daily goal (highest priority)
     final todayScans = profile.weeklyStats.isNotEmpty
-        ? profile.weeklyStats.firstWhere(
-            (s) => s.weekStartDate.isBefore(DateTime.now()) &&
-                s.weekStartDate
-                    .add(const Duration(days: 7))
-                    .isAfter(DateTime.now()),
-            orElse: () => WeeklyStats(
-              weekStartDate: DateTime.now(),
-            ),
-          ).itemsIdentified
+        ? profile.weeklyStats
+            .firstWhere(
+              (s) =>
+                  s.weekStartDate.isBefore(DateTime.now()) &&
+                  s.weekStartDate
+                      .add(const Duration(days: 7))
+                      .isAfter(DateTime.now()),
+              orElse: () => WeeklyStats(
+                weekStartDate: DateTime.now(),
+              ),
+            )
+            .itemsIdentified
         : 0;
     const dailyGoalTarget = 5;
     if (todayScans < dailyGoalTarget && (dailyGoalTarget - todayScans) == 1) {
@@ -2471,8 +2473,7 @@ class GamificationService extends ChangeNotifier {
         return NearMilestoneNudge(
           type: NudgeType.streakMilestone,
           title: 'Almost there!',
-          message:
-              'Keep it up tomorrow to reach a $milestone-day streak!',
+          message: 'Keep it up tomorrow to reach a $milestone-day streak!',
           progress: currentStreak,
           target: milestone,
           priority: NudgePriority.medium,

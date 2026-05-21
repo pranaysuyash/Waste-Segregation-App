@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../screens/settings_screen.dart';
 import '../screens/profile_screen.dart';
 import '../utils/simplified_navigation_service.dart';
 import '../utils/constants.dart';
+import '../utils/routes.dart';
 import '../utils/waste_app_logger.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -34,10 +34,7 @@ class GlobalSettingsMenu extends StatelessWidget {
         switch (value) {
           case 'settings':
             try {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
+              Navigator.pushNamed(context, Routes.settings);
             } catch (e) {
               WasteAppLogger.severe('Failed to navigate to settings screen',
                   error: e);
@@ -187,11 +184,7 @@ class GlobalSettingsMenu extends StatelessWidget {
               Navigator.of(context).pop();
               Future.delayed(const Duration(milliseconds: 100), () {
                 if (context.mounted) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const SettingsScreen()),
-                  );
+                  Navigator.pushNamed(context, Routes.settings);
                 }
               });
             },

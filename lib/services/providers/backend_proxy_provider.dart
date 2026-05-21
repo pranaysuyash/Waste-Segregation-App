@@ -77,8 +77,8 @@ class BackendProxyProvider implements ClassificationProvider {
   ///
   /// This reads the same flag as [ProductionSafetyConfig.useBackendAiInRelease]
   /// so there is exactly ONE build flag that controls backend routing.
-  /// Do not add a separate `USE_BACKEND_CLASSIFICATION` define — use the
-  /// canonical flag above.
+  /// Do not add a separate backend-routing define — use the canonical flag
+  /// above.
   static const bool isEnabled =
       bool.fromEnvironment('USE_BACKEND_AI_IN_RELEASE');
 
@@ -110,7 +110,8 @@ class BackendProxyProvider implements ClassificationProvider {
     String? region,
     String? lang,
     String? requestId,
-    CancelToken? cancelToken, // accepted for interface parity; not enforceable on callable
+    CancelToken?
+        cancelToken, // accepted for interface parity; not enforceable on callable
   }) async {
     final base64Image = base64Encode(imageBytes);
 

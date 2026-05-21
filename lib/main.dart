@@ -49,8 +49,8 @@ import 'screens/modern_ui_showcase_screen.dart';
 import 'screens/navigation_demo_screen.dart';
 import 'screens/notification_settings_screen.dart';
 import 'screens/offline_mode_settings_screen.dart';
+import 'screens/enhanced_settings_screen.dart';
 import 'screens/premium_features_screen.dart';
-import 'screens/settings_screen.dart';
 import 'screens/training_review_queue_screen.dart';
 import 'screens/theme_settings_screen.dart';
 import 'l10n/app_localizations.dart';
@@ -738,7 +738,8 @@ class WasteSegregationApp extends StatelessWidget {
                   },
                   routes: {
                     Routes.home: (context) => const MainNavigationWrapper(),
-                    Routes.settings: (context) => const SettingsScreen(),
+                    Routes.settings: (context) =>
+                        const EnhancedSettingsScreen(),
                     Routes.auth: (context) => const AuthScreen(),
                     '/history': (context) => const HistoryScreen(),
                     '/achievements': (context) => const AchievementsScreen(),

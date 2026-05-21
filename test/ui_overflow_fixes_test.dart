@@ -34,7 +34,7 @@ void main() {
               width: 300,
               child: HistoryListItem(
                 classification: classification,
-                  onFeedbackSubmitted: (_) {},
+                onFeedbackSubmitted: (_) {},
                 onTap: () {},
               ),
             ),

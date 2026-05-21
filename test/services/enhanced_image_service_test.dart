@@ -84,7 +84,8 @@ void main() {
 
     test('detects PNG content and writes .png file extension', () async {
       final png = _createTestPng();
-      final path = await service.saveImagePermanently(png, fileName: 'uploaded.jpg');
+      final path =
+          await service.saveImagePermanently(png, fileName: 'uploaded.jpg');
       expect(path, endsWith('.png'));
     });
 
@@ -197,7 +198,8 @@ void main() {
     });
 
     test('rejects traversal with encoded segments', () async {
-      final result = await service.resolveTrustedLocalPath('thumbnails/../../etc');
+      final result =
+          await service.resolveTrustedLocalPath('thumbnails/../../etc');
       expect(result, isNull);
     });
 
@@ -297,7 +299,8 @@ void main() {
 
     test('saves PNG as .png even when fileName suggests .jpg', () async {
       final png = _createTestPng();
-      final path = await service.saveImagePermanently(png, fileName: 'image.jpg');
+      final path =
+          await service.saveImagePermanently(png, fileName: 'image.jpg');
       expect(path, endsWith('.png'));
     });
   });

@@ -15,69 +15,71 @@ class ImpactDashboardScreen extends StatefulWidget {
 
 class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
   bool _isLoading = true;
-  
+
   // Quality Gate Metrics
   int _totalClassifications = 0;
   int _highConfidenceClassifications = 0;
   int _lowConfidenceClassifications = 0;
   double _averageConfidence = 0;
-  
+
   // Offline Queue Metrics
   int _totalQueuedImages = 0;
   int _processedQueuedImages = 0;
   int _pendingQueuedImages = 0;
-  
+
   // Cost Savings
   double _apiCallsSaved = 0;
   double _estimatedCostSavings = 0;
-  
+
   @override
   void initState() {
     super.initState();
     _loadMetrics();
   }
-  
+
   Future<void> _loadMetrics() async {
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
-      final queueService = Provider.of<OfflineQueueService>(context, listen: false);
-      
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final queueService =
+          Provider.of<OfflineQueueService>(context, listen: false);
+
       // Load all classifications to calculate quality metrics
       final classifications = await storageService.getAllClassifications();
       _totalClassifications = classifications.length;
-      
-            // Calculate quality stats from confidence scores
-            double totalConfidence = 0;
+
+      // Calculate quality stats from confidence scores
+      double totalConfidence = 0;
       for (final classification in classifications) {
-              final confidence = classification.confidence ?? 0.5;
-              totalConfidence += confidence;
-        
-              if (confidence >= 0.7) {
-                _highConfidenceClassifications++;
-              } else {
-                _lowConfidenceClassifications++;
+        final confidence = classification.confidence ?? 0.5;
+        totalConfidence += confidence;
+
+        if (confidence >= 0.7) {
+          _highConfidenceClassifications++;
+        } else {
+          _lowConfidenceClassifications++;
         }
       }
-      
-            _averageConfidence = _totalClassifications > 0 
-                ? totalConfidence / _totalClassifications 
-                : 0;
-      
+
+      _averageConfidence = _totalClassifications > 0
+          ? totalConfidence / _totalClassifications
+          : 0;
+
       // Get offline queue stats
       final queueStats = queueService.getQueueStats();
       _totalQueuedImages = queueStats['totalQueued'] ?? 0;
       _processedQueuedImages = queueStats['processed'] ?? 0;
       _pendingQueuedImages = queueStats['pending'] ?? 0;
-      
-        // Calculate cost savings (efficient offline processing)
-        // Assuming $0.002 per API call saved by offline queue
-        _apiCallsSaved = _processedQueuedImages.toDouble();
+
+      // Calculate cost savings (efficient offline processing)
+      // Assuming $0.002 per API call saved by offline queue
+      _apiCallsSaved = _processedQueuedImages.toDouble();
       _estimatedCostSavings = _apiCallsSaved * 0.002;
-      
+
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -92,7 +94,7 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
       }
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,9 +115,10 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
                     // Header
                     Text(
                       'Your Environmental Impact',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -125,7 +128,7 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
                           ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Quality Gate Section
                     _buildSectionCard(
                       context,
@@ -133,18 +136,24 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
                       icon: Icons.verified_outlined,
                       color: Colors.blue,
                       children: [
-                        _buildStatRow('Total Classifications', _totalClassifications.toString()),
-                        _buildStatRow('High Confidence', _highConfidenceClassifications.toString(), 
-                          valueColor: Colors.green),
-                        _buildStatRow('Low Confidence', _lowConfidenceClassifications.toString(),
-                          valueColor: Colors.orange),
+                        _buildStatRow('Total Classifications',
+                            _totalClassifications.toString()),
+                        _buildStatRow('High Confidence',
+                            _highConfidenceClassifications.toString(),
+                            valueColor: Colors.green),
+                        _buildStatRow('Low Confidence',
+                            _lowConfidenceClassifications.toString(),
+                            valueColor: Colors.orange),
                         const Divider(height: 24),
-                        _buildStatRow('Average Confidence', '${(_averageConfidence * 100).toStringAsFixed(1)}%',
-                          valueColor: _averageConfidence >= 0.7 ? Colors.green : Colors.orange),
+                        _buildStatRow('Average Confidence',
+                            '${(_averageConfidence * 100).toStringAsFixed(1)}%',
+                            valueColor: _averageConfidence >= 0.7
+                                ? Colors.green
+                                : Colors.orange),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Offline Queue Section
                     _buildSectionCard(
                       context,
@@ -152,15 +161,20 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
                       icon: Icons.cloud_queue,
                       color: Colors.purple,
                       children: [
-                        _buildStatRow('Total Queued', _totalQueuedImages.toString()),
-                        _buildStatRow('Processed', _processedQueuedImages.toString(),
-                          valueColor: Colors.green),
-                        _buildStatRow('Pending', _pendingQueuedImages.toString(),
-                          valueColor: _pendingQueuedImages > 0 ? Colors.orange : Colors.grey),
+                        _buildStatRow(
+                            'Total Queued', _totalQueuedImages.toString()),
+                        _buildStatRow(
+                            'Processed', _processedQueuedImages.toString(),
+                            valueColor: Colors.green),
+                        _buildStatRow(
+                            'Pending', _pendingQueuedImages.toString(),
+                            valueColor: _pendingQueuedImages > 0
+                                ? Colors.orange
+                                : Colors.grey),
                         const SizedBox(height: 12),
                         LinearProgressIndicator(
-                          value: _totalQueuedImages > 0 
-                              ? _processedQueuedImages / _totalQueuedImages 
+                          value: _totalQueuedImages > 0
+                              ? _processedQueuedImages / _totalQueuedImages
                               : 0,
                           backgroundColor: Colors.grey[300],
                           color: Colors.purple,
@@ -175,7 +189,7 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Cost Savings Section
                     _buildSectionCard(
                       context,
@@ -183,9 +197,11 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
                       icon: Icons.savings_outlined,
                       color: Colors.green,
                       children: [
-                        _buildStatRow('API Calls Saved', _apiCallsSaved.toStringAsFixed(0)),
-                        _buildStatRow('Estimated Savings', '\$${_estimatedCostSavings.toStringAsFixed(2)}',
-                          valueColor: Colors.green),
+                        _buildStatRow('API Calls Saved',
+                            _apiCallsSaved.toStringAsFixed(0)),
+                        _buildStatRow('Estimated Savings',
+                            '\$${_estimatedCostSavings.toStringAsFixed(2)}',
+                            valueColor: Colors.green),
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -209,17 +225,16 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Additional Stats
-                    if (_totalClassifications > 0)
-                      _buildInsightCard(context),
+                    if (_totalClassifications > 0) _buildInsightCard(context),
                   ],
                 ),
               ),
             ),
     );
   }
-  
+
   Widget _buildSectionCard(
     BuildContext context, {
     required String title,
@@ -256,7 +271,7 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
       ),
     );
   }
-  
+
   Widget _buildStatRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -279,16 +294,16 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
       ),
     );
   }
-  
+
   Widget _buildInsightCard(BuildContext context) {
     final highConfidenceRate = _totalClassifications > 0
         ? (_highConfidenceClassifications / _totalClassifications * 100)
         : 0;
-    
+
     String insight;
     Color insightColor;
     IconData insightIcon;
-    
+
     if (highConfidenceRate >= 90) {
       insight = 'Excellent! Your classifications are highly accurate!';
       insightColor = Colors.green;
@@ -298,11 +313,12 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
       insightColor = Colors.blue;
       insightIcon = Icons.thumb_up;
     } else {
-      insight = 'Tip: Try taking clearer photos for better classification accuracy.';
+      insight =
+          'Tip: Try taking clearer photos for better classification accuracy.';
       insightColor = Colors.orange;
       insightIcon = Icons.lightbulb_outline;
     }
-    
+
     return Card(
       color: insightColor.withOpacity(0.1),
       child: Padding(

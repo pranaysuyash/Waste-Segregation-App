@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../utils/routes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,7 +20,6 @@ import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
-import '../screens/settings_screen.dart';
 import '../utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../models/gamification_result.dart';
@@ -296,10 +296,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           padding: const EdgeInsets.only(right: 8),
           child: IconButton(
             icon: const Icon(Icons.settings_outlined, color: Colors.white),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
+            onPressed: () => Navigator.pushNamed(context, Routes.settings),
           ),
         ),
       ],

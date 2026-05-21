@@ -559,10 +559,7 @@ class UnifiedApiClient {
   /// Sanitize a URI path: strip query params, normalize ID segments
   String _sanitizePath(String path) {
     final clean = path.split('?').first;
-    final segments = clean
-        .split('/')
-        .where((s) => s.isNotEmpty)
-        .map((segment) {
+    final segments = clean.split('/').where((s) => s.isNotEmpty).map((segment) {
       if (_numericPattern.hasMatch(segment)) return ':id';
       if (_uuidPattern.hasMatch(segment)) return ':id';
       if (_longOpaquePattern.hasMatch(segment)) return ':id';

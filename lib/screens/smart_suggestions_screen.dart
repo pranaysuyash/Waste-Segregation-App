@@ -29,9 +29,12 @@ class _SmartSuggestionsScreenState extends State<SmartSuggestionsScreen> {
     });
 
     try {
-      final storageService = Provider.of<StorageService>(context, listen: false);
-      final queueService = Provider.of<OfflineQueueService>(context, listen: false);
-      final suggestionsService = SmartSuggestionsService(storageService, queueService);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
+      final queueService =
+          Provider.of<OfflineQueueService>(context, listen: false);
+      final suggestionsService =
+          SmartSuggestionsService(storageService, queueService);
 
       final suggestions = await suggestionsService.getSmartSuggestions();
 

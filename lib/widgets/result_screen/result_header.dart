@@ -161,7 +161,8 @@ class ResultHeader extends ConsumerWidget {
                   ),
                   if (needsReview || hasLowConfidence)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.orange.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
@@ -169,7 +170,8 @@ class ResultHeader extends ConsumerWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.info_outline, size: 10, color: Colors.orange),
+                          const Icon(Icons.info_outline,
+                              size: 10, color: Colors.orange),
                           const SizedBox(width: 2),
                           Text(
                             needsReview ? 'Needs Review' : 'Low Conf.',

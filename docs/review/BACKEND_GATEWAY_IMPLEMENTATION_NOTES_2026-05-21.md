@@ -34,11 +34,11 @@ A Flutter provider that calls the `classifyImage` callable function. It:
 - Base64-encodes image bytes before sending.
 - Maps function errors to `AiFailure` kinds.
 - Returns a response shape that `AiService` can parse without changing the classification parsing pipeline.
-- Exposes `BackendProxyProvider.isEnabled` via `USE_BACKEND_CLASSIFICATION`.
+- Exposes `BackendProxyProvider.isEnabled` via `USE_BACKEND_AI_IN_RELEASE`.
 
 ### 4. `lib/services/ai_service.dart`
 
-`AiService` now routes classification through the backend proxy in release, and can opt into the backend path in debug/profile via `USE_BACKEND_CLASSIFICATION`.
+`AiService` now routes classification through the backend proxy in release, and can opt into the backend path in debug/profile via `USE_BACKEND_AI_IN_RELEASE`.
 
 ---
 

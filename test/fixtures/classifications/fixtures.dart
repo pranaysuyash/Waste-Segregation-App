@@ -1,11 +1,11 @@
 /// Test fixtures for WasteClassification
-/// 
+///
 /// These fixtures represent the 15 canonical classification scenarios.
 /// Used for:
 /// - Golden tests (pipeline output verification)
 /// - Widget tests (UI state rendering)
 /// - Integration tests (end-to-end flows)
-/// 
+///
 /// DO NOT MODIFY without updating snapshots and parity checklist.
 
 import 'package:waste_segregation_app/models/waste_classification.dart';
@@ -187,7 +187,8 @@ WasteClassification get glassBottleFixture => WasteClassification(
       subcategory: 'Glass',
       materialType: 'Glass',
       recyclingCode: 70,
-      explanation: 'Clear glass container. Infinitely recyclable without quality loss.',
+      explanation:
+          'Clear glass container. Infinitely recyclable without quality loss.',
       disposalMethod: 'Recycle',
       disposalInstructions: DisposalInstructions(
         primaryMethod: 'Rinse and recycle',
@@ -526,8 +527,7 @@ WasteClassification get multiMaterialFixture => WasteClassification(
       category: 'Dry Waste',
       subcategory: 'Multi-material',
       materialType: 'Paper-Plastic-Aluminum Composite',
-      explanation:
-          'Multi-layer packaging. Requires special recycling process.',
+      explanation: 'Multi-layer packaging. Requires special recycling process.',
       disposalMethod: 'Special Recycling',
       disposalInstructions: DisposalInstructions(
         primaryMethod: 'Rinse and recycle at designated facility',

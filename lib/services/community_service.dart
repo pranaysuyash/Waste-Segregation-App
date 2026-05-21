@@ -31,9 +31,10 @@ class CommunityService {
 
       // Validate required fields before writing (catches schema drift early)
       final errors = FirestoreSchemaValidator.validateRequiredFields(
-        FirestoreCollections.communityFeed, data);
+          FirestoreCollections.communityFeed, data);
       if (errors.isNotEmpty) {
-        WasteAppLogger.warning('Community feed schema validation warnings: \$errors');
+        WasteAppLogger.warning(
+            'Community feed schema validation warnings: \$errors');
         // Continue writing - validation is advisory, not blocking
       }
 

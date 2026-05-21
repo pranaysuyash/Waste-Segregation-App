@@ -248,7 +248,7 @@ class ApiManagementService {
       // Using approximate cost per request (can be configured per service)
       final estimatedCostPerRequest = _getEstimatedCostPerRequest(serviceName);
       final serviceCost = requestsMade * estimatedCostPerRequest;
-      
+
       _costMetrics[serviceName] = serviceCost;
       totalCost += serviceCost;
     }
@@ -376,7 +376,7 @@ class ApiManagementService {
     // Remove old performance metrics (keep last 24 hours)
     final cutoff = now.subtract(const Duration(hours: 24));
     final cutoffMillis = cutoff.millisecondsSinceEpoch.toDouble();
-    
+
     // Remove old cost metrics
     final costKeysToRemove = <String>[];
     for (final entry in _costMetrics.entries) {

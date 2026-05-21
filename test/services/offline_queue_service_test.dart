@@ -7,7 +7,8 @@ void main() {
       () {
         expect(true, isTrue);
       },
-      skip: 'This suite is currently stale against recovered app contracts and needs focused migration to deterministic coverage.',
+      skip:
+          'This suite is currently stale against recovered app contracts and needs focused migration to deterministic coverage.',
     );
   });
 }

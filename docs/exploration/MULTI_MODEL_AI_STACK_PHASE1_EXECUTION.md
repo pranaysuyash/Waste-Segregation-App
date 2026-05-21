@@ -87,6 +87,10 @@ Phase 1 is to reduce dependence on full cloud inference while improving cost and
   - ordered implementation steps
   - verification checkpoints
   - handoff notes for the next engineer / agent
+- [docs/review/MULTI_MODEL_AI_STACK_PHASE1_PATCH_PLAN_2026-05-21.md](/Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app/docs/review/MULTI_MODEL_AI_STACK_PHASE1_PATCH_PLAN_2026-05-21.md)
+  - patch-by-patch file edits
+  - data shape additions
+  - verification commands
 
 ## Acceptance criteria (minimum)
 

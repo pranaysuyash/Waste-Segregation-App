@@ -42,7 +42,8 @@ void main() {
     Widget createTestWidget(Widget child) {
       return MultiProvider(
         providers: [
-          Provider<GoogleDriveService>(create: (_) => _FakeGoogleDriveService()),
+          Provider<GoogleDriveService>(
+              create: (_) => _FakeGoogleDriveService()),
           ChangeNotifierProvider<HapticSettingsService>(
               create: (_) => _FakeHapticSettingsService()),
         ],

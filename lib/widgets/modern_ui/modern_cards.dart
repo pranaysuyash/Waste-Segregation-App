@@ -54,8 +54,7 @@ class ModernCard extends StatelessWidget {
         margin: margin ?? const EdgeInsets.all(AppTheme.spacingSm),
         padding: padding ?? const EdgeInsets.all(AppTheme.spacingMd),
         decoration: BoxDecoration(
-          border:
-              border ??
+          border: border ??
               (enableGlassmorphism
                   ? Border.all(color: Colors.white.withValues(alpha: 0.2))
                   : null),
@@ -151,12 +150,10 @@ class FeatureCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Responsive padding based on available width
-        final effectivePadding =
-            padding ??
+        final effectivePadding = padding ??
             EdgeInsets.all(
               constraints.maxWidth < 300
-                  ? AppTheme
-                        .spacingSm // Smaller padding for narrow screens
+                  ? AppTheme.spacingSm // Smaller padding for narrow screens
                   : AppTheme.spacingMd, // Standard padding for normal screens
             );
 
@@ -266,7 +263,8 @@ class StatsCard extends StatelessWidget {
                   padding: EdgeInsets.all(iconPad),
                   decoration: BoxDecoration(
                     color: effectiveColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
+                    borderRadius:
+                        BorderRadius.circular(AppTheme.borderRadiusMd),
                   ),
                   child: Icon(
                     icon,
@@ -277,44 +275,44 @@ class StatsCard extends StatelessWidget {
                 SizedBox(width: gap),
               ],
               Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    value,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    const SizedBox(height: 2),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        value,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trend != null && !compact) ...[
+                const SizedBox(width: 8),
+                _TrendIcon(trend: trend!, isPositive: isPositiveTrend),
               ],
-            ),
-          ),
-          if (trend != null && !compact) ...[
-            const SizedBox(width: 8),
-            _TrendIcon(trend: trend!, isPositive: isPositiveTrend),
-          ],
             ],
           );
         },
@@ -373,8 +371,7 @@ class ActionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final effectiveColor = color ?? theme.colorScheme.primary;
 
-    final effectiveGradient =
-        gradient ??
+    final effectiveGradient = gradient ??
         LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -674,9 +671,8 @@ class RecentClassificationCard extends StatelessWidget {
                             itemName,
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
-                              fontSize: isVeryNarrow
-                                  ? 13
-                                  : (isNarrow ? 14 : null),
+                              fontSize:
+                                  isVeryNarrow ? 13 : (isNarrow ? 14 : null),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -691,9 +687,8 @@ class RecentClassificationCard extends StatelessWidget {
                             _formatDate(timestamp),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
-                              fontSize: isVeryNarrow
-                                  ? 10
-                                  : (isNarrow ? 11 : null),
+                              fontSize:
+                                  isVeryNarrow ? 10 : (isNarrow ? 11 : null),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -751,8 +746,7 @@ class RecentClassificationCard extends StatelessWidget {
     }
 
     // Reserve space for indicators and arrow
-    final indicatorSpace =
-        indicatorCount * (isNarrow ? 18 : 20) +
+    final indicatorSpace = indicatorCount * (isNarrow ? 18 : 20) +
         (indicatorCount > 0 ? AppTheme.spacingXs : 0);
     final availableForBadges =
         availableWidth - indicatorSpace - 24; // 24 for arrow

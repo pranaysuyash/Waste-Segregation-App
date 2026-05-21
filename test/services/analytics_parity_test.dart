@@ -1,8 +1,8 @@
 /// Analytics Parity Tests
-/// 
+///
 /// Verifies that ResultScreen V2 emits the same analytics events as Legacy
 /// with identical parameters. Prevents silent tracking regressions.
-/// 
+///
 /// Run: flutter test test/services/analytics_parity_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
@@ -11,7 +11,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../fixtures/classifications/fixtures.dart';
 
 /// Expected analytics events for ResultScreen
-/// 
+///
 /// This is the contract. If V2 changes these, it's a product change.
 class ExpectedAnalyticsEvents {
   static const String screenView = 'result_screen_viewed';
@@ -109,9 +109,10 @@ void main() {
       });
 
       test('user action event names are stable', () {
-        expect(
-            ExpectedAnalyticsEvents.classificationShared, 'classification_shared');
-        expect(ExpectedAnalyticsEvents.classificationSaved, 'classification_saved');
+        expect(ExpectedAnalyticsEvents.classificationShared,
+            'classification_shared');
+        expect(ExpectedAnalyticsEvents.classificationSaved,
+            'classification_saved');
         expect(ExpectedAnalyticsEvents.reanalyzeTapped, 'reanalyze_tapped');
       });
     });
@@ -157,7 +158,8 @@ void main() {
           'auto_analyze': false,
         });
 
-        final event = tracker.getEvents(ExpectedAnalyticsEvents.screenView).first;
+        final event =
+            tracker.getEvents(ExpectedAnalyticsEvents.screenView).first;
 
         expect(event.parameters['classification_id'], classification.id);
         expect(event.parameters['category'], 'E-Waste');
@@ -176,7 +178,8 @@ void main() {
           'version': 'v2', // NEW parameter
         });
 
-        final event = tracker.getEvents(ExpectedAnalyticsEvents.screenView).first;
+        final event =
+            tracker.getEvents(ExpectedAnalyticsEvents.screenView).first;
         expect(event.parameters['version'], 'v2');
       });
     });
@@ -185,13 +188,15 @@ void main() {
       test('tracks share action with required params', () {
         final classification = plasticBottleFixture;
 
-        tracker.track(ExpectedAnalyticsEvents.classificationShared, parameters: {
+        tracker
+            .track(ExpectedAnalyticsEvents.classificationShared, parameters: {
           'category': classification.category,
           'item': classification.itemName,
           'share_method': 'native_sheet',
         });
 
-        expect(tracker.hasEvent(ExpectedAnalyticsEvents.classificationShared), true);
+        expect(tracker.hasEvent(ExpectedAnalyticsEvents.classificationShared),
+            true);
         expect(
           tracker.hasRequiredParams(
             ExpectedAnalyticsEvents.classificationShared,
@@ -210,7 +215,8 @@ void main() {
           'save_type': 'manual',
         });
 
-        expect(tracker.hasEvent(ExpectedAnalyticsEvents.classificationSaved), true);
+        expect(tracker.hasEvent(ExpectedAnalyticsEvents.classificationSaved),
+            true);
         expect(
           tracker.hasRequiredParams(
             ExpectedAnalyticsEvents.classificationSaved,
@@ -224,18 +230,22 @@ void main() {
         final classification = glassBottleFixture;
 
         // Simulate user tapping share twice
-        tracker.track(ExpectedAnalyticsEvents.classificationShared, parameters: {
+        tracker
+            .track(ExpectedAnalyticsEvents.classificationShared, parameters: {
           'category': classification.category,
           'item': classification.itemName,
         });
-        tracker.track(ExpectedAnalyticsEvents.classificationShared, parameters: {
+        tracker
+            .track(ExpectedAnalyticsEvents.classificationShared, parameters: {
           'category': classification.category,
           'item': classification.itemName,
         });
 
         // Should have exactly 2 events
         expect(
-          tracker.getEvents(ExpectedAnalyticsEvents.classificationShared).length,
+          tracker
+              .getEvents(ExpectedAnalyticsEvents.classificationShared)
+              .length,
           2,
         );
       });
@@ -255,7 +265,8 @@ void main() {
           'auto_analyze': false,
         });
 
-        tracker.track(ExpectedAnalyticsEvents.classificationShared, parameters: {
+        tracker
+            .track(ExpectedAnalyticsEvents.classificationShared, parameters: {
           'category': classification.category,
           'item': classification.itemName,
         });
@@ -285,7 +296,8 @@ void main() {
           'auto_analyze': false,
         });
 
-        final event = tracker.getEvents(ExpectedAnalyticsEvents.screenView).first;
+        final event =
+            tracker.getEvents(ExpectedAnalyticsEvents.screenView).first;
         expect(event.parameters['risk_level'], 'high');
       });
 
@@ -302,7 +314,8 @@ void main() {
           'auto_analyze': false,
         });
 
-        final event = tracker.getEvents(ExpectedAnalyticsEvents.screenView).first;
+        final event =
+            tracker.getEvents(ExpectedAnalyticsEvents.screenView).first;
         expect(event.parameters['clarification_needed'], true);
       });
     });

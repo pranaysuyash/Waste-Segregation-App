@@ -37,7 +37,8 @@ void main() {
       expect(adService.shouldShowAds, isTrue);
     });
 
-    test('suppresses ads in restricted contexts even when consent is granted', () {
+    test('suppresses ads in restricted contexts even when consent is granted',
+        () {
       if (kIsWeb) {
         expect(adService.shouldShowAds, isFalse);
         return;
@@ -62,7 +63,9 @@ void main() {
       expect(adService.shouldShowAds, isTrue);
     });
 
-    test('interstitial eligibility requires both event threshold and ad eligibility', () {
+    test(
+        'interstitial eligibility requires both event threshold and ad eligibility',
+        () {
       if (kIsWeb) {
         expect(adService.shouldShowInterstitial(), isFalse);
         return;

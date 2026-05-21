@@ -6,7 +6,8 @@ import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/filter_options.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/models/waste_classification.dart' show AlternativeClassification;
+import 'package:waste_segregation_app/models/waste_classification.dart'
+    show AlternativeClassification;
 import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/providers/disposal_instructions_provider.dart';
 import 'package:waste_segregation_app/screens/result_screen.dart';
@@ -71,8 +72,7 @@ class MockGamificationService extends Mock implements GamificationService {
       ) as Future<GamificationProfile>;
 
   @override
-  Future<NearMilestoneNudge?> getNearMilestoneNudge() =>
-      super.noSuchMethod(
+  Future<NearMilestoneNudge?> getNearMilestoneNudge() => super.noSuchMethod(
         Invocation.method(#getNearMilestoneNudge, const []),
         returnValue: Future<NearMilestoneNudge?>.value(null),
         returnValueForMissingStub: Future<NearMilestoneNudge?>.value(null),
@@ -95,8 +95,7 @@ class MockStorageService extends Mock implements StorageService {
       ) as Future<List<WasteClassification>>;
 
   @override
-  Future<UserProfile?> getCurrentUserProfile() =>
-      super.noSuchMethod(
+  Future<UserProfile?> getCurrentUserProfile() => super.noSuchMethod(
         Invocation.method(#getCurrentUserProfile, const []),
         returnValue: Future.value(null),
       ) as Future<UserProfile?>;
@@ -215,63 +214,64 @@ void main() {
     testWidgets(
       'shows correction panel when actions are enabled',
       (tester) async {
-      final analyticsService = MockAnalyticsService();
-      final gamificationService = MockGamificationService();
-      final storageService = MockStorageService();
+        final analyticsService = MockAnalyticsService();
+        final gamificationService = MockGamificationService();
+        final storageService = MockStorageService();
 
-      when(gamificationService.getProfile()).thenAnswer(
-        (_) async => const GamificationProfile(
-          userId: 'u1',
-          streaks: {},
-          points: UserPoints(total: 10),
-        ),
-      );
-      when(storageService.getAllClassifications())
-          .thenAnswer((_) async => const []);
+        when(gamificationService.getProfile()).thenAnswer(
+          (_) async => const GamificationProfile(
+            userId: 'u1',
+            streaks: {},
+            points: UserPoints(total: 10),
+          ),
+        );
+        when(storageService.getAllClassifications())
+            .thenAnswer((_) async => const []);
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            storageServiceProvider.overrideWithValue(storageService),
-            gamificationServiceProvider.overrideWithValue(gamificationService),
-            cloudStorageServiceProvider.overrideWithValue(
-              MockCloudStorageService(),
-            ),
-            communityServiceProvider.overrideWithValue(
-              MockCommunityService(),
-            ),
-            adServiceProvider.overrideWithValue(MockAdService()),
-            analyticsServiceProvider.overrideWithValue(analyticsService),
-            resultPipelineProvider.overrideWith(
-              (ref) => ResultPipeline(
-                storageService,
-                gamificationService,
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              storageServiceProvider.overrideWithValue(storageService),
+              gamificationServiceProvider
+                  .overrideWithValue(gamificationService),
+              cloudStorageServiceProvider.overrideWithValue(
                 MockCloudStorageService(),
+              ),
+              communityServiceProvider.overrideWithValue(
                 MockCommunityService(),
-                MockAdService(),
-                analyticsService,
+              ),
+              adServiceProvider.overrideWithValue(MockAdService()),
+              analyticsServiceProvider.overrideWithValue(analyticsService),
+              resultPipelineProvider.overrideWith(
+                (ref) => ResultPipeline(
+                  storageService,
+                  gamificationService,
+                  MockCloudStorageService(),
+                  MockCommunityService(),
+                  MockAdService(),
+                  analyticsService,
+                ),
+              ),
+              disposalInstructionsServiceProvider
+                  .overrideWithValue(FakeDisposalInstructionsService()),
+            ],
+            child: MaterialApp(
+              home: ResultScreen(
+                classification: _classification(),
               ),
             ),
-            disposalInstructionsServiceProvider
-                .overrideWithValue(FakeDisposalInstructionsService()),
-          ],
-          child: MaterialApp(
-            home: ResultScreen(
-              classification: _classification(),
-            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pump(const Duration(seconds: 2));
-      await tester.pumpAndSettle(const Duration(seconds: 1));
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle(const Duration(seconds: 1));
 
-      expect(find.text('Was this correct?'), findsOneWidget);
-      expect(find.text('Correct it'), findsOneWidget);
-      expect(find.text('Correct it'), findsOneWidget);
+        expect(find.text('Was this correct?'), findsOneWidget);
+        expect(find.text('Correct it'), findsOneWidget);
+        expect(find.text('Correct it'), findsOneWidget);
 
-      await tester.pumpWidget(const SizedBox.shrink());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
       },
     );
 
@@ -299,7 +299,8 @@ void main() {
           ProviderScope(
             overrides: [
               storageServiceProvider.overrideWithValue(storageService),
-              gamificationServiceProvider.overrideWithValue(gamificationService),
+              gamificationServiceProvider
+                  .overrideWithValue(gamificationService),
               cloudStorageServiceProvider.overrideWithValue(
                 MockCloudStorageService(),
               ),
@@ -370,7 +371,8 @@ void main() {
           ProviderScope(
             overrides: [
               storageServiceProvider.overrideWithValue(storageService),
-              gamificationServiceProvider.overrideWithValue(gamificationService),
+              gamificationServiceProvider
+                  .overrideWithValue(gamificationService),
               cloudStorageServiceProvider.overrideWithValue(
                 MockCloudStorageService(),
               ),

@@ -25,7 +25,8 @@ class MockAnalyticsService extends Mock implements AnalyticsService {
   Future<void> trackScreenView(String screenName,
           {Map<String, dynamic>? parameters}) =>
       super.noSuchMethod(
-        Invocation.method(#trackScreenView, [screenName], {#parameters: parameters}),
+        Invocation.method(
+            #trackScreenView, [screenName], {#parameters: parameters}),
         returnValue: Future<void>.value(),
         returnValueForMissingStub: Future<void>.value(),
       ) as Future<void>;
@@ -34,7 +35,8 @@ class MockAnalyticsService extends Mock implements AnalyticsService {
   Future<void> trackUserAction(String actionName,
           {Map<String, dynamic>? parameters}) =>
       super.noSuchMethod(
-        Invocation.method(#trackUserAction, [actionName], {#parameters: parameters}),
+        Invocation.method(
+            #trackUserAction, [actionName], {#parameters: parameters}),
         returnValue: Future<void>.value(),
         returnValueForMissingStub: Future<void>.value(),
       ) as Future<void>;
@@ -114,8 +116,8 @@ void main() {
           'feedbackTimeframeDays': 7,
         });
 
-    when(mockStorageService.applyFiltersToClassifications(any, any))
-        .thenAnswer((invocation) =>
+    when(mockStorageService.applyFiltersToClassifications(any, any)).thenAnswer(
+        (invocation) =>
             invocation.positionalArguments.first as List<WasteClassification>);
 
     when(mockStorageService.getClassificationsWithPagination(

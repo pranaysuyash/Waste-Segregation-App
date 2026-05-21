@@ -574,9 +574,11 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
     await Share.share(shareText, subject: 'Join my family on WasteWise');
   }
 
-  void _shareViaMessages() => _shareInvite(subject: 'Join my family on WasteWise');
+  void _shareViaMessages() =>
+      _shareInvite(subject: 'Join my family on WasteWise');
 
-  void _shareViaEmail() => _shareInvite(subject: 'Invitation to join my family on WasteWise');
+  void _shareViaEmail() =>
+      _shareInvite(subject: 'Invitation to join my family on WasteWise');
 
   void _shareViaOther() => _shareInvite();
 

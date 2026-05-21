@@ -83,7 +83,8 @@ void main() {
     expect(find.text('Product lookup coming later'), findsOneWidget);
   });
 
-  testWidgets('barcode alone enables submit for wrong feedback', (tester) async {
+  testWidgets('barcode alone enables submit for wrong feedback',
+      (tester) async {
     await pumpDialog(tester);
 
     await tester.tap(find.text('Wrong'));
@@ -93,7 +94,8 @@ void main() {
     expect(tester.widget<FilledButton>(submitButton).onPressed, isNull);
 
     // Find the barcode text field by label and enter a value
-    final barcodeField = find.widgetWithText(TextField, 'Barcode / Product code');
+    final barcodeField =
+        find.widgetWithText(TextField, 'Barcode / Product code');
     await tester.enterText(barcodeField, '8901234567890');
     await tester.pumpAndSettle();
 

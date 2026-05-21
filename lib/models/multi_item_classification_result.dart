@@ -64,10 +64,8 @@ class MultiItemClassificationResult {
     return 'All items classified as $singleCategory. ${regions.length} items to dispose.';
   }
 
-  static String inferMixedWasteGuidance(
-      List<DetectedWasteRegion> regions) {
-    final categorized =
-        regions.where((r) => r.classification != null).toList();
+  static String inferMixedWasteGuidance(List<DetectedWasteRegion> regions) {
+    final categorized = regions.where((r) => r.classification != null).toList();
     if (categorized.isEmpty) {
       return 'Classification pending for all items.';
     }
@@ -78,28 +76,22 @@ class MultiItemClassificationResult {
     }
 
     if (categories.length <= 1) {
-      final cat = categories.isNotEmpty
-          ? categories.first
-          : 'unknown';
+      final cat = categories.isNotEmpty ? categories.first : 'unknown';
       return 'All $categorized.length items are $cat. Can be disposed together.';
     }
 
     final hasHazardous = categories.any((c) =>
         c.toLowerCase().contains('hazard') ||
         c.toLowerCase().contains('medical'));
-    final hasWet = categories
-        .any((c) => c.toLowerCase().contains('wet'));
-    final hasDry = categories
-        .any((c) => c.toLowerCase().contains('dry'));
+    final hasWet = categories.any((c) => c.toLowerCase().contains('wet'));
+    final hasDry = categories.any((c) => c.toLowerCase().contains('dry'));
 
     final warnings = <String>[];
     if (hasHazardous) {
-      warnings.add(
-          'Hazardous items must NOT be mixed with regular waste.');
+      warnings.add('Hazardous items must NOT be mixed with regular waste.');
     }
     if (hasWet && hasDry) {
-      warnings.add(
-          'Wet and dry waste require separate bins.');
+      warnings.add('Wet and dry waste require separate bins.');
     }
 
     return warnings.isNotEmpty
@@ -108,25 +100,22 @@ class MultiItemClassificationResult {
   }
 
   Map<String, dynamic> toJson() => {
-    'sourceImagePath': sourceImagePath,
-    'hasSourceImageBytes': sourceImageBytes != null,
-    'regions': regions.map((r) => r.toJson()).toList(),
-    'aggregateWarnings': aggregateWarnings,
-    'mixedWasteGuidance': mixedWasteGuidance ?? inferMixedWasteGuidance(regions),
-  };
+        'sourceImagePath': sourceImagePath,
+        'hasSourceImageBytes': sourceImageBytes != null,
+        'regions': regions.map((r) => r.toJson()).toList(),
+        'aggregateWarnings': aggregateWarnings,
+        'mixedWasteGuidance':
+            mixedWasteGuidance ?? inferMixedWasteGuidance(regions),
+      };
 
-  factory MultiItemClassificationResult.fromJson(
-          Map<String, dynamic> json) =>
+  factory MultiItemClassificationResult.fromJson(Map<String, dynamic> json) =>
       MultiItemClassificationResult(
         sourceImagePath: json['sourceImagePath'],
-        sourceImageBytes:
-            json['hasSourceImageBytes'] == true ? [] : null,
+        sourceImageBytes: json['hasSourceImageBytes'] == true ? [] : null,
         regions: (json['regions'] as List)
-            .map((r) =>
-                DetectedWasteRegion.fromJson(r as Map<String, dynamic>))
+            .map((r) => DetectedWasteRegion.fromJson(r as Map<String, dynamic>))
             .toList(),
-        aggregateWarnings:
-            List<String>.from(json['aggregateWarnings'] ?? []),
+        aggregateWarnings: List<String>.from(json['aggregateWarnings'] ?? []),
         mixedWasteGuidance: json['mixedWasteGuidance'],
       );
 }

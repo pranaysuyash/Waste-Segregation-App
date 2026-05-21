@@ -12,7 +12,8 @@ void main() {
     });
 
     test('isEmpty ignores sort-only overrides', () {
-      final options = FilterOptions(sortNewestFirst: false, sortBy: SortField.name);
+      final options =
+          FilterOptions(sortNewestFirst: false, sortBy: SortField.name);
       expect(options.isEmpty, isTrue);
     });
 

@@ -8,7 +8,7 @@
 
 The Waste Segregation App now uses two distinct AI pipelines:
 
-1. **Classification** - backend proxy first in release. `AiService` routes through `BackendProxyProvider` to the `classifyImage` Firebase callable in release, and can opt into that backend path in debug/profile with `USE_BACKEND_CLASSIFICATION=true`. Direct OpenAI and Gemini clients still exist for non-release flows and direct-provider fallback paths.
+1. **Classification** - backend proxy first in release. `AiService` routes through `BackendProxyProvider` to the `classifyImage` Firebase callable in release, and can opt into that backend path in debug/profile with `USE_BACKEND_AI_IN_RELEASE=true`. Direct OpenAI and Gemini clients still exist for non-release flows and direct-provider fallback paths.
 
 2. **Disposal instructions** - fully backend. A Firebase Cloud Function (`generateDisposal`) receives text parameters and calls OpenAI GPT-4 to generate localized disposal guidance.
 
@@ -25,7 +25,7 @@ ImageService.saveFilePermanently()   ← image persisted BEFORE any AI call
          ▼
 AiService backend routing gate
          │  release -> backend proxy is canonical
-         │  debug/profile -> can opt in with USE_BACKEND_CLASSIFICATION
+         │  debug/profile -> can opt in with USE_BACKEND_AI_IN_RELEASE
          ▼
 BackendProxyProvider.analyze()
          │
@@ -91,8 +91,8 @@ Disposal instructions returned to client
 
 | Mode | Classification | Disposal function | Notes |
 |---|---|---|---|
-| Debug | Direct client allowed by default; backend proxy can be enabled with `USE_BACKEND_CLASSIFICATION=true` | Allowed | Best for local iteration |
-| Profile | Direct client allowed by default; backend proxy can be enabled with `USE_BACKEND_CLASSIFICATION=true` | Allowed | Same as debug for routing |
+| Debug | Direct client allowed by default; backend proxy can be enabled with `USE_BACKEND_AI_IN_RELEASE=true` | Allowed | Best for local iteration |
+| Profile | Direct client allowed by default; backend proxy can be enabled with `USE_BACKEND_AI_IN_RELEASE=true` | Allowed | Same as debug for routing |
 | Release | Backend proxy route is the canonical path | Allowed | Fail-closed to the backend classification path |
 | Release + legacy direct override | Not the canonical path | Allowed | Keep only for controlled transition cases |
 

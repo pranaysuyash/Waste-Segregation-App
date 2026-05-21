@@ -71,7 +71,8 @@ void main() {
       expect(find.text('Tips'), findsOneWidget);
 
       // Built-in service content smoke check.
-      expect(find.text('Understanding Plastic Recycling Codes'), findsOneWidget);
+      expect(
+          find.text('Understanding Plastic Recycling Codes'), findsOneWidget);
     });
 
     testWidgets('filters by search query', (tester) async {

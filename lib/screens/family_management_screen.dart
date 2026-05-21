@@ -512,7 +512,8 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
           ListTile(
             leading: const Icon(Icons.leaderboard_outlined),
             title: const Text('Family Leaderboard Visibility'),
-            subtitle: Text(currentFamilyData.settings.leaderboardVisibility.name),
+            subtitle:
+                Text(currentFamilyData.settings.leaderboardVisibility.name),
             trailing: canModify ? const Icon(Icons.chevron_right) : null,
             onTap: canModify
                 ? () => _showLeaderboardVisibilityDialog(currentFamilyData)

@@ -104,6 +104,7 @@ import 'package:waste_segregation_app/models/filter_options.dart';
 import 'package:waste_segregation_app/widgets/per_item_result_card.dart';
 import 'package:waste_segregation_app/widgets/multi_item_region_review.dart';
 import 'package:waste_segregation_app/models/detected_waste_region.dart';
+import 'package:waste_segregation_app/utils/constants.dart';
 
 void main() {
   runApp(const WidgetbookApp());
@@ -156,6 +157,254 @@ WidgetbookCategory _componentCategory() {
   return WidgetbookCategory(
     name: 'Waste Segregation Components',
     children: [
+      WidgetbookFolder(
+        name: 'Design Lab',
+        children: [
+          WidgetbookComponent(
+            name: 'Token Playground',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'Editable',
+                builder: (context) {
+                  final primaryColor = context.knobs.color(
+                    label: 'Primary',
+                    initialValue: AppTheme.primaryColor,
+                  );
+                  final secondaryColor = context.knobs.color(
+                    label: 'Secondary',
+                    initialValue: AppTheme.secondaryColor,
+                  );
+                  final surfaceColor = context.knobs.color(
+                    label: 'Surface',
+                    initialValue: Colors.white,
+                  );
+                  final accentColor = context.knobs.color(
+                    label: 'Accent',
+                    initialValue: Colors.green,
+                  );
+                  final radius = context.knobs.double.slider(
+                    label: 'Radius',
+                    initialValue: 16,
+                    min: 0,
+                    max: 32,
+                    divisions: 16,
+                  );
+                  final elevation = context.knobs.double.slider(
+                    label: 'Elevation',
+                    initialValue: 2,
+                    min: 0,
+                    max: 16,
+                    divisions: 16,
+                  );
+                  final bodyText = context.knobs.string(
+                    label: 'Body',
+                    initialValue:
+                        'Explore how the app feels with live color and radius changes.',
+                  );
+                  final darkMode = context.knobs.boolean(
+                    label: 'Dark mode',
+                    initialValue: false,
+                  );
+
+                  final brightness =
+                      darkMode ? Brightness.dark : Brightness.light;
+                  final scheme = ColorScheme.fromSeed(
+                    seedColor: primaryColor,
+                    brightness: brightness,
+                  ).copyWith(
+                    primary: primaryColor,
+                    secondary: secondaryColor,
+                    surface: surfaceColor,
+                    tertiary: accentColor,
+                  );
+
+                  return Theme(
+                    data: ThemeData(
+                      colorScheme: scheme,
+                      useMaterial3: true,
+                    ),
+                    child: _surface(
+                      _TokenPlaygroundCard(
+                        primaryColor: primaryColor,
+                        secondaryColor: secondaryColor,
+                        surfaceColor: surfaceColor,
+                        accentColor: accentColor,
+                        radius: radius,
+                        elevation: elevation,
+                        bodyText: bodyText,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Button Studio',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'Editable',
+                builder: (context) {
+                  final label = context.knobs.string(
+                    label: 'Label',
+                    initialValue: 'Scan Waste',
+                  );
+                  final helperText = context.knobs.string(
+                    label: 'Helper',
+                    initialValue:
+                        'Try different button labels, loading states, and styles.',
+                  );
+                  final isLoading = context.knobs.boolean(
+                    label: 'Loading',
+                    initialValue: false,
+                  );
+                  final outlined = context.knobs.boolean(
+                    label: 'Outlined',
+                    initialValue: false,
+                  );
+                  final width = context.knobs.double.slider(
+                    label: 'Width',
+                    initialValue: 280,
+                    min: 180,
+                    max: 420,
+                    divisions: 24,
+                  );
+
+                  return _surface(
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: width,
+                          child: ModernButton(
+                            text: label,
+                            isLoading: isLoading,
+                            style: outlined
+                                ? ModernButtonStyle.outlined
+                                : ModernButtonStyle.filled,
+                            onPressed: _noop,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          helperText,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Prototype Lab',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'SegregationInsightBanner',
+                builder: (context) {
+                  final title = context.knobs.string(
+                    label: 'Title',
+                    initialValue: 'New sorting insight',
+                  );
+                  final message = context.knobs.string(
+                    label: 'Message',
+                    initialValue:
+                        'Your recent scans show dry waste is 34% of your total items.',
+                  );
+                  final emphasis = context.knobs.color(
+                    label: 'Emphasis',
+                    initialValue: AppTheme.primaryColor,
+                  );
+                  final showAction = context.knobs.boolean(
+                    label: 'Action',
+                    initialValue: true,
+                  );
+
+                  return _surface(
+                    SegregationInsightBanner(
+                      title: title,
+                      message: message,
+                      emphasis: emphasis,
+                      showAction: showAction,
+                    ),
+                  );
+                },
+              ),
+              WidgetbookUseCase(
+                name: 'ImpactCallout',
+                builder: (context) {
+                  final headline = context.knobs.string(
+                    label: 'Headline',
+                    initialValue: 'Small habit, visible impact',
+                  );
+                  final detail = context.knobs.string(
+                    label: 'Detail',
+                    initialValue:
+                        'Show more momentum at a glance, before the user opens a deeper result view.',
+                  );
+                  final accent = context.knobs.color(
+                    label: 'Accent',
+                    initialValue: Colors.teal,
+                  );
+                  final showMetric = context.knobs.boolean(
+                    label: 'Metric',
+                    initialValue: true,
+                  );
+
+                  return _surface(
+                    ImpactCalloutCard(
+                      headline: headline,
+                      detail: detail,
+                      accent: accent,
+                      showMetric: showMetric,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Theme Matrix',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'Palette',
+                builder: (context) {
+                  final palette = context.knobs.list<String>(
+                    label: 'Palette',
+                    options: const ['Ocean', 'Forest', 'Sunset'],
+                    initialOption: 'Ocean',
+                  );
+                  final darkMode = context.knobs.boolean(
+                    label: 'Dark mode',
+                    initialValue: false,
+                  );
+
+                  final scheme = _buildExplorationScheme(
+                    palette,
+                    darkMode: darkMode,
+                  );
+
+                  return Theme(
+                    data: ThemeData(
+                      colorScheme: scheme,
+                      useMaterial3: true,
+                    ),
+                    child: _surface(
+                      _ThemeMatrixCard(
+                        palette: palette,
+                        darkMode: darkMode,
+                        colorScheme: scheme,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
       WidgetbookFolder(
         name: 'Buttons',
         children: [
@@ -2045,6 +2294,51 @@ WidgetbookCategory _componentCategory() {
                 ),
               ),
               WidgetbookUseCase(
+                name: 'Multi Item Review',
+                builder: (context) => _surface(
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PerItemResultCard(
+                        region: DetectedWasteRegion(
+                          boundingBox: NormalizedBoundingBox(
+                            left: 0.1,
+                            top: 0.1,
+                            width: 0.4,
+                            height: 0.4,
+                          ),
+                          classification: _sampleClassification(),
+                          confidence: 0.86,
+                          userConfirmed: true,
+                          label: 'Item 1',
+                        ),
+                        index: 0,
+                        totalItems: 2,
+                      ),
+                      const SizedBox(height: 12),
+                      MultiItemRegionReview(
+                        regions: [
+                          DetectedWasteRegion(
+                            boundingBox: NormalizedBoundingBox(
+                              left: 0.05,
+                              top: 0.08,
+                              width: 0.35,
+                              height: 0.35,
+                            ),
+                            classification: _sampleClassification(),
+                            confidence: 0.82,
+                            userConfirmed: true,
+                            label: 'Bottle',
+                          ),
+                        ],
+                        onToggleConfirm: _onRegionToggle,
+                        onRemoveRegion: _onRegionRemove,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
                 name: 'Remaining Empty States',
                 builder: (context) => _surface(
                   const Column(
@@ -2195,55 +2489,371 @@ class _WidgetbookChartsPreviewState extends State<_WidgetbookChartsPreview>
   }
 }
 
-final List<Widget> _coverageReferenceOnlyWidgets = [
-  AchievementCelebration(achievement: _sampleAchievement(), onDismiss: _noop),
-  const MainNavigationWrapper(),
-  const AlternativeNavigationWrapper(),
-  CacheStatisticsCard(
-    cacheService: ClassificationCacheService(),
-    autoRefresh: false,
-  ),
-  const DeveloperSection(showDeveloperOptions: true),
-  PerformanceMonitoringDashboard(
-    modelService: ModelSelectionService(aiService: AiService()),
-  ),
-  AnimatedTabController(length: 2, builder: _tabBuilder),
-  EnhancedReanalysisWidget(classification: _sampleClassification()),
-  PerItemResultCard(
-    region: DetectedWasteRegion(
-      boundingBox: NormalizedBoundingBox(
-        left: 0.1,
-        top: 0.1,
-        width: 0.4,
-        height: 0.4,
+ColorScheme _buildExplorationScheme(String palette, {required bool darkMode}) {
+  final brightness = darkMode ? Brightness.dark : Brightness.light;
+  final seed = switch (palette) {
+    'Forest' => const Color(0xFF2E7D32),
+    'Sunset' => const Color(0xFFEF6C00),
+    _ => const Color(0xFF1565C0),
+  };
+
+  return ColorScheme.fromSeed(
+    seedColor: seed,
+    brightness: brightness,
+  ).copyWith(
+    primary: seed,
+    secondary: switch (palette) {
+      'Forest' => const Color(0xFF66BB6A),
+      'Sunset' => const Color(0xFFFFB74D),
+      _ => const Color(0xFF4DB6AC),
+    },
+    tertiary: switch (palette) {
+      'Forest' => const Color(0xFFA5D6A7),
+      'Sunset' => const Color(0xFFFF8A65),
+      _ => const Color(0xFF80CBC4),
+    },
+    surface: darkMode ? const Color(0xFF121212) : const Color(0xFFFBFBFB),
+  );
+}
+
+class _TokenPlaygroundCard extends StatelessWidget {
+  const _TokenPlaygroundCard({
+    required this.primaryColor,
+    required this.secondaryColor,
+    required this.surfaceColor,
+    required this.accentColor,
+    required this.radius,
+    required this.elevation,
+    required this.bodyText,
+  });
+
+  final Color primaryColor;
+  final Color secondaryColor;
+  final Color surfaceColor;
+  final Color accentColor;
+  final double radius;
+  final double elevation;
+  final String bodyText;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      elevation: elevation,
+      color: surfaceColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(radius),
       ),
-      classification: _sampleClassification(),
-      confidence: 0.86,
-      userConfirmed: true,
-      label: 'Item 1',
-    ),
-    index: 0,
-    totalItems: 2,
-  ),
-  MultiItemRegionReview(
-    regions: [
-      DetectedWasteRegion(
-        boundingBox: NormalizedBoundingBox(
-          left: 0.05,
-          top: 0.08,
-          width: 0.35,
-          height: 0.35,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Token playground',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              bodyText,
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _ColorSwatch(label: 'Primary', color: primaryColor),
+                _ColorSwatch(label: 'Secondary', color: secondaryColor),
+                _ColorSwatch(label: 'Accent', color: accentColor),
+              ],
+            ),
+          ],
         ),
-        classification: _sampleClassification(),
-        confidence: 0.82,
-        userConfirmed: true,
-        label: 'Bottle',
       ),
-    ],
-    onToggleConfirm: _onRegionToggle,
-    onRemoveRegion: _onRegionRemove,
-  ),
-];
+    );
+  }
+}
+
+class _ThemeMatrixCard extends StatelessWidget {
+  const _ThemeMatrixCard({
+    required this.palette,
+    required this.darkMode,
+    required this.colorScheme,
+  });
+
+  final String palette;
+  final bool darkMode;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$palette palette',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              darkMode ? 'Dark exploration' : 'Light exploration',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _ColorSwatch(label: 'Primary', color: colorScheme.primary),
+                _ColorSwatch(label: 'Secondary', color: colorScheme.secondary),
+                _ColorSwatch(label: 'Surface', color: colorScheme.surface),
+                _ColorSwatch(label: 'Tertiary', color: colorScheme.tertiary),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Primary',
+                      style: TextStyle(
+                        color: colorScheme.onPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondary.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: colorScheme.secondary),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Secondary',
+                      style: TextStyle(
+                        color: colorScheme.secondary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ColorSwatch extends StatelessWidget {
+  const _ColorSwatch({
+    required this.label,
+    required this.color,
+  });
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final isLight =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.light;
+
+    return SizedBox(
+      width: 110,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 42,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          Text(
+            '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isLight ? Colors.black87 : Colors.black54,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SegregationInsightBanner extends StatelessWidget {
+  const SegregationInsightBanner({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.emphasis,
+    required this.showAction,
+  });
+
+  final String title;
+  final String message;
+  final Color emphasis;
+  final bool showAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            emphasis.withValues(alpha: 0.14),
+            Theme.of(context).colorScheme.surface,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: emphasis.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.insights, color: emphasis),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(message, style: Theme.of(context).textTheme.bodyMedium),
+          if (showAction) ...[
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: emphasis),
+                onPressed: _noop,
+                child: const Text('Open insight'),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class ImpactCalloutCard extends StatelessWidget {
+  const ImpactCalloutCard({
+    super.key,
+    required this.headline,
+    required this.detail,
+    required this.accent,
+    required this.showMetric,
+  });
+
+  final String headline;
+  final String detail;
+  final Color accent;
+  final bool showMetric;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: accent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    headline,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(detail, style: Theme.of(context).textTheme.bodyMedium),
+            if (showMetric) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '34% dry waste this week',
+                  style: TextStyle(
+                    color: accent,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 Widget _tabBuilder(BuildContext context, TabController controller) {
   return Column(
@@ -2261,6 +2871,61 @@ Widget _tabBuilder(BuildContext context, TabController controller) {
       ),
     ],
   );
+}
+
+List<Widget> _referenceCoverageOnlyWidgets() {
+  return [
+    AchievementCelebration(
+      achievement: _sampleAchievement(),
+      onDismiss: _noop,
+    ),
+    const MainNavigationWrapper(),
+    const AlternativeNavigationWrapper(),
+    CacheStatisticsCard(
+      cacheService: ClassificationCacheService(),
+      autoRefresh: false,
+    ),
+    const DeveloperSection(showDeveloperOptions: true),
+    PerformanceMonitoringDashboard(
+      modelService: ModelSelectionService(aiService: AiService()),
+    ),
+    AnimatedTabController(length: 2, builder: _tabBuilder),
+    EnhancedReanalysisWidget(classification: _sampleClassification()),
+    PerItemResultCard(
+      region: DetectedWasteRegion(
+        boundingBox: NormalizedBoundingBox(
+          left: 0.1,
+          top: 0.1,
+          width: 0.4,
+          height: 0.4,
+        ),
+        classification: _sampleClassification(),
+        confidence: 0.86,
+        userConfirmed: true,
+        label: 'Item 1',
+      ),
+      index: 0,
+      totalItems: 2,
+    ),
+    MultiItemRegionReview(
+      regions: [
+        DetectedWasteRegion(
+          boundingBox: NormalizedBoundingBox(
+            left: 0.05,
+            top: 0.08,
+            width: 0.35,
+            height: 0.35,
+          ),
+          classification: _sampleClassification(),
+          confidence: 0.82,
+          userConfirmed: true,
+          label: 'Bottle',
+        ),
+      ],
+      onToggleConfirm: _onRegionToggle,
+      onRemoveRegion: _onRegionRemove,
+    ),
+  ];
 }
 
 void _onXFileCapture(dynamic _) {}

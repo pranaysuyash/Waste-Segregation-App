@@ -49,11 +49,11 @@ class _PolishedCardState extends State<PolishedCard>
     );
     _scaleAnimation =
         Tween<double>(begin: 1.0, end: AppThemePolish.scalePressed).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeInOut,
-          ),
-        );
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   @override

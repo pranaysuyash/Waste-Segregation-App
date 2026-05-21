@@ -4,7 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:waste_segregation_app/services/image_quality_gate.dart';
 
-Uint8List _jpgFromImage(img.Image image) => Uint8List.fromList(img.encodeJpg(image));
+Uint8List _jpgFromImage(img.Image image) =>
+    Uint8List.fromList(img.encodeJpg(image));
 
 img.Image _checkerboard({required int width, required int height}) {
   final image = img.Image(width: width, height: height);
@@ -39,7 +40,8 @@ void main() {
 
   group('ImageQualityGate', () {
     test('returns decodeError for invalid image bytes', () async {
-      final result = await ImageQualityGate.check(Uint8List.fromList([1, 2, 3, 4, 5]));
+      final result =
+          await ImageQualityGate.check(Uint8List.fromList([1, 2, 3, 4, 5]));
 
       expect(result.isValid, isFalse);
       expect(result.failureType, QualityFailureType.decodeError);
@@ -56,7 +58,8 @@ void main() {
       expect(result.reason, contains('Image too small'));
     });
 
-    test('passes for acceptable resolution, sharpness, and brightness', () async {
+    test('passes for acceptable resolution, sharpness, and brightness',
+        () async {
       ImageQualityGate.minVariance = 0.0;
       final bytes = _jpgFromImage(_checkerboard(width: 320, height: 320));
 

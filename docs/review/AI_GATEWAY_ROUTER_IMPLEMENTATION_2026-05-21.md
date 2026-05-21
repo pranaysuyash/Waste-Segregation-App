@@ -96,7 +96,7 @@ This is the **single** flag that controls backend routing. It is read by:
 - `ProductionSafetyConfig.useBackendAiInRelease` (utility class)
 - `BackendProxyProvider.isEnabled` (provider class)
 
-**Do not** add `USE_BACKEND_CLASSIFICATION` or any other flag. There is exactly one.
+**Do not** add a second backend-routing flag or any alternative spelling. There is exactly one.
 
 ### Behavior Per Build Mode
 

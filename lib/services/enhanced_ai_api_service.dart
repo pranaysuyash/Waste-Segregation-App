@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:math';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../services/ai_failure.dart';
 import '../utils/production_safety_config.dart';
 import '../utils/waste_app_logger.dart';
 import '../utils/constants.dart';
 import 'api_client_factory.dart';
+import 'providers/backend_proxy_provider.dart';
 import 'unified_api_client.dart';
 
 /// Enhanced AI API service using the unified API client
@@ -40,6 +44,23 @@ class EnhancedAiApiService {
     _racePercentage = p.clamp(0.0, 1.0);
   }
 
+  bool get _backendRoutingEnabled {
+    return kReleaseMode ||
+        ProductionSafetyConfig.useBackendAiInRelease ||
+        BackendProxyProvider.isEnabled;
+  }
+
+  bool get _backendRoutingFailClosed {
+    return kReleaseMode || ProductionSafetyConfig.useBackendAiInRelease;
+  }
+
+  bool _isTerminalFailureKind(AiFailureKind kind) {
+    return kind == AiFailureKind.cancelled ||
+        kind == AiFailureKind.unsafeClientAiBlocked ||
+        kind == AiFailureKind.auth ||
+        kind == AiFailureKind.budgetExceeded;
+  }
+
   // API clients
   late final UnifiedApiClient _openAiClient;
   late final UnifiedApiClient _geminiClient;
@@ -54,6 +75,20 @@ class EnhancedAiApiService {
     if (_initialized) return;
 
     try {
+      if (kReleaseMode) {
+        _initialized = true;
+        WasteAppLogger.info(
+            'Enhanced AI API service initialized in backend-proxy mode',
+            context: {
+              'cost_optimization_enabled': enableCostOptimization,
+              'fallback_enabled': enableFallback,
+              'default_region': defaultRegion,
+              'default_language': defaultLanguage,
+              'backend_routing': true,
+            });
+        return;
+      }
+
       _openAiClient = ApiClientFactory.getOpenAIClient();
       _geminiClient = ApiClientFactory.getGeminiClient();
 
@@ -84,10 +119,36 @@ class EnhancedAiApiService {
     String? preferredModel,
     bool enableSegmentation = false,
   }) async {
-    await initialize();
-
     final effectiveRegion = region ?? defaultRegion;
     final effectiveLanguage = language ?? defaultLanguage;
+
+    if (_backendRoutingEnabled) {
+      try {
+        return await _analyzeWithBackend(
+          imageBytes: imageBytes,
+          imageName: imageName,
+          region: effectiveRegion,
+          language: effectiveLanguage,
+          enableSegmentation: enableSegmentation,
+        );
+      } on AiFailure catch (e) {
+        if (_backendRoutingFailClosed || _isTerminalFailureKind(e.kind)) {
+          rethrow;
+        }
+
+        WasteAppLogger.warning(
+          'Backend proxy failed; falling back to direct client route',
+          error: e,
+          context: {
+            'image_name': imageName,
+            'region': effectiveRegion,
+            'language': effectiveLanguage,
+          },
+        );
+      }
+    }
+
+    await initialize();
 
     // A/B experiment: if configured, route a fraction of requests to the new race-based method
     if (_racePercentage > 0.0 && _random.nextDouble() < _racePercentage) {
@@ -188,10 +249,37 @@ class EnhancedAiApiService {
     bool enableSegmentation = false,
     Duration timeout = const Duration(seconds: 15),
   }) async {
-    await initialize();
-
     final effectiveRegion = region ?? defaultRegion;
     final effectiveLanguage = language ?? defaultLanguage;
+
+    if (_backendRoutingEnabled) {
+      try {
+        return await _analyzeWithBackend(
+          imageBytes: imageBytes,
+          imageName: imageName,
+          region: effectiveRegion,
+          language: effectiveLanguage,
+          enableSegmentation: enableSegmentation,
+        );
+      } on AiFailure catch (e) {
+        if (_backendRoutingFailClosed || _isTerminalFailureKind(e.kind)) {
+          rethrow;
+        }
+
+        WasteAppLogger.warning(
+          'Backend proxy failed; falling through to race route',
+          error: e,
+          context: {
+            'image_name': imageName,
+            'region': effectiveRegion,
+            'language': effectiveLanguage,
+          },
+        );
+      }
+    }
+
+    await initialize();
+
     final compressedBytes = await _compressImage(imageBytes);
 
     final openModel = (preferredModel != null && _isOpenAIModel(preferredModel))
@@ -377,6 +465,58 @@ class EnhancedAiApiService {
     }
 
     return _parseOpenAIResponse(response.data, imageName, model);
+  }
+
+  /// Analyze through the secure Firebase backend proxy.
+  Future<WasteClassification> _analyzeWithBackend({
+    required Uint8List imageBytes,
+    required String imageName,
+    required String region,
+    required String language,
+    bool enableSegmentation = false,
+  }) async {
+    final compressedBytes = await _compressImage(imageBytes);
+    final proxy = BackendProxyProvider(
+      functions: FirebaseFunctions.instance,
+    );
+
+    final response = await proxy.analyze(
+      imageBytes: compressedBytes,
+      mimeType: 'image/jpeg',
+      region: region,
+      lang: language,
+      requestId: imageName,
+    );
+
+    final backendPayload = <String, dynamic>{
+      'choices': [
+        {
+          'message': {
+            'content':
+                response.textContent ?? jsonEncode(response.rawResponseMap),
+          },
+        },
+      ],
+    };
+
+    final model = response.model;
+    final classification = _parseBackendResponse(
+      backendPayload,
+      imageName,
+      model,
+    );
+
+    _recordModelUsage(model, success: true);
+    _modelCosts[model] = _modelCosts[model] ?? 0;
+    WasteAppLogger.info('Backend proxy analysis completed', context: {
+      'image_name': imageName,
+      'region': region,
+      'language': language,
+      'backend_model': model,
+      'segmentation_enabled': enableSegmentation,
+    });
+
+    return classification;
   }
 
   /// Analyze with Gemini
@@ -642,6 +782,59 @@ Analyze this waste item image and provide a JSON response with:
     }
   }
 
+  /// Parse backend proxy response
+  WasteClassification _parseBackendResponse(
+    Map<String, dynamic> responseData,
+    String imageName,
+    String model,
+  ) {
+    try {
+      final choices = responseData['choices'] as List<dynamic>?;
+      if (choices == null || choices.isEmpty) {
+        throw Exception('No choices in backend response');
+      }
+
+      final message = choices[0]['message'] as Map<String, dynamic>?;
+      final content = message?['content'] as String?;
+
+      if (content == null) {
+        throw Exception('No content in backend response');
+      }
+
+      final jsonData = json.decode(content) as Map<String, dynamic>;
+      final classificationJson = {
+        'itemName':
+            jsonData['item_name'] ?? jsonData['itemName'] ?? 'Unknown Item',
+        'category': jsonData['category'] ?? 'Unknown',
+        'subcategory': jsonData['subcategory'],
+        'confidence': jsonData['confidence'],
+        'explanation': jsonData['explanation'] ?? '',
+        'disposalInstructions': jsonData['disposal_instructions'] ??
+            jsonData['disposalInstructions'],
+        'environmentalImpact':
+            jsonData['environmental_impact'] ?? jsonData['environmentalImpact'],
+        'imageUrl': imageName,
+        'region': jsonData['region'] ?? 'Unknown',
+        'visualFeatures':
+            jsonData['visual_features'] ?? jsonData['visualFeatures'] ?? [],
+        'alternatives': jsonData['alternatives'] ?? [],
+        'source': 'ai_analysis_backend_$model',
+        'processingTimeMs': 0,
+        'modelVersion': model,
+      };
+
+      return WasteClassification.fromJson(classificationJson);
+    } catch (e) {
+      WasteAppLogger.severe('Failed to parse backend proxy response',
+          error: e,
+          context: {
+            'response_data': responseData.toString(),
+            'model': model,
+          });
+      rethrow;
+    }
+  }
+
   /// Record model usage statistics
   void _recordModelUsage(String model, {required bool success}) {
     final key = '${model}_${success ? 'success' : 'failure'}';
@@ -656,13 +849,19 @@ Analyze this waste item image and provide a JSON response with:
 
   /// Get service statistics
   Map<String, dynamic> getStatistics() {
-    final openAiStats = _openAiClient.getStatistics();
-    final geminiStats = _geminiClient.getStatistics();
+    final backendProxyMode = kReleaseMode;
+    final openAiStats = backendProxyMode
+        ? {'backend_proxy_mode': true}
+        : _openAiClient.getStatistics();
+    final geminiStats = backendProxyMode
+        ? {'backend_proxy_mode': true}
+        : _geminiClient.getStatistics();
 
     return {
       'initialized': _initialized,
       'cost_optimization_enabled': enableCostOptimization,
       'fallback_enabled': enableFallback,
+      'backend_proxy_mode': backendProxyMode,
       'model_usage': _modelUsageCount,
       'model_costs': _modelCosts,
       'openai_client': openAiStats,

@@ -139,7 +139,9 @@ class Family {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'members': members.map((m) => m.toJson()).toList(),
-      'memberUids': memberUids.isNotEmpty ? memberUids : members.map((m) => m.userId).toList(),
+      'memberUids': memberUids.isNotEmpty
+          ? memberUids
+          : members.map((m) => m.userId).toList(),
       'settings': settings.toJson(),
       'imageUrl': imageUrl,
       'isPublic': isPublic,
@@ -313,7 +315,8 @@ class FamilySettings {
 
   /// Parses leaderboardVisibility from stable wire values
   /// (public/membersOnly/adminsOnly). Unknown/missing defaults to membersOnly.
-  static FamilyLeaderboardVisibility _parseLeaderboardVisibility(dynamic value) {
+  static FamilyLeaderboardVisibility _parseLeaderboardVisibility(
+      dynamic value) {
     if (value is FamilyLeaderboardVisibility) return value;
     final str = value?.toString() ?? '';
     for (final e in FamilyLeaderboardVisibility.values) {

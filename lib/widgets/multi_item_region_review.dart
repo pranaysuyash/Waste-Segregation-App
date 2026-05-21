@@ -44,8 +44,8 @@ class MultiItemRegionReview extends StatelessWidget {
   }
 
   Widget _buildHeader(ThemeData theme) {
-    final allConfirmed = regions.isNotEmpty &&
-        regions.every((r) => r.userConfirmed);
+    final allConfirmed =
+        regions.isNotEmpty && regions.every((r) => r.userConfirmed);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -94,8 +94,7 @@ class MultiItemRegionReview extends StatelessWidget {
           ),
           if (!allConfirmed)
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.teal,
                 borderRadius: BorderRadius.circular(12),
@@ -179,12 +178,10 @@ class MultiItemRegionReview extends StatelessWidget {
                 ),
               ),
               if (isConfirmed)
-                const Icon(Icons.check_circle,
-                    color: Colors.green, size: 20)
+                const Icon(Icons.check_circle, color: Colors.green, size: 20)
               else
                 Icon(Icons.radio_button_unchecked,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    size: 20),
+                    color: theme.colorScheme.onSurfaceVariant, size: 20),
               if (isConfirmed) ...[
                 const SizedBox(width: 4),
                 GestureDetector(
@@ -195,8 +192,7 @@ class MultiItemRegionReview extends StatelessWidget {
                       color: Colors.red.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close,
-                        size: 14, color: Colors.red),
+                    child: const Icon(Icons.close, size: 14, color: Colors.red),
                   ),
                 ),
               ],

@@ -31,8 +31,7 @@ void main() {
       TestHelpers.tearDownAll();
     });
 
-    test('Should increase total points on early scans',
-        () async {
+    test('Should increase total points on early scans', () async {
       // Given: No previous classifications
       await storageService.clearClassifications();
 
@@ -66,9 +65,7 @@ void main() {
       expect(profile.points.total, greaterThan(0));
     });
 
-    test(
-        'Should accumulate points across repeated classifications',
-        () async {
+    test('Should accumulate points across repeated classifications', () async {
       // Given: 14 previous recyclable classifications
       await storageService.clearClassifications();
 

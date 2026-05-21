@@ -19,8 +19,8 @@ class MockCommunityService extends Mock implements CommunityService {
       ) as Future<void>;
 
   @override
-  Future<void> syncWithUserData(
-          List<WasteClassification> classifications, UserProfile? userProfile) =>
+  Future<void> syncWithUserData(List<WasteClassification> classifications,
+          UserProfile? userProfile) =>
       super.noSuchMethod(
         Invocation.method(#syncWithUserData, [classifications, userProfile]),
         returnValue: Future<void>.value(),
@@ -32,7 +32,8 @@ class MockCommunityService extends Mock implements CommunityService {
       super.noSuchMethod(
         Invocation.method(#getFeedItems, const [], {#limit: limit}),
         returnValue: Future<List<CommunityFeedItem>>.value(const []),
-        returnValueForMissingStub: Future<List<CommunityFeedItem>>.value(const []),
+        returnValueForMissingStub:
+            Future<List<CommunityFeedItem>>.value(const []),
       ) as Future<List<CommunityFeedItem>>;
 
   @override
@@ -43,7 +44,8 @@ class MockCommunityService extends Mock implements CommunityService {
           totalClassifications: 0,
           totalPoints: 0,
         )),
-        returnValueForMissingStub: Future<CommunityStats>.value(const CommunityStats(
+        returnValueForMissingStub:
+            Future<CommunityStats>.value(const CommunityStats(
           totalUsers: 0,
           totalClassifications: 0,
           totalPoints: 0,
@@ -69,7 +71,8 @@ class MockStorageService extends Mock implements StorageService {
           {#filterOptions: filterOptions},
         ),
         returnValue: Future<List<WasteClassification>>.value(const []),
-        returnValueForMissingStub: Future<List<WasteClassification>>.value(const []),
+        returnValueForMissingStub:
+            Future<List<WasteClassification>>.value(const []),
       ) as Future<List<WasteClassification>>;
 }
 
@@ -79,7 +82,8 @@ void main() {
       final storageService = MockStorageService();
       final communityService = MockCommunityService();
 
-      when(storageService.getCurrentUserProfile()).thenAnswer((_) async => null);
+      when(storageService.getCurrentUserProfile())
+          .thenAnswer((_) async => null);
       when(storageService.getAllClassifications())
           .thenAnswer((_) async => const []);
 

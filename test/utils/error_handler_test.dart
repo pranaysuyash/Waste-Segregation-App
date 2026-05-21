@@ -81,7 +81,8 @@ void main() {
       );
     });
 
-    testWidgets('initialize and showGlobalErrorDialog are safe', (tester) async {
+    testWidgets('initialize and showGlobalErrorDialog are safe',
+        (tester) async {
       final navigatorKey = GlobalKey<NavigatorState>();
       await tester.pumpWidget(
         MaterialApp(

@@ -188,13 +188,17 @@ void main() {
           }
         });
 
-      test('should have accessible color contrasts', () {
+        test('should have accessible color contrasts', () {
           // Colors should remain distinguishable and readable enough.
-          expect(AppTheme.wetWasteColor.computeLuminance(), inInclusiveRange(0.0, 1.0));
-          expect(AppTheme.dryWasteColor.computeLuminance(), inInclusiveRange(0.0, 1.0));
-          expect(AppTheme.hazardousWasteColor.computeLuminance(), inInclusiveRange(0.0, 1.0));
+          expect(AppTheme.wetWasteColor.computeLuminance(),
+              inInclusiveRange(0.0, 1.0));
+          expect(AppTheme.dryWasteColor.computeLuminance(),
+              inInclusiveRange(0.0, 1.0));
+          expect(AppTheme.hazardousWasteColor.computeLuminance(),
+              inInclusiveRange(0.0, 1.0));
           expect(AppTheme.wetWasteColor, isNot(equals(AppTheme.dryWasteColor)));
-          expect(AppTheme.dryWasteColor, isNot(equals(AppTheme.hazardousWasteColor)));
+          expect(AppTheme.dryWasteColor,
+              isNot(equals(AppTheme.hazardousWasteColor)));
         });
       });
 

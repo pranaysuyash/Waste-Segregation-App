@@ -6,7 +6,8 @@ import 'package:waste_segregation_app/utils/permission_handler.dart';
 void main() {
   group('PermissionHandler Tests', () {
     group('Camera Permission Tests', () {
-      test('should return boolean result for camera permission check', () async {
+      test('should return boolean result for camera permission check',
+          () async {
         final result = await PermissionHandler.checkCameraPermission();
         expect(result, isA<bool>());
       });
@@ -27,7 +28,8 @@ void main() {
     });
 
     group('Storage Permission Tests', () {
-      test('should return boolean result for storage permission check', () async {
+      test('should return boolean result for storage permission check',
+          () async {
         final result = await PermissionHandler.checkStoragePermission();
         expect(result, isA<bool>());
       });

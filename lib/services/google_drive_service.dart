@@ -30,8 +30,10 @@ class GoogleDriveService {
   // Helper method to fetch UserProfile from Firestore
   Future<UserProfile?> _fetchUserProfileFromFirestore(String userId) async {
     try {
-      final docSnapshot =
-          await _firestore.collection(FirestoreCollections.users).doc(userId).get();
+      final docSnapshot = await _firestore
+          .collection(FirestoreCollections.users)
+          .doc(userId)
+          .get();
       if (docSnapshot.exists && docSnapshot.data() != null) {
         return UserProfile.fromJson(docSnapshot.data()!);
       }

@@ -48,8 +48,7 @@ class CommunityImpactCard extends StatelessWidget {
                 padding: const EdgeInsets.all(AppTheme.spacingSm),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryColor.withValues(alpha: 0.12),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.borderRadiusMd),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
                 ),
                 child: const Icon(
                   Icons.eco,
@@ -135,8 +134,7 @@ class CommunityImpactCard extends StatelessWidget {
                 padding: const EdgeInsets.all(AppTheme.spacingSm),
                 decoration: BoxDecoration(
                   color: AppTheme.neutralColor.withValues(alpha: 0.12),
-                  borderRadius:
-                      BorderRadius.circular(AppTheme.borderRadiusMd),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusMd),
                 ),
                 child: const Icon(
                   Icons.eco_outlined,
@@ -231,9 +229,8 @@ class CommunityImpactCard extends StatelessWidget {
     for (final c in list) {
       categoryCounts.update(c.category, (v) => v + 1, ifAbsent: () => 1);
     }
-    final mostCommonCategory = categoryCounts.entries
-            .reduce((a, b) => a.value >= b.value ? a : b)
-            .key;
+    final mostCommonCategory =
+        categoryCounts.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
 
     // This week = since Monday of current week
     final now = DateTime.now();

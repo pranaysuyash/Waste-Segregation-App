@@ -273,55 +273,55 @@ Widget _buildAccessibilityFeatures() {
     home: Scaffold(
       body: SingleChildScrollView(
         child: Column(
-        children: [
-          // Semantic labels demo
-          Semantics(
-            label: 'Premium feature setting',
-            hint: 'Tap to upgrade to premium',
-            child: SettingTile(
-              icon: Icons.star,
-              title: 'Premium Analytics',
-              subtitle: 'Advanced insights and trends',
-              trailing: Semantics(
-                label: 'Premium feature badge',
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+          children: [
+            // Semantic labels demo
+            Semantics(
+              label: 'Premium feature setting',
+              hint: 'Tap to upgrade to premium',
+              child: SettingTile(
+                icon: Icons.star,
+                title: 'Premium Analytics',
+                subtitle: 'Advanced insights and trends',
+                trailing: Semantics(
+                  label: 'Premium feature badge',
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text('PRO'),
                   ),
-                  child: const Text('PRO'),
                 ),
+                onTap: () {},
               ),
-              onTap: () {},
             ),
-          ),
 
-          // High contrast example
-          Container(
-            color: Colors.black,
-            child: SettingTile(
-              icon: Icons.contrast,
-              iconColor: Colors.white,
-              titleColor: Colors.white,
-              title: 'High Contrast Mode',
-              subtitle: 'Better visibility for low vision users',
-              onTap: () {},
+            // High contrast example
+            Container(
+              color: Colors.black,
+              child: SettingTile(
+                icon: Icons.contrast,
+                iconColor: Colors.white,
+                titleColor: Colors.white,
+                title: 'High Contrast Mode',
+                subtitle: 'Better visibility for low vision users',
+                onTap: () {},
+              ),
             ),
-          ),
 
-          // Large text example
-          MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
-            child: SettingTile(
-              icon: Icons.text_fields,
-              title: 'Large Text Example',
-              subtitle: 'This shows how the tile adapts to large text',
-              onTap: () {},
+            // Large text example
+            MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+              child: SettingTile(
+                icon: Icons.text_fields,
+                title: 'Large Text Example',
+                subtitle: 'This shows how the tile adapts to large text',
+                onTap: () {},
+              ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     ),

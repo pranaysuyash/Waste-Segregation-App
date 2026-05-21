@@ -13,12 +13,12 @@ import 'package:waste_segregation_app/models/gamification.dart';
 
 class MockStorageService extends Mock implements StorageService {
   @override
-  Future<UserProfile?> getCurrentUserProfile() =>
-      super.noSuchMethod(
+  Future<UserProfile?> getCurrentUserProfile() => super.noSuchMethod(
         Invocation.method(#getCurrentUserProfile, const []),
         returnValue: Future.value(null),
       ) as Future<UserProfile?>;
 }
+
 class MockCloudStorageService extends Mock implements CloudStorageService {}
 
 void main() {

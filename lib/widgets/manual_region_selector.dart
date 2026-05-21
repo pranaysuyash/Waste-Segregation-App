@@ -24,11 +24,11 @@ class SelectedRegion {
   double get bottom => (top + height).clamp(0.0, 1.0);
 
   Map<String, dynamic> toBoundsMap() => <String, dynamic>{
-    'x': left * 100,
-    'y': top * 100,
-    'width': width * 100,
-    'height': height * 100,
-  };
+        'x': left * 100,
+        'y': top * 100,
+        'width': width * 100,
+        'height': height * 100,
+      };
 }
 
 /// Widget that lets a user draw rectangular regions on an image.

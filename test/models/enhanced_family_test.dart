@@ -568,7 +568,8 @@ void main() {
         expect(json['categoryCounts'], isA<Map>());
 
         final recreated = FamilyStats.fromJson(json);
-        expect(recreated.totalClassifications, equals(original.totalClassifications));
+        expect(recreated.totalClassifications,
+            equals(original.totalClassifications));
         expect(recreated.totalPoints, equals(original.totalPoints));
         expect(recreated.currentStreak, equals(original.currentStreak));
         expect(recreated.memberCount, equals(original.memberCount));
@@ -813,26 +814,36 @@ void main() {
         const membersOnly = FamilySettings(
           leaderboardVisibility: FamilyLeaderboardVisibility.membersOnly,
         );
-        expect(membersOnly.toJson()['leaderboardVisibility'], equals('membersOnly'));
+        expect(membersOnly.toJson()['leaderboardVisibility'],
+            equals('membersOnly'));
 
         const adminsOnly = FamilySettings(
           leaderboardVisibility: FamilyLeaderboardVisibility.adminsOnly,
         );
-        expect(adminsOnly.toJson()['leaderboardVisibility'], equals('adminsOnly'));
+        expect(
+            adminsOnly.toJson()['leaderboardVisibility'], equals('adminsOnly'));
       });
 
       test('fromJson reads stable wire values', () {
-        final public = FamilySettings.fromJson({'leaderboardVisibility': 'public'});
-        expect(public.leaderboardVisibility, equals(FamilyLeaderboardVisibility.public));
+        final public =
+            FamilySettings.fromJson({'leaderboardVisibility': 'public'});
+        expect(public.leaderboardVisibility,
+            equals(FamilyLeaderboardVisibility.public));
 
-        final members = FamilySettings.fromJson({'leaderboardVisibility': 'membersOnly'});
-        expect(members.leaderboardVisibility, equals(FamilyLeaderboardVisibility.membersOnly));
+        final members =
+            FamilySettings.fromJson({'leaderboardVisibility': 'membersOnly'});
+        expect(members.leaderboardVisibility,
+            equals(FamilyLeaderboardVisibility.membersOnly));
 
-        final admins = FamilySettings.fromJson({'leaderboardVisibility': 'adminsOnly'});
-        expect(admins.leaderboardVisibility, equals(FamilyLeaderboardVisibility.adminsOnly));
+        final admins =
+            FamilySettings.fromJson({'leaderboardVisibility': 'adminsOnly'});
+        expect(admins.leaderboardVisibility,
+            equals(FamilyLeaderboardVisibility.adminsOnly));
       });
 
-      test('fromJson rejects legacy enum toString values, defaults to membersOnly', () {
+      test(
+          'fromJson rejects legacy enum toString values, defaults to membersOnly',
+          () {
         // Pre-launch: only stable wire values are valid.
         // Legacy enum toString format is not a supported data contract.
         final legacyPublic = FamilySettings.fromJson(
@@ -849,8 +860,10 @@ void main() {
       });
 
       test('fromJson defaults to membersOnly for unknown values', () {
-        final unknown = FamilySettings.fromJson({'leaderboardVisibility': 'invalidValue'});
-        expect(unknown.leaderboardVisibility, equals(FamilyLeaderboardVisibility.membersOnly));
+        final unknown =
+            FamilySettings.fromJson({'leaderboardVisibility': 'invalidValue'});
+        expect(unknown.leaderboardVisibility,
+            equals(FamilyLeaderboardVisibility.membersOnly));
       });
     });
 

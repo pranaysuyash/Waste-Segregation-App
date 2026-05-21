@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the comprehensive refactoring of the settings screen from a monolithic 1,781-line file into a clean, maintainable, modular architecture following modern Flutter best practices.
+This document tracks the modular settings refactor and the current production route target. The live app now enters settings through `EnhancedSettingsScreen`, while the legacy `SettingsScreen` remains in the tree as historical/compatibility code.
 
 ## Problem Statement
 
@@ -82,46 +82,13 @@ class SettingsTheme {
 }
 ```
 
-### 4. Clean Main Screen
+### 4. Canonical Production Screen
 
-> Note: the production app still enters through `SettingsScreen`; the modular
-> sections below now share a canonical named-route contract rather than a
-> separate `RefactoredSettingsScreen` entrypoint.
-
-#### RefactoredSettingsScreen
-```dart
-class RefactoredSettingsScreen extends StatefulWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-    );
-  }
-
-  Widget _buildBody() {
-    final sections = _buildSections();
-    
-    return ListView.separated(
-      itemCount: sections.length,
-      separatorBuilder: (_, __) => const SettingsSectionSpacer(),
-      itemBuilder: (_, index) => sections[index],
-    );
-  }
-
-  List<Widget> _buildSections() {
-    return [
-      const AccountSection(),
-      const PremiumSection(),
-      const AppSettingsSection(),
-      const NavigationSection(),
-      const FeaturesSection(),
-      const LegalSupportSection(),
-      DeveloperSection(showDeveloperOptions: _showDeveloperOptions),
-    ];
-  }
-}
-```
+The production app now routes `Routes.settings` to `EnhancedSettingsScreen`.
+That screen composes the extracted sections directly and owns the canonical
+settings entrypoint. The legacy `SettingsScreen` remains available for history
+and comparison, but it is no longer the route target users reach from the app
+shell.
 
 ## Key Improvements
 
@@ -132,9 +99,8 @@ class RefactoredSettingsScreen extends StatefulWidget {
 - **Independent Testing**: Each component can be tested in isolation
 
 ### 2. Performance Optimizations
-- **Side Effects Moved**: The modular section plan keeps service work out of
-  `build()`, while the live screen still carries some legacy build-time work to
-  be finalized
+- **Side Effects Moved**: The canonical settings screen moves the ad-state work
+  into `initState()`/post-frame setup instead of doing it during every build
 - **Efficient Rebuilds**: Use `context.select()` for targeted updates
 - **Lazy Loading**: Sections only rebuild when their data changes
 
@@ -222,16 +188,10 @@ ScaffoldMessenger.of(context).showSnackBar(
 
 ### Localization Preparation
 
-All user-facing strings are marked with `TODO(i18n)` comments:
-```dart
-// TODO(i18n): Localize title
-title: 'Settings',
-```
-
-When implementing i18n:
-1. Replace hardcoded strings with `AppLocalizations.of(context).settingsTitle`
-2. Add corresponding entries to ARB files
-3. Remove TODO comments
+Localization is still partial. Many settings strings remain hardcoded and
+marked with `TODO(i18n)` comments in the widget slice. The canonical screen
+uses `AppLocalizations` for the app bar title, but the rest of the section text
+still needs a full i18n sweep before the doc can claim completion.
 
 ## Testing Strategy
 
@@ -244,6 +204,7 @@ When implementing i18n:
 - Full settings flow testing
 - Navigation between sections
 - Service integration verification
+- Route-contract validation for the canonical settings entrypoint
 
 ### Widget Tests
 ```dart
@@ -272,9 +233,9 @@ testWidgets('SettingTile renders correctly', (WidgetTester tester) async {
 - [x] Add comprehensive tests
 
 ### Phase 2: Integration (Next Steps)
-- [ ] Replace original settings screen
-- [ ] Update navigation references
-- [ ] Verify all functionality works
+- [x] Promote the modular screen as the canonical route target
+- [x] Update navigation references
+- [ ] Verify all functionality works end-to-end in the wider app
 - [ ] Performance testing
 
 ### Phase 3: Enhancement (Future)
@@ -310,14 +271,17 @@ testWidgets('SettingTile renders correctly', (WidgetTester tester) async {
 - `lib/widgets/settings/developer_section.dart` - Developer options
 
 ### Implementation
-- `lib/screens/refactored_settings_screen.dart` - Clean main screen
+- `lib/screens/enhanced_settings_screen.dart` - Canonical modular settings screen
 
 ### Testing
 - `test/widgets/settings/settings_refactor_test.dart` - Component tests
 
 ## Conclusion
 
-This refactoring transforms the settings screen from a monolithic, hard-to-maintain file into a clean, modular, testable architecture. The new structure follows Flutter best practices and provides a solid foundation for future enhancements while significantly improving developer productivity and code maintainability.
+This refactor established the modular settings architecture and the canonical
+route target, but it is not fully complete in the sense of i18n coverage or the
+legacy screen being removed. The current value is the working modular surface
+and the route contract that keeps it reachable from the app shell.
 
 The modular approach makes it easy to:
 - Add new settings without touching existing code

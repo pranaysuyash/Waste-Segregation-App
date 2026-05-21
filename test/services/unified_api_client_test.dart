@@ -11,8 +11,8 @@ import 'package:waste_segregation_app/services/unified_api_client.dart';
 void main() {
   group('URL sanitization', () {
     test('full path with query parameters is not logged', () async {
-      final result = sanitizePathHelper(
-          '/users/123/items/abc-secret-token?key=hello');
+      final result =
+          sanitizePathHelper('/users/123/items/abc-secret-token?key=hello');
       expect(result, equals('/users/:id/items/abc-secret-token'));
       expect(result, isNot(contains('key=hello')));
       expect(result, isNot(contains('123')));
@@ -23,12 +23,13 @@ void main() {
           '/users/aVeryLongOpaqueTokenStringThatExceeds20Chars?secret=xyz');
       expect(result, equals('/users/:id'));
       expect(result, isNot(contains('secret=xyz')));
-      expect(result, isNot(contains('aVeryLongOpaqueTokenStringThatExceeds20Chars')));
+      expect(result,
+          isNot(contains('aVeryLongOpaqueTokenStringThatExceeds20Chars')));
     });
 
     test('normalizes numeric IDs', () {
-      expect(sanitizePathHelper('/api/v1/users/42'),
-          equals('/api/v1/users/:id'));
+      expect(
+          sanitizePathHelper('/api/v1/users/42'), equals('/api/v1/users/:id'));
     });
 
     test('normalizes UUIDs', () {
@@ -208,10 +209,7 @@ const _sensitiveHeaderKeys = {
 
 String sanitizePathHelper(String path) {
   final clean = path.split('?').first;
-  final segments = clean
-      .split('/')
-      .where((s) => s.isNotEmpty)
-      .map((segment) {
+  final segments = clean.split('/').where((s) => s.isNotEmpty).map((segment) {
     if (_numericPattern.hasMatch(segment)) return ':id';
     if (_uuidPattern.hasMatch(segment)) return ':id';
     if (_longOpaquePattern.hasMatch(segment)) return ':id';

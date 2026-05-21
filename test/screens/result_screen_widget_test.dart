@@ -1,8 +1,8 @@
 /// Widget tests for ResultScreen critical states
-/// 
+///
 /// These tests verify UI renders correctly for key scenarios.
 /// They don't test pixel-perfect rendering, but critical elements presence.
-/// 
+///
 /// Run: flutter test test/screens/result_screen_widget_test.dart
 
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ void main() {
     group('Classification Fixtures', () {
       test('plastic bottle fixture has correct properties', () {
         final fixture = plasticBottleFixture;
-        
+
         expect(fixture.id, ClassificationFixtureIds.plasticBottle);
         expect(fixture.category, 'Dry Waste');
         expect(fixture.itemName, 'Plastic Water Bottle');
@@ -26,7 +26,7 @@ void main() {
 
       test('medical waste fixture has high risk properties', () {
         final fixture = medicalWasteFixture;
-        
+
         expect(fixture.id, ClassificationFixtureIds.medicalWaste);
         expect(fixture.category, 'Biomedical Waste');
         expect(fixture.riskLevel, 'high');
@@ -35,7 +35,7 @@ void main() {
 
       test('unknown fixture has low confidence', () {
         final fixture = unknownLowConfidenceFixture;
-        
+
         expect(fixture.id, ClassificationFixtureIds.unknownLowConfidence);
         expect(fixture.category, 'Requires Manual Review');
         expect(fixture.confidence, lessThan(0.5));
@@ -97,36 +97,36 @@ void main() {
     group('Critical UI States', () {
       test('high confidence classification has expected properties', () {
         final fixture = plasticBottleFixture;
-        
+
         // High confidence (> 0.8)
         expect(fixture.confidence, greaterThan(0.8));
-        
+
         // Should not need clarification
         expect(fixture.clarificationNeeded, isNot(true));
-        
+
         // Should have color code
         expect(fixture.colorCode, isNotEmpty);
       });
 
       test('low confidence classification shows clarification', () {
         final fixture = unknownLowConfidenceFixture;
-        
+
         // Low confidence (< 0.5)
         expect(fixture.confidence, lessThan(0.5));
-        
+
         // Should need clarification
         expect(fixture.clarificationNeeded, true);
-        
+
         // Should have alternatives
         expect(fixture.alternatives, isNotEmpty);
       });
 
       test('hazardous waste has warnings', () {
         final fixture = hazardousBatteryFixture;
-        
+
         // Should have warnings
         expect(fixture.disposalInstructions.warnings, isNotEmpty);
-        
+
         // Should have risk level
         expect(fixture.riskLevel, isNot('low'));
       });
@@ -147,7 +147,7 @@ void main() {
       test('fixture IDs are unique', () {
         final ids = allClassificationFixtures.map((f) => f.id).toList();
         final uniqueIds = ids.toSet();
-        
+
         expect(uniqueIds.length, ids.length);
       });
     });

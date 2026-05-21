@@ -79,8 +79,7 @@ final aiJobQueueProvider = FutureProvider<List<AiJob>>((ref) async {
   ];
   final snapshot = await firestore
       .collection(FirestoreCollections.aiJobs)
-      .where('status',
-          whereIn: activeStatuses)
+      .where('status', whereIn: activeStatuses)
       .orderBy('createdAt', descending: false)
       .get();
   return snapshot.docs.map((doc) => AiJob.fromJson(doc.data())).toList();
@@ -106,14 +105,12 @@ final tokenQueueStatsProvider = FutureProvider<QueueStats>((ref) async {
   final processingStatus = AiJobStatus.processing.toString();
   final completedStatus = AiJobStatus.completed.toString();
   final failedStatus = AiJobStatus.failed.toString();
-  final queuedJobs =
-      jobs.where((j) => j['status'] == queuedStatus).length;
+  final queuedJobs = jobs.where((j) => j['status'] == queuedStatus).length;
   final processingJobs =
       jobs.where((j) => j['status'] == processingStatus).length;
   final completedJobs =
       jobs.where((j) => j['status'] == completedStatus).length;
-  final failedJobs =
-      jobs.where((j) => j['status'] == failedStatus).length;
+  final failedJobs = jobs.where((j) => j['status'] == failedStatus).length;
   final total = jobs.length;
 
   return QueueStats(

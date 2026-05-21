@@ -38,7 +38,6 @@ Release safety behavior (`lib/utils/production_safety_config.dart` + `lib/servic
   - ALLOW_CLIENT_AI_IN_RELEASE=true
 - Optional explicit backend routing define (debug/profile opt-in and release documentation alignment):
   - USE_BACKEND_AI_IN_RELEASE=true
-  - USE_BACKEND_CLASSIFICATION=true
 
 Model selection overrides (optional):
 - OPENAI_API_MODEL_PRIMARY (default: gpt-4.1-nano)

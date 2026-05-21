@@ -22,7 +22,8 @@ import '../fixtures/classifications/fixtures.dart';
 
 class MockAnalyticsService extends Mock implements AnalyticsService {
   @override
-  Future<void> trackScreenView(String screenName, {Map<String, dynamic>? parameters}) =>
+  Future<void> trackScreenView(String screenName,
+          {Map<String, dynamic>? parameters}) =>
       Future<void>.value();
 
   @override
@@ -50,16 +51,18 @@ class MockGamificationService extends Mock implements GamificationService {
 
 class MockStorageService extends Mock implements StorageService {
   @override
-  Future<List<WasteClassification>> getAllClassifications({dynamic filterOptions}) =>
+  Future<List<WasteClassification>> getAllClassifications(
+          {dynamic filterOptions}) =>
       Future<List<WasteClassification>>.value(const []);
 
   @override
-  Future<UserProfile?> getCurrentUserProfile() =>
-      Future.value(null);
+  Future<UserProfile?> getCurrentUserProfile() => Future.value(null);
 }
 
 class MockCloudStorageService extends Mock implements CloudStorageService {}
+
 class MockCommunityService extends Mock implements CommunityService {}
+
 class MockAdService extends Mock implements AdService {}
 
 class FakeDisposalInstructionsService extends DisposalInstructionsService {
@@ -90,13 +93,16 @@ void main() {
       await loadAppFonts();
     });
 
-    Widget buildTestWrapper(WasteClassification classification, {bool darkTheme = false}) {
+    Widget buildTestWrapper(WasteClassification classification,
+        {bool darkTheme = false}) {
       final baseTheme = darkTheme ? ThemeData.dark() : ThemeData.light();
       return ProviderScope(
         overrides: [
           storageServiceProvider.overrideWithValue(MockStorageService()),
-          gamificationServiceProvider.overrideWithValue(MockGamificationService()),
-          cloudStorageServiceProvider.overrideWithValue(MockCloudStorageService()),
+          gamificationServiceProvider
+              .overrideWithValue(MockGamificationService()),
+          cloudStorageServiceProvider
+              .overrideWithValue(MockCloudStorageService()),
           communityServiceProvider.overrideWithValue(MockCommunityService()),
           adServiceProvider.overrideWithValue(MockAdService()),
           analyticsServiceProvider.overrideWithValue(MockAnalyticsService()),

@@ -345,7 +345,8 @@ void main() {
         final wasteAchievement = state.achievements.firstWhere(
           (a) => a.type == AchievementType.wasteIdentified,
         );
-        expect(wasteAchievement.progress, equals(1.5)); // 0.5 + 1 per classification
+        expect(wasteAchievement.progress,
+            equals(1.5)); // 0.5 + 1 per classification
       });
     });
 

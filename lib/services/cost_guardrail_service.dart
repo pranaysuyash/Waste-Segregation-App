@@ -249,9 +249,9 @@ class CostGuardrailService extends ChangeNotifier {
     if (_lastAlertSent != alertKey) return true;
     // Only send same alert once per hour
     return _recentAlerts
-            .where((a) =>
-                a.timestamp.isAfter(DateTime.now().subtract(const Duration(hours: 1))))
-            .isEmpty;
+        .where((a) => a.timestamp
+            .isAfter(DateTime.now().subtract(const Duration(hours: 1))))
+        .isEmpty;
   }
 
   /// Check warning thresholds and send appropriate alerts

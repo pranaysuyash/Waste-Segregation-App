@@ -308,7 +308,8 @@ class TokenService extends ChangeNotifier {
           // If there is no authenticated Firebase user, server validation will
           // reject with unauthenticated. In that case, keep UX non-blocking by
           // falling back to local wallet deduction.
-          if (e.code == 'unauthenticated' && _isGuestSessionWithoutFirebaseAuth()) {
+          if (e.code == 'unauthenticated' &&
+              _isGuestSessionWithoutFirebaseAuth()) {
             WasteAppLogger.warning(
               'Server token spend failed for guest session; falling back to local spend.',
               context: {

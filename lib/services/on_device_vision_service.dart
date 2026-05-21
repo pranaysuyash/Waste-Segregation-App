@@ -57,8 +57,8 @@ class OnDeviceVisionService {
       _isInitialized = true;
       WasteAppLogger.info('On-device vision service initialized successfully');
     } catch (e, s) {
-      WasteAppLogger.severe(
-          'Failed to initialize on-device vision service', error: e, stackTrace: s);
+      WasteAppLogger.severe('Failed to initialize on-device vision service',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -110,7 +110,8 @@ class OnDeviceVisionService {
         _modelPath = modelFile.path;
       }
     } catch (e, s) {
-      WasteAppLogger.severe('Failed to load model from assets', error: e, stackTrace: s);
+      WasteAppLogger.severe('Failed to load model from assets',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -174,7 +175,8 @@ class OnDeviceVisionService {
         timestamp: DateTime.now(),
       );
     } catch (e, s) {
-      WasteAppLogger.severe('On-device analysis failed', error: e, stackTrace: s);
+      WasteAppLogger.severe('On-device analysis failed',
+          error: e, stackTrace: s);
       rethrow;
     }
   }
@@ -204,7 +206,8 @@ class OnDeviceVisionService {
         timestamp: DateTime.now(),
       );
     } catch (e, s) {
-      WasteAppLogger.severe('On-device web analysis failed', error: e, stackTrace: s);
+      WasteAppLogger.severe('On-device web analysis failed',
+          error: e, stackTrace: s);
       rethrow;
     }
   }

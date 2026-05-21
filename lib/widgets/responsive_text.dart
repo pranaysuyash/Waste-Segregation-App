@@ -288,4 +288,3 @@ class _ReadMoreTextState extends State<ReadMoreText> {
     );
   }
 }
-

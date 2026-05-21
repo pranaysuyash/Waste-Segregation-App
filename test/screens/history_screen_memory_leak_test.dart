@@ -17,7 +17,8 @@ class MockAnalyticsService extends Mock implements AnalyticsService {
   Future<void> trackScreenView(String screenName,
           {Map<String, dynamic>? parameters}) =>
       super.noSuchMethod(
-        Invocation.method(#trackScreenView, [screenName], {#parameters: parameters}),
+        Invocation.method(
+            #trackScreenView, [screenName], {#parameters: parameters}),
         returnValue: Future<void>.value(),
         returnValueForMissingStub: Future<void>.value(),
       ) as Future<void>;
@@ -71,8 +72,8 @@ void main() {
           });
 
       when(mockStorageService.applyFiltersToClassifications(any, any))
-          .thenAnswer((invocation) =>
-              invocation.positionalArguments.first as List<WasteClassification>);
+          .thenAnswer((invocation) => invocation.positionalArguments.first
+              as List<WasteClassification>);
 
       when(mockStorageService.getClassificationsWithPagination(
         filterOptions: anyNamed('filterOptions'),
@@ -100,7 +101,8 @@ void main() {
           home: MultiProvider(
             providers: [
               Provider<StorageService>.value(value: mockStorageService),
-              Provider<CloudStorageService>.value(value: mockCloudStorageService),
+              Provider<CloudStorageService>.value(
+                  value: mockCloudStorageService),
               ChangeNotifierProvider<AnalyticsService>.value(
                   value: mockAnalyticsService),
             ],
@@ -160,7 +162,8 @@ void main() {
           home: MultiProvider(
             providers: [
               Provider<StorageService>.value(value: mockStorageService),
-              Provider<CloudStorageService>.value(value: mockCloudStorageService),
+              Provider<CloudStorageService>.value(
+                  value: mockCloudStorageService),
               ChangeNotifierProvider<AnalyticsService>.value(
                   value: mockAnalyticsService),
             ],

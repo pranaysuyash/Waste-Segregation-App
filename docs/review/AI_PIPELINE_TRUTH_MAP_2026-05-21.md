@@ -7,7 +7,7 @@
 
 ## 1. Executive Summary
 
-- **Classification now routes through a secure backend proxy in release.** `AiService` checks `kReleaseMode || ProductionSafetyConfig.useBackendAiInRelease || BackendProxyProvider.isEnabled` and routes classification to `classifyImage` through `BackendProxyProvider` when the backend path is enabled. Release is fail-closed to the backend path; debug/profile can opt in via `USE_BACKEND_CLASSIFICATION`.
+- **Classification now routes through a secure backend proxy in release.** `AiService` checks `kReleaseMode || ProductionSafetyConfig.useBackendAiInRelease || BackendProxyProvider.isEnabled` and routes classification to `classifyImage` through `BackendProxyProvider` when the backend path is enabled. Release is fail-closed to the backend path; debug/profile can opt in via `USE_BACKEND_AI_IN_RELEASE`.
 - **Direct OpenAI and Gemini clients still exist.** They are still used in debug/profile unless the backend proxy is enabled, and they remain available as direct provider paths in `EnhancedAiApiService`. That service still does not apply the same production-safety guard as `AiService`.
 - **Disposal instructions remain backend-first.** `generateDisposal` in `functions/src/index.ts` is still the separate backend AI path and continues to be the canonical text-only guidance flow.
 - **On-device inference is still scaffolded, not real.** `OnDeviceVisionService` remains a placeholder and does not run actual TFLite inference.
@@ -74,8 +74,8 @@ sequenceDiagram
 
 | Mode | Classification path | Disposal path | Notes |
 |---|---|---|---|
-| Debug | Direct client allowed by default; backend proxy can be enabled with `USE_BACKEND_CLASSIFICATION=true` | Allowed | Best for local iteration |
-| Profile | Direct client allowed by default; backend proxy can be enabled with `USE_BACKEND_CLASSIFICATION=true` | Allowed | Same as debug for routing |
+| Debug | Direct client allowed by default; backend proxy can be enabled with `USE_BACKEND_AI_IN_RELEASE=true` | Allowed | Best for local iteration |
+| Profile | Direct client allowed by default; backend proxy can be enabled with `USE_BACKEND_AI_IN_RELEASE=true` | Allowed | Same as debug for routing |
 | Release | Backend proxy route is the canonical path | Allowed | Fail-closed to the backend classification path |
 | Release + legacy direct override | Direct client path is still guarded by `ProductionSafetyConfig` and is not the canonical route | Allowed | Keep only for controlled transition cases |
 

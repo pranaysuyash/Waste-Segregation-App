@@ -51,7 +51,8 @@ class _TrackedStorageService {
     return existingFeedback;
   }
 
-  Future<void> saveClassification(WasteClassification c, {bool force = false}) async {
+  Future<void> saveClassification(WasteClassification c,
+      {bool force = false}) async {
     tracker.record('saveClassification');
     if (shouldThrowOnSaveClassification) {
       throw Exception('saveClassification failed');
@@ -76,7 +77,8 @@ class _TrackedGamificationService {
   final _CallTracker tracker = _CallTracker();
   final List<(String action, int? customPoints)> addPointsCalls = [];
 
-  Future<UserPoints> addPoints(String action, {String? category, int? customPoints}) async {
+  Future<UserPoints> addPoints(String action,
+      {String? category, int? customPoints}) async {
     tracker.record('addPoints');
     addPointsCalls.add((action, customPoints));
     return const UserPoints(total: 105, weeklyTotal: 10);
@@ -99,7 +101,8 @@ class _TrackedCloudStorageService {
     return feedbackExistsInCloud;
   }
 
-  Future<void> saveClassificationFeedbackToCloud(ClassificationFeedback f) async {
+  Future<void> saveClassificationFeedbackToCloud(
+      ClassificationFeedback f) async {
     tracker.record('saveClassificationFeedbackToCloud');
     if (shouldThrowOnSave) {
       throw Exception('cloud save failed');
@@ -220,7 +223,8 @@ void main() {
         userSuggestedCategory: 'Wet Waste',
       );
       expect(feedback.id, equals('feedback_user-1_cls-1'));
-      expect(feedback.id, equals(ClassificationFeedback.dedupKey('user-1', 'cls-1')));
+      expect(feedback.id,
+          equals(ClassificationFeedback.dedupKey('user-1', 'cls-1')));
     });
   });
 
@@ -238,7 +242,9 @@ void main() {
       expect(result.wasDuplicate, isFalse);
     });
 
-    test('duplicate submission: pointsAwarded is 0, nominalPoints carries value', () {
+    test(
+        'duplicate submission: pointsAwarded is 0, nominalPoints carries value',
+        () {
       const result = FeedbackResult(
         saved: true,
         pointsAwarded: 0,
@@ -263,7 +269,8 @@ void main() {
       expect(result.nominalPoints, equals(10));
     });
 
-    test('local dedup result differs from cloud dedup result in cloudSynced', () {
+    test('local dedup result differs from cloud dedup result in cloudSynced',
+        () {
       const localDup = FeedbackResult(
         saved: true,
         pointsAwarded: 0,
@@ -289,7 +296,8 @@ void main() {
     });
 
     test('correction_provided is 10 points', () {
-      expect(GamificationService.pointValues['correction_provided'], equals(10));
+      expect(
+          GamificationService.pointValues['correction_provided'], equals(10));
     });
 
     test('pointValues map is not empty and contains canonical actions', () {
@@ -299,12 +307,16 @@ void main() {
       expect(GamificationService.pointValues, contains('correction_provided'));
     });
 
-    test('no duplicate ad-hoc customPoints path for feedback/correction in pointValues', () {
+    test(
+        'no duplicate ad-hoc customPoints path for feedback/correction in pointValues',
+        () {
       // The canonical map is the single source of truth.
       // No other key should map to 5 or 10 for feedback/correction.
       final values = GamificationService.pointValues;
-      final fivePointKeys = values.entries.where((e) => e.value == 5).map((e) => e.key).toList();
-      final tenPointKeys = values.entries.where((e) => e.value == 10).map((e) => e.key).toList();
+      final fivePointKeys =
+          values.entries.where((e) => e.value == 5).map((e) => e.key).toList();
+      final tenPointKeys =
+          values.entries.where((e) => e.value == 10).map((e) => e.key).toList();
 
       // feedback_provided should be the canonical 5-point action
       expect(fivePointKeys, contains('feedback_provided'));
@@ -341,7 +353,8 @@ void main() {
       //
       // Simulate the dedup check:
       final userId = storage.currentUserProfile!.id;
-      final dedupKey = ClassificationFeedback.dedupKey(userId, classification.id);
+      final dedupKey =
+          ClassificationFeedback.dedupKey(userId, classification.id);
 
       // Step 1: Local dedup check
       final existing = storage.existingFeedback;
@@ -372,7 +385,8 @@ void main() {
 
       expect(storage.tracker.count('saveClassification'), equals(1));
       expect(storage.tracker.count('saveClassificationFeedback'), equals(1));
-      expect(cloud.tracker.count('saveClassificationFeedbackToCloud'), equals(1));
+      expect(
+          cloud.tracker.count('saveClassificationFeedbackToCloud'), equals(1));
       expect(gamification.tracker.count('addPoints'), equals(1));
       expect(analytics.tracker.count('trackEvent'), equals(1));
       expect(gamification.addPointsCalls.length, equals(1));
@@ -406,7 +420,8 @@ void main() {
       // (We don't call them, and we verify they were not called.)
       expect(storage.tracker.count('saveClassification'), equals(0));
       expect(storage.tracker.count('saveClassificationFeedback'), equals(0));
-      expect(cloud.tracker.count('saveClassificationFeedbackToCloud'), equals(0));
+      expect(
+          cloud.tracker.count('saveClassificationFeedbackToCloud'), equals(0));
       expect(gamification.tracker.count('addPoints'), equals(0));
       expect(analytics.tracker.count('trackEvent'), equals(0));
 
@@ -422,7 +437,8 @@ void main() {
       expect(duplicateResult.wasDuplicate, isTrue);
     });
 
-    test('cloud dedup triggers when local is cleared but cloud doc exists', () async {
+    test('cloud dedup triggers when local is cleared but cloud doc exists',
+        () async {
       storage.currentUserProfile = _testUserProfile();
       storage.existingFeedback = null; // Local was cleared
       storage.settings = {'isGoogleSyncEnabled': true};
@@ -432,12 +448,14 @@ void main() {
 
       // Simulate: local dedup misses (null), cloud dedup hits (true)
       final localCheck = await storage.getClassificationFeedback(
-        ClassificationFeedback.dedupKey(storage.currentUserProfile!.id, classification.id),
+        ClassificationFeedback.dedupKey(
+            storage.currentUserProfile!.id, classification.id),
       );
       expect(localCheck, isNull); // Local clear
 
       final cloudCheck = await cloud.checkClassificationFeedbackExists(
-        ClassificationFeedback.dedupKey(storage.currentUserProfile!.id, classification.id),
+        ClassificationFeedback.dedupKey(
+            storage.currentUserProfile!.id, classification.id),
       );
       expect(cloudCheck, isTrue); // Cloud has it
 
@@ -459,7 +477,9 @@ void main() {
       expect(analytics.tracker.count('trackEvent'), equals(0));
     });
 
-    test('correction awards correction_provided (10 points) not feedback_provided', () async {
+    test(
+        'correction awards correction_provided (10 points) not feedback_provided',
+        () async {
       final action = 'correction_provided';
       final points = GamificationService.pointValues[action] ?? 0;
       expect(action, equals('correction_provided'));
@@ -468,7 +488,8 @@ void main() {
       // Verify the point value mapping
       await gamification.addPoints(action, customPoints: points);
       expect(gamification.addPointsCalls.length, equals(1));
-      expect(gamification.addPointsCalls.first.$1, equals('correction_provided'));
+      expect(
+          gamification.addPointsCalls.first.$1, equals('correction_provided'));
       expect(gamification.addPointsCalls.first.$2, equals(10));
     });
 
@@ -562,22 +583,30 @@ void main() {
       expect(syncEnabled, isFalse);
     });
 
-    test('feedback_provided and correction_provided use canonical point map values', () async {
-      final feedbackPoints = GamificationService.pointValues['feedback_provided'];
-      final correctionPoints = GamificationService.pointValues['correction_provided'];
+    test(
+        'feedback_provided and correction_provided use canonical point map values',
+        () async {
+      final feedbackPoints =
+          GamificationService.pointValues['feedback_provided'];
+      final correctionPoints =
+          GamificationService.pointValues['correction_provided'];
 
       // Confirm action
-      await gamification.addPoints('feedback_provided', customPoints: feedbackPoints!);
+      await gamification.addPoints('feedback_provided',
+          customPoints: feedbackPoints!);
       expect(gamification.addPointsCalls.last.$1, equals('feedback_provided'));
       expect(gamification.addPointsCalls.last.$2, equals(5));
 
       // Correction
-      await gamification.addPoints('correction_provided', customPoints: correctionPoints!);
-      expect(gamification.addPointsCalls.last.$1, equals('correction_provided'));
+      await gamification.addPoints('correction_provided',
+          customPoints: correctionPoints!);
+      expect(
+          gamification.addPointsCalls.last.$1, equals('correction_provided'));
       expect(gamification.addPointsCalls.last.$2, equals(10));
     });
 
-    test('analytics event has correct name and structure for feedback', () async {
+    test('analytics event has correct name and structure for feedback',
+        () async {
       await analytics.trackEvent(
         eventType: 'userAction',
         eventName: 'classification.feedback',
@@ -590,9 +619,11 @@ void main() {
       );
 
       expect(analytics.trackedEvents.length, equals(1));
-      expect(analytics.trackedEvents.first['eventName'], equals('classification.feedback'));
+      expect(analytics.trackedEvents.first['eventName'],
+          equals('classification.feedback'));
       expect(analytics.trackedEvents.first['eventType'], equals('userAction'));
-      expect(analytics.trackedEvents.first['parameters']['is_correct'], equals('true'));
+      expect(analytics.trackedEvents.first['parameters']['is_correct'],
+          equals('true'));
     });
   });
 }

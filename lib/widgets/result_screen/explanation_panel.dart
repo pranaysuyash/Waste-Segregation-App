@@ -57,7 +57,8 @@ class _ExplanationPanelState extends State<ExplanationPanel>
   bool get _shouldExpandByDefault {
     final c = widget.classification;
     final confidence = c.confidence ?? 1.0;
-    return confidence < _lowConfidenceThreshold || (c.clarificationNeeded == true);
+    return confidence < _lowConfidenceThreshold ||
+        (c.clarificationNeeded == true);
   }
 
   bool get _isLowConfidence {
@@ -192,7 +193,8 @@ class _ExplanationPanelState extends State<ExplanationPanel>
     return c.visualFeatures.isNotEmpty ||
         c.explanation.isNotEmpty ||
         c.alternatives.isNotEmpty ||
-        c.localGuidelinesReference != null && c.localGuidelinesReference!.isNotEmpty;
+        c.localGuidelinesReference != null &&
+            c.localGuidelinesReference!.isNotEmpty;
   }
 
   Widget _buildCompactSubtitle(ThemeData theme, ColorScheme cs) {
@@ -204,7 +206,8 @@ class _ExplanationPanelState extends State<ExplanationPanel>
     if (_isLowConfidence) {
       text = 'Low confidence ($pct%) — tap to see why';
     } else if (c.alternatives.isNotEmpty) {
-      text = '${c.alternatives.length} alternative suggestion${c.alternatives.length == 1 ? '' : 's'} · $pct% confident';
+      text =
+          '${c.alternatives.length} alternative suggestion${c.alternatives.length == 1 ? '' : 's'} · $pct% confident';
     } else {
       text = '$pct% confident · tap for details';
     }
@@ -324,7 +327,8 @@ class _ExplanationPanelState extends State<ExplanationPanel>
                       Expanded(
                         child: Text(
                           alt.category +
-                              (alt.subcategory != null && alt.subcategory!.isNotEmpty
+                              (alt.subcategory != null &&
+                                      alt.subcategory!.isNotEmpty
                                   ? ' — ${alt.subcategory}'
                                   : ''),
                           style: theme.textTheme.bodyMedium?.copyWith(

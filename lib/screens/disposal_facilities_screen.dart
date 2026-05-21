@@ -234,8 +234,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
       );
     }
     return StreamBuilder<QuerySnapshot>(
-      stream:
-          _facilitiesStream ?? _buildQuery().snapshots(),
+      stream: _facilitiesStream ?? _buildQuery().snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -246,8 +245,8 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
           final errorMessage = snapshot.error.toString();
           final isIndexingError =
               errorMessage.contains('failed-precondition') ||
-              errorMessage.contains('index') ||
-              errorMessage.contains('composite');
+                  errorMessage.contains('index') ||
+                  errorMessage.contains('composite');
 
           return Center(
             child: Column(
@@ -392,8 +391,8 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
       if (_selectedMaterialFilter != 'All') {
         final materialFound = acceptedMaterials.any(
           (material) => material.toLowerCase().contains(
-            _selectedMaterialFilter.toLowerCase(),
-          ),
+                _selectedMaterialFilter.toLowerCase(),
+              ),
         );
         if (!materialFound) {
           return false;

@@ -22,7 +22,8 @@ class _ThrowingBatchingService extends BatchingService {
 
 void main() {
   group('ModelSelectionService batch strategy', () {
-    test('batchMode does not route sync analyzeImage into BatchingService', () async {
+    test('batchMode does not route sync analyzeImage into BatchingService',
+        () async {
       final aiService = MockAiService();
       final service = ModelSelectionService(
         aiService: aiService,
@@ -31,9 +32,8 @@ void main() {
       );
 
       final file = File(
-            '${Directory.systemTemp.path}/model_selection_service_batch_test.jpg',
-          )
-          ..writeAsBytesSync(<int>[0, 1, 2, 3, 4], flush: true);
+        '${Directory.systemTemp.path}/model_selection_service_batch_test.jpg',
+      )..writeAsBytesSync(<int>[0, 1, 2, 3, 4], flush: true);
 
       try {
         final result = await service.analyzeImage(file);

@@ -97,7 +97,8 @@ class ConsentDialogScreen extends StatelessWidget {
                                     builder: (context) =>
                                         const LegalDocumentScreen(
                                       title: 'Privacy Policy',
-                                      assetPath: 'assets/docs/privacy_policy.md',
+                                      assetPath:
+                                          'assets/docs/privacy_policy.md',
                                     ),
                                   ),
                                 );
@@ -113,7 +114,8 @@ class ConsentDialogScreen extends StatelessWidget {
                                     builder: (context) =>
                                         const LegalDocumentScreen(
                                       title: 'Terms of Service',
-                                      assetPath: 'assets/docs/terms_of_service.md',
+                                      assetPath:
+                                          'assets/docs/terms_of_service.md',
                                     ),
                                   ),
                                 );

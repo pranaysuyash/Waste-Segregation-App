@@ -167,8 +167,7 @@ void main() {
         expect(
           withPreference.category.toLowerCase().contains('dry waste'),
           isTrue,
-          reason:
-              'Preferred Dry Waste but got ${withPreference.category}',
+          reason: 'Preferred Dry Waste but got ${withPreference.category}',
         );
       });
 

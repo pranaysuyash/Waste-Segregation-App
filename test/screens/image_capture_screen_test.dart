@@ -67,8 +67,7 @@ void main() {
       expect(find.text('Waiting for camera...'), findsOneWidget);
     });
 
-    testWidgets(
-        'tapping "Select multiple items" enters region selection mode',
+    testWidgets('tapping "Select multiple items" enters region selection mode',
         (tester) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -162,6 +161,7 @@ void main() {
       void thrower() {
         throw const AuthException('test');
       }
+
       expect(thrower, throwsA(isA<AuthException>()));
       expect(thrower, throwsA(isA<Exception>()));
     });
@@ -178,6 +178,7 @@ void main() {
       void thrower() {
         throw const OfflineException('test');
       }
+
       expect(thrower, throwsA(isA<OfflineException>()));
       expect(thrower, throwsA(isA<Exception>()));
     });
@@ -240,8 +241,7 @@ void main() {
       expect(find.text('Wet Waste'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('renders single classification without errors',
-        (tester) async {
+    testWidgets('renders single classification without errors', (tester) async {
       final classification = WasteClassification(
         id: 'c1',
         itemName: 'Paper Bag',

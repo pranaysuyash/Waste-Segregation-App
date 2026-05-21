@@ -397,17 +397,17 @@ class AppStrings {
   static const String openGallery = 'Gallery';
   static const String instantMode = 'Instant Mode';
   static const String scanNow = 'Scan Now';
-  
+
   // Daily progress
   static const String dailyProgress = 'Daily Progress';
   static const String scansToday = 'Scans Today';
   static const String dailyGoal = 'Daily Goal';
   static const String totalPoints = 'Total Points';
-  
+
   // Continue section
   static const String continueWhereYouLeftOff = 'Continue Where You Left Off';
   static const String viewHistory = 'View History';
-  
+
   // Loading and error states
   static const String loadingYourData = 'Loading your data...';
   static const String errorLoadingData = 'Error loading data';

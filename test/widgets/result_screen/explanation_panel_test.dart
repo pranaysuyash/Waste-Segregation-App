@@ -68,7 +68,8 @@ void main() {
       expect(find.textContaining('92% confident'), findsOneWidget);
 
       // Expand
-      await tester.tap(find.text('Why this classification?'), warnIfMissed: false);
+      await tester.tap(find.text('Why this classification?'),
+          warnIfMissed: false);
       await tester.pumpAndSettle();
 
       // Sections visible after expand
@@ -78,7 +79,8 @@ void main() {
       expect(find.text('Reasoning'), findsOneWidget);
       expect(find.text('Could also be…'), findsOneWidget);
       expect(find.text('Wet Waste — Food Soiled'), findsOneWidget);
-      expect(find.text('If heavily food-soiled, compost instead'), findsOneWidget);
+      expect(
+          find.text('If heavily food-soiled, compost instead'), findsOneWidget);
       expect(find.text('25%'), findsOneWidget);
       expect(find.text('Confidence'), findsOneWidget);
       expect(find.text('92%'), findsOneWidget);
@@ -89,7 +91,9 @@ void main() {
       );
     });
 
-    testWidgets('shows uncertainty copy for low confidence and is expanded by default', (
+    testWidgets(
+        'shows uncertainty copy for low confidence and is expanded by default',
+        (
       tester,
     ) async {
       final c = WasteClassification(
@@ -150,7 +154,8 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Why this classification?'), warnIfMissed: false);
+      await tester.tap(find.text('Why this classification?'),
+          warnIfMissed: false);
       await tester.pumpAndSettle();
 
       expect(find.text('Local guideline'), findsOneWidget);

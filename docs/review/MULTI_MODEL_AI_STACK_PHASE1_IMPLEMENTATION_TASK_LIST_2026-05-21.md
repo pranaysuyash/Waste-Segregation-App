@@ -25,6 +25,7 @@ This list is ordered so each step reduces risk for the next one.
 - [docs/exploration/MULTI_MODEL_AI_STACK_PHASE1_EXECUTION.md](/Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app/docs/exploration/MULTI_MODEL_AI_STACK_PHASE1_EXECUTION.md)
 - [docs/exploration/MULTI_MODEL_AI_STACK_DATA_AND_CONSENT_READINESS.md](/Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app/docs/exploration/MULTI_MODEL_AI_STACK_DATA_AND_CONSENT_READINESS.md)
 - [docs/review/AI_EVAL_HARNESS_IMPLEMENTATION_PACKET_2026-05-21.md](/Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app/docs/review/AI_EVAL_HARNESS_IMPLEMENTATION_PACKET_2026-05-21.md)
+- [docs/review/MULTI_MODEL_AI_STACK_PHASE1_PATCH_PLAN_2026-05-21.md](/Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app/docs/review/MULTI_MODEL_AI_STACK_PHASE1_PATCH_PLAN_2026-05-21.md)
 
 ## 3) Ordered implementation steps
 

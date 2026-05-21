@@ -15,7 +15,6 @@ void main() {
 
       expect(find.text('healthy'), findsOneWidget);
     });
-
   });
 
   group('AsyncErrorBoundary', () {
@@ -35,7 +34,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('data:ok'), findsOneWidget);
     });
-
   });
 
   group('NetworkErrorBoundary', () {

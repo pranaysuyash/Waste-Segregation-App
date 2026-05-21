@@ -231,10 +231,10 @@ void main() {
       });
     });
 
-      group('Accessibility', () {
-        testWidgets('should have proper tooltip for accessibility',
-            (tester) async {
-          await tester.pumpWidget(createTestWidget(tooltip: 'Share'));
+    group('Accessibility', () {
+      testWidgets('should have proper tooltip for accessibility',
+          (tester) async {
+        await tester.pumpWidget(createTestWidget(tooltip: 'Share'));
 
         expect(find.byTooltip('Share'), findsOneWidget);
       });

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
-import 'package:waste_segregation_app/models/enhanced_family.dart' as family_models;
-import 'package:waste_segregation_app/models/family_invitation.dart' as invitation_models;
+import 'package:waste_segregation_app/models/enhanced_family.dart'
+    as family_models;
+import 'package:waste_segregation_app/models/family_invitation.dart'
+    as invitation_models;
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/screens/family_management_screen.dart';
 import 'package:waste_segregation_app/services/firebase_family_service.dart';

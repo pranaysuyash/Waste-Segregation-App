@@ -21,8 +21,7 @@ class PerItemResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final catColor = _categoryColor(
-        classification?.category ?? 'pending');
+    final catColor = _categoryColor(classification?.category ?? 'pending');
 
     return Card(
       elevation: 2,
@@ -166,8 +165,7 @@ class PerItemResultCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: confidence,
-            backgroundColor:
-                theme.colorScheme.surfaceContainerHighest,
+            backgroundColor: theme.colorScheme.surfaceContainerHighest,
             valueColor: AlwaysStoppedAnimation(
               confidence > 0.7
                   ? Colors.green

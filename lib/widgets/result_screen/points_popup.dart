@@ -286,7 +286,8 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
                   children: [
                     Icon(Icons.eco, size: 12, color: cs.secondary),
                     const SizedBox(width: 4),
-                    Icon(Icons.water_drop_outlined, size: 12, color: cs.primary),
+                    Icon(Icons.water_drop_outlined,
+                        size: 12, color: cs.primary),
                     const SizedBox(width: 4),
                     Icon(Icons.bolt, size: 12, color: cs.tertiary),
                   ],
@@ -304,11 +305,12 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
       return AnimatedBuilder(
         animation: _coinController,
         builder: (context, _) {
-          final progress = ((_coinController.value - coin.delay) /
-                  (1 - coin.delay))
-              .clamp(0.0, 1.0);
+          final progress =
+              ((_coinController.value - coin.delay) / (1 - coin.delay))
+                  .clamp(0.0, 1.0);
           final curved = Curves.easeOutCubic.transform(progress);
-          final retreat = _isCollected ? Curves.easeInBack.transform(progress) : 0.0;
+          final retreat =
+              _isCollected ? Curves.easeInBack.transform(progress) : 0.0;
           final x = coin.dx * (1 - curved) + (coin.dx * 0.12 * retreat);
           final y = coin.dy * curved + (86 * retreat);
           final opacity = (1 - progress).clamp(0.0, 1.0);
@@ -321,7 +323,8 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
               opacity: opacity,
               child: Transform.scale(
                 scale: scale.clamp(0.2, 1.0),
-                child: _CoinPill(points: (widget.points / _coins.length).ceil()),
+                child:
+                    _CoinPill(points: (widget.points / _coins.length).ceil()),
               ),
             ),
           );

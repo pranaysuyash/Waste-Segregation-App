@@ -18,9 +18,9 @@ class PurchaseService extends ChangeNotifier {
     this.productId = _defaultProductId,
   }) : _gateway = gateway ?? InAppPurchaseGateway();
 
-  static const String _defaultProductId =
-      String.fromEnvironment('PREMIUM_SUBSCRIPTION_PRODUCT_ID',
-          defaultValue: 'waste_premium_monthly');
+  static const String _defaultProductId = String.fromEnvironment(
+      'PREMIUM_SUBSCRIPTION_PRODUCT_ID',
+      defaultValue: 'waste_premium_monthly');
 
   final PremiumService _premiumService;
   final StoreBillingGateway _gateway;
@@ -79,9 +79,7 @@ class PurchaseService extends ChangeNotifier {
       _initialized = true;
     } catch (e, s) {
       WasteAppLogger.severe('Purchase service initialization failed',
-          error: e,
-          stackTrace: s,
-          context: {'service': 'purchase_service'});
+          error: e, stackTrace: s, context: {'service': 'purchase_service'});
       _errorMessage = 'Failed to initialize purchases.';
     } finally {
       _isLoading = false;
@@ -108,9 +106,7 @@ class PurchaseService extends ChangeNotifier {
       await _gateway.buyNonConsumable(_premiumProduct!.id);
     } catch (e, s) {
       WasteAppLogger.severe('Failed to start premium purchase',
-          error: e,
-          stackTrace: s,
-          context: {'service': 'purchase_service'});
+          error: e, stackTrace: s, context: {'service': 'purchase_service'});
       _errorMessage = 'Could not start purchase flow.';
       _isProcessingPurchase = false;
       notifyListeners();
@@ -137,9 +133,7 @@ class PurchaseService extends ChangeNotifier {
       await _gateway.restorePurchases();
     } catch (e, s) {
       WasteAppLogger.severe('Failed to restore purchases',
-          error: e,
-          stackTrace: s,
-          context: {'service': 'purchase_service'});
+          error: e, stackTrace: s, context: {'service': 'purchase_service'});
       _errorMessage = 'Could not restore purchases.';
       _isProcessingPurchase = false;
       notifyListeners();
@@ -189,8 +183,8 @@ class PurchaseService extends ChangeNotifier {
   }
 
   Future<void> _grantPremiumEntitlements() async {
-    await _premiumService
-        .setPremiumFeature(PremiumService.proSubscriptionEntitlement, true);
+    await _premiumService.setPremiumFeature(
+        PremiumService.proSubscriptionEntitlement, true);
     for (final feature in PremiumFeature.features) {
       await _premiumService.setPremiumFeature(feature.id, true);
     }
@@ -247,7 +241,8 @@ abstract class StoreBillingGateway {
 }
 
 class InAppPurchaseGateway implements StoreBillingGateway {
-  InAppPurchaseGateway({InAppPurchase? iap}) : _iap = iap ?? InAppPurchase.instance;
+  InAppPurchaseGateway({InAppPurchase? iap})
+      : _iap = iap ?? InAppPurchase.instance;
 
   final InAppPurchase _iap;
 

@@ -363,8 +363,7 @@ void main() {
         final stats = interceptor.getCostStatistics();
         expect(stats['summary']['total_requests'], 2);
         expect(stats['summary']['average_cost_per_request'], greaterThan(0));
-        expect(
-            (stats['summary']['tracked_services'] as List).length, 2);
+        expect((stats['summary']['tracked_services'] as List).length, 2);
       });
 
       test('redacts sensitive header value sizes in request size tracking', () {
@@ -382,12 +381,10 @@ void main() {
         interceptor.onRequest(opts1, _NoOpRequestInterceptorHandler());
         interceptor.onRequest(opts2, _NoOpRequestInterceptorHandler());
 
-        final size1 =
-            (opts1.extra['cost_tracking'] as Map<String, dynamic>)['request_size']
-                as int;
-        final size2 =
-            (opts2.extra['cost_tracking'] as Map<String, dynamic>)['request_size']
-                as int;
+        final size1 = (opts1.extra['cost_tracking']
+            as Map<String, dynamic>)['request_size'] as int;
+        final size2 = (opts2.extra['cost_tracking']
+            as Map<String, dynamic>)['request_size'] as int;
         expect(size1, equals(size2));
       });
     });

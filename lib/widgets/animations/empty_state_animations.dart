@@ -218,7 +218,6 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
           _buildAnimatedIcon(),
           const SizedBox(height: AppTheme.paddingLarge),
         ],
-
         Text(
           widget.title,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -227,9 +226,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
               ),
           textAlign: TextAlign.center,
         ),
-
         const SizedBox(height: AppTheme.paddingSmall),
-
         Text(
           widget.message,
           textAlign: TextAlign.center,
@@ -239,17 +236,14 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
             height: 1.4,
           ),
         ),
-
         if (widget.educationalTip != null) ...[
           const SizedBox(height: AppTheme.paddingRegular),
           _buildEducationalTip(),
         ],
-
         if (widget.actionButton != null || widget.actionText != null) ...[
           const SizedBox(height: AppTheme.paddingLarge),
           _buildActionButton(),
         ],
-
         if (widget.customAnimation != null) ...[
           const SizedBox(height: AppTheme.paddingSmall),
           widget.customAnimation!,
@@ -693,9 +687,7 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
                 );
               },
             ),
-
             const SizedBox(height: AppTheme.paddingLarge),
-
             Text(
               widget.message,
               style: const TextStyle(
@@ -704,7 +696,6 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
                 color: AppTheme.textPrimaryColor,
               ),
             ),
-
             if (widget.showSteps) ...[
               const SizedBox(height: AppTheme.paddingRegular),
               AnimatedBuilder(
@@ -723,7 +714,6 @@ class _RefreshLoadingWidgetState extends State<RefreshLoadingWidget>
                 },
               ),
             ],
-
             if (widget.showEducationalTips) ...[
               const SizedBox(height: AppTheme.paddingLarge),
               AnimatedBuilder(

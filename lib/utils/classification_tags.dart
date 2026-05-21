@@ -70,12 +70,15 @@ void _addEnvironmentalImpactTags(WasteClassification c, List<TagData> tags) {
   final co2 = _co2Savings(c);
   final water = _waterSavings(c);
   if (co2 > 0) {
-    tags.add(TagFactory.environmentalImpact('${co2}kg CO₂ saved', Colors.green));
+    tags.add(
+        TagFactory.environmentalImpact('${co2}kg CO₂ saved', Colors.green));
   }
   if (water > 0) {
-    tags.add(TagFactory.environmentalImpact('${water}L water saved', Colors.blue));
+    tags.add(
+        TagFactory.environmentalImpact('${water}L water saved', Colors.blue));
   }
-  tags.add(TagFactory.recyclingDifficulty(_recyclingDifficulty(c).label, _recyclingDifficulty(c)));
+  tags.add(TagFactory.recyclingDifficulty(
+      _recyclingDifficulty(c).label, _recyclingDifficulty(c)));
 }
 
 // ---------------------------------------------------------------------------
@@ -87,12 +90,15 @@ void _addLocalInformationTags(WasteClassification c, List<TagData> tags) {
   // Future: make this pluggable via LocalGuidelinesPlugin.
   switch (c.category.toLowerCase()) {
     case 'wet waste':
-      tags.add(TagFactory.localInfo('BBMP collects daily 6-10 AM', Icons.schedule));
+      tags.add(
+          TagFactory.localInfo('BBMP collects daily 6-10 AM', Icons.schedule));
     case 'dry waste':
-      tags.add(TagFactory.localInfo('BBMP dry waste: Mon, Wed, Fri', Icons.schedule));
+      tags.add(TagFactory.localInfo(
+          'BBMP dry waste: Mon, Wed, Fri', Icons.schedule));
       tags.add(TagFactory.nearbyFacility('Kabadiwala available', Icons.store));
     case 'hazardous waste':
-      tags.add(TagFactory.nearbyFacility('KSPCB facility - Bidadi', Icons.location_on));
+      tags.add(TagFactory.nearbyFacility(
+          'KSPCB facility - Bidadi', Icons.location_on));
   }
 }
 
@@ -119,14 +125,20 @@ void _addEducationalTips(WasteClassification c, List<TagData> tags) {
   final sub = c.subcategory?.toLowerCase();
   final cat = c.category.toLowerCase();
   if (sub == 'plastic') {
-    tags.add(TagFactory.didYouKnow('Remove caps before recycling', Colors.blue));
-    tags.add(TagFactory.commonMistake('Leaving food residue on containers', Colors.amber));
+    tags.add(
+        TagFactory.didYouKnow('Remove caps before recycling', Colors.blue));
+    tags.add(TagFactory.commonMistake(
+        'Leaving food residue on containers', Colors.amber));
   } else if (sub == 'paper') {
-    tags.add(TagFactory.didYouKnow('Paper can be recycled 5-7 times', Colors.blue));
-    tags.add(TagFactory.commonMistake('Mixing wet and dry paper', Colors.amber));
+    tags.add(
+        TagFactory.didYouKnow('Paper can be recycled 5-7 times', Colors.blue));
+    tags.add(
+        TagFactory.commonMistake('Mixing wet and dry paper', Colors.amber));
   } else if (cat == 'wet waste') {
-    tags.add(TagFactory.didYouKnow('Composting creates nutrient-rich soil', Colors.green));
-    tags.add(TagFactory.commonMistake('Adding meat or oil to compost', Colors.amber));
+    tags.add(TagFactory.didYouKnow(
+        'Composting creates nutrient-rich soil', Colors.green));
+    tags.add(TagFactory.commonMistake(
+        'Adding meat or oil to compost', Colors.amber));
   }
 }
 

@@ -30,7 +30,7 @@ class ProductionSafetyConfig {
   ///
   /// This is the CANONICAL backend-routing flag. [BackendProxyProvider.isEnabled]
   /// reads the same dart-define so there is exactly one flag to pass at build
-  /// time. Do not add a separate `USE_BACKEND_CLASSIFICATION` flag.
+  /// time. Do not add a separate backend-routing flag.
   ///
   /// `AiService` now treats backend routing as a release-time invariant:
   /// - release builds fail closed to backend classification path,

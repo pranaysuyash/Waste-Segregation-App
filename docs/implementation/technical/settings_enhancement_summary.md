@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the comprehensive enhancements made to the settings screen refactoring based on detailed feedback. The improvements transform the basic modular structure into a production-ready, accessible, and internationalized solution.
+This document summarizes the enhancements applied to the modular settings slice. The app now routes `Routes.settings` to `EnhancedSettingsScreen`, but the i18n story is still partial and should not be treated as finished.
 
 ## ✅ Completed Enhancements
 
@@ -13,21 +13,22 @@ This document summarizes the comprehensive enhancements made to the settings scr
 - **TODO Markers**: All hardcoded strings marked with `TODO(i18n)` comments
 - **Parameterized Strings**: Support for dynamic values like `{feature}`, `{status}`
 
-**Status**: Foundation complete, pending gen_l10n integration
+**Status**: Scaffolding exists, but full integration and string migration remain incomplete
 
 ### 2. Named Routes System
 - **Routes Class**: Centralized route constants in `lib/utils/routes.dart`
 - **Route Validation**: Helper method to check valid routes
 - **Organized Structure**: Grouped by feature area (settings, legal, classification)
 - **Migration**: Updated AppSettingsSection, FeaturesSection, NavigationSection,
-  SettingsScreen, and TrainingReviewQueue navigation to use named routes
+  the canonical settings route, and TrainingReviewQueue navigation to use named routes
 
 **Files Updated**:
 - `lib/utils/routes.dart` - New centralized routes
 - `lib/widgets/settings/app_settings_section.dart` - Uses named routes for settings subpages
 - `lib/widgets/settings/features_section.dart` - Uses named routes for navigation
 - `lib/widgets/settings/navigation_section.dart` - Uses named routes for navigation demo
-- `lib/screens/settings_screen.dart` - Uses named routes for settings and legal flows
+- `lib/screens/settings_screen.dart` - Legacy screen still uses named routes for some flows
+- `lib/screens/enhanced_settings_screen.dart` - Canonical settings route target
 - `lib/screens/training_review_queue_screen.dart` - Registered named route target
 
 ### 3. DialogHelper System
@@ -60,7 +61,7 @@ DialogHelper.showPremiumPrompt() // Premium feature prompts
 - Proper semantic labels for all interactive elements
 
 ### 5. Performance Optimizations
-- **Side Effects Management**: Moved service calls from `build()` to `initState()`
+- **Side Effects Management**: Moved the settings-side ad-state calls from `build()` to `initState()`
 - **Efficient Scrolling**: Used `CustomScrollView` with `SliverList`
 - **Context Selection**: Prepared for targeted rebuilds with `context.select()`
 - **Lifecycle Management**: Proper `mounted` checks and cleanup
@@ -68,7 +69,7 @@ DialogHelper.showPremiumPrompt() // Premium feature prompts
 ### 6. Enhanced Settings Components
 - **SettingTile**: Added hover states, accessibility, and focus management
 - **DialogHelper Integration**: Replaced manual dialogs with helper methods
-- **Route Integration**: Updated navigation to use named routes
+- **Route Integration**: Updated navigation to use named routes, including the canonical settings route
 - **Semantic Enhancement**: Added proper labels and hints
 
 ## 📋 Implementation Details
@@ -83,7 +84,7 @@ lib/
 │   ├── routes.dart                  # Named route constants
 │   └── dialog_helper.dart           # Unified dialog system
 ├── screens/
-│   └── enhanced_settings_screen.dart # Demo implementation
+│   └── enhanced_settings_screen.dart # Canonical modular settings screen
 └── widgets/settings/
     ├── setting_tile.dart            # Enhanced with accessibility
     ├── account_section.dart         # Uses DialogHelper & named routes
@@ -161,13 +162,14 @@ MouseRegion(
 - [ ] Complete gen_l10n setup and integration
 - [ ] Add keyboard navigation tests
 
-### Phase 3: Polish ✅ Complete
+### Phase 3: Polish
 - [x] Golden tests for visual regression
 - [x] Responsive design for tablets and desktop
 - [x] Animation polish and micro-interactions
 - [x] Performance monitoring and profiling system
 - [x] Staggered animations and smooth transitions
 - [x] Advanced accessibility improvements
+- [ ] Treat the completion claim as verification-needed until the full suite is clean
 
 ### Phase 4: Future Enhancements
 - [ ] Complete i18n with multiple languages
@@ -274,7 +276,10 @@ final confirmed = await DialogHelper.confirm(
 
 ## 🎉 Conclusion
 
-The settings screen enhancement successfully transforms a monolithic, hard-to-maintain component into a modern, accessible, and internationalization-ready solution. The improvements establish patterns and practices that can be applied throughout the application, creating a foundation for scalable, maintainable Flutter development.
+The settings enhancements establish a modern modular surface and a canonical
+route target, but they are not finished enough to claim full i18n completion or
+the removal of the legacy screen. The verified value is route consistency,
+usable component extraction, and a clearer path for the remaining cleanup.
 
 ### Key Achievements
 1. **Production-Ready**: Accessibility, performance, and UX improvements
