@@ -1,5 +1,7 @@
 # Analytics Dashboard Display Bug Fixes
 
+> Historical archive note: this document captures the older WebView/Chart.js dashboard fix path. The live dashboard now uses the fl_chart-based implementation in `lib/screens/waste_dashboard_screen.dart`, so treat this as history rather than current canonical behavior.
+
 ## Issues Resolved ✅
 
 ### 1. **Chart Not Displayed in Full**

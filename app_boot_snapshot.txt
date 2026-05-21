@@ -1,0 +1,10 @@
+uid=1_0 RootWebArea "Waste Segregation" url="http://127.0.0.1:3002/"
+  uid=1_1 ignored
+    uid=1_2 generic
+      uid=1_3 button "Enable accessibility" live="polite" relevant="additions text"
+      uid=1_4 generic live="polite" relevant="additions text"
+      uid=1_5 generic live="assertive" relevant="additions text"
+      uid=1_6 generic
+      uid=1_7 generic focusable focused
+        uid=1_8 ignored
+        uid=1_9 generic

@@ -99,9 +99,124 @@ const verifyAdminHttpRequest = async (req: functions.Request): Promise<boolean> 
   }
 };
 
+const parseBoolEnv = (value: string | undefined, fallback = false): boolean => {
+  if (value == null) return fallback;
+  const normalized = value.trim().toLowerCase();
+  if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+  if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  return fallback;
+};
+
+const getClientIp = (req: functions.Request): string => {
+  const xfwd = req.headers['x-forwarded-for'];
+  if (typeof xfwd === 'string' && xfwd.trim().length > 0) {
+    return xfwd.split(',')[0].trim();
+  }
+  return req.ip || 'unknown';
+};
+
+const shouldEnforceHttpAppCheck = (): boolean => {
+  const requireAppCheck = parseBoolEnv(process.env.REQUIRE_APPCHECK_HTTP, false);
+  if (!requireAppCheck) return false;
+  if (process.env.FUNCTIONS_EMULATOR === 'true') {
+    return parseBoolEnv(process.env.ENFORCE_APPCHECK_IN_EMULATOR, false);
+  }
+  return true;
+};
+
+const shouldEnforceCallableAppCheck = (): boolean => {
+  const requireAppCheck = parseBoolEnv(process.env.REQUIRE_APPCHECK_CALLABLE, false);
+  if (!requireAppCheck) return false;
+  if (process.env.FUNCTIONS_EMULATOR === 'true') {
+    return parseBoolEnv(process.env.ENFORCE_APPCHECK_IN_EMULATOR, false);
+  }
+  return true;
+};
+
+const getRateLimitConfig = () => {
+  return {
+    windowSeconds: Number(process.env.RATE_LIMIT_WINDOW_SECONDS ?? 60),
+    disposalMax: Number(process.env.RATE_LIMIT_DISPOSAL_MAX_REQUESTS ?? 25),
+    spendTokensMax: Number(process.env.RATE_LIMIT_SPENDTOKENS_MAX_REQUESTS ?? 40),
+  };
+};
+
+const enforceRateLimit = async ({
+  bucket,
+  subject,
+  maxRequests,
+  windowSeconds,
+}: {
+  bucket: string;
+  subject: string;
+  maxRequests: number;
+  windowSeconds: number;
+}): Promise<{ remaining: number; retryAfterSeconds: number }> => {
+  const db = admin.firestore();
+  const safeSubject = subject.replace(/[^a-zA-Z0-9_:\-\.]/g, '_').slice(0, 120);
+  const docRef = db.collection('rate_limits').doc(`${bucket}:${safeSubject}`);
+  const nowMs = Date.now();
+
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(docRef);
+    const existing = snap.exists ? (snap.data() ?? {}) : {};
+
+    const currentCount = Number(existing.count ?? 0);
+    const windowStartMs = Number(existing.windowStartMs ?? nowMs);
+    const windowDurationMs = Math.max(1, windowSeconds) * 1000;
+    const inWindow = nowMs - windowStartMs < windowDurationMs;
+
+    if (inWindow && currentCount >= maxRequests) {
+      const elapsedMs = nowMs - windowStartMs;
+      const retryAfterSeconds = Math.max(1, Math.ceil((windowDurationMs - elapsedMs) / 1000));
+      return { remaining: 0, retryAfterSeconds };
+    }
+
+    const nextCount = inWindow ? currentCount + 1 : 1;
+    const nextWindowStartMs = inWindow ? windowStartMs : nowMs;
+
+    tx.set(docRef, {
+      bucket,
+      subject: safeSubject,
+      count: nextCount,
+      windowStartMs: nextWindowStartMs,
+      windowSeconds,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    return {
+      remaining: Math.max(0, maxRequests - nextCount),
+      retryAfterSeconds: 0,
+    };
+  });
+};
+
+const verifyHttpAppCheck = async (req: functions.Request): Promise<boolean> => {
+  const tokenHeader = req.headers['x-firebase-appcheck'];
+  const token = Array.isArray(tokenHeader) ? tokenHeader[0] : tokenHeader;
+  if (!token || token.trim().length === 0) return false;
+  try {
+    await admin.appCheck().verifyToken(token.trim());
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
   return corsHandler(req, res, async () => {
     try {
+      if (shouldEnforceHttpAppCheck()) {
+        const appCheckValid = await verifyHttpAppCheck(req);
+        if (!appCheckValid) {
+          res.status(401).json({
+            error: 'Unauthorized: valid App Check token required',
+            hint: 'Attach x-firebase-appcheck header from a Firebase App Check enabled client.',
+          });
+          return;
+        }
+      }
+
       const requireAuth = (process.env.DISPOSAL_API_REQUIRE_AUTH ?? 'true') === 'true';
       const allowAnonymous = process.env.ALLOW_ANONYMOUS_DISPOSAL === 'true';
       if (requireAuth && !allowAnonymous) {
@@ -132,6 +247,22 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
 
       if (!materialId || !material) {
         res.status(400).json({ error: 'Missing required fields: materialId, material' });
+        return;
+      }
+
+      const rateLimitConfig = getRateLimitConfig();
+      const rateLimitState = await enforceRateLimit({
+        bucket: 'generateDisposal',
+        subject: `ip:${getClientIp(req)}`,
+        maxRequests: Math.max(1, rateLimitConfig.disposalMax),
+        windowSeconds: Math.max(1, rateLimitConfig.windowSeconds),
+      });
+      if (rateLimitState.retryAfterSeconds > 0) {
+        res.setHeader('Retry-After', String(rateLimitState.retryAfterSeconds));
+        res.status(429).json({
+          error: 'Rate limit exceeded',
+          retryAfterSeconds: rateLimitState.retryAfterSeconds,
+        });
         return;
       }
 
@@ -349,6 +480,28 @@ export const testOpenAI = asiaSouth1.https.onRequest((req, res) => {
 export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => {
   if (!context.auth?.uid) {
     throw new functions.https.HttpsError('unauthenticated', 'Authentication required.');
+  }
+
+  if (shouldEnforceCallableAppCheck() && !context.app) {
+    throw new functions.https.HttpsError(
+      'failed-precondition',
+      'App Check token required for spendUserTokens.'
+    );
+  }
+
+  const rateLimitConfig = getRateLimitConfig();
+  const rateLimitState = await enforceRateLimit({
+    bucket: 'spendUserTokens',
+    subject: `uid:${context.auth.uid}`,
+    maxRequests: Math.max(1, rateLimitConfig.spendTokensMax),
+    windowSeconds: Math.max(1, rateLimitConfig.windowSeconds),
+  });
+  if (rateLimitState.retryAfterSeconds > 0) {
+    throw new functions.https.HttpsError(
+      'resource-exhausted',
+      'Rate limit exceeded for spendUserTokens.',
+      { retryAfterSeconds: rateLimitState.retryAfterSeconds }
+    );
   }
 
   const amount = Number(data?.amount);

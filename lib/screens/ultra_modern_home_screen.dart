@@ -215,16 +215,18 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         // Primary scan CTA
                         _buildPrimaryScanCTA(context),
                         const SizedBox(height: 20),
-                        
+
                         // Daily progress card
-                        _buildDailyProgressCard(context, classificationsAsync, profileAsync),
+                        _buildDailyProgressCard(
+                            context, classificationsAsync, profileAsync),
                         const SizedBox(height: 20),
 
                         // Near-milestone nudge (one at a time, anti-spam)
                         _buildNudgeSection(context),
 
                         // Community Impact Card (local stats, empty-state CTA)
-                        _buildCommunityImpactCard(context, classificationsAsync),
+                        _buildCommunityImpactCard(
+                            context, classificationsAsync),
 
                         // Content with padding
                         Padding(
@@ -634,9 +636,8 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -786,8 +787,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color:
-                              Theme.of(context).colorScheme.onErrorContainer,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
                         ),
                       ),
                       Text(
@@ -1060,7 +1060,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                 ),
                 Icon(
                   Icons.chevron_right,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.4),
                   size: 20,
                 ),
               ],
@@ -1099,6 +1102,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
       MaterialPageRoute(
         builder: (context) => EducationalContentScreen(
           initialCategory: tip.category,
+          showBottomAd: false,
         ),
       ),
     );
@@ -1116,14 +1120,14 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
 
         final mostRecent = classifications.first;
         final recent = classifications.skip(1).take(3).toList();
-        
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Continue where you left off card
             _buildContinueCard(context, mostRecent),
             const SizedBox(height: 24),
-            
+
             // Recent classifications section
             if (recent.isNotEmpty) ...[
               Row(
@@ -1222,7 +1226,8 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     );
   }
 
-  Widget _buildContinueCard(BuildContext context, WasteClassification classification) {
+  Widget _buildContinueCard(
+      BuildContext context, WasteClassification classification) {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
@@ -1482,8 +1487,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                           value: nudge.target > 0
                               ? nudge.progress / nudge.target
                               : 0,
-                          backgroundColor:
-                              nudgeColor.withValues(alpha: 0.15),
+                          backgroundColor: nudgeColor.withValues(alpha: 0.15),
                           valueColor: AlwaysStoppedAnimation<Color>(nudgeColor),
                           minHeight: 4,
                         ),

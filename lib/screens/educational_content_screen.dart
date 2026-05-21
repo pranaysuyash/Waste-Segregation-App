@@ -116,9 +116,17 @@ class _EducationalContentScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text('Learn'),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorWeight: 3,
           tabs: const [
             Tab(text: AppStrings.articles, icon: Icon(Icons.article)),
             Tab(text: AppStrings.videos, icon: Icon(Icons.video_library)),
@@ -137,51 +145,72 @@ class _EducationalContentScreenState
           Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.paddingRegular,
+                  AppTheme.paddingRegular,
+                  AppTheme.paddingRegular,
+                  AppTheme.paddingSmall,
+                ),
                 child: Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Search...',
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                                AppTheme.borderRadiusRegular),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.borderRadiusRegular,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
                         ),
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                          });
-                        },
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Search...',
+                            prefixIcon: const Icon(Icons.search),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppTheme.paddingRegular),
-                    DropdownButton<String>(
-                      value: _allCategories.contains(_selectedCategory)
-                          ? _selectedCategory
-                          : 'All',
-                      icon: const Icon(Icons.filter_list),
-                      underline: Container(
-                        height: 2,
-                        color: AppTheme.primaryColor,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusRegular),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                        ),
                       ),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedCategory =
-                              newValue == 'All' ? null : newValue;
-                        });
-                      },
-                      items: _allCategories
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
+                      child: DropdownButton<String>(
+                        value: _allCategories.contains(_selectedCategory)
+                            ? _selectedCategory
+                            : 'All',
+                        icon: const Icon(Icons.filter_list),
+                        underline: const SizedBox.shrink(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedCategory =
+                                newValue == 'All' ? null : newValue;
+                          });
+                        },
+                        items: _allCategories
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ],
                 ),
@@ -214,8 +243,7 @@ class _EducationalContentScreenState
               ),
             ],
           ),
-          if (widget.showBottomAd)
-            const BannerAdWidget(showAtBottom: true),
+          if (widget.showBottomAd) const BannerAdWidget(showAtBottom: true),
         ],
       ),
     );
@@ -226,6 +254,7 @@ class _EducationalContentScreenState
       key: ValueKey<String>(content.id),
       margin: const EdgeInsets.only(bottom: AppTheme.paddingRegular),
       clipBehavior: Clip.antiAlias,
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
       ),
@@ -246,11 +275,23 @@ class _EducationalContentScreenState
                 Container(
                   height: 150,
                   width: double.infinity,
-                  color: Colors.grey.shade300,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppTheme.primaryColor.withValues(alpha: 0.32),
+                        content.getTypeColor().withValues(alpha: 0.22),
+                      ],
+                    ),
+                  ),
                   child: Icon(
                     content.icon,
                     size: 50,
-                    color: Colors.grey.shade500,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.45),
                   ),
                 ),
                 Positioned(
@@ -279,8 +320,8 @@ class _EducationalContentScreenState
                           content.type.toString().split('.').last,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: AppTheme.fontSizeSmall,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -345,7 +386,7 @@ class _EducationalContentScreenState
                       fontSize: AppTheme.fontSizeSmall,
                       color: AppTheme.textSecondaryColor,
                     ),
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: AppTheme.paddingSmall),

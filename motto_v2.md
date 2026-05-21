@@ -21,6 +21,7 @@ The goal is not to make the smallest patch. The goal is to protect the project, 
 - Re-check canonical paths: no duplicate routes, no parallel truth sources, no shadow pipelines.
 - Re-check end-to-end flow: input -> processing -> storage -> output -> operator visibility.
 - Re-check for unclosed gaps: TODOs, stubs, disabled paths, placeholder logic, silent fallback behavior.
+- Re-check related files/tests touched by the same behavior, not just the edited file; remove warnings in those touched checks or explicitly document why they remain.
 - Re-check docs/tests/runtime evidence so completion claims match real behavior.
 - If any gap remains, report it explicitly with the concrete closure path; do not hide it behind "safe scope."
 

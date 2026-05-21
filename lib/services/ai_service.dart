@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' show pow, sqrt;
-import 'dart:typed_data' show Uint8List;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
@@ -21,12 +20,6 @@ import 'package:uuid/uuid.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/services/local_policy_engine.dart';
 import 'package:waste_segregation_app/utils/production_safety_config.dart';
-
-import '../models/waste_classification.dart' show WasteClassification;
-
-import '../utils/constants.dart' show ApiConfig;
-
-import 'cache_service.dart' show ClassificationCacheService;
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
@@ -783,6 +776,7 @@ Output:
         WasteAppLogger.info('Generated content hash: $contentHash');
 
         if (imageHash != null) {
+          final perceptualHash = imageHash;
           final contextAwareContentHash = _buildContextAwareContentHash(
             contentHash,
             region: analysisRegion,
@@ -791,7 +785,7 @@ Output:
             model: ApiConfig.primaryModel,
           );
           final contextAwareCacheKey = buildContextualCacheKey(
-            imageHash: imageHash,
+            imageHash: perceptualHash,
             region: analysisRegion,
             language: analysisLang,
             provider: 'openai',
@@ -955,6 +949,7 @@ Output:
             'Generated content hash for web image: $contentHash');
 
         if (imageHash != null) {
+          final perceptualHash = imageHash;
           final contextAwareContentHash = _buildContextAwareContentHash(
             contentHash,
             region: analysisRegion,
@@ -963,7 +958,7 @@ Output:
             model: ApiConfig.primaryModel,
           );
           final contextAwareCacheKey = buildContextualCacheKey(
-            imageHash: imageHash,
+            imageHash: perceptualHash,
             region: analysisRegion,
             language: analysisLang,
             provider: 'openai',

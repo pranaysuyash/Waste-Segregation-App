@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:waste_segregation_app/services/ai_service.dart';
 import 'package:waste_segregation_app/services/ai_failure.dart';
 import 'package:waste_segregation_app/services/cache_service.dart';
+import 'package:waste_segregation_app/services/cost_guardrail_service.dart';
+import 'package:waste_segregation_app/models/token_wallet.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../test_helper.dart';
 import 'dart:convert';
@@ -29,6 +31,56 @@ class MockAiService {
       throw _mockException!;
     }
     return _mockResult!;
+  }
+}
+
+class _FakeGuardrailService extends CostGuardrailService {
+  _FakeGuardrailService({
+    required bool canUseInstant,
+    required AnalysisSpeed recommendedSpeed,
+    required bool batchEnforced,
+  })  : _canUseInstant = canUseInstant,
+        _recommendedSpeed = recommendedSpeed,
+        _batchEnforced = batchEnforced;
+
+  final bool _canUseInstant;
+  final AnalysisSpeed _recommendedSpeed;
+  final bool _batchEnforced;
+
+  @override
+  bool canUseInstantAnalysis({
+    required String model,
+    int? estimatedInputTokens,
+    int? estimatedOutputTokens,
+  }) =>
+      _canUseInstant;
+
+  @override
+  AnalysisSpeed getRecommendedAnalysisSpeed({
+    required String model,
+    int? estimatedInputTokens,
+    int? estimatedOutputTokens,
+  }) =>
+      _recommendedSpeed;
+
+  @override
+  bool get isBatchModeEnforced => _batchEnforced;
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> recordApiSpending({
+    required String model,
+    required double cost,
+    required int inputTokens,
+    required int outputTokens,
+    bool isBatchMode = false,
+  }) async {}
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }
 
@@ -330,6 +382,49 @@ void main() {
         expect(service.defaultLanguage, equals('hi'));
         expect(service.openAiBaseUrl, equals('https://proxy.example.com/v1'));
         expect(service.openAiApiKey, equals('test-openai-key'));
+      });
+
+      test('delegates guardrail status and speed recommendations', () {
+        final service = AiService(
+          guardrailService: _FakeGuardrailService(
+            canUseInstant: false,
+            recommendedSpeed: AnalysisSpeed.batch,
+            batchEnforced: true,
+          ),
+        );
+
+        expect(service.canUseInstantAnalysis(), isFalse);
+        expect(service.getRecommendedAnalysisSpeed(), AnalysisSpeed.batch);
+        expect(service.isBatchModeEnforced(), isTrue);
+      });
+
+      test('blocks instant provider path when guardrail denies instant mode',
+          () async {
+        final service = AiService(
+          cachingEnabled: false,
+          openAiApiKey: 'test-openai-key',
+          geminiApiKey: 'test-gemini-key',
+          guardrailService: _FakeGuardrailService(
+            canUseInstant: false,
+            recommendedSpeed: AnalysisSpeed.batch,
+            batchEnforced: true,
+          ),
+          saveWebImageOverride: (bytes, imageName) async => '/tmp/$imageName',
+        );
+
+        expect(
+          () => service.analyzeWebImage(
+            Uint8List.fromList(<int>[0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3]),
+            'guardrail_block.jpg',
+          ),
+          throwsA(
+            isA<AiFailure>().having(
+              (f) => f.kind,
+              'kind',
+              AiFailureKind.budgetExceeded,
+            ),
+          ),
+        );
       });
 
       test('cache key should change across context dimensions', () {

@@ -1,0 +1,92 @@
+# Widgetbook Component Coverage
+
+- Total widget classes: **158**
+- Referenced in Widgetbook: **74**
+- Coverage: **46.84%**
+
+## Uncovered Widget Classes
+
+- `AchievementCelebration`
+- `AchievementCelebrationDisplay`
+- `AchievementGrid`
+- `AchievementNotification`
+- `AlternativeNavigationWrapper`
+- `AnimatedDashboardWidget`
+- `AnimatedFAB`
+- `AnimatedTabController`
+- `AsyncErrorBoundary`
+- `CacheStatisticsCard`
+- `CaptureButton`
+- `CategoryDistributionChart`
+- `CelebrationOverlay`
+- `ChallengeCard`
+- `ChallengeCompletedPopup`
+- `ClassificationCard`
+- `ClassificationFeedback`
+- `CodeCircle`
+- `CommunityFeedPreview`
+- `CommunityFeedWidget`
+- `CommunityImpactCard`
+- `ContentDiscoveryWidget`
+- `DailyTipRevealWidget`
+- `DataMigrationDialog`
+- `DeveloperSection`
+- `DisposalInstructionsWidget`
+- `EmptyAchievementsStateWidget`
+- `EmptyEducationalContentWidget`
+- `EmptyFilteredResultsWidget`
+- `EmptyHistoryStateWidget`
+- `EmptySearchResultsWidget`
+- `EmptyStateHandler`
+- `EmptyStateWidget`
+- `EnhancedAchievementNotification`
+- `EnhancedChallengeCard`
+- `EnhancedEmptyState`
+- `EnhancedHistoryFilterDialog`
+- `EnhancedPointsIndicator`
+- `EnhancedReanalysisWidget`
+- `EnvironmentalImpactIndicator`
+- `ErrorBoundary`
+- `ErrorCatchingWidget`
+- `FlameStreakWidget`
+- `FloatingAchievementBadge`
+- `FloatingParticleSystem`
+- `GlobalImpactMeter`
+- `HistoryListItem`
+- `ImpactVisualizationRing`
+- `InfoRow`
+- `InteractiveClassificationTags`
+- `InteractiveTag`
+- `InteractiveTagCollection`
+- `LeaderboardWidget`
+- `LifetimePointsIndicator`
+- `LoadingStateHandler`
+- `MainNavigationWrapper`
+- `ManualRegionSelector`
+- `ModernBottomNavigation`
+- `MorphingProgressIndicator`
+- `NetworkErrorBoundary`
+- `NetworkErrorHandler`
+- `PerformanceMonitoringDashboard`
+- `PointsIndicator`
+- `PremiumFeatureCard`
+- `PremiumSegmentationToggle`
+- `ProductionErrorHandler`
+- `ProgressEmptyState`
+- `ProgressTrackingWidget`
+- `PulseBadge`
+- `PulsingScanButton`
+- `RecyclingCodeInfoCard`
+- `ResponsiveDialog`
+- `ScanningEmptyState`
+- `ShareButton`
+- `ShareFloatingActionButton`
+- `SimpleWebCamera`
+- `SortingAnimationWidget`
+- `StreakIndicator`
+- `ThumbnailWidget`
+- `TodaysImpactGoal`
+- `TopSubcategoriesBarChart`
+- `WasteCategoryPieChart`
+- `WasteTimeSeriesChart`
+- `WeeklyItemsChart`

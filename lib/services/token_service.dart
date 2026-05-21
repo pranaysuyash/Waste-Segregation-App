@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/token_wallet.dart';
@@ -295,45 +296,47 @@ class TokenService extends ChangeNotifier {
       }
 
       if (enableServerSideValidation && isFirebaseEnabled) {
-        return _spendTokensWithServerValidation(
-          amount,
-          description,
-          reference: reference,
-          metadata: metadata,
-        );
+        try {
+          return await _spendTokensWithServerValidation(
+            amount,
+            description,
+            reference: reference,
+            metadata: metadata,
+          );
+        } on FirebaseFunctionsException catch (e) {
+          // Guest-mode resilience:
+          // If there is no authenticated Firebase user, server validation will
+          // reject with unauthenticated. In that case, keep UX non-blocking by
+          // falling back to local wallet deduction.
+          if (e.code == 'unauthenticated' && _isGuestSessionWithoutFirebaseAuth()) {
+            WasteAppLogger.warning(
+              'Server token spend failed for guest session; falling back to local spend.',
+              context: {
+                'component': 'token_service',
+                'operation': 'spend_tokens_fallback_local',
+                'amount': amount,
+                'description': description,
+              },
+            );
+            return _spendTokensLocally(
+              wallet: wallet,
+              amount: amount,
+              description: description,
+              reference: reference,
+              metadata: metadata,
+            );
+          }
+          rethrow;
+        }
       }
 
-      // Calculate new wallet state
-      final newWallet = wallet.copyWith(
-        balance: wallet.balance - amount,
-        totalSpent: wallet.totalSpent + amount,
-        lastUpdated: DateTime.now(),
-      );
-
-      // Create transaction record
-      final transaction = TokenTransaction(
-        id: _uuid.v4(),
-        delta: -amount,
-        type: TokenTransactionType.spend,
-        timestamp: DateTime.now(),
+      return _spendTokensLocally(
+        wallet: wallet,
+        amount: amount,
         description: description,
         reference: reference,
         metadata: metadata,
       );
-
-      // Save wallet and transaction
-      await _saveWallet(newWallet);
-      await _saveTransaction(transaction);
-
-      WasteAppLogger.gamificationEvent('tokens_spent', context: {
-        'description': description,
-        'tokens_spent': amount,
-        'new_balance': newWallet.balance,
-        'reference': reference,
-        'metadata': metadata
-      });
-
-      return newWallet;
     });
   }
 
@@ -375,6 +378,52 @@ class TokenService extends ChangeNotifier {
       'reference': reference,
       'metadata': metadata
     });
+    return newWallet;
+  }
+
+  bool _isGuestSessionWithoutFirebaseAuth() {
+    try {
+      return FirebaseAuth.instance.currentUser == null;
+    } catch (_) {
+      // Firebase Auth might be unavailable in local test/offline contexts.
+      return true;
+    }
+  }
+
+  Future<TokenWallet> _spendTokensLocally({
+    required TokenWallet wallet,
+    required int amount,
+    required String description,
+    String? reference,
+    Map<String, dynamic>? metadata,
+  }) async {
+    final newWallet = wallet.copyWith(
+      balance: wallet.balance - amount,
+      totalSpent: wallet.totalSpent + amount,
+      lastUpdated: DateTime.now(),
+    );
+
+    final transaction = TokenTransaction(
+      id: _uuid.v4(),
+      delta: -amount,
+      type: TokenTransactionType.spend,
+      timestamp: DateTime.now(),
+      description: description,
+      reference: reference,
+      metadata: metadata,
+    );
+
+    await _saveWallet(newWallet);
+    await _saveTransaction(transaction);
+
+    WasteAppLogger.gamificationEvent('tokens_spent', context: {
+      'description': description,
+      'tokens_spent': amount,
+      'new_balance': newWallet.balance,
+      'reference': reference,
+      'metadata': metadata
+    });
+
     return newWallet;
   }
 

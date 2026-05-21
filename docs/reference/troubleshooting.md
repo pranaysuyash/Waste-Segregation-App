@@ -7,7 +7,7 @@ This guide covers common issues and their solutions for the Waste Segregation Ap
 ### ✅ Dashboard Display Problems - RESOLVED ✅
 **Issue**: Charts not displaying, recent activities blank, streak box formatting issues  
 **Status**: **FIXED** in version 0.1.4+96  
-**Solution**: Complete WebView chart overhaul with enhanced error handling
+**Solution**: Dashboard layout and chart rendering were corrected; the live dashboard now uses fl_chart-based sections and a recent-classifications grid in `lib/screens/waste_dashboard_screen.dart`
 
 ### ✅ Achievement Unlock Timing - RESOLVED ✅
 **Issue**: Level-locked achievements not tracking progress properly  

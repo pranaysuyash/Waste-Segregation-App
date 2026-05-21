@@ -399,7 +399,9 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(ModernFAB));
+      final fabIcon = find.byIcon(Icons.camera_alt);
+      await tester.ensureVisible(fabIcon);
+      await tester.tap(fabIcon);
       expect(tapped, isTrue);
     });
 
@@ -437,9 +439,12 @@ void main() {
         ),
       );
 
-      // Test tap down animation
-      await tester.press(find.byType(ModernFAB));
+      // Drive press animation on the actual tappable child.
+      final fabIcon = find.byIcon(Icons.camera_alt);
+      await tester.ensureVisible(fabIcon);
+      final gesture = await tester.startGesture(tester.getCenter(fabIcon));
       await tester.pump(const Duration(milliseconds: 100));
+      await gesture.up();
 
       // Test tap up animation
       await tester.pumpAndSettle();

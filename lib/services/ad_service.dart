@@ -10,27 +10,25 @@ class AdService extends ChangeNotifier {
 
   bool _hasPremium = false;
 
-  // TODO: ADMOB CONFIGURATION REQUIRED
-  // ================================
-  // 1. Create AdMob account at https://admob.google.com
-  // 2. Create new app in AdMob console
-  // 3. Generate real ad unit IDs for production
-  // 4. Update android/app/src/main/AndroidManifest.xml with AdMob App ID
-  // 5. Update ios/Runner/Info.plist with AdMob App ID
-  // 6. Replace test IDs below with production IDs before release
+  // Test IDs are always used in debug/profile builds.
+  static const String _testAndroidBannerId =
+      'ca-app-pub-3940256099942544/6300978111';
+  static const String _testIosBannerId =
+      'ca-app-pub-3940256099942544/2934735716';
+  static const String _testAndroidInterstitialId =
+      'ca-app-pub-3940256099942544/1033173712';
+  static const String _testIosInterstitialId =
+      'ca-app-pub-3940256099942544/4411468910';
 
-  // Ad unit IDs - CURRENTLY USING TEST IDs
-  static const Map<String, String> _bannerAdUnitIds = {
-    // TODO: Replace with your actual banner ad unit IDs from AdMob console
-    'android': 'ca-app-pub-3940256099942544/6300978111', // TEST ID - REPLACE
-    'ios': 'ca-app-pub-3940256099942544/2934735716', // TEST ID - REPLACE
-  };
-
-  static const Map<String, String> _interstitialAdUnitIds = {
-    // TODO: Replace with your actual interstitial ad unit IDs from AdMob console
-    'android': 'ca-app-pub-3940256099942544/1033173712', // TEST ID - REPLACE
-    'ios': 'ca-app-pub-3940256099942544/4411468910', // TEST ID - REPLACE
-  };
+  // Release IDs must be provided via --dart-define.
+  static const String _releaseAndroidBannerId =
+      String.fromEnvironment('ADMOB_ANDROID_BANNER_AD_UNIT_ID');
+  static const String _releaseIosBannerId =
+      String.fromEnvironment('ADMOB_IOS_BANNER_AD_UNIT_ID');
+  static const String _releaseAndroidInterstitialId =
+      String.fromEnvironment('ADMOB_ANDROID_INTERSTITIAL_AD_UNIT_ID');
+  static const String _releaseIosInterstitialId =
+      String.fromEnvironment('ADMOB_IOS_INTERSTITIAL_AD_UNIT_ID');
 
   // TODO: Add reward ad unit IDs when implementing reward ads
   // static const Map<String, String> _rewardAdUnitIds = {
@@ -51,15 +49,19 @@ class AdService extends ChangeNotifier {
 
   bool _isInitialized = false;
   bool _isInitializing = false;
+  bool _canRequestAds = false;
   BannerAd? _bannerAd;
   Widget? _cachedBannerWidget;
   String? _currentBannerAdKey;
+  bool _didWarnReleaseBannerFallback = false;
+  bool _didWarnReleaseInterstitialFallback = false;
 
   // Getters
   bool get isInitialized => _isInitialized;
 
   bool get shouldShowAds =>
       !kIsWeb &&
+      _canRequestAds &&
       !_hasPremium &&
       !_isInClassificationFlow &&
       !_isInEducationalContent &&
@@ -99,22 +101,20 @@ class AdService extends ChangeNotifier {
     _isInitializing = true;
 
     try {
-      // TODO: Verify AdMob App ID is correctly configured in platform files
-      // Android: android/app/src/main/AndroidManifest.xml
-      // iOS: ios/Runner/Info.plist
-
-      // Initialize MobileAds
       await MobileAds.instance.initialize();
+
+      await _refreshConsentAndAdRequestEligibility();
       _isInitialized = true;
 
-      // TODO: Add consent management for GDPR compliance
-      // Consider implementing User Messaging Platform (UMP) SDK
-
-      // Preload interstitial ad
-      _loadInterstitialAd();
-
-      // Preload banner ad
-      _loadBannerAd();
+      if (_canRequestAds) {
+        _loadInterstitialAd();
+        _loadBannerAd();
+      } else {
+        WasteAppLogger.warning(
+          'Ad loading skipped: consent/App eligibility not granted.',
+          context: {'service': 'ad_service'},
+        );
+      }
 
       // Use post-frame callback to avoid calling notifyListeners during build
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -130,6 +130,170 @@ class AdService extends ChangeNotifier {
     }
   }
 
+  Future<void> _refreshConsentAndAdRequestEligibility() async {
+    if (kIsWeb) {
+      _canRequestAds = false;
+      return;
+    }
+
+    final completer = Completer<void>();
+    final params = ConsentRequestParameters();
+
+    ConsentInformation.instance.requestConsentInfoUpdate(
+      params,
+      () async {
+        try {
+          final status = await ConsentInformation.instance.getConsentStatus();
+          if (status == ConsentStatus.obtained ||
+              status == ConsentStatus.notRequired) {
+            _canRequestAds = true;
+            completer.complete();
+            return;
+          }
+
+          final isFormAvailable =
+              await ConsentInformation.instance.isConsentFormAvailable();
+          if (!isFormAvailable) {
+            _canRequestAds = false;
+            completer.complete();
+            return;
+          }
+
+          ConsentForm.loadConsentForm(
+            (ConsentForm consentForm) {
+              consentForm.show((FormError? formError) async {
+                if (formError != null) {
+                  WasteAppLogger.warning(
+                    'Consent form dismissed with error.',
+                    context: {
+                      'service': 'ad_service',
+                      'error': formError.message,
+                      'code': formError.errorCode,
+                    },
+                  );
+                }
+
+                try {
+                  final latestStatus =
+                      await ConsentInformation.instance.getConsentStatus();
+                  _canRequestAds = latestStatus == ConsentStatus.obtained ||
+                      latestStatus == ConsentStatus.notRequired;
+                } catch (_) {
+                  _canRequestAds = false;
+                }
+
+                await consentForm.dispose();
+                completer.complete();
+              });
+            },
+            (FormError error) {
+              WasteAppLogger.warning(
+                'Consent form failed to load.',
+                context: {
+                  'service': 'ad_service',
+                  'error': error.message,
+                  'code': error.errorCode,
+                },
+              );
+              _canRequestAds = false;
+              completer.complete();
+            },
+          );
+        } catch (e) {
+          WasteAppLogger.warning(
+            'Consent evaluation failed after info update.',
+            context: {'service': 'ad_service', 'error': e.toString()},
+          );
+          _canRequestAds = false;
+          completer.complete();
+        }
+      },
+      (FormError error) {
+        WasteAppLogger.warning(
+          'Consent info update failed.',
+          context: {
+            'service': 'ad_service',
+            'error': error.message,
+            'code': error.errorCode,
+          },
+        );
+        _canRequestAds = false;
+        completer.complete();
+      },
+    );
+
+    await completer.future.timeout(
+      const Duration(seconds: 15),
+      onTimeout: () {
+        _canRequestAds = false;
+      },
+    );
+  }
+
+  String _resolveBannerAdUnitId() {
+    if (Platform.isAndroid) {
+      return _resolveAdUnitId(
+        releaseValue: _releaseAndroidBannerId,
+        testValue: _testAndroidBannerId,
+        isInterstitial: false,
+      );
+    }
+    return _resolveAdUnitId(
+      releaseValue: _releaseIosBannerId,
+      testValue: _testIosBannerId,
+      isInterstitial: false,
+    );
+  }
+
+  String _resolveInterstitialAdUnitId() {
+    if (Platform.isAndroid) {
+      return _resolveAdUnitId(
+        releaseValue: _releaseAndroidInterstitialId,
+        testValue: _testAndroidInterstitialId,
+        isInterstitial: true,
+      );
+    }
+    return _resolveAdUnitId(
+      releaseValue: _releaseIosInterstitialId,
+      testValue: _testIosInterstitialId,
+      isInterstitial: true,
+    );
+  }
+
+  String _resolveAdUnitId({
+    required String releaseValue,
+    required String testValue,
+    required bool isInterstitial,
+  }) {
+    if (!kReleaseMode) {
+      return testValue;
+    }
+
+    if (releaseValue.trim().isNotEmpty) {
+      return releaseValue.trim();
+    }
+
+    if (isInterstitial) {
+      if (!_didWarnReleaseInterstitialFallback) {
+        _didWarnReleaseInterstitialFallback = true;
+        WasteAppLogger.warning(
+          'Release interstitial ad unit ID not configured; using test ID fallback.',
+          context: {'service': 'ad_service'},
+        );
+      }
+    } else {
+      if (!_didWarnReleaseBannerFallback) {
+        _didWarnReleaseBannerFallback = true;
+        WasteAppLogger.warning(
+          'Release banner ad unit ID not configured; using test ID fallback.',
+          context: {'service': 'ad_service'},
+        );
+      }
+    }
+
+    return testValue;
+  }
+
   // Preload banner ad with performance optimization
   void _loadBannerAd() {
     if (kIsWeb || _bannerAd != null || _disposed) return;
@@ -137,9 +301,7 @@ class AdService extends ChangeNotifier {
     // Use microtask to avoid blocking the main thread
     scheduleMicrotask(() async {
       try {
-        final adUnitId = Platform.isAndroid
-            ? _bannerAdUnitIds['android']!
-            : _bannerAdUnitIds['ios']!;
+        final adUnitId = _resolveBannerAdUnitId();
 
         // Use adaptive banner for better performance and responsive design
         final newBannerAd = BannerAd(
@@ -240,9 +402,7 @@ class AdService extends ChangeNotifier {
     // Use microtask to avoid blocking the main thread
     scheduleMicrotask(() async {
       try {
-        final adUnitId = Platform.isAndroid
-            ? _interstitialAdUnitIds['android']!
-            : _interstitialAdUnitIds['ios']!;
+        final adUnitId = _resolveInterstitialAdUnitId();
 
         await InterstitialAd.load(
           adUnitId: adUnitId,

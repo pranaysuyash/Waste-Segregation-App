@@ -5,7 +5,7 @@ This folder contains technical documentation for recent fixes and implementation
 ## 🚀 **Recent Bug Fixes** (2025-05-29 baseline)
 
 ### ✅ **Critical Issues Resolved**
-- **[Dashboard Display Fixes](dashboard_display_fixes.md)** - Charts now display properly, recent activities working, streak box formatted correctly
+- **[Dashboard Display Fixes](dashboard_display_fixes.md)** - Historical fix note for the dashboard display work; the live dashboard now uses fl_chart-based sections and a recent-classifications grid
 - **[Achievement Unlock Timing Fix](achievement_unlock_timing_fix.md)** - Level-locked achievements now track progress correctly
 - **[Statistics Display Fix](statistics_display_fix.md)** - Consistent item counts between achievements and categories
 - **[Play Store Sign-In Fix](PLAY_STORE_SIGNIN_FIX.md)** - Google Sign-In issue resolution for Play Store
@@ -41,7 +41,7 @@ This folder contains technical documentation for recent fixes and implementation
 
 ### **Latest Fixes & Enhancements (Version 0.1.6+98 - Research Milestone & Play Store Release)**
 1. **World's Most Comprehensive Recycling Research**: Integrated extensive research from 9 AI systems, covering 70+ countries and 175+ sources.
-2. **Dashboard Display Issues**: Complete WebView chart overhaul with error handling
+2. **Dashboard Display Issues**: Dashboard rendering and section layout were corrected; the live implementation is now fl_chart-based
 3. **Achievement System**: Fixed timing issues with level-locked progress tracking  
 4. **Statistics Consistency**: Resolved points-to-items conversion discrepancies
 5. **Build System**: Fixed critical compilation errors for iOS builds
@@ -60,8 +60,8 @@ This folder contains technical documentation for recent fixes and implementation
 2. **Network Security**: Implement HTTPS-only communication and proper security attributes
 
 ### **Technical Improvements**
-- Enhanced WebView error handling with loading states
-- Updated Chart.js to v4.4.0 with better CDN reliability
+- Improved dashboard loading states and empty-state handling
+- Live dashboard charts use fl_chart widgets
 - Improved empty state handling with user guidance
 - Better responsive design across all dashboard sections
 
@@ -70,11 +70,11 @@ This folder contains technical documentation for recent fixes and implementation
 **Version:** 0.1.6+98 (Research Milestone & Play Store Release)
 **Previous Stable Version:** 0.1.4+96  
 **Last Updated:** 2026-05-20  
-**Status:** ✅ Production Ready with Comprehensive Research
+**Status:** ✅ Current docs reflect the live dashboard implementation
 
 ### **Production Ready Features (as of 0.1.6+98):**
 - ✅ **World's Most Comprehensive Recycling Research Integrated**
-- ✅ Dashboard fully functional with proper chart display
+- ✅ Dashboard fully functional with fl_chart-based chart display
 - ✅ Achievement system working correctly
 - ✅ Statistics display consistent across all screens
 - ✅ iOS build process verified and stable

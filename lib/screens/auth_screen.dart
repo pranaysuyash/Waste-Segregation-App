@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/google_drive_service.dart';
 import '../utils/constants.dart';
 import '../widgets/navigation_wrapper.dart';
-import '../widgets/modern_ui/modern_cards.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -266,7 +265,6 @@ class _AuthScreenState extends State<AuthScreen> {
                           subtitle: 'Try the app without signing in',
                           backgroundColor: Colors.transparent,
                           textColor: Colors.white,
-                          borderColor: Colors.white,
                         ),
                       ],
                     ),
@@ -287,104 +285,119 @@ class _AuthScreenState extends State<AuthScreen> {
     required String subtitle,
     required Color backgroundColor,
     required Color textColor,
-    Color? borderColor,
   }) {
+    final isGuestCard = backgroundColor == Colors.transparent;
+    final effectiveBackground = isGuestCard
+        ? const Color(0xFF075A45).withValues(alpha: 0.62)
+        : backgroundColor;
+    final effectiveTextColor = isGuestCard ? Colors.white : textColor;
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 4),
-      child: ModernCard(
-        onTap: onPressed,
-        backgroundColor: backgroundColor,
-        enableGlassmorphism: backgroundColor == Colors.transparent,
-        borderRadius: AppTheme.borderRadiusLarge,
-        border: borderColor != null
-            ? Border.all(color: borderColor, width: 2)
-            : null,
-        padding: const EdgeInsets.all(AppTheme.paddingRegular),
-        child: Row(
-          children: [
-            icon,
-            const SizedBox(width: AppTheme.paddingRegular),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeMedium,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
+      decoration: BoxDecoration(
+        color: effectiveBackground,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+        boxShadow: isGuestCard
+            ? null
+            : [
+                BoxShadow(
+                  color: const Color(0xFF075A45).withValues(alpha: 0.12),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            child: Row(
+              children: [
+                icon,
+                const SizedBox(width: AppTheme.paddingRegular),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeMedium,
+                          fontWeight: FontWeight.w800,
+                          color: effectiveTextColor,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: AppTheme.fontSizeSmall,
+                          color: effectiveTextColor.withValues(alpha: 0.74),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: AppTheme.fontSizeSmall,
-                      color: textColor.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: effectiveTextColor.withValues(alpha: 0.48),
+                ),
+              ],
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: textColor.withValues(alpha: 0.5),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildImpactCard(String value, String label, IconData icon) {
-    final theme = Theme.of(context);
-
-    return ModernCard(
-      enableGlassmorphism: true,
-      backgroundColor: Colors.white,
-      opacity: 0.16,
-      borderRadius: AppTheme.borderRadiusRegular,
+    return Container(
+      height: 112,
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
-      child: SizedBox(
-        height: 110,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: AppTheme.primaryColor,
-              size: 22,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: const Color(0xFFB9F26D),
+            size: 22,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
             ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Expanded(
-              child: Center(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: theme.colorScheme.onSurfaceVariant,
-                    height: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 3),
+          Expanded(
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.74),
+                  height: 1.2,
                 ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -153,14 +153,14 @@ void main() {
 
   group('AuthException', () {
     test('stores and formats message correctly', () {
-      final ex = AuthException('User not authenticated');
+      const ex = AuthException('User not authenticated');
       expect(ex.message, 'User not authenticated');
       expect(ex.toString(), 'User not authenticated');
     });
 
     test('can be caught as Exception', () {
       void thrower() {
-        throw AuthException('test');
+        throw const AuthException('test');
       }
       expect(thrower, throwsA(isA<AuthException>()));
       expect(thrower, throwsA(isA<Exception>()));
@@ -169,14 +169,14 @@ void main() {
 
   group('OfflineException', () {
     test('stores and formats message correctly', () {
-      final ex = OfflineException('No network');
+      const ex = OfflineException('No network');
       expect(ex.message, 'No network');
       expect(ex.toString(), 'No network');
     });
 
     test('can be caught as Exception', () {
       void thrower() {
-        throw OfflineException('test');
+        throw const OfflineException('test');
       }
       expect(thrower, throwsA(isA<OfflineException>()));
       expect(thrower, throwsA(isA<Exception>()));

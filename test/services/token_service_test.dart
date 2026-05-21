@@ -1,4 +1,6 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:waste_segregation_app/models/token_wallet.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
@@ -23,8 +25,7 @@ class _FakeStorageService extends StorageService {
 }
 
 class _FakeCloudStorageService extends CloudStorageService {
-  _FakeCloudStorageService(StorageService storageService)
-      : super(storageService);
+  _FakeCloudStorageService(super.storageService);
 
   final List<UserProfile> savedProfiles = <UserProfile>[];
 
@@ -34,6 +35,10 @@ class _FakeCloudStorageService extends CloudStorageService {
     savedProfiles.add(userProfile);
   }
 }
+
+class _MockFirebaseFunctions extends Mock implements FirebaseFunctions {}
+
+class _MockHttpsCallable extends Mock implements HttpsCallable {}
 
 UserProfile _baseProfile({TokenWallet? wallet, List<TokenTransaction>? txns}) {
   return UserProfile(
@@ -180,10 +185,7 @@ void main() {
     await tokenService.initialize();
     TokenService.enableTokenEnforcement = true;
 
-    expect(
-        tokenService.getAnalysisCost(AnalysisSpeed.instant,
-            isPremiumUser: false),
-        5);
+    expect(tokenService.getAnalysisCost(AnalysisSpeed.instant), 5);
     expect(
         tokenService.getAnalysisCost(AnalysisSpeed.instant,
             isPremiumUser: true),
@@ -194,8 +196,7 @@ void main() {
       isTrue,
     );
     expect(
-      tokenService.canAffordAnalysisWithPricing(AnalysisSpeed.instant,
-          isPremiumUser: false),
+      tokenService.canAffordAnalysisWithPricing(AnalysisSpeed.instant),
       isFalse,
     );
   });
@@ -217,6 +218,48 @@ void main() {
         () => tokenService.spendTokens(2, 'Config guard test'),
         throwsException,
       );
+    }
+  });
+
+  test('spendTokens falls back to local spend for guest when server returns unauthenticated',
+      () async {
+    final mockFunctions = _MockFirebaseFunctions();
+    final mockCallable = _MockHttpsCallable();
+
+    when(() => mockFunctions.httpsCallable('spendUserTokens'))
+        .thenReturn(mockCallable);
+    when(() => mockCallable.call(any())).thenThrow(
+      FirebaseFunctionsException(
+        code: 'unauthenticated',
+        message: 'Authentication required.',
+      ),
+    );
+
+    storage.seedProfile(_baseProfile(
+      wallet: TokenWallet(
+        balance: 12,
+        totalEarned: 20,
+        totalSpent: 8,
+        lastUpdated: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+    ));
+
+    final guestTokenService = TokenService(
+      storage,
+      cloud,
+      functionsClient: mockFunctions,
+    );
+
+    TokenService.enableTokenEnforcement = true;
+    TokenService.enableServerSideValidation = true;
+
+    if (isFirebaseEnabled) {
+      final updated = await guestTokenService.spendTokens(5, 'Instant analysis');
+      expect(updated.balance, 7);
+      expect(updated.totalSpent, 13);
+      final txns = await guestTokenService.getTransactionHistory();
+      expect(txns, isNotEmpty);
+      expect(txns.first.delta, -5);
     }
   });
 }

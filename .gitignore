@@ -64,6 +64,10 @@ app.*.map.json
 **/.agent/
 **/context/agent-start/
 
+# Browser/simulator automation artifacts (machine-local)
+.playwright-mcp/
+.xcodebuildmcp/
+
 # Python asset download scripts
 freepik_badge_downloader.py
 *.asset_downloader.py

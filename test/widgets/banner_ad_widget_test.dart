@@ -40,6 +40,11 @@ class MockPremiumService extends PremiumService {
   bool isPremiumFeature(String featureId) {
     return _mockIsPremium;
   }
+
+  @override
+  bool hasActivePremiumPlan() {
+    return _mockIsPremium;
+  }
 }
 
 void main() {

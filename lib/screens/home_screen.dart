@@ -24,7 +24,6 @@ import '../utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../models/gamification_result.dart';
 import '../widgets/modern_ui/modern_buttons.dart';
-import '../widgets/modern_ui/modern_cards.dart';
 import '../widgets/enhanced_gamification_widgets.dart' as widgets;
 import '../widgets/advanced_ui/achievement_celebration.dart';
 
@@ -533,161 +532,194 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: ModernCard(
-        enableGlassmorphism: true,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.primaryColor.withValues(alpha: 0.96),
-            AppTheme.secondaryColor.withValues(alpha: 0.92),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF0E8F69),
+              AppTheme.primaryColor,
+              AppTheme.secondaryColor,
+            ],
+            stops: [0, 0.52, 1],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF087D68).withValues(alpha: 0.24),
+              blurRadius: 22,
+              offset: const Offset(0, 12),
+            ),
           ],
         ),
-        borderRadius: 24,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(
-                    Icons.rocket_launch,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+            Positioned(
+              right: -28,
+              top: -34,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.08),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Mission Control',
-                        style: GoogleFonts.inter(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Your modern waste workflow starts here.',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.88),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Scan items, review the sorting rule, and keep your streak moving with the open design surface wired into the real app.',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                height: 1.35,
-                color: Colors.white.withValues(alpha: 0.92),
               ),
             ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: ModernButton(
-                    text: 'Scan Item',
-                    icon: Icons.camera_alt,
-                    onPressed: _takePhoto,
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppTheme.primaryColor,
-                    tooltip: 'Open camera capture',
-                  ),
+            Positioned(
+              left: -42,
+              bottom: -48,
+              child: Container(
+                width: 132,
+                height: 132,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFB9F26D).withValues(alpha: 0.12),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ModernButton(
-                    text: 'Explore Learn',
-                    icon: Icons.school_outlined,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const EducationalContentScreen(),
-                        ),
-                      );
-                    },
-                    style: ModernButtonStyle.glassmorphism,
-                    foregroundColor: Colors.white,
-                    tooltip: 'Open learning hub',
-                  ),
-                ),
-              ],
+              ),
             ),
-            const SizedBox(height: 16),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: _buildMissionMetric(
-                    context,
-                    'Today',
-                    'Fresh tips and scans',
-                    Icons.auto_awesome,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(11),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFB9F26D),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        Icons.auto_awesome,
+                        color: Color(0xFF075A45),
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ready to sort?',
+                            style: GoogleFonts.inter(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Scan, learn, and keep your streak alive.',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              height: 1.25,
+                              color: Colors.white.withValues(alpha: 0.86),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: profileAsync.when(
-                    data: (profile) => _buildMissionMetric(
-                      context,
-                      'Streak',
-                      '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0} days',
-                      Icons.local_fire_department,
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ModernButton(
+                        text: 'Scan Item',
+                        icon: Icons.camera_alt,
+                        onPressed: _takePhoto,
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppTheme.primaryColor,
+                        tooltip: 'Open camera capture',
+                      ),
                     ),
-                    loading: () => _buildMissionMetric(
-                      context,
-                      'Streak',
-                      'Loading...',
-                      Icons.local_fire_department,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ModernButton(
+                        text: 'Learn',
+                        icon: Icons.school_outlined,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const EducationalContentScreen(
+                                showBottomAd: false,
+                              ),
+                            ),
+                          );
+                        },
+                        backgroundColor:
+                            const Color(0xFF075A45).withValues(alpha: 0.72),
+                        foregroundColor: Colors.white,
+                        tooltip: 'Open learning hub',
+                      ),
                     ),
-                    error: (_, __) => _buildMissionMetric(
-                      context,
-                      'Streak',
-                      '0 days',
-                      Icons.local_fire_department,
-                    ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: userProfileAsync.when(
-                    data: (userProfile) => _buildMissionMetric(
-                      context,
-                      'User',
-                      userProfile?.displayName?.split(' ').first ??
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildMissionMetric(
+                        context,
+                        'Today',
+                        'Fresh tips',
+                        Icons.auto_awesome,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: profileAsync.when(
+                        data: (profile) => _buildMissionMetric(
+                          context,
+                          'Streak',
+                          '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0} days',
+                          Icons.local_fire_department,
+                        ),
+                        loading: () => _buildMissionMetric(
+                          context,
+                          'Streak',
+                          'Loading',
+                          Icons.local_fire_department,
+                        ),
+                        error: (_, __) => _buildMissionMetric(
+                          context,
+                          'Streak',
+                          '0 days',
+                          Icons.local_fire_department,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: userProfileAsync.when(
+                        data: (userProfile) => _buildMissionMetric(
+                          context,
+                          'You',
+                          userProfile?.displayName?.split(' ').first ??
+                              AppStrings.ecoHero,
+                          Icons.person,
+                        ),
+                        loading: () => _buildMissionMetric(
+                          context,
+                          'You',
+                          '...',
+                          Icons.person,
+                        ),
+                        error: (_, __) => _buildMissionMetric(
+                          context,
+                          'You',
                           AppStrings.ecoHero,
-                      Icons.person,
+                          Icons.person,
+                        ),
+                      ),
                     ),
-                    loading: () => _buildMissionMetric(
-                      context,
-                      'User',
-                      '...',
-                      Icons.person,
-                    ),
-                    error: (_, __) => _buildMissionMetric(
-                      context,
-                      'User',
-                      AppStrings.ecoHero,
-                      Icons.person,
-                    ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -703,27 +735,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     String value,
     IconData icon,
   ) {
-    final theme = Theme.of(context);
-
     return Container(
-      padding: const EdgeInsets.all(12),
+      constraints: const BoxConstraints(minHeight: 78),
+      padding: const EdgeInsets.all(11),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.16),
-        ),
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: Colors.white, size: 18),
-          const SizedBox(height: 10),
+          Icon(icon, color: const Color(0xFFB9F26D), size: 17),
+          const SizedBox(height: 8),
           Text(
             value,
             style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
             ),
             maxLines: 1,
@@ -733,8 +762,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           Text(
             label,
             style: GoogleFonts.inter(
-              fontSize: 11,
-              color: theme.colorScheme.onPrimary.withValues(alpha: 0.85),
+              fontSize: 10,
+              color: Colors.white.withValues(alpha: 0.78),
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -1160,6 +1189,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         MaterialPageRoute(
           builder: (context) => EducationalContentScreen(
             initialCategory: tip.category,
+            showBottomAd: false,
           ),
         ),
       );

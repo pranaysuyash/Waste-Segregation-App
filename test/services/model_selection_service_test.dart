@@ -31,15 +31,16 @@ void main() {
       );
 
       final file = File(
-          '${Directory.systemTemp.path}/model_selection_service_batch_test.jpg');
-      await file.writeAsBytes(<int>[0, 1, 2, 3, 4], flush: true);
+            '${Directory.systemTemp.path}/model_selection_service_batch_test.jpg',
+          )
+          ..writeAsBytesSync(<int>[0, 1, 2, 3, 4], flush: true);
 
       try {
         final result = await service.analyzeImage(file);
         expect(result.itemName, isNotEmpty);
       } finally {
-        if (await file.exists()) {
-          await file.delete();
+        if (file.existsSync()) {
+          file.deleteSync();
         }
         service.dispose();
       }
