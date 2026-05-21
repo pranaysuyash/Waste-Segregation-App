@@ -1,8 +1,8 @@
 # Widgetbook Component Coverage
 
 - Total widget classes: **158**
-- Referenced in Widgetbook: **74**
-- Coverage: **46.84%**
+- Referenced in Widgetbook: **86**
+- Coverage: **54.43%**
 
 ## Uncovered Widget Classes
 
@@ -35,13 +35,8 @@
 - `EmptyAchievementsStateWidget`
 - `EmptyEducationalContentWidget`
 - `EmptyFilteredResultsWidget`
-- `EmptyHistoryStateWidget`
-- `EmptySearchResultsWidget`
-- `EmptyStateHandler`
-- `EmptyStateWidget`
 - `EnhancedAchievementNotification`
 - `EnhancedChallengeCard`
-- `EnhancedEmptyState`
 - `EnhancedHistoryFilterDialog`
 - `EnhancedPointsIndicator`
 - `EnhancedReanalysisWidget`
@@ -60,27 +55,20 @@
 - `InteractiveTagCollection`
 - `LeaderboardWidget`
 - `LifetimePointsIndicator`
-- `LoadingStateHandler`
 - `MainNavigationWrapper`
 - `ManualRegionSelector`
 - `ModernBottomNavigation`
 - `MorphingProgressIndicator`
 - `NetworkErrorBoundary`
-- `NetworkErrorHandler`
 - `PerformanceMonitoringDashboard`
 - `PointsIndicator`
 - `PremiumFeatureCard`
 - `PremiumSegmentationToggle`
-- `ProductionErrorHandler`
-- `ProgressEmptyState`
 - `ProgressTrackingWidget`
 - `PulseBadge`
 - `PulsingScanButton`
 - `RecyclingCodeInfoCard`
 - `ResponsiveDialog`
-- `ScanningEmptyState`
-- `ShareButton`
-- `ShareFloatingActionButton`
 - `SimpleWebCamera`
 - `SortingAnimationWidget`
 - `StreakIndicator`

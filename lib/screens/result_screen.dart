@@ -15,6 +15,7 @@ import '../screens/image_capture_screen.dart';
 import '../screens/disposal_facilities_screen.dart';
 import '../screens/waste_dashboard_screen.dart';
 import '../widgets/result_screen/result_header.dart';
+import '../utils/ai_error_messages.dart';
 import '../widgets/result_screen/disposal_accordion.dart';
 import '../widgets/result_screen/action_row.dart';
 import '../widgets/result_screen/points_popup.dart';
@@ -976,7 +977,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Re-analysis failed: ${e.toString()}'),
+          content: Text(AiErrorMessages.toUserMessage(e)),
           backgroundColor: Colors.red,
         ),
       );

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/ai_service.dart';
 import '../services/gamification_service.dart';
+import '../utils/ai_error_messages.dart';
 import '../widgets/enhanced_analysis_loader.dart';
 import '../screens/result_screen_wrapper.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
@@ -100,7 +101,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
         WasteAppLogger.severe('Error during instant analysis: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Analysis failed: $e'),
+            content: Text(AiErrorMessages.toUserMessage(e)),
             backgroundColor: Colors.red,
           ),
         );

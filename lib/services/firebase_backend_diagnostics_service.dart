@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/widgets.dart';
 
 import '../utils/waste_app_logger.dart';
 
@@ -11,7 +12,7 @@ import '../utils/waste_app_logger.dart';
 /// Purpose:
 /// - Distinguish generic TLS noise from backend DNS/host-level outages.
 /// - Print one "outage started" event and one "recovered" event per outage.
-class FirebaseBackendDiagnosticsService {
+class FirebaseBackendDiagnosticsService with WidgetsBindingObserver {
   factory FirebaseBackendDiagnosticsService() => _instance;
   FirebaseBackendDiagnosticsService._internal();
   static final FirebaseBackendDiagnosticsService _instance =
@@ -21,13 +22,15 @@ class FirebaseBackendDiagnosticsService {
     'firestore': 'firestore.googleapis.com',
     'firebase_auth_identity_toolkit': 'identitytoolkit.googleapis.com',
     'firebase_auth_secure_token': 'securetoken.googleapis.com',
-    'firebase_functions_asia_south1': 'asia-south1-waste-segregation-app-df523.cloudfunctions.net',
+    'firebase_functions_asia_south1':
+        'asia-south1-waste-segregation-app-df523.cloudfunctions.net',
     'firebase_logging_transport': 'firebaselogging-pa.googleapis.com',
   };
 
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   Timer? _periodicTimer;
+  Duration _periodicCheckInterval = const Duration(minutes: 2);
 
   final Map<String, bool> _hostHealthy = {};
   bool _initialized = false;
@@ -38,26 +41,26 @@ class FirebaseBackendDiagnosticsService {
   }) async {
     if (_initialized || kIsWeb) return;
     _initialized = true;
+    _periodicCheckInterval = periodicCheckInterval;
+    WidgetsBinding.instance.addObserver(this);
 
     // Initialize baseline state before periodic checks.
     await _runCheck(trigger: 'startup');
-
     _connectivitySub = _connectivity.onConnectivityChanged.listen((results) {
       final online = !results.contains(ConnectivityResult.none);
       if (!online) {
         WasteAppLogger.warning(
           'backend_connectivity_offline',
-          context: {'connectivity_results': results.map((r) => r.name).toList()},
+          context: {
+            'connectivity_results': results.map((r) => r.name).toList()
+          },
         );
         return;
       }
 
       unawaited(_runCheck(trigger: 'connectivity_restored'));
     });
-
-    _periodicTimer = Timer.periodic(periodicCheckInterval, (_) {
-      unawaited(_runCheck(trigger: 'periodic'));
-    });
+    _startPeriodicChecks();
 
     WasteAppLogger.info(
       'firebase_backend_diagnostics_initialized',
@@ -130,6 +133,34 @@ class FirebaseBackendDiagnosticsService {
     }
   }
 
+  void _startPeriodicChecks() {
+    _periodicTimer?.cancel();
+    _periodicTimer = Timer.periodic(_periodicCheckInterval, (_) {
+      unawaited(_runCheck(trigger: 'periodic'));
+    });
+  }
+
+  void _stopPeriodicChecks() {
+    _periodicTimer?.cancel();
+    _periodicTimer = null;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        unawaited(_runCheck(trigger: 'resumed'));
+        _startPeriodicChecks();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        _stopPeriodicChecks();
+        break;
+    }
+  }
+
   Future<_HostCheckResult> _checkHost(String host) async {
     try {
       final lookup = await InternetAddress.lookup(host).timeout(
@@ -144,7 +175,9 @@ class FirebaseBackendDiagnosticsService {
 
       return const _HostCheckResult(ok: true);
     } on SocketException catch (e) {
-      return _HostCheckResult(ok: false, reason: 'socket_exception:${e.osError?.message ?? e.message}');
+      return _HostCheckResult(
+          ok: false,
+          reason: 'socket_exception:${e.osError?.message ?? e.message}');
     } on TimeoutException {
       return const _HostCheckResult(ok: false, reason: 'dns_timeout');
     } catch (e) {
@@ -153,8 +186,9 @@ class FirebaseBackendDiagnosticsService {
   }
 
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _connectivitySub?.cancel();
-    _periodicTimer?.cancel();
+    _stopPeriodicChecks();
   }
 }
 

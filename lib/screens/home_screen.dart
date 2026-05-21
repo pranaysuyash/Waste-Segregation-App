@@ -629,7 +629,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   children: [
                     Expanded(
                       child: ModernButton(
-                        text: 'Scan Item',
+                        text: 'Scan',
                         icon: Icons.camera_alt,
                         onPressed: _takePhoto,
                         backgroundColor: Colors.white,

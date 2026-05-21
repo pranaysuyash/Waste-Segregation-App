@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import { OpenAI } from 'openai';
 import cors from 'cors';
 import * as fs from 'fs';
@@ -181,7 +182,7 @@ const enforceRateLimit = async ({
       count: nextCount,
       windowStartMs: nextWindowStartMs,
       windowSeconds,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
 
     return {
@@ -384,7 +385,7 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
         materialId,
         material: materialDescription,
         language: lang,
-        generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        generatedAt: FieldValue.serverTimestamp(),
         modelUsed: 'gpt-4',
         version: '1.0'
       };
@@ -436,7 +437,7 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
         materialId: req.body.materialId,
         material: req.body.material,
         language: req.body.lang || 'en',
-        generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        generatedAt: FieldValue.serverTimestamp(),
         modelUsed: 'fallback',
         version: '1.0',
         error: 'AI generation failed, using fallback instructions'
@@ -659,8 +660,8 @@ export const clearAllData = asiaSouth1.https.onCall(async (data, context) => {
       totalClassifications: 0,
       totalPoints: 0,
       categoryBreakdown: {},
-      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastUpdated: FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
     
     console.log('✅ Community stats reset to zero');
@@ -848,8 +849,8 @@ async function processCompletedJob(jobId: string, outputFileId: string, jobData:
         await db.collection('ai_jobs').doc(jobId).update({
           status: 'completed',
           result: classification,
-          completedAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          completedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
         });
 
         // Add to user's classification history
@@ -905,7 +906,7 @@ function parseClassificationResult(openaiResult: any): ClassificationResult {
       disposalInstructions: parsed.disposalInstructions || 'Dispose according to local guidelines',
       environmentalImpact: parsed.environmentalImpact || 'Environmental impact information not available',
       tips: parsed.tips || [],
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      timestamp: FieldValue.serverTimestamp(),
       analysisMethod: 'batch_ai',
       processingTime: 0, // Batch processing time is handled differently
     };
@@ -920,7 +921,7 @@ function parseClassificationResult(openaiResult: any): ClassificationResult {
       disposalInstructions: 'Unable to classify item. Please dispose according to local guidelines.',
       environmentalImpact: 'Classification failed - environmental impact unknown',
       tips: ['Contact local waste management for guidance'],
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      timestamp: FieldValue.serverTimestamp(),
       analysisMethod: 'batch_ai_fallback',
       processingTime: 0,
     };
@@ -935,9 +936,9 @@ async function updateJobStatus(jobId: string, batchStatus: BatchJobStatus, curre
   
   await db.collection('ai_jobs').doc(jobId).update({
     status: batchStatus.status,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
     ...(batchStatus.status === 'processing' && !currentJobData.processingStartedAt && {
-      processingStartedAt: admin.firestore.FieldValue.serverTimestamp()
+      processingStartedAt: FieldValue.serverTimestamp()
     })
   });
   
@@ -953,8 +954,8 @@ async function updateJobWithError(jobId: string, errorMessage: string): Promise<
   await db.collection('ai_jobs').doc(jobId).update({
     status: 'failed',
     error: errorMessage,
-    failedAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    failedAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   });
   
   functions.logger.error(`Job ${jobId} failed: ${errorMessage}`);
@@ -971,7 +972,7 @@ async function addToClassificationHistory(userId: string, classification: Classi
     userId,
     imagePath: jobData.imagePath,
     thumbnailPath: jobData.thumbnailPath,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
     source: 'batch_processing',
     jobId: jobData.id,
   };
@@ -995,7 +996,7 @@ async function triggerJobCompletionNotification(jobId: string, userId: string, c
       jobId,
       classification,
     },
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
     read: false,
   };
   

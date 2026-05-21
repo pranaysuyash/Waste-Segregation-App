@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
@@ -15,13 +16,15 @@ class AnalyticsService extends ChangeNotifier {
       : _enableFirestore = enableFirestore {
     if (_enableFirestore) {
       _firestore = FirebaseFirestore.instance;
+      // Start optimistic and fall back only if a real write fails.
+      _isFirestoreAvailable = true;
     } else {
       _isFirestoreAvailable = false;
     }
     _initializeSession();
-    _initializeFirestore();
   }
-  static const String _analyticsCollection = FirestoreCollections.analyticsEvents;
+  static const String _analyticsCollection =
+      FirestoreCollections.analyticsEvents;
 
   FirebaseFirestore? _firestore;
   final StorageService _storageService;
@@ -29,6 +32,7 @@ class AnalyticsService extends ChangeNotifier {
   final AnalyticsConsentManager _consentManager = AnalyticsConsentManager();
   final AnalyticsSchemaValidator _validator = AnalyticsSchemaValidator();
   final bool _enableFirestore;
+  Timer? _firestoreRecoveryTimer;
 
   String? _currentSessionId;
   DateTime? _sessionStartTime;
@@ -157,6 +161,11 @@ class AnalyticsService extends ChangeNotifier {
       }
 
       _pendingEvents.add(event);
+      _sessionEvents.add(event);
+      if (_sessionEvents.length > _maxSessionEvents) {
+        _sessionEvents.removeRange(
+            0, _sessionEvents.length - _maxSessionEvents);
+      }
 
       // Save to Firebase immediately (could be batched for efficiency)
       if (_isFirestoreAvailable) {
@@ -724,21 +733,22 @@ class AnalyticsService extends ChangeNotifier {
       'userEventCounts': userCounts,
       'dailyTotals': dailyTotals,
       'mostActiveUsers': _getMostActiveUsers(userCounts),
-      'averageEventsPerUser': uniqueUsers.isNotEmpty
-          ? events.length / uniqueUsers.length
-          : 0,
+      'averageEventsPerUser':
+          uniqueUsers.isNotEmpty ? events.length / uniqueUsers.length : 0,
     };
   }
 
   /// Get the most active users from user counts
-  List<Map<String, dynamic>> _getMostActiveUsers(
-      Map<String, int> userCounts) {
+  List<Map<String, dynamic>> _getMostActiveUsers(Map<String, int> userCounts) {
     final sortedUsers = userCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    return sortedUsers.take(10).map((e) => {
-          'userId': e.key,
-          'eventCount': e.value,
-        }).toList();
+    return sortedUsers
+        .take(10)
+        .map((e) => {
+              'userId': e.key,
+              'eventCount': e.value,
+            })
+        .toList();
   }
 
   /// Aggregate content analytics from events
@@ -807,9 +817,7 @@ class AnalyticsService extends ChangeNotifier {
       // If Firestore fails, mark as unavailable and store locally
       _isFirestoreAvailable = false;
       _pendingEvents.add(event);
-
-      // Try to reinitialize Firestore connection in background
-      _initializeFirestore();
+      _scheduleFirestoreRecoveryProbe();
     }
   }
 
@@ -876,7 +884,7 @@ class AnalyticsService extends ChangeNotifier {
   }) async {
     // Get popular content as a proxy for events
     final popularContent = await getPopularContent(100);
-    
+
     return {
       'family_analytics': _calculateFamilyAnalytics([]),
       'popular_features': _calculatePopularFeatures(
@@ -1032,13 +1040,14 @@ class AnalyticsService extends ChangeNotifier {
 
   /// Flushes any pending events and ends the current session.
   @override
-  Future<void> dispose() async {
-    trackSessionEnd();
+  void dispose() {
+    unawaited(trackSessionEnd());
+    _firestoreRecoveryTimer?.cancel();
     super.dispose();
   }
 
   /// Initializes Firestore connection and checks availability
-  void _initializeFirestore() async {
+  Future<void> _initializeFirestore() async {
     try {
       if (!_enableFirestore || _firestore == null) {
         _isFirestoreAvailable = false;
@@ -1071,6 +1080,7 @@ class AnalyticsService extends ChangeNotifier {
   }
 
   /// Store analytics events locally when Firestore is unavailable
+  // ignore: unused_element
   void _storeEventsLocally() {
     WasteAppLogger.info(
         'Analytics: Storing ${_pendingEvents.length} events locally');
@@ -1086,30 +1096,7 @@ class AnalyticsService extends ChangeNotifier {
 
   /// Syncs pending events to Firestore when connection is available
   Future<void> _syncPendingEvents() async {
-    if (!_isFirestoreAvailable ||
-        _firestore == null ||
-        _pendingEvents.isEmpty) {
-      return;
-    }
-
-    try {
-      final batch = _firestore!.batch();
-
-      for (final event in _pendingEvents) {
-        final docRef = _firestore!.collection(_analyticsCollection).doc();
-        batch.set(docRef, event.toJson());
-      }
-
-      await batch.commit();
-      WasteAppLogger.info(
-          '✅ Synced ${_pendingEvents.length} pending analytics events');
-      _pendingEvents.clear();
-
-      // Save cleared pending events to local storage
-      await _storageService.saveAnalyticsEvents(_pendingEvents);
-    } catch (e) {
-      WasteAppLogger.severe('❌ Failed to sync pending events: $e');
-    }
+    await _processPendingEvents();
   }
 
   /// Stores an event locally when Firestore is unavailable
@@ -1125,5 +1112,18 @@ class AnalyticsService extends ChangeNotifier {
     _storageService.saveAnalyticsEvents(_pendingEvents);
     WasteAppLogger.info(
         '📱 Stored analytics event locally (${_pendingEvents.length} pending)');
+  }
+
+  void _scheduleFirestoreRecoveryProbe() {
+    if (!_enableFirestore ||
+        _firestore == null ||
+        _firestoreRecoveryTimer != null) {
+      return;
+    }
+
+    _firestoreRecoveryTimer = Timer(const Duration(minutes: 5), () {
+      _firestoreRecoveryTimer = null;
+      unawaited(_initializeFirestore());
+    });
   }
 }

@@ -52,6 +52,11 @@ import 'package:waste_segregation_app/widgets/animations/error_recovery_animatio
 import 'package:waste_segregation_app/widgets/advanced_ui/impact_dashboard_example.dart';
 import 'package:waste_segregation_app/widgets/advanced_ui/cyberpunk_dashboard_example.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
+import 'package:waste_segregation_app/widgets/animations/empty_state_animations.dart'
+    hide RefreshLoadingWidget;
+import 'package:waste_segregation_app/widgets/enhanced_empty_states.dart';
+import 'package:waste_segregation_app/widgets/production_error_handler.dart';
+import 'package:waste_segregation_app/widgets/share_button.dart';
 
 void main() {
   runApp(const WidgetbookApp());
@@ -1284,6 +1289,111 @@ WidgetbookCategory _componentCategory() {
             ],
           ),
           WidgetbookComponent(
+            name: 'Empty and Error States',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'EmptyStateWidget',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 360,
+                    child: EmptyStateWidget(
+                      title: 'No history yet',
+                      message: 'Start scanning to build your timeline.',
+                      icon: Icons.history,
+                    ),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'EmptyHistoryStateWidget',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 320,
+                    child: EmptyHistoryStateWidget(),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'EmptySearchResultsWidget',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 320,
+                    child: EmptySearchResultsWidget(searchQuery: 'metal can'),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'EnhancedEmptyState',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 360,
+                    child: EnhancedEmptyState(type: EmptyStateType.noResults),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ScanningEmptyState',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 280,
+                    child: ScanningEmptyState(),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ProgressEmptyState',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 260,
+                    child: ProgressEmptyState(
+                      title: 'Classifying...',
+                      message: 'Preparing prediction.',
+                      progress: 0.64,
+                    ),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'NetworkErrorHandler',
+                builder: (context) => _surface(
+                  SizedBox(
+                    height: 280,
+                    child: NetworkErrorHandler(onRetry: _noop),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'EmptyStateHandler',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 280,
+                    child: EmptyStateHandler(
+                      title: 'No data',
+                      message: 'Nothing to show in this section.',
+                    ),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'LoadingStateHandler',
+                builder: (context) => _surface(
+                  const SizedBox(height: 220, child: LoadingStateHandler()),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ProductionErrorHandler',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 280,
+                    child: ProductionErrorHandler(
+                      child: Text('safe child'),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
             name: 'Gamification Basics',
             useCases: [
               WidgetbookUseCase(
@@ -1300,6 +1410,35 @@ WidgetbookCategory _componentCategory() {
                 builder: (context) => _surface(
                   const ProfileSummaryCard(
                     points: UserPoints(total: 1200, level: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Share Widgets',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'ShareButton',
+                builder: (context) => _surface(
+                  const ShareButton(
+                    text: 'I recycled 5 items today',
+                    showSnackBar: false,
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ShareFloatingActionButton',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 120,
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: ShareFloatingActionButton(
+                        text: 'Weekly impact summary',
+                        showSnackBar: false,
+                      ),
+                    ),
                   ),
                 ),
               ),

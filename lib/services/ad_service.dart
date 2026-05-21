@@ -59,6 +59,11 @@ class AdService extends ChangeNotifier {
   // Getters
   bool get isInitialized => _isInitialized;
 
+  @visibleForTesting
+  void debugSetCanRequestAds(bool value) {
+    _canRequestAds = value;
+  }
+
   bool get shouldShowAds =>
       !kIsWeb &&
       _canRequestAds &&
@@ -676,6 +681,7 @@ class AdService extends ChangeNotifier {
 
   @override
   void dispose() {
+    if (_disposed) return;
     _disposed = true;
     _interstitialAd?.dispose();
     _bannerAd?.dispose();

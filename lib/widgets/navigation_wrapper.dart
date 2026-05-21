@@ -463,6 +463,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
     return Consumer<NavigationSettingsService>(
       builder: (context, navSettings, child) {
+        final showGlobalScanFab = navSettings.fabEnabled && _currentIndex == 2;
         // Get navigation style
         ModernBottomNavStyle navStyle;
         switch (navSettings.navigationStyle) {
@@ -504,7 +505,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                 ),
               ],
             ),
-            floatingActionButton: navSettings.fabEnabled
+            floatingActionButton: showGlobalScanFab
                 ? AnimatedFAB(onPressed: () => _showCaptureOptions(context))
                 : null,
           );
@@ -528,7 +529,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                 ),
               ],
             ),
-            floatingActionButton: navSettings.fabEnabled
+            floatingActionButton: showGlobalScanFab
                 ? AnimatedFAB(onPressed: () => _showCaptureOptions(context))
                 : null,
           );
@@ -582,7 +583,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                   ],
                 )
               : null,
-          floatingActionButton: navSettings.fabEnabled
+          floatingActionButton: showGlobalScanFab
               ? FilledButton.icon(
                   onPressed: () => _showCaptureOptions(context),
                   icon: const Icon(Icons.camera_alt),

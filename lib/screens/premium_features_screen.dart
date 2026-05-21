@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/premium_feature.dart';
 import '../services/premium_service.dart';
+import '../services/purchase_service.dart';
 import '../widgets/premium_feature_card.dart';
 import '../utils/constants.dart';
 import '../utils/developer_config.dart';
@@ -280,27 +281,98 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
   }
 
   Widget _buildPurchaseButton(BuildContext context) {
+    final purchaseService = Provider.of<PurchaseService?>(context);
+    final premiumService = Provider.of<PremiumService>(context);
+
+    if (purchaseService == null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          children: [
+            ElevatedButton.icon(
+              onPressed: null,
+              icon: const Icon(Icons.construction),
+              label: const Text('Coming Soon'),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'In-app purchase is not yet available. Use developer mode to test premium features.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final hasPremium = premiumService.hasActivePremiumPlan();
+    final product = purchaseService.premiumProduct;
+
+    final buttonLabel = hasPremium
+        ? 'Premium Active'
+        : purchaseService.isProcessingPurchase
+            ? 'Processing...'
+            : product == null
+                ? 'Premium Unavailable'
+                : 'Upgrade ${product.price}';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         children: [
           ElevatedButton.icon(
-            onPressed: null,
-            icon: const Icon(Icons.construction),
-            label: const Text('Coming Soon'),
+            onPressed: hasPremium || !purchaseService.canPurchase
+                ? null
+                : () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    await purchaseService.buyPremium();
+                    if (!mounted) return;
+                    if (premiumService.hasActivePremiumPlan()) {
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Premium unlocked successfully.'),
+                        ),
+                      );
+                    } else if (purchaseService.errorMessage != null) {
+                      messenger.showSnackBar(
+                        SnackBar(content: Text(purchaseService.errorMessage!)),
+                      );
+                    }
+                  },
+            icon: Icon(hasPremium ? Icons.verified : Icons.workspace_premium),
+            label: Text(buttonLabel),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey.shade300,
-              disabledBackgroundColor: Colors.grey.shade300,
-              disabledForegroundColor: Colors.grey.shade600,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: purchaseService.isProcessingPurchase
+                ? null
+                : () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    await purchaseService.restorePurchases();
+                    if (!mounted) return;
+                    if (purchaseService.errorMessage != null) {
+                      messenger.showSnackBar(
+                        SnackBar(content: Text(purchaseService.errorMessage!)),
+                      );
+                    }
+                  },
+            child: const Text('Restore Purchases'),
+          ),
+          const SizedBox(height: 8),
           Text(
-            'In-app purchase is not yet available. Use developer mode to test premium features.',
+            purchaseService.errorMessage ??
+                (hasPremium
+                    ? 'Your premium entitlement is active on this device.'
+                    : 'Store purchase flow enabled. If no product appears, verify PREMIUM_SUBSCRIPTION_PRODUCT_ID and store listing.'),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,

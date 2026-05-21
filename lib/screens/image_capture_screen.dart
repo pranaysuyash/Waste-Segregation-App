@@ -22,6 +22,7 @@ import 'result_screen_wrapper.dart';
 import 'job_queue_screen.dart';
 import 'zero_balance_sheet.dart';
 import '../utils/waste_app_logger.dart';
+import '../utils/ai_error_messages.dart';
 import '../services/premium_service.dart';
 import '../widgets/manual_region_selector.dart';
 import 'combined_result_screen.dart';
@@ -800,9 +801,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         context: {'service': 'screen', 'file': 'image_capture_screen'},
       );
       if (mounted && !_isCancelled) {
+        final userMessage = AiErrorMessages.toUserMessage(e);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Analysis failed: ${e.toString()}'),
+            content: Text(userMessage),
             duration: const Duration(seconds: 5),
           ),
         );
@@ -1639,9 +1641,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         context: {'service': 'screen', 'file': 'image_capture_screen'},
       );
       if (mounted) {
+        final userMessage = AiErrorMessages.toUserMessage(e);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Analysis failed: ${e.toString()}'),
+            content: Text(userMessage),
             duration: const Duration(seconds: 5),
           ),
         );

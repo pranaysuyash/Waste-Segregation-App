@@ -26,6 +26,7 @@ import 'services/educational_content_service.dart';
 import 'services/educational_content_analytics_service.dart';
 import 'services/gamification_service.dart';
 import 'services/premium_service.dart';
+import 'services/purchase_service.dart';
 import 'services/ad_service.dart';
 import 'services/user_consent_service.dart';
 import 'services/navigation_settings_service.dart';
@@ -123,6 +124,7 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
   late EducationalContentService _educationalContentService;
   late GamificationService _gamificationService;
   late PremiumService _premiumService;
+  late PurchaseService _purchaseService;
   late AdService _adService;
   late GoogleDriveService _googleDriveService;
   late NavigationSettingsService _navigationSettingsService;
@@ -256,6 +258,7 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       _gamificationService = GamificationService(
           storageService, CloudStorageService(storageService));
       _premiumService = PremiumService();
+      _purchaseService = PurchaseService(_premiumService);
       _adService = AdService();
       _googleDriveService = GoogleDriveService(storageService);
       _navigationSettingsService = NavigationSettingsService();
@@ -268,6 +271,9 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       unawaited(_premiumService
           .initialize()
           .catchError((e) => WasteAppLogger.severe('Premium init failed: $e')));
+      unawaited(_purchaseService
+          .initialize()
+          .catchError((e) => WasteAppLogger.severe('Purchase init failed: $e')));
       unawaited(_adService
           .initialize()
           .catchError((e) => WasteAppLogger.severe('Ad init failed: $e')));
@@ -315,6 +321,7 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
 
   @override
   void dispose() {
+    _purchaseService.dispose();
     _backendDiagnosticsService.dispose();
     super.dispose();
   }
@@ -364,6 +371,7 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
       educationalContentService: _educationalContentService,
       gamificationService: _gamificationService,
       premiumService: _premiumService,
+      purchaseService: _purchaseService,
       adService: _adService,
       googleDriveService: _googleDriveService,
       navigationSettingsService: _navigationSettingsService,
@@ -477,6 +485,7 @@ class WasteSegregationApp extends StatelessWidget {
     required this.educationalContentService,
     required this.gamificationService,
     required this.premiumService,
+    required this.purchaseService,
     required this.adService,
     required this.googleDriveService,
     required this.navigationSettingsService,
@@ -492,6 +501,7 @@ class WasteSegregationApp extends StatelessWidget {
   final EducationalContentService educationalContentService;
   final GamificationService gamificationService;
   final PremiumService premiumService;
+  final PurchaseService purchaseService;
   final AdService adService;
   final GoogleDriveService googleDriveService;
   final NavigationSettingsService navigationSettingsService;
@@ -522,6 +532,8 @@ class WasteSegregationApp extends StatelessWidget {
           ChangeNotifierProvider<GamificationService>.value(
               value: gamificationService),
           ChangeNotifierProvider<PremiumService>.value(value: premiumService),
+          ChangeNotifierProvider<PurchaseService>.value(
+              value: purchaseService),
           ChangeNotifierProvider<AdService>.value(value: adService),
           ChangeNotifierProvider<NavigationSettingsService>.value(
               value: navigationSettingsService),
