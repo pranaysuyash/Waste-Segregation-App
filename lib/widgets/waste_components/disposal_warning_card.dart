@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
-import '../../utils/waste_theme.dart';
 
 /// A Material 3 warning / alert card for disposal cautions.
 ///

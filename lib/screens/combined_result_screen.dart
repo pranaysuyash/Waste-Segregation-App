@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/multi_item_classification_result.dart';
 import '../utils/constants.dart';
+import '../utils/waste_theme.dart';
 import '../widgets/modern_ui/modern_cards.dart';
 import '../widgets/per_item_result_card.dart';
 
@@ -419,15 +420,7 @@ class CombinedResultScreen extends ConsumerWidget {
     );
   }
 
-  Color _categoryColor(String category) {
-    final lower = category.toLowerCase();
-    if (lower.contains('wet')) return AppTheme.wetWasteColor;
-    if (lower.contains('dry')) return AppTheme.dryWasteColor;
-    if (lower.contains('hazard')) return AppTheme.hazardousWasteColor;
-    if (lower.contains('medical')) return AppTheme.medicalWasteColor;
-    if (lower.contains('non')) return AppTheme.nonWasteColor;
-    return AppTheme.primaryColor;
-  }
+  Color _categoryColor(String category) => WasteTheme.categoryColor(category);
 }
 
 class _IndividualResultPlaceholder extends StatelessWidget {

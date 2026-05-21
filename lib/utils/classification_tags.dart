@@ -82,23 +82,26 @@ void _addEnvironmentalImpactTags(WasteClassification c, List<TagData> tags) {
 }
 
 // ---------------------------------------------------------------------------
-// Local information (BBMP / Bangalore)
+// Local information
 // ---------------------------------------------------------------------------
 
 void _addLocalInformationTags(WasteClassification c, List<TagData> tags) {
-  // BBMP-specific schedules – this is the only place locality is hard-coded.
-  // Future: make this pluggable via LocalGuidelinesPlugin.
-  switch (c.category.toLowerCase()) {
-    case 'wet waste':
-      tags.add(
-          TagFactory.localInfo('BBMP collects daily 6-10 AM', Icons.schedule));
-    case 'dry waste':
+  if (c.bbmpComplianceStatus != null && c.bbmpComplianceStatus!.isNotEmpty) {
+    tags.add(TagFactory.localInfo(
+        'Compliance: ${c.bbmpComplianceStatus}', Icons.gavel));
+  }
+
+  if (c.localGuidelinesReference != null &&
+      c.localGuidelinesReference!.isNotEmpty) {
+    tags.add(
+        TagFactory.localInfo(c.localGuidelinesReference!, Icons.description));
+  }
+
+  if (c.localRegulations != null && c.localRegulations!.isNotEmpty) {
+    for (final entry in c.localRegulations!.entries.take(2)) {
       tags.add(TagFactory.localInfo(
-          'BBMP dry waste: Mon, Wed, Fri', Icons.schedule));
-      tags.add(TagFactory.nearbyFacility('Kabadiwala available', Icons.store));
-    case 'hazardous waste':
-      tags.add(TagFactory.nearbyFacility(
-          'KSPCB facility - Bidadi', Icons.location_on));
+          '${entry.key}: ${entry.value}', Icons.policy));
+    }
   }
 }
 

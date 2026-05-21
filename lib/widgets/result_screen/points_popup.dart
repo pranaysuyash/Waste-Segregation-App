@@ -261,11 +261,10 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
               top: 6,
               child: Opacity(
                 opacity: (0.35 + (0.65 * (1 - t))).clamp(0.35, 1.0),
-                child: Image.asset(
+                child: _buildRewardImage(
                   'assets/images/generated/waste_reward_bin_pulse_asset.png',
                   width: 106,
                   height: 106,
-                  fit: BoxFit.contain,
                 ),
               ),
             ),
@@ -273,11 +272,10 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
               top: dropY,
               child: Transform.scale(
                 scale: dropScale,
-                child: Image.asset(
+                child: _buildRewardImage(
                   'assets/images/generated/waste_reward_drop_asset.png',
                   width: 92,
                   height: 92,
-                  fit: BoxFit.contain,
                 ),
               ),
             ),
@@ -285,11 +283,10 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
               top: 42 - (20 * burstOpacity),
               child: Opacity(
                 opacity: burstOpacity,
-                child: Image.asset(
+                child: _buildRewardImage(
                   'assets/images/generated/waste_reward_particle_burst_asset.png',
                   width: 94,
                   height: 94,
-                  fit: BoxFit.contain,
                 ),
               ),
             ),
@@ -297,15 +294,38 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
               top: 22,
               child: Transform.scale(
                 scale: assetScale,
-                child: Image.asset(
+                child: _buildRewardImage(
                   'assets/images/generated/waste_reward_collection_asset.png',
                   width: 132,
                   height: 132,
-                  fit: BoxFit.contain,
                 ),
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Widget _buildRewardImage(
+    String assetPath, {
+    required double width,
+    required double height,
+  }) {
+    return Image.asset(
+      assetPath,
+      width: width,
+      height: height,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        return SizedBox(
+          width: width,
+          height: height,
+          child: Icon(
+            Icons.recycling,
+            size: width * 0.55,
+            color: Colors.white.withValues(alpha: 0.85),
+          ),
         );
       },
     );

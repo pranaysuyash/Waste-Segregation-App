@@ -105,6 +105,7 @@ import 'package:waste_segregation_app/widgets/per_item_result_card.dart';
 import 'package:waste_segregation_app/widgets/multi_item_region_review.dart';
 import 'package:waste_segregation_app/models/detected_waste_region.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
+import 'package:waste_segregation_app/widgets/waste_components/waste_components.dart';
 
 void main() {
   runApp(const WidgetbookApp());
@@ -2340,8 +2341,97 @@ WidgetbookCategory _componentCategory() {
               WidgetbookUseCase(
                 name: 'RecyclingCodeInfoCard',
                 builder: (context) => _surface(
-                  const RecyclingCodeInfoCard(code: '1'),
+                 const RecyclingCodeInfoCard(code: '1'),
+                  ),
                 ),
+              ],
+            ),
+          ),
+          WidgetbookFolder(
+            name: 'Waste Components (v2)',
+            children: [
+              WidgetbookComponent(
+                name: 'ConfidenceIndicator',
+                useCases: [
+                  WidgetbookUseCase(
+                    name: 'High',
+                    builder: (context) => _surface(
+                      const ConfidenceIndicator(confidencePercent: 89),
+                    ),
+                  ),
+                  WidgetbookUseCase(
+                    name: 'Medium',
+                    builder: (context) => _surface(
+                      const ConfidenceIndicator(confidencePercent: 65),
+                    ),
+                  ),
+                  WidgetbookUseCase(
+                    name: 'Low',
+                    builder: (context) => _surface(
+                      const ConfidenceIndicator(confidencePercent: 34),
+                    ),
+                  ),
+                ],
+              ),
+              WidgetbookComponent(
+                name: 'BinRecommendationChip',
+                useCases: [
+                  WidgetbookUseCase(
+                    name: 'Wet Waste',
+                    builder: (context) => _surface(
+                      const BinRecommendationChip(category: 'Wet Waste'),
+                    ),
+                  ),
+                  WidgetbookUseCase(
+                    name: 'Hazardous',
+                    builder: (context) => _surface(
+                      const BinRecommendationChip(category: 'Hazardous Waste'),
+                    ),
+                  ),
+                ],
+              ),
+              WidgetbookComponent(
+                name: 'PointsRewardChip',
+                useCases: [
+                  WidgetbookUseCase(
+                    name: 'Default',
+                    builder: (context) => _surface(
+                      const PointsRewardChip(points: 15),
+                    ),
+                  ),
+                ],
+              ),
+              WidgetbookComponent(
+                name: 'DisposalWarningCard',
+                useCases: [
+                  WidgetbookUseCase(
+                    name: 'High Severity',
+                    builder: (context) => _surface(
+                      const DisposalWarningCard(
+                        title: 'Hazardous Material',
+                        warnings: [
+                          'Do not mix with regular waste',
+                          'Use protective gloves',
+                        ],
+                        severity: WarningSeverity.high,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              WidgetbookComponent(
+                name: 'LocalRuleChip',
+                useCases: [
+                  WidgetbookUseCase(
+                    name: 'Default',
+                    builder: (context) => _surface(
+                      const LocalRuleChip(
+                        authority: 'BBMP',
+                        label: 'Daily collection 6-10 AM',
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

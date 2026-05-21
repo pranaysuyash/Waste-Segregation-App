@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
+import '../../utils/waste_theme.dart';
 import 'modern_badges.dart';
 import '../responsive_text.dart';
 
@@ -935,22 +936,8 @@ class RecentClassificationCard extends StatelessWidget {
     );
   }
 
-  Color _getDefaultCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-        return AppTheme.wetWasteColor;
-      case 'dry waste':
-        return AppTheme.dryWasteColor;
-      case 'hazardous waste':
-        return AppTheme.hazardousWasteColor;
-      case 'medical waste':
-        return AppTheme.medicalWasteColor;
-      case 'non-waste':
-        return AppTheme.nonWasteColor;
-      default:
-        return AppTheme.neutralColor;
-    }
-  }
+  Color _getDefaultCategoryColor(String category) =>
+      WasteTheme.categoryColor(category);
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();

@@ -132,6 +132,9 @@ void main() {
       test('user correction → re-analyze', () {
         final machine = ClassificationStateMachine();
         machine.transition(ClassificationState.imageSelected);
+        machine.transition(ClassificationState.qualityChecking);
+        machine.transition(ClassificationState.cacheChecking);
+        machine.transition(ClassificationState.cloudClassifying);
         machine.transition(ClassificationState.classificationSucceeded);
         // user disagreed, fallback to awaiting confirmation
         machine.transition(ClassificationState.awaitingUserConfirmation);
@@ -155,7 +158,7 @@ void main() {
       test('reset() returns to idle with zero count', () {
         final machine = ClassificationStateMachine();
         machine.transition(ClassificationState.imageSelected);
-        machine.transition(ClassificationState.cloudClassifying);
+        machine.transition(ClassificationState.qualityChecking);
         expect(machine.transitionCount, equals(2));
 
         machine.reset();
@@ -179,6 +182,8 @@ void main() {
 
         final permanent = ClassificationStateMachine()
           ..transition(ClassificationState.imageSelected)
+          ..transition(ClassificationState.qualityChecking)
+          ..transition(ClassificationState.cacheChecking)
           ..transition(ClassificationState.cloudClassifying)
           ..transition(ClassificationState.failedPermanent);
         expect(permanent.isTerminal, isTrue);
@@ -192,12 +197,16 @@ void main() {
       test('isRecoverable only for failedRetryable', () {
         final retryable = ClassificationStateMachine()
           ..transition(ClassificationState.imageSelected)
+          ..transition(ClassificationState.qualityChecking)
+          ..transition(ClassificationState.cacheChecking)
           ..transition(ClassificationState.cloudClassifying)
           ..transition(ClassificationState.failedRetryable);
         expect(retryable.isRecoverable, isTrue);
 
         final permanent = ClassificationStateMachine()
           ..transition(ClassificationState.imageSelected)
+          ..transition(ClassificationState.qualityChecking)
+          ..transition(ClassificationState.cacheChecking)
           ..transition(ClassificationState.cloudClassifying)
           ..transition(ClassificationState.failedPermanent);
         expect(permanent.isRecoverable, isFalse);
@@ -233,6 +242,8 @@ void main() {
       test('failedPermanent → qualityChecking throws', () {
         final machine = ClassificationStateMachine();
         machine.transition(ClassificationState.imageSelected);
+        machine.transition(ClassificationState.qualityChecking);
+        machine.transition(ClassificationState.cacheChecking);
         machine.transition(ClassificationState.cloudClassifying);
         machine.transition(ClassificationState.failedPermanent);
         expect(
@@ -244,6 +255,9 @@ void main() {
       test('synced → saving throws', () {
         final machine = ClassificationStateMachine();
         machine.transition(ClassificationState.imageSelected);
+        machine.transition(ClassificationState.qualityChecking);
+        machine.transition(ClassificationState.cacheChecking);
+        machine.transition(ClassificationState.cloudClassifying);
         machine.transition(ClassificationState.classificationSucceeded);
         machine.transition(ClassificationState.saving);
         machine.transition(ClassificationState.saved);

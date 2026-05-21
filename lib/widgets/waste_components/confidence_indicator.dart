@@ -47,7 +47,7 @@ class ConfidenceIndicator extends StatelessWidget {
     final textStyle = _textStyle(theme, color);
     final iconSize = _iconSize();
 
-    Widget pill = _buildPill(theme, color, icon, label, textStyle, iconSize);
+    final pill = _buildPill(theme, color, icon, label, textStyle, iconSize);
 
     return Semantics(
       label: semanticsLabel,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../../utils/constants.dart';
+import '../../utils/waste_theme.dart';
 import '../interactive_tag.dart';
 
 /// Main classification display card with thumbnail and basic information
@@ -17,26 +18,7 @@ class ClassificationCard extends StatelessWidget {
   final Widget Function(double size) thumbnailBuilder;
   final List<TagData> tags;
 
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-      case 'organic':
-        return Colors.green;
-      case 'dry waste':
-      case 'recyclable':
-        return Colors.blue;
-      case 'hazardous waste':
-      case 'hazardous':
-        return Colors.red;
-      case 'medical waste':
-        return Colors.purple;
-      case 'e-waste':
-      case 'electronic':
-        return Colors.orange;
-      default:
-        return Colors.grey;
-    }
-  }
+  Color _getCategoryColor(String category) => WasteTheme.categoryColor(category);
 
   @override
   Widget build(BuildContext context) {

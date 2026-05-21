@@ -24,6 +24,11 @@ class FakePremiumService extends ChangeNotifier implements PremiumService {
   }
 
   @override
+  Future<void> setPremiumPlanEntitlement(bool isPremium) async {
+    await setPremiumFeature(PremiumService.proSubscriptionEntitlement, isPremium);
+  }
+
+  @override
   Future<void> toggleFeature(String featureId) async {
     await setPremiumFeature(featureId, !isPremiumFeature(featureId));
   }

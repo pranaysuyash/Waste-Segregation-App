@@ -15,5 +15,8 @@
   },
   "dependencies": {
     "firebase": "^11.10.0"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.5"
   }
 }

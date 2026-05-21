@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
@@ -115,6 +116,8 @@ Widget createTestWidget({
 }) {
   return MaterialApp(
     theme: theme ?? ThemeData.light(),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: child,
     debugShowCheckedModeBanner: false,
   );
@@ -138,6 +141,8 @@ Widget createRiverpodTestWidget({
     overrides: [...defaultOverrides, ...(overrides ?? [])],
     child: MaterialApp(
       theme: theme ?? ThemeData.light(),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: child,
       debugShowCheckedModeBanner: false,
     ),

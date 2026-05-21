@@ -288,21 +288,16 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       ref.read(classificationStateMachineProvider.notifier);
 
   ClassificationState get _classificationState => _stateMachine.current;
+  bool get _isAnalyzing => _stateMachine.isActive;
+  bool get _isCancelled =>
+      _stateMachine.current == ClassificationState.cancelled;
 
   void _setClassificationState(ClassificationState state) {
     if (!mounted) return;
     _stateMachineNotifier.transitionTo(state);
-    _analysisStage = AnalysisProgressView.classificationStateToStage(state);
     setState(() {});
   }
 
-  @Deprecated('Use _classificationState instead')
-  AnalysisProgressStage get analysisStage => _analysisStage;
-
-  @Deprecated('Use _setClassificationState instead')
-  void _setAnalysisStage(AnalysisProgressStage stage) {
-    _analysisStage = stage;
-  }
 
   String _currentImageName() {
     return _imageFile?.path.split('/').last ??

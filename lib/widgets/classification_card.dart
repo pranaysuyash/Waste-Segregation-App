@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../screens/history_screen.dart';
+import '../utils/waste_theme.dart';
 import 'helpers/thumbnail_widget.dart';
 
 /// The new beautified classification card with modern Material Design
@@ -239,49 +240,9 @@ class ClassificationCard extends StatelessWidget {
     );
   }
 
-  Color _categoryColor(String cat) {
-    switch (cat.toLowerCase()) {
-      case 'recyclable':
-      case 'dry waste':
-        return Colors.green;
-      case 'organic':
-      case 'wet waste':
-        return Colors.brown;
-      case 'hazardous':
-      case 'hazardous waste':
-        return Colors.red;
-      case 'electronic':
-      case 'e-waste':
-        return Colors.blue;
-      case 'medical':
-      case 'medical waste':
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
-  }
+  Color _categoryColor(String cat) => WasteTheme.categoryColor(cat);
 
-  IconData _categoryIcon(String cat) {
-    switch (cat.toLowerCase()) {
-      case 'recyclable':
-      case 'dry waste':
-        return Icons.recycling;
-      case 'organic':
-      case 'wet waste':
-        return Icons.eco;
-      case 'hazardous':
-      case 'hazardous waste':
-        return Icons.warning;
-      case 'electronic':
-      case 'e-waste':
-        return Icons.electrical_services;
-      case 'medical':
-      case 'medical waste':
-        return Icons.medical_services;
-      default:
-        return Icons.delete;
-    }
-  }
+  IconData _categoryIcon(String cat) => WasteTheme.categoryIcon(cat);
 
   String _disposalText(String? method) {
     switch (method?.toLowerCase()) {
@@ -298,11 +259,7 @@ class ClassificationCard extends StatelessWidget {
     }
   }
 
-  Color _confidenceColor(int pct) {
-    if (pct >= 80) return Colors.green;
-    if (pct >= 60) return Colors.orange;
-    return Colors.red;
-  }
+  Color _confidenceColor(int pct) => WasteTheme.confidenceColor(pct.toDouble());
 
   String _formatRelativeTime(DateTime ts) {
     final diff = DateTime.now().difference(ts);
