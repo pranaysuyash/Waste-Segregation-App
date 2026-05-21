@@ -576,7 +576,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
             Expanded(
               child: ReadMoreText(
                 fact,
-                trimLines: 3,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                   height: 1.5,
@@ -1705,7 +1704,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
             borderRadius: BorderRadius.circular(14),
             side: BorderSide(
               color: nudgeColor.withValues(alpha: 0.2),
-              width: 1,
             ),
           ),
           child: Padding(

@@ -18,6 +18,7 @@ import 'package:waste_segregation_app/services/points_engine.dart';
 import 'package:waste_segregation_app/services/remote_config_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import 'package:waste_segregation_app/utils/firebase_gate.dart';
 
 /// Central provider declarations for all services
 /// This eliminates duplicate provider declarations across the app
@@ -116,7 +117,10 @@ final adServiceProvider = Provider<AdService>((ref) => AdService());
 /// Analytics service provider - single source of truth
 final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
   final storageService = ref.read(storageServiceProvider);
-  return AnalyticsService(storageService);
+  return AnalyticsService(
+    storageService,
+    enableFirestore: isFirebaseEnabled,
+  );
 });
 
 /// Analytics consent manager provider - for GDPR/CCPA compliance

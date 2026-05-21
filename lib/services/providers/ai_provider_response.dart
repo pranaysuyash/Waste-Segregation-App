@@ -1,3 +1,10 @@
+import 'package:waste_segregation_app/models/waste_classification.dart' show WasteClassification;
+import 'package:waste_segregation_app/services/ai_service.dart' show AiService;
+
+import '../../models/waste_classification.dart' show WasteClassification;
+
+import '../ai_service.dart' show AiService;
+
 /// Raw provider response with usage metadata.
 ///
 /// Carries the full wire response back to [AiService] so that prompt

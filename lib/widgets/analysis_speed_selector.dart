@@ -11,10 +11,12 @@ class AnalysisSpeedSelector extends ConsumerWidget {
     super.key,
     required this.selectedSpeed,
     required this.onSpeedChanged,
+    this.forceBatchMode = false,
   });
 
   final AnalysisSpeed selectedSpeed;
   final ValueChanged<AnalysisSpeed> onSpeedChanged;
+  final bool forceBatchMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,6 +26,7 @@ class AnalysisSpeedSelector extends ConsumerWidget {
       data: (wallet) {
         final tokenBalance = wallet?.balance ?? 0;
         final canAffordInstant = tokenBalance >= AnalysisSpeed.instant.cost;
+        final instantAllowed = canAffordInstant && !forceBatchMode;
 
         return Container(
           margin:
@@ -119,14 +122,41 @@ class AnalysisSpeedSelector extends ConsumerWidget {
                       icon: Icons.flash_on,
                       tokenCost: AnalysisSpeed.instant.cost,
                       isSelected: selectedSpeed == AnalysisSpeed.instant,
-                      canAfford: canAffordInstant,
-                      onTap: canAffordInstant
+                      canAfford: instantAllowed,
+                      onTap: instantAllowed
                           ? () => onSpeedChanged(AnalysisSpeed.instant)
-                          : () => _showInsufficientTokensDialog(context),
+                          : () => forceBatchMode
+                              ? _showBatchEnforcedDialog(context)
+                              : _showInsufficientTokensDialog(context),
                     ),
                   ),
                 ],
               ),
+
+              if (forceBatchMode)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.shield,
+                        color: Colors.orange.shade700,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Instant mode is temporarily disabled by cost guardrails.',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Colors.orange.shade800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
               // Cost savings message
               if (selectedSpeed == AnalysisSpeed.batch)
@@ -296,6 +326,16 @@ class AnalysisSpeedSelector extends ConsumerWidget {
             child: const Text('Earn Tokens'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showBatchEnforcedDialog(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+            'Batch mode is enforced right now due to AI cost guardrails.'),
+        duration: Duration(seconds: 3),
       ),
     );
   }

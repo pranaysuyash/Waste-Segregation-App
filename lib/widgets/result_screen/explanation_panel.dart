@@ -280,7 +280,6 @@ class _ExplanationPanelState extends State<ExplanationPanel>
             padding: const EdgeInsets.only(top: 6),
             child: ReadMoreText(
               c.explanation,
-              trimLines: 3,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: cs.onSurface.withValues(alpha: 0.85),
                 height: 1.5,
@@ -477,7 +476,6 @@ class _ExplanationPanelState extends State<ExplanationPanel>
             Expanded(
               child: ReadMoreText(
                 guideline,
-                trimLines: 3,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: cs.onSurface.withValues(alpha: 0.85),
                   height: 1.4,

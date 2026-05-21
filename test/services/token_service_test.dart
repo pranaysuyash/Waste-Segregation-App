@@ -4,6 +4,7 @@ import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/token_service.dart';
+import 'package:waste_segregation_app/utils/firebase_gate.dart';
 
 class _FakeStorageService extends StorageService {
   UserProfile? _profile;
@@ -54,7 +55,7 @@ void main() {
     storage = _FakeStorageService();
     cloud = _FakeCloudStorageService(storage);
     tokenService = TokenService(storage, cloud);
-    TokenService.enableTokenEnforcement = true;
+    TokenService.enableTokenEnforcement = false;
     TokenService.enableServerSideValidation = false;
   });
 
@@ -177,6 +178,7 @@ void main() {
     ));
 
     await tokenService.initialize();
+    TokenService.enableTokenEnforcement = true;
 
     expect(
         tokenService.getAnalysisCost(AnalysisSpeed.instant,
@@ -196,5 +198,25 @@ void main() {
           isPremiumUser: false),
       isFalse,
     );
+  });
+
+  test('spendTokens fails fast when enforcement is on but server validation is off', () async {
+    storage.seedProfile(_baseProfile(
+      wallet: TokenWallet(
+        balance: 12,
+        totalEarned: 20,
+        totalSpent: 8,
+        lastUpdated: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+    ));
+    TokenService.enableTokenEnforcement = true;
+    TokenService.enableServerSideValidation = false;
+
+    if (isFirebaseEnabled) {
+      expect(
+        () => tokenService.spendTokens(2, 'Config guard test'),
+        throwsException,
+      );
+    }
   });
 }

@@ -12,9 +12,11 @@ class EducationalContentScreen extends ConsumerStatefulWidget {
     super.key,
     this.initialCategory,
     this.initialSubcategory,
+    this.showBottomAd = true,
   });
   final String? initialCategory;
   final String? initialSubcategory;
+  final bool showBottomAd;
 
   @override
   ConsumerState<EducationalContentScreen> createState() =>
@@ -212,7 +214,8 @@ class _EducationalContentScreenState
               ),
             ],
           ),
-          const BannerAdWidget(showAtBottom: true),
+          if (widget.showBottomAd)
+            const BannerAdWidget(showAtBottom: true),
         ],
       ),
     );

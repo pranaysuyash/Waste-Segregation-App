@@ -176,7 +176,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     return [
       HomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
-      const EducationalContentScreen(),
+      const EducationalContentScreen(showBottomAd: false),
       const SocialScreen(),
       const AchievementsScreen(),
     ];
@@ -633,7 +633,7 @@ class _AlternativeNavigationWrapperState
     return [
       HomeScreen(isGuestMode: widget.isGuestMode),
       const HistoryScreen(),
-      const EducationalContentScreen(),
+      const EducationalContentScreen(showBottomAd: false),
       const SocialScreen(),
       const AchievementsScreen(),
     ];

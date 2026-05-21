@@ -313,22 +313,88 @@ service cloud.firestore {
       let newHasGamification = newData.keys().hasAny(['gamificationProfile']);
       let oldGamification = oldHasGamification ? oldData.gamificationProfile : null;
       let newGamification = newHasGamification ? newData.gamificationProfile : null;
+      let tokenWalletValid = validateTokenWalletUpdate(oldData, newData);
       
+      return tokenWalletValid
+        && (
+          // Non-gamification profile update: allow when both absent.
+          (oldGamification == null && newGamification == null)
+          // Initialize gamification for existing profiles with bounded values.
+          || (oldGamification == null
+            && newGamification != null
+            && newGamification.points.total is number
+            && newGamification.points.total >= 0
+            && newGamification.points.total <= 1000)
+          // Normal anti-cheat progression checks when both exist.
+          || (oldGamification != null
+            && newGamification != null
+            && validatePointsIncrease(oldGamification, newGamification)
+            && validateAchievementProgress(oldGamification, newGamification)
+            && validateStreakLogic(oldGamification, newGamification))
+        );
+    }
+
+    function validateTokenWalletShape(wallet) {
+      return wallet != null
+        && wallet.keys().hasAll([
+          'balance', 'totalEarned', 'totalSpent',
+          'lastUpdated', 'dailyConversionsUsed', 'lastConversionDate'
+        ])
+        && wallet.keys().hasOnly([
+          'balance', 'totalEarned', 'totalSpent',
+          'lastUpdated', 'dailyConversionsUsed', 'lastConversionDate'
+        ])
+        && wallet.balance is number
+        && wallet.balance >= 0
+        && wallet.balance <= 100000
+        && wallet.totalEarned is number
+        && wallet.totalEarned >= 0
+        && wallet.totalEarned <= 1000000
+        && wallet.totalSpent is number
+        && wallet.totalSpent >= 0
+        && wallet.totalSpent <= 1000000
+        && wallet.lastUpdated is timestamp
+        && wallet.dailyConversionsUsed is number
+        && wallet.dailyConversionsUsed >= 0
+        && wallet.dailyConversionsUsed <= 20
+        && (
+          wallet.lastConversionDate == null
+          || wallet.lastConversionDate is timestamp
+        )
+        && wallet.balance == wallet.totalEarned - wallet.totalSpent;
+    }
+
+    function validateTokenWalletUpdate(oldData, newData) {
+      let oldHasWallet = oldData.keys().hasAny(['tokenWallet']);
+      let newHasWallet = newData.keys().hasAny(['tokenWallet']);
+      let oldWallet = oldHasWallet ? oldData.tokenWallet : null;
+      let newWallet = newHasWallet ? newData.tokenWallet : null;
+
+      // Wallet untouched.
       return (
-        // Non-gamification profile update: allow when both absent.
-        (oldGamification == null && newGamification == null)
-        // Initialize gamification for existing profiles with bounded values.
-        || (oldGamification == null
-          && newGamification != null
-          && newGamification.points.total is number
-          && newGamification.points.total >= 0
-          && newGamification.points.total <= 1000)
-        // Normal anti-cheat progression checks when both exist.
-        || (oldGamification != null
-          && newGamification != null
-          && validatePointsIncrease(oldGamification, newGamification)
-          && validateAchievementProgress(oldGamification, newGamification)
-          && validateStreakLogic(oldGamification, newGamification))
+        (oldWallet == null && newWallet == null)
+        // New wallet initialization must be bounded and well-formed.
+        || (oldWallet == null
+          && newWallet != null
+          && validateTokenWalletShape(newWallet)
+          && newWallet.balance <= 200
+          && newWallet.totalEarned <= 200
+          && newWallet.totalSpent == 0)
+        // Existing wallet updates must be incremental and internally consistent.
+        || (oldWallet != null
+          && newWallet != null
+          && validateTokenWalletShape(oldWallet)
+          && validateTokenWalletShape(newWallet)
+          && newWallet.totalEarned >= oldWallet.totalEarned
+          && newWallet.totalSpent >= oldWallet.totalSpent
+          && newWallet.totalEarned <= oldWallet.totalEarned + 100
+          && newWallet.totalSpent <= oldWallet.totalSpent + 20
+          && newWallet.balance >= oldWallet.balance - 20
+          && newWallet.balance <= oldWallet.balance + 100
+          && (
+            (newWallet.balance - oldWallet.balance)
+            == ((newWallet.totalEarned - oldWallet.totalEarned) - (newWallet.totalSpent - oldWallet.totalSpent))
+          ))
       );
     }
     

@@ -518,6 +518,9 @@ class _ModernFABState extends State<ModernFAB>
           color: Colors.transparent,
           child: InkWell(
             onTap: widget.onPressed,
+            onTapDown: _handleTapDown,
+            onTapUp: _handleTapUp,
+            onTapCancel: _handleTapCancel,
             borderRadius: BorderRadius.circular(
               widget.isExtended
                   ? AppTheme.borderRadiusXl
@@ -525,9 +528,8 @@ class _ModernFABState extends State<ModernFAB>
             ),
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: widget.isExtended
-                    ? AppTheme.spacingLg
-                    : AppTheme.spacingMd,
+                horizontal:
+                    widget.isExtended ? AppTheme.spacingLg : AppTheme.spacingMd,
                 vertical: AppTheme.spacingMd,
               ),
               child: Row(
@@ -545,8 +547,7 @@ class _ModernFABState extends State<ModernFAB>
                       child: Text(
                         widget.label!,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color:
-                              widget.foregroundColor ??
+                          color: widget.foregroundColor ??
                               theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
@@ -570,12 +571,7 @@ class _ModernFABState extends State<ModernFAB>
       );
     }
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      onTapUp: _handleTapUp,
-      onTapCancel: _handleTapCancel,
-      child: fab,
-    );
+    return fab;
   }
 }
 

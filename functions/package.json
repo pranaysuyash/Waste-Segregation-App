@@ -10,6 +10,7 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "test:http-guards": "npm run build && node --test test/http_guards.test.js",
+    "test:key-resolution": "npm run build && node --test test/openai_key_resolution.test.js",
     "test:http-guards:emulator": "npm run build && ENABLE_DIAGNOSTIC_ENDPOINTS=true FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 firebase emulators:exec --project waste-segregation-app-df523 --only auth,functions,firestore \"node --test test/http_guards.emulator.test.js\""
   },
   "engines": {

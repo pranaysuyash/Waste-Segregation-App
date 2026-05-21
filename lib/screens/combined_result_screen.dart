@@ -36,8 +36,15 @@ class CombinedResultScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: cs.surface,
+        foregroundColor: cs.onSurface,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: cs.onSurface),
+        titleTextStyle: theme.textTheme.titleLarge?.copyWith(
+          color: cs.onSurface,
+          fontWeight: FontWeight.w700,
+        ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: cs.onSurface),
           onPressed: () => Navigator.of(context).pop(),
@@ -88,9 +95,9 @@ class CombinedResultScreen extends ConsumerWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _categoryColor(category).withValues(
-                              alpha: 0.12,
-                            ),
+                            color: _categoryColor(
+                              category,
+                            ).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -109,22 +116,17 @@ class CombinedResultScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (context, index) => _buildItemCard(
-                        context,
-                        items[index],
-                        index,
-                      ),
+                      (context, index) =>
+                          _buildItemCard(context, items[index], index),
                       childCount: items.length,
                     ),
                   ),
                 ),
               ];
-            }).toList(),
+            }),
 
             // Bottom padding
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 24),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
       ),
@@ -146,17 +148,23 @@ class CombinedResultScreen extends ConsumerWidget {
 
     return ModernCard(
       padding: const EdgeInsets.all(16),
+      backgroundColor: cs.surfaceContainerLow,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.auto_awesome, color: AppTheme.primaryColor, size: 24),
+              const Icon(
+                Icons.auto_awesome,
+                color: AppTheme.primaryColor,
+                size: 24,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Analysis Complete',
                   style: theme.textTheme.titleLarge?.copyWith(
+                    color: cs.onSurface,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -168,13 +176,14 @@ class CombinedResultScreen extends ConsumerWidget {
             '$total ${total == 1 ? 'item' : 'items'} found in "$imageName"',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: cs.onSurfaceVariant,
+              height: 1.4,
             ),
           ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: categories.map((cat) {
+            children: categories.map<Widget>((cat) {
               return Chip(
                 avatar: CircleAvatar(
                   backgroundColor: _categoryColor(cat),
@@ -207,17 +216,14 @@ class CombinedResultScreen extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: _categoryColor(classification.category).withValues(
-              alpha: 0.15,
-            ),
+            color: _categoryColor(
+              classification.category,
+            ).withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
@@ -242,18 +248,14 @@ class CombinedResultScreen extends ConsumerWidget {
             color: cs.onSurfaceVariant,
           ),
         ),
-        trailing: Icon(
-          Icons.chevron_right,
-          color: cs.onSurfaceVariant,
-        ),
+        trailing: Icon(Icons.chevron_right, color: cs.onSurfaceVariant),
         onTap: () {
           // Navigate to individual result for this classification
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => _IndividualResultPlaceholder(
-                classification: classification,
-              ),
+              builder: (_) =>
+                  _IndividualResultPlaceholder(classification: classification),
             ),
           );
         },

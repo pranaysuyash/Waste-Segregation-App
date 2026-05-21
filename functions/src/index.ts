@@ -15,7 +15,7 @@ const asiaSouth1 = functions.region('asia-south1');
 // Migration bridge for Functions 2nd gen: prefer process.env, keep
 // functions.config() fallback temporarily to avoid breaking existing deploys.
 // TODO(P0-hardening): Remove functions.config() fallback after env rollout is complete.
-const getOpenAiApiKey = (): string | undefined => {
+export const getOpenAiApiKey = (): string | undefined => {
   return process.env.OPENAI_API_KEY
     || process.env.OPENAI_KEY
     || functions.config()?.openai?.key

@@ -83,14 +83,14 @@ class ModelSelectionService {
       final useCloud = forceCloud ?? _shouldUseCloud();
       final useBatch = forceBatch ?? _shouldUseBatch();
 
-      if (useBatch && _batchingService != null) {
-        WasteAppLogger.info('Using batch mode for analysis');
-        _batchAnalyses++;
-        return await _batchingService.queueAnalysis(
-          imageFile: imageFile,
-          region: region,
-          instructionsLang: instructionsLang,
+      if (useBatch) {
+        // Canonical batch execution is handled by AiJobService (async job flow).
+        // This sync API must never return placeholder batch results.
+        WasteAppLogger.warning(
+          'Batch strategy requested via ModelSelectionService.analyzeImage; '
+          'routing through cloud sync path. Use AiJobService for true async batch jobs.',
         );
+        _batchAnalyses++;
       }
 
       if (!useCloud && _onDeviceService != null) {

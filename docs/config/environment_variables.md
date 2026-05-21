@@ -1,72 +1,83 @@
 # Environment Variables
 
-Last updated: 2026-05-20 22:50 IST
-Status: Active (P0 hardening baseline)
+Last updated: 2026-05-21 00:41 IST
+Status: Active (P0 hardening + runtime blocker correction)
 
 ## Purpose
-This document is the canonical env/config contract for AI, billing, and Firebase behavior.
+Canonical env/config contract for AI, Firebase, and release safety behavior.
 Do not hardcode secrets in Dart/JS/TS files.
 
-## 1) Client (Flutter, compile-time dart-defines)
-Set via --dart-define or CI build config.
+## 1) Client app (Flutter, compile-time dart-defines)
+Source: `--dart-define` / CI build config.
 
-Required:
+### Firebase Web (required for web builds)
+These are consumed by `lib/config/firebase_options.dart`.
+- FIREBASE_WEB_API_KEY
+- FIREBASE_WEB_APP_ID
+- FIREBASE_PROJECT_ID
+- FIREBASE_AUTH_DOMAIN
+- FIREBASE_STORAGE_BUCKET
+- FIREBASE_MEASUREMENT_ID
+
+Important:
+- `web/index.html` must not initialize Firebase with static/placeholder keys.
+- Firebase initialization must come from Dart (`DefaultFirebaseOptions.currentPlatform`).
+
+### AI keys (required only for direct client-AI paths)
 - OPENAI_API_KEY
-  - Default must stay placeholder in code.
-  - Client-side direct OpenAI calls are blocked in release unless explicitly allowed.
 - GEMINI_API_KEY
-  - Default must stay placeholder in code.
-  - Client-side direct Gemini calls are blocked in release unless explicitly allowed.
 
-Optional model selection:
+Release safety behavior (`lib/utils/production_safety_config.dart`):
+- Release build blocks direct client provider calls by default.
+- To allow direct client provider calls in release (private/internal testing only):
+  - ALLOW_CLIENT_AI_IN_RELEASE=true
+- Backend routing flag exists for forward compatibility:
+  - USE_BACKEND_AI_IN_RELEASE=true
+
+Model selection overrides (optional):
 - OPENAI_API_MODEL_PRIMARY (default: gpt-4.1-nano)
 - OPENAI_API_MODEL_SECONDARY (default: gpt-4o-mini)
 - OPENAI_API_MODEL_TERTIARY (default: gpt-4.1-mini)
 - GEMINI_API_MODEL (default: gemini-2.0-flash)
 
-Safety toggles:
-- ALLOW_CLIENT_AI_IN_RELEASE
-  - false/omitted: blocks direct provider calls in release builds.
-  - true: allows direct provider calls (private/internal testing only).
-- USE_BACKEND_AI_IN_RELEASE
-  - Forward-compat toggle for backend-only classification flow.
-
-Token economy / quota toggles:
+Token-economy toggles (optional):
 - ENABLE_TOKEN_ENFORCEMENT
 - ENABLE_SERVER_SIDE_VALIDATION
 
-## 2) Firebase Functions / Backend (runtime env)
+## 2) Firebase Functions / Backend runtime env
 Preferred source: process.env
 Legacy fallback: functions.config() (temporary migration bridge only)
 
 Required:
 - OPENAI_API_KEY
 
-Optional aliases supported by current bridge:
+Optional alias supported by current bridge:
 - OPENAI_KEY
 
-Diagnostics / safety:
-- ENABLE_DIAGNOSTIC_ENDPOINTS=true  (only in controlled environments)
-- CLEAR_ALL_DATA_ENABLED=true       (only in controlled environments, admin-gated)
+Diagnostics/safety toggles:
+- ENABLE_DIAGNOSTIC_ENDPOINTS=true (controlled env only)
+- CLEAR_ALL_DATA_ENABLED=true (controlled env only, admin-gated)
 
 ## 3) Migration policy: functions.config() -> process.env
-Current backend code keeps a low-risk compatibility bridge:
-- First read process.env (OPENAI_API_KEY / OPENAI_KEY)
-- Then fallback to functions.config().openai.key/api_key
+Current backend bridge logic:
+1) process.env.OPENAI_API_KEY
+2) process.env.OPENAI_KEY
+3) functions.config().openai.key / functions.config().openai.api_key
 
-Action required:
-1. Provision OPENAI_API_KEY in all environments.
-2. Verify deployments run without dependency on functions.config().
-3. Remove legacy fallback after rollout stability window.
+Required closure steps:
+1. Provision OPENAI_API_KEY across all environments.
+2. Validate no runtime dependency on functions.config() fallback.
+3. Remove fallback + keep precedence test green.
 
 ## 4) Security rules
 - Never commit real keys/tokens in source.
-- Never print secrets in logs.
-- If a secret is observed in code, rotate it and replace with placeholder.
-- Keep all production values in secure secret stores / CI env config.
+- Never print full secrets in logs.
+- If a secret is exposed in source, rotate and migrate immediately.
+- Keep production values in secure secret stores / CI environment config.
 
-## 5) Quick validation checklist
-- Flutter release build without ALLOW_CLIENT_AI_IN_RELEASE blocks direct AI provider calls.
-- Backend endpoints can access OPENAI_API_KEY via process.env.
-- testOpenAI reflects configured status without leaking key values.
-- No hardcoded API keys in repo.
+## 5) Validation checklist
+- Flutter release build without ALLOW_CLIENT_AI_IN_RELEASE blocks direct client AI calls.
+- Web Firebase initialization succeeds via Dart-defined options (not manual HTML config).
+- Backend resolves OPENAI_API_KEY from process.env.
+- `npm --prefix functions run test:key-resolution` passes.
+- No hardcoded provider keys remain in repo source.

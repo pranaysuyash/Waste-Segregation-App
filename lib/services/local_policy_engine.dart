@@ -99,7 +99,7 @@ class LocalPolicyComplianceEvaluator {
       }
     }
 
-    String status = 'compliant';
+    var status = 'compliant';
     if (violations.isNotEmpty) {
       status = 'violation';
     } else if (warnings.isNotEmpty) {

@@ -6,9 +6,11 @@ void main() {
     const registry = LocalPolicyRulePackRegistry();
 
     test('returns BBMP rule set', () {
-      final rules = registry.getRulesForPlugin('bbmp_bangalore');
+      final pack = registry.getPackForPlugin('bbmp_bangalore');
+      final rules = pack.rules;
 
       expect(rules, isNotEmpty);
+      expect(pack.governanceStage, equals('production'));
       expect(
         rules.any((rule) => rule.ruleId == 'bbmp_hazardous_special_disposal'),
         isTrue,
@@ -16,8 +18,9 @@ void main() {
     });
 
     test('returns empty rule set for unknown plugin', () {
-      final rules = registry.getRulesForPlugin('unknown_plugin');
-      expect(rules, isEmpty);
+      final pack = registry.getPackForPlugin('unknown_plugin');
+      expect(pack.rules, isEmpty);
+      expect(pack.governanceStage, equals('draft'));
     });
   });
 }

@@ -294,7 +294,6 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Greeting and user info
@@ -1441,7 +1440,6 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: nudgeColor.withValues(alpha: 0.25),
-                  width: 1,
                 ),
               ),
               child: Row(

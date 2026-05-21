@@ -5,6 +5,9 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'enhanced_ai_api_service.dart';
 import 'storage_service.dart';
+import 'cloud_storage_service.dart';
+import 'token_service.dart';
+import '../models/token_wallet.dart';
 import 'analytics_service.dart';
 import '../utils/waste_app_logger.dart';
 
@@ -197,9 +200,13 @@ class OfflineQueueService {
 
     final startTime = DateTime.now();
     final items = _queueBox!.values.toList();
+    final tokenService =
+        TokenService(StorageService(), CloudStorageService(StorageService()));
+    await tokenService.initialize();
     var successCount = 0;
     var failCount = 0;
     var permanentFailCount = 0;
+    var insufficientTokenBlocks = 0;
 
     for (final item in items) {
       try {
@@ -218,6 +225,44 @@ class OfflineQueueService {
           'retry_count': item.retryCount,
           'queued_at': item.queuedAt.toIso8601String(),
         });
+
+        try {
+          await tokenService.spendAnalysisTokens(
+            AnalysisSpeed.batch,
+            isPremiumUser: false,
+            description: 'Offline queued analysis',
+            reference: item.id,
+            metadata: {
+              'source': 'offline_queue',
+              'queued_at': item.queuedAt.toIso8601String(),
+              'retry_count': item.retryCount,
+            },
+          );
+        } catch (spendError, spendStackTrace) {
+          final message = spendError.toString();
+          if (message.contains('Insufficient tokens')) {
+            insufficientTokenBlocks++;
+            WasteAppLogger.warning(
+              'Queue processing paused due to insufficient tokens',
+              error: spendError,
+              stackTrace: spendStackTrace,
+              context: {
+                'queue_id': item.id,
+                'remaining': _queueBox!.length,
+              },
+            );
+            AnalyticsService(StorageService()).trackEvent(
+              eventType: 'classification',
+              eventName: 'queue_blocked_insufficient_tokens',
+              parameters: {
+                'queue_id': item.id,
+                'remaining': _queueBox!.length,
+              },
+            );
+            break;
+          }
+          rethrow;
+        }
 
         final result = await EnhancedAiApiService().analyzeWasteImage(
           imageBytes: item.imageBytes,
@@ -241,6 +286,27 @@ class OfflineQueueService {
         // Optional: Show notification
         // await _notifyCompletion(result);
       } catch (e, stackTrace) {
+        try {
+          await tokenService.earnTokens(
+            AnalysisSpeed.batch.cost,
+            TokenTransactionType.refund,
+            'Offline queue processing failed - token refund',
+            reference: item.id,
+            metadata: {
+              'source': 'offline_queue',
+              'retry_count': item.retryCount,
+              'error': e.toString(),
+            },
+          );
+        } catch (refundError, refundStackTrace) {
+          WasteAppLogger.severe(
+            'Failed to refund offline queue token after processing failure',
+            error: refundError,
+            stackTrace: refundStackTrace,
+            context: {'queue_id': item.id},
+          );
+        }
+
         item.retryCount++;
 
         WasteAppLogger.warning(
@@ -284,6 +350,7 @@ class OfflineQueueService {
       'success_count': successCount,
       'fail_count': failCount,
       'permanent_fail_count': permanentFailCount,
+      'insufficient_token_blocks': insufficientTokenBlocks,
       'remaining': _queueBox!.length,
     });
 
@@ -294,6 +361,7 @@ class OfflineQueueService {
         'success': successCount,
         'failed': failCount,
         'permanent_failures': permanentFailCount,
+        'insufficient_token_blocks': insufficientTokenBlocks,
         'duration_seconds': duration.inSeconds,
       },
     );

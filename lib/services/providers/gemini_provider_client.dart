@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:waste_segregation_app/models/waste_classification.dart' show WasteClassification;
 
+import '../../models/waste_classification.dart' show WasteClassification;
 import '../ai_failure.dart';
 import 'ai_provider_response.dart';
 

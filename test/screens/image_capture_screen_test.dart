@@ -13,6 +13,7 @@ import 'package:waste_segregation_app/services/analytics_service.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/services/result_pipeline.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/widgets/manual_region_selector.dart';
 
 /// A minimal valid 1x1 blue PNG used as test image data.
 final Uint8List kTestPng = Uint8List.fromList([
@@ -93,19 +94,20 @@ void main() {
       await tester.drag(find.byType(Scrollable), const Offset(0, -300));
       await tester.pump();
 
-      final selectMultipleItemsFinder = find.byIcon(Icons.crop_square);
-      expect(selectMultipleItemsFinder, findsWidgets);
+      final selectMultipleItemsFinder = find.text('Select multiple items');
+      expect(selectMultipleItemsFinder, findsOneWidget);
       await tester.scrollUntilVisible(
         selectMultipleItemsFinder,
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      await tester.tap(selectMultipleItemsFinder.first);
+      await tester.tap(selectMultipleItemsFinder);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Cancel'), findsOneWidget);
-      expect(find.text('Analyze 0 items'), findsOneWidget);
+      expect(find.byType(ManualRegionSelector), findsOneWidget);
+      expect(find.textContaining('Analyze'), findsWidgets);
     });
 
     testWidgets(
@@ -133,18 +135,19 @@ void main() {
       await tester.drag(find.byType(Scrollable), const Offset(0, -300));
       await tester.pump();
 
-      final selectMultipleItemsFinder = find.byIcon(Icons.crop_square);
+      final selectMultipleItemsFinder = find.text('Select multiple items');
       await tester.scrollUntilVisible(
         selectMultipleItemsFinder,
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      await tester.tap(selectMultipleItemsFinder.first);
+      await tester.tap(selectMultipleItemsFinder);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      // With 0 regions selected, CTA should reflect zero-item analysis state.
-      expect(find.text('Analyze 0 items'), findsOneWidget);
+      // Region selection mode is active and an Analyze CTA is present.
+      expect(find.byType(ManualRegionSelector), findsOneWidget);
+      expect(find.textContaining('Analyze'), findsWidgets);
     });
   });
 

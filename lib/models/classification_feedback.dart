@@ -21,6 +21,29 @@ enum ReviewStatus {
 
 /// Represents user feedback on an AI classification result.
 class ClassificationFeedback {
+  ClassificationFeedback({
+    String? id,
+    required this.userId,
+    required this.originalClassificationId,
+    required this.originalAIItemName,
+    required this.originalAICategory,
+    this.originalAIMaterial,
+    this.originalAIConfidence,
+    this.userSuggestedItemName,
+    required this.userSuggestedCategory,
+    this.userSuggestedMaterial,
+    this.userNotes,
+    this.barcode,
+    this.reviewStatus = ReviewStatus.pendingReview,
+    this.adminReviewerId,
+    this.adminReviewTimestamp,
+    this.adminNotes,
+    String? appVersion,
+    this.deviceInfo,
+    Timestamp? feedbackTimestamp,
+  }) : id = id ?? const Uuid().v4(),
+       appVersion = appVersion ?? '0.1.0',
+       feedbackTimestamp = feedbackTimestamp ?? Timestamp.now();
   factory ClassificationFeedback.fromJson(
     Map<String, dynamic> json, [
     String? documentId,
@@ -47,29 +70,6 @@ class ClassificationFeedback {
       deviceInfo: json['deviceInfo'] as Map<String, dynamic>?,
     );
   }
-  ClassificationFeedback({
-    String? id,
-    required this.userId,
-    required this.originalClassificationId,
-    required this.originalAIItemName,
-    required this.originalAICategory,
-    this.originalAIMaterial,
-    this.originalAIConfidence,
-    this.userSuggestedItemName,
-    required this.userSuggestedCategory,
-    this.userSuggestedMaterial,
-    this.userNotes,
-    this.barcode,
-    this.reviewStatus = ReviewStatus.pendingReview,
-    this.adminReviewerId,
-    this.adminReviewTimestamp,
-    this.adminNotes,
-    String? appVersion,
-    this.deviceInfo,
-    Timestamp? feedbackTimestamp,
-  }) : id = id ?? const Uuid().v4(),
-       appVersion = appVersion ?? '0.1.0',
-       feedbackTimestamp = feedbackTimestamp ?? Timestamp.now();
 
   /// Creates a ClassificationFeedback with a stable deterministic ID
   /// derived from classificationId + userId, ensuring idempotency:

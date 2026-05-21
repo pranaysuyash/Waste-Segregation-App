@@ -31,7 +31,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/firebase_cleanup_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
-import '../models/user_profile.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -2202,7 +2201,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update leaderboard privacy: \$e')),
+          const SnackBar(content: Text('Failed to update leaderboard privacy: \$e')),
         );
       }
     }

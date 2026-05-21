@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -25,11 +24,11 @@ class SelectedRegion {
   double get bottom => (top + height).clamp(0.0, 1.0);
 
   Map<String, dynamic> toBoundsMap() => <String, dynamic>{
-        'x': left * 100,
-        'y': top * 100,
-        'width': width * 100,
-        'height': height * 100,
-      };
+    'x': left * 100,
+    'y': top * 100,
+    'width': width * 100,
+    'height': height * 100,
+  };
 }
 
 /// Widget that lets a user draw rectangular regions on an image.
@@ -44,6 +43,7 @@ class ManualRegionSelector extends StatefulWidget {
     super.key,
     this.imageFile,
     this.webImageBytes,
+    this.initialRegions = const [],
     required this.maxRegions,
     required this.onRegionsChanged,
     this.onConfirm,
@@ -51,6 +51,7 @@ class ManualRegionSelector extends StatefulWidget {
 
   final File? imageFile;
   final Uint8List? webImageBytes;
+  final List<SelectedRegion> initialRegions;
   final int maxRegions;
   final ValueChanged<List<SelectedRegion>> onRegionsChanged;
   final VoidCallback? onConfirm;
@@ -71,6 +72,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
   // Image aspect ratio and loading state
   double _imageAspectRatio = 16 / 9;
   bool _dimensionsLoaded = false;
+  bool _initialRegionsApplied = false;
 
   @override
   void initState() {
@@ -100,6 +102,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
               _imageAspectRatio = decoded.width / decoded.height;
               _dimensionsLoaded = true;
             });
+            _applyInitialRegions();
           }
         } else {
           if (mounted) {
@@ -107,6 +110,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
               _imageAspectRatio = 1.0;
               _dimensionsLoaded = true;
             });
+            _applyInitialRegions();
           }
         }
       } else if (widget.imageFile != null) {
@@ -117,6 +121,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
             _imageAspectRatio = decoded.width / decoded.height;
             _dimensionsLoaded = true;
           });
+          _applyInitialRegions();
         }
       } else {
         if (mounted) {
@@ -124,6 +129,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
             _imageAspectRatio = 1.0;
             _dimensionsLoaded = true;
           });
+          _applyInitialRegions();
         }
       }
     } catch (e) {
@@ -132,8 +138,34 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
           _imageAspectRatio = 16 / 9; // safe fallback
           _dimensionsLoaded = true;
         });
+        _applyInitialRegions();
       }
     }
+  }
+
+  void _applyInitialRegions() {
+    if (_initialRegionsApplied || widget.initialRegions.isEmpty) {
+      return;
+    }
+    _initialRegionsApplied = true;
+    final regions = widget.initialRegions
+        .map(
+          (region) => SelectedRegion(
+            id: region.id,
+            left: region.left,
+            top: region.top,
+            width: region.width,
+            height: region.height,
+          ),
+        )
+        .toList();
+    _regions
+      ..clear()
+      ..addAll(regions);
+    _nextId = regions.isEmpty
+        ? 1
+        : regions.map((region) => region.id).reduce(max) + 1;
+    widget.onRegionsChanged(List.unmodifiable(_regions));
   }
 
   void _removeRegion(int id) {
@@ -255,11 +287,9 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
               ),
             ),
             // Instruction / controls overlay (fixed to screen, not scaling with image)
-            if (_regions.isEmpty && !_isDragging)
-              _buildInstructionOverlay(),
+            if (_regions.isEmpty && !_isDragging) _buildInstructionOverlay(),
             // Region count chip (fixed to screen, not scaling with image)
-            if (_regions.isNotEmpty)
-              _buildRegionCountChip(),
+            if (_regions.isNotEmpty) _buildRegionCountChip(),
           ],
         );
       },
@@ -270,19 +300,13 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
     late final Widget imageWidget;
     if (kIsWeb) {
       if (widget.webImageBytes != null) {
-        imageWidget = Image.memory(
-          widget.webImageBytes!,
-          fit: BoxFit.fill,
-        );
+        imageWidget = Image.memory(widget.webImageBytes!, fit: BoxFit.fill);
       } else {
         imageWidget = const Center(child: CircularProgressIndicator());
       }
     } else {
       if (widget.imageFile != null) {
-        imageWidget = Image.file(
-          widget.imageFile!,
-          fit: BoxFit.fill,
-        );
+        imageWidget = Image.file(widget.imageFile!, fit: BoxFit.fill);
       } else {
         imageWidget = const Center(child: CircularProgressIndicator());
       }
@@ -336,10 +360,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
           Container(
             decoration: BoxDecoration(
               color: Colors.teal.withOpacity(0.18),
-              border: Border.all(
-                color: Colors.teal,
-                width: 2,
-              ),
+              border: Border.all(color: Colors.teal, width: 2),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -355,11 +376,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
                   shape: BoxShape.circle,
                 ),
                 padding: const EdgeInsets.all(4),
-                child: const Icon(
-                  Icons.close,
-                  size: 14,
-                  color: Colors.white,
-                ),
+                child: const Icon(Icons.close, size: 14, color: Colors.white),
               ),
             ),
           ),
@@ -402,11 +419,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.teal.withOpacity(0.12),
-          border: Border.all(
-            color: Colors.teal.withOpacity(0.8),
-            width: 2,
-            style: BorderStyle.solid,
-          ),
+          border: Border.all(color: Colors.teal.withOpacity(0.8), width: 2),
           borderRadius: BorderRadius.circular(4),
         ),
       ),
@@ -426,15 +439,11 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
         ),
         child: Row(
           children: [
-            const Icon(
-              Icons.touch_app,
-              color: Colors.white,
-              size: 20,
-            ),
+            const Icon(Icons.touch_app, color: Colors.white, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Draw a rectangle around each item you want to classify. Max ${widget.maxRegions}.',
+                'Drag to refine the area. Up to ${widget.maxRegions} regions.',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 13,
@@ -471,7 +480,11 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
             ),
             if (_regions.length == widget.maxRegions) ...[
               const SizedBox(width: 6),
-              const Icon(Icons.check_circle, color: Colors.greenAccent, size: 16),
+              const Icon(
+                Icons.check_circle,
+                color: Colors.greenAccent,
+                size: 16,
+              ),
             ],
           ],
         ),

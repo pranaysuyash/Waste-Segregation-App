@@ -286,6 +286,14 @@ class TokenService extends ChangeNotifier {
             'Insufficient tokens. Need $amount, have ${wallet.balance}');
       }
 
+      if (isFirebaseEnabled &&
+          enableTokenEnforcement &&
+          !enableServerSideValidation) {
+        throw Exception(
+          'Token spend misconfiguration: server-side validation is required when Firebase token enforcement is enabled.',
+        );
+      }
+
       if (enableServerSideValidation && isFirebaseEnabled) {
         return _spendTokensWithServerValidation(
           amount,

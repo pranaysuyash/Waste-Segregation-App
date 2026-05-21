@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' show pow, sqrt;
+import 'dart:typed_data' show Uint8List;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
@@ -18,9 +19,14 @@ import 'package:waste_segregation_app/services/ai_failure.dart';
 import 'package:waste_segregation_app/services/classification_cache_key.dart';
 import 'package:uuid/uuid.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
-import 'package:waste_segregation_app/services/local_guidelines_plugin.dart';
 import 'package:waste_segregation_app/services/local_policy_engine.dart';
 import 'package:waste_segregation_app/utils/production_safety_config.dart';
+
+import '../models/waste_classification.dart' show WasteClassification;
+
+import '../utils/constants.dart' show ApiConfig;
+
+import 'cache_service.dart' show ClassificationCacheService;
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
@@ -43,11 +49,6 @@ import 'package:waste_segregation_app/utils/production_safety_config.dart';
 ///   concatenation (`RegExp(r'"([^"]+)"|' + r"'([^']+)'")`) to correctly
 ///   handle both double and single-quoted values.
 class AiService {
-  static const String promptVersion = 'waste-classification-v2';
-  static const String schemaVersion = 'waste-classification-schema-v2';
-  static const String localGuidelinesVersion = 'bbmp-2024';
-  static const bool enableDebugGridSegmentation =
-      bool.fromEnvironment('ENABLE_DEBUG_GRID_SEGMENTATION');
 
   /// Constructs an [AiService].
   ///
@@ -85,6 +86,11 @@ class AiService {
         localPolicyEngine = localPolicyEngine ?? const LocalPolicyEngine(),
         _dio = dioClient ?? Dio(),
         _saveWebImageOverride = saveWebImageOverride;
+  static const String promptVersion = 'waste-classification-v2';
+  static const String schemaVersion = 'waste-classification-schema-v2';
+  static const String localGuidelinesVersion = 'bbmp-2024';
+  static const bool enableDebugGridSegmentation =
+      bool.fromEnvironment('ENABLE_DEBUG_GRID_SEGMENTATION');
   final String openAiBaseUrl;
   final String openAiApiKey;
   final String geminiBaseUrl;
@@ -773,36 +779,32 @@ Output:
         imageHash = hashes['perceptualHash'];
         contentHash = hashes['contentHash'];
 
-        if (imageHash == null || contentHash == null) {
-          WasteAppLogger.severe('Failed to generate image hashes',
-              context: {'hashes': hashes});
-          throw Exception('Failed to generate required image hashes');
-        }
-
         WasteAppLogger.info('Generated perceptual hash: $imageHash');
         WasteAppLogger.info('Generated content hash: $contentHash');
 
-        final contextAwareContentHash = _buildContextAwareContentHash(
-          contentHash,
-          region: analysisRegion,
-          language: analysisLang,
-          provider: 'openai',
-          model: ApiConfig.primaryModel,
-        );
-        final contextAwareCacheKey = buildContextualCacheKey(
-          imageHash: imageHash,
-          region: analysisRegion,
-          language: analysisLang,
-          provider: 'openai',
-          model: ApiConfig.primaryModel,
-        );
-        final cachedResult = await cacheService.getCachedClassification(
-          contextAwareCacheKey,
-          contentHash: contextAwareContentHash,
-        );
-        if (cachedResult != null) {
-          return Future.value(cachedResult.classification
-              .copyWith(id: currentClassificationId));
+        if (imageHash != null) {
+          final contextAwareContentHash = _buildContextAwareContentHash(
+            contentHash,
+            region: analysisRegion,
+            language: analysisLang,
+            provider: 'openai',
+            model: ApiConfig.primaryModel,
+          );
+          final contextAwareCacheKey = buildContextualCacheKey(
+            imageHash: imageHash,
+            region: analysisRegion,
+            language: analysisLang,
+            provider: 'openai',
+            model: ApiConfig.primaryModel,
+          );
+          final cachedResult = await cacheService.getCachedClassification(
+            contextAwareCacheKey,
+            contentHash: contextAwareContentHash,
+          );
+          if (cachedResult != null) {
+            return Future.value(cachedResult.classification
+                .copyWith(id: currentClassificationId));
+          }
         }
       }
 
@@ -926,7 +928,7 @@ Output:
     try {
       _webSaveCallCount++;
       if (_saveWebImageOverride != null) {
-        savedImagePath = await _saveWebImageOverride!(imageBytes, imageName);
+        savedImagePath = await _saveWebImageOverride(imageBytes, imageName);
       } else {
         savedImagePath = await _imageService.saveImagePermanently(imageBytes,
             fileName: imageName);
@@ -947,39 +949,34 @@ Output:
         imageHash = hashes['perceptualHash'];
         contentHash = hashes['contentHash'];
 
-        if (imageHash == null || contentHash == null) {
-          WasteAppLogger.severe('Failed to generate web image hashes',
-              context: {'hashes': hashes});
-          throw Exception(
-              'Failed to generate required image hashes for web image');
-        }
-
         WasteAppLogger.info(
             'Generated perceptual hash for web image: $imageHash');
         WasteAppLogger.info(
             'Generated content hash for web image: $contentHash');
 
-        final contextAwareContentHash = _buildContextAwareContentHash(
-          contentHash,
-          region: analysisRegion,
-          language: analysisLang,
-          provider: 'openai',
-          model: ApiConfig.primaryModel,
-        );
-        final contextAwareCacheKey = buildContextualCacheKey(
-          imageHash: imageHash,
-          region: analysisRegion,
-          language: analysisLang,
-          provider: 'openai',
-          model: ApiConfig.primaryModel,
-        );
-        final cachedResult = await cacheService.getCachedClassification(
-          contextAwareCacheKey,
-          contentHash: contextAwareContentHash,
-        );
-        if (cachedResult != null) {
-          return Future.value(cachedResult.classification
-              .copyWith(id: currentClassificationId));
+        if (imageHash != null) {
+          final contextAwareContentHash = _buildContextAwareContentHash(
+            contentHash,
+            region: analysisRegion,
+            language: analysisLang,
+            provider: 'openai',
+            model: ApiConfig.primaryModel,
+          );
+          final contextAwareCacheKey = buildContextualCacheKey(
+            imageHash: imageHash,
+            region: analysisRegion,
+            language: analysisLang,
+            provider: 'openai',
+            model: ApiConfig.primaryModel,
+          );
+          final cachedResult = await cacheService.getCachedClassification(
+            contextAwareCacheKey,
+            contentHash: contextAwareContentHash,
+          );
+          if (cachedResult != null) {
+            return Future.value(cachedResult.classification
+                .copyWith(id: currentClassificationId));
+          }
         }
       }
 
@@ -1208,7 +1205,7 @@ Output:
     _providerCallCount++;
     ProductionSafetyConfig.guardClientAiCall('OpenAI');
     const providerName = 'openai';
-    final modelName = ApiConfig.primaryModel;
+    const modelName = ApiConfig.primaryModel;
     final modelKey =
         ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
     final startTime = DateTime.now();
@@ -1384,7 +1381,7 @@ Output:
     _providerCallCount++;
     ProductionSafetyConfig.guardClientAiCall('Gemini');
     const providerName = 'gemini';
-    final modelName = ApiConfig.tertiaryModel;
+    const modelName = ApiConfig.tertiaryModel;
     final startTime = DateTime.now();
     WasteAppLogger.info('Falling back to Gemini for analysis.');
 
@@ -1632,9 +1629,8 @@ Output:
         throw ArgumentError('No trusted image source available for correction');
       }
 
-      final base64Image = imageBytes != null ? _bytesToBase64(imageBytes) : '';
-      final mimeType =
-          imageBytes != null ? _detectImageMimeType(imageBytes) : '';
+      final base64Image = _bytesToBase64(imageBytes);
+      final mimeType = _detectImageMimeType(imageBytes);
 
       final correctionPrompt = _getCorrectionPrompt(
           originalClassification.toJson(), userCorrection, userReason);

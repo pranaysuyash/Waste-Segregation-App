@@ -3,6 +3,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Represents a community feed item showing user activities
 class CommunityFeedItem {
+  const CommunityFeedItem({
+    required this.id,
+    required this.userId,
+    required this.userName,
+    this.userAvatar,
+    required this.activityType,
+    required this.title,
+    required this.description,
+    required this.timestamp,
+    this.metadata = const {},
+    this.likes = 0,
+    this.likedBy = const [],
+    this.isAnonymous = false,
+    this.points = 0,
+  });
   factory CommunityFeedItem.fromJson(Map<String, dynamic> json) {
     return CommunityFeedItem(
       id: json['id'] ?? '',
@@ -23,21 +38,6 @@ class CommunityFeedItem {
       points: json['points'] ?? 0,
     );
   }
-  const CommunityFeedItem({
-    required this.id,
-    required this.userId,
-    required this.userName,
-    this.userAvatar,
-    required this.activityType,
-    required this.title,
-    required this.description,
-    required this.timestamp,
-    this.metadata = const {},
-    this.likes = 0,
-    this.likedBy = const [],
-    this.isAnonymous = false,
-    this.points = 0,
-  });
 
   /// Parses timestamp from either Firestore Timestamp or ISO 8601 String.
   /// Firestore writes use FieldValue.serverTimestamp() which produces Timestamp objects;

@@ -12,7 +12,6 @@ import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
-import '../l10n/app_localizations.dart';
 import '../widgets/history_list_item.dart';
 import '../widgets/animations/enhanced_loading_states.dart';
 import '../widgets/animations/empty_state_animations.dart';
@@ -923,11 +922,11 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
       ),
       child: Row(
         children: [
-          Icon(Icons.filter_alt, size: 14, color: AppTheme.primaryColor),
+          const Icon(Icons.filter_alt, size: 14, color: AppTheme.primaryColor),
           const SizedBox(width: 4),
           Text(
             '$count filter${count != 1 ? 's' : ''} active',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: AppTheme.fontSizeSmall,
               color: AppTheme.primaryColor,
               fontWeight: FontWeight.w500,

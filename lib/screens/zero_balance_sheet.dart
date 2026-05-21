@@ -113,7 +113,7 @@ class ZeroBalanceOptionsSheet extends ConsumerWidget {
             title: 'Convert Points',
             subtitle: canConvert
                 ? '${TokenService.pointsToTokenRate} points = 1 token '
-                    '(${remainingConversions} left today)'
+                    '($remainingConversions left today)'
                 : 'Daily conversion limit reached',
             onTap: canConvert
                 ? () {

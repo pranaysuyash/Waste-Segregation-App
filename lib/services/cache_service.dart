@@ -5,8 +5,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:waste_segregation_app/models/cached_classification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/services/ai_service.dart' show AiService;
 import 'package:waste_segregation_app/utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+
+import '../models/cached_classification.dart' show CachedClassification;
+
+import 'ai_service.dart' show AiService;
 
 /// Safely truncates a hash string for logging preview.
 /// Returns '<empty>' when [value] is null or empty.

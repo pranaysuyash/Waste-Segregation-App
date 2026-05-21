@@ -716,7 +716,28 @@ Reading rules:
 
 **Status**: **Active research and execution today.** Multi-role brainstorm produced 9 perspective docs (`brainstorm_*_2026-05-19.md`) plus a [synthesis](brainstorm_synthesis_2026-05-19.md). Execution surface in [../TOKEN_ECONOMY_TODO.md](../TOKEN_ECONOMY_TODO.md). This topic was added to the exploration index on 2026-05-19 after a pressure test showed the map omitting the work actually in flight.
 
-**Overview** (from [Cartographer brainstorm](brainstorm_cartographer_2026-05-19.md)): The current token economy has three disconnected territories — Instant Analysis (labelled "5 tokens" but actually charges 0), Batch Analysis (labelled "1 token", actually charges 1), and Premium (no visible connection to tokens). Users see a price tag that contradicts the receipt. The brain resolves the contradiction by ignoring the sign.
+**Overview** (updated 2026-05-21): The May 19 contradiction ("instant shows 5 tokens but charges 0") has been addressed in code. The current risk frontier has shifted to **economic integrity and anti-tamper consistency** across all write paths: users profile updates, server-authoritative spend enforcement, offline queue semantics, and premium-token contract coherence.
+
+**Current state delta (2026-05-21)**:
+
+- Instant flow now checks affordability and spends tokens in-app.
+- Server callable spend path exists (`spendUserTokens`) and is wired from `TokenService`.
+- Token service tests exist and cover core spend/earn/conversion flows.
+- Remaining risks are no longer "missing token wiring"; they are **ledger trust boundaries** and **policy coherence**.
+
+**Execution order (wide-open-brainstorm + audit reconciliation)**:
+
+1. **Phase 1: Economic Integrity Layer**
+   - Anti-tamper rules for `users/{userId}.tokenWallet`.
+   - Server-authoritative spend mode (no silent local fallback in enforced mode).
+   - Offline queue + retry charge semantics parity.
+2. **Phase 2: Cost-Control Plane**
+   - Make guardrail-enforced mode (instant vs batch) authoritative in UX.
+   - Collapse parallel/placeholder batch paths to one canonical execution path.
+3. **Phase 3: Moat Layer**
+   - Token P&L observability from ledger truth.
+   - Dynamic pricing / incentive policy loop.
+   - Global rollout framing in exploration map.
 
 **Key questions** (drawn from the 2026-05-19 brainstorm set):
 

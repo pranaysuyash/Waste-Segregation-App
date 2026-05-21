@@ -35,13 +35,14 @@ class ImageCaptureScreen extends ConsumerStatefulWidget {
     this.autoAnalyze = false,
   });
 
-  factory ImageCaptureScreen.fromXFile(XFile xFile,
-          {bool autoAnalyze = false}) =>
-      ImageCaptureScreen(
-        xFile: xFile,
-        imageFile: kIsWeb ? null : File(xFile.path),
-        autoAnalyze: autoAnalyze,
-      );
+  factory ImageCaptureScreen.fromXFile(
+    XFile xFile, {
+    bool autoAnalyze = false,
+  }) => ImageCaptureScreen(
+    xFile: xFile,
+    imageFile: kIsWeb ? null : File(xFile.path),
+    autoAnalyze: autoAnalyze,
+  );
   final File? imageFile;
   final XFile? xFile;
   final Uint8List? webImage;
@@ -53,8 +54,9 @@ class ImageCaptureScreen extends ConsumerStatefulWidget {
 
 class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     with RestorationMixin, TickerProviderStateMixin {
-  static const bool _isDebugGridSegmentationEnabled =
-      bool.fromEnvironment('ENABLE_DEBUG_GRID_SEGMENTATION');
+  static const bool _isDebugGridSegmentationEnabled = bool.fromEnvironment(
+    'ENABLE_DEBUG_GRID_SEGMENTATION',
+  );
   bool _isAnalyzing = false;
   bool _isCancelled = false;
 
@@ -66,6 +68,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   List<Map<String, dynamic>> _segments = [];
   final Set<int> _selectedSegments = {};
   AnalysisSpeed _selectedSpeed = AnalysisSpeed.instant;
+  bool _guardrailForcesBatch = false;
 
   bool _isSelectingRegions = false;
   List<SelectedRegion> _selectedRegions = [];
@@ -141,8 +144,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       _useSegmentationRestorable.value = _useSegmentation;
       if (widget.autoAnalyze &&
           (_imageFile != null || _xFile != null || _webImageBytes != null)) {
-        WasteAppLogger.info('Auto-analyzing image on init.',
-            context: {'service': 'screen', 'file': 'image_capture_screen'});
+        WasteAppLogger.info(
+          'Auto-analyzing image on init.',
+          context: {'service': 'screen', 'file': 'image_capture_screen'},
+        );
         _analyzeImage();
       }
     });
@@ -155,21 +160,60 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     }
   }
 
+  Future<void> _refreshGuardrailMode({bool showUserNotice = false}) async {
+    try {
+      final aiService = ref.read(aiServiceProvider);
+      await aiService.initialize();
+      final shouldForceBatch =
+          aiService.isBatchModeEnforced() ||
+          aiService.getRecommendedAnalysisSpeed() == AnalysisSpeed.batch;
+
+      if (!mounted) return;
+      if (_guardrailForcesBatch != shouldForceBatch) {
+        setState(() {
+          _guardrailForcesBatch = shouldForceBatch;
+        });
+      }
+
+      if (shouldForceBatch && _selectedSpeed == AnalysisSpeed.instant) {
+        setState(() {
+          _selectedSpeed = AnalysisSpeed.batch;
+        });
+        if (showUserNotice && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Instant mode is temporarily disabled by cost guardrails. Switched to Batch.',
+              ),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (_) {
+      // Non-blocking: do not prevent analysis flow if policy refresh fails.
+    }
+  }
+
   void _initializeConnectivityListener() {
     final connectivity = Connectivity();
-    connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
+    connectivity.onConnectivityChanged.listen((
+      List<ConnectivityResult> results,
+    ) {
       final isOnline = !results.contains(ConnectivityResult.none);
       if (mounted) {
         setState(() {
           _isOnline = isOnline;
         });
       }
-      WasteAppLogger.info('Connectivity changed', context: {
-        'service': 'screen',
-        'file': 'image_capture_screen',
-        'isOnline': isOnline
-      });
+      WasteAppLogger.info(
+        'Connectivity changed',
+        context: {
+          'service': 'screen',
+          'file': 'image_capture_screen',
+          'isOnline': isOnline,
+        },
+      );
     });
   }
 
@@ -230,10 +274,34 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     }
   }
 
+  void _enterRegionSelectionMode() {
+    if (!mounted || _isAnalyzing || _isSelectingRegions || widget.autoAnalyze) {
+      return;
+    }
+    if (_imageFile == null && _xFile == null && _webImageBytes == null) {
+      return;
+    }
+    setState(() {
+      _isSelectingRegions = true;
+      _selectedRegions = [_defaultRegionSeed()];
+    });
+  }
+
+  SelectedRegion _defaultRegionSeed() {
+    return SelectedRegion(
+      id: 1,
+      left: 0.04,
+      top: 0.04,
+      width: 0.92,
+      height: 0.92,
+    );
+  }
+
   Future<void> _runSegmentation() async {
     if (!_isDebugGridSegmentationEnabled) {
       throw Exception(
-          'Debug grid segmentation is disabled. Enable ENABLE_DEBUG_GRID_SEGMENTATION for demo mode.');
+        'Debug grid segmentation is disabled. Enable ENABLE_DEBUG_GRID_SEGMENTATION for demo mode.',
+      );
     }
     final aiService = ref.read(aiServiceProvider);
     List<Map<String, dynamic>> segments;
@@ -274,20 +342,21 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
-                  ...result.metrics!.entries.map((e) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(_formatMetricLabel(e.key)),
-                            Text(
-                              e.value,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w500),
-                            ),
-                          ],
-                        ),
-                      )),
+                  ...result.metrics!.entries.map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(_formatMetricLabel(e.key)),
+                          Text(
+                            e.value,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -318,57 +387,62 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     final queueService = OfflineQueueService();
     final userProfile = ref.read(userProfileProvider).value;
     const region = 'auto'; // Default region for offline queue
-    final imageName = _imageFile?.path.split('/').last ??
+    final imageName =
+        _imageFile?.path.split('/').last ??
         _xFile?.name ??
         'captured_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
     queueService
         .queue(
-      imageBytes: imageBytes,
-      region: region,
-      userId: userProfile?.id,
-      imageName: imageName,
-    )
+          imageBytes: imageBytes,
+          region: region,
+          userId: userProfile?.id,
+          imageName: imageName,
+        )
         .then((_) {
-      WasteAppLogger.info('Image queued for offline processing', context: {
-        'service': 'screen',
-        'file': 'image_capture_screen',
-        'imageName': imageName,
-        'region': region,
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('Image queued for analysis. Will process when online.'),
-          ),
-        );
-        // Navigate back to camera screen after queuing
-        Future.delayed(const Duration(milliseconds: 500), () {
+          WasteAppLogger.info(
+            'Image queued for offline processing',
+            context: {
+              'service': 'screen',
+              'file': 'image_capture_screen',
+              'imageName': imageName,
+              'region': region,
+            },
+          );
           if (mounted) {
-            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Image queued for analysis. Will process when online.',
+                ),
+              ),
+            );
+            // Navigate back to camera screen after queuing
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                Navigator.pop(context);
+              }
+            });
+          }
+        })
+        .catchError((e) {
+          WasteAppLogger.severe(
+            'Failed to queue image offline',
+            error: e,
+            context: {'service': 'screen', 'file': 'image_capture_screen'},
+          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to queue image: ${e.toString()}')),
+            );
           }
         });
-      }
-    }).catchError((e) {
-      WasteAppLogger.severe('Failed to queue image offline',
-          error: e,
-          context: {
-            'service': 'screen',
-            'file': 'image_capture_screen',
-          });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to queue image: ${e.toString()}'),
-          ),
-        );
-      }
-    });
   }
 
   Future<void> _analyzeImage() async {
     if (_isAnalyzing || _isCancelled) return;
+
+    await _refreshGuardrailMode(showUserNotice: true);
 
     // Phase 0: Token economy kill switch and telemetry
     final tokenService = ref.read(tokenServiceProvider);
@@ -384,8 +458,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     // Check affordability (always allows when enforcement is off, blocks when on)
     final premiumService = context.read<PremiumService>();
     final isPremiumUser = premiumService.hasActivePremiumPlan();
-    final effectiveCost = tokenService.getAnalysisCost(_selectedSpeed,
-        isPremiumUser: isPremiumUser);
+    final effectiveCost = tokenService.getAnalysisCost(
+      _selectedSpeed,
+      isPremiumUser: isPremiumUser,
+    );
     if (!tokenService.canAffordAnalysisWithPricing(
       _selectedSpeed,
       isPremiumUser: isPremiumUser,
@@ -421,30 +497,32 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         // Track 1: Check image quality
         final qualityResult = await ImageQualityGate.check(imageBytes);
         if (!qualityResult.isValid) {
-          WasteAppLogger.info('Image quality check failed', context: {
-            'service': 'screen',
-            'file': 'image_capture_screen',
-            'failureType': qualityResult.failureType.toString(),
-          });
+          WasteAppLogger.info(
+            'Image quality check failed',
+            context: {
+              'service': 'screen',
+              'file': 'image_capture_screen',
+              'failureType': qualityResult.failureType.toString(),
+            },
+          );
           if (mounted) {
             final useAnyway = await _showQualityCheckDialog(qualityResult);
             if (!useAnyway) {
-              WasteAppLogger.info('User chose to retake image', context: {
-                'service': 'screen',
-                'file': 'image_capture_screen',
-              });
+              WasteAppLogger.info(
+                'User chose to retake image',
+                context: {'service': 'screen', 'file': 'image_capture_screen'},
+              );
               return;
             }
           }
         }
       }
     } catch (e) {
-      WasteAppLogger.warning('Quality gate error (non-blocking)',
-          error: e,
-          context: {
-            'service': 'screen',
-            'file': 'image_capture_screen',
-          });
+      WasteAppLogger.warning(
+        'Quality gate error (non-blocking)',
+        error: e,
+        context: {'service': 'screen', 'file': 'image_capture_screen'},
+      );
       // Fail-open: continue with analysis even if quality check fails
     }
 
@@ -494,11 +572,13 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             try {
               imageBytes = await _xFile!.readAsBytes();
               if (_isCancelled) {
-                WasteAppLogger.info('Analysis cancelled during image reading.',
-                    context: {
-                      'service': 'screen',
-                      'file': 'image_capture_screen'
-                    });
+                WasteAppLogger.info(
+                  'Analysis cancelled during image reading.',
+                  context: {
+                    'service': 'screen',
+                    'file': 'image_capture_screen',
+                  },
+                );
                 return;
               }
               if (mounted) {
@@ -508,13 +588,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               }
             } catch (bytesError, s) {
               WasteAppLogger.severe(
-                  'Failed to read image data for web analysis',
-                  error: bytesError,
-                  stackTrace: s,
-                  context: {
-                    'service': 'screen',
-                    'file': 'image_capture_screen'
-                  });
+                'Failed to read image data for web analysis',
+                error: bytesError,
+                stackTrace: s,
+                context: {'service': 'screen', 'file': 'image_capture_screen'},
+              );
               throw Exception('Failed to read image data: $bytesError');
             }
           }
@@ -522,14 +600,19 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             throw Exception('Image data is empty or could not be read');
           }
           if (_isCancelled) {
-            WasteAppLogger.info('Analysis cancelled before starting.',
-                context: {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info(
+              'Analysis cancelled before starting.',
+              context: {'service': 'screen', 'file': 'image_capture_screen'},
+            );
             return;
           }
           WasteAppLogger.info(
-              'Analyzing web image: ${_xFile!.name}, error: size: ${imageBytes.length} bytes');
+            'Analyzing web image: ${_xFile!.name}, error: size: ${imageBytes.length} bytes',
+          );
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
-            final selectedBounds = _selectedSegments.map((i) => _segments[i]).toList();
+            final selectedBounds = _selectedSegments
+                .map((i) => _segments[i])
+                .toList();
             if (_selectedSpeed == AnalysisSpeed.instant) {
               final results = await aiService.analyzeImageRegions(
                 imageBytes,
@@ -540,9 +623,12 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                   ? results.first
                   : WasteClassification.fallback(_xFile!.name);
             } else {
-              await _createBatchJobWeb(imageBytes, _xFile!.name,
-                  segments: selectedBounds,
-                  useSegmentation: true);
+              await _createBatchJobWeb(
+                imageBytes,
+                _xFile!.name,
+                segments: selectedBounds,
+                useSegmentation: true,
+              );
               return;
             }
           } else {
@@ -557,18 +643,24 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             }
           }
           WasteAppLogger.info(
-              'Web image analysis complete: ${classification.itemName}',
-              context: {'service': 'screen', 'file': 'image_capture_screen'});
+            'Web image analysis complete: ${classification.itemName}',
+            context: {'service': 'screen', 'file': 'image_capture_screen'},
+          );
         } else if (_webImageBytes != null) {
           if (_isCancelled) {
-            WasteAppLogger.info('Analysis cancelled before starting.',
-                context: {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info(
+              'Analysis cancelled before starting.',
+              context: {'service': 'screen', 'file': 'image_capture_screen'},
+            );
             return;
           }
           WasteAppLogger.info(
-              'Analyzing web image from bytes, error: size: ${_webImageBytes!.length} bytes');
+            'Analyzing web image from bytes, error: size: ${_webImageBytes!.length} bytes',
+          );
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
-            final selectedBounds = _selectedSegments.map((i) => _segments[i]).toList();
+            final selectedBounds = _selectedSegments
+                .map((i) => _segments[i])
+                .toList();
             final results = await aiService.analyzeImageRegions(
               _webImageBytes!,
               'uploaded_image.jpg',
@@ -584,26 +676,33 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             );
           }
           WasteAppLogger.info(
-              'Web image bytes analysis complete: ${classification.itemName}',
-              context: {'service': 'screen', 'file': 'image_capture_screen'});
+            'Web image bytes analysis complete: ${classification.itemName}',
+            context: {'service': 'screen', 'file': 'image_capture_screen'},
+          );
         } else {
           throw Exception('No image provided for analysis');
         }
       } else {
         if (_imageFile != null) {
           if (_isCancelled) {
-            WasteAppLogger.info('Analysis cancelled before starting.',
-                context: {'service': 'screen', 'file': 'image_capture_screen'});
+            WasteAppLogger.info(
+              'Analysis cancelled before starting.',
+              context: {'service': 'screen', 'file': 'image_capture_screen'},
+            );
             setState(() {
               _isAnalyzing = false;
             });
             return;
           }
-          WasteAppLogger.info('Analyzing mobile image: ${_imageFile!.path}',
-              context: {'service': 'screen', 'file': 'image_capture_screen'});
+          WasteAppLogger.info(
+            'Analyzing mobile image: ${_imageFile!.path}',
+            context: {'service': 'screen', 'file': 'image_capture_screen'},
+          );
           if (await _imageFile!.exists()) {
             if (_useSegmentation && _selectedSegments.isNotEmpty) {
-              final selectedBounds = _selectedSegments.map((i) => _segments[i]).toList();
+              final selectedBounds = _selectedSegments
+                  .map((i) => _segments[i])
+                  .toList();
               if (_selectedSpeed == AnalysisSpeed.instant) {
                 final bytes = await _imageFile!.readAsBytes();
                 final imageName = _imageFile!.path.split('/').last;
@@ -636,8 +735,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               }
             }
             WasteAppLogger.info(
-                'Mobile image analysis complete: ${classification.itemName}',
-                context: {'service': 'screen', 'file': 'image_capture_screen'});
+              'Mobile image analysis complete: ${classification.itemName}',
+              context: {'service': 'screen', 'file': 'image_capture_screen'},
+            );
           } else {
             throw Exception('Image file does not exist or could not be read');
           }
@@ -647,7 +747,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       }
       if (_isCancelled) {
         WasteAppLogger.info(
-            'Analysis cancelled after completion, error: not navigating.');
+          'Analysis cancelled after completion, error: not navigating.',
+        );
         setState(() {
           _isAnalyzing = false;
         });
@@ -675,13 +776,13 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
       if (mounted && !_isCancelled) {
         WasteAppLogger.info(
-            'Analysis complete, error: navigating to ResultScreen.');
+          'Analysis complete, error: navigating to ResultScreen.',
+        );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ResultScreenWrapper(
-              classification: classification,
-            ),
+            builder: (context) =>
+                ResultScreenWrapper(classification: classification),
           ),
         ).then((_) {
           if (mounted) {
@@ -692,10 +793,12 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         });
       }
     } catch (e, s) {
-      WasteAppLogger.severe('Analysis failed',
-          error: e,
-          stackTrace: s,
-          context: {'service': 'screen', 'file': 'image_capture_screen'});
+      WasteAppLogger.severe(
+        'Analysis failed',
+        error: e,
+        stackTrace: s,
+        context: {'service': 'screen', 'file': 'image_capture_screen'},
+      );
       if (mounted && !_isCancelled) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -719,10 +822,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     try {
       final userProfile = ref.read(userProfileProvider).value;
       if (userProfile == null) {
-        throw AuthException('User not authenticated');
+        throw const AuthException('User not authenticated');
       }
       if (!_isOnline) {
-        throw OfflineException('No network connection available');
+        throw const OfflineException('No network connection available');
       }
       final batchJobNotifier = ref.read(batchJobCreationProvider.notifier);
       final jobId = await batchJobNotifier.createJob(
@@ -739,7 +842,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             message =
                 'Job queued at position #$position (~${waitSeconds ~/ 60}m wait)';
           } else {
-            message = 'Job queued at position #$position (~${waitSeconds}s wait)';
+            message =
+                'Job queued at position #$position (~${waitSeconds}s wait)';
           }
         } catch (_) {
           message = 'Batch job created! Job ID: ${jobId.substring(0, 8)}…';
@@ -747,14 +851,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
-            duration: const Duration(seconds: 4),
             action: SnackBarAction(
               label: 'View Jobs',
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const JobQueueScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const JobQueueScreen()),
                 );
               },
             ),
@@ -763,15 +864,16 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } on AuthException catch (e) {
-      WasteAppLogger.severe('Auth failed creating batch job', error: e, context: {
-        'service': 'screen',
-        'file': 'image_capture_screen',
-      });
+      WasteAppLogger.severe(
+        'Auth failed creating batch job',
+        error: e,
+        context: {'service': 'screen', 'file': 'image_capture_screen'},
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Please sign in before creating a batch job.'),
-            duration: const Duration(seconds: 5),
+          const SnackBar(
+            content: Text('Please sign in before creating a batch job.'),
+            duration: Duration(seconds: 5),
           ),
         );
         setState(() {
@@ -779,16 +881,18 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         });
       }
     } on OfflineException catch (e) {
-      WasteAppLogger.severe('Offline creating batch job', error: e, context: {
-        'service': 'screen',
-        'file': 'image_capture_screen',
-      });
+      WasteAppLogger.severe(
+        'Offline creating batch job',
+        error: e,
+        context: {'service': 'screen', 'file': 'image_capture_screen'},
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-                'No internet connection. Batch jobs require an active network.'),
-            duration: const Duration(seconds: 5),
+          const SnackBar(
+            content: Text(
+              'No internet connection. Batch jobs require an active network.',
+            ),
+            duration: Duration(seconds: 5),
           ),
         );
         setState(() {
@@ -798,17 +902,22 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     } on Exception catch (e) {
       final msg = e.toString();
       String userMessage;
-      if (msg.contains('token') || msg.contains('budget') || msg.contains('Insufficient')) {
-        userMessage = 'Not enough tokens for batch analysis. Top up your wallet and try again.';
+      if (msg.contains('token') ||
+          msg.contains('budget') ||
+          msg.contains('Insufficient')) {
+        userMessage =
+            'Not enough tokens for batch analysis. Top up your wallet and try again.';
       } else if (msg.contains('upload') || msg.contains('storage')) {
-        userMessage = 'Image upload failed. Please try again with a smaller image.';
+        userMessage =
+            'Image upload failed. Please try again with a smaller image.';
       } else {
         userMessage = 'Failed to create batch job. Please try again later.';
       }
-      WasteAppLogger.severe('Failed to create batch job', error: e, context: {
-        'service': 'screen',
-        'file': 'image_capture_screen',
-      });
+      WasteAppLogger.severe(
+        'Failed to create batch job',
+        error: e,
+        context: {'service': 'screen', 'file': 'image_capture_screen'},
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -823,15 +932,18 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     }
   }
 
-  Future<void> _createBatchJobWeb(Uint8List imageBytes, String imageName,
-      {List<Map<String, dynamic>>? segments,
-      bool useSegmentation = false}) async {
+  Future<void> _createBatchJobWeb(
+    Uint8List imageBytes,
+    String imageName, {
+    List<Map<String, dynamic>>? segments,
+    bool useSegmentation = false,
+  }) async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'Batch processing on web not yet available. Use the mobile app for batch analysis.'),
-          duration: Duration(seconds: 4),
+            'Batch processing on web not yet available. Use the mobile app for batch analysis.',
+          ),
         ),
       );
     }
@@ -845,9 +957,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         _webImageBytes == null &&
         !_isAnalyzing) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Capture Image'),
-        ),
+        appBar: AppBar(title: const Text('Capture Image')),
         body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -866,7 +976,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       return Scaffold(
         body: _isAnalyzing
             ? EnhancedAnalysisLoader(
-                imageName: _imageFile?.path.split('/').last ??
+                imageName:
+                    _imageFile?.path.split('/').last ??
                     _xFile?.name ??
                     'captured_image.jpg',
                 onCancel: () {
@@ -878,10 +989,13 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                     _isCancelled = true;
                     _isAnalyzing = false;
                   });
-                  WasteAppLogger.info('Analysis cancelled by user.', context: {
-                    'service': 'screen',
-                    'file': 'image_capture_screen'
-                  });
+                  WasteAppLogger.info(
+                    'Analysis cancelled by user.',
+                    context: {
+                      'service': 'screen',
+                      'file': 'image_capture_screen',
+                    },
+                  );
 
                   // Show cancellation feedback
                   if (mounted) {
@@ -956,7 +1070,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       ),
       body: _isAnalyzing
           ? EnhancedAnalysisLoader(
-              imageName: _imageFile?.path.split('/').last ??
+              imageName:
+                  _imageFile?.path.split('/').last ??
                   _xFile?.name ??
                   'captured_image.jpg',
               onCancel: () {
@@ -968,10 +1083,13 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                   _isCancelled = true;
                   _isAnalyzing = false;
                 });
-                WasteAppLogger.info('Analysis cancelled by user.', context: {
-                  'service': 'screen',
-                  'file': 'image_capture_screen'
-                });
+                WasteAppLogger.info(
+                  'Analysis cancelled by user.',
+                  context: {
+                    'service': 'screen',
+                    'file': 'image_capture_screen',
+                  },
+                );
 
                 // Show cancellation feedback
                 if (mounted) {
@@ -984,18 +1102,20 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 }
                 // Navigate back if cancelled
                 Navigator.pop(
-                    context); // Go back to the previous screen (e.g., camera)
+                  context,
+                ); // Go back to the previous screen (e.g., camera)
               },
             )
           : _isSelectingRegions
-              ? _buildRegionSelectionBody()
-              : _buildNormalReviewBody(),
+          ? _buildRegionSelectionBody()
+          : _buildNormalReviewBody(),
     );
   }
 
   Widget _buildAnalyzeButton() {
-    final speedText =
-        _selectedSpeed == AnalysisSpeed.instant ? 'Instant' : 'Batch';
+    final speedText = _selectedSpeed == AnalysisSpeed.instant
+        ? 'Instant'
+        : 'Batch';
     final tokenCost = _selectedSpeed.cost;
 
     // Phase 0: Log token cost display event for telemetry
@@ -1030,9 +1150,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                   strokeWidth: 2.0,
                 ),
               )
-            : Icon(_selectedSpeed == AnalysisSpeed.instant
-                ? Icons.flash_on
-                : Icons.schedule),
+            : Icon(
+                _selectedSpeed == AnalysisSpeed.instant
+                    ? Icons.flash_on
+                    : Icons.schedule,
+              ),
         label: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1074,30 +1196,32 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                             final imageHeight = constraints.maxHeight;
 
                             return Stack(
-                              children: List.generate(_segments.length,
-                                  (index) {
+                              children: List.generate(_segments.length, (
+                                index,
+                              ) {
                                 // Using segment bounds from Map
                                 final segment = _segments[index];
-                                final bounds = segment['bounds']
-                                    as Map<String, dynamic>;
+                                final bounds =
+                                    segment['bounds'] as Map<String, dynamic>;
                                 final left =
                                     (bounds['x'] as num).toDouble() *
-                                        imageWidth /
-                                        100;
-                                final top =
-                                    (bounds['y'] as num).toDouble() *
-                                        imageHeight /
-                                        100;
-                                final width = (bounds['width'] as num)
-                                        .toDouble() *
                                     imageWidth /
                                     100;
-                                final height = (bounds['height'] as num)
-                                        .toDouble() *
+                                final top =
+                                    (bounds['y'] as num).toDouble() *
                                     imageHeight /
                                     100;
-                                final selected =
-                                    _selectedSegments.contains(index);
+                                final width =
+                                    (bounds['width'] as num).toDouble() *
+                                    imageWidth /
+                                    100;
+                                final height =
+                                    (bounds['height'] as num).toDouble() *
+                                    imageHeight /
+                                    100;
+                                final selected = _selectedSegments.contains(
+                                  index,
+                                );
 
                                 return Positioned(
                                   left: left,
@@ -1118,7 +1242,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                                       decoration: BoxDecoration(
                                         color: selected
                                             ? AppTheme.secondaryColor
-                                                .withValues(alpha: 0.3)
+                                                  .withValues(alpha: 0.3)
                                             : Colors.transparent,
                                         border: Border.all(
                                           color: selected
@@ -1139,176 +1263,198 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 : _buildImagePreview(),
           ),
 
-        // Instructions
-        const ModernCard(
-          margin:
-              EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
-          padding: EdgeInsets.all(AppTheme.paddingRegular),
-          child: Row(
-            children: [
-              Icon(Icons.info_outline, color: AppTheme.primaryColor),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Position the item clearly in the image for best results.',
-                  style: TextStyle(fontSize: AppTheme.fontSizeRegular),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppTheme.paddingSmall),
-        _buildScanInsights(),
-
-        // Segmentation toggle with premium feature indication
-        if (_isDebugGridSegmentationEnabled)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.paddingRegular),
-            child: PremiumSegmentationToggle(
-              value: _useSegmentation,
-              onChanged: (bool value) async {
-                setState(() {
-                  _useSegmentation = value;
-                });
-                // Set restoration property safely after state update
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    _useSegmentationRestorable.value = value;
-                  }
-                });
-                if (value && _segments.isEmpty) {
-                  // Capture ScaffoldMessenger before async operation
-                  final scaffoldMessenger =
-                      ScaffoldMessenger.of(context);
-                  try {
-                    await _runSegmentation();
-                  } catch (e) {
-                    WasteAppLogger.severe('Segmentation failed',
-                        error: e,
-                        context: {
-                          'service': 'screen',
-                          'file': 'image_capture_screen'
-                        });
-                    if (mounted) {
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Segmentation failed: ${e.toString()}'),
-                          duration: const Duration(seconds: 5),
-                        ),
-                      );
-                      setState(() {
-                        _useSegmentation = false;
-                      });
-                    }
-                  }
-                } else if (!value) {
-                  setState(() {
-                    _segments.clear();
-                    _selectedSegments.clear();
-                  });
-                }
-              },
-            ),
-          ),
-
-        // Segmentation results info
-        if (_isDebugGridSegmentationEnabled &&
-            _useSegmentation &&
-            _segments.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          // Instructions
+          const ModernCard(
+            margin: EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
+            padding: EdgeInsets.all(AppTheme.paddingRegular),
             child: Row(
               children: [
-                const Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: AppTheme.secondaryColor,
-                ),
-                const SizedBox(width: 8),
+                Icon(Icons.info_outline, color: AppTheme.primaryColor),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '${_segments.length} debug grid regions generated. Tap to select for analysis.',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppTheme.secondaryColor,
-                    ),
+                    'Position the item clearly in the image for best results.',
+                    style: TextStyle(fontSize: AppTheme.fontSizeRegular),
                   ),
                 ),
               ],
             ),
           ),
-        if (_isDebugGridSegmentationEnabled &&
-            _useSegmentation &&
-            _segments.isNotEmpty)
-          _buildDetectedObjectsCard(),
+          const SizedBox(height: AppTheme.paddingSmall),
+          _buildScanInsights(),
 
-        // Speed selector
-        const SizedBox(height: 16),
-        AnalysisSpeedSelector(
-          selectedSpeed: _selectedSpeed,
-          onSpeedChanged: (AnalysisSpeed speed) {
-            setState(() {
-              _selectedSpeed = speed;
-            });
-          },
-        ),
-        const SizedBox(height: 12),
-        _buildAnalysisSummaryCard(),
-
-        // Action buttons
-        Padding(
-          padding: const EdgeInsets.all(AppTheme.paddingRegular),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Select multiple items button
-              _buildSelectMultipleItemsButton(),
-              const SizedBox(height: AppTheme.paddingSmall),
-
-              // Quick analyze button (prominent)
-              _buildAnalyzeButton(),
-              const SizedBox(height: AppTheme.paddingSmall),
-
-              // Quick action row
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back, size: 18),
-                      label: const Text('Back'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.grey.shade600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppTheme.paddingSmall),
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+          // Segmentation toggle with premium feature indication
+          if (_isDebugGridSegmentationEnabled)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.paddingRegular,
+              ),
+              child: PremiumSegmentationToggle(
+                value: _useSegmentation,
+                onChanged: (bool value) async {
+                  setState(() {
+                    _useSegmentation = value;
+                  });
+                  // Set restoration property safely after state update
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      _useSegmentationRestorable.value = value;
+                    }
+                  });
+                  if (value && _segments.isEmpty) {
+                    // Capture ScaffoldMessenger before async operation
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
+                    try {
+                      await _runSegmentation();
+                    } catch (e) {
+                      WasteAppLogger.severe(
+                        'Segmentation failed',
+                        error: e,
+                        context: {
+                          'service': 'screen',
+                          'file': 'image_capture_screen',
+                        },
+                      );
+                      if (mounted) {
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(
                             content: Text(
-                                '💡 Tip: Use camera button with long press for instant analysis!'),
-                            duration: Duration(seconds: 3),
+                              'Segmentation failed: ${e.toString()}',
+                            ),
+                            duration: const Duration(seconds: 5),
                           ),
                         );
-                      },
-                      icon: const Icon(Icons.flash_on, size: 18),
-                      label: const Text('Quick Tip'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.primaryColor,
+                        setState(() {
+                          _useSegmentation = false;
+                        });
+                      }
+                    }
+                  } else if (!value) {
+                    setState(() {
+                      _segments.clear();
+                      _selectedSegments.clear();
+                    });
+                  }
+                },
+              ),
+            ),
+
+          // Segmentation results info
+          if (_isDebugGridSegmentationEnabled &&
+              _useSegmentation &&
+              _segments.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: AppTheme.secondaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${_segments.length} debug grid regions generated. Tap to select for analysis.',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.secondaryColor,
                       ),
                     ),
                   ),
                 ],
               ),
-            ],
+            ),
+          if (_isDebugGridSegmentationEnabled &&
+              _useSegmentation &&
+              _segments.isNotEmpty)
+            _buildDetectedObjectsCard(),
+
+          // Speed selector
+          const SizedBox(height: 16),
+          AnalysisSpeedSelector(
+            selectedSpeed: _selectedSpeed,
+            forceBatchMode: _guardrailForcesBatch,
+            onSpeedChanged: (AnalysisSpeed speed) {
+              if (_guardrailForcesBatch && speed == AnalysisSpeed.instant) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Instant mode is disabled by cost guardrails right now.',
+                    ),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+                return;
+              }
+              setState(() {
+                _selectedSpeed = speed;
+              });
+              if (speed == AnalysisSpeed.batch) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    _enterRegionSelectionMode();
+                  }
+                });
+              }
+            },
           ),
-        ),
-      ],
+          const SizedBox(height: 12),
+          _buildAnalysisSummaryCard(),
+
+          // Action buttons
+          Padding(
+            padding: const EdgeInsets.all(AppTheme.paddingRegular),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Select multiple items button
+                _buildSelectMultipleItemsButton(),
+                const SizedBox(height: AppTheme.paddingSmall),
+
+                // Quick analyze button (prominent)
+                _buildAnalyzeButton(),
+                const SizedBox(height: AppTheme.paddingSmall),
+
+                // Quick action row
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back, size: 18),
+                        label: const Text('Back'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppTheme.paddingSmall),
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                '💡 Tip: Use camera button with long press for instant analysis!',
+                              ),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.flash_on, size: 18),
+                        label: const Text('Quick Tip'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1317,12 +1463,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: () {
-          setState(() {
-            _isSelectingRegions = true;
-            _selectedRegions = [];
-          });
-        },
+        onPressed: _enterRegionSelectionMode,
         icon: const Icon(Icons.crop_square, size: 20),
         label: const Text('Select multiple items'),
         style: OutlinedButton.styleFrom(
@@ -1349,6 +1490,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             child: ManualRegionSelector(
               imageFile: _imageFile,
               webImageBytes: _webImageBytes,
+              initialRegions: _selectedRegions,
               maxRegions: 3,
               onRegionsChanged: (regions) {
                 setState(() {
@@ -1391,14 +1533,12 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                     icon: Icon(
                       Icons.auto_awesome,
                       size: 20,
-                      color: _selectedRegions.isEmpty
-                          ? null
-                          : Colors.white,
+                      color: _selectedRegions.isEmpty ? null : Colors.white,
                     ),
                     label: Text(
                       _selectedRegions.isEmpty
-                          ? 'Analyze 0 items'
-                          : 'Analyze ${_selectedRegions.length} items',
+                          ? 'Analyze item'
+                          : 'Analyze ${_selectedRegions.length} item${_selectedRegions.length == 1 ? '' : 's'}',
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedRegions.isEmpty
@@ -1407,8 +1547,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                       foregroundColor: _selectedRegions.isEmpty
                           ? null
                           : Colors.white,
-                      disabledBackgroundColor:
-                          Colors.grey.shade300,
+                      disabledBackgroundColor: Colors.grey.shade300,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
@@ -1494,10 +1633,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         }
       });
     } catch (e) {
-      WasteAppLogger.severe('Failed to analyze regions', error: e, context: {
-        'service': 'screen',
-        'file': 'image_capture_screen'
-      });
+      WasteAppLogger.severe(
+        'Failed to analyze regions',
+        error: e,
+        context: {'service': 'screen', 'file': 'image_capture_screen'},
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1517,8 +1657,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     final totalCount = _segments.length;
     final segmentationStatus = _useSegmentation
         ? (totalCount == 0
-            ? 'Detecting...'
-            : '$selectedCount of $totalCount selected')
+              ? 'Detecting...'
+              : '$selectedCount of $totalCount selected')
         : 'Off';
     final tokenCost = _selectedSpeed.cost;
 
@@ -1539,10 +1679,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               ),
               Text(
                 _selectedSpeed.displayName,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1559,10 +1698,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               ),
               Text(
                 _modelLabel(),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1579,10 +1717,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               ),
               Text(
                 _analysisStatusLabel(),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1599,10 +1736,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               ),
               Text(
                 '$tokenCost ⚡',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1619,10 +1755,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               ),
               Text(
                 _estimateDurationLabel(),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1639,10 +1774,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               ),
               Text(
                 segmentationStatus,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1664,10 +1798,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               const SizedBox(width: 8),
               Text(
                 'Detected Objects',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1683,14 +1816,18 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                   ? (segment['confidence'] as num).toDouble()
                   : null;
               final isSelected = _selectedSegments.contains(index);
-              final color =
-                  isSelected ? AppTheme.secondaryColor : AppTheme.primaryColor;
-              final suffix =
-                  confidence == null ? '' : ' ${(confidence * 100).round()}%';
+              final color = isSelected
+                  ? AppTheme.secondaryColor
+                  : AppTheme.primaryColor;
+              final suffix = confidence == null
+                  ? ''
+                  : ' ${(confidence * 100).round()}%';
 
               return Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: isSelected ? 0.2 : 0.1),
                   borderRadius: BorderRadius.circular(16),
@@ -1699,10 +1836,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 child: Text(
                   '$label$suffix',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: color,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w500,
-                      ),
+                    color: color,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  ),
                 ),
               );
             }),
@@ -1751,78 +1887,66 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
     if (kIsWeb) {
       if (_webImageBytes != null) {
-        imageWidget = Image.memory(
-          _webImageBytes!,
-          fit: BoxFit.contain,
-        );
+        imageWidget = Image.memory(_webImageBytes!, fit: BoxFit.contain);
       } else {
         return const Center(child: CircularProgressIndicator());
       }
     } else if (_imageFile != null || _xFile != null) {
       final file = _imageFile ?? File(_xFile!.path);
-      imageWidget = Image.file(
-        file,
-        fit: BoxFit.contain,
-      );
+      imageWidget = Image.file(file, fit: BoxFit.contain);
     } else if (_webImageBytes != null) {
-      imageWidget = Image.memory(
-        _webImageBytes!,
-        fit: BoxFit.contain,
-      );
+      imageWidget = Image.memory(_webImageBytes!, fit: BoxFit.contain);
     } else {
       return const Center(child: CircularProgressIndicator());
     }
 
     // Wrap with InteractiveViewer for zoom functionality
     return AspectRatio(
-        aspectRatio: 16 / 9,
-        child: InteractiveViewer(
-          minScale: 0.5, // Minimum zoom out
-          maxScale: 4.0, // Maximum zoom in
-          child: Stack(
-            fit: StackFit
-                .expand, // FIXED: Use StackFit.expand instead of infinite container
-            children: [
-              // FIXED: Center the image within available space
-              Center(child: imageWidget),
-              _buildVisionOverlay(),
-              // Zoom instruction overlay (shows briefly)
-              Positioned(
-                top: 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.zoom_in,
+      aspectRatio: 16 / 9,
+      child: InteractiveViewer(
+        minScale: 0.5, // Minimum zoom out
+        maxScale: 4.0, // Maximum zoom in
+        child: Stack(
+          fit: StackFit
+              .expand, // FIXED: Use StackFit.expand instead of infinite container
+          children: [
+            // FIXED: Center the image within available space
+            Center(child: imageWidget),
+            _buildVisionOverlay(),
+            // Zoom instruction overlay (shows briefly)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.zoom_in, color: Colors.white, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      'Pinch to zoom • Drag to pan',
+                      style: TextStyle(
                         color: Colors.white,
-                        size: 16,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Pinch to zoom • Drag to pan',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ));
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildVisionOverlay() {
@@ -1835,8 +1959,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               alignment: Alignment.topLeft,
               child: Container(
                 margin: const EdgeInsets.all(16),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(16),
@@ -1847,8 +1973,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.center_focus_strong,
-                        color: AppTheme.secondaryColor, size: 16),
+                    Icon(
+                      Icons.center_focus_strong,
+                      color: AppTheme.secondaryColor,
+                      size: 16,
+                    ),
                     SizedBox(width: 6),
                     Text(
                       'AI Vision Mode',
@@ -1866,8 +1995,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               alignment: Alignment.topRight,
               child: Container(
                 margin: const EdgeInsets.all(16),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: _confidenceColor(confidence).withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(16),
@@ -1876,8 +2007,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.insights,
-                        color: _confidenceColor(confidence), size: 16),
+                    Icon(
+                      Icons.insights,
+                      color: _confidenceColor(confidence),
+                      size: 16,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       '${_confidenceLabel(confidence)} ${(confidence * 100).round()}%',
@@ -1903,8 +2037,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(28),
                         border: Border.all(
-                          color: AppTheme.secondaryColor
-                              .withValues(alpha: _scanPulseOpacity.value),
+                          color: AppTheme.secondaryColor.withValues(
+                            alpha: _scanPulseOpacity.value,
+                          ),
                           width: 2,
                         ),
                       ),
@@ -1931,8 +2066,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               alignment: Alignment.bottomCenter,
               child: Container(
                 margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(12),
@@ -1940,8 +2077,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.auto_awesome,
-                        color: Colors.white, size: 16),
+                    const Icon(
+                      Icons.auto_awesome,
+                      color: Colors.white,
+                      size: 16,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       _scanHintText(),
@@ -2045,10 +2185,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               const SizedBox(width: 8),
               Text(
                 'Scan Insights',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -2059,8 +2198,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.check_circle,
-                      size: 14, color: AppTheme.secondaryColor),
+                  const Icon(
+                    Icons.check_circle,
+                    size: 14,
+                    color: AppTheme.secondaryColor,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(

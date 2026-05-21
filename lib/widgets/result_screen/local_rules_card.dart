@@ -98,7 +98,6 @@ class LocalRulesCard extends StatelessWidget {
               const SizedBox(height: 2),
               ReadMoreText(
                 value,
-                trimLines: 3,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: cs.onSurface.withValues(alpha: 0.8),
                   height: 1.4,

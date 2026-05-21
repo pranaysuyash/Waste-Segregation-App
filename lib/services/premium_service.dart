@@ -13,7 +13,7 @@ class PremiumService extends ChangeNotifier {
   static const String proSubscriptionEntitlement = 'pro_subscription';
   static const String legacyPremiumSignal = 'remove_ads';
   static const bool _enableDebugAutoSeed =
-      bool.fromEnvironment('PREMIUM_DEBUG_AUTO_SEED', defaultValue: false);
+      bool.fromEnvironment('PREMIUM_DEBUG_AUTO_SEED');
   Box<bool>? _premiumBox;
   bool _isInitialized = false;
   bool _isInitializing = false;

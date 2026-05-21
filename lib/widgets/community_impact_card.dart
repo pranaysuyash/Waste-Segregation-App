@@ -138,7 +138,7 @@ class CommunityImpactCard extends StatelessWidget {
                   borderRadius:
                       BorderRadius.circular(AppTheme.borderRadiusMd),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.eco_outlined,
                   color: AppTheme.neutralColor,
                   size: AppTheme.iconSizeMd,
@@ -182,7 +182,7 @@ class CommunityImpactCard extends StatelessWidget {
           const SizedBox(height: AppTheme.spacingSm),
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.camera_alt,
                 size: AppTheme.iconSizeSm,
                 color: AppTheme.primaryColor,

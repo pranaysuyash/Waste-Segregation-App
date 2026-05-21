@@ -393,10 +393,10 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
                 TextField(
                   controller: _notesController,
                   onChanged: (_) => setState(() => _validationError = null),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Notes (optional)',
                     hintText: 'Why was this wrong?',
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(),
                   ),
                   maxLines: 2,
                 ),

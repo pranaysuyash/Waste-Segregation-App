@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/google_drive_service.dart';
 import '../utils/constants.dart';
 import '../widgets/navigation_wrapper.dart';
+import '../widgets/modern_ui/modern_cards.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -55,10 +56,11 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       }
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -290,114 +292,99 @@ class _AuthScreenState extends State<AuthScreen> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Material(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-          child: Container(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-              border: borderColor != null
-                  ? Border.all(color: borderColor, width: 2)
-                  : null,
-              boxShadow: backgroundColor != Colors.transparent
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              children: [
-                icon,
-                const SizedBox(width: AppTheme.paddingRegular),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeMedium,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: AppTheme.fontSizeSmall,
-                          color: textColor.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ],
+      child: ModernCard(
+        onTap: onPressed,
+        backgroundColor: backgroundColor,
+        enableGlassmorphism: backgroundColor == Colors.transparent,
+        borderRadius: AppTheme.borderRadiusLarge,
+        border: borderColor != null
+            ? Border.all(color: borderColor, width: 2)
+            : null,
+        padding: const EdgeInsets.all(AppTheme.paddingRegular),
+        child: Row(
+          children: [
+            icon,
+            const SizedBox(width: AppTheme.paddingRegular),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeMedium,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
                   ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: textColor.withValues(alpha: 0.5),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: AppTheme.fontSizeSmall,
+                      color: textColor.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: textColor.withValues(alpha: 0.5),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildImpactCard(String value, String label, IconData icon) {
-    return Container(
-      height: 110, // Further increased height for better text visibility
+    final theme = Theme.of(context);
+
+    return ModernCard(
+      enableGlassmorphism: true,
+      backgroundColor: Colors.white,
+      opacity: 0.16,
+      borderRadius: AppTheme.borderRadiusRegular,
       padding: const EdgeInsets.all(AppTheme.paddingSmall),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusRegular),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: Colors.white,
-            size: 22, // Slightly smaller icon to make room for text
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16, // Slightly smaller value text
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      child: SizedBox(
+        height: 110,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: AppTheme.primaryColor,
+              size: 22,
             ),
-          ),
-          const SizedBox(height: 2),
-          Expanded(
-            child: Center(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 11, // Optimized label text size
-                  color: Colors.white70,
-                  height: 1.2, // Better line height
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 2),
+            Expanded(
+              child: Center(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,0 +1,13 @@
+check_id,area,source_claim,evidence,status,notes
+RV-001,Client AI release guard,"Client AI must be blocked in release unless explicitly enabled","lib/utils/production_safety_config.dart:19-23,54-66; lib/services/ai_service.dart:1209,1385,1587",VERIFIED,Guard exists and is called at OpenAI/Gemini/correction choke points.
+RV-002,Placeholder key blocking,"Placeholder provider keys must hard-fail","lib/services/ai_service.dart:1230,1404,1645,1678; lib/services/providers/openai_provider_client.dart:53-54",VERIFIED,Direct provider call path checks placeholder keys.
+RV-003,Fallback label consistency,"Fallback label should be explicit and consistent","lib/services/ai_service.dart:2074,2076",VERIFIED,"Uses 'Unidentified Item - Fallback' in assignment and warning text."
+RV-004,Quota race-window reduction,"Second affordability check should exist immediately before network analysis","lib/screens/image_capture_screen.dart:389-394 and 466-471",VERIFIED,Two preflight affordability checks present.
+RV-005,Premium/ad sync,"Ad suppression should follow active premium plan","lib/utils/service_sync.dart:14; lib/widgets/banner_ad_widget.dart:21",VERIFIED,Sync now uses hasActivePremiumPlan().
+RV-006,Functions key precedence,"Runtime key resolution should prefer env and keep temporary fallback","functions/src/index.ts:18-22",VERIFIED,Env-first with legacy functions.config bridge still present.
+RV-007,Web Firebase bootstrap,"web/index.html should not initialize Firebase with static config","search web/index.html for firebaseConfig/firebase.initializeApp/firebasejs => 0 matches",VERIFIED,Manual Firebase JS bootstrap removed.
+RV-008,iOS pods runtime blocker,"Pod install previously blocked by BoringSSL/base64 path issues","pod install (2026-05-21): exit 0; 29 dependencies, 75 pods",VERIFIED,Current blocker not reproducible in this run.
+RV-009,Consent automation,"Consent management for AdMob/GDPR should be implemented","lib/services/ad_service.dart:110 TODO",OPEN,Consent automation still TODO.
+RV-010,Money rail readiness,"Premium purchase rail should be production-ready","lib/screens/premium_features_screen.dart:288,290,303",OPEN,IAP flow is explicitly disabled with 'Coming Soon'.
+RV-011,Functions precedence test,"Key precedence test should exist and pass","functions/test/openai_key_resolution.test.js; npm --prefix functions run test:key-resolution => PASS",VERIFIED,3 tests pass.
+RV-012,Exploration lane isolation,"Locality/civic track should remain non-P0 exploration","docs/review/EXPLORATION_AND_RESEARCH_BACKLOG_2026-05-20.md:4-6,16-23; docs/exploration/backlog.md:143-170",VERIFIED,Docs explicitly keep civic track out of launch P0 lane.

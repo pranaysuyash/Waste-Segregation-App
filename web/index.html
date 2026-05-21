@@ -94,33 +94,8 @@
     <div class="loading-spinner"></div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-performance-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-crashlytics-compat.js"></script>
-
-  <!-- Firebase Configuration -->
-  <script>
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyA6u5t0aBkVB6h_6AKeGEOhhUF9oHqFXUA",
-      authDomain: "waste-segregation-app.firebaseapp.com",
-      projectId: "waste-segregation-app",
-      storageBucket: "waste-segregation-app.appspot.com",
-      messagingSenderId: "123456789012",
-      appId: "1:123456789012:web:1234567890abcdef123456"
-    };
-
-    // Initialize Firebase
-    try {
-      firebase.initializeApp(firebaseConfig);
-      console.log('Firebase initialized successfully');
-    } catch (error) {
-      console.error('Firebase initialization error:', error);
-    }
-  </script>
+  <!-- Firebase is initialized from Dart using DefaultFirebaseOptions + dart-defines.
+       Do not initialize a web app instance here with placeholder/static keys. -->
 
   <!-- Flutter Web Service Worker and initialization -->
   <script>

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,8 @@ import '../screens/settings_screen.dart';
 import '../utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../models/gamification_result.dart';
+import '../widgets/modern_ui/modern_buttons.dart';
+import '../widgets/modern_ui/modern_cards.dart';
 import '../widgets/enhanced_gamification_widgets.dart' as widgets;
 import '../widgets/advanced_ui/achievement_celebration.dart';
 
@@ -199,8 +202,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             position: _slideAnimation,
             child: RefreshIndicator(
               onRefresh: () async {
-                ref.invalidate(classificationsProvider);
-                ref.invalidate(profileProvider);
+                ref
+                  ..invalidate(classificationsProvider)
+                  ..invalidate(profileProvider);
               },
               child: CustomScrollView(
                 slivers: [
@@ -213,6 +217,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 24),
+
+                        // Mission control panel
+                        _buildMissionControlPanel(
+                          context,
+                          profileAsync,
+                          userProfileAsync,
+                        ),
+                        const SizedBox(height: 20),
 
                         // Horizontal scrolling action chips
                         _buildActionChips(context),
@@ -305,7 +317,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             padding: EdgeInsets.fromLTRB(20, topPadding + 12, 20, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Greeting and user info
@@ -477,7 +488,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.max,
         children: [
           Icon(icon, color: Colors.white, size: 16),
           const SizedBox(width: 4),
@@ -506,6 +516,228 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==========================================================================
+  // Mission control panel
+  // ==========================================================================
+
+  Widget _buildMissionControlPanel(
+    BuildContext context,
+    AsyncValue<GamificationProfile?> profileAsync,
+    AsyncValue<UserProfile?> userProfileAsync,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: ModernCard(
+        enableGlassmorphism: true,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.96),
+            AppTheme.secondaryColor.withValues(alpha: 0.92),
+          ],
+        ),
+        borderRadius: 24,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.rocket_launch,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Mission Control',
+                        style: GoogleFonts.inter(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Your modern waste workflow starts here.',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: Colors.white.withValues(alpha: 0.88),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Scan items, review the sorting rule, and keep your streak moving with the open design surface wired into the real app.',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                height: 1.35,
+                color: Colors.white.withValues(alpha: 0.92),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: ModernButton(
+                    text: 'Scan Item',
+                    icon: Icons.camera_alt,
+                    onPressed: _takePhoto,
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppTheme.primaryColor,
+                    tooltip: 'Open camera capture',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ModernButton(
+                    text: 'Explore Learn',
+                    icon: Icons.school_outlined,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const EducationalContentScreen(),
+                        ),
+                      );
+                    },
+                    style: ModernButtonStyle.glassmorphism,
+                    foregroundColor: Colors.white,
+                    tooltip: 'Open learning hub',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMissionMetric(
+                    context,
+                    'Today',
+                    'Fresh tips and scans',
+                    Icons.auto_awesome,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: profileAsync.when(
+                    data: (profile) => _buildMissionMetric(
+                      context,
+                      'Streak',
+                      '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0} days',
+                      Icons.local_fire_department,
+                    ),
+                    loading: () => _buildMissionMetric(
+                      context,
+                      'Streak',
+                      'Loading...',
+                      Icons.local_fire_department,
+                    ),
+                    error: (_, __) => _buildMissionMetric(
+                      context,
+                      'Streak',
+                      '0 days',
+                      Icons.local_fire_department,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: userProfileAsync.when(
+                    data: (userProfile) => _buildMissionMetric(
+                      context,
+                      'User',
+                      userProfile?.displayName?.split(' ').first ??
+                          AppStrings.ecoHero,
+                      Icons.person,
+                    ),
+                    loading: () => _buildMissionMetric(
+                      context,
+                      'User',
+                      '...',
+                      Icons.person,
+                    ),
+                    error: (_, __) => _buildMissionMetric(
+                      context,
+                      'User',
+                      AppStrings.ecoHero,
+                      Icons.person,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMissionMetric(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+  ) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.16),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.white, size: 18),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: theme.colorScheme.onPrimary.withValues(alpha: 0.85),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -652,8 +884,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         // Pick a random active challenge based on day
         final randomChallenge =
             activeChallenges[DateTime.now().day % activeChallenges.length];
-        final progressPercentage =
-            (randomChallenge.progress * 100).round();
+        final progressPercentage = (randomChallenge.progress * 100).round();
         final currentCount = (randomChallenge.progress *
                 (randomChallenge.requirements['count'] ?? 1))
             .round();
@@ -811,8 +1042,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         String? preferredCategory;
         if (classifications.isNotEmpty) {
           final latest = classifications.first;
-          final sevenDaysAgo =
-              DateTime.now().subtract(const Duration(days: 7));
+          final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
           if (latest.timestamp.isAfter(sevenDaysAgo)) {
             preferredCategory = latest.category;
           }
@@ -1267,7 +1497,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       }
     } else {
       final file = File(image.path);
-      if (await file.exists() && mounted) {
+      if (file.existsSync() && mounted) {
         final result = await Navigator.push<GamificationResult>(
           context,
           MaterialPageRoute(
@@ -1285,10 +1515,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   Future<void> _navigateToInstantAnalysis(XFile image) async {
     if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => InstantAnalysisScreen(image: image),
+      unawaited(
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InstantAnalysisScreen(image: image),
+          ),
         ),
       );
     }
@@ -1346,7 +1578,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       return [const Color(0xFF2E7D32), const Color(0xFF388E3C)];
     }
   }
-
 }
 
 class ActionItem {
