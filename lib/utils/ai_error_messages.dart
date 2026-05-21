@@ -42,4 +42,3 @@ class AiErrorMessages {
     return 'Analysis failed. Please try again.';
   }
 }
-

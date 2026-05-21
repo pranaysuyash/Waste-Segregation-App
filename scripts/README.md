@@ -29,6 +29,7 @@ This directory contains all development, build, testing, and maintenance scripts
 
 ### `/scripts/development/` - Development Workflow Scripts
 - **run_with_env.sh** - Run app with environment validation and error checking
+- **install_android_with_env.sh** - Build + install debug APK with `.env` dart-defines on a target Android device
 - **switch_flutter_channel.sh** - Switch between Flutter channels (stable, beta, dev)
 
 ### `/scripts/` - Core Scripts

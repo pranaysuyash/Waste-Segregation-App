@@ -6,6 +6,7 @@ import cors from 'cors';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
+import { getQuotaConfig } from './rate_limit_config';
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -134,11 +135,16 @@ const shouldEnforceCallableAppCheck = (): boolean => {
   return true;
 };
 
+/**
+ * getRateLimitConfig — thin adapter kept for internal call-site compatibility.
+ * All canonical values now live in rate_limit_config.ts via getQuotaConfig().
+ */
 const getRateLimitConfig = () => {
+  const cfg = getQuotaConfig();
   return {
-    windowSeconds: Number(process.env.RATE_LIMIT_WINDOW_SECONDS ?? 60),
-    disposalMax: Number(process.env.RATE_LIMIT_DISPOSAL_MAX_REQUESTS ?? 25),
-    spendTokensMax: Number(process.env.RATE_LIMIT_SPENDTOKENS_MAX_REQUESTS ?? 40),
+    windowSeconds: cfg.disposal.windowSeconds,
+    disposalMax: cfg.disposal.maxRequests,
+    spendTokensMax: cfg.tokenSpend.maxRequests,
   };
 };
 
@@ -1003,6 +1009,11 @@ async function triggerJobCompletionNotification(jobId: string, userId: string, c
   await db.collection('notifications').add(notification);
   functions.logger.info(`Created notification for user ${userId} - job ${jobId}`);
 }
+
+// ---------------------------------------------------------------------------
+// Backend classification gateway (image proxy with App Check + rate limit)
+// ---------------------------------------------------------------------------
+export { classifyImage } from './classify_image';
 
 /**
  * HTTP endpoint to get batch processing statistics

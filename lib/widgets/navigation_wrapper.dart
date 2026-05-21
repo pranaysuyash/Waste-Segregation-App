@@ -457,34 +457,11 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final width = MediaQuery.of(context).size.width;
 
     return Consumer<NavigationSettingsService>(
       builder: (context, navSettings, child) {
         final showGlobalScanFab = navSettings.fabEnabled && _currentIndex == 2;
-        // Get navigation style
-        ModernBottomNavStyle navStyle;
-        switch (navSettings.navigationStyle) {
-          case 'material3':
-            navStyle = ModernBottomNavStyle.material3(
-              primaryColor: AppTheme.primaryColor,
-              isDark: isDark,
-            );
-            break;
-          case 'floating':
-            navStyle = ModernBottomNavStyle.floating(
-              primaryColor: AppTheme.primaryColor,
-              isDark: isDark,
-            );
-            break;
-          default:
-            navStyle = ModernBottomNavStyle.glassmorphism(
-              primaryColor: AppTheme.primaryColor,
-              isDark: isDark,
-            );
-        }
 
         if (width >= 1024) {
           // Large screens - use NavigationDrawer
@@ -592,13 +569,11 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                     backgroundColor: AppTheme.primaryColor,
                     foregroundColor: Colors.white,
                     elevation: 6,
-                    shadowColor:
-                        AppTheme.primaryColor.withValues(alpha: 0.4),
+                    shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
                   ),
                 )
               : null,
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.endFloat,
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         );
       },
     );

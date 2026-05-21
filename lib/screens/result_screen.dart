@@ -248,12 +248,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                               _buildLoadingIndicator(context),
 
                             // Re-analysis audit trail badge
-                            if (_wasCorrected)
-                              _buildCorrectedBadge(context),
+                            if (_wasCorrected) _buildCorrectedBadge(context),
 
                             // Re-analysis in-progress banner
-                            if (_isReanalyzing)
-                              _buildReanalysisBanner(context),
+                            if (_isReanalyzing) _buildReanalysisBanner(context),
 
                             // Needs-review banner (clarificationNeeded or fallback)
                             if (needsReview || isFallback)
@@ -335,7 +333,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                             ],
 
                             // Local Rules (BBMP)
-                            if (LocalRulesCard.hasLocalRules(_classification)) ...[
+                            if (LocalRulesCard.hasLocalRules(
+                                _classification)) ...[
                               const SizedBox(height: 16),
                               LocalRulesCard(classification: _classification),
                             ],
@@ -509,8 +508,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               _analyticsService.trackUserAction(
                 'low_confidence_reanalyze',
                 parameters: {
-                  'original_confidence':
-                      _classification.confidence.toString(),
+                  'original_confidence': _classification.confidence.toString(),
                   'category': _classification.category,
                 },
               );
@@ -595,7 +593,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     final cs = theme.colorScheme;
 
     final educationalService = ref.read(educationalContentServiceProvider);
-    final recommendation = educationalService.getRecommendationForClassification(
+    final recommendation =
+        educationalService.getRecommendationForClassification(
       category: _classification.category,
       subcategory: _classification.normalizedSubcategory,
       riskLevel: _classification.riskLevel,
@@ -904,8 +903,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
     final result = await showDialog<CorrectionResult>(
       context: context,
-      builder: (context) =>
-          CorrectionDialog(classification: _classification),
+      builder: (context) => CorrectionDialog(classification: _classification),
     );
 
     // Guard: widget may have been disposed while dialog was open
@@ -1395,8 +1393,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     }
   }
 
-
-
   Widget _buildDisposalChecklist(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -1472,8 +1468,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     return c.disposalInstructions.steps.isNotEmpty;
   }
 
-
-
   Widget _buildSafetyWarnings(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -1546,8 +1540,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     final cs = theme.colorScheme;
     final warnings =
         _classification.disposalInstructions.warnings ?? const <String>[];
-    final hints =
-        _classification.disposalInstructions.tips ?? const <String>[];
+    final hints = _classification.disposalInstructions.tips ?? const <String>[];
     final tips = <String>[...warnings.take(2), ...hints.take(3)];
 
     return Card(

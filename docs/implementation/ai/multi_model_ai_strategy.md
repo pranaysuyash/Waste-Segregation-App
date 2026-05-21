@@ -1,3 +1,10 @@
+> ⚠️ **STALE — ASPIRATIONAL DESIGN (as of 2026-05-21)**
+> This document describes a planned multi-model architecture that was not implemented as specified.
+> The current codebase uses OpenAI as the primary vision provider and Gemini as the fallback —
+> the opposite order from what this document specifies. The TFLite/on-device tier and Anthropic
+> Claude tier do not exist in the current implementation. Do not use as implementation reference.
+> See: `docs/architecture/CURRENT_AI_ARCHITECTURE.md` for verified current state.
+
 # Multi-Model AI Strategy
 
 > **NOTE**: This document consolidates previous strategy documents to provide a single source of truth regarding our multi-model AI approach.

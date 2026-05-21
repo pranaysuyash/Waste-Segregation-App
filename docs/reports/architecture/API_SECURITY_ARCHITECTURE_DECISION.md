@@ -1,3 +1,10 @@
+> ⚠️ **STALE — ASPIRATIONAL DESIGN (as of 2026-05-21)**
+> The "Migration Completed" section of this document describes an intended target state that was NOT fully implemented.
+> The 2026-05-21 audit (`docs/review/SECRET_PATH_AND_RELEASE_GUARD_AUDIT_2026-05-21.md`) confirmed that API keys
+> are still injected via `String.fromEnvironment` at client build time — not server-side-only.
+> The analysis and recommendation in this document remain valid as a goal, but the implementation status claims are incorrect.
+> See: `docs/review/AI_PIPELINE_TRUTH_MAP_2026-05-21.md` and `docs/architecture/CURRENT_AI_ARCHITECTURE.md` for current state.
+
 # API Security & Architecture Decision: Cloud Functions vs Direct API Calls
 
 **Date**: June 20, 2025  

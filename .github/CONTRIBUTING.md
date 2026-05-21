@@ -123,6 +123,21 @@ flutter test test/ai/ --tags=ai-classification
 - **Feature docs** → `/docs/features/`
 - **Fix summaries** → `/docs/fixes/`
 
+### Documentation Integrity Rule
+
+**Code wins over docs.** When a doc and the code contradict each other, trust the code.
+
+Exception: docs explicitly marked `[CURRENT — verified YYYY-MM-DD]` have been recently
+hand-verified against the codebase and can be trusted until that date expires (90 days).
+
+Docs marked `[STALE]` or `[ASPIRATIONAL]` describe intended future state, not current reality.
+
+When you verify a doc is accurate, add `[CURRENT — verified YYYY-MM-DD]` to its title.
+When you find a doc is outdated, add the STALE banner (see `docs/implementation/ai/api_key_management_and_security.md` for example format).
+
+The canonical source of truth for the AI pipeline is:
+`docs/architecture/CURRENT_AI_ARCHITECTURE.md`
+
 ## 🔍 Code Review Process
 
 ### Before Submitting PR

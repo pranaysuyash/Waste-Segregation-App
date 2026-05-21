@@ -375,6 +375,33 @@ class EnhancedImageService {
     }
   }
 
+  /// Delete all files in the permanent images and thumbnails directories.
+  ///
+  /// Called during factory reset to ensure no image data persists on-device
+  /// after the user requests a full wipe.
+  Future<void> deleteAll() async {
+    if (kIsWeb) return;
+
+    final dir = await getApplicationDocumentsDirectory();
+    var deletedDirs = 0;
+
+    for (final subDirName in [_imagesDirName, _thumbnailsDirName]) {
+      final target = Directory(p.join(dir.path, subDirName));
+      if (!await target.exists()) continue;
+      try {
+        await target.delete(recursive: true);
+        deletedDirs++;
+        WasteAppLogger.info('image_dir_deleted', context: {'dir': subDirName});
+      } catch (e) {
+        WasteAppLogger.severe('image_dir_delete_failed',
+            context: {'dir': subDirName}, error: e);
+      }
+    }
+
+    WasteAppLogger.info('image_service_delete_all',
+        context: {'dirs_deleted': deletedDirs});
+  }
+
   /// Remove app-owned temp image files older than the specified duration.
   /// Only cleans files in an app-specific subdirectory to avoid affecting
   /// other app/plugin temp files.

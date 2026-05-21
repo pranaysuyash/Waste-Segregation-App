@@ -39,11 +39,12 @@ class ImageCaptureScreen extends ConsumerStatefulWidget {
   factory ImageCaptureScreen.fromXFile(
     XFile xFile, {
     bool autoAnalyze = false,
-  }) => ImageCaptureScreen(
-    xFile: xFile,
-    imageFile: kIsWeb ? null : File(xFile.path),
-    autoAnalyze: autoAnalyze,
-  );
+  }) =>
+      ImageCaptureScreen(
+        xFile: xFile,
+        imageFile: kIsWeb ? null : File(xFile.path),
+        autoAnalyze: autoAnalyze,
+      );
   final File? imageFile;
   final XFile? xFile;
   final Uint8List? webImage;
@@ -165,8 +166,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     try {
       final aiService = ref.read(aiServiceProvider);
       await aiService.initialize();
-      final shouldForceBatch =
-          aiService.isBatchModeEnforced() ||
+      final shouldForceBatch = aiService.isBatchModeEnforced() ||
           aiService.getRecommendedAnalysisSpeed() == AnalysisSpeed.batch;
 
       if (!mounted) return;
@@ -388,56 +388,54 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     final queueService = OfflineQueueService();
     final userProfile = ref.read(userProfileProvider).value;
     const region = 'auto'; // Default region for offline queue
-    final imageName =
-        _imageFile?.path.split('/').last ??
+    final imageName = _imageFile?.path.split('/').last ??
         _xFile?.name ??
         'captured_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
     queueService
         .queue(
-          imageBytes: imageBytes,
-          region: region,
-          userId: userProfile?.id,
-          imageName: imageName,
-        )
+      imageBytes: imageBytes,
+      region: region,
+      userId: userProfile?.id,
+      imageName: imageName,
+    )
         .then((_) {
-          WasteAppLogger.info(
-            'Image queued for offline processing',
-            context: {
-              'service': 'screen',
-              'file': 'image_capture_screen',
-              'imageName': imageName,
-              'region': region,
-            },
-          );
+      WasteAppLogger.info(
+        'Image queued for offline processing',
+        context: {
+          'service': 'screen',
+          'file': 'image_capture_screen',
+          'imageName': imageName,
+          'region': region,
+        },
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Image queued for analysis. Will process when online.',
+            ),
+          ),
+        );
+        // Navigate back to camera screen after queuing
+        Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Image queued for analysis. Will process when online.',
-                ),
-              ),
-            );
-            // Navigate back to camera screen after queuing
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) {
-                Navigator.pop(context);
-              }
-            });
-          }
-        })
-        .catchError((e) {
-          WasteAppLogger.severe(
-            'Failed to queue image offline',
-            error: e,
-            context: {'service': 'screen', 'file': 'image_capture_screen'},
-          );
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to queue image: ${e.toString()}')),
-            );
+            Navigator.pop(context);
           }
         });
+      }
+    }).catchError((e) {
+      WasteAppLogger.severe(
+        'Failed to queue image offline',
+        error: e,
+        context: {'service': 'screen', 'file': 'image_capture_screen'},
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to queue image: ${e.toString()}')),
+        );
+      }
+    });
   }
 
   Future<void> _analyzeImage() async {
@@ -611,9 +609,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             'Analyzing web image: ${_xFile!.name}, error: size: ${imageBytes.length} bytes',
           );
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
-            final selectedBounds = _selectedSegments
-                .map((i) => _segments[i])
-                .toList();
+            final selectedBounds =
+                _selectedSegments.map((i) => _segments[i]).toList();
             if (_selectedSpeed == AnalysisSpeed.instant) {
               final results = await aiService.analyzeImageRegions(
                 imageBytes,
@@ -659,9 +656,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             'Analyzing web image from bytes, error: size: ${_webImageBytes!.length} bytes',
           );
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
-            final selectedBounds = _selectedSegments
-                .map((i) => _segments[i])
-                .toList();
+            final selectedBounds =
+                _selectedSegments.map((i) => _segments[i]).toList();
             final results = await aiService.analyzeImageRegions(
               _webImageBytes!,
               'uploaded_image.jpg',
@@ -701,9 +697,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           );
           if (await _imageFile!.exists()) {
             if (_useSegmentation && _selectedSegments.isNotEmpty) {
-              final selectedBounds = _selectedSegments
-                  .map((i) => _segments[i])
-                  .toList();
+              final selectedBounds =
+                  _selectedSegments.map((i) => _segments[i]).toList();
               if (_selectedSpeed == AnalysisSpeed.instant) {
                 final bytes = await _imageFile!.readAsBytes();
                 final imageName = _imageFile!.path.split('/').last;
@@ -978,8 +973,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       return Scaffold(
         body: _isAnalyzing
             ? EnhancedAnalysisLoader(
-                imageName:
-                    _imageFile?.path.split('/').last ??
+                imageName: _imageFile?.path.split('/').last ??
                     _xFile?.name ??
                     'captured_image.jpg',
                 onCancel: () {
@@ -1072,8 +1066,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       ),
       body: _isAnalyzing
           ? EnhancedAnalysisLoader(
-              imageName:
-                  _imageFile?.path.split('/').last ??
+              imageName: _imageFile?.path.split('/').last ??
                   _xFile?.name ??
                   'captured_image.jpg',
               onCancel: () {
@@ -1109,15 +1102,14 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               },
             )
           : _isSelectingRegions
-          ? _buildRegionSelectionBody()
-          : _buildNormalReviewBody(),
+              ? _buildRegionSelectionBody()
+              : _buildNormalReviewBody(),
     );
   }
 
   Widget _buildAnalyzeButton() {
-    final speedText = _selectedSpeed == AnalysisSpeed.instant
-        ? 'Instant'
-        : 'Batch';
+    final speedText =
+        _selectedSpeed == AnalysisSpeed.instant ? 'Instant' : 'Batch';
     final tokenCost = _selectedSpeed.cost;
 
     // Phase 0: Log token cost display event for telemetry
@@ -1205,22 +1197,20 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                                 final segment = _segments[index];
                                 final bounds =
                                     segment['bounds'] as Map<String, dynamic>;
-                                final left =
-                                    (bounds['x'] as num).toDouble() *
+                                final left = (bounds['x'] as num).toDouble() *
                                     imageWidth /
                                     100;
-                                final top =
-                                    (bounds['y'] as num).toDouble() *
+                                final top = (bounds['y'] as num).toDouble() *
                                     imageHeight /
                                     100;
                                 final width =
                                     (bounds['width'] as num).toDouble() *
-                                    imageWidth /
-                                    100;
+                                        imageWidth /
+                                        100;
                                 final height =
                                     (bounds['height'] as num).toDouble() *
-                                    imageHeight /
-                                    100;
+                                        imageHeight /
+                                        100;
                                 final selected = _selectedSegments.contains(
                                   index,
                                 );
@@ -1244,7 +1234,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                                       decoration: BoxDecoration(
                                         color: selected
                                             ? AppTheme.secondaryColor
-                                                  .withValues(alpha: 0.3)
+                                                .withValues(alpha: 0.3)
                                             : Colors.transparent,
                                         border: Border.all(
                                           color: selected
@@ -1546,9 +1536,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                       backgroundColor: _selectedRegions.isEmpty
                           ? null
                           : AppTheme.primaryColor,
-                      foregroundColor: _selectedRegions.isEmpty
-                          ? null
-                          : Colors.white,
+                      foregroundColor:
+                          _selectedRegions.isEmpty ? null : Colors.white,
                       disabledBackgroundColor: Colors.grey.shade300,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -1660,8 +1649,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     final totalCount = _segments.length;
     final segmentationStatus = _useSegmentation
         ? (totalCount == 0
-              ? 'Detecting...'
-              : '$selectedCount of $totalCount selected')
+            ? 'Detecting...'
+            : '$selectedCount of $totalCount selected')
         : 'Off';
     final tokenCost = _selectedSpeed.cost;
 
@@ -1819,12 +1808,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                   ? (segment['confidence'] as num).toDouble()
                   : null;
               final isSelected = _selectedSegments.contains(index);
-              final color = isSelected
-                  ? AppTheme.secondaryColor
-                  : AppTheme.primaryColor;
-              final suffix = confidence == null
-                  ? ''
-                  : ' ${(confidence * 100).round()}%';
+              final color =
+                  isSelected ? AppTheme.secondaryColor : AppTheme.primaryColor;
+              final suffix =
+                  confidence == null ? '' : ' ${(confidence * 100).round()}%';
 
               return Container(
                 padding: const EdgeInsets.symmetric(
@@ -1839,9 +1826,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 child: Text(
                   '$label$suffix',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: color,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  ),
+                        color: color,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                      ),
                 ),
               );
             }),

@@ -1,3 +1,16 @@
+> ⚠️ **STALE — ASPIRATIONAL DESIGN (as of 2026-05-21)**
+> This document describes a planned architecture that has not been fully implemented.
+> Several claims contradict the current codebase. Do not use as implementation reference.
+> See: `docs/review/AI_PIPELINE_TRUTH_MAP_2026-05-21.md` for current state.
+>
+> Known discrepancies:
+> - `classifyImage` Cloud Function does not exist — classification is Flutter client-side
+> - Primary/fallback providers are reversed: OpenAI is primary, Gemini is fallback
+> - Rate limits are 25/min (not 50/day or 10/min)
+> - Raw images ARE stored on-device permanently before analysis
+> - App Check is conditional (not fail-closed)
+> - "Migration Completed" claims in the implementation examples are aspirational; keys are still injected via `String.fromEnvironment` at build time
+
 # API Key Management and Security
 
 ## Overview

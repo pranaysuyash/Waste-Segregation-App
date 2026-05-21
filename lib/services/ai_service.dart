@@ -20,6 +20,8 @@ import 'package:uuid/uuid.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/services/local_policy_engine.dart';
 import 'package:waste_segregation_app/utils/production_safety_config.dart';
+import 'package:waste_segregation_app/services/providers/backend_proxy_provider.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
@@ -802,6 +804,34 @@ Output:
         }
       }
 
+      // Backend proxy route — takes priority over direct OpenAI/Gemini when
+      // built with --dart-define=USE_BACKEND_CLASSIFICATION=true.
+      // Enforces App Check + Auth server-side; no ProductionSafetyException here.
+      if (BackendProxyProvider.isEnabled) {
+        try {
+          return await _analyzeWithBackend(
+            await permanentFile.readAsBytes(),
+            permanentFile.path,
+            analysisRegion,
+            analysisLang,
+            imageHash,
+            currentClassificationId,
+            contentHash: contentHash,
+            thumbnailPath: thumbnailPath,
+          );
+        } on AiFailure catch (e) {
+          if (e.kind == AiFailureKind.cancelled ||
+              e.kind == AiFailureKind.auth ||
+              e.kind == AiFailureKind.budgetExceeded) {
+            rethrow;
+          }
+          WasteAppLogger.warning(
+            '[BackendProxy] Failed (${e.kind.name}), falling back to direct provider.',
+          );
+          // fall through to direct OpenAI path
+        }
+      }
+
       // Try OpenAI first with compression
       try {
         final result = await _analyzeWithOpenAI(
@@ -972,6 +1002,30 @@ Output:
             return Future.value(cachedResult.classification
                 .copyWith(id: currentClassificationId));
           }
+        }
+      }
+
+      // Backend proxy route (web path) — same logic as mobile path above.
+      if (BackendProxyProvider.isEnabled) {
+        try {
+          return await _analyzeWithBackend(
+            imageBytes,
+            savedImagePath,
+            analysisRegion,
+            analysisLang,
+            imageHash,
+            currentClassificationId,
+            contentHash: contentHash,
+          );
+        } on AiFailure catch (e) {
+          if (e.kind == AiFailureKind.cancelled ||
+              e.kind == AiFailureKind.auth ||
+              e.kind == AiFailureKind.budgetExceeded) {
+            rethrow;
+          }
+          WasteAppLogger.warning(
+            '[BackendProxy] Web failed (${e.kind.name}), falling back to direct provider.',
+          );
         }
       }
 
@@ -1312,6 +1366,100 @@ Output:
     var classification = _processAiResponseData(
       responseData,
       imageName,
+      region,
+      language,
+      null,
+      classificationId,
+      provider: providerName,
+      model: modelName,
+      thumbnailPath: thumbnailPath,
+    );
+
+    final policyDecision = await localPolicyEngine.applyPolicy(
+      classification: classification,
+      region: region,
+    );
+    classification = _attachPolicyDecisionMetadata(
+      policyDecision.classification,
+      policyDecision,
+    );
+
+    if (cachingEnabled && imageHash != null) {
+      final contextAwareContentHash = _buildContextAwareContentHash(
+        contentHash,
+        region: region,
+        language: language,
+        provider: providerName,
+        model: modelName,
+      );
+      final contextAwareCacheKey = buildContextualCacheKey(
+        imageHash: imageHash,
+        region: region,
+        language: language,
+        provider: providerName,
+        model: modelName,
+      );
+      await cacheService.cacheClassification(
+        contextAwareCacheKey,
+        classification,
+        contentHash: contextAwareContentHash,
+        imageSize: imageBytes.length,
+        entryImageHash: imageHash,
+      );
+    }
+
+    return classification;
+  }
+
+  /// Routes classification through the secure Firebase backend proxy.
+  ///
+  /// Enabled via `--dart-define=USE_BACKEND_CLASSIFICATION=true`. The backend
+  /// enforces App Check, Firebase Auth, per-UID rate limiting, and server-side
+  /// cost telemetry — no direct AI provider key is needed on the client.
+  /// Falls through to the direct provider paths on non-terminal failures.
+  Future<WasteClassification> _analyzeWithBackend(
+    Uint8List imageBytes,
+    String imagePath,
+    String region,
+    String language,
+    String? imageHash,
+    String classificationId, {
+    String? contentHash,
+    String? thumbnailPath,
+  }) async {
+    _providerCallCount++;
+    const providerName = 'backend';
+    const modelName = 'classifyImage';
+
+    // Compress to stay under the 4 MB gateway limit (same as OpenAI path).
+    final compressedBytes = await _compressImageForOpenAI(imageBytes);
+    final mimeType = _detectImageMimeType(compressedBytes);
+
+    final proxy = BackendProxyProvider(
+      functions: FirebaseFunctions.instance,
+    );
+
+    final response = await proxy.analyze(
+      imageBytes: compressedBytes,
+      mimeType: mimeType,
+      clientHash: contentHash,
+      region: region,
+      lang: language,
+    );
+
+    // textContent is already a JSON-encoded WasteClassification string.
+    // Wrap in OpenAI choices format so _processAiResponseData parses it unchanged.
+    final wrappedResponse = <String, dynamic>{
+      'choices': [
+        {
+          'message': {'content': response.textContent ?? '{}'}
+        }
+      ],
+    };
+
+    var classification = _processAiResponseData(
+      wrappedResponse,
+      imagePath,
       region,
       language,
       null,

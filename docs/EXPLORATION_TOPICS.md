@@ -2,7 +2,7 @@
 
 **Purpose**: Living document tracking research areas for the Waste Segregation App
 **Status**: Active — continuously updated as the project evolves
-**Last Updated**: 2026-05-20
+**Last Updated**: 2026-05-21
 **Sibling docs**:
 - [EXPLORATION_FRONTIER.md](EXPLORATION_FRONTIER.md) — high-ambition / "boil the ocean" frontier bets
 - [EXPLORATION_ROADMAP_WHILE_BUILDING.md](EXPLORATION_ROADMAP_WHILE_BUILDING.md) — what to explore in parallel with shipping
@@ -10,6 +10,7 @@
 - [exploration/backlog.md](exploration/backlog.md) — raw, append-only idea backlog
 - [exploration/ARCHIVE.md](exploration/ARCHIVE.md) — `[KILLED]` and `[✓]` topics moved out of the active index
 - [brainstorm_exploration_map_2026-05-19.md](brainstorm_exploration_map_2026-05-19.md) — wide-open-brainstorm pressure test of this map
+- [review/LOCAL_FIRST_VLM_AI_ROADMAP_2026-05-21.md](review/LOCAL_FIRST_VLM_AI_ROADMAP_2026-05-21.md) — 4-layer local-first cascade architecture roadmap (source for entries G1–G6)
 
 ---
 
@@ -118,6 +119,14 @@ If you see drift between this index and any of the above, **the source artefact 
 │  ├── Capture → Classify → Educate → Dispose → Reward loop                    │
 │  ├── Continuous Learning from User Corrections                                │
 │  └── Active Learning & Hard-Example Mining                                    │
+│                                                                               │
+│  LOCAL-FIRST AI ARCHITECTURE (added 2026-05-21)                              │
+│  ├── Deterministic Pre-processing Classifier [🔴] (G1)                       │
+│  ├── Local-First Privacy Architecture        [🔴] (G2)                       │
+│  ├── Confidence Threshold Tuning             [🟡] (G3)                       │
+│  ├── Backend Classification Proxy            [🔴] (G4)                       │
+│  ├── Batch Classification & Background       [🟢] (G5)                       │
+│  └── Offline Degradation UX                  [🟡] (G6)                       │
 │                                                                               │
 ╰───────────────────────────────────────────────────────────────────────────────╯
 
@@ -1603,6 +1612,178 @@ Added 2026-05-20. Long-horizon exploration theme: locality-aware collection data
 **Deliverable**: `docs/exploration/CIVIC_PRIVACY_SAFETY_REVIEW.md` (agent task **Civic-E**).
 
 **Related**: #32 Privacy / Photo PII, #23 Moderation & Safety, #33 Regional Regulations, A14 Launch & Store Compliance, A19 Consent Architecture.
+
+---
+
+---
+
+## G — New Category: LOCAL-FIRST AI ARCHITECTURE
+
+Added 2026-05-21. These topics were surfaced by the Local-First VLM AI Roadmap session (see `docs/review/LOCAL_FIRST_VLM_AI_ROADMAP_2026-05-21.md`). They fill a gap in the first two passes: the cascade routing architecture, deterministic pre-processing, and the privacy/cost implications of layer selection were not individually tracked. None of these duplicate existing entries.
+
+### G1. Deterministic Pre-processing Classifier 🔴
+
+**Category**: AI & Vision / On-Device & Edge (Layer 0 of the local-first cascade)
+
+**Status**: Not implemented. Barcode scanner (`mobile_scanner`) is in `pubspec.yaml` but disabled (line 58, dependency conflict). No color histogram path exists. No `DeterministicClassifier` service exists.
+
+**Overview**: A zero-AI layer that handles items deterministically before any model inference. Two sub-paths:
+
+1. **Barcode scan → product DB lookup**: scan the item's barcode or QR code, look up the product in a database (Open Food Facts API, local product DB, or EU DPP resolver), and return instant classification with zero AI cost. No model needed. High precision for labelled consumer products.
+
+2. **Color histogram → broad category**: compute an HSV histogram on the image to classify items with visually unambiguous color profiles (clearly organic, clearly plastic bottle, clearly newspaper). Fast, runs in-process, zero network cost.
+
+**Expected coverage**: ~30–40% of real-world single-item scans handled at this layer before any model is invoked.
+
+**Why this is a topic, not just a task**: The decision of what qualifies as "high enough confidence for deterministic classification" is a research question. The threshold for barcode coverage and the histogram bucket boundaries require experimentation with real waste image data and the Eval Harness (#5).
+
+**Key questions**:
+- Which product DB to use: Open Food Facts (free, ~3M products, network) vs custom local DB (offline, maintenance cost) vs EU DPP resolver (emerging, ESPR mandate 2026+)?
+- Histogram bucket design: how many categories, what color ranges, how to handle mixed-material items?
+- What's the correct confidence pass threshold for Layer 0 (proposed: >= 0.90)?
+- How does Layer 0 interact with barcode detection for partially-visible/blurry barcodes?
+
+**Implementation path**: `lib/services/deterministic_classifier.dart` → new `ClassificationRouter` service → wire before `AiService._analyzeWithOpenAI()` call.
+
+**Deliverable**: `docs/exploration/DETERMINISTIC_CLASSIFIER.md`
+
+**Related**: Multi-Model AI Routing (#1), Confidence Threshold Tuning (G3), On-Device Inference (#6), Eval Harness (#5), A23 (EU DPP — future product DB data source).
+
+---
+
+### G2. Local-First Privacy Architecture 🔴
+
+**Category**: AI & Vision / Compliance & Trust (cross-cutting)
+
+**Status**: Not formalised. The app transmits every classification image to OpenAI or Gemini (cloud providers) today. On-device capability exists as a placeholder (`on_device_vision_service.dart`) but is not production-ready. No explicit user-facing privacy policy exists for "which layers transmit your image."
+
+**Overview**: The 4-layer cascade (see `docs/review/LOCAL_FIRST_VLM_AI_ROADMAP_2026-05-21.md`) creates a privacy-by-design architecture:
+- **Layer 0 (deterministic) + Layer 1 (on-device VLM)**: zero image transmission — no third-party sees the image.
+- **Layer 2 + Layer 3 (cloud VLMs)**: image bytes transmitted to OpenAI or Google.
+- **Layer 4 (disposal reasoning)**: text-only transmitted to Firebase backend, which calls OpenAI text API.
+
+The routing policy determines privacy by determining which layer handles each item. A privacy-conscious user should be able to opt into "local-only" mode (Layer 0 + Layer 1 only, refuse to escalate to cloud). This is a strong differentiator for schools, corporate BYOD environments, and GDPR-sensitive jurisdictions.
+
+**Key questions**:
+- Should "local-only" mode be a user setting, a premium feature, or a default for certain personas (kid mode, classroom mode)?
+- When the user is in local-only mode and Layer 1 can't achieve confidence, what do we show? ("This item couldn't be identified offline. Enable cloud analysis for more accurate results.")
+- Consent flow: before any Layer 2/3 call, does the user need a per-session or per-item consent prompt, or is the privacy policy sufficient?
+- How do we surface the per-classification privacy signal ("analysed on device" vs "analysed in cloud") in the result screen?
+
+**Current blocker**: no on-device Layer 1 means there is no privacy-preserving fallback today. The privacy architecture is not buildable until Layer 1 is live (see On-Device Inference, entry #6, and G1).
+
+**Deliverable**: `docs/exploration/LOCAL_FIRST_PRIVACY_ARCHITECTURE.md` — routing policy, consent contract, UX surface for privacy signal, per-layer data-flow diagram.
+
+**Related**: On-Device Inference (#6), G1 (Deterministic Classifier), Privacy / Photo PII (#32), Data Retention & PII (#14), Consent Architecture (A19), Regional Regulations (#33).
+
+---
+
+### G3. Confidence Threshold Tuning 🟡
+
+**Category**: AI & Vision (cross-cutting — affects all four cascade layers)
+
+**Status**: Confidence field exists (`WasteClassification.confidence`, `waste_classification.dart:377`). `VisionModelConfig.confidenceThreshold = 0.7` (default, `vision_model_config.dart:62`). No routing logic reads this field to escalate between layers. No calibration methodology exists.
+
+**Overview**: The 4-layer cascade relies on per-layer confidence thresholds to decide when to escalate. These thresholds are not single constants — they are policy decisions that trade off cost, accuracy, latency, and user experience. A miscalibrated threshold causes silent accuracy loss (too permissive) or unnecessary cost (too conservative).
+
+Current model self-reported confidence is an uncalibrated signal — the model's JSON output `confidence: 0.87` does not reliably mean the result is correct 87% of the time. Calibration (temperature scaling, Platt scaling, or empirical lookup tables from the eval harness) is required before the thresholds are trustworthy.
+
+**Proposed starting thresholds** (hypotheses, not calibrated values):
+- Layer 0 pass: >= 0.90
+- Layer 1 pass: >= 0.75
+- Layer 2 pass: >= 0.60
+- Layer 3: always accept (no further escalation)
+- Category override: Hazardous/Medical always escalate to Layer 3 regardless of confidence
+
+**Key questions**:
+- Which calibration methodology fits the available eval infrastructure? (Platt scaling needs held-out data; empirical binning is simpler but needs more samples.)
+- How do we handle per-category thresholds? (Plastic bottles may need lower thresholds than medical waste.)
+- When should we prefer "low confidence result + clarification prompt to user" over "escalate to next layer"? (User clarification is cheaper than a cloud API call but worse UX.)
+- How do we track threshold drift over time as provider model versions change?
+
+**Deliverable**: `docs/exploration/CONFIDENCE_THRESHOLD_TUNING.md` — calibration methodology, starting threshold table, per-category overrides, drift monitoring approach.
+
+**Related**: Eval Harness & Golden Sets (#5), Multi-Model AI Routing (#1), Classification Confidence (#2), G1 (Deterministic Classifier), On-Device Inference (#6).
+
+---
+
+### G4. Backend Classification Proxy 🔴
+
+**Category**: AI & Vision / Data, Cost & Reliability
+
+**Status**: Not implemented. `generateDisposal` Firebase Function (`functions/src/index.ts:207`) exists as a backend proxy for disposal reasoning (Layer 4). No equivalent `classifyImage` function exists — classification currently calls OpenAI/Gemini directly from the client. `ProductionSafetyConfig.guardClientAiCall` blocks this in release builds, but the right fix is a backend proxy, not just a guard.
+
+**Overview**: A `classifyImage` Firebase HTTP Function that acts as the gateway between the Flutter client and cloud AI providers for Layers 2 and 3. All client-to-provider image classification traffic flows through this function.
+
+**Why this is P0 before any other cloud classification change**:
+1. **Cost integrity**: client-side `ai_cost_tracker.dart` is tamper-susceptible (the client reports costs to Firestore, but there is no server-side enforcement). A backend proxy records actual provider costs server-side.
+2. **App Check enforcement**: `generateDisposal` already enforces App Check (`shouldEnforceHttpAppCheck()`). `classifyImage` should be identical. Without it, unauthenticated clients can drain AI budget.
+3. **Provider swap without app release**: if we need to switch from OpenAI to Gemini or add a new provider, we update one Firebase Function, not release a new app.
+4. **Key security**: API keys for OpenAI/Gemini do not need to be distributed in the app binary. They live only in Firebase environment config.
+
+**Key questions**:
+- Request body: pass raw image bytes (base64) or a Cloud Storage object URL? Firebase Functions have a 32MB request body limit — large images need Storage URL approach.
+- Auth contract: require Firebase ID token (Bearer) and App Check token, same pattern as `generateDisposal`.
+- Rate limiting: per-user classification rate limit, same pattern as the existing `enforceRateLimit` in `functions/src/index.ts`.
+- Error contract: how does the proxy signal Layer 2 vs Layer 3 escalation to the client?
+
+**Implementation path**: Add `classifyImage` to `functions/src/index.ts`. Follow the `generateDisposal` pattern for auth, App Check, rate limiting, and Firestore cost recording. Update `AiService._analyzeWithOpenAI()` and `._analyzeWithGemini()` to call the proxy in release builds.
+
+**Deliverable**: `docs/exploration/BACKEND_CLASSIFICATION_PROXY.md`
+
+**Related**: Multi-Model AI Routing (#1), AI Cost Telemetry & Guardrails (#10), Privacy / Photo PII (#32), App Check integration (`APPCHECK_RATE_LIMIT_IMPLEMENTATION_PACKET_2026-05-21.md`).
+
+---
+
+### G5. Batch Classification and Background Processing 🟢
+
+**Category**: AI & Vision / Data, Cost & Reliability
+
+**Status**: Batch mode concept exists in `VisionModelConfig.AnalysisMode.batch` and in `CostGuardrailService.isBatchModeEnforced`. No implementation of background classification or pre-warming cache exists.
+
+**Overview**: Two complementary ideas:
+
+1. **Batch classification**: classify multiple images in one API call (or queue them for off-peak processing). Relevant for users who scan many items quickly. OpenAI Batch API offers 50% cost reduction at the cost of up to 24h latency.
+
+2. **Background processing**: when the device is charging and on Wi-Fi, process recently captured but unclassified images, pre-warm the disposal cache for likely follow-up queries, and download model updates for Layer 1.
+
+**Key questions**:
+- Which UX pattern for batch: explicit "analyze later" queue, or automatic background when conditions are met?
+- OpenAI Batch API: 24h turnaround — acceptable for which use cases? (Historical review, impact stats — yes. Real-time scan — no.)
+- Cache pre-warming: if the user recently classified "plastic bottle", pre-fetch `generateDisposal` for the top-N predicted next items. Does this reduce meaningful latency?
+- Background task management: `WorkManager` on Android, `BackgroundFetch` on iOS — already in the project?
+
+**Deliverable**: `docs/exploration/BATCH_CLASSIFICATION_AND_BACKGROUND.md`
+
+**Related**: AI Cost Telemetry & Guardrails (#10), Token Economy (#27a), Offline Queue & Sync (#11), On-Device Inference (#6).
+
+---
+
+### G6. Offline Degradation UX 🟡
+
+**Category**: UX & Engagement / On-Device & Edge
+
+**Status**: Partial — `offline_queue_*` service captures items when offline. No explicit UX design for "what the user sees when no network and no on-device model available."
+
+**Overview**: There are three distinct offline states with different UX needs:
+
+1. **Layer 0 + Layer 1 available (target state after Phase 3)**: full offline classification. User sees normal result. No special UX needed.
+
+2. **Only Layer 0 available (model not downloaded yet)**: deterministic classification for clear items; complex items get queued. User sees a partial result with a note: "More detail available when connected."
+
+3. **Neither Layer 0 nor Layer 1 available (first launch, no Wi-Fi)**: no local inference possible. User sees "Photo saved — will be analysed when connected." Option to queue.
+
+The current app does not distinguish these states. An offline user who opens the app gets an error experience rather than a graceful degraded experience.
+
+**Key questions**:
+- When should the app proactively offer to download the Layer 1 model? (On Wi-Fi, on first launch, or only when the user explicitly requests it?)
+- How do we handle items that are queued for later analysis when the user is in a hurry? (Show a cached "likely" result from similar items? Show nothing?)
+- What's the UX for the "offline history" — items captured but not yet analysed? Should they have a distinct visual treatment in the history list?
+- How do we communicate the privacy benefit of offline mode without making it sound like the app is broken?
+
+**Deliverable**: `docs/exploration/OFFLINE_DEGRADATION_UX.md` — state machine for offline states, UX copy for each state, triggering conditions for model download prompts.
+
+**Related**: Offline-First Flow (#9), On-Device Inference (#6), G1 (Deterministic Classifier), G2 (Local-First Privacy Architecture), Onboarding & Activation (#19).
 
 ---
 
