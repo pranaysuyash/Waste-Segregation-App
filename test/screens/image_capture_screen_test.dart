@@ -232,7 +232,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Analysis Complete'), findsOneWidget);
+      expect(find.text('Items Found'), findsOneWidget);
       expect(find.text('2 items found in "test_image.jpg"'), findsOneWidget);
       expect(find.text('Plastic Bottle'), findsOneWidget);
       expect(find.text('Banana Peel'), findsOneWidget);

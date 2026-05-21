@@ -162,3 +162,30 @@ Follow-up implementation completed:
 - Tightened entitlement resolution contract:
   - canonical authority: `billing.entitlements.pro_subscription`
   - claims accepted as compatibility fallback only.
+
+## 9) Addendum (operationalization closure: claims sync + reconciliation + dashboard)
+
+Follow-up implementation completed:
+- Added Firestore-triggered claims sync function:
+  - `syncEntitlementClaims` in `functions/src/ops_hardening.ts`
+  - Trigger: `users/{uid}` writes where `billing.entitlements.pro_subscription` changes
+  - Action: updates Firebase Auth custom claims (`premium`, `pro`, `pro_subscription`) and writes sync metadata at `users/{uid}.billing.claimsSync`
+- Added scheduled stale reservation reconciliation:
+  - `reconcileStaleClassifyReservations` (every 15 minutes)
+  - Scans `classify_token_reservations` for stale `reserved` entries over `CLASSIFY_RESERVATION_STALE_MINUTES`
+  - Persists monitor snapshot to `ops_monitoring/classify_reservation_reconciliation`
+  - Emits error-level logs with capped stale sample when operator action is required
+- Added admin dashboard endpoint for reservation outcomes:
+  - `getClassifyReservationDashboard`
+  - Returns counts (`reserved`, `consumed`, `refunded`, `staleReserved`) and refund-rate metrics
+  - Guarded by `ENABLE_DIAGNOSTIC_ENDPOINTS=true` and admin bearer token
+
+Files changed in this closure slice:
+- `functions/src/ops_hardening.ts` (new)
+- `functions/src/index.ts` (exports)
+- `docs/config/environment_variables.md`
+- `docs/guides/development/data_storage/firestore_schema.md`
+
+Operational note:
+- App Check callable enforcement remains env-gated by design, but production baseline is now documented as required (`REQUIRE_APPCHECK_CALLABLE=true`).
+- Entitlement claims fallback remains for compatibility, but it now has an explicit sync pipeline and sync-state observability.

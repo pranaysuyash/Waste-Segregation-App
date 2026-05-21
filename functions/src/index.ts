@@ -6,7 +6,7 @@ import cors from 'cors';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
-import { getQuotaConfig } from './rate_limit_config';
+import { getQuotaConfig, QUOTA_TIER_MULTIPLIERS, QuotaTier } from './rate_limit_config';
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -539,6 +539,49 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
     const dailyConversionsUsed = Number(walletRaw.dailyConversionsUsed ?? 0);
     const lastConversionDate = walletRaw.lastConversionDate ?? null;
 
+    // -------------------------------------------------------------------------
+    // Server-side subscription tier verification.
+    // Read the user's tier from their Firestore profile; never trust the client.
+    // Defaults to 'free' when the field is absent or contains an unrecognised value.
+    // QUOTA_TIER_MULTIPLIERS is used as the authoritative set of valid tier names.
+    // -------------------------------------------------------------------------
+    const rawTierValue = String(userData.subscriptionTier ?? 'free').toLowerCase();
+    const tier: QuotaTier = (rawTierValue in QUOTA_TIER_MULTIPLIERS)
+      ? (rawTierValue as QuotaTier)
+      : 'free';
+
+    // When the client declares an analysis_speed in metadata, enforce the
+    // server-computed maximum spend for that operation + verified tier.
+    // This prevents a free user from sending a pre-discounted amount as if
+    // they were premium (the discount must be earned server-side, not claimed
+    // by the client).
+    //
+    // Base costs mirror token_wallet.dart:  batch = 1,  instant = 5
+    // Premium/enterprise discount mirrors token_service.dart: 50 % off instant
+    const declaredSpeed = typeof metadata.analysis_speed === 'string'
+      ? metadata.analysis_speed
+      : null;
+    if (declaredSpeed === 'instant' || declaredSpeed === 'batch') {
+      const BASE_INSTANT_COST = 5;
+      const BASE_BATCH_COST = 1;
+      const PREMIUM_INSTANT_DISCOUNT_PCT = 50;
+
+      const maxAllowed = (declaredSpeed === 'batch')
+        ? BASE_BATCH_COST
+        : (tier === 'free'
+          ? BASE_INSTANT_COST
+          : Math.max(1, Math.floor(BASE_INSTANT_COST * (100 - PREMIUM_INSTANT_DISCOUNT_PCT) / 100)));
+
+      if (amount > maxAllowed) {
+        throw new functions.https.HttpsError(
+          'invalid-argument',
+          `Token spend ${amount} exceeds server-computed maximum ${maxAllowed} for ` +
+            `${declaredSpeed} analysis (tier: ${tier}).`
+        );
+      }
+    }
+    // -------------------------------------------------------------------------
+
     if (!Number.isFinite(currentBalance) || currentBalance < amount) {
       throw new functions.https.HttpsError(
         'failed-precondition',
@@ -1003,6 +1046,11 @@ async function triggerJobCompletionNotification(jobId: string, userId: string, c
 // Backend classification gateway (image proxy with App Check + rate limit)
 // ---------------------------------------------------------------------------
 export { classifyImage } from './classify_image';
+export {
+  getClassifyReservationDashboard,
+  reconcileStaleClassifyReservations,
+  syncEntitlementClaims,
+} from './ops_hardening';
 export {
   attachTrainingLabelFeedback,
   cleanupTrainingReviewImages,

@@ -80,6 +80,14 @@ Phase 1 is to reduce dependence on full cloud inference while improving cost and
 5. Run comparative eval against current single-cloud baseline.
 6. Publish decision packet before phase-2 model expansion.
 
+## Implementation task list
+
+- [docs/review/MULTI_MODEL_AI_STACK_PHASE1_IMPLEMENTATION_TASK_LIST_2026-05-21.md](/Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app/docs/review/MULTI_MODEL_AI_STACK_PHASE1_IMPLEMENTATION_TASK_LIST_2026-05-21.md)
+  - concrete file targets
+  - ordered implementation steps
+  - verification checkpoints
+  - handoff notes for the next engineer / agent
+
 ## Acceptance criteria (minimum)
 
 - At least 20% of obvious bad photos blocked before cloud call.
@@ -91,4 +99,3 @@ Phase 1 is to reduce dependence on full cloud inference while improving cost and
 ## Exit condition
 
 Phase 1 exits when routing and gating evidence is stable for two consecutive eval cycles and team agrees on phase-2 expansion confidence.
-

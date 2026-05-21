@@ -26,9 +26,15 @@ class ProductionSafetyConfig {
   /// (Firebase Callable `classifyImage`) instead of calling AI providers
   /// directly from the client in release builds.
   ///
+  /// Build flag: `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`
+  ///
+  /// This is the CANONICAL backend-routing flag. [BackendProxyProvider.isEnabled]
+  /// reads the same dart-define so there is exactly one flag to pass at build
+  /// time. Do not add a separate `USE_BACKEND_CLASSIFICATION` flag.
+  ///
   /// `AiService` now treats backend routing as a release-time invariant:
   /// - release builds fail closed to backend classification path,
-  /// - debug/profile can still opt in via USE_BACKEND_CLASSIFICATION.
+  /// - debug/profile can opt in via `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`.
   static const bool useBackendAiInRelease =
       bool.fromEnvironment('USE_BACKEND_AI_IN_RELEASE');
 

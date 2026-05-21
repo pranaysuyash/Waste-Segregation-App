@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/models/premium_feature.dart';
 import 'package:waste_segregation_app/services/haptic_settings_service.dart';
@@ -129,37 +130,49 @@ Widget _buildApp({
   NavigationSettingsService? navigationSettingsService,
   PremiumService? premiumService,
 }) {
-  return MultiProvider(
-    providers: [
-      if (hapticSettingsService != null)
-        ChangeNotifierProvider<HapticSettingsService>.value(
-          value: hapticSettingsService,
-        ),
-      if (navigationSettingsService != null)
-        ChangeNotifierProvider<NavigationSettingsService>.value(
-          value: navigationSettingsService,
-        ),
-      if (premiumService != null)
-        ChangeNotifierProvider<PremiumService>.value(value: premiumService),
+  final providers = <SingleChildWidget>[
+    if (hapticSettingsService != null)
+      ChangeNotifierProvider<HapticSettingsService>.value(
+        value: hapticSettingsService,
+      ),
+    if (navigationSettingsService != null)
+      ChangeNotifierProvider<NavigationSettingsService>.value(
+        value: navigationSettingsService,
+      ),
+    if (premiumService != null)
+      ChangeNotifierProvider<PremiumService>.value(value: premiumService),
+  ];
+
+  final app = MaterialApp(
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
     ],
-    child: MaterialApp(
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      routes: routes,
-      home: Scaffold(body: child),
-    ),
+    supportedLocales: AppLocalizations.supportedLocales,
+    routes: routes,
+    home: Scaffold(body: child),
+  );
+
+  if (providers.isEmpty) {
+    return app;
+  }
+
+  return MultiProvider(
+    providers: providers,
+    child: app,
   );
 }
 
 void main() {
   group('Settings navigation contract', () {
-    testWidgets('AppSettingsSection uses named routes for all subpages',
-        (tester) async {
+    Future<void> expectAppSettingsRoute(
+      WidgetTester tester,
+      String tileText,
+      String routeName,
+      String routeTargetLabel,
+    ) async {
       await tester.pumpWidget(
         _buildApp(
           hapticSettingsService: _FakeHapticSettingsService(),
@@ -177,30 +190,51 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Theme Settings'));
+      expect(find.text(tileText), findsOneWidget);
+      await tester.tap(find.text(tileText));
       await tester.pumpAndSettle();
-      expect(find.text('theme-settings-route'), findsOneWidget);
+      expect(find.text(routeTargetLabel), findsOneWidget);
+      expect(Routes.isValidRoute(routeName), isTrue);
+    }
 
-      await tester.pageBack();
-      await tester.pumpAndSettle();
+    testWidgets('AppSettingsSection routes Theme Settings by name',
+        (tester) async {
+      await expectAppSettingsRoute(
+        tester,
+        'Theme Settings',
+        Routes.themeSettings,
+        'theme-settings-route',
+      );
+    });
 
-      await tester.tap(find.text('Notification Settings'));
-      await tester.pumpAndSettle();
-      expect(find.text('notification-settings-route'), findsOneWidget);
+    testWidgets('AppSettingsSection routes Notification Settings by name',
+        (tester) async {
+      await expectAppSettingsRoute(
+        tester,
+        'Notification Settings',
+        Routes.notificationSettings,
+        'notification-settings-route',
+      );
+    });
 
-      await tester.pageBack();
-      await tester.pumpAndSettle();
+    testWidgets('AppSettingsSection routes Offline Mode by name',
+        (tester) async {
+      await expectAppSettingsRoute(
+        tester,
+        'Offline Mode',
+        Routes.offlineModeSettings,
+        'offline-settings-route',
+      );
+    });
 
-      await tester.tap(find.text('Offline Mode'));
-      await tester.pumpAndSettle();
-      expect(find.text('offline-settings-route'), findsOneWidget);
-
-      await tester.pageBack();
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Data Export'));
-      await tester.pumpAndSettle();
-      expect(find.text('data-export-route'), findsOneWidget);
+    testWidgets('AppSettingsSection routes Data Export by name',
+        (tester) async {
+      await expectAppSettingsRoute(
+        tester,
+        'Data Export',
+        Routes.dataExport,
+        'data-export-route',
+      );
     });
 
     testWidgets('NavigationSection routes navigation styles to the demo',

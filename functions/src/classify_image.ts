@@ -901,6 +901,22 @@ async function writeCostEvent(event: AiCostEvent): Promise<void> {
  * The caller should pass this as the `rawResponseMap` of an AiProviderResponse
  * so that AiService._processAiResponseData can parse it into WasteClassification.
  */
+/**
+ * Pure helper exports for unit testing without Firebase dependencies.
+ * Import from `../lib/classify_image.js` in test files.
+ */
+export const __testables = {
+  parseBoolEnv,
+  shouldEnforceCallableAppCheck,
+  getClassifyRateLimitConfig,
+  getCacheTtlSeconds,
+  getClassifyTokenCost,
+  estimateCostUsd,
+  buildClassificationPrompt,
+  buildReservationId,
+  normalizeRequestId,
+};
+
 export const classifyImage = functions
   .region('asia-south1')
   .https.onCall(async (data: ClassifyImageRequest, context) => {

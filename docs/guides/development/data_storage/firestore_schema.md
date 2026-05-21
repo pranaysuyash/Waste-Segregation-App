@@ -282,6 +282,30 @@ Full field list: see `WasteClassification.fromJson()` in `waste_classification.d
   - `refundTransactionId`
   - `createdAtIso`, `updatedAtIso`, `consumedAtIso`, `refundedAtIso`
 
+## 16D. Reservation Ops Monitoring (`ops_monitoring/classify_reservation_reconciliation`)
+
+* **Written by**: Scheduled Cloud Function `reconcileStaleClassifyReservations` in `functions/src/ops_hardening.ts`
+* **Privacy**: Backend/admin diagnostics only.
+* **Purpose**: Operational snapshot for stale reservation detection and alert triage.
+* **Key fields**:
+  - `checkedAt`, `checkedAtIso`
+  - `staleMinutesThreshold`
+  - `reservedScanned`
+  - `staleCount`
+  - `staleReservations` (capped sample)
+  - `requiresOperatorAction`
+
+## 16E. Entitlement Claims Sync Metadata (`users/{uid}.billing.claimsSync`)
+
+* **Written by**: Firestore trigger `syncEntitlementClaims` in `functions/src/ops_hardening.ts`
+* **Authority model**: `users/{uid}.billing.entitlements.pro_subscription` remains canonical.
+* **Purpose**: Observability for auth-claim refresh status.
+* **Key fields**:
+  - `lastSyncedAt`
+  - `lastSyncedIso`
+  - `source` (`billing_entitlements`)
+  - `targetPremium`
+
 ---
 
 ## 17. User Contributions (`user_contributions`)

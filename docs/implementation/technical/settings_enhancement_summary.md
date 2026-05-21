@@ -19,12 +19,16 @@ This document summarizes the comprehensive enhancements made to the settings scr
 - **Routes Class**: Centralized route constants in `lib/utils/routes.dart`
 - **Route Validation**: Helper method to check valid routes
 - **Organized Structure**: Grouped by feature area (settings, legal, classification)
-- **Migration**: Updated AccountSection and FeaturesSection to use named routes
+- **Migration**: Updated AppSettingsSection, FeaturesSection, NavigationSection,
+  SettingsScreen, and TrainingReviewQueue navigation to use named routes
 
 **Files Updated**:
 - `lib/utils/routes.dart` - New centralized routes
-- `lib/widgets/settings/account_section.dart` - Uses `Routes.auth`
+- `lib/widgets/settings/app_settings_section.dart` - Uses named routes for settings subpages
 - `lib/widgets/settings/features_section.dart` - Uses named routes for navigation
+- `lib/widgets/settings/navigation_section.dart` - Uses named routes for navigation demo
+- `lib/screens/settings_screen.dart` - Uses named routes for settings and legal flows
+- `lib/screens/training_review_queue_screen.dart` - Registered named route target
 
 ### 3. DialogHelper System
 - **Consistent API**: Unified dialog interface across the app
@@ -151,11 +155,10 @@ MouseRegion(
 - [x] Updated sections to use new systems
 
 ### Phase 2: Integration (In Progress)
-- [x] Named routes in AccountSection and FeaturesSection
+- [x] Named routes in AppSettingsSection, FeaturesSection, NavigationSection, and SettingsScreen
 - [x] DialogHelper in AccountSection and FeaturesSection
 - [x] Accessibility enhancements in SettingTile
 - [ ] Complete gen_l10n setup and integration
-- [ ] Update remaining sections (AppSettings, Navigation, Legal, Developer)
 - [ ] Add keyboard navigation tests
 
 ### Phase 3: Polish ✅ Complete

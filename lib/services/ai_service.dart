@@ -21,6 +21,7 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/services/local_policy_engine.dart';
 import 'package:waste_segregation_app/utils/production_safety_config.dart';
 import 'package:waste_segregation_app/services/providers/backend_proxy_provider.dart';
+import 'package:waste_segregation_app/services/providers/classification_provider.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
@@ -68,6 +69,12 @@ class AiService {
     this.cachingEnabled = true,
     this.defaultRegion = 'Bangalore, IN',
     this.defaultLanguage = 'en',
+    /// Optional injectable [ClassificationProvider] for the backend path.
+    ///
+    /// When null (the default), [_analyzeWithBackend] creates a
+    /// [BackendProxyProvider] bound to [FirebaseFunctions.instance]. Pass a
+    /// test double here to intercept backend calls in unit tests without Firebase.
+    ClassificationProvider? backendProxy,
   })  : openAiBaseUrl = openAiBaseUrl ?? ApiConfig.openAiBaseUrl,
         openAiApiKey = openAiApiKey ?? ApiConfig.openAiApiKey,
         geminiBaseUrl = geminiBaseUrl ?? ApiConfig.geminiBaseUrl,
@@ -79,7 +86,8 @@ class AiService {
         _imageService = imageService ?? EnhancedImageService(),
         localPolicyEngine = localPolicyEngine ?? const LocalPolicyEngine(),
         _dio = dioClient ?? Dio(),
-        _saveWebImageOverride = saveWebImageOverride;
+        _saveWebImageOverride = saveWebImageOverride,
+        _backendProxy = backendProxy;
   static const String promptVersion = 'waste-classification-v2';
   static const String schemaVersion = 'waste-classification-schema-v2';
   static const String localGuidelinesVersion = 'bbmp-2024';
@@ -102,6 +110,14 @@ class AiService {
   final Dio _dio;
   final Future<String> Function(Uint8List bytes, String imageName)?
       _saveWebImageOverride;
+
+  /// Injected backend provider for testing, or null to use the default
+  /// [BackendProxyProvider] bound to [FirebaseFunctions.instance] at runtime.
+  ///
+  /// Any [ClassificationProvider] can be injected — typically a hand-rolled
+  /// fake that extends [BackendProxyProvider] or satisfies the interface.
+  final ClassificationProvider? _backendProxy;
+
   CancelToken? _cancelToken;
   int _providerCallCount = 0;
   int _webSaveCallCount = 0;
@@ -320,7 +336,9 @@ class AiService {
   bool get _backendRoutingEnabled {
     // Motto-aligned invariant:
     // - release builds must use backend classification path
-    // - debug/profile can opt in via USE_BACKEND_CLASSIFICATION
+    // - debug/profile can opt in via --dart-define=USE_BACKEND_AI_IN_RELEASE=true
+    // Both ProductionSafetyConfig.useBackendAiInRelease and
+    // BackendProxyProvider.isEnabled read the same dart-define flag.
     return kReleaseMode ||
         ProductionSafetyConfig.useBackendAiInRelease ||
         BackendProxyProvider.isEnabled;
@@ -817,7 +835,7 @@ Output:
       }
 
       // Backend proxy route — mandatory in release (fail-closed), optional opt-in
-      // in debug/profile via USE_BACKEND_CLASSIFICATION.
+      // in debug/profile via --dart-define=USE_BACKEND_AI_IN_RELEASE=true.
       if (_backendRoutingEnabled) {
         try {
           return await _analyzeWithBackend(
@@ -1017,7 +1035,7 @@ Output:
       }
 
       // Backend proxy route (web path) — mandatory in release (fail-closed),
-      // optional opt-in in debug/profile via USE_BACKEND_CLASSIFICATION.
+      // optional opt-in in debug/profile via --dart-define=USE_BACKEND_AI_IN_RELEASE=true.
       if (_backendRoutingEnabled) {
         try {
           return await _analyzeWithBackend(
@@ -1426,10 +1444,10 @@ Output:
 
   /// Routes classification through the secure Firebase backend proxy.
   ///
-  /// Enabled via `--dart-define=USE_BACKEND_CLASSIFICATION=true`. The backend
-  /// enforces App Check, Firebase Auth, per-UID rate limiting, and server-side
-  /// cost telemetry — no direct AI provider key is needed on the client.
-  /// Falls through to the direct provider paths on non-terminal failures.
+  /// Enabled via `--dart-define=USE_BACKEND_AI_IN_RELEASE=true` (canonical flag).
+  /// The backend enforces App Check, Firebase Auth, per-UID rate limiting, and
+  /// server-side cost telemetry — no direct AI provider key is needed on the
+  /// client. Falls through to the direct provider paths on non-terminal failures.
   Future<WasteClassification> _analyzeWithBackend(
     Uint8List imageBytes,
     String imagePath,
@@ -1448,9 +1466,12 @@ Output:
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
     final mimeType = _detectImageMimeType(compressedBytes);
 
-    final proxy = BackendProxyProvider(
-      functions: FirebaseFunctions.instance,
-    );
+    // Use injected proxy if available (e.g. in tests), otherwise create one
+    // bound to FirebaseFunctions.instance at runtime.
+    final proxy = _backendProxy ??
+        BackendProxyProvider(
+          functions: FirebaseFunctions.instance,
+        );
 
     final response = await proxy.analyze(
       imageBytes: compressedBytes,

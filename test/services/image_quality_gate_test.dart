@@ -1,136 +1,92 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'dart:typed_data';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:waste_segregation_app/services/image_quality_gate.dart';
 
+Uint8List _jpgFromImage(img.Image image) => Uint8List.fromList(img.encodeJpg(image));
+
+img.Image _checkerboard({required int width, required int height}) {
+  final image = img.Image(width: width, height: height);
+  for (var y = 0; y < height; y++) {
+    for (var x = 0; x < width; x++) {
+      final on = ((x ~/ 8) + (y ~/ 8)) % 2 == 0;
+      image.setPixelRgb(x, y, on ? 240 : 20, on ? 240 : 20, on ? 240 : 20);
+    }
+  }
+  return image;
+}
+
 void main() {
+  late int oldMinDimension;
+  late double oldMinVariance;
+  late int oldMinBrightness;
+  late int oldMaxBrightness;
+
+  setUp(() {
+    oldMinDimension = ImageQualityGate.minDimension;
+    oldMinVariance = ImageQualityGate.minVariance;
+    oldMinBrightness = ImageQualityGate.minBrightness;
+    oldMaxBrightness = ImageQualityGate.maxBrightness;
+  });
+
+  tearDown(() {
+    ImageQualityGate.minDimension = oldMinDimension;
+    ImageQualityGate.minVariance = oldMinVariance;
+    ImageQualityGate.minBrightness = oldMinBrightness;
+    ImageQualityGate.maxBrightness = oldMaxBrightness;
+  });
+
   group('ImageQualityGate', () {
-    // Helper to create a solid color image
-    Uint8List createTestImage({
-      required int width,
-      required int height,
-      int brightness = 128,
-      bool addNoise = false,
-    }) {
-      // Simple BMP format for testing
-      final header = <int>[
-        0x42, 0x4D, // BM
-        0x36, 0x00, 0x0C, 0x00, // File size (example)
-        0x00, 0x00, // Reserved
-        0x00, 0x00, // Reserved
-        0x36, 0x00, 0x00, 0x00, // Pixel data offset
-        0x28, 0x00, 0x00, 0x00, // DIB header size
-        ...intToBytes(width, 4),
-        ...intToBytes(height, 4),
-        0x01, 0x00, // Color planes
-        0x18, 0x00, // Bits per pixel (24)
-      ];
+    test('returns decodeError for invalid image bytes', () async {
+      final result = await ImageQualityGate.check(Uint8List.fromList([1, 2, 3, 4, 5]));
 
-      // Create pixel data
-      final pixels = <int>[];
-      for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-          int value = brightness;
-          if (addNoise) {
-            value += ((x + y) % 20) - 10; // Add pattern for edges
-          }
-          pixels.addAll([value, value, value]); // RGB
-        }
-      }
-
-      return Uint8List.fromList([...header, ...pixels]);
-    }
-
-    List<int> intToBytes(int value, int bytes) {
-      final result = <int>[];
-      for (int i = 0; i < bytes; i++) {
-        result.add((value >> (i * 8)) & 0xFF);
-      }
-      return result;
-    }
-
-    test('accepts good quality image', () async {
-      final testImage = createTestImage(
-        width: 800,
-        height: 600,
-        brightness: 128,
-        addNoise: true, // Sharp edges
-      );
-
-      final result = await ImageQualityGate.check(testImage);
-
-      // May fail due to simple BMP not being decodable
-      // This is a placeholder - real test needs actual JPG/PNG
-      expect(result, isNotNull);
+      expect(result.isValid, isFalse);
+      expect(result.failureType, QualityFailureType.decodeError);
+      expect(result.reason, contains('Invalid image format'));
     });
 
-    test('rejects too small image', () async {
-      // This test demonstrates the concept
-      // Actual implementation needs valid image format
+    test('fails resolution check for small images', () async {
+      final bytes = _jpgFromImage(img.Image(width: 120, height: 120));
 
-      // Set minimum dimension
-      ImageQualityGate.minDimension = 300;
+      final result = await ImageQualityGate.check(bytes);
 
-      // Test would need actual small image
-      // For now, verify threshold is configurable
-      expect(ImageQualityGate.minDimension, 300);
+      expect(result.isValid, isFalse);
+      expect(result.failureType, QualityFailureType.resolution);
+      expect(result.reason, contains('Image too small'));
     });
 
-    test('thresholds are configurable', () {
-      ImageQualityGate.minDimension = 500;
-      ImageQualityGate.minVariance = 150.0;
-      ImageQualityGate.minBrightness = 50;
-      ImageQualityGate.maxBrightness = 240;
+    test('passes for acceptable resolution, sharpness, and brightness', () async {
+      ImageQualityGate.minVariance = 0.0;
+      final bytes = _jpgFromImage(_checkerboard(width: 320, height: 320));
 
-      expect(ImageQualityGate.minDimension, 500);
-      expect(ImageQualityGate.minVariance, 150.0);
-      expect(ImageQualityGate.minBrightness, 50);
-      expect(ImageQualityGate.maxBrightness, 240);
+      final result = await ImageQualityGate.check(bytes);
 
-      // Reset to defaults
-      ImageQualityGate.minDimension = 300;
-      ImageQualityGate.minVariance = 100.0;
-      ImageQualityGate.minBrightness = 40;
-      ImageQualityGate.maxBrightness = 250;
+      expect(result.isValid, isTrue, reason: result.reason);
+      expect(result.failureType, isNull);
+      expect(result.reason, contains('acceptable'));
     });
 
-    test('handles invalid image gracefully (fail-open)', () async {
-      final invalidBytes = Uint8List.fromList([1, 2, 3, 4, 5]);
+    test('fails too-dark branch when blur gate is relaxed', () async {
+      ImageQualityGate.minVariance = 0.0;
+      final dark = img.Image(width: 320, height: 320);
+      img.fill(dark, color: img.ColorRgb8(0, 0, 0));
 
-      final result = await ImageQualityGate.check(invalidBytes);
+      final result = await ImageQualityGate.check(_jpgFromImage(dark));
 
-      // Should fail-open and allow image despite error
-      expect(result, isNotNull);
-      // In fail-open mode, result.isValid could be true OR false depending on decode error handling
+      expect(result.isValid, isFalse);
+      expect(result.failureType, QualityFailureType.tooDark);
     });
 
-    test('QualityCheckResult contains expected fields', () {
-      final result = QualityCheckResult(
-        isValid: false,
-        reason: 'Test reason',
-        suggestion: 'Test suggestion',
-        failureType: QualityFailureType.blur,
-        metrics: {'test_metric': '123'},
-      );
+    test('fails overexposed branch when blur gate is relaxed', () async {
+      ImageQualityGate.minVariance = 0.0;
+      final bright = img.Image(width: 320, height: 320);
+      img.fill(bright, color: img.ColorRgb8(255, 255, 255));
 
-      expect(result.isValid, false);
-      expect(result.reason, 'Test reason');
-      expect(result.suggestion, 'Test suggestion');
-      expect(result.failureType, QualityFailureType.blur);
-      expect(result.metrics, {'test_metric': '123'});
-      expect(result.userMessage, contains('Test reason'));
-      expect(result.userMessage, contains('Test suggestion'));
-    });
+      final result = await ImageQualityGate.check(_jpgFromImage(bright));
 
-    test('QualityFailureType enum has all expected values', () {
-      expect(QualityFailureType.values.length, 5);
-      expect(
-          QualityFailureType.values, contains(QualityFailureType.resolution));
-      expect(QualityFailureType.values, contains(QualityFailureType.blur));
-      expect(QualityFailureType.values, contains(QualityFailureType.tooDark));
-      expect(
-          QualityFailureType.values, contains(QualityFailureType.overexposed));
-      expect(
-          QualityFailureType.values, contains(QualityFailureType.decodeError));
+      expect(result.isValid, isFalse);
+      expect(result.failureType, QualityFailureType.overexposed);
     });
   });
 }

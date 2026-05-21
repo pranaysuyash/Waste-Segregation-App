@@ -5,6 +5,7 @@ Repo: /Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app
 Objective: record the current abuse/cost posture on AI and token endpoints and capture the remaining hardening work without a broad architecture migration.
 
 ## 1) Current state snapshot
+- Client startup now initializes Firebase App Check after Firebase core boot, with platform-specific providers and a web reCAPTCHA site-key contract.
 - `classifyImage` is live as a Firebase HTTPS callable and already enforces auth, optional App Check, Firestore rate limiting, token reservation, provider fallback, cache writes, and cost telemetry.
 - `spendUserTokens` is live as a Firebase callable and already enforces auth, optional App Check, and a backend rate limit.
 - `generateDisposal` is live as an HTTP route and already has auth gating plus rate limiting behavior in the function layer.
@@ -19,7 +20,7 @@ Scope:
 
 Implementation state:
 1. Client:
-   - Client App Check initialization still needs verification in the startup path for each production platform.
+   - Client App Check initialization is in the startup path for each production platform.
    - Debug providers should stay limited to development and emulator flows.
 2. Backend:
    - Callable and backend gates already reject or fail closed according to the configured production safety flags.
@@ -65,6 +66,7 @@ Current note:
 2. Keep diagnostics/admin routes disabled outside controlled environments.
 3. Monitor reject rates, fallback rates, and token-spend anomalies.
 4. Tune only if the live traffic pattern shows false positives or cost leakage.
+5. Confirm the web App Check site key is present for any release web build.
 
 ## 5) Validation matrix
 - Unit/integration:

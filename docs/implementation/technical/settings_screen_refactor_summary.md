@@ -84,6 +84,10 @@ class SettingsTheme {
 
 ### 4. Clean Main Screen
 
+> Note: the production app still enters through `SettingsScreen`; the modular
+> sections below now share a canonical named-route contract rather than a
+> separate `RefactoredSettingsScreen` entrypoint.
+
 #### RefactoredSettingsScreen
 ```dart
 class RefactoredSettingsScreen extends StatefulWidget {
@@ -128,7 +132,9 @@ class RefactoredSettingsScreen extends StatefulWidget {
 - **Independent Testing**: Each component can be tested in isolation
 
 ### 2. Performance Optimizations
-- **Side Effects Moved**: Ad service calls moved to `initState()`
+- **Side Effects Moved**: The modular section plan keeps service work out of
+  `build()`, while the live screen still carries some legacy build-time work to
+  be finalized
 - **Efficient Rebuilds**: Use `context.select()` for targeted updates
 - **Lazy Loading**: Sections only rebuild when their data changes
 
@@ -142,7 +148,9 @@ class RefactoredSettingsScreen extends StatefulWidget {
 - **Type Safety**: Strongly typed throughout
 - **Error Handling**: Proper null safety and error states
 - **Documentation**: Comprehensive inline documentation
-- **Testing**: Full test coverage for components
+- **Testing**: Full coverage for the settings widget slice and route-contract
+  validation; screen-level coverage still depends on the wider app compile
+  baseline
 
 ## Usage Guidelines
 
@@ -184,6 +192,9 @@ class NewSection extends StatelessWidget {
   }
 }
 ```
+
+4. **Route-backed destination**: Register the destination in `Routes` and
+   `MaterialApp.routes`, then navigate with `Navigator.pushNamed()`.
 
 ### Styling Guidelines
 

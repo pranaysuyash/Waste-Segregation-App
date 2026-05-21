@@ -8,6 +8,7 @@ import '../../models/waste_classification.dart' show WasteClassification;
 import '../ai_failure.dart';
 import '../../utils/production_safety_config.dart';
 import 'ai_provider_response.dart';
+import 'classification_provider.dart';
 
 /// Thin HTTP client for OpenAI Chat Completions.
 ///
@@ -21,7 +22,7 @@ import 'ai_provider_response.dart';
 /// Does **not** build classification prompts, parse [WasteClassification],
 /// apply local guidelines, cache, record spending, decide fallback, or
 /// compress images.
-class OpenAiProviderClient {
+class OpenAiProviderClient implements ClassificationProvider {
   OpenAiProviderClient({
     required Dio dio,
     required String baseUrl,
@@ -39,11 +40,62 @@ class OpenAiProviderClient {
 
   static const String _endpoint = '/chat/completions';
 
+  // ---------------------------------------------------------------------------
+  // ClassificationProvider interface
+  // ---------------------------------------------------------------------------
+
+  @override
+  String get providerName => 'openai';
+
+  @override
+  String get modelName => _model;
+
+  /// Rough estimated cost per call at ~1 500 input + 800 output tokens.
+  /// For accurate telemetry use the token counts from [AiProviderResponse].
+  @override
+  double? get estimatedCostPerCall {
+    // gpt-4.1-nano: ~$0.0001/1K input, ~$0.0004/1K output
+    const inputTokens = 1500;
+    const outputTokens = 800;
+    return (inputTokens / 1000) * 0.0001 + (outputTokens / 1000) * 0.0004;
+  }
+
+  /// [ClassificationProvider] adapter: treats [prompt] as the system prompt
+  /// and passes a fixed user message to request JSON classification.
+  ///
+  /// Callers that need full control over the system/user split should call
+  /// [analyzeWithSplitPrompts] directly.
+  @override
+  Future<AiProviderResponse> analyze({
+    required Uint8List imageBytes,
+    required String mimeType,
+    String prompt = '',
+    // Extra params accepted for interface parity; not used by OpenAI wire call.
+    String? clientHash,
+    String? region,
+    String? lang,
+    String? requestId, // ignored by OpenAI direct client
+    CancelToken? cancelToken,
+  }) {
+    return analyzeWithSplitPrompts(
+      imageBytes: imageBytes,
+      mimeType: mimeType,
+      systemPrompt: prompt,
+      userPrompt: 'Classify this waste item and return the JSON object.',
+      cancelToken: cancelToken,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+
   /// Sends a Chat Completions request with an attached image.
   ///
   /// [imageBytes] should already be compressed — this client does not
   /// perform any compression.
-  Future<AiProviderResponse> analyze({
+  ///
+  /// Prefer this method when you need separate [systemPrompt] and [userPrompt].
+  /// The [ClassificationProvider.analyze] adapter calls this internally.
+  Future<AiProviderResponse> analyzeWithSplitPrompts({
     required Uint8List imageBytes,
     required String mimeType,
     required String systemPrompt,

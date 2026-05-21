@@ -8,6 +8,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart'
 
 import '../ai_failure.dart';
 import 'ai_provider_response.dart';
+import 'classification_provider.dart';
 
 /// Thin callable-function client for the backend classification gateway.
 ///
@@ -33,10 +34,11 @@ import 'ai_provider_response.dart';
 ///
 /// ## Usage
 ///
-/// Enable via `--dart-define=USE_BACKEND_CLASSIFICATION=true` at build time.
+/// Enable via `--dart-define=USE_BACKEND_AI_IN_RELEASE=true` at build time
+/// (canonical flag — same as [ProductionSafetyConfig.useBackendAiInRelease]).
 /// [AiService] checks [BackendProxyProvider.isEnabled] and, when true,
-/// instantiates this provider as the primary route before OpenAI/Gemini.
-class BackendProxyProvider {
+/// uses this provider as the primary route before OpenAI/Gemini.
+class BackendProxyProvider implements ClassificationProvider {
   BackendProxyProvider({
     required FirebaseFunctions functions,
     String functionName = 'classifyImage',
@@ -52,11 +54,33 @@ class BackendProxyProvider {
   final String? _region;
   final Duration _timeout;
 
+  // ---------------------------------------------------------------------------
+  // ClassificationProvider interface
+  // ---------------------------------------------------------------------------
+
+  @override
+  String get providerName => 'backend';
+
+  @override
+  String get modelName => _functionName;
+
+  /// Cost is null because all cost tracking is handled server-side in
+  /// `ai_cost_events` Firestore collection. The client never sees token counts.
+  @override
+  double? get estimatedCostPerCall => null;
+
+  // ---------------------------------------------------------------------------
+
   /// Whether the backend proxy should be used in the current build.
   ///
-  /// Controlled by `--dart-define=USE_BACKEND_CLASSIFICATION=true`.
+  /// Canonical dart-define: `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`
+  ///
+  /// This reads the same flag as [ProductionSafetyConfig.useBackendAiInRelease]
+  /// so there is exactly ONE build flag that controls backend routing.
+  /// Do not add a separate `USE_BACKEND_CLASSIFICATION` define — use the
+  /// canonical flag above.
   static const bool isEnabled =
-      bool.fromEnvironment('USE_BACKEND_CLASSIFICATION');
+      bool.fromEnvironment('USE_BACKEND_AI_IN_RELEASE');
 
   /// Sends a classifyImage request to the backend callable function.
   ///
@@ -70,6 +94,10 @@ class BackendProxyProvider {
   ///
   /// [region] and [lang] are forwarded to the server to generate context-
   /// aware prompts and cache keys.
+  ///
+  /// [requestId] is an optional idempotency key for retry-safe calls.
+  /// Not part of the [ClassificationProvider] interface — additional param.
+  @override
   Future<AiProviderResponse> analyze({
     required Uint8List imageBytes,
     required String mimeType,

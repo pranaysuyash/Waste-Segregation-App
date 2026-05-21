@@ -7,6 +7,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart' show Was
 import '../../models/waste_classification.dart' show WasteClassification;
 import '../ai_failure.dart';
 import 'ai_provider_response.dart';
+import 'classification_provider.dart';
 
 /// Thin HTTP client for Gemini generateContent.
 ///
@@ -21,7 +22,7 @@ import 'ai_provider_response.dart';
 /// Does **not** build classification prompts, parse [WasteClassification],
 /// apply local guidelines, cache, record spending, decide fallback, or
 /// compress images.
-class GeminiProviderClient {
+class GeminiProviderClient implements ClassificationProvider {
   GeminiProviderClient({
     required Dio dio,
     required String baseUrl,
@@ -37,6 +38,28 @@ class GeminiProviderClient {
   final String _apiKey;
   final String _model;
 
+  // ---------------------------------------------------------------------------
+  // ClassificationProvider interface
+  // ---------------------------------------------------------------------------
+
+  @override
+  String get providerName => 'gemini';
+
+  @override
+  String get modelName => _model;
+
+  /// Rough estimated cost per call at ~1 500 input + 800 output tokens.
+  /// For accurate telemetry use the token counts from [AiProviderResponse].
+  @override
+  double? get estimatedCostPerCall {
+    // gemini-2.0-flash: ~$0.000075/1K input, ~$0.0003/1K output
+    const inputTokens = 1500;
+    const outputTokens = 800;
+    return (inputTokens / 1000) * 0.000075 + (outputTokens / 1000) * 0.0003;
+  }
+
+  // ---------------------------------------------------------------------------
+
   /// Sends a generateContent request with an attached image.
   ///
   /// [imageBytes] should already be compressed — this client does not
@@ -44,13 +67,22 @@ class GeminiProviderClient {
   ///
   /// [prompt] is the combined system + user prompt string, since Gemini
   /// does not have a separate system role in the same way as OpenAI.
+  /// Defaults to an empty string for [ClassificationProvider] interface parity;
+  /// callers should always pass a real prompt.
+  @override
   Future<AiProviderResponse> analyze({
     required Uint8List imageBytes,
     required String mimeType,
-    required String prompt,
+    String prompt = '',
+    // ClassificationProvider interface params
+    String? clientHash,
+    String? region,
+    String? lang,
+    String? requestId, // ignored by Gemini direct client
+    CancelToken? cancelToken,
+    // Gemini-specific extra params
     int maxOutputTokens = 1500,
     double temperature = 0.1,
-    CancelToken? cancelToken,
   }) async {
     final base64Image = base64Encode(imageBytes);
 

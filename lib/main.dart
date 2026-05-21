@@ -12,7 +12,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode, kReleaseMode;
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -78,6 +79,8 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 // Default: show the real app flow even in debug. Enable the purple debug screen
 // with: --dart-define=FORCE_DEBUG_HOME=true
 const bool _forceDebugHome = bool.fromEnvironment('FORCE_DEBUG_HOME');
+const String _appCheckWebRecaptchaSiteKey =
+    String.fromEnvironment('APPCHECK_WEB_RECAPTCHA_SITE_KEY');
 
 void _setPreferredOrientationsSafe() {
   if (kIsWeb) return;
@@ -215,6 +218,14 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
         }
       }
 
+      if (!skipFirebaseInit) {
+        await _runInitStep(
+          'App Check',
+          _initializeAppCheck,
+          timeout: const Duration(seconds: 10),
+        );
+      }
+
       // 3. Storage & Database
       const skipHiveInit = bool.fromEnvironment('SKIP_HIVE');
       if (skipHiveInit) {
@@ -323,6 +334,53 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
           error: e, stackTrace: s);
       if (critical) rethrow;
     }
+  }
+
+  Future<void> _initializeAppCheck() async {
+    if (!isFirebaseEnabled) {
+      return;
+    }
+
+    if (kIsWeb) {
+      if (_appCheckWebRecaptchaSiteKey.isEmpty) {
+        if (kReleaseMode) {
+          throw StateError(
+            'APPCHECK_WEB_RECAPTCHA_SITE_KEY is required for web release builds.',
+          );
+        }
+        WasteAppLogger.warning(
+          'BOOT: App Check web site key missing; skipping App Check activation for this non-release build.',
+        );
+        return;
+      }
+
+      await FirebaseAppCheck.instance
+          .activate(
+            webProvider: ReCaptchaV3Provider(_appCheckWebRecaptchaSiteKey),
+          )
+          .timeout(const Duration(seconds: 10));
+      WasteAppLogger.debug('BOOT: App Check activated for web');
+      return;
+    }
+
+    if (kDebugMode) {
+      await FirebaseAppCheck.instance
+          .activate(
+            androidProvider: AndroidProvider.debug,
+            appleProvider: AppleProvider.debug,
+          )
+          .timeout(const Duration(seconds: 10));
+      WasteAppLogger.debug('BOOT: App Check activated in debug mode');
+      return;
+    }
+
+    await FirebaseAppCheck.instance
+        .activate(
+          androidProvider: AndroidProvider.playIntegrity,
+          appleProvider: AppleProvider.appAttest,
+        )
+        .timeout(const Duration(seconds: 10));
+    WasteAppLogger.debug('BOOT: App Check activated for production modes');
   }
 
   @override
