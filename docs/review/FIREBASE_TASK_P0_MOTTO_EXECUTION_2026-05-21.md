@@ -125,13 +125,14 @@ These tests directly validate money-gate ordering:
 
 ## 6) Risks / remaining gaps
 
-1. Entitlement source-of-truth
-- Current classify entitlement check supports claims + Firestore fields.
-- Recommended: unify on single server-managed entitlement contract and remove legacy field ambiguity.
+1. Claims propagation drift
+- Entitlement authority is now locked to `users/{uid}.billing.entitlements.pro_subscription`.
+- Auth claims are fallback-only and telemetry-noted (`entitlementSource`) to avoid blocking active users during migration.
+- Remaining work: add explicit async claims-sync job (on subscription state change) to eliminate fallback path over time.
 
-2. Refund reliability
-- Refund currently runs on provider-total-failure path.
-- Recommended: idempotent reservation ledger with explicit reservation status transitions (`reserved -> consumed|refunded`) for stronger recovery semantics.
+2. Reservation lifecycle visibility
+- Reservation state transitions now exist in `classify_token_reservations` (`reserved -> consumed|refunded`) with idempotency key support.
+- Remaining work: add scheduled reconciliation alerting for stale `reserved` rows beyond SLA (operational observability).
 
 3. App Check enforcement policy
 - `REQUIRE_APPCHECK_CALLABLE` is env-gated.
@@ -139,5 +140,25 @@ These tests directly validate money-gate ordering:
 
 ## 7) Opinionated recommendation (next action)
 
-Next highest-value move is to harden entitlement authority (single schema + claim propagation pipeline) and attach classify spend events to an auditable billing ledger collection.
-That removes the last meaningful ambiguity in monetization integrity and makes post-incident reconciliation straightforward.
+After this hardening pass, the best next step is operationalization:
+1) claims-sync pipeline for entitlement claims freshness,
+2) reservation reconciliation monitor,
+3) dashboard for token reservation outcomes and refund rates.
+
+## 8) Addendum (same-day hardening continuation)
+
+Follow-up implementation completed:
+- Added classify request idempotency key support (`requestId`) end-to-end client -> callable.
+- Added deterministic reservation IDs (`sha256(classifyImage|uid|requestId)`).
+- Added reservation ledger collection: `classify_token_reservations`.
+- Added explicit state transitions:
+  - reserve before paid provider call
+  - consume on successful provider completion
+  - refund on dual-provider failure
+- Added idempotent retry behavior:
+  - repeated request with same key reuses reservation and does not deduct again.
+- Added telemetry/meta fields:
+  - `tokenReservationId`, `tokenReservationStatus`, `tokenReservationReused`.
+- Tightened entitlement resolution contract:
+  - canonical authority: `billing.entitlements.pro_subscription`
+  - claims accepted as compatibility fallback only.

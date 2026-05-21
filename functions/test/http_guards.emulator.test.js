@@ -242,3 +242,57 @@ test('classifyImage cache hit does not charge tokens when classification is alre
   const wallet = userSnap.data()?.tokenWallet;
   assert.equal(wallet?.balance, 12);
 });
+
+test('classifyImage idempotency key prevents duplicate token deductions on retry', async () => {
+  const token = await createOrResetUser({
+    uid: 'it-classify-idempotent',
+    email: 'it-classify-idempotent@example.com',
+    password: 'Test1!',
+    adminClaim: false,
+  });
+  await upsertUserProfile('it-classify-idempotent', 20);
+
+  const requestId = 'retry-idempotency-key-0001';
+  const payload = {
+    imageBase64: makeTinyPngBase64(),
+    mimeType: 'image/png',
+    region: 'Idempotency-Test-Region-1',
+    lang: 'en',
+    requestId,
+  };
+
+  const first = await invokeCallable('classifyImage', token, payload);
+
+  const firstWalletSnap = await admin.firestore().collection('users').doc('it-classify-idempotent').get();
+  const firstBalance = Number(firstWalletSnap.data()?.tokenWallet?.balance ?? -1);
+
+  const second = await invokeCallable('classifyImage', token, payload);
+
+  const secondWalletSnap = await admin.firestore().collection('users').doc('it-classify-idempotent').get();
+  const secondBalance = Number(secondWalletSnap.data()?.tokenWallet?.balance ?? -1);
+
+  assert.equal(secondBalance, firstBalance);
+
+  if (second.response.status === 200) {
+    const meta = second.body?.result?.meta ?? second.body?.meta ?? {};
+    const reused = meta.tokenReservationReused === true;
+    const cacheHit = meta.cachedResult === true;
+    assert.ok(reused || cacheHit);
+  } else {
+    assert.ok(second.response.status >= 400);
+  }
+
+  const reservationId = createHash('sha256')
+    .update(`classifyImage|it-classify-idempotent|${requestId}`)
+    .digest('hex')
+    .slice(0, 48);
+  const reservationSnap = await admin
+    .firestore()
+    .collection('classify_token_reservations')
+    .doc(reservationId)
+    .get();
+  assert.equal(reservationSnap.exists, true);
+
+  const firstMessage = first.body?.error?.message ?? '';
+  assert.ok(!/Insufficient tokens/i.test(firstMessage));
+});

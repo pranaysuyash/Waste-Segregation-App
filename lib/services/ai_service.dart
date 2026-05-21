@@ -1458,6 +1458,7 @@ Output:
       clientHash: contentHash,
       region: region,
       lang: language,
+      requestId: classificationId,
     );
 
     // textContent is already a JSON-encoded WasteClassification string.

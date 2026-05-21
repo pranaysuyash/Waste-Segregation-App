@@ -265,6 +265,23 @@ Full field list: see `WasteClassification.fromJson()` in `waste_classification.d
 * **Deletion**: Revoked/deleted candidates are marked with `deletedAt` / `excludedFromTrainingAt` and excluded from future manifests.
 * **Ground truth**: Model predictions are raw predictions only. Serious training/eval uses `reviewer_verified`, `golden`, or `training_eligible` labels.
 
+## 16C. Classify Monetization Ledger (`classify_token_reservations`)
+
+* **Written by**: Cloud Function `classifyImage` in `functions/src/classify_image.ts`
+* **Privacy**: Backend-only ledger for audit/reconciliation; no direct user client read/write.
+* **Purpose**: Track explicit reservation lifecycle for paid classify calls.
+* **State machine**: `reserved -> consumed | refunded`
+* **Idempotency**: Deterministic reservation IDs for retry-safe requests (`sha256(classifyImage|uid|requestId)`).
+* **Key fields**:
+  - `uid`
+  - `requestId`
+  - `status`
+  - `tokenCost`
+  - `premiumApplied`
+  - `reservationTransactionId`
+  - `refundTransactionId`
+  - `createdAtIso`, `updatedAtIso`, `consumedAtIso`, `refundedAtIso`
+
 ---
 
 ## 17. User Contributions (`user_contributions`)

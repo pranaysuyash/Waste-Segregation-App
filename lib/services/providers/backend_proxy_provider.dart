@@ -81,6 +81,7 @@ class BackendProxyProvider {
     String? clientHash,
     String? region,
     String? lang,
+    String? requestId,
     CancelToken? cancelToken, // accepted for interface parity; not enforceable on callable
   }) async {
     final base64Image = base64Encode(imageBytes);
@@ -95,6 +96,7 @@ class BackendProxyProvider {
         if (clientHash != null) 'clientHash': clientHash,
         if (region != null && region.isNotEmpty) 'region': region,
         if (lang != null && lang.isNotEmpty) 'lang': lang,
+        if (requestId != null && requestId.isNotEmpty) 'requestId': requestId,
       });
     } on FirebaseFunctionsException catch (e) {
       throw _mapFunctionsException(e);
@@ -171,8 +173,9 @@ class BackendProxyProvider {
   }
 
   HttpsCallable _buildCallable() {
-    final instance = _region != null
-        ? FirebaseFunctions.instanceFor(region: _region!)
+    final region = _region;
+    final instance = region != null
+        ? FirebaseFunctions.instanceFor(region: region)
         : _functions;
     return instance.httpsCallable(
       _functionName,
