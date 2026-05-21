@@ -11,19 +11,32 @@ void main() {
       expect(FirestoreCollections.allCollections, contains('users'));
       expect(FirestoreCollections.allCollections, contains('community_feed'));
       expect(FirestoreCollections.allCollections, contains('families'));
-      expect(FirestoreCollections.allCollections, contains('leaderboard_allTime'));
-      expect(FirestoreCollections.allCollections, contains('leaderboard_weekly'));
-      expect(FirestoreCollections.allCollections, contains('classification_feedback'));
+      expect(
+          FirestoreCollections.allCollections, contains('leaderboard_allTime'));
+      expect(
+          FirestoreCollections.allCollections, contains('leaderboard_weekly'));
+      expect(FirestoreCollections.allCollections,
+          contains('classification_feedback'));
       expect(FirestoreCollections.allCollections, contains('ai_jobs'));
       expect(FirestoreCollections.allCollections, contains('analytics_events'));
       expect(FirestoreCollections.allCollections, contains('invitations'));
-      expect(FirestoreCollections.allCollections, contains('shared_classifications'));
+      expect(FirestoreCollections.allCollections,
+          contains('shared_classifications'));
       expect(FirestoreCollections.allCollections, contains('family_stats'));
       expect(FirestoreCollections.allCollections, contains('community_stats'));
-      expect(FirestoreCollections.allCollections, contains('disposal_locations'));
-      expect(FirestoreCollections.allCollections, contains('user_contributions'));
-      expect(FirestoreCollections.allCollections, contains('admin_classifications'));
-      expect(FirestoreCollections.allCollections, contains('admin_user_recovery'));
+      expect(
+          FirestoreCollections.allCollections, contains('disposal_locations'));
+      expect(
+          FirestoreCollections.allCollections, contains('user_contributions'));
+      expect(FirestoreCollections.allCollections,
+          contains('admin_classifications'));
+      expect(
+          FirestoreCollections.allCollections, contains('admin_user_recovery'));
+      expect(
+          FirestoreCollections.allCollections, contains('training_candidates'));
+      expect(FirestoreCollections.allCollections, contains('training_labels'));
+      expect(FirestoreCollections.allCollections,
+          contains('training_dataset_versions'));
     });
 
     test('collection name constants match string values', () {
@@ -32,8 +45,15 @@ void main() {
       expect(FirestoreCollections.communityFeed, equals('community_feed'));
       expect(FirestoreCollections.communityStats, equals('community_stats'));
       expect(FirestoreCollections.families, equals('families'));
-      expect(FirestoreCollections.leaderboardAllTime, equals('leaderboard_allTime'));
-      expect(FirestoreCollections.leaderboardWeekly, equals('leaderboard_weekly'));
+      expect(FirestoreCollections.leaderboardAllTime,
+          equals('leaderboard_allTime'));
+      expect(
+          FirestoreCollections.leaderboardWeekly, equals('leaderboard_weekly'));
+      expect(FirestoreCollections.trainingCandidates,
+          equals('training_candidates'));
+      expect(FirestoreCollections.trainingLabels, equals('training_labels'));
+      expect(FirestoreCollections.trainingDatasetVersions,
+          equals('training_dataset_versions'));
     });
   });
 
@@ -43,26 +63,36 @@ void main() {
   group('Schema Field Classification', () {
     test('PII fields are correctly identified', () {
       // Users collection PII fields
-      final emailField = UsersSchema.fields.firstWhere((f) => f.name == 'email');
+      final emailField =
+          UsersSchema.fields.firstWhere((f) => f.name == 'email');
       expect(emailField.classification, equals(FieldClassification.pii));
       expect(emailField.isPii, isTrue);
       expect(emailField.isPrivate, isTrue);
 
-      final displayNameField = UsersSchema.fields.firstWhere((f) => f.name == 'displayName');
+      final displayNameField =
+          UsersSchema.fields.firstWhere((f) => f.name == 'displayName');
       expect(displayNameField.classification, equals(FieldClassification.pii));
 
       // Community feed PII fields
-      final userIdField = CommunityFeedSchema.modelFields.firstWhere((f) => f.name == 'userId');
+      final userIdField =
+          CommunityFeedSchema.modelFields.firstWhere((f) => f.name == 'userId');
       expect(userIdField.classification, equals(FieldClassification.pii));
 
-      final userNameField = CommunityFeedSchema.modelFields.firstWhere((f) => f.name == 'userName');
+      final userNameField = CommunityFeedSchema.modelFields
+          .firstWhere((f) => f.name == 'userName');
       expect(userNameField.classification, equals(FieldClassification.pii));
       expect(userNameField.isPii, isTrue);
 
       // Leaderboard PII fields
-      final photoUrlField = LeaderboardAllTimeSchema.fields.firstWhere((f) => f.name == 'photoUrl');
+      final photoUrlField = LeaderboardAllTimeSchema.fields
+          .firstWhere((f) => f.name == 'photoUrl');
       expect(photoUrlField.classification, equals(FieldClassification.pii));
       expect(photoUrlField.isPii, isTrue);
+
+      final userHashField = TrainingCandidatesSchema.fields
+          .firstWhere((f) => f.name == 'userIdHash');
+      expect(userHashField.classification, equals(FieldClassification.private));
+      expect(userHashField.description, contains('HMAC'));
     });
 
     test('system fields are correctly identified', () {
@@ -71,24 +101,31 @@ void main() {
       expect(idField.isPii, isFalse);
       expect(idField.isPrivate, isFalse);
 
-      final timestampField = CommunityFeedSchema.modelFields.firstWhere((f) => f.name == 'timestamp');
+      final timestampField = CommunityFeedSchema.modelFields
+          .firstWhere((f) => f.name == 'timestamp');
       expect(timestampField.classification, equals(FieldClassification.system));
     });
 
     test('aggregate fields are correctly identified', () {
-      final pointsField = LeaderboardAllTimeSchema.fields.firstWhere((f) => f.name == 'points');
+      final pointsField =
+          LeaderboardAllTimeSchema.fields.firstWhere((f) => f.name == 'points');
       expect(pointsField.classification, equals(FieldClassification.aggregate));
 
-      final likesField = CommunityFeedSchema.modelFields.firstWhere((f) => f.name == 'likes');
+      final likesField =
+          CommunityFeedSchema.modelFields.firstWhere((f) => f.name == 'likes');
       expect(likesField.classification, equals(FieldClassification.aggregate));
     });
 
     test('userContent fields are correctly identified', () {
-      final titleField = CommunityFeedSchema.modelFields.firstWhere((f) => f.name == 'title');
-      expect(titleField.classification, equals(FieldClassification.userContent));
+      final titleField =
+          CommunityFeedSchema.modelFields.firstWhere((f) => f.name == 'title');
+      expect(
+          titleField.classification, equals(FieldClassification.userContent));
 
-      final descriptionField = CommunityFeedSchema.modelFields.firstWhere((f) => f.name == 'description');
-      expect(descriptionField.classification, equals(FieldClassification.userContent));
+      final descriptionField = CommunityFeedSchema.modelFields
+          .firstWhere((f) => f.name == 'description');
+      expect(descriptionField.classification,
+          equals(FieldClassification.userContent));
     });
   });
 
@@ -96,7 +133,8 @@ void main() {
   // Schema Validation Tests
   // ============================================================
   group('FirestoreSchemaValidator', () {
-    test('validateRequiredFields returns empty for valid community feed data', () {
+    test('validateRequiredFields returns empty for valid community feed data',
+        () {
       final data = {
         'id': 'test-id',
         'userId': 'user-123',
@@ -113,7 +151,7 @@ void main() {
       };
 
       final errors = FirestoreSchemaValidator.validateRequiredFields(
-        FirestoreCollections.communityFeed, data);
+          FirestoreCollections.communityFeed, data);
       expect(errors, isEmpty);
     });
 
@@ -124,7 +162,7 @@ void main() {
       };
 
       final errors = FirestoreSchemaValidator.validateRequiredFields(
-        FirestoreCollections.communityFeed, data);
+          FirestoreCollections.communityFeed, data);
       expect(errors, isNotEmpty);
       expect(errors.any((e) => e.contains('userId')), isTrue);
       expect(errors.any((e) => e.contains('activityType')), isTrue);
@@ -134,8 +172,9 @@ void main() {
     test('validateRequiredFields returns empty for unknown collection', () {
       final data = {'someField': 'someValue'};
       final errors = FirestoreSchemaValidator.validateRequiredFields(
-        'unknown_collection', data);
-      expect(errors, isEmpty); // Unknown collections are allowed (advisory only)
+          'unknown_collection', data);
+      expect(
+          errors, isEmpty); // Unknown collections are allowed (advisory only)
     });
 
     test('validateAllowedFields detects unexpected fields', () {
@@ -147,9 +186,17 @@ void main() {
         'hackerField': 'injected',
       };
 
-      final allowed = ['userId', 'points', 'displayName', 'lastUpdated', 'rank', 'weeklyPoints', 'photoUrl'];
+      final allowed = [
+        'userId',
+        'points',
+        'displayName',
+        'lastUpdated',
+        'rank',
+        'weeklyPoints',
+        'photoUrl'
+      ];
       final errors = FirestoreSchemaValidator.validateAllowedFields(
-        FirestoreCollections.leaderboardAllTime, data, allowed);
+          FirestoreCollections.leaderboardAllTime, data, allowed);
       expect(errors, isNotEmpty);
       expect(errors.any((e) => e.contains('hackerField')), isTrue);
     });
@@ -163,9 +210,17 @@ void main() {
         'photoUrl': 'https://example.com/photo.jpg',
       };
 
-      final allowed = ['userId', 'points', 'displayName', 'lastUpdated', 'rank', 'weeklyPoints', 'photoUrl'];
+      final allowed = [
+        'userId',
+        'points',
+        'displayName',
+        'lastUpdated',
+        'rank',
+        'weeklyPoints',
+        'photoUrl'
+      ];
       final errors = FirestoreSchemaValidator.validateAllowedFields(
-        FirestoreCollections.leaderboardAllTime, data, allowed);
+          FirestoreCollections.leaderboardAllTime, data, allowed);
       expect(errors, isEmpty);
     });
   });
@@ -174,7 +229,9 @@ void main() {
   // Privacy Guard Tests
   // ============================================================
   group('PrivacyGuardConfig', () {
-    test('leaderboard guard redacts displayName and omits photoUrl for opted-out users', () {
+    test(
+        'leaderboard guard redacts displayName and omits photoUrl for opted-out users',
+        () {
       final data = {
         'userId': 'user-123',
         'displayName': 'John Doe',
@@ -191,6 +248,7 @@ void main() {
         photoUrl: 'https://example.com/photo.jpg',
         preferences: optedOutPrefs,
       );
+      expect(userProfile.preferences?['leaderboardOptOut'], isTrue);
 
       // Simulate what _applyLeaderboardPrivacyGuard does
       final sanitized = Map<String, dynamic>.from(data);
@@ -213,8 +271,7 @@ void main() {
       };
 
       // Simulate what _applyUserProfilePrivacyGuard does
-      final sanitized = Map<String, dynamic>.from(data);
-      sanitized.remove('email');
+      final sanitized = Map<String, dynamic>.from(data)..remove('email');
 
       expect(sanitized.containsKey('email'), isFalse);
       expect(sanitized['displayName'], equals('John Doe')); // Non-PII preserved
@@ -240,7 +297,8 @@ void main() {
 
       expect(data['userName'], equals('Anonymous User'));
       expect(data.containsKey('userAvatar'), isFalse);
-      expect(data['activityType'], equals('classification')); // Non-PII preserved
+      expect(
+          data['activityType'], equals('classification')); // Non-PII preserved
     });
   });
 
@@ -251,39 +309,75 @@ void main() {
     test('UsersSchema has all UserProfile.toJson fields', () {
       final schemaFields = UsersSchema.fields.map((f) => f.name).toSet();
       // Key fields that must be present
-      expect(schemaFields, containsAll([
-        'id', 'displayName', 'email', 'photoUrl', 'familyId',
-        'role', 'createdAt', 'lastActive', 'preferences',
-        'gamificationProfile', 'tokenWallet', 'tokenTransactions',
-      ]));
+      expect(
+          schemaFields,
+          containsAll([
+            'id',
+            'displayName',
+            'email',
+            'photoUrl',
+            'familyId',
+            'role',
+            'createdAt',
+            'lastActive',
+            'preferences',
+            'gamificationProfile',
+            'tokenWallet',
+            'tokenTransactions',
+          ]));
     });
 
     test('CommunityFeedSchema has all CommunityFeedItem.toJson fields', () {
-      final schemaFields = CommunityFeedSchema.modelFields.map((f) => f.name).toSet();
-      expect(schemaFields, containsAll([
-        'id', 'userId', 'userName', 'userAvatar', 'activityType',
-        'title', 'description', 'timestamp', 'metadata',
-        'likes', 'likedBy', 'isAnonymous', 'points',
-      ]));
+      final schemaFields =
+          CommunityFeedSchema.modelFields.map((f) => f.name).toSet();
+      expect(
+          schemaFields,
+          containsAll([
+            'id',
+            'userId',
+            'userName',
+            'userAvatar',
+            'activityType',
+            'title',
+            'description',
+            'timestamp',
+            'metadata',
+            'likes',
+            'likedBy',
+            'isAnonymous',
+            'points',
+          ]));
     });
 
     test('FamiliesSchema has all Family.toJson fields', () {
       final schemaFields = FamiliesSchema.fields.map((f) => f.name).toSet();
-      expect(schemaFields, containsAll([
-        'id', 'name', 'description', 'createdBy', 'createdAt',
-        'updatedAt', 'members', 'memberUids', 'settings', 'imageUrl', 'isPublic',
-      ]));
+      expect(
+          schemaFields,
+          containsAll([
+            'id',
+            'name',
+            'description',
+            'createdBy',
+            'createdAt',
+            'updatedAt',
+            'members',
+            'memberUids',
+            'settings',
+            'imageUrl',
+            'isPublic',
+          ]));
 
       // Verify the old doc's wrong field names are NOT in the schema
       expect(schemaFields, isNot(contains('familyName')));
       expect(schemaFields, isNot(contains('familyAdminUids')));
-            expect(schemaFields, isNot(contains('familyCode')));
+      expect(schemaFields, isNot(contains('familyCode')));
       expect(schemaFields, isNot(contains('familyGoals')));
       expect(schemaFields, isNot(contains('familyLeaderboardSettings')));
     });
 
     test('LeaderboardAllTimeSchema has photoUrl', () {
-      final schemaFields = LeaderboardAllTimeSchema.fields.map((f) => f.name).toSet();
+      final schemaFields =
+          LeaderboardAllTimeSchema.fields.map((f) => f.name).toSet();
       expect(schemaFields, contains('photoUrl')); // Was missing from old rules
       expect(schemaFields, contains('displayName'));
       expect(schemaFields, contains('points'));
@@ -294,15 +388,24 @@ void main() {
       // The old doc claimed 'preferences' and 'dailyStreak' but the actual
       // model has 'streaks' and no separate 'preferences' or 'dailyStreak' class
       final gamificationFields = [
-        'userId', 'achievements', 'streaks', 'points',
-        'activeChallenges', 'completedChallenges', 'weeklyStats',
-        'discoveredItemIds', 'lastDailyEngagementBonusAwardedDate',
-        'lastViewPersonalStatsAwardedDate', 'unlockedHiddenContentIds',
+        'userId',
+        'achievements',
+        'streaks',
+        'points',
+        'activeChallenges',
+        'completedChallenges',
+        'weeklyStats',
+        'discoveredItemIds',
+        'lastDailyEngagementBonusAwardedDate',
+        'lastViewPersonalStatsAwardedDate',
+        'unlockedHiddenContentIds',
       ];
       // This test documents the actual field names for future reference
       expect(gamificationFields, contains('streaks')); // NOT 'dailyStreak'
-      expect(gamificationFields, isNot(contains('preferences'))); // NOT a separate class
-      expect(gamificationFields, isNot(contains('dailyStreak'))); // NOT a class name
+      expect(gamificationFields,
+          isNot(contains('preferences'))); // NOT a separate class
+      expect(gamificationFields,
+          isNot(contains('dailyStreak'))); // NOT a class name
     });
   });
 }

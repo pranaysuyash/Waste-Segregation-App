@@ -253,7 +253,17 @@ Full field list: see `WasteClassification.fromJson()` in `waste_classification.d
 ## 16. Admin Collections (`admin`, `admin_classifications`, `admin_user_recovery`)
 
 * **Privacy**: No user access; Cloud Functions and admin SDK only
-* **Note**: `admin_classifications` stores anonymized classifications for ML training. `admin_user_recovery` stores hashed user IDs for recovery.
+* **Current policy**: `admin_classifications` is legacy/admin-only and must not be used as a silent ML training dataset.
+* **Training data**: Use the explicit-consent pipeline (`training_candidates`, `training_labels`, `training_dataset_versions`) instead. No user image or correction enters model-training use unless training consent is enabled, policy version is captured, deletion/revocation is respected, and review/dataset state is tracked.
+* **Recovery**: `admin_user_recovery` stores hashed user IDs for recovery metadata only.
+
+## 16B. Training Data Pipeline (`training_candidates`, `training_labels`, `training_dataset_versions`)
+
+* **Privacy**: Cloud Functions/admin SDK only; no direct user client read/write.
+* **Consent**: Requires `users/{uid}.trainingConsent.enabled == true` or an equivalent callable-verified consent snapshot for `training-data-v1`.
+* **Identity**: Training records store server-side HMAC user hashes, not raw UIDs.
+* **Deletion**: Revoked/deleted candidates are marked with `deletedAt` / `excludedFromTrainingAt` and excluded from future manifests.
+* **Ground truth**: Model predictions are raw predictions only. Serious training/eval uses `reviewer_verified`, `golden`, or `training_eligible` labels.
 
 ---
 

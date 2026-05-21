@@ -25,11 +25,21 @@ class PointsEarnedPopup extends StatefulWidget {
 }
 
 class _PointsEarnedPopupState extends State<PointsEarnedPopup>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
+  late AnimationController _coinController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
   late Animation<Offset> _slideAnimation;
+  bool _isCollected = false;
+  final List<_CoinSpec> _coins = const [
+    _CoinSpec(dx: -78, dy: -66, delay: 0.00),
+    _CoinSpec(dx: -50, dy: -88, delay: 0.06),
+    _CoinSpec(dx: -16, dy: -98, delay: 0.10),
+    _CoinSpec(dx: 16, dy: -98, delay: 0.14),
+    _CoinSpec(dx: 50, dy: -88, delay: 0.18),
+    _CoinSpec(dx: 78, dy: -66, delay: 0.22),
+  ];
 
   @override
   void initState() {
@@ -37,6 +47,10 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _coinController = AnimationController(
+      duration: const Duration(milliseconds: 1050),
       vsync: this,
     );
 
@@ -89,7 +103,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
   }
 
   void _startAnimation() async {
-    await _controller.forward();
+    await Future.wait([_controller.forward(), _coinController.forward()]);
 
     // Auto-dismiss after display duration
     await Future.delayed(widget.duration);
@@ -102,7 +116,20 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
   @override
   void dispose() {
     _controller.dispose();
+    _coinController.dispose();
     super.dispose();
+  }
+
+  void _collectNow() {
+    if (_isCollected) return;
+    setState(() => _isCollected = true);
+    HapticFeedback.mediumImpact();
+    _coinController.animateTo(1.0, duration: const Duration(milliseconds: 240));
+    Future.delayed(const Duration(milliseconds: 260), () {
+      if (mounted) {
+        widget.onDismiss();
+      }
+    });
   }
 
   @override
@@ -119,7 +146,18 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
             scale: _scaleAnimation.value,
             child: SlideTransition(
               position: _slideAnimation,
-              child: child,
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: [
+                  ..._buildCoins(),
+                  GestureDetector(
+                    onTap: _collectNow,
+                    behavior: HitTestBehavior.translucent,
+                    child: child,
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -131,14 +169,14 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              colorScheme.primary,
               colorScheme.primaryContainer,
+              colorScheme.tertiaryContainer,
             ],
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.primary.withValues(alpha: 0.4),
+              color: colorScheme.tertiary.withValues(alpha: 0.3),
               blurRadius: 20,
               spreadRadius: 5,
             ),
@@ -147,18 +185,13 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Sparkle icon
-            Icon(
-              Icons.auto_awesome,
-              color: Colors.yellow.shade300,
-              size: 32,
-            ),
+            Icon(Icons.recycling, color: colorScheme.primary, size: 32),
             const SizedBox(height: 8),
             // Points text
             Text(
               '+${widget.points}',
               style: theme.textTheme.displayLarge?.copyWith(
-                color: Colors.white,
+                color: colorScheme.onPrimaryContainer,
                 fontWeight: FontWeight.bold,
                 fontSize: 48,
               ),
@@ -166,14 +199,100 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
             const SizedBox(height: 4),
             // Label
             Text(
-              'Points Earned!',
+              'Eco Points Earned!',
               style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: colorScheme.onPrimaryContainer.withValues(alpha: 0.9),
                 fontWeight: FontWeight.w600,
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  List<Widget> _buildCoins() {
+    return _coins.map((coin) {
+      return AnimatedBuilder(
+        animation: _coinController,
+        builder: (context, _) {
+          final progress = ((_coinController.value - coin.delay) /
+                  (1 - coin.delay))
+              .clamp(0.0, 1.0);
+          final curved = Curves.easeOutCubic.transform(progress);
+          final retreat = _isCollected ? Curves.easeInBack.transform(progress) : 0.0;
+          final x = coin.dx * (1 - curved) + (coin.dx * 0.12 * retreat);
+          final y = coin.dy * curved + (86 * retreat);
+          final opacity = (1 - progress).clamp(0.0, 1.0);
+          final scale = 0.62 + (0.38 * (1 - progress)) - (0.2 * retreat);
+
+          return Positioned(
+            left: x,
+            top: y,
+            child: Opacity(
+              opacity: opacity,
+              child: Transform.scale(
+                scale: scale.clamp(0.2, 1.0),
+                child: _CoinPill(points: (widget.points / _coins.length).ceil()),
+              ),
+            ),
+          );
+        },
+      );
+    }).toList();
+  }
+}
+
+class _CoinSpec {
+  const _CoinSpec({required this.dx, required this.dy, required this.delay});
+  final double dx;
+  final double dy;
+  final double delay;
+}
+
+class _CoinPill extends StatelessWidget {
+  const _CoinPill({required this.points});
+  final int points;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.secondaryContainer,
+            colorScheme.tertiaryContainer,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: colorScheme.tertiary.withValues(alpha: 0.4)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.tertiary.withValues(alpha: 0.25),
+            blurRadius: 8,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.eco, size: 14, color: colorScheme.tertiary),
+          const SizedBox(width: 4),
+          Text(
+            '+$points',
+            style: TextStyle(
+              color: colorScheme.onSecondaryContainer,
+              fontWeight: FontWeight.w800,
+              fontSize: 11,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -200,7 +319,7 @@ class PointsPopupOverlay extends StatelessWidget {
 
     return Positioned.fill(
       child: Container(
-        color: Colors.black.withValues(alpha: 0.3),
+        color: Colors.black.withValues(alpha: 0.2),
         child: Center(
           child: PointsEarnedPopup(
             points: points,

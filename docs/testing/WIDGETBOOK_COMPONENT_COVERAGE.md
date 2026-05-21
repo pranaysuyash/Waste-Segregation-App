@@ -1,80 +1,36 @@
 # Widgetbook Component Coverage
 
-- Total widget classes: **158**
-- Referenced in Widgetbook: **86**
-- Coverage: **54.43%**
+- Total widget classes: **159**
+- Referenced in Widgetbook: **131**
+- Coverage: **82.39%**
 
 ## Uncovered Widget Classes
 
 - `AchievementCelebration`
 - `AchievementCelebrationDisplay`
-- `AchievementGrid`
-- `AchievementNotification`
 - `AlternativeNavigationWrapper`
-- `AnimatedDashboardWidget`
-- `AnimatedFAB`
+- `AnalysisProgressView`
 - `AnimatedTabController`
-- `AsyncErrorBoundary`
 - `CacheStatisticsCard`
-- `CaptureButton`
-- `CategoryDistributionChart`
-- `CelebrationOverlay`
-- `ChallengeCard`
 - `ChallengeCompletedPopup`
-- `ClassificationCard`
 - `ClassificationFeedback`
 - `CodeCircle`
 - `CommunityFeedPreview`
-- `CommunityFeedWidget`
-- `CommunityImpactCard`
-- `ContentDiscoveryWidget`
-- `DailyTipRevealWidget`
-- `DataMigrationDialog`
 - `DeveloperSection`
-- `DisposalInstructionsWidget`
 - `EmptyAchievementsStateWidget`
 - `EmptyEducationalContentWidget`
 - `EmptyFilteredResultsWidget`
 - `EnhancedAchievementNotification`
-- `EnhancedChallengeCard`
 - `EnhancedHistoryFilterDialog`
-- `EnhancedPointsIndicator`
 - `EnhancedReanalysisWidget`
 - `EnvironmentalImpactIndicator`
-- `ErrorBoundary`
 - `ErrorCatchingWidget`
-- `FlameStreakWidget`
 - `FloatingAchievementBadge`
-- `FloatingParticleSystem`
-- `GlobalImpactMeter`
 - `HistoryListItem`
-- `ImpactVisualizationRing`
 - `InfoRow`
-- `InteractiveClassificationTags`
 - `InteractiveTag`
 - `InteractiveTagCollection`
-- `LeaderboardWidget`
-- `LifetimePointsIndicator`
 - `MainNavigationWrapper`
-- `ManualRegionSelector`
-- `ModernBottomNavigation`
-- `MorphingProgressIndicator`
-- `NetworkErrorBoundary`
 - `PerformanceMonitoringDashboard`
-- `PointsIndicator`
-- `PremiumFeatureCard`
-- `PremiumSegmentationToggle`
-- `ProgressTrackingWidget`
 - `PulseBadge`
-- `PulsingScanButton`
-- `RecyclingCodeInfoCard`
-- `ResponsiveDialog`
 - `SimpleWebCamera`
-- `SortingAnimationWidget`
-- `StreakIndicator`
-- `ThumbnailWidget`
-- `TodaysImpactGoal`
-- `TopSubcategoriesBarChart`
-- `WasteCategoryPieChart`
-- `WasteTimeSeriesChart`
-- `WeeklyItemsChart`

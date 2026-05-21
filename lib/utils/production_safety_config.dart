@@ -26,15 +26,9 @@ class ProductionSafetyConfig {
   /// (Firebase Callable `classifyImage`) instead of calling AI providers
   /// directly from the client in release builds.
   ///
-  /// TODO(backend-routing): This flag is currently unread by routing logic.
-  /// To wire it fully:
-  ///   1. In release mode, callers that reach `EnhancedAiApiService` or
-  ///      `OfflineQueueService` should check this flag first and route through
-  ///      `BackendProxyProvider` (lib/services/providers/backend_proxy_provider.dart)
-  ///      instead of calling direct provider methods.
-  ///   2. `AiService` already consults `BackendProxyProvider.isEnabled`
-  ///      (controlled by `USE_BACKEND_CLASSIFICATION`); align the two flags or
-  ///      consolidate them into a single dart-define.
+  /// `AiService` now treats backend routing as a release-time invariant:
+  /// - release builds fail closed to backend classification path,
+  /// - debug/profile can still opt in via USE_BACKEND_CLASSIFICATION.
   static const bool useBackendAiInRelease =
       bool.fromEnvironment('USE_BACKEND_AI_IN_RELEASE');
 
@@ -51,8 +45,7 @@ class ProductionSafetyConfig {
 
   /// Logs a safety notice about a key's configuration status.
   static void logKeyConfigStatus(String label, String key) {
-    final configured =
-        key.isNotEmpty && !hasPlaceholderKey(key);
+    final configured = key.isNotEmpty && !hasPlaceholderKey(key);
     WasteAppLogger.info(
       '[PRODUCTION_SAFETY] $label configured: $configured | '
       '${kReleaseMode ? "BLOCKED in release build" : "active in debug build"}',

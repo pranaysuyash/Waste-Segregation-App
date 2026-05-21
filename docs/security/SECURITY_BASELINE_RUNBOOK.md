@@ -8,6 +8,7 @@ The baseline verifies:
 - Cloud Functions HTTP auth guard behavior (unit-level harness)
 - Cloud Functions + Auth Emulator integration behavior (real ID tokens)
 - Firestore security rules behavior (emulator-backed rules suite)
+- Android manifest/network security posture consistency (static config contract)
 
 ## Commands (Run In Order)
 
@@ -53,6 +54,27 @@ Expected result:
 - Emulator warning about multiple running suites can occur; do not ignore it if ports collide or tests become flaky.
 - Functions tests may show Node engine mismatch warnings (`18` vs host `23`); warnings are non-blocking, but keep runtime alignment on the backlog.
 
+## Android Security Policy Baseline (Required for Mobile Security Changes)
+
+Run these checks when changing Android security posture docs, manifest, or network config:
+
+```bash
+cd /Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app
+rg -n "usesCleartextTraffic|networkSecurityConfig|hasFragileUserData|taskAffinity|allowTaskReparenting" android/app/src/main/AndroidManifest.xml
+rg -n "cleartextTrafficPermitted|localhost|10.0.2.2|api.openai.com|googleapis.com" android/app/src/main/res/xml/network_security_config.xml
+```
+
+Expected baseline:
+- `usesCleartextTraffic="false"` present.
+- `networkSecurityConfig` present.
+- Production API domain block uses `cleartextTrafficPermitted="false"`.
+- Localhost/emulator cleartext exception is explicitly documented if retained.
+- `taskAffinity=""` and `allowTaskReparenting="false"` present.
+
+Certificate pinning policy:
+- Current baseline does **not** require pinning implementation by default.
+- Any doc that claims pinning must include implementation evidence or explicit release-stage de-scope rationale.
+
 ## Enforcement Policy
 
 - Any change touching:
@@ -70,3 +92,6 @@ Expected result:
   - `test:http-guards`: pass (`6/6`)
   - `test:http-guards:emulator`: pass (`2/2`)
   - `firestore-rules-test test:emulator`: pass (`83 passing`)
+- Android static policy check (2026-05-21):
+  - `AndroidManifest.xml` confirms `usesCleartextTraffic="false"`, `networkSecurityConfig`, `hasFragileUserData`, `taskAffinity=""`, `allowTaskReparenting="false"`.
+  - `network_security_config.xml` confirms production cleartext deny policy with explicit localhost/emulator exception.

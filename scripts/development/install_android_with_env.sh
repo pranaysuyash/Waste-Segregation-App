@@ -3,19 +3,25 @@ set -euo pipefail
 
 # Build + install Android debug APK with .env dart-defines.
 # Usage:
+#   ./scripts/development/install_android_with_env.sh
 #   ./scripts/development/install_android_with_env.sh <device-id>
 # Example:
 #   ./scripts/development/install_android_with_env.sh 192.168.1.5:40667
 
 DEVICE_ID="${1:-}"
 
-if [[ -z "$DEVICE_ID" ]]; then
-  echo "Usage: $0 <android-device-id>"
+if [[ ! -f ".env" ]]; then
+  echo "Error: .env not found in repo root."
   exit 1
 fi
 
-if [[ ! -f ".env" ]]; then
-  echo "Error: .env not found in repo root."
+if [[ -z "$DEVICE_ID" ]]; then
+  DEVICE_ID=$(adb devices | awk 'NR>1 && $2=="device" {print $1; exit}')
+fi
+
+if [[ -z "$DEVICE_ID" ]]; then
+  echo "Error: no adb-connected Android device found."
+  echo "Pass device id manually: $0 <device-id>"
   exit 1
 fi
 
@@ -36,4 +42,3 @@ adb -s "$DEVICE_ID" shell am force-stop com.pranaysuyash.wastewise || true
 adb -s "$DEVICE_ID" shell am start -n com.pranaysuyash.wastewise/.MainActivity
 
 echo "Done. Installed build includes .env keys via dart-defines."
-

@@ -186,8 +186,16 @@ class _AchievementsScreenState extends State<AchievementsScreen>
       child: Scaffold(
         appBar: AppBar(
           title: const Text(AppStrings.achievements),
+          centerTitle: false,
+          elevation: 0,
+          backgroundColor: AppTheme.primaryColor,
+          foregroundColor: Colors.white,
           bottom: TabBar(
             controller: _tabController,
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorWeight: 3,
             tabs: const [
               Tab(text: AppStrings.badges),
               Tab(text: AppStrings.challenges),
@@ -396,7 +404,40 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             ),
           ),
 
-          const SizedBox(height: AppTheme.paddingLarge),
+          const SizedBox(height: AppTheme.paddingRegular),
+
+          if (achievementsByType.isEmpty)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'No badges earned yet',
+                      style: TextStyle(
+                        fontSize: AppTheme.fontSizeMedium,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.paddingSmall),
+                    const Text(
+                      'Start scanning items to unlock your first badges.',
+                      style: TextStyle(color: AppTheme.textSecondaryColor),
+                    ),
+                    const SizedBox(height: AppTheme.paddingRegular),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _tabController.animateTo(1),
+                        icon: const Icon(Icons.task_alt),
+                        label: const Text('View Challenges'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // Achievement types
           ...achievementsByType.entries.map((entry) {
@@ -432,7 +473,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                     );
                   },
                 ),
-                const SizedBox(height: AppTheme.paddingLarge),
+                const SizedBox(height: AppTheme.paddingRegular),
               ],
             );
           }),
@@ -1374,7 +1415,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             ),
           ),
 
-          const SizedBox(height: AppTheme.paddingLarge),
+          const SizedBox(height: AppTheme.paddingRegular),
 
           // Category breakdown
           const Text(
@@ -1392,7 +1433,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
               child: profile.points.categoryPoints.isEmpty
                   ? Center(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: AppTheme.paddingRegular),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: AppTheme.paddingRegular),
                         child: Text(
                           'No items classified yet',
                           style: TextStyle(color: Colors.grey.shade600),
@@ -1400,14 +1442,14 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                       ),
                     )
                   : Column(
-                      children: profile.points.categoryPoints.entries.map((entry) {
+                      children:
+                          profile.points.categoryPoints.entries.map((entry) {
                         final categoryName = entry.key;
                         final points = entry.value;
-                        final itemCount =
-                            (points / 10).round();
+                        final itemCount = (points / 10).round();
                         return Padding(
-                          padding:
-                              const EdgeInsets.only(bottom: AppTheme.paddingSmall),
+                          padding: const EdgeInsets.only(
+                              bottom: AppTheme.paddingSmall),
                           child: Row(
                             children: [
                               Container(
@@ -1436,7 +1478,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
             ),
           ),
 
-          const SizedBox(height: AppTheme.paddingLarge),
+          const SizedBox(height: AppTheme.paddingRegular),
 
           // Weekly stats
           const Text(
@@ -1449,21 +1491,21 @@ class _AchievementsScreenState extends State<AchievementsScreen>
           const SizedBox(height: AppTheme.paddingSmall),
 
           if (weeklyStats.isEmpty)
-            Center(
+            Card(
               child: Padding(
-                padding: const EdgeInsets.all(AppTheme.paddingLarge),
-                child: Column(
+                padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                child: Row(
                   children: [
                     Icon(
                       Icons.bar_chart,
-                      size: 48,
+                      size: 28,
                       color: Colors.grey.shade400,
                     ),
-                    const SizedBox(height: AppTheme.paddingSmall),
-                    Text(
-                      'No weekly data available yet',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
+                    const SizedBox(width: AppTheme.paddingRegular),
+                    Expanded(
+                      child: Text(
+                        'No weekly data available yet',
+                        style: TextStyle(color: Colors.grey.shade600),
                       ),
                     ),
                   ],

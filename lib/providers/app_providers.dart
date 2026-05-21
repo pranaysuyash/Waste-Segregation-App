@@ -12,6 +12,7 @@ import 'package:waste_segregation_app/services/educational_content_service.dart'
 import 'package:waste_segregation_app/services/gamification_service.dart';
 import 'package:waste_segregation_app/services/points_engine.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/services/training_data_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/utils/firebase_gate.dart';
 import 'cost_management_providers.dart';
@@ -27,6 +28,12 @@ final storageServiceProvider =
 final cloudStorageServiceProvider = Provider<CloudStorageService>((ref) {
   final storageService = ref.read(storageServiceProvider);
   return CloudStorageService(storageService);
+});
+
+/// Consent-gated training data pipeline provider.
+final trainingDataServiceProvider = Provider<TrainingDataService>((ref) {
+  final storageService = ref.read(storageServiceProvider);
+  return TrainingDataService(storageService: storageService);
 });
 
 /// Gamification service provider - depends on storage services
@@ -139,48 +146,11 @@ final profileProvider = FutureProvider<GamificationProfile?>((ref) async {
   }
 });
 
-/// Remote config provider for A/B testing
-final remoteConfigProvider =
-    Provider<RemoteConfigService>((ref) => RemoteConfigService());
-
-/// Dynamic pricing service provider - for cost management
-final dynamicPricingServiceProvider = Provider<DynamicPricingService>((ref) {
-  final remoteConfig = ref.read(remoteConfigProvider);
-  return DynamicPricingService(remoteConfigService: remoteConfig);
-});
-
-/// Cost guardrail service provider - for budget monitoring
-final costGuardrailServiceProvider = Provider<CostGuardrailService>((ref) {
-  final pricingService = ref.read(dynamicPricingServiceProvider);
-  final remoteConfig = ref.read(remoteConfigProvider);
-  return CostGuardrailService(
-    pricingService: pricingService,
-    remoteConfigService: remoteConfig,
-  );
-});
-
-/// Enhanced API error handler provider - for reliable API operations
-final enhancedApiErrorHandlerProvider =
-    Provider<EnhancedApiErrorHandler>((ref) {
-  return EnhancedApiErrorHandler();
-});
-
-/// AI cost tracker provider - for comprehensive cost tracking
-final aiCostTrackerProvider = Provider<AiCostTracker>((ref) {
-  final pricingService = ref.read(dynamicPricingServiceProvider);
-  final guardrailService = ref.read(costGuardrailServiceProvider);
-  return AiCostTracker(
-    pricingService: pricingService,
-    guardrailService: guardrailService,
-  );
-});
-
 /// Home header v2 feature flag provider for A/B testing
 final homeHeaderV2EnabledProvider = FutureProvider<bool>((ref) async {
-  final remoteConfig = ref.watch(remoteConfigProvider);
+  final remoteConfig = ref.watch(remoteConfigServiceProvider);
   return remoteConfig.getBool('home_header_v2_enabled', defaultValue: true);
 });
-
 
 /// Enhanced Ai service provider with cost management integration
 final aiServiceProvider = Provider<AiService>((ref) {

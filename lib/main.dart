@@ -759,7 +759,7 @@ class _DebugHome extends StatelessWidget {
                     color: Colors.white)),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => debugPrint('Button pressed'),
+              onPressed: () => WasteAppLogger.debug('Debug button pressed'),
               child: const Text('Test Interaction'),
             ),
           ],
@@ -794,7 +794,7 @@ void _setupErrorHandling() {
 
   PlatformDispatcher.instance.onError = (error, stack) {
     if (kDebugMode) {
-      debugPrint('Platform Error: $error');
+      WasteAppLogger.severe('Platform Error', error: error, stackTrace: stack);
     }
     if (!kDebugMode) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);

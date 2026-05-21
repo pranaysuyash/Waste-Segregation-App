@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/constants.dart';
+import '../widgets/analysis_progress_view.dart';
 import '../widgets/enhanced_analysis_loader.dart';
 import '../widgets/premium_segmentation_toggle.dart';
 import '../widgets/analysis_speed_selector.dart';
@@ -61,6 +62,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   );
   bool _isAnalyzing = false;
   bool _isCancelled = false;
+  AnalysisProgressStage _analysisStage = AnalysisProgressStage.checkingQuality;
+  WasteClassification? _pendingClassification;
+  String? _analysisErrorMessage;
+  int? _queuedPositionHint;
 
   File? _imageFile;
   XFile? _xFile;
@@ -272,6 +277,135 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           _webImageBytes = bytes;
         });
       }
+    }
+  }
+
+  void _setAnalysisStage(AnalysisProgressStage stage) {
+    if (!mounted) return;
+
+    setState(() {
+      _analysisStage = stage;
+    });
+  }
+
+  String _currentImageName() {
+    return _imageFile?.path.split('/').last ??
+        _xFile?.name ??
+        'captured_image.jpg';
+  }
+
+  bool _hasLocalRulesApplied() {
+    final region = _pendingClassification?.region ??
+        _pendingClassification?.regionNormalized?.trim();
+    if (region != null && region.isNotEmpty) {
+      return true;
+    }
+    return false;
+  }
+
+  String? _localRuleChipLabel() {
+    final region = _pendingClassification?.region;
+    if (_analysisStage == AnalysisProgressStage.applyingLocalRules) {
+      if (region == null || region.isEmpty) {
+        return 'Applying region rules for disposal guidance.';
+      }
+      return 'Applying disposal rules for ${region.trim()}.';
+    }
+    if (_analysisStage == AnalysisProgressStage.fallback) {
+      return 'Result requires manual review before finalization.';
+    }
+    return null;
+  }
+
+  String _analysisConfidenceText() {
+    final confidence = _pendingClassification?.confidence;
+    if (confidence == null) {
+      return 'Confidence and local scoring are still finalizing.';
+    }
+    final rounded = (confidence * 100).round();
+    return 'Confidence: $rounded%';
+  }
+
+  bool _isFallbackClassification(WasteClassification classification) {
+    if (classification.category.toLowerCase() == 'requires manual review') {
+      return true;
+    }
+    if (classification.clarificationNeeded == true) {
+      return true;
+    }
+    if ((classification.confidence ?? 1.0) < 0.55) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> _showResultOrFallback(WasteClassification classification) async {
+    if (!mounted || _isCancelled) return;
+
+    if (_isFallbackClassification(classification)) {
+      _setAnalysisStage(AnalysisProgressStage.fallback);
+      _pendingClassification = classification;
+      return;
+    }
+
+    _setAnalysisStage(AnalysisProgressStage.success);
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    if (!mounted || _isCancelled) return;
+
+    await _navigateToResult(classification);
+  }
+
+  Future<void> _navigateToResult(WasteClassification classification) async {
+    if (!mounted || _isCancelled) return;
+
+    final resultRoute = ResultScreenWrapper(
+      classification: classification,
+    );
+
+    try {
+      await Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => resultRoute),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAnalyzing = false;
+          _analysisErrorMessage = null;
+          _pendingClassification = null;
+          _analysisStage = AnalysisProgressStage.checkingQuality;
+        });
+      }
+    }
+  }
+
+  void _cancelAnalysis() {
+    // Cancel the AI service analysis.
+    final aiService = ref.read(aiServiceProvider);
+    aiService.cancelAnalysis();
+
+    setState(() {
+      _isCancelled = true;
+      _isAnalyzing = false;
+      _analysisErrorMessage = null;
+      _pendingClassification = null;
+    });
+
+    WasteAppLogger.info(
+      'Analysis cancelled by user.',
+      context: {
+        'service': 'screen',
+        'file': 'image_capture_screen',
+      },
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Analysis cancelled.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 

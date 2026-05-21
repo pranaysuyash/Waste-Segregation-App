@@ -130,15 +130,23 @@ lib/
     └── guest_ml_data_service_test.dart             # Step 4
 ```
 
+> **Status update, 2026-05-21:** The `admin_classifications` ML-training
+> design below is legacy context. Current training-data collection must use
+> explicit `training-data-v1` consent and the separate `training_candidates`,
+> `training_labels`, and `training_dataset_versions` collections documented in
+> `docs/review/TRAINING_DATA_PIPELINE_FOUNDATION_2026-05-21.md`.
+
 ## 🔥 **FIREBASE COLLECTIONS CREATED**
 
 ```
 Firestore Collections:
-├── admin_classifications/                # Step 1: Anonymous ML training data
-│   ├── itemName, category, subcategory
-│   ├── hashedUserId (privacy-preserving)
-│   ├── mlTrainingData: true
-│   └── timestamp, region, appVersion
+├── training_candidates/                  # Explicit-consent training candidates
+│   ├── candidateId, classificationId
+│   ├── userIdHash (server-side HMAC)
+│   ├── consent, image, modelPrediction
+│   └── review, dataset, deletion state
+├── training_labels/                      # Raw/user/reviewer label states
+├── training_dataset_versions/            # Frozen dataset manifests
 │
 ├── admin_user_recovery/                  # Step 1: Recovery metadata
 │   ├── lastBackup, classificationCount

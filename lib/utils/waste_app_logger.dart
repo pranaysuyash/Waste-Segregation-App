@@ -3,17 +3,19 @@ import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class WasteAppLogger {
+  static final Logger _logger = Logger('WasteApp');
   static String _sessionId = '';
   static String _appVersion = 'unknown';
   static String _currentAction = 'unknown';
   static String _currentScreen = 'unknown';
   static Map<String, dynamic> _userContext = {};
+  static bool _initialized = false;
 
   static Future<void> initialize() async {
+    if (_initialized) return;
     try {
       _sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
 
-      // Use a strict timeout for PackageInfo to prevent startup hangs
       try {
         final packageInfo = await PackageInfo.fromPlatform().timeout(
           const Duration(seconds: 2),
@@ -23,9 +25,6 @@ class WasteAppLogger {
       } catch (e) {
         debugPrint('WasteAppLogger: Could not get package info: $e');
       }
-
-      // We explicitly avoid File I/O here on mobile to prevent ANRs/Permission hangs.
-      // Console logging is sufficient for development.
 
       Logger.root.level = Level.ALL;
       Logger.root.onRecord.listen((record) {
@@ -37,6 +36,7 @@ class WasteAppLogger {
         }
       });
 
+      _initialized = true;
       info('WasteAppLogger initialized');
     } catch (e) {
       debugPrint('WasteAppLogger critical failure: $e');
@@ -54,9 +54,8 @@ class WasteAppLogger {
     StackTrace? stackTrace,
     Map<String, dynamic>? context,
   }) {
-    final logger = Logger('WasteApp');
     final enrichedContext = _enrichContext(context);
-    logger.info(
+    _logger.info(
       enrichedContext != null ? '$message | $enrichedContext' : message,
       error,
       stackTrace,
@@ -69,9 +68,8 @@ class WasteAppLogger {
     StackTrace? stackTrace,
     Map<String, dynamic>? context,
   }) {
-    final logger = Logger('WasteApp');
     final enrichedContext = _enrichContext(context);
-    logger.warning(
+    _logger.warning(
       enrichedContext != null ? '$message | $enrichedContext' : message,
       error,
       stackTrace,
@@ -84,9 +82,8 @@ class WasteAppLogger {
     StackTrace? stackTrace,
     Map<String, dynamic>? context,
   }) {
-    final logger = Logger('WasteApp');
     final enrichedContext = _enrichContext(context);
-    logger.severe(
+    _logger.severe(
       enrichedContext != null ? '$message | $enrichedContext' : message,
       error,
       stackTrace,

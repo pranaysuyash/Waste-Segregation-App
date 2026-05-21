@@ -1,7 +1,17 @@
 # Step 1: ML Training Data Collection Service Implementation
 
+> **Status update, 2026-05-21:** This older plan is superseded for production
+> behavior by `docs/review/TRAINING_DATA_PIPELINE_FOUNDATION_2026-05-21.md`.
+> The automatic "collect ML training data from every classification" framing is
+> unsafe for a real product. Current policy: no image, correction, or
+> classification record enters training use unless explicit
+> `training-data-v1` consent exists, the consent snapshot is captured, deletion
+> and revocation can exclude the record, and review/dataset state is tracked.
+
 ## 🎯 **OBJECTIVE**
-Implement automatic ML training data collection that preserves anonymous classification data from all users (guest + signed-in) while maintaining privacy compliance and enabling future model training.
+Implement explicit-consent training candidate collection that separates app
+history from future model-training data, preserves deletion/revocation rights,
+and enables future model training without silent retention.
 
 ## 📋 **PREREQUISITES**
 - ✅ `CloudStorageService` exists and handles classification saving

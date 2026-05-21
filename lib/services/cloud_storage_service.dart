@@ -15,8 +15,11 @@ import 'dart:io';
 import 'firestore_schema_registry.dart';
 import '../utils/constants.dart';
 
-/// Service for syncing classifications to Firestore cloud storage
-/// Also handles admin data collection for ML training and data recovery
+/// Service for syncing user app data to Firestore cloud storage.
+///
+/// Training data collection is intentionally not handled here. Model-improvement
+/// use requires explicit TrainingConsent and flows through TrainingDataService
+/// plus Cloud Functions-managed `training_*` collections.
 class CloudStorageService {
   CloudStorageService(this._localStorageService);
   late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -50,7 +53,9 @@ class CloudStorageService {
       if (useBatching) {
         // OPTIMIZATION: Use batch operations for cost efficiency
         final batch = _batchManager.getBatch('profiles');
-        final userDoc = _firestore.collection(FirestoreCollections.users).doc(userProfile.id);
+        final userDoc = _firestore
+            .collection(FirestoreCollections.users)
+            .doc(userProfile.id);
 
         final profileData = _applyUserProfilePrivacyGuard(userProfile.toJson());
         await batch.addSet(userDoc, profileData, merge: true);
@@ -100,8 +105,9 @@ class CloudStorageService {
     try {
       WasteAppLogger.info(
           'Adding leaderboard update to batch for user $userId');
-      final leaderboardDoc =
-          _firestore.collection(FirestoreCollections.leaderboardAllTime).doc(userId);
+      final leaderboardDoc = _firestore
+          .collection(FirestoreCollections.leaderboardAllTime)
+          .doc(userId);
 
       final leaderboardBatchData = _applyLeaderboardPrivacyGuard({
         'userId': userId,
@@ -143,8 +149,10 @@ class CloudStorageService {
         'points': points,
         'lastUpdated': FieldValue.serverTimestamp(),
       }, userProfile);
-      await _firestore.collection(FirestoreCollections.leaderboardAllTime).doc(userId).set(
-        leaderboardData, SetOptions(merge: true));
+      await _firestore
+          .collection(FirestoreCollections.leaderboardAllTime)
+          .doc(userId)
+          .set(leaderboardData, SetOptions(merge: true));
       WasteAppLogger.info('Successfully updated leaderboard for user $userId');
     } catch (e, s) {
       WasteAppLogger.severe('Error updating leaderboard',
@@ -249,8 +257,8 @@ class CloudStorageService {
       WasteAppLogger.info(
           'Successfully updated classification ${classification.id} in cloud.');
 
-      // Also update the admin collection for consistency
-      await _saveToAdminCollection(cloudClassification);
+      // Do not mirror into admin_classifications here. Training use is a
+      // separate, opt-in pipeline handled by TrainingDataService.
     } catch (e, s) {
       WasteAppLogger.severe('Error updating classification in cloud',
           error: e, stackTrace: s);
@@ -374,9 +382,6 @@ class CloudStorageService {
       WasteAppLogger.info(
           'Successfully synced classification ${classification.id} to user collection.');
 
-      // 2. Save anonymized version to admin collection for ML training and data recovery
-      await _saveToAdminCollection(cloudClassification);
-
       // Record successful sync time locally
       try {
         await _localStorageService.updateLastCloudSync(DateTime.now());
@@ -392,7 +397,16 @@ class CloudStorageService {
     }
   }
 
-  /// Save anonymized classification to admin collection for ML training and data recovery
+  /// Legacy admin classification writer retained for historical migration only.
+  ///
+  /// Do not call this from user sync paths. The old `admin_classifications`
+  /// collection treated anonymization as sufficient for model training use; the
+  /// product policy is now explicit opt-in via `training_candidates`.
+  @Deprecated(
+    'Use TrainingDataService and Cloud Functions training_candidates instead. '
+    'User app-history sync must not silently create training records.',
+  )
+  // ignore: unused_element
   Future<void> _saveToAdminCollection(
       WasteClassification classification) async {
     try {
@@ -447,7 +461,10 @@ class CloudStorageService {
     try {
       final hashedUserId = _hashUserId(userId);
 
-      await _firestore.collection(FirestoreCollections.adminUserRecovery).doc(hashedUserId).set({
+      await _firestore
+          .collection(FirestoreCollections.adminUserRecovery)
+          .doc(hashedUserId)
+          .set({
         'lastBackup': FieldValue.serverTimestamp(),
         'classificationCount': FieldValue.increment(1),
         'appVersion': '0.1.6+98',
@@ -521,6 +538,7 @@ class CloudStorageService {
       WasteClassification classification) async {
     try {
       // ✅ OPTIMIZATION: Use the singleton instance instead of creating new one
+      // ignore: unused_local_variable
       final profile = await _gamificationService.getProfile();
 
       // For now, we'll use a simple timestamp-based check
@@ -648,8 +666,8 @@ class CloudStorageService {
     }
 
     // Convert back to list and sort by timestamp
-    final result = mergedMap.values.toList();
-    result.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    final result = mergedMap.values.toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     WasteAppLogger.info(
         'Merged ${local.length} local and ${cloud.length} cloud classifications into ${result.length} unique items.');
@@ -745,15 +763,8 @@ class CloudStorageService {
             opCount = 0;
           }
 
-          try {
-            await _saveToAdminCollection(cloudClassification);
-          } catch (e, s) {
-            WasteAppLogger.severe(
-                'Error saving to admin collection during full sync',
-                error: e,
-                stackTrace: s);
-            // Don't block user data sync
-          }
+          // Do not backfill admin_classifications during user data sync.
+          // Training candidates are created only through explicit consent.
         } catch (e) {
           WasteAppLogger.info(
               '🔄 ❌ Failed to queue classification ${classification.itemName}: $e');
@@ -1063,9 +1074,11 @@ class CloudStorageService {
   ///
   /// This ensures the leaderboard immediately reflects the user's choice
   /// without waiting for the next gamification-triggered write.
-  Future<void> updateLeaderboardPrivacyPreference(UserProfile userProfile) async {
+  Future<void> updateLeaderboardPrivacyPreference(
+      UserProfile userProfile) async {
     if (userProfile.id.isEmpty) {
-      WasteAppLogger.info('Cannot update leaderboard privacy: user ID is empty');
+      WasteAppLogger.info(
+          'Cannot update leaderboard privacy: user ID is empty');
       return;
     }
 
@@ -1119,10 +1132,8 @@ class CloudStorageService {
       // Log but don't rethrow — the preference toggle itself should succeed
       // even if the leaderboard update fails. The next gamification-triggered
       // write will correct any inconsistency.
-      WasteAppLogger.severe(
-          'Error updating leaderboard privacy preference',
-          error: e,
-          stackTrace: s);
+      WasteAppLogger.severe('Error updating leaderboard privacy preference',
+          error: e, stackTrace: s);
     }
   }
 }

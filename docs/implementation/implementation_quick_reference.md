@@ -36,18 +36,27 @@ A complete ML training data collection system that automatically collects anonym
 - [ ] GDPR deletion preserves ML training data
 - [ ] Guest and signed-in users both contribute ML data
 
+> **Status update, 2026-05-21:** The automatic ML-preservation examples below
+> are superseded by `docs/review/TRAINING_DATA_PIPELINE_FOUNDATION_2026-05-21.md`.
+> Do not implement "every classification automatically becomes ML training
+> data." Current policy is explicit `training-data-v1` consent, Cloud
+> Functions-owned `training_candidates` / `training_labels`, revocation-aware
+> deletion markers, and frozen dataset manifests.
+
 ## 🔑 **KEY CONCEPTS**
 
 ### **Privacy-Preserving ML Collection**
 ```dart
-// Every classification automatically becomes ML training data
+// Only explicitly opted-in classifications become training candidates
 Classification userClassification = // User's classification
 ↓
-Anonymous ML Data = {
+Training Candidate = {
   itemName: "plastic bottle",
   category: "recyclable", 
-  hashedUserId: "a1b2c3d4...",  // No way to trace back to user
-  // NO personal data
+  consentPolicyVersion: "training-data-v1",
+  userIdHash: "server-side-hmac...",  // No raw UID in training records
+  reviewStatus: "unreviewed",
+  datasetEligible: false
 }
 ```
 
@@ -64,9 +73,9 @@ String hashedId = SHA256(userEmail + salt);  // One-way hash
 
 ### **Universal Data Preservation**
 ```
-User Deletes Account → Personal Data Deleted + ML Data Preserved
-Guest Clears Data → Local Data Cleared + ML Data Preserved  
-Admin Deletes User → Personal Data Deleted + ML Data Preserved
+User Revokes Training Consent → Future Collection Stops + Candidates Excluded
+User Deletes Account → Personal Data Deleted + Eligible Training Images Removed/Excluded
+Guest Clears Data → Local Data Cleared; No Training Use Without Explicit Consent
 ```
 
 ## 🛠️ **TECHNICAL STACK**
@@ -79,7 +88,9 @@ Admin Deletes User → Personal Data Deleted + ML Data Preserved
 
 ### **New Collections Created**
 ```
-admin_classifications/     # Anonymous ML training data
+training_candidates/       # Explicit-consent training candidate metadata
+training_labels/           # Raw/user/reviewer label states
+training_dataset_versions/ # Frozen dataset export metadata
 admin_user_recovery/       # Recovery metadata (hashed correlation)
 admin_audit_logs/          # Admin action logging
 deletion_archives/         # 30-day recovery window

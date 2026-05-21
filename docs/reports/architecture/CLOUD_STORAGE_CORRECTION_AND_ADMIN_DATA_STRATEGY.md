@@ -84,11 +84,16 @@ admin_user_recovery/
 
 ## 🔄 **ADMIN DATA COLLECTION STRATEGY**
 
+> **Status update, 2026-05-21:** The automatic admin data collection strategy
+> below is legacy context. User classification sync must not create ML training
+> records. Current training collection is explicit-consent only via
+> `training_candidates` and `training_labels`.
+
 ### **Dual Purpose System**
 
 #### **Purpose 1: Machine Learning Model Training**
 ```dart
-// Every classification automatically saved to admin collection
+// Legacy example: do not implement automatic ML training writes
 final adminData = {
   'itemName': classification.itemName,
   'category': classification.category,

@@ -27,6 +27,7 @@ Sources already mined for this initial list:
 - [ ] Per-provider response normaliser so model swaps don't ripple into UI
 - [ ] Prompt versioning + per-prompt eval scores (no prompt change without an eval pass)
 - [ ] Hard-example mining from user corrections — weekly cycle
+- [x] Multi-Model AI Stack Roadmap (quality gate + detection/segmentation + classifier + routing + privacy + active learning + eval/data quality loop) for post-classifier growth. Promoted as `EXPLORATION_TOPICS.md#1a`.
 - [ ] Multi-frame / burst-capture mode for cluttered or hard scenes
 - [ ] Audio cues (crunching plastic, paper rustle) as supplementary signal
 - [ ] Brand / SKU recognition with explicit privacy & accuracy boundaries
@@ -169,6 +170,7 @@ Track promoted 2026-05-20. Canonical doc: [../review/EXPLORATION_AND_RESEARCH_BA
 - [ ] P0 backend hardening closeout audit (client secret blocking, fallback labeling, quota preflight, ads/premium guard, functions.config bridge removal plan) — align with `EXPLORATION_TOPICS.md` #10 (AI Cost Telemetry & Guardrails), #27a (Token Economy & Pricing Coherence), and #32 (Privacy / Photo PII)
 - [ ] Token economy integrity hardening track (global, not local-limited): anti-tamper `tokenWallet` rules, server-authoritative spend enforcement policy, offline queue charge semantics parity, premium-token contract reconciliation (aligns with `EXPLORATION_TOPICS.md#27a`)
 - [ ] App Check + rate-limiting implementation plan with emulator test matrix — link hardening report before execution
+- [ ] Android security posture truth-map lane: reconcile legacy security-fix docs with executable manifest/network policy, pinning decision, and release-stage security checklist ownership (see `docs/reports/audits/RANDOM_DOCUMENT_AUDIT_SECURITY_AUDIT_FIXES_2026-05-21.md`)
 
 ---
 
@@ -191,5 +193,7 @@ When an item moves from this backlog into a real exploration doc or into `EXPLOR
 
 | 2026-05-20 | **Locality & Civic Waste Intelligence track** (L1–L6) | `EXPLORATION_TOPICS.md` new section F + `../review/EXPLORATION_AND_RESEARCH_BACKLOG_2026-05-20.md` (canonical) | Long-horizon civic moat: collection schedules, map-based reporting, Waze-style verification, civic reputation (separate from AI tokens), authority/B2B/B2G sharing, privacy/moderation foundation. Reconciles with A20, A21, #20, #23, #24, #25, #26, #27a, #29, #32 and `planning/local_recycling_directory.md`. Research lane — NOT P0. Six agent-ready tasks (Civic-A…F) defined with deliverables, acceptance criteria, out-of-scope, validation. Seven kill criteria defined. Inherits existing map stack (`flutter_map`, `flutter_map_marker_cluster`, `flutter_map_heatmap`, `geoflutterfire_plus`, `flutter_map_tile_caching`) — no new vendor decision needed for MVP. |
 | 2026-05-21 | Token economy integrity track refresh (post-audit reclassification) | `EXPLORATION_TOPICS.md#27a` | Re-ranked after rigorous re-check + wide-open-brainstorm roles. Earlier "instant token bypass" finding is now closed in code; active frontier moved to anti-tamper rules, server-authoritative spend semantics, offline queue parity, and premium/token contract coherence. |
+| 2026-05-21 | Multi-Model AI Stack (full model-fleet roadmap) | `EXPLORATION_TOPICS.md#1a` | Added deferred stack exploration for phased model rollout, router, quality/PII gate, eval dataset, and on-device progression. |
+| 2026-05-21 | Android security posture truth-map (legacy fix doc audit) | `docs/reports/audits/RANDOM_DOCUMENT_AUDIT_SECURITY_AUDIT_FIXES_2026-05-21.md` | Random-doc audit selected `docs/archive/fixes/security_audit_fixes.md`; produced evidence-backed mismatch register (HTTPS exception wording, pinning checklist drift, status over-closure) and next work unit for policy alignment. |
 
 (Append new rows here; never delete — the trail is the value.)

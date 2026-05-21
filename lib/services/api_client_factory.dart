@@ -71,6 +71,13 @@ class ApiClientFactory {
         ),
       );
 
+      ProductionSafetyConfig.guardClientAiCall('Gemini UnifiedApiClient');
+      if (ProductionSafetyConfig.hasPlaceholderKey(ApiConfig.apiKey)) {
+        throw const ProductionSafetyException(
+          'Gemini client blocked: GEMINI_API_KEY is placeholder/missing. Route through backend gateway or provide a real key in non-release test builds.',
+        );
+      }
+
       final client = UnifiedApiClient(
         baseUrl: ApiConfig.geminiBaseUrl,
         defaultHeaders: {

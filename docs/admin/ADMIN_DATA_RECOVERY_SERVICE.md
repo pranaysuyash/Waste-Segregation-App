@@ -3,7 +3,13 @@
 **Document Creation Date**: December 26, 2024  
 **Last Updated**: December 26, 2024  
 **Version**: 1.0  
-**Status**: Active Service
+**Status**: Legacy design; training-data portions superseded 2026-05-21
+
+> Current policy: classifications are not automatically backed up for ML
+> training. Model-improvement data must flow through explicit
+> `training-data-v1` consent and the `training_candidates` /
+> `training_labels` pipeline documented in
+> `docs/review/TRAINING_DATA_PIPELINE_FOUNDATION_2026-05-21.md`.
 
 ---
 
@@ -12,11 +18,11 @@
 The Admin Data Recovery Service provides a secure, privacy-compliant way to restore user data when users lose access to their accounts or devices. This service is implemented as part of the cloud storage system and runs automatically in the background.
 
 ### **Key Features**
-- ✅ **Automatic Backup**: Every classification automatically backed up to admin collection
+- ✅ **Recovery Metadata**: Admin recovery metadata is separate from training-data use
 - ✅ **Privacy-Preserving**: Uses one-way hashing to protect user identity
 - ✅ **GDPR Compliant**: Anonymized data collection with user consent
 - ✅ **Admin Dashboard Ready**: Data structured for admin interface integration
-- ✅ **ML Training Integration**: Same data used for improving AI models
+- ✅ **Training Boundary**: ML improvement uses only explicit-consent training candidates
 
 ---
 

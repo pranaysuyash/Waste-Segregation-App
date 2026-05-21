@@ -137,6 +137,10 @@ class _CommunityScreenState extends State<CommunityScreen>
       appBar: widget.showAppBar
           ? AppBar(
               title: const Text('Community'),
+              centerTitle: false,
+              elevation: 0,
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
               actions: [
                 IconButton(
                   icon: const Icon(Icons.sync),
@@ -146,6 +150,10 @@ class _CommunityScreenState extends State<CommunityScreen>
               ],
               bottom: TabBar(
                 controller: _tabController,
+                indicatorColor: Colors.white,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white70,
+                indicatorWeight: 3,
                 tabs: const [
                   Tab(icon: Icon(Icons.feed), text: 'Feed'),
                   Tab(icon: Icon(Icons.leaderboard), text: 'Stats'),
@@ -210,9 +218,9 @@ class _CommunityScreenState extends State<CommunityScreen>
           bottomPadding,
         ),
         itemCount: _feedItems.length,
-          itemBuilder: (context, index) {
-            final item = _feedItems[index];
-            return RepaintBoundary(
+        itemBuilder: (context, index) {
+          final item = _feedItems[index];
+          return RepaintBoundary(
             key: ValueKey<String>(item.id),
             child: _buildFeedItem(item),
           );

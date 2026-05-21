@@ -2,7 +2,7 @@
 **Reference**: See `DEPRECATION_AUDIT_2026-05-21.md` for full audit details
 
 **Updated**: 2026-05-21  
-**Status**: Ready for implementation
+**Status**: In progress (low-blast passes started)
 
 ---
 
@@ -224,4 +224,46 @@ connectivity_plus: ^6.1.0     # Was: ^6.0.5
 - `lib/utils/opacity_fix_helper.dart` - withOpacity replacement
 - `lib/utils/color_extensions.dart` - Color API compatibility layer
 - `lib/services/tflite_preprocessing_helper.dart` - TFLite replacement
+
+---
+
+## Execution Log (Low-Blast-Radius Passes)
+
+### Pass 1 — 2026-05-21: Remove discontinued deep-link dependency reference
+
+**Change applied**:
+- Removed `firebase_dynamic_links: any` from `pubspec.yaml` (dependency list only).
+
+**Why this pass was low blast radius**:
+- Package had already been replaced by `app_links`.
+- No runtime references in `lib/**`.
+- No API contract changes.
+
+**Verification run**:
+- `flutter pub get` ✅
+- `flutter analyze lib/screens/legal_document_screen.dart lib/services/ai_service.dart` ✅ (warnings only, no errors)
+- `rg "firebase_dynamic_links" lib pubspec*` ✅ (comment-only reference remains)
+
+### Pass 2 — 2026-05-21: Functions dependency safety refresh (within existing major ranges)
+
+**Change applied**:
+- Ran `npm update axios firebase-admin firebase-functions openai` inside `functions/`.
+- This refreshed lockfile resolution without crossing declared major-version boundaries.
+
+**Verification run**:
+- `npm audit --omit=dev` ✅ (0 vulnerabilities)
+- `npm run build` ✅
+- `npm run test:http-guards` ✅
+- `npm run test:key-resolution` ✅
+
+**Observed resolved versions after refresh**:
+- `axios` resolved to `1.16.1`
+- `firebase-admin` remained at `12.7.0`
+- `firebase-functions` remained at `5.1.1`
+- `openai` remained at `4.104.0`
+
+### Residual risk (intentionally deferred for controlled migration)
+
+- `flutter_markdown` is still used by `lib/screens/legal_document_screen.dart`; migration to `markdown_widget` is pending to avoid UI regressions from rushed renderer swap.
+- Major-version upgrades in Firebase/OpenAI/Flutter stacks are intentionally deferred and should be handled in isolated, test-gated passes.
 

@@ -49,6 +49,11 @@ class FirestoreCollections {
   // --- Classification feedback ---
   static const String classificationFeedback = 'classification_feedback';
 
+  // --- Explicit opt-in training-data pipeline ---
+  static const String trainingCandidates = 'training_candidates';
+  static const String trainingLabels = 'training_labels';
+  static const String trainingDatasetVersions = 'training_dataset_versions';
+
   // --- AI & Token collections ---
   static const String aiJobs = 'ai_jobs';
 
@@ -82,6 +87,9 @@ class FirestoreCollections {
     sharedClassifications,
     familyStats,
     classificationFeedback,
+    trainingCandidates,
+    trainingLabels,
+    trainingDatasetVersions,
     aiJobs,
     analyticsEvents,
     adminClassifications,
@@ -243,6 +251,21 @@ class UsersSchema {
       classification: FieldClassification.private,
       required: false,
       description: 'Embedded token transaction history',
+    ),
+    SchemaField(
+      name: 'trainingConsent',
+      type: 'Map',
+      classification: FieldClassification.private,
+      required: false,
+      defaultValue: {
+        'enabled': false,
+        'policyVersion': 'training-data-v1',
+        'grantedAt': null,
+        'revokedAt': null,
+        'source': null,
+      },
+      description:
+          'Explicit model-improvement consent; separate from generic privacy policy consent.',
     ),
   ];
 }
@@ -423,7 +446,7 @@ class CommunityFeedSchema {
 ///
 /// Source: Family.toJson() from enhanced_family.dart
 /// Fields: id, name, description, createdBy, createdAt, updatedAt,
-/// members (list of embedded FamilyMember), memberUids (flat List<String> for rules),
+/// members (list of embedded FamilyMember), memberUids (flat string list for rules),
 /// settings (embedded FamilySettings), imageUrl, isPublic.
 /// memberUids is derived from members[].userId for Firestore rules membership checks.
 /// Legacy docs without memberUids can derive it from members on read (fromJson).
@@ -637,6 +660,144 @@ class ClassificationFeedbackSchema {
       classification: FieldClassification.system,
     ),
     // Additional fields from model: correctedCategory, userNotes, etc.
+  ];
+}
+
+class TrainingCandidatesSchema {
+  static const String collection = FirestoreCollections.trainingCandidates;
+
+  static const List<SchemaField> fields = [
+    SchemaField(
+      name: 'candidateId',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'Stable candidate ID, not derived from raw UID.',
+    ),
+    SchemaField(
+      name: 'userIdHash',
+      type: 'String',
+      classification: FieldClassification.private,
+      description: 'Server-side HMAC of Firebase UID.',
+    ),
+    SchemaField(
+      name: 'classificationId',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'Source app-history classification ID.',
+    ),
+    SchemaField(
+      name: 'consent',
+      type: 'Map',
+      classification: FieldClassification.private,
+      description: 'Consent snapshot at capture time.',
+    ),
+    SchemaField(
+      name: 'image',
+      type: 'Map',
+      classification: FieldClassification.private,
+      description: 'Image metadata and future reviewed storage paths.',
+    ),
+    SchemaField(
+      name: 'modelPrediction',
+      type: 'Map',
+      classification: FieldClassification.userContent,
+      description: 'Model output candidate, never ground truth.',
+    ),
+    SchemaField(
+      name: 'review',
+      type: 'Map',
+      classification: FieldClassification.system,
+      description:
+          'unreviewed|approved|rejected|needs_redaction|golden|training_eligible|deleted',
+    ),
+    SchemaField(
+      name: 'dataset',
+      type: 'Map',
+      classification: FieldClassification.system,
+      description: 'Eligibility and included dataset versions.',
+    ),
+    SchemaField(
+      name: 'deletion',
+      type: 'Map',
+      classification: FieldClassification.private,
+      required: false,
+      description:
+          'Deletion/revocation markers used to exclude future manifests.',
+    ),
+    SchemaField(
+      name: 'createdAt',
+      type: 'Timestamp',
+      classification: FieldClassification.system,
+    ),
+  ];
+}
+
+class TrainingLabelsSchema {
+  static const String collection = FirestoreCollections.trainingLabels;
+
+  static const List<SchemaField> fields = [
+    SchemaField(
+      name: 'candidateId',
+      type: 'String',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'rawPrediction',
+      type: 'Map',
+      classification: FieldClassification.userContent,
+      description: 'Raw model output, not ground truth.',
+    ),
+    SchemaField(
+      name: 'userCorrection',
+      type: 'Map?',
+      classification: FieldClassification.userContent,
+      required: false,
+    ),
+    SchemaField(
+      name: 'reviewerVerified',
+      type: 'Map?',
+      classification: FieldClassification.system,
+      required: false,
+    ),
+    SchemaField(
+      name: 'labelState',
+      type: 'String',
+      classification: FieldClassification.system,
+      description:
+          'raw_prediction|user_corrected|reviewer_verified|policy_verified|golden|training_eligible',
+    ),
+  ];
+}
+
+class TrainingDatasetVersionsSchema {
+  static const String collection = FirestoreCollections.trainingDatasetVersions;
+
+  static const List<SchemaField> fields = [
+    SchemaField(
+      name: 'datasetVersion',
+      type: 'String',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'manifestStoragePath',
+      type: 'String',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'candidateCount',
+      type: 'int',
+      classification: FieldClassification.aggregate,
+    ),
+    SchemaField(
+      name: 'createdAt',
+      type: 'Timestamp',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'exclusions',
+      type: 'Map',
+      classification: FieldClassification.aggregate,
+    ),
   ];
 }
 
@@ -980,6 +1141,14 @@ class FirestoreSchemaValidator {
         return InvitationsSchema.fields;
       case FirestoreCollections.sharedClassifications:
         return SharedClassificationsSchema.fields;
+      case FirestoreCollections.classificationFeedback:
+        return ClassificationFeedbackSchema.fields;
+      case FirestoreCollections.trainingCandidates:
+        return TrainingCandidatesSchema.fields;
+      case FirestoreCollections.trainingLabels:
+        return TrainingLabelsSchema.fields;
+      case FirestoreCollections.trainingDatasetVersions:
+        return TrainingDatasetVersionsSchema.fields;
       default:
         return null;
     }

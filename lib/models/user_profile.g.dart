@@ -29,13 +29,15 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
       gamificationProfile: fields[9] as GamificationProfile?,
       tokenWallet: fields[10] as TokenWallet?,
       tokenTransactions: (fields[11] as List?)?.cast<TokenTransaction>(),
+      trainingConsent:
+          fields[12] as TrainingConsent? ?? TrainingConsent.disabled(),
     );
   }
 
   @override
   void write(BinaryWriter writer, UserProfile obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -59,7 +61,9 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
       ..writeByte(10)
       ..write(obj.tokenWallet)
       ..writeByte(11)
-      ..write(obj.tokenTransactions);
+      ..write(obj.tokenTransactions)
+      ..writeByte(12)
+      ..write(obj.trainingConsent);
   }
 
   @override
@@ -69,6 +73,52 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is UserProfileAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class TrainingConsentAdapter extends TypeAdapter<TrainingConsent> {
+  @override
+  final int typeId = 16;
+
+  @override
+  TrainingConsent read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return TrainingConsent(
+      enabled: fields[0] as bool? ?? false,
+      policyVersion: fields[1] as String? ?? trainingDataPolicyVersionV1,
+      grantedAt: fields[2] as DateTime?,
+      revokedAt: fields[3] as DateTime?,
+      source: fields[4] as String?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, TrainingConsent obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.enabled)
+      ..writeByte(1)
+      ..write(obj.policyVersion)
+      ..writeByte(2)
+      ..write(obj.grantedAt)
+      ..writeByte(3)
+      ..write(obj.revokedAt)
+      ..writeByte(4)
+      ..write(obj.source);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TrainingConsentAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

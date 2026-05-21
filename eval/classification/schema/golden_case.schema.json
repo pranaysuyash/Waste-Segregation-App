@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "waste-segregation/eval/classification/golden_case.schema.json",
+  "title": "Waste Classification Golden Case",
+  "type": "object",
+  "required": [
+    "case_id",
+    "version",
+    "source_type",
+    "region",
+    "language",
+    "input",
+    "expected",
+    "acceptance",
+    "safety"
+  ],
+  "properties": {
+    "case_id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+    "version": { "type": "string" },
+    "source_type": { "type": "string", "enum": ["synthetic_seed", "user_correction", "field_capture"] },
+    "region": { "type": "string" },
+    "language": { "type": "string" },
+    "input": {
+      "type": "object",
+      "required": ["image_ref", "description"],
+      "properties": {
+        "image_ref": { "type": "string" },
+        "description": { "type": "string" },
+        "hints": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "expected": {
+      "type": "object",
+      "required": ["category"],
+      "properties": {
+        "item_name": { "type": "string" },
+        "category": { "type": "string", "enum": ["Wet Waste", "Dry Waste", "Hazardous Waste", "Medical Waste", "Non-Waste"] },
+        "sub_category": { "type": "string" },
+        "recyclable": { "type": ["boolean", "null"] },
+        "risk_level": { "type": ["string", "null"] },
+        "bbmp_compliance_status": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "acceptance": {
+      "type": "object",
+      "required": ["acceptable_categories", "must_not_categories"],
+      "properties": {
+        "acceptable_categories": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "must_not_categories": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "strict_fields": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "safety": {
+      "type": "object",
+      "required": ["safety_critical", "notes"],
+      "properties": {
+        "safety_critical": { "type": "boolean" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "created_by": { "type": "string" },
+        "created_at": { "type": "string" },
+        "review_status": { "type": "string", "enum": ["seeded", "pending_review", "approved", "rejected"] },
+        "reviewer_id": { "type": ["string", "null"] },
+        "reviewed_at": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

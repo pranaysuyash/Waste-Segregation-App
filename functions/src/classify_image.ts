@@ -58,15 +58,11 @@ const shouldEnforceCallableAppCheck = (): boolean => {
 
 const getOpenAiApiKey = (): string | undefined => {
   return process.env.OPENAI_API_KEY
-    || process.env.OPENAI_KEY
-    || functions.config()?.openai?.key
-    || functions.config()?.openai?.api_key;
+    || process.env.OPENAI_KEY;
 };
 
 const getGeminiApiKey = (): string | undefined => {
-  return process.env.GEMINI_API_KEY
-    || functions.config()?.gemini?.key
-    || functions.config()?.gemini?.api_key;
+  return process.env.GEMINI_API_KEY;
 };
 
 const enforceRateLimit = async ({
@@ -234,6 +230,32 @@ interface AiCostEvent {
   cacheHit: boolean;
 }
 
+interface ServerTokenWallet {
+  balance: number;
+  totalEarned: number;
+  totalSpent: number;
+  lastUpdated: string;
+  dailyConversionsUsed: number;
+  lastConversionDate: unknown;
+}
+
+interface ServerTokenTransaction {
+  id: string;
+  delta: number;
+  type: string;
+  timestamp: string;
+  description: string;
+  reference: string | null;
+  metadata: Record<string, unknown>;
+}
+
+interface TokenReservationResult {
+  wallet: ServerTokenWallet;
+  transaction: ServerTokenTransaction;
+  tokenCost: number;
+  premiumApplied: boolean;
+}
+
 // ---------------------------------------------------------------------------
 // Rate limit config
 // ---------------------------------------------------------------------------
@@ -245,6 +267,218 @@ const getClassifyRateLimitConfig = () => ({
 
 const getCacheTtlSeconds = (): number =>
   Number(process.env.CLASSIFY_CACHE_TTL_SECONDS ?? 86400);
+
+const getClassifyTokenCost = (): number =>
+  Math.max(1, Number(process.env.CLASSIFY_IMAGE_TOKEN_COST ?? 5));
+
+const getClassifyPremiumDiscountPercent = (): number => {
+  const value = Number(process.env.CLASSIFY_IMAGE_PREMIUM_DISCOUNT_PERCENT ?? 50);
+  if (!Number.isFinite(value)) return 50;
+  return Math.min(90, Math.max(0, value));
+};
+
+const isTokenSpendEnforced = (): boolean =>
+  parseBoolEnv(process.env.CLASSIFY_ENFORCE_TOKEN_SPEND, true);
+
+const hasPremiumFromAuthClaims = (authToken: Record<string, unknown> | undefined): boolean => {
+  if (!authToken) return false;
+  if (authToken.premium === true) return true;
+  if (authToken.pro_subscription === true) return true;
+  const entitlements = authToken.entitlements;
+  if (entitlements && typeof entitlements === 'object') {
+    const entitlementMap = entitlements as Record<string, unknown>;
+    if (entitlementMap.pro_subscription === true) return true;
+  }
+  return false;
+};
+
+const hasPremiumFromUserDoc = (userData: Record<string, unknown>): boolean => {
+  const billing = userData.billing;
+  if (billing && typeof billing === 'object') {
+    const billingMap = billing as Record<string, unknown>;
+    const entitlements = billingMap.entitlements;
+    if (entitlements && typeof entitlements === 'object') {
+      const entitlementMap = entitlements as Record<string, unknown>;
+      if (entitlementMap.pro_subscription === true) return true;
+    }
+  }
+
+  const premium = userData.premium;
+  if (premium && typeof premium === 'object') {
+    const premiumMap = premium as Record<string, unknown>;
+    if (premiumMap.pro_subscription === true || premiumMap.isActive === true || premiumMap.remove_ads === true) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const computeClassifyTokenCost = (
+  baseCost: number,
+  hasPremiumEntitlement: boolean,
+): { tokenCost: number; premiumApplied: boolean } => {
+  if (!hasPremiumEntitlement) {
+    return { tokenCost: baseCost, premiumApplied: false };
+  }
+  const discountPercent = getClassifyPremiumDiscountPercent();
+  const discountedCost = Math.max(1, Math.floor((baseCost * (100 - discountPercent)) / 100));
+  return { tokenCost: discountedCost, premiumApplied: true };
+};
+
+async function reserveClassificationTokens(params: {
+  uid: string;
+  authToken?: Record<string, unknown>;
+  imageHash: string;
+  region: string;
+  lang: string;
+}): Promise<TokenReservationResult> {
+  const { uid, authToken, imageHash, region, lang } = params;
+  const db = admin.firestore();
+  const userRef = db.collection('users').doc(uid);
+
+  return db.runTransaction(async (tx) => {
+    const userSnap = await tx.get(userRef);
+    if (!userSnap.exists) {
+      throw new functions.https.HttpsError('failed-precondition', 'User profile missing; cannot charge tokens.');
+    }
+
+    const userData = (userSnap.data() ?? {}) as Record<string, unknown>;
+    const walletRaw = (userData.tokenWallet && typeof userData.tokenWallet === 'object')
+      ? (userData.tokenWallet as Record<string, unknown>)
+      : {};
+
+    const hasPremiumEntitlement =
+      hasPremiumFromAuthClaims(authToken) || hasPremiumFromUserDoc(userData);
+    const { tokenCost, premiumApplied } = computeClassifyTokenCost(
+      getClassifyTokenCost(),
+      hasPremiumEntitlement,
+    );
+
+    const currentBalance = Number(walletRaw.balance ?? 50);
+    const totalEarned = Number(walletRaw.totalEarned ?? 50);
+    const totalSpent = Number(walletRaw.totalSpent ?? 0);
+    const dailyConversionsUsed = Number(walletRaw.dailyConversionsUsed ?? 0);
+    const lastConversionDate = walletRaw.lastConversionDate ?? null;
+
+    if (!Number.isFinite(currentBalance) || currentBalance < tokenCost) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        `Insufficient tokens for classification. Need ${tokenCost}, have ${Number.isFinite(currentBalance) ? currentBalance : 0}.`,
+      );
+    }
+
+    const nowIso = new Date().toISOString();
+    const txId = db.collection('_tmp').doc().id;
+
+    const nextWallet: ServerTokenWallet = {
+      balance: currentBalance - tokenCost,
+      totalEarned,
+      totalSpent: totalSpent + tokenCost,
+      lastUpdated: nowIso,
+      dailyConversionsUsed,
+      lastConversionDate,
+    };
+
+    const transaction: ServerTokenTransaction = {
+      id: txId,
+      delta: -tokenCost,
+      type: 'TokenTransactionType.spend',
+      timestamp: nowIso,
+      description: 'Instant AI image classification',
+      reference: `classifyImage:${imageHash.slice(0, 12)}:${region}:${lang}`,
+      metadata: {
+        source: 'classifyImage',
+        tokenCost,
+        premiumApplied,
+        region,
+        lang,
+      },
+    };
+
+    const currentTransactions = Array.isArray(userData.tokenTransactions)
+      ? userData.tokenTransactions as unknown[]
+      : [];
+    const updatedTransactions = [transaction, ...currentTransactions].slice(0, 200);
+
+    tx.update(userRef, {
+      tokenWallet: nextWallet,
+      tokenTransactions: updatedTransactions,
+      lastActive: nowIso,
+    });
+
+    return {
+      wallet: nextWallet,
+      transaction,
+      tokenCost,
+      premiumApplied,
+    };
+  });
+}
+
+async function refundReservedClassificationTokens(params: {
+  uid: string;
+  tokenCost: number;
+  reason: string;
+  reservationTransactionId: string;
+  imageHash: string;
+}): Promise<void> {
+  const { uid, tokenCost, reason, reservationTransactionId, imageHash } = params;
+  const db = admin.firestore();
+  const userRef = db.collection('users').doc(uid);
+
+  await db.runTransaction(async (tx) => {
+    const userSnap = await tx.get(userRef);
+    if (!userSnap.exists) {
+      functions.logger.warn('refundReservedClassificationTokens: user profile missing', { uid });
+      return;
+    }
+
+    const userData = (userSnap.data() ?? {}) as Record<string, unknown>;
+    const walletRaw = (userData.tokenWallet && typeof userData.tokenWallet === 'object')
+      ? (userData.tokenWallet as Record<string, unknown>)
+      : {};
+
+    const nowIso = new Date().toISOString();
+    const balance = Number(walletRaw.balance ?? 0);
+    const totalEarned = Number(walletRaw.totalEarned ?? 0);
+    const totalSpent = Number(walletRaw.totalSpent ?? 0);
+    const dailyConversionsUsed = Number(walletRaw.dailyConversionsUsed ?? 0);
+    const lastConversionDate = walletRaw.lastConversionDate ?? null;
+
+    const refundTx: ServerTokenTransaction = {
+      id: db.collection('_tmp').doc().id,
+      delta: tokenCost,
+      type: 'TokenTransactionType.refund',
+      timestamp: nowIso,
+      description: reason,
+      reference: `refund:${reservationTransactionId}`,
+      metadata: {
+        source: 'classifyImage',
+        reservationTransactionId,
+        imageHashPrefix: imageHash.slice(0, 12),
+      },
+    };
+
+    const currentTransactions = Array.isArray(userData.tokenTransactions)
+      ? userData.tokenTransactions as unknown[]
+      : [];
+    const updatedTransactions = [refundTx, ...currentTransactions].slice(0, 200);
+
+    tx.update(userRef, {
+      tokenWallet: {
+        balance: balance + tokenCost,
+        totalEarned,
+        totalSpent: Math.max(0, totalSpent - tokenCost),
+        lastUpdated: nowIso,
+        dailyConversionsUsed,
+        lastConversionDate,
+      },
+      tokenTransactions: updatedTransactions,
+      lastActive: nowIso,
+    });
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Model names (kept consistent with constants.dart defaults)
@@ -624,7 +858,21 @@ export const classifyImage = functions
   }
 
   // ------------------------------------------------------------------
-  // 7. Primary provider: OpenAI Vision
+  // 7. Token spend and entitlement enforcement (before paid provider calls)
+  // ------------------------------------------------------------------
+  let tokenReservation: TokenReservationResult | null = null;
+  if (isTokenSpendEnforced()) {
+    tokenReservation = await reserveClassificationTokens({
+      uid,
+      authToken: context.auth.token as Record<string, unknown> | undefined,
+      imageHash: serverHash,
+      region: analysisRegion,
+      lang: analysisLang,
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // 8. Primary provider: OpenAI Vision
   // ------------------------------------------------------------------
   let classificationResult: ClassificationResult | null = null;
   let usedProvider = 'openai';
@@ -675,6 +923,24 @@ export const classifyImage = functions
         openAiError: providerError instanceof Error ? providerError.message : String(providerError),
         geminiError: fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr),
       });
+
+      if (tokenReservation) {
+        try {
+          await refundReservedClassificationTokens({
+            uid,
+            tokenCost: tokenReservation.tokenCost,
+            reason: 'Classification failed — auto refund',
+            reservationTransactionId: tokenReservation.transaction.id,
+            imageHash: serverHash,
+          });
+        } catch (refundErr) {
+          functions.logger.error('classifyImage: token refund failed after provider failure', {
+            uid,
+            reservationTransactionId: tokenReservation.transaction.id,
+            error: refundErr instanceof Error ? refundErr.message : String(refundErr),
+          });
+        }
+      }
 
       // Record failure cost event
       void writeCostEvent({
@@ -744,6 +1010,9 @@ export const classifyImage = functions
     provider: usedProvider,
     model: usedModel,
     serverHash: serverHash.slice(0, 16) + '…',
+    tokenSpendEnforced: isTokenSpendEnforced(),
+    tokenCost: tokenReservation?.tokenCost ?? 0,
+    premiumApplied: tokenReservation?.premiumApplied ?? false,
   });
 
   return {
@@ -754,6 +1023,10 @@ export const classifyImage = functions
       serverImageHash: serverHash,
       cachedResult: false,
       remainingRequests: rateLimitState.remaining,
+      tokenSpendEnforced: isTokenSpendEnforced(),
+      tokensCharged: tokenReservation?.tokenCost ?? 0,
+      premiumApplied: tokenReservation?.premiumApplied ?? false,
+      tokenReservationTransactionId: tokenReservation?.transaction.id ?? null,
     },
   };
 });

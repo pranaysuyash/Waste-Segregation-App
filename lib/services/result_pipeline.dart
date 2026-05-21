@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/gamification.dart';
@@ -9,6 +11,7 @@ import '../services/community_service.dart';
 import '../services/ad_service.dart';
 import '../services/analytics_service.dart';
 import '../services/dynamic_link_service.dart';
+import '../services/training_data_service.dart';
 import '../utils/share_service.dart';
 import '../utils/waste_app_logger.dart';
 import '../utils/error_handler.dart';
@@ -87,14 +90,17 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     this._cloudStorageService,
     this._communityService,
     this._adService,
-    this._analyticsService,
-  ) : super(const ResultPipelineState());
+    this._analyticsService, {
+    TrainingDataService? trainingDataService,
+  })  : _trainingDataService = trainingDataService,
+        super(const ResultPipelineState());
   final StorageService _storageService;
   final GamificationService _gamificationService;
   final CloudStorageService _cloudStorageService;
   final CommunityService _communityService;
   final AdService _adService;
   final AnalyticsService _analyticsService;
+  final TrainingDataService? _trainingDataService;
 
   // Track classifications being processed to prevent duplicates
   static final Set<String> _processingClassifications = <String>{};
@@ -132,6 +138,11 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       final savedClassification = classification.copyWith(isSaved: true);
       await _storageService.saveClassification(savedClassification,
           force: force);
+      enqueueTrainingCandidateInBackground(
+        _trainingDataService,
+        savedClassification,
+        captureSource: 'classification_completed',
+      );
 
       // Stage 2: Process gamification (points, achievements, challenges)
       WasteAppLogger.info('Processing gamification', context: {
@@ -324,6 +335,11 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       final savedClassification = classification.copyWith(isSaved: true);
       await _storageService.saveClassification(savedClassification,
           force: force);
+      enqueueTrainingCandidateInBackground(
+        _trainingDataService,
+        savedClassification,
+        captureSource: 'manual_save',
+      );
 
       state = state.copyWith(isSaved: true);
 
@@ -440,7 +456,9 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         userConfirmed: userConfirmed,
         userCorrection: userCorrection,
         userNotes: userNotes,
-        barcode: barcode?.trim().isNotEmpty == true ? barcode : classification.barcode,
+        barcode: barcode?.trim().isNotEmpty == true
+            ? barcode
+            : classification.barcode,
       );
       await _storageService.saveClassification(updated, force: true);
 
@@ -461,6 +479,14 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         barcode: barcode,
       );
       await _storageService.saveClassificationFeedback(feedback);
+      if (_trainingDataService != null) {
+        unawaited(
+          _trainingDataService.attachFeedbackToCandidate(
+            classification: updated,
+            feedback: feedback,
+          ),
+        );
+      }
 
       // 3. Sync to Firestore (non-blocking — fail silently)
       var cloudSynced = false;
@@ -594,6 +620,7 @@ final resultPipelineProvider =
   final communityService = ref.read(communityServiceProvider);
   final adService = ref.read(adServiceProvider);
   final analyticsService = ref.read(analyticsServiceProvider);
+  final trainingDataService = ref.read(trainingDataServiceProvider);
 
   return ResultPipeline(
     storageService,
@@ -602,6 +629,7 @@ final resultPipelineProvider =
     communityService,
     adService,
     analyticsService,
+    trainingDataService: trainingDataService,
   );
 });
 

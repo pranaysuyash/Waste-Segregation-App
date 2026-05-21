@@ -29,7 +29,7 @@ This document provides a comprehensive index to all project documentation, now p
 
 ## 🧭 **EXPLORATION / RESEARCH MAP**
 
-The research-and-exploration layer (what we still need to *learn* to build well), separate from the planning/execution roadmaps (what we plan to *build*).
+The research-and-exploration layer (what we still need to _learn_ to build well), separate from the planning/execution roadmaps (what we plan to _build_).
 
 - **[EXPLORATION_TOPICS.md](EXPLORATION_TOPICS.md)** — Master index of active exploration areas across AI, on-device, data, UX, community, IoT, business, compliance.
 - **[EXPLORATION_FRONTIER.md](EXPLORATION_FRONTIER.md)** — High-ambition frontier bets with explicit "what would have to be true" and kill criteria.
@@ -145,6 +145,7 @@ Use this map when you need to know **what's still being figured out** vs what's 
 
 - **PHASE0_FILE_AUDIT_2026-05-20.md** - Current-state file audit with risk matrix and ownership mapping
 - **BACKEND_PLATFORM_AND_MONEY_STRATEGY_2026-05-20.md** - Backend, monetization, and operational readiness review
+- **BACKEND_PLATFORM_AND_MONEY_STRATEGY_2026-05-21.md** - Current-scenario update with the 2026 Firebase core + Cloud Run compute-lane + Cloudflare edge recommendation
 
 ### `/docs/summaries/` - Summary Documents
 

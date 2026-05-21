@@ -172,6 +172,25 @@ service cloud.firestore {
     }
 
     // ============================================================
+    // SECTION 6B: Consent-gated training data pipeline
+    // ============================================================
+
+    // User clients never read/write training collections directly. Cloud
+    // Functions create/update candidates after verifying explicit
+    // trainingConsent and write server-side HMAC user hashes.
+    match /training_candidates/{candidateId} {
+      allow read, write: if false;
+    }
+
+    match /training_labels/{candidateId} {
+      allow read, write: if false;
+    }
+
+    match /training_dataset_versions/{datasetVersion} {
+      allow read, write: if false;
+    }
+
+    // ============================================================
     // SECTION 7: Reference data collections
     // ============================================================
 

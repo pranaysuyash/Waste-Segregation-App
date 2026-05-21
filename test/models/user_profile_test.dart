@@ -23,9 +23,6 @@ void main() {
           userId: 'user123',
           streaks: {},
           points: UserPoints(total: 1500, level: 5),
-          achievements: [],
-          activeChallenges: [],
-          completedChallenges: [],
         ),
       );
 
@@ -58,6 +55,9 @@ void main() {
       expect(profile.lastActive, isNull);
       expect(profile.preferences, isNull);
       expect(profile.gamificationProfile, isNull);
+      expect(profile.trainingConsent.enabled, isFalse);
+      expect(
+          profile.trainingConsent.policyVersion, trainingDataPolicyVersionV1);
     });
 
     test('should create UserProfile with admin role', () {
@@ -87,6 +87,13 @@ void main() {
           'notifications': true,
           'theme': 'light',
         },
+        'trainingConsent': {
+          'enabled': true,
+          'policyVersion': trainingDataPolicyVersionV1,
+          'grantedAt': '2026-05-21T09:00:00.000Z',
+          'revokedAt': null,
+          'source': 'onboarding',
+        },
       };
 
       final profile = UserProfile.fromJson(json);
@@ -101,6 +108,8 @@ void main() {
       expect(profile.lastActive, DateTime.parse('2024-01-15T10:30:00.000Z'));
       expect(profile.preferences?['notifications'], true);
       expect(profile.preferences?['theme'], 'light');
+      expect(profile.trainingConsent.enabled, isTrue);
+      expect(profile.trainingConsent.source, 'onboarding');
     });
 
     test('should convert UserProfile to JSON', () {
@@ -129,6 +138,8 @@ void main() {
       expect(json['role'], 'admin');
       expect(json['createdAt'], '2024-01-15T10:30:00.000');
       expect(json['preferences'], isA<Map<String, dynamic>>());
+      expect(json['trainingConsent'], isA<Map<String, dynamic>>());
+      expect(json['trainingConsent']['enabled'], isFalse);
     });
 
     test('should create a copy with updated fields', () {
@@ -178,6 +189,33 @@ void main() {
 
       expect(profile.id, 'user123');
       expect(profile.role, UserRole.guest); // Default fallback
+    });
+
+    test('training consent can be granted and revoked explicitly', () {
+      final granted = TrainingConsent(
+        enabled: true,
+        grantedAt: DateTime(2026, 5, 21, 9),
+        source: 'settings',
+      );
+
+      final profile = UserProfile(
+        id: 'user-training',
+        trainingConsent: granted,
+      );
+
+      final revoked = profile.copyWith(
+        trainingConsent: profile.trainingConsent.copyWith(
+          enabled: false,
+          revokedAt: DateTime(2026, 5, 21, 10),
+          source: 'settings',
+        ),
+      );
+
+      expect(profile.trainingConsent.enabled, isTrue);
+      expect(revoked.trainingConsent.enabled, isFalse);
+      expect(revoked.trainingConsent.revokedAt, DateTime(2026, 5, 21, 10));
+      expect(revoked.toJson()['trainingConsent']['policyVersion'],
+          trainingDataPolicyVersionV1);
     });
 
     test('should handle missing timestamps in JSON', () {
@@ -261,9 +299,6 @@ void main() {
         userId: 'user123',
         streaks: {},
         points: UserPoints(total: 5000, level: 10),
-        achievements: [],
-        activeChallenges: [],
-        completedChallenges: [],
       );
 
       final profile = UserProfile(

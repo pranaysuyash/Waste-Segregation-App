@@ -31,7 +31,9 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import '../services/cloud_storage_service.dart';
 import '../services/enhanced_image_service.dart';
 import '../services/firebase_cleanup_service.dart';
+import '../services/training_data_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import 'training_review_queue_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -45,12 +47,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isGoogleSyncEnabled = false;
   DateTime? _lastCloudSync;
   bool _isLeaderboardOptOut = false;
+  bool _isTrainingConsentEnabled = false;
+  bool _isTrainingConsentLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadGoogleSyncSetting();
     _loadLeaderboardOptOut();
+    _loadTrainingConsent();
   }
 
   @override
@@ -185,6 +190,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: _isLeaderboardOptOut ? Colors.orange : Colors.green,
                 ),
               ),
+            ),
+          ),
+
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: SwitchListTile(
+              title: const Text('Improve model with my images'),
+              subtitle: Text(
+                _isTrainingConsentEnabled
+                    ? 'Enabled. You can revoke anytime and request deletion of contributed training candidates.'
+                    : 'Disabled. No new image/correction enters training candidates.',
+              ),
+              value: _isTrainingConsentEnabled,
+              onChanged: _isTrainingConsentLoading
+                  ? null
+                  : (value) async {
+                      await _toggleTrainingConsent(value);
+                    },
+              secondary: _isTrainingConsentLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      _isTrainingConsentEnabled
+                          ? Icons.verified_user
+                          : Icons.shield_outlined,
+                      color: _isTrainingConsentEnabled
+                          ? Colors.green
+                          : Colors.grey.shade600,
+                    ),
             ),
           ),
 
@@ -393,6 +430,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     onPressed: () {
                       _runClassificationMigration(context, storageService);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.fact_check, color: Colors.blue),
+                    label: const Text('Training Review Queue',
+                        style: TextStyle(color: Colors.blue)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.blue,
+                      side: const BorderSide(color: Colors.blue),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const TrainingReviewQueueScreen(),
+                        ),
+                      );
                     },
                   ),
                   // Test new home screen implementation
@@ -2184,12 +2241,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
 
       // Update preferences map, preserving existing entries
-      final updatedPreferences = Map<String, dynamic>.from(
-          userProfile.preferences ?? {});
+      final updatedPreferences =
+          Map<String, dynamic>.from(userProfile.preferences ?? {});
       updatedPreferences[UserPreferenceKeys.leaderboardOptOut] = value;
 
-      final updatedProfile = userProfile.copyWith(
-          preferences: updatedPreferences);
+      final updatedProfile =
+          userProfile.copyWith(preferences: updatedPreferences);
 
       // Save locally (Hive) and remotely (Firestore with privacy guard)
       await storageService.saveUserProfile(updatedProfile);
@@ -2198,7 +2255,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Update the existing leaderboard entry to reflect the new preference immediately.
       // Without this, the leaderboard would show stale data until the next
       // gamification-triggered leaderboard write.
-      await cloudStorageService.updateLeaderboardPrivacyPreference(updatedProfile);
+      await cloudStorageService
+          .updateLeaderboardPrivacyPreference(updatedProfile);
 
       setState(() {
         _isLeaderboardOptOut = value;
@@ -2217,9 +2275,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update leaderboard privacy: \$e')),
+          const SnackBar(
+              content: Text('Failed to update leaderboard privacy: \$e')),
         );
       }
+    }
+  }
+
+  Future<void> _loadTrainingConsent() async {
+    try {
+      final storage = Provider.of<StorageService>(context, listen: false);
+      final profile = await storage.getCurrentUserProfile();
+      if (!mounted) return;
+      setState(() {
+        _isTrainingConsentEnabled = profile?.trainingConsent.enabled ?? false;
+        _isTrainingConsentLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isTrainingConsentEnabled = false;
+        _isTrainingConsentLoading = false;
+      });
+    }
+  }
+
+  Future<void> _toggleTrainingConsent(bool enabled) async {
+    final storage = Provider.of<StorageService>(context, listen: false);
+    final service = TrainingDataService(storageService: storage);
+
+    setState(() => _isTrainingConsentLoading = true);
+    try {
+      if (enabled) {
+        await storage.grantTrainingConsent(source: 'settings');
+      } else {
+        await service.revokeConsentAndRequestDeletion();
+      }
+      if (!mounted) return;
+      setState(() {
+        _isTrainingConsentEnabled = enabled;
+        _isTrainingConsentLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            enabled
+                ? 'Training consent enabled.'
+                : 'Training consent revoked and deletion requested.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isTrainingConsentLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not update training consent: $e')),
+      );
     }
   }
 }

@@ -14,32 +14,27 @@ admin.initializeApp();
 // Configure region for better performance in Asia
 const asiaSouth1 = functions.region('asia-south1');
 
-// Migration bridge for Functions 2nd gen: prefer process.env, keep
-// functions.config() fallback temporarily to avoid breaking existing deploys.
-// TODO(P0-hardening): Remove functions.config() fallback after env rollout is complete.
 export const getOpenAiApiKey = (): string | undefined => {
   return process.env.OPENAI_API_KEY
-    || process.env.OPENAI_KEY
-    || functions.config()?.openai?.key
-    || functions.config()?.openai?.api_key;
+    || process.env.OPENAI_KEY;
 };
 
 // Initialize OpenAI (conditional)
 let openai: OpenAI | null = null;
 try {
-  // Try environment variable first (for local development), then legacy Firebase config fallback.
+  // Resolve the secret from the process environment only.
   const apiKey = getOpenAiApiKey();
 
   if (apiKey) {
     openai = new OpenAI({
       apiKey: apiKey,
     });
-    console.log('OpenAI initialized successfully');
+    functions.logger.info('OpenAI initialized successfully');
   } else {
-    console.warn('OpenAI API key not configured - functions will use fallback responses');
+    functions.logger.warn('OpenAI API key not configured - functions will use fallback responses');
   }
 } catch (error) {
-  console.warn('Failed to initialize OpenAI:', error);
+  functions.logger.warn('Failed to initialize OpenAI', { error });
 }
 
 // CORS configuration
@@ -51,7 +46,7 @@ const getDisposalPrompt = (): string => {
     const promptPath = path.join(__dirname, '../../prompts/disposal.txt');
     return fs.readFileSync(promptPath, 'utf8');
   } catch (error) {
-    console.error('Error loading disposal prompt:', error);
+    functions.logger.error('Error loading disposal prompt', { error });
     // Fallback prompt
     return `You are a waste management expert. Generate disposal instructions for the given material.
     
@@ -279,7 +274,7 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
       const cachedDoc = await cacheRef.get();
 
       if (cachedDoc.exists) {
-        console.log(`Returning cached disposal instructions for ${materialId}`);
+        functions.logger.info('Returning cached disposal instructions', { materialId });
         res.json(cachedDoc.data());
         return;
       }
@@ -296,7 +291,7 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
         .replace('$MATERIAL', materialDescription)
         .replace('$LANG', lang);
 
-      console.log(`Generating disposal instructions for: ${materialDescription}`);
+      functions.logger.info('Generating disposal instructions', { materialDescription });
 
       // Check if OpenAI is available
       if (!openai) {
@@ -399,13 +394,12 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
       // Cache the result
       await cacheRef.set(result);
 
-      console.log(`Generated and cached disposal instructions for ${materialId}`);
+      functions.logger.info('Generated and cached disposal instructions', { materialId });
       res.json(result);
 
     } catch (error: any) {
-      console.error('Error generating disposal instructions:', error);
-      
-      // ROADMAP FIX: Circuit-breaker pattern with 503 retry-after for retryable errors
+      functions.logger.error('Error generating disposal instructions', { error });
+
       const isRetryableError = (
         error.code === 'rate_limit_exceeded' ||
         error.status === 429 ||
@@ -414,9 +408,9 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
         error.status === 504 ||
         (error.message && error.message.includes('timeout'))
       );
-      
+
       if (isRetryableError) {
-        console.log('Retryable error detected, returning 503 with retry-after');
+        functions.logger.info('Retryable error detected, returning 503 with retry-after');
         res.status(503).json({ 
           error: 'Service temporarily unavailable',
           retryAfter: 30,
@@ -461,8 +455,7 @@ export const healthCheck = asiaSouth1.https.onRequest((req, res) => {
 
 // Test endpoint to verify OpenAI configuration
 export const testOpenAI = asiaSouth1.https.onRequest((req, res) => {
-  const diagnosticsEnabled = process.env.ENABLE_DIAGNOSTIC_ENDPOINTS === 'true'
-    || functions.config()?.safety?.enable_diagnostic_endpoints === 'true';
+  const diagnosticsEnabled = process.env.ENABLE_DIAGNOSTIC_ENDPOINTS === 'true';
   if (!diagnosticsEnabled) {
     res.status(403).json({ error: 'Diagnostics disabled' });
     return;
@@ -601,16 +594,15 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
 // FIXED: Clear all data function that properly awaits all deletions
 export const clearAllData = asiaSouth1.https.onCall(async (data, context) => {
   try {
-    console.log('🔥 Starting COMPLETE Firestore data clearing...');
-    
+    functions.logger.info('Starting COMPLETE Firestore data clearing...');
+
     // Security check - must be authenticated
     if (!context.auth) {
       throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
 
     // Security gate - explicit runtime kill switch required.
-    const clearAllDataEnabled = process.env.CLEAR_ALL_DATA_ENABLED === 'true'
-      || functions.config()?.safety?.clear_all_data_enabled === 'true';
+    const clearAllDataEnabled = process.env.CLEAR_ALL_DATA_ENABLED === 'true';
     if (!clearAllDataEnabled) {
       throw new functions.https.HttpsError(
         'permission-denied',
@@ -626,40 +618,39 @@ export const clearAllData = asiaSouth1.https.onCall(async (data, context) => {
         'Only admin users can invoke clearAllData.'
       );
     }
-    
+
     const db = admin.firestore();
     const projectId = process.env.GCLOUD_PROJECT;
-    
+
     if (!projectId) {
       throw new functions.https.HttpsError('internal', 'Project ID not available');
     }
-    
-    console.log(`Clearing all data for project: ${projectId}`);
-    
+
+    functions.logger.info('Clearing all data for project', { projectId });
+
     // Get all root-level collections
     const collections = await db.listCollections();
-    console.log(`Found ${collections.length} root collections to delete`);
-    
+    functions.logger.info('Found root collections', { count: collections.length });
+
     // Delete each collection recursively and await ALL deletions
     const deletePromises = collections.map(async (collection) => {
       const collectionPath = collection.path;
-      console.log(`Deleting collection: ${collectionPath}`);
-      
+      functions.logger.info('Deleting collection', { collectionPath });
+
       try {
-        // Delete all documents in the collection in batches
         await deleteCollectionRecursively(db, collectionPath);
-        console.log(`✅ Deleted collection: ${collectionPath}`);
+        functions.logger.info('Deleted collection', { collectionPath });
       } catch (error) {
-        console.error(`❌ Error deleting collection ${collectionPath}:`, error);
+        functions.logger.error('Error deleting collection', { collectionPath, error });
         throw error;
       }
     });
-    
+
     // CRITICAL: Wait for ALL deletions to complete before returning
     await Promise.all(deletePromises);
-    
-    console.log('✅ All Firestore collections deleted successfully');
-    
+
+    functions.logger.info('All Firestore collections deleted successfully');
+
     // Reset community stats to zero
     await db.collection('community_stats').doc('main').set({
       totalUsers: 0,
@@ -669,19 +660,19 @@ export const clearAllData = asiaSouth1.https.onCall(async (data, context) => {
       lastUpdated: FieldValue.serverTimestamp(),
       createdAt: FieldValue.serverTimestamp(),
     });
-    
-    console.log('✅ Community stats reset to zero');
-    console.log('🎉 COMPLETE Firestore data clearing finished successfully');
-    
-    return { 
-      success: true, 
+
+    functions.logger.info('Community stats reset to zero');
+    functions.logger.info('COMPLETE Firestore data clearing finished successfully');
+
+    return {
+      success: true,
       message: 'All data cleared successfully',
       timestamp: new Date().toISOString(),
       collectionsDeleted: collections.length
     };
-    
+
   } catch (error) {
-    console.error('❌ Error during data clearing:', error);
+    functions.logger.error('Error during data clearing', { error });
     throw new functions.https.HttpsError('internal', `Data clearing failed: ${error}`);
   }
 });
@@ -689,27 +680,25 @@ export const clearAllData = asiaSouth1.https.onCall(async (data, context) => {
 // Helper function to recursively delete a collection
 async function deleteCollectionRecursively(db: admin.firestore.Firestore, collectionPath: string): Promise<void> {
   const collectionRef = db.collection(collectionPath);
-  const batchSize = 100; // Firestore batch limit
-  
+  const batchSize = 100;
+
   let query = collectionRef.limit(batchSize);
   let snapshot = await query.get();
-  
+
   while (!snapshot.empty) {
     const batch = db.batch();
-    
+
     for (const doc of snapshot.docs) {
-      // First, delete any subcollections
       const subcollections = await doc.ref.listCollections();
       for (const subcollection of subcollections) {
         await deleteCollectionRecursively(db, subcollection.path);
       }
-      
-      // Then delete the document
+
       batch.delete(doc.ref);
     }
-    
+
     await batch.commit();
-    console.log(`Deleted batch of ${snapshot.docs.length} documents from ${collectionPath}`);
+    functions.logger.info('Deleted batch', { count: snapshot.docs.length, collectionPath });
     
     // Get next batch
     snapshot = await query.get();
@@ -1014,6 +1003,14 @@ async function triggerJobCompletionNotification(jobId: string, userId: string, c
 // Backend classification gateway (image proxy with App Check + rate limit)
 // ---------------------------------------------------------------------------
 export { classifyImage } from './classify_image';
+export {
+  attachTrainingLabelFeedback,
+  cleanupTrainingReviewImages,
+  enqueueTrainingCandidate,
+  getTrainingReviewQueue,
+  reviewTrainingCandidate,
+  revokeTrainingConsent,
+} from './training_data';
 
 /**
  * HTTP endpoint to get batch processing statistics
@@ -1043,7 +1040,7 @@ export const getBatchStats = asiaSouth1.https.onRequest(async (req, res) => {
       res.json(stats);
       
     } catch (error) {
-      console.error('Error getting batch stats:', error);
+      functions.logger.error('Error getting batch stats', { error });
       res.status(500).json({ error: 'Failed to get batch statistics' });
     }
   });

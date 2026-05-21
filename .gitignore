@@ -186,3 +186,10 @@ Thumbs.db
 
 # Local recovery scratch artifacts
 *.pre_recover
+
+# Eval harness generated artifacts (keep source fixtures/golden/docs tracked)
+eval/classification/reports/*.json
+eval/classification/feedback_exports/*.jsonl
+eval/classification/feedback_exports/*.json
+!eval/classification/feedback_exports/sample_feedback_input.json
+scripts/eval/__pycache__/

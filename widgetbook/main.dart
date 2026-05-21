@@ -57,6 +57,32 @@ import 'package:waste_segregation_app/widgets/animations/empty_state_animations.
 import 'package:waste_segregation_app/widgets/enhanced_empty_states.dart';
 import 'package:waste_segregation_app/widgets/production_error_handler.dart';
 import 'package:waste_segregation_app/widgets/share_button.dart';
+import 'package:waste_segregation_app/widgets/classification_card.dart';
+import 'package:waste_segregation_app/widgets/disposal_instructions_widget.dart';
+import 'package:waste_segregation_app/widgets/community_impact_card.dart';
+import 'package:waste_segregation_app/widgets/capture_button.dart';
+import 'package:waste_segregation_app/widgets/bottom_navigation/modern_bottom_nav.dart';
+import 'package:waste_segregation_app/widgets/recycling_code_info.dart';
+import 'package:waste_segregation_app/widgets/helpers/thumbnail_widget.dart';
+import 'package:waste_segregation_app/widgets/interactive_classification_tags.dart';
+import 'package:waste_segregation_app/widgets/advanced_ui/responsive_dialog.dart';
+import 'package:waste_segregation_app/widgets/manual_region_selector.dart';
+import 'package:waste_segregation_app/widgets/premium_feature_card.dart';
+import 'package:waste_segregation_app/widgets/premium_segmentation_toggle.dart';
+import 'package:waste_segregation_app/widgets/data_migration_dialog.dart';
+import 'package:waste_segregation_app/models/premium_feature.dart';
+import 'package:provider/provider.dart';
+import 'package:waste_segregation_app/services/premium_service.dart';
+import 'package:waste_segregation_app/widgets/gamification_widgets.dart';
+import 'package:waste_segregation_app/widgets/dashboard_widgets.dart';
+import 'package:waste_segregation_app/widgets/error_boundary.dart';
+import 'package:waste_segregation_app/widgets/animations/data_visualization_animations.dart';
+import 'package:waste_segregation_app/widgets/animations/social_animations.dart';
+import 'package:waste_segregation_app/widgets/animations/educational_animations.dart';
+import 'package:waste_segregation_app/widgets/animated_fab.dart';
+import 'package:waste_segregation_app/widgets/advanced_ui/particle_effects.dart';
+import 'package:waste_segregation_app/widgets/advanced_ui/impact_visualization_ring.dart';
+import 'package:waste_segregation_app/widgets/waste_chart_widgets.dart';
 
 void main() {
   runApp(const WidgetbookApp());
@@ -1445,6 +1471,425 @@ WidgetbookCategory _componentCategory() {
             ],
           ),
           WidgetbookComponent(
+            name: 'Classification and Disposal',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'ClassificationCard',
+                builder: (context) => _surface(
+                  ClassificationCard(
+                    classification: _sampleClassification(),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'DisposalInstructionsWidget',
+                builder: (context) => _surface(
+                  DisposalInstructionsWidget(
+                    instructions: _sampleClassification().disposalInstructions,
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'InteractiveClassificationTags',
+                builder: (context) => _surface(
+                  InteractiveClassificationTags(
+                    classification: _sampleClassification(),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'CommunityImpactCard',
+                builder: (context) => _surface(
+                  CommunityImpactCard(
+                    classifications: [_sampleClassification()],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Scan Inputs and Tools',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'CaptureButton',
+                builder: (context) => _surface(
+                  CaptureButton(
+                    type: CaptureButtonType.camera,
+                    onPressed: _noop,
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ManualRegionSelector',
+                builder: (context) => _surface(
+                  SizedBox(
+                    height: 360,
+                    child: ManualRegionSelector(
+                      maxRegions: 3,
+                      onRegionsChanged: (_) {},
+                    ),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ThumbnailWidget',
+                builder: (context) => _surface(
+                  const ThumbnailWidget(
+                    imagePath: 'assets/images/app_icon.png',
+                    size: 84,
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'RecyclingCodeInfoCard',
+                builder: (context) => _surface(
+                  const RecyclingCodeInfoCard(code: '1'),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Navigation and Dialogs',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'ModernBottomNavigation',
+                builder: (context) => _surface(
+                  SizedBox(
+                    height: 90,
+                    child: ModernBottomNavigation(
+                      currentIndex: 0,
+                      onTap: (_) {},
+                      items: const [
+                        BottomNavItem(
+                          icon: Icons.home_outlined,
+                          selectedIcon: Icons.home,
+                          label: 'Home',
+                        ),
+                        BottomNavItem(
+                          icon: Icons.history_outlined,
+                          selectedIcon: Icons.history,
+                          label: 'History',
+                        ),
+                        BottomNavItem(
+                          icon: Icons.person_outline,
+                          selectedIcon: Icons.person,
+                          label: 'Profile',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ResponsiveDialog',
+                builder: (context) => _surface(
+                  ResponsiveDialog(
+                    title: 'Confirm Action',
+                    content: const Text('Apply this change to your settings?'),
+                    actions: const [
+                      TextButton(onPressed: _noop, child: Text('Cancel')),
+                      ElevatedButton(onPressed: _noop, child: Text('Apply')),
+                    ],
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'DataMigrationDialog',
+                builder: (context) => _surface(
+                  const DataMigrationDialog(guestDataCount: 4),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Premium Components',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'PremiumFeatureCard',
+                builder: (context) => _surface(
+                  PremiumFeatureCard(
+                    feature: PremiumFeature.features.first,
+                    isEnabled: false,
+                    onTap: _noop,
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'PremiumSegmentationToggle',
+                builder: (context) => _surface(
+                  ChangeNotifierProvider(
+                    create: (_) => PremiumService(),
+                    child: const PremiumSegmentationToggle(value: false),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Gamification Indicators',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'StreakIndicator',
+                builder: (context) => _surface(
+                  StreakIndicator(
+                    streak: Streak(
+                      current: 6,
+                      longest: 14,
+                      lastUsageDate: DateTime(2026, 5, 20),
+                    ),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'PointsIndicator',
+                builder: (context) => _surface(
+                  const PointsIndicator(
+                    points: UserPoints(total: 880, level: 9),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ChallengeCard',
+                builder: (context) => _surface(
+                  ChallengeCard(challenge: _sampleChallenge()),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'AchievementGrid',
+                builder: (context) => _surface(
+                  SizedBox(
+                    height: 280,
+                    child: AchievementGrid(
+                      achievements: [_sampleAchievement()],
+                    ),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'AchievementNotification',
+                builder: (context) => _surface(
+                  AchievementNotification(
+                    achievement: _sampleAchievement(),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'EnhancedPointsIndicator',
+                builder: (context) => _surface(
+                  const EnhancedPointsIndicator(
+                    points: UserPoints(total: 1200, level: 12),
+                    previousPoints: UserPoints(total: 1100, level: 11),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'EnhancedChallengeCard',
+                builder: (context) => _surface(
+                  EnhancedChallengeCard(challenge: _sampleChallenge()),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'LifetimePointsIndicator',
+                builder: (context) => _surface(
+                  const LifetimePointsIndicator(
+                    points: UserPoints(total: 2400, level: 18),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Dashboard Widgets',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'TodaysImpactGoal',
+                builder: (context) => _surface(
+                  const TodaysImpactGoal(
+                    currentClassifications: 7,
+                    dailyGoal: 10,
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'GlobalImpactMeter',
+                builder: (context) => _surface(
+                  const GlobalImpactMeter(
+                    globalCO2Saved: 1842.5,
+                    globalItemsClassified: 126500,
+                    activeUsers: 18600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Error Boundaries',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'ErrorBoundary',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 120,
+                    child: ErrorBoundary(
+                      child: Center(child: Text('Safe child content')),
+                    ),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'AsyncErrorBoundary',
+                builder: (context) => _surface(
+                  SizedBox(
+                    height: 120,
+                    child: AsyncErrorBoundary(
+                      future: Future.value('Loaded'),
+                      builder: (ctx, data) => Text(data.toString()),
+                    ),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'NetworkErrorBoundary',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 120,
+                    child: NetworkErrorBoundary(
+                      child: Center(child: Text('Network child')),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
+            name: 'Animated and Charts Expansion',
+            useCases: [
+              WidgetbookUseCase(
+                name: 'AnimatedFAB',
+                builder: (context) => _surface(
+                  const AnimatedFAB(onPressed: _noop, isPulsing: false),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'FlameStreakWidget',
+                builder: (context) => _surface(
+                  const FlameStreakWidget(streakCount: 9),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'CelebrationOverlay',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 200,
+                    child: CelebrationOverlay(
+                      isVisible: true,
+                      message: 'Great sorting streak!',
+                    ),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'SortingAnimationWidget',
+                builder: (context) => _surface(
+                  const SortingAnimationWidget(
+                    child: Text('Sorting transition preview'),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'AnimatedDashboardWidget',
+                builder: (context) => _surface(
+                  const AnimatedDashboardWidget(
+                    child: Text('Dashboard animation wrapper'),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ProgressTrackingWidget',
+                builder: (context) => _surface(
+                  const ProgressTrackingWidget(
+                    child: Text('Progress animation wrapper'),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'CommunityFeedWidget',
+                builder: (context) => _surface(
+                  const CommunityFeedWidget(
+                    child: Text('Community update item'),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'LeaderboardWidget',
+                builder: (context) => _surface(
+                  const LeaderboardWidget(
+                    child: Text('Leaderboard row'),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ContentDiscoveryWidget',
+                builder: (context) => _surface(
+                  const ContentDiscoveryWidget(
+                    child: Text('Educational content card'),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'DailyTipRevealWidget',
+                builder: (context) => _surface(
+                  const DailyTipRevealWidget(
+                    tip: 'Rinse containers before recycling.',
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'FloatingParticleSystem',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 220,
+                    child: FloatingParticleSystem(particleCount: 14),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'PulsingScanButton',
+                builder: (context) => _surface(
+                  PulsingScanButton(onPressed: _noop),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'ImpactVisualizationRing',
+                builder: (context) => _surface(
+                  const ImpactVisualizationRing(
+                    progress: 0.62,
+                    targetValue: 100,
+                    currentValue: 62,
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'MorphingProgressIndicator',
+                builder: (context) => _surface(
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: MorphingProgressIndicator(progress: 0.74),
+                  ),
+                ),
+              ),
+              WidgetbookUseCase(
+                name: 'Chart Widgets',
+                builder: (context) => _surface(
+                  const SizedBox(
+                    height: 300,
+                    child: _WidgetbookChartsPreview(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          WidgetbookComponent(
             name: 'Ads and Dashboards',
             useCases: [
               WidgetbookUseCase(
@@ -1489,9 +1934,120 @@ Widget _surface(Widget child) {
   );
 }
 
+class _WidgetbookChartsPreview extends StatefulWidget {
+  const _WidgetbookChartsPreview();
+
+  @override
+  State<_WidgetbookChartsPreview> createState() =>
+      _WidgetbookChartsPreviewState();
+}
+
+class _WidgetbookChartsPreviewState extends State<_WidgetbookChartsPreview>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final data = [
+      ChartData('Dry', 36, Colors.blue),
+      ChartData('Wet', 28, Colors.green),
+      ChartData('Haz', 14, Colors.red),
+      ChartData('Ewaste', 10, Colors.purple),
+    ];
+
+    final timed = [
+      {'month': 'Jan', 'Dry': 0.35, 'Wet': 0.25, 'Haz': 0.2},
+      {'month': 'Feb', 'Dry': 0.4, 'Wet': 0.22, 'Haz': 0.18},
+      {'month': 'Mar', 'Dry': 0.45, 'Wet': 0.2, 'Haz': 0.15},
+    ];
+
+    return Column(
+      children: [
+        Expanded(
+          child: WasteCategoryPieChart(
+            data: data,
+            animationController: _controller,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: TopSubcategoriesBarChart(
+            data: data,
+            animationController: _controller,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: WeeklyItemsChart(
+            data: data,
+            animationController: _controller,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: WasteTimeSeriesChart(
+            data: data,
+            animationController: _controller,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: CategoryDistributionChart(
+            data: timed,
+            animationController: _controller,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 void _noop() {}
 
 void _onToggleChanged(bool _) {}
+
+Challenge _sampleChallenge() {
+  return Challenge(
+    id: 'challenge-1',
+    title: 'Sort 15 Items',
+    description: 'Classify fifteen items this week.',
+    startDate: DateTime(2026, 5, 18),
+    endDate: DateTime(2026, 5, 28),
+    pointsReward: 150,
+    iconName: 'emoji_events',
+    color: Colors.orange,
+    requirements: const {'classifications': 15},
+    progress: 0.6,
+  );
+}
+
+Achievement _sampleAchievement() {
+  return Achievement(
+    id: 'achievement-1',
+    title: 'Recycling Rookie',
+    description: 'Complete your first successful classifications.',
+    type: AchievementType.wasteIdentified,
+    threshold: 10,
+    iconName: 'military_tech',
+    color: Colors.green,
+    progress: 0.8,
+  );
+}
 
 WasteClassification _sampleClassification() {
   return WasteClassification(

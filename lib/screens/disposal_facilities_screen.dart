@@ -23,6 +23,9 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
   String _selectedMaterialFilter = 'All';
   String _selectedSourceFilter = 'All';
   bool _activeOnlyFilter = false;
+  String _streamSourceFilter = 'All';
+  bool _streamActiveOnlyFilter = false;
+  Stream<QuerySnapshot<Map<String, dynamic>>>? _facilitiesStream;
 
   final List<String> _materialOptions = [
     'All',
@@ -37,6 +40,12 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
     'Textile',
     'Other',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshFacilitiesStream(force: true);
+  }
 
   @override
   void dispose() {
@@ -118,6 +127,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                       onPressed: () {
                         setState(() {
                           _searchController.clear();
+                          _refreshFacilitiesStream(force: true);
                         });
                       },
                     )
@@ -160,6 +170,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                   onSelected: (selected) {
                     setState(() {
                       _activeOnlyFilter = selected;
+                      _refreshFacilitiesStream();
                     });
                   },
                   selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
@@ -223,7 +234,8 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
       );
     }
     return StreamBuilder<QuerySnapshot>(
-      stream: _buildQuery().snapshots(),
+      stream:
+          _facilitiesStream ?? _buildQuery().snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -271,6 +283,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
                       setState(() {
                         _selectedSourceFilter = 'All';
                         _activeOnlyFilter = false;
+                        _refreshFacilitiesStream(force: true);
                       });
                     } else {
                       setState(() {});
@@ -307,6 +320,17 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
         );
       },
     );
+  }
+
+  void _refreshFacilitiesStream({bool force = false}) {
+    if (!force &&
+        _streamSourceFilter == _selectedSourceFilter &&
+        _streamActiveOnlyFilter == _activeOnlyFilter) {
+      return;
+    }
+    _streamSourceFilter = _selectedSourceFilter;
+    _streamActiveOnlyFilter = _activeOnlyFilter;
+    _facilitiesStream = _buildQuery().snapshots();
   }
 
   Query<Map<String, dynamic>> _buildQuery() {
@@ -660,6 +684,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
               onTap: () {
                 setState(() {
                   _selectedSourceFilter = 'All';
+                  _refreshFacilitiesStream();
                 });
                 Navigator.pop(context);
               },
@@ -672,6 +697,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
               onTap: () {
                 setState(() {
                   _selectedSourceFilter = 'Admin Verified';
+                  _refreshFacilitiesStream();
                 });
                 Navigator.pop(context);
               },
@@ -684,6 +710,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
               onTap: () {
                 setState(() {
                   _selectedSourceFilter = 'Community Contributed';
+                  _refreshFacilitiesStream();
                 });
                 Navigator.pop(context);
               },
@@ -696,6 +723,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
               onTap: () {
                 setState(() {
                   _selectedSourceFilter = 'Imported Data';
+                  _refreshFacilitiesStream();
                 });
                 Navigator.pop(context);
               },
@@ -719,6 +747,7 @@ class _DisposalFacilitiesScreenState extends State<DisposalFacilitiesScreen> {
       _selectedSourceFilter = 'All';
       _activeOnlyFilter = false;
       _searchController.clear();
+      _refreshFacilitiesStream(force: true);
     });
   }
 

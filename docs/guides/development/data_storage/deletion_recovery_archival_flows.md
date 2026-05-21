@@ -31,21 +31,26 @@ Settings → Developer Options → Clear Firebase Data
 
 **🤖 Behind-the-Scenes ML Data Collection:**
 
+> **Status update, 2026-05-21:** This automatic guest ML collection flow is
+> legacy context only. Current policy requires explicit `training-data-v1`
+> consent and Cloud Functions-owned `training_candidates`; guest/local deletion
+> must not silently preserve training data.
+
 ```
 Every Guest Classification (Invisible to User):
 1. User saves classification locally
-2. Anonymous ML data automatically collected:
+2. Training data is not collected unless explicit training consent exists:
    ├── Classification details (itemName, category, etc.)
-   ├── Device identifier (anonymized)
+   ├── Server-side HMAC user hash if signed in
    ├── Timestamp and region
    ├── No personal information
-   └── Stored in admin_classifications for ML training
+   └── Stored in training_candidates for review/dataset inclusion
 
 3. When user deletes local data:
    ├── Local Hive storage cleared
    ├── User loses access to their history
-   ├── ML training data remains accessible to admin
-   └── Anonymous data available for model training
+   ├── Training candidates are deletion-marked/excluded if consent is revoked
+   └── No future dataset manifest may include revoked/deleted rows
 ```
 
 **Enhanced Guest Deletion Flow:**
@@ -1038,6 +1043,13 @@ Admin Recovery Operations → All User Types:
     └── Business continuity support and management
 ```
 
+> **Status update, 2026-05-21:** The legacy sections below are preserved for
+> historical context but are not the current production policy. The
+> "universal ML data preservation" strategy is superseded by explicit
+> `training-data-v1` consent, deletion-aware `training_candidates`, and
+> dataset manifests that exclude revoked/deleted/PII-flagged records. Do not
+> implement silent ML preservation from this document.
+
 ### **🗑️ Universal Deletion Impact Management**
 
 #### **Deletion Impact on ML Training Data:**
@@ -1085,9 +1097,9 @@ All Deletion Scenarios → ML Impact Management:
 
 | Flow Category | Current Status | Ideal State | Priority | ML Training Impact |
 |---------------|----------------|-------------|----------|-------------------|
-| **Guest Data Collection** | ❌ No ML collection | ✅ Anonymous ML data preserved | **CRITICAL** | **Enables guest training data** |
-| **Guest Deletion** | ✅ Local clearing only | ✅ Local clear + ML preservation | **HIGH** | **Preserves valuable training data** |
-| **Account Deletion** | ❌ Missing entirely | ✅ GDPR-compliant + ML preservation | **CRITICAL** | **Legal compliance + ML continuity** |
+| **Guest Data Collection** | ❌ No ML collection | ✅ Explicit-consent candidate collection only | **CRITICAL** | **Enables rights-safe training data** |
+| **Guest Deletion** | ✅ Local clearing only | ✅ Local clear + revoke/exclude training candidates | **HIGH** | **Preserves deletion rights** |
+| **Account Deletion** | ❌ Missing entirely | ✅ GDPR-compliant + revoke/exclude training candidates | **CRITICAL** | **Legal compliance + trust** |
 | **Admin Access to Guest Data** | ❌ No access | ✅ Full anonymous data access | **CRITICAL** | **Access to all training data** |
 | **Admin ML Data Management** | ❌ No tools | ✅ Comprehensive ML data tools | **HIGH** | **ML dataset optimization** |
 | **Privacy-Preserving Recovery** | ❌ Manual only | ✅ Automated + privacy protection | **HIGH** | **Safe ML data management** |
@@ -1161,14 +1173,14 @@ All Deletion Scenarios → ML Impact Management:
 
 ### **Universal Data Collection Metrics**
 
-- **ML Data Collection Rate**: Target 100% of all classifications (guest + signed-in)
+- **Training Candidate Consent Rate**: Track opt-in candidate volume; never target 100% silent collection
 - **Privacy Compliance**: Target 0 personal data leaks in ML dataset
 - **Data Quality**: Target >95% usable data for training
 - **Admin Data Access**: Target 100% coverage of all user data types
 
 ### **User Experience Metrics**
 
-- **Deletion Success Rate**: Target 100% successful deletions with ML preservation
+- **Deletion Success Rate**: Target 100% successful deletions with training-candidate exclusion/removal
 - **Recovery Success Rate**: Target >95% successful data recovery
 - **User Satisfaction**: Target >4.5★ rating for data management
 - **Privacy Transparency**: Target >80% user understanding of ML data use
@@ -1184,11 +1196,13 @@ All Deletion Scenarios → ML Impact Management:
 
 ## 📝 **CONCLUSION**
 
-This comprehensive analysis reveals a deletion/recovery/archival system designed for **universal data preservation** for ML training while maintaining **world-class privacy protection**. The key insight is that **ALL user data** (guest and signed-in) can be preserved for ML training through proper anonymization, while still respecting user privacy and deletion rights.
+This historical analysis originally proposed universal data preservation for ML
+training. Current product policy rejects that premise: training data must be
+explicit-consent, deletion-aware, reviewable, and dataset-versioned.
 
 ### **Critical Success Factors:**
 
-1. **Universal ML Data Collection** - Preserve anonymous training data from all users
+1. **Explicit Training Consent** - Collect training candidates only from opted-in users
 2. **Privacy-First Admin Access** - Enable admin access to all data without privacy violations
 3. **GDPR-Compliant Deletion** - Respect user rights while preserving valuable training data
 4. **Comprehensive Recovery** - Support all user types with appropriate recovery options

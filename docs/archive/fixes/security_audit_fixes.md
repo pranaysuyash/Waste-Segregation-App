@@ -2,7 +2,7 @@
 
 **Date**: May 29, 2025  
 **Version**: 0.1.5+99  
-**Status**: ✅ **IMPLEMENTED**  
+**Status**: ⚠️ **IMPLEMENTED WITH OPEN VALIDATION ITEMS**  
 **Priority**: **CRITICAL**
 
 ## 🔒 **Security Audit Results & Fixes**
@@ -46,7 +46,7 @@ minSdk = 24 // Updated from 23 to 24 for security
 The issue appears to be related to Flutter's internal serialization mechanisms or plugins using `android.os.Bundle.getSerializable`.
 
 **Mitigation Implemented**:
-1. **Network Security Configuration**: Enforced HTTPS-only communication
+1. **Network Security Configuration**: Enforced HTTPS for production API domains, with explicit localhost/emulator cleartext exception for development
 2. **Input Validation**: All external data sources validated
 3. **Monitoring**: Added logging for deserialization activities
 
@@ -63,7 +63,7 @@ The issue appears to be related to Flutter's internal serialization mechanisms o
 ```
 
 **Additional Security Measures**:
-- All API communications use HTTPS
+- Production API communications use HTTPS via domain policy
 - Input validation on all user data
 - No custom serialization of untrusted data
 - Flutter's built-in JSON serialization used exclusively
@@ -113,7 +113,7 @@ The issue appears to be related to Flutter's internal serialization mechanisms o
 
 **Network Security Configuration**:
 ```xml
-<!-- Enforces HTTPS for all API endpoints -->
+<!-- Enforces HTTPS for production API endpoints -->
 <domain-config cleartextTrafficPermitted="false">
     <domain includeSubdomains="true">api.openai.com</domain>
     <domain includeSubdomains="true">generativelanguage.googleapis.com</domain>
@@ -121,11 +121,19 @@ The issue appears to be related to Flutter's internal serialization mechanisms o
     <domain includeSubdomains="true">firestore.googleapis.com</domain>
     <domain includeSubdomains="true">googleapis.com</domain>
 </domain-config>
+
+<!-- Explicit dev-only localhost/emulator exception -->
+<domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="true">localhost</domain>
+    <domain includeSubdomains="true">127.0.0.1</domain>
+    <domain includeSubdomains="true">10.0.2.2</domain>
+</domain-config>
 ```
 
 **Impact**:
-- ✅ All network traffic encrypted
-- ✅ HTTPS enforced for all API calls
+- ✅ HTTPS enforced for production API calls
+- ✅ Cleartext blocked by default
+- ⚠️ Localhost/emulator cleartext remains allowed for development tooling
 - ✅ Protection against network-based attacks
 
 ---
@@ -150,7 +158,7 @@ The issue appears to be related to Flutter's internal serialization mechanisms o
 ```
 
 **Impact**:
-- ✅ Random task affinity prevents hijacking
+- ✅ Empty task affinity prevents external task affinity reuse
 - ✅ Task reparenting disabled
 - ✅ Isolated app task environment
 
@@ -167,7 +175,7 @@ The issue appears to be related to Flutter's internal serialization mechanisms o
 
 ### **After Fixes**
 - ✅ Minimum Android 7.0+ (API 24) with security updates
-- ✅ HTTPS-only network communication
+- ✅ Production-domain HTTPS policy with explicit dev localhost/emulator exception
 - ✅ Explicit fragile data handling declaration
 - ✅ Network security configuration enforced
 - ✅ Task hijacking prevention implemented
@@ -204,11 +212,21 @@ android {
 ## 🧪 **Testing & Verification**
 
 ### **Security Testing Checklist**
-- [ ] **Network Traffic**: Verify all API calls use HTTPS
-- [ ] **Installation**: Confirm app requires Android 7.0+
-- [ ] **Task Isolation**: Test task hijacking prevention
-- [ ] **Data Protection**: Verify uninstall data prompt
-- [ ] **Certificate Validation**: Test certificate pinning
+- [x] **Manifest Policy**: `usesCleartextTraffic=\"false\"` and `networkSecurityConfig` set
+- [x] **Network Config**: Production API domain-config blocks cleartext
+- [x] **Installation Floor**: `minSdk = 24` configured
+- [x] **Task Isolation Config**: `taskAffinity=\"\"` and `allowTaskReparenting=\"false\"` set
+- [ ] **Runtime Network Validation**: verify release build traffic is TLS-only for production endpoints
+- [ ] **Data Protection UX Validation**: verify uninstall flow behavior on target devices
+- [ ] **Certificate Pinning Decision**: explicitly implement pinning or explicitly de-scope for this release stage
+
+### **Pinning Decision (Current)**
+
+- **Current state**: certificate pinning is **not** implemented in `network_security_config.xml`.
+- **Why this matters**: previous checklist text implied pinning validation was part of completed controls.
+- **Decision required before next security closure**:
+  1. Implement pinning and add release-safe rotation policy, or
+  2. Mark pinning as out-of-scope for current release stage with threat-model rationale.
 
 ### **Verification Commands**
 ```bash
@@ -226,7 +244,7 @@ adb shell dumpsys activity activities | grep wastewise
 ## 🚀 **Deployment Considerations**
 
 ### **Impact on Users**
-- **Device Compatibility**: ~5% of users on Android 6.x will be excluded
+- **Device Compatibility**: Android 6.x users are excluded by `minSdk = 24`; percentage impact is **unknown in-repo** and must be sourced from Play Console before publishing numeric claims
 - **Security**: Significantly improved security posture
 - **Performance**: No performance impact from security changes
 
@@ -249,9 +267,7 @@ adb shell dumpsys activity activities | grep wastewise
 - ✅ **Google Play Security Requirements**: Met all security guidelines
 
 ### **Regulatory Compliance**
-- ✅ **GDPR**: Explicit data handling declaration
-- ✅ **CCPA**: Clear user data protection policies
-- ✅ **SOC 2**: Security controls implemented
+- ⚠️ **GDPR/CCPA/SOC2**: Not proven by this file alone. Compliance should be tracked in a dedicated control-to-evidence register, not inferred from manifest/network settings.
 
 ## 🔄 **Ongoing Security Measures**
 
@@ -268,7 +284,7 @@ adb shell dumpsys activity activities | grep wastewise
 
 ---
 
-**Security Audit Status**: ✅ **ALL ISSUES RESOLVED**  
+**Security Audit Status**: ⚠️ **CONFIG CHANGES IMPLEMENTED; VALIDATION/POLICY ITEMS OPEN**  
 **Next Security Review**: Scheduled for Q3 2025  
 **Security Contact**: Development Team  
 **Incident Response**: See security incident response plan 

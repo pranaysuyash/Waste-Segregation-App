@@ -4,6 +4,13 @@
 **Scope:** waste_segregation_app — Flutter client + Firebase backend  
 **Status:** Initial audit — findings unverified in production environment
 
+> **Update after training-data foundation work, 2026-05-21:** The
+> `admin_classifications` ML-training risk was addressed in code by removing
+> automatic admin ML writes from user classification sync paths and introducing
+> explicit-consent `training_candidates` / `training_labels` scaffolding. The
+> remaining image-retention and deletion-flow findings in this audit still need
+> separate verification and closure.
+
 ---
 
 ## 1. Executive Summary
@@ -16,7 +23,7 @@ Beyond the image-file gap, three additional risks stand out:
 
 2. **Firebase Storage images for batch jobs and contributions have no deletion path.** `batch_images/{userId}/` and `contribution_photos/{userId}/` buckets are written but never explicitly deleted by any user-triggered flow or Cloud Function.
 
-3. **Admin ML-training collection (`admin_classifications`) is not cleared by the standard "Clear Data" / "Factory Reset" path** (`StorageService.clearAllUserData`). Only the developer-only `clearAllDataForFreshInstall` covers it. A regular user who taps "Factory Reset" in Settings has no way to remove their anonymized classifications from the ML training pipeline.
+3. **Resolved after this audit for future writes:** user classification sync no longer creates `admin_classifications` ML-training records. Historical `admin_classifications` rows still need a migration/deletion decision, and new training use must go through explicit-consent `training_candidates`.
 
 ---
 
@@ -116,7 +123,7 @@ The image is committed to `<appDocs>/images/` **unconditionally**, even if the s
 | On-device thumbnails (`thumbnails/`) | LRU-capped at 4000 files / 100 MB | LRU eviction runs on every `saveThumbnail` call; orphan cleanup requires explicit `cleanUpOrphanedThumbnails()` trigger |
 | On-device classification records (Hive) | Until factory reset | Cleared by `StorageService.clearAllUserData` |
 | Firestore `users/{uid}/classifications` | Until account deletion | `clearCloudData()` exists but is **not wired to any user-facing button** |
-| Firestore `admin_classifications` | Indefinite (ML training) | Only cleared by admin or developer fresh-install flow |
+| Firestore `admin_classifications` | Legacy/admin-only; not current training path | Automatic user-sync writes removed after this audit; historical rows still need migration/deletion policy |
 | Firebase Storage `batch_images/` | Indefinite | **No deletion code exists anywhere** |
 | Firebase Storage `contribution_photos/` | Indefinite | **No deletion code exists anywhere** |
 | OpenAI API inputs | OpenAI's terms (30 days default) | App has no mechanism to enforce deletion |

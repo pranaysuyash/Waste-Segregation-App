@@ -70,6 +70,9 @@ class StorageService {
     if (!Hive.isAdapterRegistered(4)) {
       Hive.registerAdapter(UserProfileAdapter());
     }
+    if (!Hive.isAdapterRegistered(16)) {
+      Hive.registerAdapter(TrainingConsentAdapter());
+    }
 
     // Register gamification TypeAdapters
     if (!Hive.isAdapterRegistered(5)) {
@@ -127,6 +130,43 @@ class StorageService {
     final userBox = Hive.box(StorageKeys.userBox);
     // Use TypeAdapter for binary storage
     await userBox.put(StorageKeys.userProfileKey, userProfile);
+  }
+
+  Future<void> updateTrainingConsent(TrainingConsent trainingConsent) async {
+    final currentProfile = await getCurrentUserProfile();
+    if (currentProfile == null) {
+      WasteAppLogger.warning('Training consent update skipped: no profile',
+          context: {'service': 'storage', 'file': 'storage_service'});
+      return;
+    }
+
+    await saveUserProfile(
+      currentProfile.copyWith(trainingConsent: trainingConsent),
+    );
+  }
+
+  Future<void> grantTrainingConsent({required String source}) async {
+    await updateTrainingConsent(
+      TrainingConsent(
+        enabled: true,
+        policyVersion: trainingDataPolicyVersionV1,
+        grantedAt: DateTime.now(),
+        revokedAt: null,
+        source: source,
+      ),
+    );
+  }
+
+  Future<void> revokeTrainingConsent({String source = 'settings'}) async {
+    final current = (await getCurrentUserProfile())?.trainingConsent ??
+        TrainingConsent.disabled();
+    await updateTrainingConsent(
+      current.copyWith(
+        enabled: false,
+        revokedAt: DateTime.now(),
+        source: source,
+      ),
+    );
   }
 
   Future<UserProfile?> getCurrentUserProfile() async {

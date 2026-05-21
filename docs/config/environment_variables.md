@@ -1,7 +1,7 @@
 # Environment Variables
 
-Last updated: 2026-05-21 00:41 IST
-Status: Active (P0 hardening + runtime blocker correction)
+Last updated: 2026-05-21 01:38 IST
+Status: Active (P0 monetization hardening + release-safe backend routing)
 
 ## Purpose
 Canonical env/config contract for AI, Firebase, and release safety behavior.
@@ -27,12 +27,14 @@ Important:
 - OPENAI_API_KEY
 - GEMINI_API_KEY
 
-Release safety behavior (`lib/utils/production_safety_config.dart`):
-- Release build blocks direct client provider calls by default.
+Release safety behavior (`lib/utils/production_safety_config.dart` + `lib/services/ai_service.dart`):
+- Release build routes classification through backend callable path (fail-closed).
+- Direct client provider calls are blocked by default in release.
 - To allow direct client provider calls in release (private/internal testing only):
   - ALLOW_CLIENT_AI_IN_RELEASE=true
-- Backend routing flag exists for forward compatibility:
+- Optional explicit backend routing define (debug/profile opt-in and release documentation alignment):
   - USE_BACKEND_AI_IN_RELEASE=true
+  - USE_BACKEND_CLASSIFICATION=true
 
 Model selection overrides (optional):
 - OPENAI_API_MODEL_PRIMARY (default: gpt-4.1-nano)
@@ -45,29 +47,37 @@ Token-economy toggles (optional):
 - ENABLE_SERVER_SIDE_VALIDATION
 
 ## 2) Firebase Functions / Backend runtime env
-Preferred source: process.env
-Legacy fallback: functions.config() (temporary migration bridge only)
+Preferred source: process.env only
 
 Required:
 - OPENAI_API_KEY
+- GEMINI_API_KEY
+- TRAINING_DATA_HMAC_SECRET
 
-Optional alias supported by current bridge:
+Optional alias kept for backward compatibility:
 - OPENAI_KEY
 
 Diagnostics/safety toggles:
 - ENABLE_DIAGNOSTIC_ENDPOINTS=true (controlled env only)
 - CLEAR_ALL_DATA_ENABLED=true (controlled env only, admin-gated)
+- REQUIRE_APPCHECK_CALLABLE=true (recommended in production)
+- ENFORCE_APPCHECK_IN_EMULATOR=false (optional local override)
 
-## 3) Migration policy: functions.config() -> process.env
-Current backend bridge logic:
-1) process.env.OPENAI_API_KEY
-2) process.env.OPENAI_KEY
-3) functions.config().openai.key / functions.config().openai.api_key
+Classification monetization controls:
+- CLASSIFY_ENFORCE_TOKEN_SPEND=true (default true; fail-closed)
+- CLASSIFY_IMAGE_TOKEN_COST=5
+- CLASSIFY_IMAGE_PREMIUM_DISCOUNT_PERCENT=50
+- CLASSIFY_IMAGE_MAX_REQUESTS=10
+- CLASSIFY_IMAGE_WINDOW_SECONDS=60
+- CLASSIFY_CACHE_TTL_SECONDS=86400
+
+## 3) Backend migration policy
+The backend now resolves secrets from environment variables only.
 
 Required closure steps:
-1. Provision OPENAI_API_KEY across all environments.
-2. Validate no runtime dependency on functions.config() fallback.
-3. Remove fallback + keep precedence test green.
+1. Provision `OPENAI_API_KEY`, `GEMINI_API_KEY`, and `TRAINING_DATA_HMAC_SECRET` across all environments.
+2. Keep diagnostics and destructive operations env-gated.
+3. Avoid reintroducing `functions.config()` for secret resolution.
 
 ## 4) Security rules
 - Never commit real keys/tokens in source.
@@ -78,6 +88,6 @@ Required closure steps:
 ## 5) Validation checklist
 - Flutter release build without ALLOW_CLIENT_AI_IN_RELEASE blocks direct client AI calls.
 - Web Firebase initialization succeeds via Dart-defined options (not manual HTML config).
-- Backend resolves OPENAI_API_KEY from process.env.
+- Backend resolves secret values from process.env.
 - `npm --prefix functions run test:key-resolution` passes.
 - No hardcoded provider keys remain in repo source.

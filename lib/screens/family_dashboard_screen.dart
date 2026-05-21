@@ -25,10 +25,23 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   late FirebaseFamilyService _familyService;
   String? _familyId;
   family_models.FamilyStats? _familyStats;
+  Stream<family_models.Family?>? _familyStream;
+  Stream<List<invitation_models.FamilyInvitation>>? _invitationStatsStream;
+  Stream<List<SharedWasteClassification>>? _recentActivityStream;
   List<user_profile_models.UserProfile> _members = [];
   String? _error;
   bool _isInitialLoading = true;
   bool _isStatsLoading = false;
+
+  AppBar _buildFamilyAppBar(String title) {
+    return AppBar(
+      title: Text(title),
+      centerTitle: false,
+      elevation: 0,
+      backgroundColor: AppTheme.primaryColor,
+      foregroundColor: Colors.white,
+    );
+  }
 
   @override
   void initState() {
@@ -53,11 +66,19 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
         setState(() {
           // Don't set error - this is a normal state when user has no family
           _familyId = null;
+          _familyStream = null;
+          _invitationStatsStream = null;
+          _recentActivityStream = null;
           _isInitialLoading = false;
           _isStatsLoading = false;
         });
       } else {
         _familyId = currentUser!.familyId!;
+        _familyStream = _familyService.getFamilyStream(_familyId!);
+        _invitationStatsStream =
+            _familyService.getInvitationsStream(_familyId!);
+        _recentActivityStream =
+            _familyService.getFamilyClassificationsStream(_familyId!);
         await Future.wait([
           _loadMembers(),
           _loadFamilyStats(),
@@ -72,6 +93,9 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       setState(() {
         _error = 'Failed to get your family information: ${e.toString()}';
         _familyId = null;
+        _familyStream = null;
+        _invitationStatsStream = null;
+        _recentActivityStream = null;
         _isInitialLoading = false;
         _isStatsLoading = false;
       });
@@ -123,33 +147,30 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   Widget build(BuildContext context) {
     if (_isInitialLoading) {
       return Scaffold(
-        appBar: widget.showAppBar
-            ? AppBar(title: const Text('Family Dashboard'))
-            : null,
+        appBar:
+            widget.showAppBar ? _buildFamilyAppBar('Family Dashboard') : null,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_familyId == null && _error != null) {
       return Scaffold(
-        appBar: widget.showAppBar
-            ? AppBar(title: const Text('Family Dashboard'))
-            : null,
+        appBar:
+            widget.showAppBar ? _buildFamilyAppBar('Family Dashboard') : null,
         body: _buildErrorState(_error!),
       );
     }
 
     if (_familyId == null && _error == null) {
       return Scaffold(
-        appBar: widget.showAppBar
-            ? AppBar(title: const Text('Family Dashboard'))
-            : null,
+        appBar:
+            widget.showAppBar ? _buildFamilyAppBar('Family Dashboard') : null,
         body: _buildNoFamilyState(),
       );
     }
 
     return StreamBuilder<family_models.Family?>(
-      stream: _familyService.getFamilyStream(_familyId!),
+      stream: _familyStream ?? Stream<family_models.Family?>.value(null),
       builder: (context, familySnapshot) {
         final family = familySnapshot.data;
         final appBarTitle = widget.showAppBar
@@ -160,11 +181,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             : '';
 
         return Scaffold(
-          appBar: widget.showAppBar
-              ? AppBar(
-                  title: Text(appBarTitle),
-                )
-              : null,
+          appBar: widget.showAppBar ? _buildFamilyAppBar(appBarTitle) : null,
           body: _buildBodyContent(familySnapshot, family, _familyStats),
         );
       },
@@ -279,7 +296,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
             const SizedBox(height: AppTheme.paddingLarge),
             _buildMembersSection(family),
             const SizedBox(height: AppTheme.paddingLarge),
-            _buildInvitationStatsCard(family.id),
+            _buildInvitationStatsCard(),
             const SizedBox(height: AppTheme.paddingLarge),
             _buildRecentActivityStream(),
             const SizedBox(height: AppTheme.paddingLarge),
@@ -613,9 +630,13 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     );
   }
 
-  Widget _buildInvitationStatsCard(String familyId) {
+  Widget _buildInvitationStatsCard() {
+    if (_invitationStatsStream == null) {
+      return const SizedBox.shrink();
+    }
+
     return StreamBuilder<List<invitation_models.FamilyInvitation>>(
-      stream: _familyService.getInvitationsStream(familyId),
+      stream: _invitationStatsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {
@@ -694,9 +715,10 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
 
   Widget _buildRecentActivityStream() {
     if (_familyId == null) return const SizedBox.shrink();
+    if (_recentActivityStream == null) return const SizedBox.shrink();
 
     return StreamBuilder<List<SharedWasteClassification>>(
-      stream: _familyService.getFamilyClassificationsStream(_familyId!),
+      stream: _recentActivityStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {

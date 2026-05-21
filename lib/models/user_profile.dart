@@ -4,6 +4,83 @@ import 'package:hive/hive.dart';
 
 part 'user_profile.g.dart';
 
+const String trainingDataPolicyVersionV1 = 'training-data-v1';
+
+/// Explicit opt-in state for using submitted waste photos/corrections to
+/// improve classification models.
+///
+/// This is intentionally separate from generic privacy/data-processing consent:
+/// training use has a different purpose, retention model, and deletion path.
+@HiveType(typeId: 16)
+class TrainingConsent {
+  const TrainingConsent({
+    this.enabled = false,
+    this.policyVersion = trainingDataPolicyVersionV1,
+    this.grantedAt,
+    this.revokedAt,
+    this.source,
+  });
+
+  factory TrainingConsent.disabled() => const TrainingConsent();
+
+  factory TrainingConsent.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return TrainingConsent.disabled();
+    return TrainingConsent(
+      enabled: json['enabled'] == true,
+      policyVersion:
+          json['policyVersion'] as String? ?? trainingDataPolicyVersionV1,
+      grantedAt: json['grantedAt'] != null
+          ? DateTime.tryParse(json['grantedAt'] as String)
+          : null,
+      revokedAt: json['revokedAt'] != null
+          ? DateTime.tryParse(json['revokedAt'] as String)
+          : null,
+      source: json['source'] as String?,
+    );
+  }
+
+  @HiveField(0)
+  final bool enabled;
+
+  @HiveField(1)
+  final String policyVersion;
+
+  @HiveField(2)
+  final DateTime? grantedAt;
+
+  @HiveField(3)
+  final DateTime? revokedAt;
+
+  @HiveField(4)
+  final String? source;
+
+  TrainingConsent copyWith({
+    bool? enabled,
+    String? policyVersion,
+    DateTime? grantedAt,
+    DateTime? revokedAt,
+    String? source,
+  }) {
+    return TrainingConsent(
+      enabled: enabled ?? this.enabled,
+      policyVersion: policyVersion ?? this.policyVersion,
+      grantedAt: grantedAt ?? this.grantedAt,
+      revokedAt: revokedAt ?? this.revokedAt,
+      source: source ?? this.source,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'enabled': enabled,
+      'policyVersion': policyVersion,
+      'grantedAt': grantedAt?.toIso8601String(),
+      'revokedAt': revokedAt?.toIso8601String(),
+      'source': source,
+    };
+  }
+}
+
 /// Defines the roles a user can have within a family or team.
 @HiveType(typeId: 3)
 enum UserRole {
@@ -43,7 +120,8 @@ class UserProfile {
     this.gamificationProfile,
     this.tokenWallet,
     this.tokenTransactions,
-  });
+    TrainingConsent? trainingConsent,
+  }) : trainingConsent = trainingConsent ?? TrainingConsent.disabled();
 
   /// Creates a UserProfile instance from a JSON map.
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -78,6 +156,9 @@ class UserProfile {
               .map((e) => TokenTransaction.fromJson(e as Map<String, dynamic>))
               .toList()
           : null,
+      trainingConsent: TrainingConsent.fromJson(
+        json['trainingConsent'] as Map<String, dynamic>?,
+      ),
     );
   }
 
@@ -129,6 +210,10 @@ class UserProfile {
   @HiveField(11)
   final List<TokenTransaction>? tokenTransactions;
 
+  /// Explicit, purpose-specific model-improvement consent. Defaults off.
+  @HiveField(12)
+  final TrainingConsent trainingConsent;
+
   /// Creates a copy of this UserProfile but with the given fields replaced.
   UserProfile copyWith({
     String? id,
@@ -143,6 +228,7 @@ class UserProfile {
     GamificationProfile? gamificationProfile,
     TokenWallet? tokenWallet,
     List<TokenTransaction>? tokenTransactions,
+    TrainingConsent? trainingConsent,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -157,6 +243,7 @@ class UserProfile {
       gamificationProfile: gamificationProfile ?? this.gamificationProfile,
       tokenWallet: tokenWallet ?? this.tokenWallet,
       tokenTransactions: tokenTransactions ?? this.tokenTransactions,
+      trainingConsent: trainingConsent ?? this.trainingConsent,
     );
   }
 
@@ -175,6 +262,7 @@ class UserProfile {
       'gamificationProfile': gamificationProfile?.toJson(),
       'tokenWallet': tokenWallet?.toJson(),
       'tokenTransactions': tokenTransactions?.map((e) => e.toJson()).toList(),
+      'trainingConsent': trainingConsent.toJson(),
     };
   }
 }

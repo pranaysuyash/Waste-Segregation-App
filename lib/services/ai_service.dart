@@ -44,7 +44,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 ///   concatenation (`RegExp(r'"([^"]+)"|' + r"'([^']+)'")`) to correctly
 ///   handle both double and single-quoted values.
 class AiService {
-
   /// Constructs an [AiService].
   ///
   /// Initializes API configurations and the [ClassificationCacheService].
@@ -316,6 +315,19 @@ class AiService {
         kind == AiFailureKind.unsafeClientAiBlocked ||
         kind == AiFailureKind.auth ||
         kind == AiFailureKind.budgetExceeded;
+  }
+
+  bool get _backendRoutingEnabled {
+    // Motto-aligned invariant:
+    // - release builds must use backend classification path
+    // - debug/profile can opt in via USE_BACKEND_CLASSIFICATION
+    return kReleaseMode ||
+        ProductionSafetyConfig.useBackendAiInRelease ||
+        BackendProxyProvider.isEnabled;
+  }
+
+  bool get _backendRoutingFailClosed {
+    return kReleaseMode || ProductionSafetyConfig.useBackendAiInRelease;
   }
 
   String _buildContextSignature({
@@ -804,10 +816,9 @@ Output:
         }
       }
 
-      // Backend proxy route — takes priority over direct OpenAI/Gemini when
-      // built with --dart-define=USE_BACKEND_CLASSIFICATION=true.
-      // Enforces App Check + Auth server-side; no ProductionSafetyException here.
-      if (BackendProxyProvider.isEnabled) {
+      // Backend proxy route — mandatory in release (fail-closed), optional opt-in
+      // in debug/profile via USE_BACKEND_CLASSIFICATION.
+      if (_backendRoutingEnabled) {
         try {
           return await _analyzeWithBackend(
             await permanentFile.readAsBytes(),
@@ -820,15 +831,15 @@ Output:
             thumbnailPath: thumbnailPath,
           );
         } on AiFailure catch (e) {
-          if (e.kind == AiFailureKind.cancelled ||
+          if (_backendRoutingFailClosed ||
+              e.kind == AiFailureKind.cancelled ||
               e.kind == AiFailureKind.auth ||
               e.kind == AiFailureKind.budgetExceeded) {
             rethrow;
           }
           WasteAppLogger.warning(
-            '[BackendProxy] Failed (${e.kind.name}), falling back to direct provider.',
+            '[BackendProxy] Failed (${e.kind.name}), falling back to direct provider (non-release only).',
           );
-          // fall through to direct OpenAI path
         }
       }
 
@@ -1005,8 +1016,9 @@ Output:
         }
       }
 
-      // Backend proxy route (web path) — same logic as mobile path above.
-      if (BackendProxyProvider.isEnabled) {
+      // Backend proxy route (web path) — mandatory in release (fail-closed),
+      // optional opt-in in debug/profile via USE_BACKEND_CLASSIFICATION.
+      if (_backendRoutingEnabled) {
         try {
           return await _analyzeWithBackend(
             imageBytes,
@@ -1018,13 +1030,14 @@ Output:
             contentHash: contentHash,
           );
         } on AiFailure catch (e) {
-          if (e.kind == AiFailureKind.cancelled ||
+          if (_backendRoutingFailClosed ||
+              e.kind == AiFailureKind.cancelled ||
               e.kind == AiFailureKind.auth ||
               e.kind == AiFailureKind.budgetExceeded) {
             rethrow;
           }
           WasteAppLogger.warning(
-            '[BackendProxy] Web failed (${e.kind.name}), falling back to direct provider.',
+            '[BackendProxy] Web failed (${e.kind.name}), falling back to direct provider (non-release only).',
           );
         }
       }

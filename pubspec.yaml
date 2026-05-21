@@ -78,7 +78,6 @@ dependencies:
   geoflutterfire_plus: ^0.0.32 # For Firebase geospatial queries
 
   flutter_markdown: any
-  firebase_dynamic_links: any
   flutter_image_compress: ^2.3.0
 
   # --- On-Device ML & Computer Vision ---

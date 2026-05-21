@@ -44,7 +44,7 @@ This directory contains all development, build, testing, and maintenance scripts
 # 1. Test API connectivity (if having classification issues)
 ./scripts/testing/test_api_connectivity.sh
 
-# 2. Run the app with environment validation
+# 2. Run app on connected phone (auto-detects adb device, always loads .env)
 ./scripts/development/run_with_env.sh
 
 # 3. Quick testing during development
@@ -88,6 +88,18 @@ This directory contains all development, build, testing, and maintenance scripts
 
 ### **Environment Management**
 ```bash
+# One-time install/update on connected Android phone with .env keys embedded
+./scripts/development/install_android_with_env.sh
+
+# Install/update specific device explicitly
+./scripts/development/install_android_with_env.sh 192.168.1.5:40667
+
+# Run directly on connected phone with .env
+./scripts/development/run_with_env.sh
+
+# Run on a specific device
+./scripts/development/run_with_env.sh 192.168.1.5:40667
+
 # Switch Flutter channels
 ./scripts/development/switch_flutter_channel.sh stable
 ./scripts/development/switch_flutter_channel.sh beta

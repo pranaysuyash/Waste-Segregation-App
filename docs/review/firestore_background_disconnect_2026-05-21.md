@@ -35,3 +35,16 @@ This pattern is consistent with Firestore/network activity dropping as the app b
 ## Notes
 
 The change reduces avoidable backend churn and log noise when the app backgrounds, but it does not prove the emulator/device disconnect was entirely caused by app code. If the disconnect still appears after this change, the next place to inspect is the active Firestore stream owners in the family/community screens.
+
+## Follow-up (continued)
+
+- `lib/screens/family_dashboard_screen.dart`
+  - Cached family, invitation, and activity Firestore streams in state.
+  - Streams are created only after `familyId` is loaded and reused across rebuilds.
+- `lib/screens/family_management_screen.dart`
+  - Cached family, members, and invitations streams in state.
+  - Bound stream set updates when navigation target family changes.
+- `lib/screens/disposal_facilities_screen.dart`
+  - Cached the facilities query stream instead of calling `snapshots()` on every build.
+  - Stream is refreshed only when source/active-only filters change.
+  - Search changes continue to filter results client-side without creating new Firestore listeners.

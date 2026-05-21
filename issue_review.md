@@ -3,6 +3,7 @@
 ## What was accomplished
 
 ### Fixed tasks
+
 | Task | Status | Files |
 |------|--------|-------|
 | Retake Photo navigation | ✅ | `enhanced_reanalysis_widget.dart` — `pushNamedAndRemoveUntil` |
@@ -16,6 +17,7 @@
 | Syntax error `FutureBuilder<NearMilestoneNudge?(` | ✅ Fixed | `lib/screens/result_screen.dart:1766` |
 
 ### In progress
+
 | Task | Status | Files |
 |------|--------|-------|
 | `test/widgets/navigation_test.dart` | ❌ Blocked | Full dependency chain broken by parallel agents |

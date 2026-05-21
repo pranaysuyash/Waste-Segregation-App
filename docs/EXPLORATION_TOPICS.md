@@ -90,7 +90,8 @@ If you see drift between this index and any of the above, **the source artefact 
 │                                                                               │
 │  AI & VISION                                  ON-DEVICE & EDGE                │
 │  ├── Multi-Model AI Routing       [🔴]        ├── On-Device Inference   [🔴] │
-│  ├── Classification Confidence    [🟡]        ├── Model Cascades        [🟡] │
+│  ├── Multi-Model AI Stack         [🔴]        ├── Model Cascades        [🟡] │
+│  ├── Classification Confidence    [🟡]        ├── Battery / Thermal      [🟢] │
 │  ├── Disposal Reasoning Stage     [🟡]        ├── Battery / Thermal     [🟢] │
 │  ├── Region-Aware Rulesets        [🔴]        └── Offline-First Flow    [🟡] │
 │  └── Eval Harness & Golden Sets   [🔴]                                       │
@@ -226,6 +227,72 @@ Reading rules:
 **Deliverable**: `docs/exploration/MULTI_MODEL_AI_ROUTING.md` covering candidate stack, routing rules, eval methodology, cost model.
 
 **Related**: On-Device Inference, AI Cost Telemetry, Eval Harness.
+
+### 1a. Multi-Model AI Stack for the Product Loop 🔴 [SEED]
+
+**Status**: Added 2026-05-21 — deferred roadmap exploration for later work.
+
+**Overview**: Treat classification as a stack, not one model. The stack should orchestrate:
+
+- capture pre-checks (quality/PII),
+- per-object vision understanding (detection/segmentation),
+- material/category classification,
+- regional disposal policy application,
+- user correction intake,
+- evaluation + data-quality gating,
+- model routing and active-learning loops.
+
+This explicitly decouples "understanding the image" from "telling the user what to do."
+
+**Decision it unblocks**: Long-term move from single-cloud dependency toward local-first + escalation-first classification with measurable accuracy/cost gains.
+
+**Key questions**:
+
+- Which stages can be deterministic, and which require learned models?
+- What privacy gate is required before any image enters training/eval pools?
+- How do we combine duplicate detection, image quality, confidence, and policy risk to route each image?
+- Which models are highest leverage for phase 1–2 rollout: quality, duplicate, simple material/category?
+- What are the minimal golden/eval definitions before any model upgrade is accepted?
+- How do we version model-stack outputs for auditability (component outputs + route + ruleset version)?
+
+**What this lane includes**:
+
+- Waste image classifier (category/material prediction + confidence).
+- Multi-object detection and segmentation for cluttered scenes.
+- Image-quality precheck (blur, darkness, glare, framing, distance, obstructions).
+- Privacy/PII risk scoring (faces, addresses, prescriptions, licenses, etc.).
+- Duplicate and near-duplicate suppression (hash + embedding similarity).
+- Confidence calibration and explicit `needsReview` states.
+- Model router/escalation policy (cache, local, cloud tiering, manual review).
+- Region-aware disposal recommendation model (policy-assisted, not policy-decider).
+- OCR / label-text extraction and barcode-assisted classification.
+- Active learning and correction-question strategy.
+- Training-data quality scoring for dataset admission.
+- Golden eval dataset and safety-focused evaluation.
+- Personalised education, habit, and anti-abuse recommendations.
+- On-device start-path (quality + duplicate + simple categories), then expansion to harder cases.
+
+**Preferred sequencing (for later execution)**:
+
+1. Data foundation: consent, correction capture, dataset schema/versioning, redaction, eval harness.
+2. Routing readiness: quality + duplicate + calibration + provider-cost routing.
+3. Small classifiers: wet/dry/hazardous/e-waste + material family.
+4. Advanced CV: detection + segmentation + OCR/barcode-assisted classification.
+5. Product intelligence: personalization, abuse detection, retention nudges.
+
+**Kill criteria**:
+
+- No measurable eval improvement after 2–3 controlled routing experiments.
+- Privacy risk cannot be reduced to deterministic policy + reviewer workflow.
+- Data capture cost exceeds gains without clear moat gain (regional rules, corrections, eval coverage).
+
+**Deliverable**:
+- `docs/exploration/MULTI_MODEL_AI_STACK.md` with model-by-model scope, required labels, routing policy, and phase gates.
+- `docs/exploration/MULTI_MODEL_AI_STACK_CONTRACTS.md` with input/output contracts and telemetry for each model lane.
+- `docs/exploration/MULTI_MODEL_AI_STACK_PHASE1_EXECUTION.md` for a concrete phase-1 backlog, acceptance criteria, and sequencing.
+- `docs/exploration/MULTI_MODEL_AI_STACK_DATA_AND_CONSENT_READINESS.md` for consent, redaction, and training/eval-data gate requirements.
+
+**Related**: On-Device Inference, Eval Harness, AI Cost Telemetry, Privacy / Photo PII, Data Retention & PII Strategy.
 
 ---
 

@@ -29,6 +29,9 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   user_models.UserProfile? _currentUser;
   late final FirebaseFamilyService _familyService;
   late family_models.Family _currentFamily;
+  late Stream<family_models.Family?> _familyStream;
+  late Stream<List<user_models.UserProfile>> _membersStream;
+  late Stream<List<invitation_models.FamilyInvitation>> _invitationsStream;
 
   @override
   void initState() {
@@ -42,8 +45,24 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
           }
         })();
     _currentFamily = widget.family;
+    _bindFamilyStreams(widget.family.id);
     _tabController = TabController(length: 3, vsync: this);
     _loadInitialUserData();
+  }
+
+  @override
+  void didUpdateWidget(covariant FamilyManagementScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.family.id != oldWidget.family.id) {
+      _currentFamily = widget.family;
+      _bindFamilyStreams(widget.family.id);
+    }
+  }
+
+  void _bindFamilyStreams(String familyId) {
+    _familyStream = _familyService.getFamilyStream(familyId);
+    _membersStream = _familyService.getFamilyMembersStream(familyId);
+    _invitationsStream = _familyService.getInvitationsStream(familyId);
   }
 
   @override
@@ -77,7 +96,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<family_models.Family?>(
-      stream: _familyService.getFamilyStream(widget.family.id),
+      stream: _familyStream,
       initialData: _currentFamily,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
@@ -127,7 +146,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
 
   Widget _buildMembersTab(family_models.Family family) {
     return StreamBuilder<List<user_models.UserProfile>>(
-      stream: _familyService.getFamilyMembersStream(family.id),
+      stream: _membersStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -288,7 +307,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
 
   Widget _buildInvitationsTab(family_models.Family family) {
     return StreamBuilder<List<invitation_models.FamilyInvitation>>(
-      stream: _familyService.getInvitationsStream(family.id),
+      stream: _invitationsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());

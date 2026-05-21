@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 const admin = require('firebase-admin');
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT || 'waste-segregation-app-df523';
@@ -60,6 +61,24 @@ async function upsertUserProfile(uid, tokenBalance) {
     tokenTransactions: [],
     lastActive: new Date().toISOString(),
   }, { merge: true });
+}
+
+async function invokeCallable(functionName, token, data) {
+  const response = await fetch(`${FUNCTIONS_BASE}/${functionName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ data }),
+  });
+  const body = await response.json();
+  return { response, body };
+}
+
+function makeTinyPngBase64() {
+  // 1x1 PNG
+  return 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO6QmNsAAAAASUVORK5CYII=';
 }
 
 test('testOpenAI enforces admin token and returns minimal payload for admin', async () => {
@@ -152,4 +171,74 @@ test('spendUserTokens callable enforces auth and deducts from wallet server-side
   assert.equal(payload.success, true);
   assert.equal(payload.wallet.balance, 47);
   assert.equal(payload.transaction.delta, -3);
+});
+
+test('classifyImage denies execution when token wallet is insufficient', async () => {
+  const token = await createOrResetUser({
+    uid: 'it-classify-no-tokens',
+    email: 'it-classify-no-tokens@example.com',
+    password: 'Test1!',
+    adminClaim: false,
+  });
+  await upsertUserProfile('it-classify-no-tokens', 0);
+
+  const { response, body } = await invokeCallable('classifyImage', token, {
+    imageBase64: makeTinyPngBase64(),
+    mimeType: 'image/png',
+    region: 'Bangalore, IN',
+    lang: 'en',
+  });
+
+  assert.equal(response.status, 400);
+  const message = body?.error?.message ?? '';
+  assert.match(message, /Insufficient tokens/i);
+});
+
+test('classifyImage cache hit does not charge tokens when classification is already cached', async () => {
+  const token = await createOrResetUser({
+    uid: 'it-classify-cache-hit',
+    email: 'it-classify-cache-hit@example.com',
+    password: 'Test1!',
+    adminClaim: false,
+  });
+  await upsertUserProfile('it-classify-cache-hit', 12);
+
+  const imageBase64 = makeTinyPngBase64();
+  const region = 'Bangalore, IN';
+  const lang = 'en';
+  const serverHash = createHash('sha256').update(imageBase64).digest('hex');
+  const cacheDocId = `${serverHash}::${region}::${lang}`;
+  const nowEpoch = Math.floor(Date.now() / 1000);
+
+  await admin.firestore().collection('classifications').doc(cacheDocId).set({
+    itemName: 'Cached bottle',
+    category: 'Dry Waste',
+    explanation: 'Cached classification',
+    disposalInstructions: {
+      primaryMethod: 'Recycle',
+      steps: ['Clean item', 'Place in dry waste bin'],
+      hasUrgentTimeframe: false,
+    },
+    region,
+    visualFeatures: ['transparent bottle'],
+    alternatives: [],
+    cachedAtEpoch: nowEpoch,
+    provider: 'cache',
+    model: 'cache',
+  });
+
+  const { response, body } = await invokeCallable('classifyImage', token, {
+    imageBase64,
+    mimeType: 'image/png',
+    region,
+    lang,
+  });
+
+  assert.equal(response.status, 200);
+  const classification = body?.result?.classification ?? body?.classification;
+  assert.equal(classification?.itemName, 'Cached bottle');
+
+  const userSnap = await admin.firestore().collection('users').doc('it-classify-cache-hit').get();
+  const wallet = userSnap.data()?.tokenWallet;
+  assert.equal(wallet?.balance, 12);
 });

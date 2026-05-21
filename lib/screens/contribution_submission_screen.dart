@@ -9,6 +9,7 @@ import '../models/user_contribution.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../utils/firebase_gate.dart';
+import '../utils/waste_app_logger.dart';
 import '../services/firestore_schema_registry.dart';
 
 class ContributionSubmissionScreen extends StatefulWidget {
@@ -878,7 +879,7 @@ class _ContributionSubmissionScreenState
         photoUrls.add(downloadUrl);
       } catch (e) {
         // Log error but continue with other images
-        debugPrint('Error uploading photo $i: $e');
+        WasteAppLogger.warning('Error uploading photo $i', error: e);
         // Optionally show a snackbar to user
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

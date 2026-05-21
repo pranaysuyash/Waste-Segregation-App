@@ -5,14 +5,14 @@ A comprehensive Flutter application for proper waste identification, segregation
 ## ⚡ Start Here by Role
 
 - **Product / QA reviewer**
-   - Read this README sections: `Current Status`, `Latest Updates`, and `Troubleshooting`
-   - Run app and validate core user flows (capture, classify, disposal guidance)
+  - Read this README sections: `Current Status`, `Latest Updates`, and `Troubleshooting`
+  - Run app and validate core user flows (capture, classify, disposal guidance)
 - **Flutter engineer**
-   - Read `docs/APP_KNOWLEDGE_BASE.md` first
-   - Then `docs/DOCUMENTATION_INDEX.md` for targeted deep dives
+  - Read `docs/APP_KNOWLEDGE_BASE.md` first
+  - Then `docs/DOCUMENTATION_INDEX.md` for targeted deep dives
 - **AI/coding agent**
-   - Read `docs/APP_KNOWLEDGE_BASE.md` (required)
-   - Then `docs/.AGENT_INSTRUCTIONS.md` for execution protocol
+  - Read `docs/APP_KNOWLEDGE_BASE.md` (required)
+  - Then `docs/.AGENT_INSTRUCTIONS.md` for execution protocol
 
 ## ✅ Quick Sanity Checks
 
