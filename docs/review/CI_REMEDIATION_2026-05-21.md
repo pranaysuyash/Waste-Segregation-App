@@ -23,6 +23,12 @@ Follow-up remediation after `Build and Test` failures on main.
   - Updated `golden_tests` runner from `ubuntu-latest` to `macos-14`.
   - Reason: baseline goldens are stable in macOS local runs and were failing in Linux CI with widespread visual diffs.
 
+4. Test job stability guardrails
+- File: `.github/workflows/build_and_test.yml`
+  - Added `timeout-minutes: 35` to `Run Tests` job.
+  - Switched test command to `flutter test --exclude-tags=golden --concurrency=1` to avoid cross-test parallel contention and long-running hangs.
+  - Made Codecov upload conditional on `coverage/lcov.info` existing.
+
 ## Verification executed locally
 
 - `dart format --set-exit-if-changed .` => PASS (0 changed)
