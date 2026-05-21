@@ -73,7 +73,7 @@ jobs:
   # This provides the "Golden Tests & Visual Diff" status check
   golden_tests:
     name: Golden Tests & Visual Diff
-    runs-on: ubuntu-latest
+    runs-on: macos-14
     
     steps:
     - name: Checkout code
