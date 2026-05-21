@@ -117,10 +117,21 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
         alignment: Alignment.center,
         children: [
           if (isLevelUp)
-            AnimationHelpers.createParticleBurst(
-              color: AppTheme.primaryColor,
-              size: 150,
-              controller: _animationController,
+            Positioned.fill(
+              child: Center(
+                child: Opacity(
+                  opacity: 0.95,
+                  child: Transform.scale(
+                    scale: 1.0 + (_animationController.value * 0.08),
+                    child: Image.asset(
+                      'assets/images/generated/gamification_levelup_burst.png',
+                      width: 160,
+                      height: 160,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
             ),
           Container(
             padding: const EdgeInsets.all(AppTheme.paddingSmall),
@@ -141,11 +152,11 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                     return Transform.scale(
                       scale: isLevelUp ? _scaleAnimation.value : 1.0,
                       child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          shape: BoxShape.circle,
-                          boxShadow: isLevelUp
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            shape: BoxShape.circle,
+                            boxShadow: isLevelUp
                               ? [
                                   BoxShadow(
                                     color: AppTheme.primaryColor
@@ -156,13 +167,30 @@ class _EnhancedPointsIndicatorState extends State<EnhancedPointsIndicator>
                                 ]
                               : null,
                         ),
-                        child: Text(
-                          '${widget.points.level}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: AppTheme.fontSizeSmall,
-                          ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (isLevelUp)
+                              Positioned.fill(
+                                child: ClipOval(
+                                  child: Opacity(
+                                    opacity: 0.18,
+                                    child: Image.asset(
+                                      'assets/images/generated/gamification_levelup_burst.png',
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            Text(
+                              '${widget.points.level}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: AppTheme.fontSizeSmall,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -926,25 +954,40 @@ class _EnhancedAchievementNotificationState
                       ),
 
                       // Achievement icon
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color:
-                              widget.achievement.color.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: widget.achievement.color,
-                            width: 2,
-                          ),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            AppIcons.fromString(widget.achievement
-                                .iconName), // Assumes AppIcons.fromString exists
-                            color: widget.achievement.color,
-                            size: 32,
-                          ),
+                      SizedBox(
+                        width: 74,
+                        height: 74,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/images/generated/gamification_unlock_badge_frame.png',
+                              width: 74,
+                              height: 74,
+                              fit: BoxFit.contain,
+                            ),
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: widget.achievement.color
+                                    .withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: widget.achievement.color,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  AppIcons.fromString(widget.achievement
+                                      .iconName), // Assumes AppIcons.fromString exists
+                                  color: widget.achievement.color,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 
@@ -986,39 +1029,52 @@ class _EnhancedAchievementNotificationState
                       const SizedBox(height: AppTheme.paddingRegular),
 
                       // Points reward
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppTheme.paddingRegular,
-                          vertical: AppTheme.paddingSmall,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(
-                              AppTheme.borderRadiusRegular),
-                          border: Border.all(
-                              color: Colors.amber.withValues(alpha: 0.5)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.stars,
-                              color: Colors.amber,
-                              size: 20,
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/images/generated/gamification_unlock_badge_frame.png',
+                            width: 88,
+                            height: 88,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: AppTheme.paddingSmall),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppTheme.paddingRegular,
+                              vertical: AppTheme.paddingSmall,
                             ),
-                            const SizedBox(width: AppTheme.paddingSmall),
-                            Text(
-                              '+${widget.achievement.pointsReward} Points',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    // Use theme
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.borderRadiusRegular,
+                              ),
+                              border: Border.all(
+                                color: Colors.amber.withValues(alpha: 0.5),
+                              ),
                             ),
-                          ],
-                        ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.stars,
+                                  color: Colors.amber,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: AppTheme.paddingSmall),
+                                Text(
+                                  '+${widget.achievement.pointsReward} Points',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(

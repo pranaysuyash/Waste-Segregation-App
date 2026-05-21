@@ -441,6 +441,16 @@
     "description": "Second line of the settings about dialog body"
   },
 
+  "appName": "Waste Segregation App",
+  "@appName": {
+    "description": "Application name used in About dialogs and settings surfaces"
+  },
+
+  "newBadge": "NEW",
+  "@newBadge": {
+    "description": "Badge label for newly added settings items"
+  },
+
   "developerModeToggled": "Developer mode {status}",
   "@developerModeToggled": {
     "description": "Developer mode feedback message",

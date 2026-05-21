@@ -254,6 +254,7 @@ class StorageService {
     bool force = false,
   }) async {
     StoragePerformanceMonitor.startOperation('saveClassification');
+    try {
     final now = DateTime.now();
     final userProfile = await getCurrentUserProfile();
     final currentUserId = userProfile?.id ?? 'guest_user';
@@ -268,7 +269,6 @@ class StorageService {
       final recentSaveTime = _recentSaves[contentHash];
       if (recentSaveTime != null &&
           now.difference(recentSaveTime).inSeconds < 60) {
-        StoragePerformanceMonitor.endOperation('saveClassification');
         return ClassificationSaveResult(
           saved: false,
           wasDuplicate: true,
@@ -278,7 +278,6 @@ class StorageService {
     }
 
     if (_activeSaves.contains(classification.id)) {
-      StoragePerformanceMonitor.endOperation('saveClassification');
       return ClassificationSaveResult(
         saved: false,
         wasDuplicate: true,
@@ -288,7 +287,6 @@ class StorageService {
 
     _activeSaves.add(classification.id);
 
-    try {
       final classificationsBox = Hive.box(StorageKeys.classificationsBox);
       final hashesBox = Hive.box<String>('classificationHashesBox');
 

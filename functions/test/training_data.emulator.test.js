@@ -9,6 +9,7 @@ const FUNCTIONS_BASE = `http://127.0.0.1:5001/${PROJECT_ID}/asia-south1`;
 
 process.env.FIREBASE_AUTH_EMULATOR_HOST = AUTH_EMULATOR_HOST;
 process.env.FIRESTORE_EMULATOR_HOST = FIRESTORE_EMULATOR_HOST;
+process.env.FUNCTIONS_EMULATOR = 'true';
 
 if (!admin.apps.length) {
   admin.initializeApp({ projectId: PROJECT_ID });

@@ -209,9 +209,12 @@ export const enqueueTrainingCandidate = asiaSouth1.https.onCall(async (data, con
     confidence: classification.confidence ?? null,
     region: classification.region ?? null,
   };
+  const qualityReasons = Array.isArray(classification.qualityReasons)
+    ? classification.qualityReasons
+    : [];
   const pipeline = {
     qualityScore: classification.qualityScore ?? null,
-    qualityReasons: classification.qualityReasons ?? [],
+    qualityReasons,
     duplicateScore: classification.duplicateScore ?? null,
     duplicateClusterId: classification.duplicateClusterId ?? null,
     rawConfidence: classification.rawConfidence ?? classification.confidence ?? null,

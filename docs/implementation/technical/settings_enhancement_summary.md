@@ -2,18 +2,18 @@
 
 ## Overview
 
-This document summarizes the enhancements applied to the modular settings slice. The app now routes `Routes.settings` to `EnhancedSettingsScreen`, but the i18n story is still partial and should not be treated as finished.
+This document summarizes the enhancements applied to the modular settings slice. The app now routes `Routes.settings` to `EnhancedSettingsScreen`, and most visible settings strings now resolve through `AppLocalizations`, but a few visible labels and compatibility/demo strings still need follow-up cleanup before the i18n story can be called complete.
 
 ## ✅ Completed Enhancements
 
 ### 1. Full Internationalization (i18n) Foundation
 - **ARB File**: Created comprehensive `lib/l10n/app_en.arb` with 100+ localized strings
 - **Configuration**: Set up `l10n.yaml` and `pubspec.yaml` for gen_l10n
-- **String Coverage**: All user-facing strings identified and prepared for localization
-- **TODO Markers**: All hardcoded strings marked with `TODO(i18n)` comments
+- **String Coverage**: Most user-facing settings strings now flow through `AppLocalizations`; a few visible labels still remain hardcoded and are tracked for follow-up cleanup
+- **TODO Markers**: Remaining hardcoded strings are still marked with `TODO(i18n)` comments where they are left intentionally for staged cleanup
 - **Parameterized Strings**: Support for dynamic values like `{feature}`, `{status}`
 
-**Status**: Scaffolding exists, but full integration and string migration remain incomplete
+**Status**: Scaffolding exists and the main settings surface has been partially migrated, but full string migration remains incomplete
 
 ### 2. Named Routes System
 - **Routes Class**: Centralized route constants in `lib/utils/routes.dart`
@@ -159,7 +159,7 @@ MouseRegion(
 - [x] Named routes in AppSettingsSection, FeaturesSection, NavigationSection, and SettingsScreen
 - [x] DialogHelper in AccountSection and FeaturesSection
 - [x] Accessibility enhancements in SettingTile
-- [ ] Complete gen_l10n setup and integration
+- [ ] Finish migrating the remaining settings strings to generated localizations
 - [ ] Add keyboard navigation tests
 
 ### Phase 3: Polish

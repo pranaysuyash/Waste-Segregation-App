@@ -266,36 +266,39 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
   }
 
   Widget _buildBadge() {
-    return Container(
+    return SizedBox(
       width: 120,
       height: 120,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            widget.achievement.color.withValues(alpha: 0.8),
-            widget.achievement.color,
-            widget.achievement.color.withValues(alpha: 0.6),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: widget.achievement.color.withValues(alpha: 0.4),
-            blurRadius: 20,
-            spreadRadius: 5,
-            offset: const Offset(0, 10),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Image.asset(
+            'assets/images/generated/gamification_unlock_badge_frame.png',
+            width: 150,
+            height: 150,
+            fit: BoxFit.contain,
+          ),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: widget.achievement.color.withValues(alpha: 0.16),
+              border: Border.all(
+                color: widget.achievement.color.withValues(alpha: 0.55),
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                _getAchievementIcon(),
+                size: 38,
+                color: widget.achievement.color,
+              ),
+            ),
           ),
         ],
-      ),
-      child: Center(
-        child: Icon(
-          _getAchievementIcon(),
-          size: 60,
-          color: Colors.white,
         ),
-      ),
     );
   }
 

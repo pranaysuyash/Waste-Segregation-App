@@ -24,13 +24,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get signOutSubtitle => 'Sign out and return to login screen';
 
   @override
-  String get guestModeSubtitle => 'Currently in guest mode - sign in to sync data';
+  String get guestModeSubtitle =>
+      'Currently in guest mode - sign in to sync data';
 
   @override
   String get signOutConfirmTitle => 'Sign Out';
 
   @override
-  String get signOutConfirmBody => 'Are you sure you want to sign out? Your data will remain on this device, but you won\'t be able to sync with the cloud.';
+  String get signOutConfirmBody =>
+      'Are you sure you want to sign out? Your data will remain on this device, but you won\'t be able to sync with the cloud.';
 
   @override
   String get cancel => 'Cancel';
@@ -116,7 +118,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get trainingReviewQueue => 'Training Review Queue';
 
   @override
-  String get trainingReviewQueueSubtitle => 'Review pending training samples and labels';
+  String get trainingReviewQueueSubtitle =>
+      'Review pending training samples and labels';
 
   @override
   String get featuresSection => 'Features & Tools';
@@ -224,7 +227,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get factoryReset => 'Factory Reset';
 
   @override
-  String get factoryResetBody => 'This will delete ALL app data including classifications, settings, and user preferences. This action cannot be undone.\\n\\nAre you sure you want to continue?';
+  String get factoryResetBody =>
+      'This will delete ALL app data including classifications, settings, and user preferences. This action cannot be undone.\\n\\nAre you sure you want to continue?';
 
   @override
   String get resetAllData => 'Reset All Data';
@@ -233,7 +237,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get clearFirebaseData => 'Clear Firebase Data';
 
   @override
-  String get clearFirebaseDataBody => 'This will clear all Firebase data for testing purposes. This simulates a fresh install experience.\\n\\nContinue?';
+  String get clearFirebaseDataBody =>
+      'This will clear all Firebase data for testing purposes. This simulates a fresh install experience.\\n\\nContinue?';
 
   @override
   String get clearData => 'Clear Data';
@@ -258,10 +263,18 @@ class AppLocalizationsHi extends AppLocalizations {
   String get rateAppComingSoon => 'App rating feature coming soon!';
 
   @override
-  String get aboutDialogBodyLine1 => 'A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.';
+  String get aboutDialogBodyLine1 =>
+      'A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.';
 
   @override
-  String get aboutDialogBodyLine2 => 'Built with Flutter and powered by AI for accurate waste classification.';
+  String get aboutDialogBodyLine2 =>
+      'Built with Flutter and powered by AI for accurate waste classification.';
+
+  @override
+  String get appName => 'Waste Segregation App';
+
+  @override
+  String get newBadge => 'NEW';
 
   @override
   String developerModeToggled(String status) {
@@ -413,7 +426,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get feedbackSettings => 'Feedback Settings';
 
   @override
-  String get feedbackSettingsSubtitle => 'Control when you can provide feedback';
+  String get feedbackSettingsSubtitle =>
+      'Control when you can provide feedback';
 
   @override
   String get allowFeedbackRecentHistory => 'Allow Feedback on Recent History';
@@ -448,7 +462,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get syncLocalDataToCloud => 'Sync Local Data to Cloud';
 
   @override
-  String get syncLocalDataSubtitle => 'Upload existing local classifications to cloud';
+  String get syncLocalDataSubtitle =>
+      'Upload existing local classifications to cloud';
 
   @override
   String get forceDownloadFromCloud => 'Force Download from Cloud';
@@ -457,7 +472,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get forceDownloadSubtitle => 'Download latest data from cloud';
 
   @override
-  String get resetAllAppData => 'Reset all app data (history, settings, preferences)';
+  String get resetAllAppData =>
+      'Reset all app data (history, settings, preferences)';
 
   @override
   String get allDataClearedSuccessfully => 'All data cleared successfully';
@@ -508,7 +524,8 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get unableToOpenAppStore => 'Unable to open app store. Please search for \"Waste Segregation App\" in your app store.';
+  String get unableToOpenAppStore =>
+      'Unable to open app store. Please search for \"Waste Segregation App\" in your app store.';
 
   @override
   String errorOpeningAppStore(String error) {
@@ -536,13 +553,16 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get factoryResetWarning => 'This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?';
+  String get factoryResetWarning =>
+      'This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?';
 
   @override
-  String get resettingToFactorySettings => 'Resetting app to factory settings...';
+  String get resettingToFactorySettings =>
+      'Resetting app to factory settings...';
 
   @override
-  String get googleSyncDisabled => 'Google sync disabled. Future classifications will be saved locally only.';
+  String get googleSyncDisabled =>
+      'Google sync disabled. Future classifications will be saved locally only.';
 
   @override
   String failedToToggleGoogleSync(String error) {

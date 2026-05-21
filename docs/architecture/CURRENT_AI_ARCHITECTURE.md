@@ -1,6 +1,6 @@
-# Current AI Architecture [CURRENT - verified 2026-05-21]
+# Current AI Architecture [CURRENT - verified 2026-05-22]
 
-> This document reflects the actual codebase state as of 2026-05-21.
+> This document reflects the actual codebase state as of 2026-05-22.
 > It supersedes aspirational design docs in `docs/implementation/ai/` and `docs/reports/architecture/`.
 > When code and this document diverge, trust the code and update this document.
 

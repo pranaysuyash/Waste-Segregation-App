@@ -129,7 +129,7 @@ class LegalSupportSection extends StatelessWidget {
     final t = AppLocalizations.of(context)!;
     showAboutDialog(
       context: context,
-      applicationName: 'Waste Segregation App',
+      applicationName: t.appName,
       applicationVersion: AppVersion.displayVersion,
       applicationIcon: const Icon(
         Icons.recycling,

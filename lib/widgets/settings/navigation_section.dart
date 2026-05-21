@@ -37,7 +37,7 @@ class NavigationSection extends StatelessWidget {
                 ),
                 title: Text(
                   t.navigationSettings,
-                  style: TextStyle(fontWeight: FontWeight.w500),
+                  style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
                 subtitle: Text(t.navigationSettingsSubtitle),
                 children: [
@@ -107,14 +107,16 @@ class NavigationSection extends StatelessWidget {
           iconColor: SettingsTheme.navigationColor,
           title: t.navigationStyles,
           subtitle: t.navigationStylesSubtitle,
-          trailing: _buildNewBadge(),
+          trailing: _buildNewBadge(context),
           onTap: () => _navigateToNavigationDemo(context),
         ),
       ],
     );
   }
 
-  Widget _buildNewBadge() {
+  Widget _buildNewBadge(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -124,9 +126,9 @@ class NavigationSection extends StatelessWidget {
           color: SettingsTheme.navigationColor.withValues(alpha: 0.3),
         ),
       ),
-      child: const Text(
-        'NEW',
-        style: TextStyle(
+      child: Text(
+        t.newBadge,
+        style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
           color: SettingsTheme.navigationColor,

@@ -251,27 +251,50 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
           1.0,
         );
         final assetScale = (0.92 + (0.08 * (1 - t))).clamp(0.82, 1.0);
-        final cs = Theme.of(context).colorScheme;
+        final dropScale = (1.0 - (0.18 * t)).clamp(0.72, 1.0);
 
         return Stack(
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
             Positioned(
-              top: 52,
-              child: Container(
-                width: 44,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: cs.tertiaryContainer,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: cs.tertiary.withValues(alpha: 0.5)),
+              top: 6,
+              child: Opacity(
+                opacity: (0.35 + (0.65 * (1 - t))).clamp(0.35, 1.0),
+                child: Image.asset(
+                  'assets/images/generated/waste_reward_bin_pulse_asset.png',
+                  width: 106,
+                  height: 106,
+                  fit: BoxFit.contain,
                 ),
-                child: Icon(Icons.delete_outline, size: 14, color: cs.tertiary),
               ),
             ),
             Positioned(
               top: dropY,
+              child: Transform.scale(
+                scale: dropScale,
+                child: Image.asset(
+                  'assets/images/generated/waste_reward_drop_asset.png',
+                  width: 92,
+                  height: 92,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 42 - (20 * burstOpacity),
+              child: Opacity(
+                opacity: burstOpacity,
+                child: Image.asset(
+                  'assets/images/generated/waste_reward_particle_burst_asset.png',
+                  width: 94,
+                  height: 94,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 22,
               child: Transform.scale(
                 scale: assetScale,
                 child: Image.asset(
@@ -279,23 +302,6 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
                   width: 132,
                   height: 132,
                   fit: BoxFit.contain,
-                ),
-              ),
-            ),
-            Positioned(
-              top: 40 - (18 * burstOpacity),
-              child: Opacity(
-                opacity: burstOpacity,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.eco, size: 12, color: cs.secondary),
-                    const SizedBox(width: 4),
-                    Icon(Icons.water_drop_outlined,
-                        size: 12, color: cs.primary),
-                    const SizedBox(width: 4),
-                    Icon(Icons.bolt, size: 12, color: cs.tertiary),
-                  ],
                 ),
               ),
             ),

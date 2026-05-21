@@ -19,7 +19,7 @@ The concrete behavior contract, device matrix, and manual verification steps liv
 
 - `ResponsiveAppBarTitle` is used in `lib/screens/web_fallback_screen.dart` and `lib/web_standalone.dart`.
 - `ResponsiveText` and `GreetingText` are verified in widget and golden tests, and surfaced in Widgetbook.
-- `ResponsiveText.cardTitle` currently exists as a preset, but this repo does not show a broad production callsite for it.
+- `ResponsiveText.cardTitle` is used in `FeatureCard` after the recent production wiring pass.
 
 ## Contract Summary
 

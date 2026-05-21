@@ -33,10 +33,10 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
   void _initializeServices() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        final adService = context.read<AdService>();
-        adService.setInClassificationFlow(false);
-        adService.setInEducationalContent(false);
-        adService.setInSettings(true);
+        context.read<AdService>()
+          ..setInClassificationFlow(false)
+          ..setInEducationalContent(false)
+          ..setInSettings(true);
       }
     });
   }

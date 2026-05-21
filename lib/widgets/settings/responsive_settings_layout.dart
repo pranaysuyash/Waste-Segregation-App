@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 /// Responsive layout for settings that adapts to different screen sizes
@@ -23,7 +24,7 @@ class ResponsiveSettingsLayout extends StatelessWidget {
         final screenWidth = constraints.maxWidth;
 
         if (screenWidth >= desktopBreakpoint) {
-          return _buildDesktopLayout();
+          return _buildDesktopLayout(context);
         } else if (screenWidth >= tabletBreakpoint) {
           return _buildTabletLayout();
         } else {
@@ -34,13 +35,13 @@ class ResponsiveSettingsLayout extends StatelessWidget {
   }
 
   /// Desktop layout with sidebar navigation and content area
-  Widget _buildDesktopLayout() {
+  Widget _buildDesktopLayout(BuildContext context) {
     return Row(
       children: [
         // Sidebar navigation
         SizedBox(
           width: 280,
-          child: _buildSidebarNavigation(),
+          child: _buildSidebarNavigation(context),
         ),
 
         // Vertical divider
@@ -113,7 +114,9 @@ class ResponsiveSettingsLayout extends StatelessWidget {
   }
 
   /// Sidebar navigation for desktop layout
-  Widget _buildSidebarNavigation() {
+  Widget _buildSidebarNavigation(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.withValues(alpha: 0.05),
@@ -126,11 +129,11 @@ class ResponsiveSettingsLayout extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(24),
+          Padding(
+            padding: const EdgeInsets.all(24),
             child: Text(
-              'Settings',
-              style: TextStyle(
+              t.settingsTitle,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -140,13 +143,13 @@ class ResponsiveSettingsLayout extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _buildNavItem(Icons.account_circle, 'Account', true),
-                _buildNavItem(Icons.star, 'Premium', false),
-                _buildNavItem(Icons.settings, 'App Settings', false),
-                _buildNavItem(Icons.navigation, 'Navigation', false),
-                _buildNavItem(Icons.extension, 'Features', false),
-                _buildNavItem(Icons.help, 'Legal & Support', false),
-                _buildNavItem(Icons.developer_mode, 'Developer', false),
+                _buildNavItem(Icons.account_circle, t.accountSection, true),
+                _buildNavItem(Icons.star, t.premiumSection, false),
+                _buildNavItem(Icons.settings, t.appSettingsSection, false),
+                _buildNavItem(Icons.navigation, t.navigationSection, false),
+                _buildNavItem(Icons.extension, t.featuresSection, false),
+                _buildNavItem(Icons.help, t.legalSupportSection, false),
+                _buildNavItem(Icons.developer_mode, t.developerOptions, false),
               ],
             ),
           ),

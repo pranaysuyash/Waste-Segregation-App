@@ -336,9 +336,9 @@ This explicitly decouples "understanding the image" from "telling the user what 
 
 ### 4. Region-Aware Rulesets 🔴
 
-**Status**: Largely hard-coded / prompt-resident today.
+**Status**: Active research landmark delivered 2026-05-22. City expansion framework, plugin contract, 15-city expansion map, conflict resolution model, policy-ML interaction gating, and society overlay layer documented.
 
-**Overview**: India-first (BBMP), with global ambitions. The "right answer" depends on city/municipality/building rules. The app has no first-class concept of a region-aware ruleset.
+**Overview**: India-first (BBMP), with global ambitions. The "right answer" depends on city/municipality/building rules. The app has three city plugins (BBMP production, BMC/MCD pilot) and a canonical policy engine. The expansion map covers how to reach 15+ Indian cities without app branching.
 
 **Key questions**:
 
@@ -346,10 +346,13 @@ This explicitly decouples "understanding the image" from "telling the user what 
 - Sourcing strategy: curated, crowdsourced, scraped, partner-supplied?
 - Trust model: how do we mark a ruleset as "verified vs community-submitted"?
 - Update cadence and override path when local reality differs from official rules.
+- What is the minimum data contract a new city must provide before shipping to pilot?
+- How do society-level overrides interact with municipal rules?
+- How does ML confidence gate the severity of policy enforcement?
 
-**Deliverable**: `docs/exploration/REGION_AWARE_RULESETS.md`.
+**Deliverable**: `docs/exploration/REGION_RULES_AND_CITY_EXPANSION_MAP.md` (2026-05-22).
 
-**Related**: Disposal Reasoning Stage, Smart-Bin Integration, Municipal APIs.
+**Related**: Disposal Reasoning Stage, Smart-Bin Integration, Municipal APIs, Global Municipal Policy Engine (#4a), Locality & Civic Waste Intelligence (Section F).
 
 ---
 
@@ -373,7 +376,9 @@ This explicitly decouples "understanding the image" from "telling the user what 
 - `lib/services/local_policy_rule_packs.dart` — data-driven rule-pack registry
 - `lib/services/local_guidelines_plugin.dart` — multi-city plugin routing scaffolds (BBMP, BMC, MCD)
 
-**Deliverable**: `docs/exploration/GLOBAL_MUNICIPAL_POLICY_ENGINE.md`.
+**Deliverables**:
+- `docs/exploration/GLOBAL_MUNICIPAL_POLICY_ENGINE.md` (2026-05-21) — policy pack governance lifecycle, promotion gates, global rollout strategy.
+- `docs/exploration/REGION_RULES_AND_CITY_EXPANSION_MAP.md` (2026-05-22) — city plugin contract, 15-city expansion map, conflict resolution, society overlay layer, ML-policy interaction gating.
 
 **Related**: Region-Aware Rulesets (#4), Municipal APIs (#25), Regional Regulations (#33), Audit / Telemetry (#35), B2B / Enterprise Wedge (#29).
 
@@ -1585,7 +1590,7 @@ Added 2026-05-20. Long-horizon exploration theme: locality-aware collection data
 
 **Deliverable**: `docs/exploration/LOCALITY_COLLECTION_DATA.md` (assigned to agent task **Civic-A** in the canonical track doc).
 
-**Related**: A20 Disposal Facilities Directory, #25 Municipal APIs (BBMP), #26 Informal Collector Network, #4 Region-Aware Rulesets.
+**Related**: A20 Disposal Facilities Directory, #25 Municipal APIs (BBMP), #26 Informal Collector Network, #4 Region-Aware Rulesets, `docs/exploration/REGION_RULES_AND_CITY_EXPANSION_MAP.md`.
 
 ---
 

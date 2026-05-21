@@ -188,10 +188,12 @@ ScaffoldMessenger.of(context).showSnackBar(
 
 ### Localization Preparation
 
-Localization is still partial. Many settings strings remain hardcoded and
-marked with `TODO(i18n)` comments in the widget slice. The canonical screen
-uses `AppLocalizations` for the app bar title, but the rest of the section text
-still needs a full i18n sweep before the doc can claim completion.
+Localization is still partial. Most visible settings strings now resolve
+through `AppLocalizations`, but a few visible labels and compatibility/demo
+strings remain hardcoded and should be treated as follow-up cleanup rather than
+finished work. The canonical screen uses `AppLocalizations` for the app bar
+title, but the rest of the section text still needs a full i18n sweep before the
+doc can claim completion.
 
 ## Testing Strategy
 
@@ -239,7 +241,7 @@ testWidgets('SettingTile renders correctly', (WidgetTester tester) async {
 - [ ] Performance testing
 
 ### Phase 3: Enhancement (Future)
-- [ ] Add internationalization
+- [ ] Finish the remaining localization cleanup
 - [ ] Implement advanced animations
 - [ ] Add accessibility improvements
 - [ ] Performance optimizations
@@ -280,8 +282,9 @@ testWidgets('SettingTile renders correctly', (WidgetTester tester) async {
 
 This refactor established the modular settings architecture and the canonical
 route target, but it is not fully complete in the sense of i18n coverage or the
-legacy screen being removed. The current value is the working modular surface
-and the route contract that keeps it reachable from the app shell.
+legacy screen being removed. The current value is the working modular surface,
+the partially localized settings UI, and the route contract that keeps it
+reachable from the app shell.
 
 The modular approach makes it easy to:
 - Add new settings without touching existing code

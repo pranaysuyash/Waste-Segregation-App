@@ -16,8 +16,10 @@ import '../widgets/premium_segmentation_toggle.dart';
 import '../widgets/analysis_speed_selector.dart';
 import '../widgets/modern_ui/modern_cards.dart';
 import '../models/token_wallet.dart';
+import '../models/classification_state.dart';
 import '../providers/ai_job_providers.dart';
 import '../providers/app_providers.dart';
+import '../providers/classification_state_provider.dart';
 import '../providers/token_providers.dart';
 import '../services/image_quality_gate.dart';
 import '../services/offline_queue_service.dart';
@@ -62,9 +64,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   static const bool _isDebugGridSegmentationEnabled = bool.fromEnvironment(
     'ENABLE_DEBUG_GRID_SEGMENTATION',
   );
-  bool _isAnalyzing = false;
-  bool _isCancelled = false;
-  AnalysisProgressStage _analysisStage = AnalysisProgressStage.checkingQuality;
   WasteClassification? _pendingClassification;
   String? _analysisErrorMessage;
   int? _queuedPositionHint;
@@ -282,12 +281,27 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     }
   }
 
-  void _setAnalysisStage(AnalysisProgressStage stage) {
-    if (!mounted) return;
+  ClassificationStateMachine get _stateMachine =>
+      ref.read(classificationStateMachineProvider);
 
-    setState(() {
-      _analysisStage = stage;
-    });
+  ClassificationStateMachineNotifier get _stateMachineNotifier =>
+      ref.read(classificationStateMachineProvider.notifier);
+
+  ClassificationState get _classificationState => _stateMachine.current;
+
+  void _setClassificationState(ClassificationState state) {
+    if (!mounted) return;
+    _stateMachineNotifier.transitionTo(state);
+    _analysisStage = AnalysisProgressView.classificationStateToStage(state);
+    setState(() {});
+  }
+
+  @Deprecated('Use _classificationState instead')
+  AnalysisProgressStage get analysisStage => _analysisStage;
+
+  @Deprecated('Use _setClassificationState instead')
+  void _setAnalysisStage(AnalysisProgressStage stage) {
+    _analysisStage = stage;
   }
 
   String _currentImageName() {
@@ -298,13 +312,13 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
   String? _localRuleChipLabel() {
     final region = _pendingClassification?.region;
-    if (_analysisStage == AnalysisProgressStage.applyingLocalRules) {
+    if (_classificationState == ClassificationState.policyApplied) {
       if (region == null || region.isEmpty) {
         return 'Applying region rules for disposal guidance.';
       }
       return 'Applying disposal rules for ${region.trim()}.';
     }
-    if (_analysisStage == AnalysisProgressStage.fallback) {
+    if (_classificationState == ClassificationState.awaitingUserConfirmation) {
       return 'Result requires manual review before finalization.';
     }
     return null;
@@ -336,18 +350,20 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     if (!mounted || _isCancelled) return;
 
     _pendingClassification = classification;
-    _setAnalysisStage(AnalysisProgressStage.applyingLocalRules);
+    _setClassificationState(ClassificationState.policyApplied);
 
     // Let users perceive the local rule pass before outcome is surfaced.
     await Future<void>.delayed(const Duration(milliseconds: 320));
     if (!mounted || _isCancelled) return;
 
     if (_isFallbackClassification(classification)) {
-      _setAnalysisStage(AnalysisProgressStage.fallback);
+      _setClassificationState(
+        ClassificationState.awaitingUserConfirmation,
+      );
       return;
     }
 
-    _setAnalysisStage(AnalysisProgressStage.success);
+    _setClassificationState(ClassificationState.classificationSucceeded);
     await Future<void>.delayed(const Duration(milliseconds: 500));
     if (!mounted || _isCancelled) return;
 
@@ -368,19 +384,19 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       );
     } finally {
       if (mounted) {
+        _stateMachineNotifier.reset();
         setState(() {
-          _isAnalyzing = false;
           _analysisErrorMessage = null;
           _pendingClassification = null;
-          _analysisStage = AnalysisProgressStage.checkingQuality;
         });
       }
     }
   }
 
   Widget _buildAnalysisProgressView() {
-    return AnalysisProgressView(
-      stage: _analysisStage,
+    final cs = _classificationState;
+    return AnalysisProgressView.fromState(
+      state: cs,
       imageName: _currentImageName(),
       offlineQueueCount: _pendingQueueItems,
       queuePosition: _queuedPositionHint,
@@ -389,18 +405,19 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       confidenceText: _analysisConfidenceText(),
       resultCategoryColor: WasteAppDesignSystem.getCategoryColor(
           _pendingClassification?.category ?? ''),
-      onRetry: _analysisStage == AnalysisProgressStage.failedRetryable
+      onRetry: cs == ClassificationState.failedRetryable
           ? _retryAnalysis
           : null,
-      onCancel: _analysisStage == AnalysisProgressStage.failedRetryable ||
-              _analysisStage == AnalysisProgressStage.checkingQuality ||
-              _analysisStage == AnalysisProgressStage.uploading ||
-              _analysisStage == AnalysisProgressStage.analyzingImage ||
-              _analysisStage == AnalysisProgressStage.applyingLocalRules
+      onCancel: cs == ClassificationState.failedRetryable ||
+              cs == ClassificationState.qualityChecking ||
+              cs == ClassificationState.cacheChecking ||
+              cs == ClassificationState.cloudClassifying ||
+              cs == ClassificationState.localClassifying ||
+              cs == ClassificationState.policyApplied
           ? _cancelAnalysis
           : null,
-      onContinue: _analysisStage == AnalysisProgressStage.fallback ||
-              _analysisStage == AnalysisProgressStage.success
+      onContinue: cs == ClassificationState.awaitingUserConfirmation ||
+              cs == ClassificationState.classificationSucceeded
           ? () {
               final classification = _pendingClassification;
               if (classification != null) {
@@ -408,8 +425,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               }
             }
           : null,
-      showRetry: _analysisStage == AnalysisProgressStage.failedRetryable,
-      showCancel: _analysisStage != AnalysisProgressStage.success,
     );
   }
 
@@ -426,10 +441,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       }
       return;
     }
-    _setAnalysisStage(AnalysisProgressStage.checkingQuality);
+    _setClassificationState(ClassificationState.qualityChecking);
     if (mounted) {
       setState(() {
-        _isCancelled = false;
         _analysisErrorMessage = null;
       });
     }
@@ -441,9 +455,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     final aiService = ref.read(aiServiceProvider);
     aiService.cancelAnalysis();
 
+    _setClassificationState(ClassificationState.cancelled);
+
     setState(() {
-      _isCancelled = true;
-      _isAnalyzing = false;
       _analysisErrorMessage = null;
       _pendingClassification = null;
     });
@@ -473,6 +487,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     if (_imageFile == null && _xFile == null && _webImageBytes == null) {
       return;
     }
+    _stateMachineNotifier.reset();
     setState(() {
       _isSelectingRegions = true;
       _selectedRegions = [_defaultRegionSeed()];
@@ -576,10 +591,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   }
 
   Future<void> _queueAnalysisOffline(Uint8List imageBytes) async {
+    _setClassificationState(ClassificationState.queuedOffline);
     setState(() {
-      _isAnalyzing = true;
       _analysisErrorMessage = null;
-      _analysisStage = AnalysisProgressStage.queuedOffline;
     });
     final queueService = OfflineQueueService();
     final userProfile = ref.read(userProfileProvider).value;
@@ -607,7 +621,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           'region': region,
         },
       );
-      _setAnalysisStage(AnalysisProgressStage.success);
+      _setClassificationState(ClassificationState.classificationSucceeded);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -623,8 +637,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         Navigator.pop(context);
       }
     } catch (e) {
+      _setClassificationState(ClassificationState.failedRetryable);
       setState(() {
-        _analysisStage = AnalysisProgressStage.failedRetryable;
         _analysisErrorMessage = 'Failed to queue image offline. Try again.';
       });
       WasteAppLogger.severe(
@@ -640,7 +654,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     }
 
     setState(() {
-      _isAnalyzing = false;
       _queuedPositionHint = null;
     });
   }
@@ -648,10 +661,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   Future<void> _analyzeImage() async {
     if (_isAnalyzing || _isCancelled) return;
 
+    _setClassificationState(ClassificationState.qualityChecking);
     setState(() {
-      _isAnalyzing = true;
       _analysisErrorMessage = null;
-      _analysisStage = AnalysisProgressStage.checkingQuality;
     });
 
     await _refreshGuardrailMode(showUserNotice: true);
@@ -679,11 +691,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       isPremiumUser: isPremiumUser,
     )) {
       if (mounted) {
-        if (_isAnalyzing) {
-          setState(() {
-            _isAnalyzing = false;
-          });
-        }
+        _stateMachineNotifier.reset();
+        setState(() {});
         ZeroBalanceOptionsSheet.show(
           context,
           requiredTokens: effectiveCost,
@@ -730,10 +739,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 context: {'service': 'screen', 'file': 'image_capture_screen'},
               );
               if (mounted) {
-                setState(() {
-                  _isAnalyzing = false;
-                  _analysisStage = AnalysisProgressStage.checkingQuality;
-                });
+                _stateMachineNotifier.reset();
+                setState(() {});
               }
               return;
             }
@@ -756,9 +763,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         if (mounted) {
           await _queueAnalysisOffline(imageBytes);
         } else {
-          setState(() {
-            _isAnalyzing = false;
-          });
+          _stateMachineNotifier.reset();
         }
         return;
       }
@@ -785,15 +790,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       return;
     }
 
-    setState(() {
-      _isAnalyzing = true;
-      _isCancelled = false;
-      _analysisStage = AnalysisProgressStage.uploading;
-    });
+    _setClassificationState(ClassificationState.cloudClassifying);
     try {
-      if (mounted) {
-        _setAnalysisStage(AnalysisProgressStage.analyzingImage);
-      }
+      // _stateMachine is already cloudClassifying — analysis in flight
       final aiService = ref.read(aiServiceProvider);
       late WasteClassification classification;
       if (kIsWeb) {
@@ -918,9 +917,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               'Analysis cancelled before starting.',
               context: {'service': 'screen', 'file': 'image_capture_screen'},
             );
-            setState(() {
-              _isAnalyzing = false;
-            });
             return;
           }
           WasteAppLogger.info(
@@ -977,9 +973,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         WasteAppLogger.info(
           'Analysis cancelled after completion, error: not navigating.',
         );
-        setState(() {
-          _isAnalyzing = false;
-        });
         return;
       }
 
@@ -1017,10 +1010,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       );
       if (mounted && !_isCancelled) {
         final userMessage = AiErrorMessages.toUserMessage(e);
+        _setClassificationState(ClassificationState.failedRetryable);
         setState(() {
           _analysisErrorMessage = userMessage;
-          _analysisStage = AnalysisProgressStage.failedRetryable;
-          _isAnalyzing = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1095,9 +1087,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             duration: Duration(seconds: 5),
           ),
         );
-        setState(() {
-          _isAnalyzing = false;
-        });
+        _stateMachineNotifier.reset();
+        setState(() {});
       }
     } on OfflineException catch (e) {
       WasteAppLogger.severe(
@@ -1114,9 +1105,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             duration: Duration(seconds: 5),
           ),
         );
-        setState(() {
-          _isAnalyzing = false;
-        });
+        _stateMachineNotifier.reset();
+        setState(() {});
       }
     } on Exception catch (e) {
       final msg = e.toString();
@@ -1144,9 +1134,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             duration: const Duration(seconds: 5),
           ),
         );
-        setState(() {
-          _isAnalyzing = false;
-        });
+        _stateMachineNotifier.reset();
+        setState(() {});
       }
     }
   }
@@ -1170,6 +1159,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Watch the state machine so the UI rebuilds on every transition.
+    ref.watch(classificationStateMachineProvider);
+
     // If no image is available yet and we are not analyzing, show a loader or placeholder
     if (_imageFile == null &&
         _xFile == null &&
@@ -1713,9 +1705,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   Future<void> _analyzeSelectedRegions() async {
     if (_selectedRegions.isEmpty) return;
 
-    setState(() {
-      _isAnalyzing = true;
-    });
+    _setClassificationState(ClassificationState.cloudClassifying);
 
     try {
       final aiService = ref.read(aiServiceProvider);
@@ -1752,51 +1742,20 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             duration: Duration(seconds: 3),
           ),
         );
+        _stateMachineNotifier.reset();
         setState(() {
-          _isAnalyzing = false;
           _isSelectingRegions = false;
           _selectedRegions = [];
         });
         return;
       }
 
-      final pairedCount = regions.length < results.length
-          ? regions.length
-          : results.length;
-      final detectedRegions = List<DetectedWasteRegion>.generate(
-        pairedCount,
-        (index) {
-          final selectedRegion = regions[index];
-          final classification = results[index];
-          return DetectedWasteRegion(
-            boundingBox: NormalizedBoundingBox(
-              left: selectedRegion.left,
-              top: selectedRegion.top,
-              width: selectedRegion.width,
-              height: selectedRegion.height,
-            ),
-            classification: classification,
-            confidence: classification.confidence,
-            userConfirmed: true,
-            label: classification.displayItemLabel,
-          );
-        },
-      );
-      final multiItemResult = MultiItemClassificationResult(
-        sourceImagePath: imageName,
-        sourceImageBytes: imageBytes,
-        regions: detectedRegions,
-        aggregateWarnings: detectedRegions.length > 1
-            ? const ['Review each item before disposal.']
-            : const [],
-      );
-
+      _stateMachineNotifier.reset();
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => CombinedResultScreen(
             classifications: results,
-            multiItemResult: multiItemResult,
             imageName: imageName,
           ),
         ),
@@ -1805,7 +1764,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           setState(() {
             _isSelectingRegions = false;
             _selectedRegions = [];
-            _isAnalyzing = false;
           });
         }
       });
@@ -1823,9 +1781,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             duration: const Duration(seconds: 5),
           ),
         );
-        setState(() {
-          _isAnalyzing = false;
-        });
+        _stateMachineNotifier.reset();
+        setState(() {});
       }
     }
   }

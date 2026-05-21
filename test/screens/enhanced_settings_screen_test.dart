@@ -100,10 +100,10 @@ void main() {
             value: hapticSettingsService,
           ),
         ],
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const EnhancedSettingsScreen(),
+          home: EnhancedSettingsScreen(),
         ),
       );
     }

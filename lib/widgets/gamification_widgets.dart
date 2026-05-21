@@ -34,10 +34,11 @@ class StreakIndicator extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.local_fire_department,
-              color: _getStreakColor(streak.current),
-              size: 28,
+            Image.asset(
+              'assets/images/generated/gamification_streak_flame.png',
+              width: 28,
+              height: 28,
+              fit: BoxFit.contain,
             ),
             const SizedBox(width: AppTheme.paddingSmall),
             Expanded(

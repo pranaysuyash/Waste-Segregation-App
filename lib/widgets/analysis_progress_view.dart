@@ -3,8 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../models/classification_state.dart';
 import '../utils/constants.dart';
 
+/// DEPRECATED: Use [ClassificationState] instead. Retained temporarily for
+/// backward compatibility during migration.
+@Deprecated('Use ClassificationState instead')
 enum AnalysisProgressStage {
   checkingQuality,
   queuedOffline,
@@ -34,6 +38,88 @@ class AnalysisProgressView extends StatefulWidget {
     this.showRetry = false,
     this.showCancel = false,
   });
+
+  /// Construct from canonical [ClassificationState] instead of legacy enum.
+  factory AnalysisProgressView.fromState({
+    Key? key,
+    required ClassificationState state,
+    String? imageName,
+    int? offlineQueueCount,
+    int? queuePosition,
+    String? localRuleChipText,
+    String? statusMessage,
+    String? errorMessage,
+    String? confidenceText,
+    VoidCallback? onRetry,
+    VoidCallback? onCancel,
+    VoidCallback? onContinue,
+    Color? resultCategoryColor,
+  }) {
+    return AnalysisProgressView(
+      key: key,
+      stage: classificationStateToStage(state),
+      imageName: imageName,
+      offlineQueueCount: offlineQueueCount,
+      queuePosition: queuePosition,
+      localRuleChipText: localRuleChipText,
+      statusMessage: statusMessage,
+      errorMessage: errorMessage,
+      confidenceText: confidenceText,
+      onRetry: onRetry,
+      onCancel: onCancel,
+      onContinue: onContinue,
+      resultCategoryColor: resultCategoryColor,
+      showRetry: state == ClassificationState.failedRetryable,
+      showCancel: !_isTerminalDisplayState(state),
+    );
+  }
+
+  static bool _isTerminalDisplayState(ClassificationState state) {
+    return state == ClassificationState.synced ||
+        state == ClassificationState.saved ||
+        state == ClassificationState.cancelled ||
+        state == ClassificationState.failedPermanent;
+  }
+
+  /// Map canonical state to the legacy progress stage for the existing widget.
+  static AnalysisProgressStage classificationStateToStage(
+    ClassificationState cs,
+  ) {
+    switch (cs) {
+      case ClassificationState.idle:
+      case ClassificationState.imageSelected:
+        return AnalysisProgressStage.checkingQuality;
+      case ClassificationState.qualityChecking:
+      case ClassificationState.qualityRejected:
+        return AnalysisProgressStage.checkingQuality;
+      case ClassificationState.cacheChecking:
+        return AnalysisProgressStage.checkingQuality;
+      case ClassificationState.cacheHit:
+        return AnalysisProgressStage.success;
+      case ClassificationState.cloudClassifying:
+      case ClassificationState.localClassifying:
+        return AnalysisProgressStage.analyzingImage;
+      case ClassificationState.queuedOffline:
+        return AnalysisProgressStage.queuedOffline;
+      case ClassificationState.classificationSucceeded:
+        return AnalysisProgressStage.success;
+      case ClassificationState.policyApplied:
+        return AnalysisProgressStage.applyingLocalRules;
+      case ClassificationState.awaitingUserConfirmation:
+        return AnalysisProgressStage.fallback;
+      case ClassificationState.saving:
+      case ClassificationState.saved:
+      case ClassificationState.syncing:
+      case ClassificationState.synced:
+        return AnalysisProgressStage.success;
+      case ClassificationState.failedRetryable:
+        return AnalysisProgressStage.failedRetryable;
+      case ClassificationState.failedPermanent:
+        return AnalysisProgressStage.failedRetryable;
+      case ClassificationState.cancelled:
+        return AnalysisProgressStage.checkingQuality;
+    }
+  }
 
   final AnalysisProgressStage stage;
   final String? imageName;

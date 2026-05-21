@@ -163,10 +163,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
               'contentHash': saveResult.contentHash,
               'service': 'ResultPipeline',
             });
-        state = state.copyWith(
-          isProcessing: false,
-          isSaved: true,
-        );
+        state = const ResultPipelineState(isSaved: true);
         return;
       }
 
@@ -378,7 +375,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         force: force,
       );
       if (saveResult.wasDuplicate) {
-        state = state.copyWith(isSaved: true);
+        state = const ResultPipelineState(isSaved: true);
         WasteAppLogger.info('Duplicate classification save skipped', context: {
           'classificationId': classification.id,
           'duplicateClassificationId': saveResult.duplicateClassificationId,
@@ -718,19 +715,24 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     double? confidence,
   ) {
     final reasons = <String>[];
-    if (classification.imageMetrics == null ||
-        classification.imageMetrics!.isEmpty) {
+    final metrics = classification.imageMetrics;
+    if (metrics == null || metrics.isEmpty) {
       reasons.add('missing_image_metrics');
+    } else {
+      final width = metrics['width'];
+      final height = metrics['height'];
+      if (width != null && height != null && width > 0 && height > 0) {
+        final minEdge = width < height ? width : height;
+        if (minEdge < 512) {
+          reasons.add('low_resolution');
+        }
+      }
     }
     if (classification.clarificationNeeded == true) {
       reasons.add('clarification_needed');
     }
     if (confidence != null && confidence < 0.65) {
       reasons.add('low_confidence');
-    }
-    if (classification.imageHash == null ||
-        classification.imageHash!.trim().isEmpty) {
-      reasons.add('missing_image_hash');
     }
     return reasons;
   }
@@ -761,8 +763,14 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     if (duplicateHit) {
       return 'duplicate_scan_reused';
     }
-    if (qualityReasons.isNotEmpty) {
-      return qualityReasons.join(',');
+    final blockingReasons = qualityReasons
+        .where((reason) =>
+            reason == 'low_resolution' ||
+            reason == 'clarification_needed' ||
+            reason == 'low_confidence')
+        .toList();
+    if (blockingReasons.isNotEmpty) {
+      return blockingReasons.join(',');
     }
     if (needsReview) {
       return calibratedConfidence != null

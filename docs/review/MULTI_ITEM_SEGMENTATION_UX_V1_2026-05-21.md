@@ -1005,7 +1005,7 @@ User captures image
 | Criterion | Status | Evidence |
 |---|---|---|
 | User can handle photo with >1 waste item | ✅ Implemented | `MultiItemClassificationResult` + `MultiItemRegionReview` |
-| Manual region selection works | ✅ Implemented | `ManualRegionSelector` (pre-existing) + `MultiItemRegionReview` integration |
+| Manual region selection works | ✅ Implemented | `ManualRegionSelector` (pre-existing) → `_analyzeSelectedRegions()` in `image_capture_screen.dart:1713` → constructs `DetectedWasteRegion` → navigates to `CombinedResultScreen` |
 | Each region gets its own classification | ✅ Implemented | `PerItemResultCard` with per-region `WasteClassification` |
 | Mixed-disposal guidance is shown | ✅ Implemented | `CombinedResultScreen._buildMixedWasteGuidance()` |
 | Future segmentation model can plug in | ✅ Implemented | `SegmentationBackend` abstract class |
@@ -1013,7 +1013,15 @@ User captures image
 
 ---
 
-## 9. Open Questions for Next Iteration
+## 9. Value Delivered (per motto_v2 §0.1)
+
+| Level | Value |
+|---|---|
+| **User value** | Can now photograph mixed waste (bottle + banana + battery) in one shot → see each item individually classified → get mixed-waste disposal guidance ("hazardous items must NOT be mixed with regular waste") |
+| **Business/team value** | Clean `SegmentationBackend` abstraction means any future model (YOLO, MobileSAM, EfficientSAM3, SAM 2/3) plugs in without UX changes. No duplicate path for single vs multi-item — unified `DetectedWasteRegion` model. |
+| **Internal/operational value** | `MultiItemClassificationResult.regionsByCategory` enables analytics ("users photograph mixed waste X% of the time"). `inferMixedWasteGuidance()` is deterministic (no AI cost) for common category mixes. |
+
+## 10. Unclosed Gaps (Explicit)
 
 1. **Automatic detection trigger**: Should the app auto-suggest regions when the model detects >1 object, or always wait for manual input?
 2. **Crop-and-classify pipeline**: Once regions are confirmed, cropped regions need to be sent to AI individually. Should this be parallel or sequential?
@@ -1023,7 +1031,20 @@ User captures image
 
 ---
 
-## 10. Files Created/Modified
+## 10. Unclosed Gaps (Explicit)
+
+Per motto_v2 §0.1, these are known gaps that remain after V1:
+
+| Gap | Severity | Affected Path | Closure Path |
+|---|---|---|---|
+| **Segmentation backend stubs** return empty results. Manual-only mode works. | P2 (future) | `segmentation_service.dart:96-153` | Wire YOLO11n-seg TFLite → `OnDeviceSegmentationBackend.detectRegions()` and/or MobileSAM ONNX → TFLite |
+| **No auto-detection trigger** — user must always manually enter region selection mode. The app does not auto-suggest "I see N items" yet. | P2 (future) | `image_capture_screen.dart:469-488` | After a segmentation backend is live, auto-call `detectRegions()` after capture and show the count prompt if >1 region found |
+| **Crop-and-classify pipeline** uses existing `analyzeImageRegions()` method — works but processes crops independently in series. No parallel classification of regions. | P3 (optimization) | `ai_service.dart` → `analyzeImageRegions()` | Add parallel classification using `Future.wait()` for N regions |
+| **No widget/integration test** for `MultiItemRegionReview` or `CombinedResultScreen` with mixed categories. Unit tests cover data models only. | P2 | `test/` | Add `widget_test.dart` for `MultiItemRegionReview`, add `CombinedResultScreen` test with mixed-category fixture |
+| **`NormalizedBoundingBox.intersectionOverUnion`** not NaN-safe | P3 | `detected_waste_region.dart:122-134` | Add guard for NaN/Infinity inputs |
+| **`MultiItemClassificationResult.fromJson`** loses crop bytes (intentional — not serializable) | P3 (documented) | `multi_item_classification_result.dart` | If persistence needed: store crop file paths instead of bytes |
+
+## 11. Files Created/Modified
 
 ### Created (7 files)
 

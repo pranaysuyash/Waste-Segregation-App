@@ -7,11 +7,24 @@
 ## What changed
 - Reworked reward popup into a themed `waste action -> collection -> eco reward` sequence.
 - Added a compact waste-action visual in the popup:
-  - generated eco reward asset drops into a collection bin lane
-  - eco impact particles appear on successful collection
+  - generated bin pulse asset confirms the disposal action
+  - generated waste drop asset animates into the collection sequence
+  - generated eco particle burst asset reinforces the impact moment
+  - generated eco reward asset anchors the center of the popup
   - eco points continue to animate in as collectable chips
+- Added gamification/unlock assets:
+  - `assets/images/generated/gamification_unlock_badge_frame.png`
+  - `assets/images/generated/gamification_levelup_burst.png`
+  - `assets/images/generated/gamification_streak_flame.png`
+- Wired the asset family into:
+  - `lib/widgets/advanced_ui/achievement_celebration.dart`
+  - `lib/widgets/enhanced_gamification_widgets.dart`
+  - `lib/widgets/gamification_widgets.dart`
 - Added generated project asset:
   - `assets/images/generated/waste_reward_collection_asset.png`
+  - `assets/images/generated/waste_reward_bin_pulse_asset.png`
+  - `assets/images/generated/waste_reward_particle_burst_asset.png`
+  - `assets/images/generated/waste_reward_drop_asset.png`
 - Preserved existing popup API compatibility while extending it:
   - `showPointsPopup(points)` still works
   - optional themed metadata now supported: `actionLabel`, `impactLabel`

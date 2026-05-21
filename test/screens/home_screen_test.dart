@@ -58,9 +58,10 @@ void main() {
       ],
       child: ProviderScope(
         overrides: [
-          home.profileProvider.overrideWith((ref) async => mockProfile),
-          home.userProfileProvider.overrideWith((ref) async => mockUserProfile),
-          home.classificationsProvider
+          app_providers.profileProvider.overrideWith((ref) async => mockProfile),
+          app_providers.userProfileProvider
+              .overrideWith((ref) async => mockUserProfile),
+          app_providers.classificationsProvider
               .overrideWith((ref) async => classifications),
           app_providers.educationalContentServiceProvider
               .overrideWith((ref) => educationalService),

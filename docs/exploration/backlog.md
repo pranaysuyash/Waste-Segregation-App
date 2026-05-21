@@ -46,6 +46,7 @@ Sources already mined for this initial list:
 - [ ] iOS vs Android parity matrix for on-device inference
 - [ ] Battery / thermal / memory budget benchmark on representative mid-tier devices
 - [ ] On-device pre-filter (is this even a waste item?) before cloud classify
+- [x] **Local ML first-pass classifier scaffold** — `LocalClassifier` abstract interface, `LocalClassificationResult` with escalation logic, `LocalClassifierThresholds` policy, `FakeLocalClassifier` for tests. Delivered `docs/review/LOCAL_ML_FIRST_PASS_CLASSIFIER_PLAN_2026-05-21.md` + `lib/services/local_classifier_service.dart` + `test/services/local_classifier_service_test.dart`.
 - [ ] Cascade escalation policy — features that drive escalation, audit trail per escalation
 - [ ] Graceful degradation tiers on low-end devices (skip on-device entirely, force cloud, throttle)
 
@@ -200,5 +201,7 @@ When an item moves from this backlog into a real exploration doc or into `EXPLOR
 | 2026-05-21 | Token economy integrity track refresh (post-audit reclassification) | `EXPLORATION_TOPICS.md#27a` | Re-ranked after rigorous re-check + wide-open-brainstorm roles. Earlier "instant token bypass" finding is now closed in code; active frontier moved to anti-tamper rules, server-authoritative spend semantics, offline queue parity, and premium/token contract coherence. |
 | 2026-05-21 | Multi-Model AI Stack (full model-fleet roadmap) | `EXPLORATION_TOPICS.md#1a` | Added deferred stack exploration for phased model rollout, router, quality/PII gate, eval dataset, and on-device progression. |
 | 2026-05-21 | Android security posture truth-map (legacy fix doc audit) | `docs/reports/audits/RANDOM_DOCUMENT_AUDIT_SECURITY_AUDIT_FIXES_2026-05-21.md` | Random-doc audit selected `docs/archive/fixes/security_audit_fixes.md`; produced evidence-backed mismatch register (HTTPS exception wording, pinning checklist drift, status over-closure) and next work unit for policy alignment. |
+
+| 2026-05-22 | **Region Rules & City Expansion Map** | `EXPLORATION_TOPICS.md#4` + `docs/exploration/REGION_RULES_AND_CITY_EXPANSION_MAP.md` | City expansion framework covering 15 Indian cities, deterministic policy rationale, plugin contract for data-driven city plugins, conflict resolution model (municipal/ward/society), rule versioning governance, source credibility tiers (T0–T3), ML confidence gating of policy enforcement, society overlay layer, cross-city category taxonomy and bin-colour matrix, and recommended next actions. Updates #4 deliverable from placeholder to delivered; extends #4a with city expansion detail. |
 
 (Append new rows here; never delete — the trail is the value.)
