@@ -22,9 +22,19 @@ class ProductionSafetyConfig {
     return _allowClientAiInRelease;
   }
 
-  /// When true, the app will attempt to use a backend classification endpoint
-  /// in release builds.  The backend adapter is not yet implemented; this flag
-  /// exists for forward compatibility.
+  /// When true, the app routes classification through the secure backend
+  /// (Firebase Callable `classifyImage`) instead of calling AI providers
+  /// directly from the client in release builds.
+  ///
+  /// TODO(backend-routing): This flag is currently unread by routing logic.
+  /// To wire it fully:
+  ///   1. In release mode, callers that reach `EnhancedAiApiService` or
+  ///      `OfflineQueueService` should check this flag first and route through
+  ///      `BackendProxyProvider` (lib/services/providers/backend_proxy_provider.dart)
+  ///      instead of calling direct provider methods.
+  ///   2. `AiService` already consults `BackendProxyProvider.isEnabled`
+  ///      (controlled by `USE_BACKEND_CLASSIFICATION`); align the two flags or
+  ///      consolidate them into a single dart-define.
   static const bool useBackendAiInRelease =
       bool.fromEnvironment('USE_BACKEND_AI_IN_RELEASE');
 
