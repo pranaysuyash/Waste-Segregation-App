@@ -172,6 +172,8 @@ class OnDeviceVisionService {
         id: classificationId ?? const Uuid().v4(),
         processingTimeMs: processingTime,
         modelSource: 'on-device-${_config.modelType.name}',
+        source: 'layer1_on_device',
+        analysisSource: WasteClassification.analysisSourceLocalExperimental,
         timestamp: DateTime.now(),
       );
     } catch (e, s) {
@@ -203,6 +205,8 @@ class OnDeviceVisionService {
         id: classificationId ?? const Uuid().v4(),
         processingTimeMs: processingTime,
         modelSource: 'on-device-${_config.modelType.name}',
+        source: 'layer1_on_device',
+        analysisSource: WasteClassification.analysisSourceLocalExperimental,
         timestamp: DateTime.now(),
       );
     } catch (e, s) {
@@ -237,7 +241,7 @@ class OnDeviceVisionService {
       itemName: 'On-Device Analysis Required',
       category: 'On-Device Mode',
       explanation:
-          'This is a placeholder result. Full on-device inference requires model integration. '
+          'This is an experimental local placeholder result. Full on-device inference requires model integration. '
           'Model type: ${_config.modelType.name}. '
           'Please add TFLite models to enable zero-cost on-device analysis.',
       disposalInstructions: DisposalInstructions(
@@ -265,6 +269,8 @@ class OnDeviceVisionService {
       confidence: 0.0, // Indicates placeholder result
       needsReview: true,
       modelSource: 'on-device-${_config.modelType.name}',
+      source: 'layer1_on_device',
+      analysisSource: WasteClassification.analysisSourceLocalExperimental,
       modelVersion: '1.0.0-placeholder',
     );
   }

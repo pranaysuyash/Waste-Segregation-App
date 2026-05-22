@@ -9,6 +9,12 @@ import '../models/premium_feature.dart';
 import '../utils/waste_app_logger.dart';
 import 'firestore_schema_registry.dart';
 
+enum PremiumTier {
+  free,
+  premium,
+  family,
+}
+
 class PremiumService extends ChangeNotifier {
   // Constructor now initializes immediately
   PremiumService() {
@@ -111,6 +117,26 @@ class PremiumService extends ChangeNotifier {
     if (_premiumBox == null) return false;
     return (_premiumBox!.get(proSubscriptionEntitlement) ?? false) ||
         (_premiumBox!.get(legacyPremiumSignal) ?? false);
+  }
+
+  PremiumTier getCurrentTier() {
+    if (!hasActivePremiumPlan()) return PremiumTier.free;
+    return PremiumTier.premium;
+  }
+
+  int getDailyScanLimit() {
+    switch (getCurrentTier()) {
+      case PremiumTier.free:
+        return 10;
+      case PremiumTier.premium:
+        return 100;
+      case PremiumTier.family:
+        return 500;
+    }
+  }
+
+  bool canPerformScan(int dailyScanCount) {
+    return dailyScanCount < getDailyScanLimit();
   }
 
   Future<void> setPremiumFeature(String featureId, bool isPremium) async {

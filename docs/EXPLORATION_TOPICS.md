@@ -1272,6 +1272,12 @@ The current app does not distinguish these states. An offline user who opens the
 
 ---
 
+
+## Flywheel Foundation Link (2026-05-22)
+
+- Added foundation scaffold doc: [review/AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md](review/AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md)
+- Includes eval harness, golden cases, consent-aware candidate gating, dataset exporter, and router metrics baseline.
+
 ## Provenance & Sources
 
 - **Code scan**: 73 services, 42 screens, 33 models, 14 providers in `lib/`. Notably new vs first pass: `image_quality_gate.dart`, `model_download_service.dart`, `on_device_vision_service.dart`, `object_detection_service.dart`, `ab_testing_config.dart`, `remote_config_service.dart`, `dynamic_link_service.dart`, `ad_service.dart`, `smart_suggestions_service.dart`, `local_guidelines_plugin.dart`, `analytics_schema_validator.dart`, `user_consent_service.dart`, `disposal_location.dart`, `recycling_code.dart`, `user_contribution.dart`, `ai_failure.dart`, `fresh_start_service.dart`, `firebase_cleanup_service.dart`.

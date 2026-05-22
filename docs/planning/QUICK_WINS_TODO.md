@@ -74,16 +74,32 @@
 - Analytics tracking for low-confidence re-analyze actions
 - Clear messaging about image quality improvement
 
-### VIS-13: Premium Toggle Visuals
+### VIS-13: Premium Toggle Visuals ✅
 
+**Status:** COMPLETED (2026-05-22)  
 **Priority:** HIGH  
 **ETA:** 0.5 day  
 **Definition of Done:** Grey-out segmentation switch for free tier, show crown icon + upgrade banner  
-**Files to Modify:**
+**Implemented:**
 
-- Premium-related widgets
-- Settings screens
-- Feature toggle components
+- Standardized locked visuals across settings and premium segmentation entry points
+- Added shared premium status indicator (`PRO` / `ENABLED`) and lock semantics
+- Added per-feature upgrade explanations (no generic-only prompts)
+- Added accessibility labels/hints for locked vs unlocked premium state
+- Added targeted widget tests for locked/unlocked/tap-upgrade behavior
+
+**Primary Files:**
+
+- `lib/widgets/settings/premium_feature_visuals.dart`
+- `lib/widgets/settings/setting_tile.dart`
+- `lib/widgets/settings/features_section.dart`
+- `lib/widgets/settings/app_settings_section.dart`
+- `lib/widgets/settings/premium_section.dart`
+- `lib/widgets/premium_segmentation_toggle.dart`
+- `test/widgets/premium_segmentation_toggle_test.dart`
+- `test/widgets/settings/settings_navigation_contract_test.dart`
+- `test/widgets/settings/settings_refactor_test.dart`
+- `docs/implementation/VIS_13_PREMIUM_TOGGLE_VISUALS_COMPLETION_2026-05-22.md`
 
 ### VIS-11: Re-analysis UI Hook
 

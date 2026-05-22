@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// import '../services/premium_service.dart'; // Unused
-// import '../services/storage_service.dart'; // Keep - used for Provider.of<StorageService>
-import '../services/enhanced_storage_service.dart'; // Keep - used for Provider.of<EnhancedStorageService>
-import '../utils/constants.dart';
-import '../utils/design_system.dart';
-import '../utils/enhanced_animations.dart';
+import 'package:waste_segregation_app/models/vision_model_config.dart';
+import 'package:waste_segregation_app/services/enhanced_storage_service.dart';
+import 'package:waste_segregation_app/services/model_download_service.dart';
+import 'package:waste_segregation_app/utils/constants.dart';
+import 'package:waste_segregation_app/utils/design_system.dart';
+import 'package:waste_segregation_app/utils/enhanced_animations.dart';
 
-/// Offline Mode Settings Screen
-/// Allows users to configure offline classification settings
 class OfflineModeSettingsScreen extends StatefulWidget {
   const OfflineModeSettingsScreen({super.key});
 
@@ -24,68 +22,58 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
   bool _storageOptimization = true;
   bool _isLoading = true;
 
-  // Mock offline model information
-  final List<OfflineModel> _offlineModels = [
-    OfflineModel(
-      name: 'Basic Waste Classification',
-      description: 'Core waste categories classification',
-      size: '125 MB',
-      accuracy: 85.0,
-      isDownloaded: true,
-      isRequired: true,
-    ),
-    OfflineModel(
-      name: 'Plastic Types Recognition',
-      description: 'Detailed plastic identification',
-      size: '78 MB',
-      accuracy: 78.0,
-      isDownloaded: false,
-      isRequired: false,
-    ),
-    OfflineModel(
-      name: 'Organic Material Detection',
-      description: 'Food waste and compostable items',
-      size: '92 MB',
-      accuracy: 82.0,
-      isDownloaded: true,
-      isRequired: false,
-    ),
-  ];
+  final ModelDownloadService _downloadService = ModelDownloadService();
+  Map<VisionModelType, ModelStatus> _modelStatus = {};
+  int _totalDownloadedSize = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadSettings();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    await Future.wait([
+      _loadSettings(),
+      _loadModelStatus(),
+    ]);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadSettings() async {
     final storage = Provider.of<EnhancedStorageService>(context, listen: false);
-
-    // Load offline settings from storage
     final settings =
         await storage.get<Map<String, dynamic>>('offline_settings') ??
             <String, dynamic>{};
-
     if (!mounted) return;
     setState(() {
       _offlineEnabled = settings['enabled'] ?? false;
       _autoDownloadModels = settings['auto_download'] ?? true;
       _compressImages = settings['compress_images'] ?? true;
       _storageOptimization = settings['storage_optimization'] ?? true;
-      _isLoading = false;
+    });
+  }
+
+  Future<void> _loadModelStatus() async {
+    final status = await _downloadService.getAllModelStatus();
+    final totalSize = await _downloadService.getTotalDownloadedSize();
+    if (!mounted) return;
+    setState(() {
+      _modelStatus = status;
+      _totalDownloadedSize = totalSize;
     });
   }
 
   Future<void> _saveSettings() async {
     final storage = Provider.of<EnhancedStorageService>(context, listen: false);
-
     await storage.store('offline_settings', {
       'enabled': _offlineEnabled,
       'auto_download': _autoDownloadModels,
       'compress_images': _compressImages,
       'storage_optimization': _storageOptimization,
     });
-
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -93,6 +81,23 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
           backgroundColor: Colors.green,
         ),
       );
+    }
+  }
+
+  String _modelDisplayName(VisionModelType type) {
+    switch (type) {
+      case VisionModelType.smolVLM:
+        return 'SmolVLM Vision-Language Model';
+      case VisionModelType.mobileNetV3:
+        return 'MobileNetV3 Classifier';
+      case VisionModelType.efficientNet:
+        return 'EfficientNet Classifier';
+      case VisionModelType.yoloV8:
+        return 'YOLOv8 Detector';
+      case VisionModelType.yoloV11:
+        return 'YOLOv11 Detector';
+      default:
+        return type.name;
     }
   }
 
@@ -119,7 +124,6 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
           children: [
-            // Offline mode toggle
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
@@ -169,10 +173,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: WasteAppDesignSystem.spacingL),
-
-            // Model management section
             if (_offlineEnabled) ...[
               const Text(
                 'Downloaded Models',
@@ -182,21 +183,25 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                 ),
               ),
               const SizedBox(height: WasteAppDesignSystem.spacingM),
-
-              ..._offlineModels.asMap().entries.map((entry) {
+              ...ModelDownloadService.modelMetadata.entries
+                  .toList()
+                  .asMap()
+                  .entries
+                  .map((entry) {
                 final index = entry.key;
-                final model = entry.value;
+                final modelEntry = entry.value;
+                final modelType = modelEntry.key;
+                final metadata = modelEntry.value;
+                final status = _modelStatus[modelType];
+                final isDownloaded = status?.isDownloaded ?? false;
                 return AnimatedCard(
                   index: index,
                   margin: const EdgeInsets.only(
                       bottom: WasteAppDesignSystem.spacingM),
-                  child: _buildModelCard(model),
+                  child: _buildModelCard(modelType, metadata, isDownloaded),
                 );
               }),
-
               const SizedBox(height: WasteAppDesignSystem.spacingL),
-
-              // Advanced settings
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(WasteAppDesignSystem.spacingM),
@@ -261,10 +266,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: WasteAppDesignSystem.spacingL),
-
-              // Storage info
               Card(
                 color: Colors.blue.shade50,
                 child: Padding(
@@ -298,71 +300,49 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
     );
   }
 
-  Widget _buildModelCard(OfflineModel model) {
+  Widget _buildModelCard(
+      VisionModelType modelType, ModelMetadata metadata, bool isDownloaded) {
+    final displayName = _modelDisplayName(modelType);
     return ListTile(
       leading: CircleAvatar(
         backgroundColor:
-            model.isDownloaded ? Colors.green.shade100 : Colors.grey.shade100,
+            isDownloaded ? Colors.green.shade100 : Colors.grey.shade100,
         child: Icon(
-          model.isDownloaded ? Icons.check_circle : Icons.download,
-          color: model.isDownloaded ? Colors.green : Colors.grey,
+          isDownloaded ? Icons.check_circle : Icons.download,
+          color: isDownloaded ? Colors.green : Colors.grey,
         ),
       ),
       title: Text(
-        model.name,
+        displayName,
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(model.description),
+          Text(metadata.description),
           const SizedBox(height: 4),
-          Row(
-            children: [
-              Text(
-                  '${model.size} • ${model.accuracy.toStringAsFixed(0)}% accuracy'),
-              if (model.isRequired) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'Required',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.orange,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
+          Text(metadata.sizeString),
         ],
       ),
-      trailing: model.isDownloaded
-          ? (model.isRequired
-              ? const Icon(Icons.lock, color: Colors.grey)
-              : IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  onPressed: () => _removeModel(model),
-                ))
+      trailing: isDownloaded
+          ? IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: () => _removeModel(modelType),
+            )
           : IconButton(
               icon: const Icon(Icons.download, color: Colors.blue),
-              onPressed: () => _downloadModel(model),
+              onPressed: () => _downloadModel(modelType),
             ),
       isThreeLine: true,
     );
   }
 
   Widget _buildStorageInfo() {
-    final totalSize = _offlineModels
-        .where((m) => m.isDownloaded)
-        .fold<double>(0, (sum, model) => sum + _parseSize(model.size));
+    final downloadedCount =
+        _modelStatus.values.where((s) => s.isDownloaded).length;
+    final totalCount = _modelStatus.length;
+    final sizeMb = _totalDownloadedSize / (1024 * 1024);
+    const double capacityMb = 500;
 
     return Column(
       children: [
@@ -370,8 +350,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('Models Downloaded:'),
-            Text(
-                '${_offlineModels.where((m) => m.isDownloaded).length}/${_offlineModels.length}'),
+            Text('$downloadedCount/$totalCount'),
           ],
         ),
         const SizedBox(height: 8),
@@ -379,73 +358,63 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('Total Storage Used:'),
-            Text('${totalSize.toStringAsFixed(0)} MB'),
+            Text('${sizeMb.toStringAsFixed(1)} MB'),
           ],
         ),
         const SizedBox(height: 16),
         LinearProgressIndicator(
-          value: totalSize / 500, // Assume 500MB total capacity
+          value: capacityMb > 0 ? sizeMb / capacityMb : 0,
           backgroundColor: Colors.grey.shade300,
           valueColor: AlwaysStoppedAnimation(
-            totalSize > 400 ? Colors.red : Colors.blue,
+            sizeMb > 400 ? Colors.red : Colors.blue,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          'Available: ${(500 - totalSize).toStringAsFixed(0)} MB',
+          'Available: ${(capacityMb - sizeMb).toStringAsFixed(1)} MB',
           style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
       ],
     );
   }
 
-  double _parseSize(String sizeStr) {
-    final match = RegExp(r'(\d+)').firstMatch(sizeStr);
-    return match != null ? double.parse(match.group(1)!) : 0.0;
-  }
+  Future<void> _downloadModel(VisionModelType modelType) async {
+    final displayName = _modelDisplayName(modelType);
 
-  Future<void> _downloadModel(OfflineModel model) async {
-    // Show download progress dialog
-    showDialog(
+    final success = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text('Downloading ${model.name}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text('Downloading ${model.size}...'),
-          ],
-        ),
+      builder: (dialogContext) => _DownloadProgressDialog(
+        downloadService: _downloadService,
+        modelType: modelType,
+        displayName: displayName,
       ),
     );
 
-    // Simulate download
-    await Future.delayed(const Duration(seconds: 3));
-
-    if (mounted) {
-      Navigator.pop(context);
-      setState(() {
-        model.isDownloaded = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${model.name} downloaded successfully'),
-          backgroundColor: Colors.green,
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    await _loadModelStatus();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          success == true
+              ? '$displayName downloaded successfully'
+              : 'Failed to download $displayName',
         ),
-      );
-    }
+        backgroundColor: success == true ? Colors.green : Colors.red,
+      ),
+    );
   }
 
-  Future<void> _removeModel(OfflineModel model) async {
+  Future<void> _removeModel(VisionModelType modelType) async {
+    final displayName = _modelDisplayName(modelType);
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Remove Model'),
         content: Text(
-            'Are you sure you want to remove ${model.name}? You can download it again later.'),
+            'Are you sure you want to remove $displayName? You can download it again later.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -459,35 +428,103 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
       ),
     );
 
-    if (confirmed == true) {
-      setState(() {
-        model.isDownloaded = false;
-      });
+    if (confirmed != true) return;
+
+    try {
+      await _downloadService.deleteModel(modelType);
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${model.name} removed'),
-            backgroundColor: Colors.orange,
+            content: Text('Failed to remove $displayName'),
+            backgroundColor: Colors.red,
           ),
         );
       }
+      return;
     }
+
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    await _loadModelStatus();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('$displayName removed'),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
 }
 
-class OfflineModel {
-  OfflineModel({
-    required this.name,
-    required this.description,
-    required this.size,
-    required this.accuracy,
-    required this.isDownloaded,
-    required this.isRequired,
+class _DownloadProgressDialog extends StatefulWidget {
+  const _DownloadProgressDialog({
+    required this.downloadService,
+    required this.modelType,
+    required this.displayName,
   });
-  final String name;
-  final String description;
-  final String size;
-  final double accuracy;
-  bool isDownloaded;
-  final bool isRequired;
+
+  final ModelDownloadService downloadService;
+  final VisionModelType modelType;
+  final String displayName;
+
+  @override
+  State<_DownloadProgressDialog> createState() =>
+      _DownloadProgressDialogState();
+}
+
+class _DownloadProgressDialogState extends State<_DownloadProgressDialog> {
+  double? _progress;
+  String _status = 'Preparing...';
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _startDownload();
+  }
+
+  Future<void> _startDownload() async {
+    try {
+      await widget.downloadService.downloadModel(
+        widget.modelType,
+        onProgress: (p) {
+          if (mounted) setState(() => _progress = p);
+        },
+        onStatusChange: (s) {
+          if (mounted) setState(() => _status = s);
+        },
+      );
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error != null) {
+      return AlertDialog(
+        title: const Text('Download Failed'),
+        content: Text(_error!),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('OK'),
+          ),
+        ],
+      );
+    }
+
+    return AlertDialog(
+      title: Text('Downloading ${widget.displayName}'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircularProgressIndicator(value: _progress),
+          const SizedBox(height: 16),
+          Text(_status),
+        ],
+      ),
+    );
+  }
 }

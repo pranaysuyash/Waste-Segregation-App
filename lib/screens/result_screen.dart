@@ -25,6 +25,7 @@ import '../widgets/result_screen/explanation_panel.dart';
 import '../widgets/result_screen/staggered_list.dart';
 import '../widgets/result_screen/materials_preview.dart';
 import '../widgets/result_screen/local_rules_card.dart';
+import '../widgets/offline_result_banner.dart';
 import '../widgets/interactive_tag.dart';
 import '../widgets/correction_dialog.dart';
 import '../widgets/responsive_text.dart';
@@ -86,7 +87,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
   // Education card state
   WasteEducationCard? _educationCard;
-  final Set<String> _dismissedCardIds = {};
   final EducationCardEngine _educationEngine = EducationCardEngine();
 
   @override
@@ -200,13 +200,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   }
 
   void _selectEducationCard() {
-    final loadedDismissed = EducationCardEngine.readDismissedIds();
-    _dismissedCardIds.addAll(loadedDismissed);
+    final cooldownIds = _educationEngine.currentCooldownIds();
 
     final card = _educationEngine.bestCardFor(
       _classification,
       _classification.region,
-      excludeIds: _dismissedCardIds,
+      excludeIds: cooldownIds,
     );
     if (card != null && mounted) {
       setState(() => _educationCard = card);
@@ -216,11 +215,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   void _dismissEducationCard() {
     if (_educationCard == null) return;
     final cardId = _educationCard!.id;
-    setState(() {
-      _dismissedCardIds.add(cardId);
-      _educationCard = null;
-    });
-    EducationCardEngine.persistDismissedIds(_dismissedCardIds);
+    EducationCardEngine.dismissCard(cardId);
+    setState(() => _educationCard = null);
   }
 
   void _openMiniLesson() {
@@ -254,6 +250,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         'show_actions': widget.showActions,
         'auto_analyze': widget.autoAnalyze,
         'version': 'v2',
+        if (_classification.analysisSource != null)
+          'analysis_source': _classification.analysisSource,
+        if (_classification.modelVersion != null)
+          'model_version': _classification.modelVersion,
+        if (_classification.analysisFallbackReason != null)
+          'fallback_reason': _classification.analysisFallbackReason,
       },
     );
 
@@ -263,6 +265,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       context: {
         'classificationId': _classification.id,
         'category': _classification.category,
+        'analysisSource': _classification.analysisSource,
         'version': 'v2',
       },
     );
@@ -354,6 +357,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
                             // Re-analysis in-progress banner
                             if (_isReanalyzing) _buildReanalysisBanner(context),
+
+                            // Offline result banner (Layer 0 hint while offline)
+                            if (_classification.isOfflineHint)
+                              OfflineResultBanner(
+                                isAccepted: _classification.classificationLayer ==
+                                    'layer0_deterministic',
+                              ),
 
                             // Needs-review banner (clarificationNeeded or fallback)
                             if (needsReview || isFallback)
@@ -866,6 +876,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       pointsEarned: state.pointsEarned,
       achievementsCount: state.newAchievements.length,
       isSaved: state.isSaved,
+      analysisSource: _classification.analysisSource,
+      modelVersion: _classification.modelVersion,
+      fallbackReason: _classification.analysisFallbackReason,
     );
   }
 
@@ -1415,6 +1428,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         Icons.warning_amber,
       ),
       _SnapshotItem('Risk Level', c.riskLevel ?? 'Unknown', Icons.report),
+      _SnapshotItem(
+        'Analysis Source',
+        c.analysisSourceLabel,
+        c.isExperimentalAnalysisSource
+            ? Icons.science_outlined
+            : Icons.cloud_outlined,
+      ),
     ];
     if (c.recyclingCode != null) {
       items.add(
@@ -1422,6 +1442,24 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
           'Recycling Code',
           c.displayRecyclingCodeLabel,
           Icons.qr_code_2,
+        ),
+      );
+    }
+    if ((c.modelVersion ?? '').trim().isNotEmpty) {
+      items.add(
+        _SnapshotItem(
+          'Model Version',
+          c.modelVersion!,
+          Icons.sell_outlined,
+        ),
+      );
+    }
+    if ((c.analysisFallbackReason ?? '').trim().isNotEmpty) {
+      items.add(
+        _SnapshotItem(
+          'Fallback Reason',
+          c.analysisFallbackReason!,
+          Icons.subdirectory_arrow_right,
         ),
       );
     }

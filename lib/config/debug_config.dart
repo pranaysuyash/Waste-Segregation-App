@@ -35,6 +35,9 @@ class ResultScreenDebugConfig {
     required int pointsEarned,
     required int achievementsCount,
     required bool isSaved,
+    String? analysisSource,
+    String? modelVersion,
+    String? fallbackReason,
     String? error,
   }) {
     if (!enableLogging) return;
@@ -55,6 +58,9 @@ class ResultScreenDebugConfig {
           'pointsEarned': pointsEarned,
           'achievementsCount': achievementsCount,
           'isSaved': isSaved,
+          'analysisSource': analysisSource,
+          'modelVersion': modelVersion,
+          'fallbackReason': fallbackReason,
         },
       );
     }

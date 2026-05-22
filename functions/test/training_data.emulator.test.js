@@ -225,6 +225,115 @@ test('training callable flow enforces consent/admin and updates candidate lifecy
   assert.ok(actions.includes('revoke_training_consent'));
 });
 
+test('buildTrainingDatasetManifest creates manifest from eligible candidates', async () => {
+  const adminToken = await createOrResetUser({
+    uid: 'it-manifest-admin',
+    email: 'it-manifest-admin@example.com',
+    password: 'Test1!',
+    adminClaim: true,
+  });
+  await putUserProfile('it-manifest-admin', 'admin');
+
+  // Seed two eligible candidates (one golden, one training-eligible)
+  const goldenId = 'mft-golden-001';
+  const trainingId = 'mft-training-001';
+  const now = admin.firestore.Timestamp.now();
+
+  await admin.firestore().collection('training_candidates').doc(goldenId).set({
+    candidateId: goldenId,
+    classificationId: 'cls-golden',
+    userIdHash: 'hash-golden-user',
+    modelPrediction: { category: 'Dry Waste', itemName: 'newspaper', provider: 'openai', model: 'gpt-4.1-nano', confidence: 0.95 },
+    image: { contentHash: 'img-golden-hash', storagePath: 'training/review/2026/05/golden.jpg' },
+    review: { status: 'golden', reviewer: 'it-manifest-admin', reviewedAt: now },
+    dataset: { eligible: true, includedInVersions: [] },
+    deletion: { requested: false, deletedAt: null, excludedFromTrainingAt: null },
+    consent: { policyVersion: 'training-data-v1' },
+    createdAt: now,
+    updatedAt: now,
+  });
+  await admin.firestore().collection('training_labels').doc(goldenId).set({
+    candidateId: goldenId,
+    rawPrediction: { category: 'Dry Waste', itemName: 'newspaper', provider: 'openai', model: 'gpt-4.1-nano', confidence: 0.95 },
+    labelState: 'golden',
+  });
+
+  await admin.firestore().collection('training_candidates').doc(trainingId).set({
+    candidateId: trainingId,
+    classificationId: 'cls-training',
+    userIdHash: 'hash-training-user',
+    modelPrediction: { category: 'Wet Waste', itemName: 'banana peel', provider: 'gemini', model: 'gemini-2.0-flash', confidence: 0.88 },
+    image: { contentHash: 'img-training-hash' },
+    review: { status: 'training_eligible', reviewer: 'it-manifest-admin', reviewedAt: now },
+    dataset: { eligible: true, includedInVersions: [] },
+    deletion: { requested: false, deletedAt: null, excludedFromTrainingAt: null },
+    consent: { policyVersion: 'training-data-v1' },
+    createdAt: now,
+    updatedAt: now,
+  });
+  await admin.firestore().collection('training_labels').doc(trainingId).set({
+    candidateId: trainingId,
+    rawPrediction: { category: 'Wet Waste', itemName: 'banana peel', provider: 'gemini', model: 'gemini-2.0-flash', confidence: 0.88 },
+    labelState: 'training_eligible',
+  });
+
+  // Seed an ineligible candidate (not dataset.eligible) that should be excluded
+  await admin.firestore().collection('training_candidates').doc('mft-rejected-001').set({
+    candidateId: 'mft-rejected-001',
+    review: { status: 'rejected' },
+    dataset: { eligible: false },
+    deletion: { requested: false, deletedAt: null },
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  // Dry run — should return counts without writing
+  const dryRun = await invokeCallable('buildTrainingDatasetManifest', adminToken, {
+    datasetVersion: 'vtest-001',
+    dryRun: true,
+  });
+  assert.equal(dryRun.response.status, 200);
+  assert.equal(dryRun.body?.result?.goldenCount, 1);
+  assert.equal(dryRun.body?.result?.trainingCount, 2);
+  assert.equal(dryRun.body?.result?.dryRun, true);
+  assert.ok(dryRun.body?.result?.sampleRows?.length > 0);
+
+  // Full run — should write manifest + metadata
+  const fullRun = await invokeCallable('buildTrainingDatasetManifest', adminToken, {
+    datasetVersion: 'vtest-001',
+    dryRun: false,
+  });
+  assert.equal(fullRun.response.status, 200);
+  assert.equal(fullRun.body?.result?.goldenCount, 1);
+  assert.equal(fullRun.body?.result?.trainingCount, 2);
+  assert.ok(fullRun.body?.result?.manifestPath?.includes('vtest-001'));
+
+  // Verify training_dataset_versions doc was created
+  const versionDoc = await admin.firestore().collection('training_dataset_versions').doc('vtest-001').get();
+  assert.equal(versionDoc.exists, true);
+  assert.equal(versionDoc.get('goldenCount'), 1);
+  assert.equal(versionDoc.get('trainingCount'), 2);
+
+  // Verify audit trail
+  const auditSnap = await admin.firestore().collection('training_review_audit')
+    .where('action', '==', 'build_training_dataset_manifest')
+    .where('datasetVersion', '==', 'vtest-001')
+    .limit(1)
+    .get();
+  assert.equal(auditSnap.empty, false);
+
+  // Verify ineligible candidate was excluded
+  const fullRunDry = await invokeCallable('buildTrainingDatasetManifest', adminToken, {
+    datasetVersion: 'vtest-verify',
+    dryRun: true,
+  });
+  assert.equal(fullRunDry.response.status, 200);
+  const sampleCandidates = fullRunDry.body?.result?.sampleRows?.map(r => r.candidateId) || [];
+  assert.ok(sampleCandidates.includes(goldenId));
+  assert.ok(sampleCandidates.includes(trainingId));
+  assert.ok(!sampleCandidates.includes('mft-rejected-001'));
+});
+
 test('cleanup helper clears stale deleted and rejected candidates in emulator', async () => {
   const oldMillis = Date.now() - (35 * 24 * 60 * 60 * 1000);
   const freshMillis = Date.now() - (2 * 24 * 60 * 60 * 1000);

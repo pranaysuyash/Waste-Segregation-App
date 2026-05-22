@@ -472,7 +472,7 @@ export const reviewTrainingCandidate = asiaSouth1.https.onCall(async (data, cont
 
   const reviewerUid = context.auth?.uid ?? 'unknown_admin';
   const now = FieldValue.serverTimestamp();
-  const isEligible = status === 'training_eligible' || status === 'golden' || status === 'approved';
+  const isEligible = status === 'training_eligible' || status === 'golden';
   const isDeleted = status === 'deleted';
   const db = admin.firestore();
   const candidateRef = db.collection('training_candidates').doc(candidateId);
@@ -763,11 +763,60 @@ export const buildTrainingDatasetManifest = asiaSouth1.https.onCall(async (data,
   });
 
   const rows: Record<string, unknown>[] = [];
+  let excludedNoConsent = 0;
+  let excludedRevoked = 0;
+  let excludedUnreviewed = 0;
+  let excludedRejected = 0;
+  let excludedPii = 0;
+  let excludedDeleted = 0;
   let goldenCount = 0;
 
   for (const doc of candidates.docs) {
     const cand = doc.data();
-    const isGolden = (cand.review as Record<string, unknown> | null)?.status === 'golden';
+    const review = (cand.review as Record<string, unknown> | null) ?? {};
+    const consent = (cand.consent as Record<string, unknown> | null) ?? {};
+    const deletion = (cand.deletion as Record<string, unknown> | null) ?? {};
+    const image = (cand.image as Record<string, unknown> | null) ?? {};
+    const status = `${review.status ?? ''}`;
+    const redactionStatus = `${image.redactionStatus ?? ''}`;
+    const consentEnabled = consent.enabledAtCapture === true;
+    const revokedAt = consent.revokedAt ?? null;
+    const deletedAt = deletion.deletedAt ?? null;
+
+    if (!consentEnabled) {
+      excludedNoConsent += 1;
+      continue;
+    }
+    if (revokedAt != null) {
+      excludedRevoked += 1;
+      continue;
+    }
+    if (deletedAt != null) {
+      excludedDeleted += 1;
+      continue;
+    }
+    if (status === 'unreviewed' || status === 'approved') {
+      excludedUnreviewed += 1;
+      continue;
+    }
+    if (status === 'rejected') {
+      excludedRejected += 1;
+      continue;
+    }
+    if (status !== 'golden' && status !== 'training_eligible') {
+      excludedRejected += 1;
+      continue;
+    }
+    if (
+      redactionStatus.startsWith('pending')
+      || redactionStatus == 'needs_redaction'
+      || redactionStatus == 'rejected'
+    ) {
+      excludedPii += 1;
+      continue;
+    }
+
+    const isGolden = status === 'golden';
     if (isGolden) goldenCount += 1;
 
     const label = labelMap.get(doc.id) ?? null;
@@ -789,6 +838,14 @@ export const buildTrainingDatasetManifest = asiaSouth1.https.onCall(async (data,
       goldenCount,
       trainingCount: rows.length,
       eligibleCount: rows.length,
+      excludedCounts: {
+        noConsent: excludedNoConsent,
+        revoked: excludedRevoked,
+        pii: excludedPii,
+        unreviewed: excludedUnreviewed,
+        rejected: excludedRejected,
+        deleted: excludedDeleted,
+      },
       dryRun: true,
       sampleRows: rows.slice(0, 5),
     };
@@ -817,10 +874,13 @@ export const buildTrainingDatasetManifest = asiaSouth1.https.onCall(async (data,
     goldenCount,
     trainingCount: rows.length,
     candidateCount: rows.length,
-    exclusions: {
-      revokedConsent: [],
-      deletedCount: 0,
-      redactedCount: 0,
+    excludedCounts: {
+      noConsent: excludedNoConsent,
+      revoked: excludedRevoked,
+      pii: excludedPii,
+      unreviewed: excludedUnreviewed,
+      rejected: excludedRejected,
+      deleted: excludedDeleted,
     },
     createdAt: FieldValue.serverTimestamp(),
     createdBy: context.auth?.uid ?? 'unknown_admin',
@@ -843,6 +903,14 @@ export const buildTrainingDatasetManifest = asiaSouth1.https.onCall(async (data,
     goldenCount,
     trainingCount: rows.length,
     eligibleCount: rows.length,
+    excludedCounts: {
+      noConsent: excludedNoConsent,
+      revoked: excludedRevoked,
+      pii: excludedPii,
+      unreviewed: excludedUnreviewed,
+      rejected: excludedRejected,
+      deleted: excludedDeleted,
+    },
     manifestPath,
   };
 });

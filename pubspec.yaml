@@ -32,7 +32,7 @@ dependencies:
   flutter_svg: ^2.0.7
   shared_preferences: ^2.2.2
   openai_api: ^0.3.7 # Updated to latest
-  crypto: ^3.0.3 # For SHA-256 hashing
+  crypto: ^3.0.3 # For SHA-256 hashing + HMAC wallet integrity
   image: ^4.0.17 # For image preprocessing
   google_mobile_ads: ^5.0.0 # Compatible with Dart SDK 3.5.0 and webview_flutter 4.8.0
   in_app_purchase: ^3.2.3 # Play/App Store purchase rail for premium subscription

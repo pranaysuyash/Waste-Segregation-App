@@ -532,41 +532,61 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
           Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
+                child: OutlinedButton(
                   onPressed: _pickImage,
-                  icon: const Icon(Icons.photo_library, size: 20),
-                  label: Text(
-                    AppStrings.openGallery,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.photo_library, size: 18),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          AppStrings.openGallery,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: OutlinedButton.icon(
+                child: OutlinedButton(
                   onPressed: _takePhotoInstant,
-                  icon: const Icon(Icons.flash_on, size: 20),
-                  label: Text(
-                    AppStrings.instantMode,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.flash_on, size: 18),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          AppStrings.instantMode,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -613,7 +633,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                   ),
                 ),
                 child: Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(16),
@@ -640,65 +660,71 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                                 Text(
                                   '$scansToday / $dailyGoal',
                                   style: GoogleFonts.inter(
-                                    fontSize: 28,
+                                    fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onPrimaryContainer,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
                                   AppStrings.scansToday,
                                   style: GoogleFonts.inter(
-                                    fontSize: 14,
+                                    fontSize: 12,
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onPrimaryContainer
                                         .withValues(alpha: 0.7),
                                   ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.local_fire_department,
-                                      size: 20, color: Colors.orange),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '$streakDays',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimaryContainer,
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.local_fire_department,
+                                        size: 20, color: Colors.orange),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '$streakDays',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimaryContainer,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.emoji_events,
-                                      size: 20, color: Colors.amber),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '$totalPoints',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimaryContainer,
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.emoji_events,
+                                        size: 20, color: Colors.amber),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '$totalPoints',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimaryContainer,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -728,20 +754,27 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
       loading: () => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
             children: [
-              const CircularProgressIndicator(),
-              const SizedBox(width: 16),
-              Text(
-                AppStrings.loadingYourData,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: Theme.of(context).colorScheme.onSurface,
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  AppStrings.loadingYourData,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -756,7 +789,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
             ref.invalidate(profileProvider);
           },
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.errorContainer,
               borderRadius: BorderRadius.circular(16),
@@ -1226,7 +1259,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         ),
       ),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -1247,12 +1280,14 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                   child: Text(
                     AppStrings.continueWhereYouLeftOff,
                     style: GoogleFonts.inter(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context).colorScheme.onSecondaryContainer,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
                 Icon(
                   Icons.arrow_forward,
                   color: Theme.of(context).colorScheme.onSecondaryContainer,
@@ -1285,7 +1320,7 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                       Text(
                         classification.itemName,
                         style: GoogleFonts.inter(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context)
                               .colorScheme

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/premium_feature.dart';
 import '../services/premium_service.dart';
 import '../services/purchase_service.dart';
+import '../services/web_checkout_service.dart';
 import '../widgets/premium_feature_card.dart';
 import '../utils/constants.dart';
 import '../utils/developer_config.dart';
@@ -16,6 +17,26 @@ class PremiumFeaturesScreen extends StatefulWidget {
 
 class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
   bool _showTestOptions = false;
+  WebCheckoutService? _webCheckoutService;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _webCheckoutService ??= WebCheckoutService(
+      Provider.of<PremiumService>(context, listen: false),
+    )..addListener(_onWebCheckoutChange);
+  }
+
+  void _onWebCheckoutChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _webCheckoutService?.removeListener(_onWebCheckoutChange);
+    _webCheckoutService?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +75,8 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
           const SizedBox(height: 24),
           _buildPremiumFeatures(context),
 
-          // Purchase button at the bottom
           const SizedBox(height: 32),
-          _buildPurchaseButton(context),
+          _buildPurchaseSection(context),
         ],
       ),
     );
@@ -280,107 +300,198 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
     );
   }
 
-  Widget _buildPurchaseButton(BuildContext context) {
+  Widget _buildPurchaseSection(BuildContext context) {
     final purchaseService = Provider.of<PurchaseService?>(context);
     final premiumService = Provider.of<PremiumService>(context);
-
-    if (purchaseService == null) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          children: [
-            ElevatedButton.icon(
-              onPressed: null,
-              icon: const Icon(Icons.construction),
-              label: const Text('Coming Soon'),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'In-app purchase is not yet available. Use developer mode to test premium features.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade500,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     final hasPremium = premiumService.hasActivePremiumPlan();
-    final product = purchaseService.premiumProduct;
-
-    final buttonLabel = hasPremium
-        ? 'Premium Active'
-        : purchaseService.isProcessingPurchase
-            ? 'Processing...'
-            : product == null
-                ? 'Premium Unavailable'
-                : 'Upgrade ${product.price}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ElevatedButton.icon(
-            onPressed: hasPremium || !purchaseService.canPurchase
-                ? null
-                : () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    await purchaseService.buyPremium();
-                    if (!mounted) return;
-                    if (premiumService.hasActivePremiumPlan()) {
-                      messenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('Premium unlocked successfully.'),
-                        ),
-                      );
-                    } else if (purchaseService.errorMessage != null) {
-                      messenger.showSnackBar(
-                        SnackBar(content: Text(purchaseService.errorMessage!)),
-                      );
-                    }
-                  },
-            icon: Icon(hasPremium ? Icons.verified : Icons.workspace_premium),
-            label: Text(buttonLabel),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          // Already premium
+          if (hasPremium) ...[
+            ElevatedButton.icon(
+              onPressed: null,
+              icon: const Icon(Icons.verified),
+              label: const Text('Premium Active'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ] else ...[
+            // IAP purchase option
+            if (purchaseService != null) _buildIapPurchase(context, premiumService, purchaseService),
+
+            const SizedBox(height: 16),
+
+            // Divider with label
+            if (purchaseService != null) ...[
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey.shade300)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('or', style: TextStyle(color: Colors.grey.shade500)),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey.shade300)),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // DodoPayments web checkout option
+            _buildDodoPaymentsButton(context, premiumService),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIapPurchase(BuildContext context, PremiumService premiumService, PurchaseService purchaseService) {
+    final product = purchaseService.premiumProduct;
+
+    final buttonLabel = purchaseService.isProcessingPurchase
+        ? 'Processing...'
+        : product == null
+            ? 'Premium Unavailable'
+            : 'App Store \$4.99/mo';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ElevatedButton.icon(
+          onPressed: !purchaseService.canPurchase
+              ? null
+              : () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  await purchaseService.buyPremium();
+                  if (!mounted) return;
+                  if (premiumService.hasActivePremiumPlan()) {
+                    messenger.showSnackBar(
+                      const SnackBar(content: Text('Premium unlocked successfully.')),
+                    );
+                  } else if (purchaseService.errorMessage != null) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(purchaseService.errorMessage!)),
+                    );
+                  }
+                },
+          icon: const Icon(Icons.shopping_cart),
+          label: Text(buttonLabel),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: purchaseService.isProcessingPurchase
+              ? null
+              : () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  await purchaseService.restorePurchases();
+                  if (!mounted) return;
+                  if (purchaseService.errorMessage != null) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(purchaseService.errorMessage!)),
+                    );
+                  }
+                },
+          child: const Text('Restore Purchases'),
+        ),
+        if (purchaseService.errorMessage != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            purchaseService.errorMessage!,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: Colors.red.shade600),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDodoPaymentsButton(BuildContext context, PremiumService premiumService) {
+    final webCheckout = _webCheckoutService;
+
+    if (webCheckout == null) return const SizedBox.shrink();
+
+    if (webCheckout.isAwaitingPayment) {
+      return Column(
+        children: [
+          const Card(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Waiting for payment...',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Complete payment in the browser. Premium activates automatically once confirmed.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                ],
               ),
             ),
           ),
           const SizedBox(height: 8),
           TextButton(
-            onPressed: purchaseService.isProcessingPurchase
-                ? null
-                : () async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    await purchaseService.restorePurchases();
-                    if (!mounted) return;
-                    if (purchaseService.errorMessage != null) {
-                      messenger.showSnackBar(
-                        SnackBar(content: Text(purchaseService.errorMessage!)),
-                      );
-                    }
-                  },
-            child: const Text('Restore Purchases'),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            purchaseService.errorMessage ??
-                (hasPremium
-                    ? 'Your premium entitlement is active on this device.'
-                    : 'Store purchase flow enabled. If no product appears, verify PREMIUM_SUBSCRIPTION_PRODUCT_ID and store listing.'),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey.shade500,
-            ),
+            onPressed: () => webCheckout.cancelAwaitingPayment(),
+            child: const Text('Cancel'),
           ),
         ],
-      ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ElevatedButton.icon(
+          onPressed: webCheckout.isCreatingSession ? null : () => webCheckout.startCheckout(),
+          icon: webCheckout.isCreatingSession
+              ? const SizedBox(
+                  width: 20, height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.public),
+          label: Text(webCheckout.isCreatingSession ? 'Creating checkout...' : 'Pay with Card / UPI'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6C63FF),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        if (webCheckout.errorMessage != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            webCheckout.errorMessage!,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: Colors.red.shade600),
+          ),
+        ],
+        const SizedBox(height: 8),
+        Text(
+          'Pay online with credit/debit card, UPI, or net banking. No app store required.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+        ),
+      ],
     );
   }
 }

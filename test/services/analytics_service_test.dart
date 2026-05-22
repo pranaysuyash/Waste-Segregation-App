@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/services/analytics_service.dart';
+import 'package:waste_segregation_app/services/analytics_schema_validator.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/gamification.dart'; // AnalyticsEvent is here
@@ -79,6 +80,25 @@ void main() {
         );
 
         expect(analyticsService.pendingEventsCount, greaterThanOrEqualTo(0));
+      });
+
+      test('should accept analysis source metadata', () async {
+        final validator = AnalyticsSchemaValidator();
+        final event = AnalyticsEvent.create(
+          userId: 'test_user_123',
+          eventType: AnalyticsEventTypes.classification,
+          eventName: AnalyticsEventNames.classificationCompleted,
+          parameters: {
+            'classification_id': 'test_classification_123',
+            'analysis_source': 'local_experimental',
+            'fallback_reason': 'placeholder_local_model',
+          },
+          sessionId: 'session_123',
+          deviceInfo: 'iOS',
+        );
+
+        final result = await validator.validateEvent(event);
+        expect(result.isValid, isTrue);
       });
 
       test('should track screen view events', () async {

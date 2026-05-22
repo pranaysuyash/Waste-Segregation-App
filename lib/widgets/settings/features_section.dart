@@ -5,7 +5,8 @@ import '../../utils/routes.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/dialog_helper.dart';
 import 'setting_tile.dart';
-import 'settings_theme.dart';
+import 'premium_feature_visuals.dart';
+import 'settings_section_header.dart';
 
 /// Features and tools section for settings screen
 class FeaturesSection extends StatelessWidget {
@@ -18,25 +19,26 @@ class FeaturesSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SettingsSectionHeader(title: t.featuresSection),
-        SettingTile(
-          icon: Icons.design_services,
-          iconColor: Colors.purple,
-          title: t.modernUIComponents,
-          subtitle: t.modernUIComponentsSubtitle,
-          trailing: _buildUpdatedBadge(),
-          onTap: () => _navigateToModernUIShowcase(context),
-        ),
         Consumer<PremiumService>(
           builder: (context, premiumService, child) {
+            final isUnlocked = premiumService.isPremiumFeature('offline_mode');
             return SettingTile(
               icon: Icons.offline_bolt,
               iconColor: Colors.indigo,
               title: t.offlineMode,
               subtitle: t.offlineModeClassify,
-              trailing: _buildFeatureIndicator(
+              trailing: PremiumFeatureVisuals.buildStatusIndicator(
                 context,
-                premiumService.isPremiumFeature('offline_mode'),
+                isUnlocked: isUnlocked,
               ),
+              visuallyDisabled: !isUnlocked,
+              semanticsValue: PremiumFeatureVisuals.semanticsState(
+                context,
+                isUnlocked: isUnlocked,
+              ),
+              semanticsHint: isUnlocked
+                  ? t.offlineModeClassify
+                  : t.upgradeToUse(t.offlineMode),
               onTap: () => _handleOfflineModeNavigation(
                 context,
                 premiumService,
@@ -53,15 +55,25 @@ class FeaturesSection extends StatelessWidget {
         ),
         Consumer<PremiumService>(
           builder: (context, premiumService, child) {
+            final isUnlocked =
+                premiumService.isPremiumFeature('advanced_analytics');
             return SettingTile(
               icon: Icons.analytics_outlined,
               iconColor: Colors.teal,
               title: t.advancedAnalytics,
               subtitle: t.advancedAnalyticsSubtitle,
-              trailing: _buildFeatureIndicator(
+              trailing: PremiumFeatureVisuals.buildStatusIndicator(
                 context,
-                premiumService.isPremiumFeature('advanced_analytics'),
+                isUnlocked: isUnlocked,
               ),
+              visuallyDisabled: !isUnlocked,
+              semanticsValue: PremiumFeatureVisuals.semanticsState(
+                context,
+                isUnlocked: isUnlocked,
+              ),
+              semanticsHint: isUnlocked
+                  ? t.advancedAnalyticsSubtitle
+                  : t.upgradeToUse(t.advancedAnalytics),
               onTap: () => _handleAdvancedAnalyticsNavigation(
                 context,
                 premiumService,
@@ -71,53 +83,6 @@ class FeaturesSection extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Widget _buildUpdatedBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.purple.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
-      ),
-      child: const Text(
-        'UPDATED',
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.purple,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureIndicator(BuildContext context, bool isPremium) {
-    if (isPremium) {
-      return const Icon(Icons.chevron_right);
-    } else {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: SettingsTheme.premiumColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-              color: SettingsTheme.premiumColor.withValues(alpha: 0.3)),
-        ),
-        child: const Text(
-          'PRO',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: SettingsTheme.premiumColor,
-          ),
-        ),
-      );
-    }
-  }
-
-  void _navigateToModernUIShowcase(BuildContext context) {
-    Navigator.pushNamed(context, Routes.modernUIShowcase);
   }
 
   void _handleOfflineModeNavigation(
@@ -150,9 +115,23 @@ class FeaturesSection extends StatelessWidget {
   }
 
   void _showPremiumFeaturePrompt(BuildContext context, String featureName) {
+    final t = AppLocalizations.of(context)!;
+    var benefit = t.premiumFeatureBody(featureName);
+
+    if (featureName == t.offlineMode) {
+      benefit = t.offlineModeClassify;
+    } else if (featureName == t.advancedAnalytics) {
+      benefit = t.advancedAnalyticsSubtitle;
+    }
+
     DialogHelper.showPremiumPrompt(
       context,
       featureName: featureName,
+      description: PremiumFeatureVisuals.upgradeMessage(
+        context,
+        featureName: featureName,
+        benefit: benefit,
+      ),
       onUpgrade: () {
         // Navigate to premium features screen
         Navigator.pushNamed(context, Routes.premiumFeatures);

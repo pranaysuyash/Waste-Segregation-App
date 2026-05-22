@@ -1115,6 +1115,8 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
     required bool? isRecyclable,
     required double? confidence,
     required String? method,
+    String? analysisSource,
+    String? fallbackReason,
     Map<String, dynamic>? additionalData,
   }) =>
       (super.noSuchMethod(
@@ -1127,6 +1129,8 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
             #isRecyclable: isRecyclable,
             #confidence: confidence,
             #method: method,
+            #analysisSource: analysisSource,
+            #fallbackReason: fallbackReason,
             #additionalData: additionalData,
           },
         ),
@@ -1317,6 +1321,8 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
     required int? processingDuration,
     required String? modelVersion,
     String? method,
+    String? analysisSource,
+    String? fallbackReason,
     bool? resultAccuracy,
     Map<String, dynamic>? additionalData,
   }) =>
@@ -1331,6 +1337,8 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
             #processingDuration: processingDuration,
             #modelVersion: modelVersion,
             #method: method,
+            #analysisSource: analysisSource,
+            #fallbackReason: fallbackReason,
             #resultAccuracy: resultAccuracy,
             #additionalData: additionalData,
           },

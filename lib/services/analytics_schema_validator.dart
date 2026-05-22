@@ -89,6 +89,8 @@ class AnalyticsSchemaValidator {
     'app_version': 'string',
     'platform': 'string',
     'model_version': 'string',
+    'analysis_source': 'string',
+    'fallback_reason': 'string',
     'category': 'string',
     'input_method': 'string',
     'source': 'string',
@@ -124,6 +126,11 @@ class AnalyticsSchemaValidator {
     'platform': ['iOS', 'Android', 'Web'],
     'input_method': ['camera', 'gallery', 'file_upload'],
     'source': ['manual', 'instant', 'batch'],
+    'analysis_source': [
+      'cloud_primary',
+      'local_experimental',
+      'local_failed_fallback_cloud'
+    ],
     'element_type': ['button', 'link', 'icon', 'card', 'tab'],
     'retry_reason': ['low_confidence', 'user_disagreement', 'technical_error'],
     'resource_type': [

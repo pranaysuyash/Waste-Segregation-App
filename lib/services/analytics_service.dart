@@ -211,6 +211,8 @@ class AnalyticsService extends ChangeNotifier {
     required bool isRecyclable,
     required double confidence,
     required String method,
+    String? analysisSource,
+    String? fallbackReason,
     Map<String, dynamic>? additionalData,
   }) async {
     await trackEvent(
@@ -222,6 +224,8 @@ class AnalyticsService extends ChangeNotifier {
         'is_recyclable': isRecyclable,
         'confidence': confidence,
         'classification_method': method,
+        if (analysisSource != null) 'analysis_source': analysisSource,
+        if (fallbackReason != null) 'fallback_reason': fallbackReason,
         ...?additionalData,
       },
     );
@@ -417,6 +421,8 @@ class AnalyticsService extends ChangeNotifier {
     required int processingDuration,
     required String modelVersion,
     String? method,
+    String? analysisSource,
+    String? fallbackReason,
     bool? resultAccuracy,
     Map<String, dynamic>? additionalData,
   }) async {
@@ -430,6 +436,8 @@ class AnalyticsService extends ChangeNotifier {
         'processing_duration_ms': processingDuration,
         'model_version': modelVersion,
         'method': method ?? 'standard',
+        if (analysisSource != null) 'analysis_source': analysisSource,
+        if (fallbackReason != null) 'fallback_reason': fallbackReason,
         'result_accuracy': resultAccuracy,
         ...?additionalData,
       },

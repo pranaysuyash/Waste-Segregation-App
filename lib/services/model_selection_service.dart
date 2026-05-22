@@ -82,6 +82,8 @@ class ModelSelectionService {
       // Determine which service to use based on strategy
       final useCloud = forceCloud ?? _shouldUseCloud();
       final useBatch = forceBatch ?? _shouldUseBatch();
+      var attemptedLocal = false;
+      String? localFallbackReason;
 
       if (useBatch) {
         // Canonical batch execution is handled by AiJobService (async job flow).
@@ -94,6 +96,7 @@ class ModelSelectionService {
       }
 
       if (!useCloud && _onDeviceService != null) {
+        attemptedLocal = true;
         WasteAppLogger.info('Attempting on-device analysis');
         try {
           final result = await _onDeviceService.analyzeImage(
@@ -106,12 +109,15 @@ class ModelSelectionService {
             _onDeviceAnalyses++;
             WasteAppLogger.info(
                 'On-device analysis succeeded with confidence ${result.confidence}');
-            return result;
+            return _markLocalExperimental(result);
           } else {
+            localFallbackReason =
+                'low_confidence_${result.confidence?.toStringAsFixed(2) ?? 'unknown'}';
             WasteAppLogger.info(
                 'On-device confidence too low (${result.confidence}), falling back to cloud');
           }
         } catch (e, s) {
+          localFallbackReason = 'on_device_analysis_failed';
           WasteAppLogger.warning(
               'On-device analysis failed, falling back to cloud',
               error: e,
@@ -131,7 +137,14 @@ class ModelSelectionService {
       // Track cloud costs (approximate)
       _totalCost += _estimateCost(result);
 
-      return result;
+      if (attemptedLocal && localFallbackReason != null) {
+        return _markLocalFailedFallbackCloud(
+          result,
+          fallbackReason: localFallbackReason,
+        );
+      }
+
+      return _markCloudPrimary(result);
     } catch (e, s) {
       WasteAppLogger.severe('Analysis failed with all methods',
           error: e, stackTrace: s);
@@ -151,8 +164,11 @@ class ModelSelectionService {
 
     try {
       final useCloud = forceCloud ?? _shouldUseCloud();
+      var attemptedLocal = false;
+      String? localFallbackReason;
 
       if (!useCloud && _onDeviceService != null) {
+        attemptedLocal = true;
         WasteAppLogger.info('Attempting on-device web analysis');
         try {
           final result = await _onDeviceService.analyzeWebImage(
@@ -162,9 +178,12 @@ class ModelSelectionService {
 
           if (_isConfidenceAcceptable(result)) {
             _onDeviceAnalyses++;
-            return result;
+            return _markLocalExperimental(result);
           }
+          localFallbackReason =
+              'low_confidence_${result.confidence?.toStringAsFixed(2) ?? 'unknown'}';
         } catch (e, s) {
+          localFallbackReason = 'on_device_analysis_failed';
           WasteAppLogger.warning(
               'On-device web analysis failed, falling back to cloud',
               error: e,
@@ -184,7 +203,14 @@ class ModelSelectionService {
 
       _totalCost += _estimateCost(result);
 
-      return result;
+      if (attemptedLocal && localFallbackReason != null) {
+        return _markLocalFailedFallbackCloud(
+          result,
+          fallbackReason: localFallbackReason,
+        );
+      }
+
+      return _markCloudPrimary(result);
     } catch (e, s) {
       WasteAppLogger.severe('Web analysis failed with all methods',
           error: e, stackTrace: s);
@@ -228,6 +254,30 @@ class ModelSelectionService {
   bool _isConfidenceAcceptable(WasteClassification result) {
     final confidence = result.confidence ?? 0.0;
     return confidence >= _config.confidenceThreshold;
+  }
+
+  WasteClassification _markCloudPrimary(WasteClassification result) {
+    return result.copyWith(
+      analysisSource: WasteClassification.analysisSourceCloudPrimary,
+      analysisFallbackReason: null,
+    );
+  }
+
+  WasteClassification _markLocalExperimental(WasteClassification result) {
+    return result.copyWith(
+      analysisSource: WasteClassification.analysisSourceLocalExperimental,
+      analysisFallbackReason: null,
+    );
+  }
+
+  WasteClassification _markLocalFailedFallbackCloud(
+    WasteClassification result, {
+    required String fallbackReason,
+  }) {
+    return result.copyWith(
+      analysisSource: WasteClassification.analysisSourceLocalFailedFallbackCloud,
+      analysisFallbackReason: fallbackReason,
+    );
   }
 
   /// Estimate cost of cloud analysis (approximate)

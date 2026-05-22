@@ -1,8 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/token_providers.dart';
+import 'package:flutter/services.dart';
+import 'package:waste_segregation_app/providers/token_providers.dart';
 import '../models/token_wallet.dart';
+import '../services/token_service.dart';
 import '../utils/routes.dart';
+import '../utils/wallet_encryption.dart';
+import '../utils/waste_app_logger.dart';
 
 class TokenWalletScreen extends ConsumerWidget {
   const TokenWalletScreen({super.key});
@@ -13,7 +18,32 @@ class TokenWalletScreen extends ConsumerWidget {
     final transactionsAsync = ref.watch(tokenTransactionsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Token Wallet')),
+      appBar: AppBar(
+        title: const Text('Token Wallet'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) => _handleMenuAction(context, ref, value),
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'export',
+                child: ListTile(
+                  leading: Icon(Icons.file_upload_outlined),
+                  title: Text('Export Wallet'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'import',
+                child: ListTile(
+                  leading: Icon(Icons.file_download_outlined),
+                  title: Text('Restore Wallet'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(tokenWalletProvider);
@@ -97,6 +127,80 @@ class TokenWalletScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _handleMenuAction(BuildContext context, WidgetRef ref, String action) {
+    switch (action) {
+      case 'export':
+        _exportWallet(context, ref);
+      case 'import':
+        _importWallet(context, ref);
+    }
+  }
+
+  Future<void> _exportWallet(BuildContext context, WidgetRef ref) async {
+    try {
+      final wallet = await ref.read(tokenWalletProvider.future);
+      if (wallet == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No wallet to export')),
+          );
+        }
+        return;
+      }
+      final walletJson = jsonEncode(wallet.toJson());
+      await Clipboard.setData(ClipboardData(text: walletJson));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Wallet data copied to clipboard'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      WasteAppLogger.severe('Wallet export failed', error: e);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _importWallet(BuildContext context, WidgetRef ref) async {
+    try {
+      final data = await Clipboard.getData(Clipboard.kTextPlain);
+      if (data?.text == null || data!.text!.trim().isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Clipboard is empty')),
+          );
+        }
+        return;
+      }
+      final parsed = jsonDecode(data.text!) as Map<String, dynamic>;
+      final restored = TokenWallet.fromJson(parsed);
+      final tokenService = ref.read(tokenServiceProvider);
+      await tokenService.restoreWallet(restored);
+      ref.invalidate(tokenWalletProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Wallet restored successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      WasteAppLogger.severe('Wallet import failed', error: e);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Restore failed - invalid wallet data')),
+        );
+      }
+    }
   }
 }
 

@@ -8,34 +8,18 @@ import '../utils/constants.dart';
 class EducationCardEngine {
   EducationCardEngine({
     List<WasteEducationCard>? seedCards,
+    this.cooldownDays = 30,
   }) : _seedCards = seedCards ?? allSeedEducationCards;
 
   final List<WasteEducationCard> _seedCards;
+  final int cooldownDays;
 
-  static const _dismissedKey = 'dismissedEducationCardIds';
-
-  static List<String> readDismissedIds() {
-    try {
-      final box = Hive.box(StorageKeys.settingsBox);
-      final raw = box.get(_dismissedKey, defaultValue: <String>[]);
-      if (raw is List) return raw.cast<String>();
-      return [];
-    } catch (_) {
-      return [];
-    }
-  }
-
-  static void persistDismissedIds(Set<String> ids) {
-    try {
-      final box = Hive.box(StorageKeys.settingsBox);
-      box.put(_dismissedKey, ids.toList());
-    } catch (_) {}
-  }
+  static const _seenKey = 'seenEducationCards';
 
   static Map<String, SeenEducationCard> readSeenCards() {
     try {
       final box = Hive.box(StorageKeys.settingsBox);
-      final raw = box.get('seenEducationCards', defaultValue: <String, dynamic>{});
+      final raw = box.get(_seenKey, defaultValue: <String, dynamic>{});
       if (raw is Map) {
         return raw.map((k, v) => MapEntry(
             k as String,
@@ -51,11 +35,37 @@ class EducationCardEngine {
   static void persistSeenCard(SeenEducationCard card) {
     try {
       final box = Hive.box(StorageKeys.settingsBox);
-      final raw = box.get('seenEducationCards', defaultValue: <String, dynamic>{});
+      final raw = box.get(_seenKey, defaultValue: <String, dynamic>{});
       final map = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
       map[card.cardId] = jsonEncode(card.toJson());
-      box.put('seenEducationCards', map);
+      box.put(_seenKey, map);
     } catch (_) {}
+  }
+
+  static void dismissCard(String cardId) {
+    final seenCards = readSeenCards();
+    final existing = seenCards[cardId];
+    persistSeenCard(SeenEducationCard(
+      cardId: cardId,
+      lastSeen: DateTime.now(),
+      dismissCount: (existing?.dismissCount ?? 0) + 1,
+      permanentlyDismissed: existing?.permanentlyDismissed ?? false,
+    ));
+  }
+
+  Set<String> currentCooldownIds() {
+    final seenCards = readSeenCards();
+    final now = DateTime.now();
+    final cutoff = now.subtract(Duration(days: cooldownDays));
+    final ids = <String>{};
+    for (final entry in seenCards.entries) {
+      if (entry.value.permanentlyDismissed) {
+        ids.add(entry.key);
+      } else if (entry.value.lastSeen.isAfter(cutoff)) {
+        ids.add(entry.key);
+      }
+    }
+    return ids;
   }
 
   List<WasteEducationCard> cardsForClassification(

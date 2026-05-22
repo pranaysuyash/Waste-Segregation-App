@@ -65,12 +65,25 @@ class FirestoreCollections {
   static const String adminUserRecovery = 'admin_user_recovery';
   static const String admin = 'admin'; // wildcard collection
 
+  // --- Society policy overrides ---
+  static const String societyPolicies = 'society_policies';
+
   // --- Reference data collections ---
   static const String disposalInstructions = 'disposal_instructions';
   static const String disposalLocations = 'disposal_locations';
 
   // --- User contributions ---
   static const String userContributions = 'user_contributions';
+
+  // --- Subscriptions (DodoPayments) ---
+  static const String subscriptions = 'subscriptions';
+
+  // --- Webhook events (idempotency tracking) ---
+  static const String webhookEvents = 'webhook_events';
+
+  // --- Referral system ---
+  static const String referralCodes = 'referral_codes';
+  static const String referralRedemptions = 'referral_redemptions';
 
   /// All collection names for iteration/validation
   static const Set<String> allCollections = {
@@ -95,9 +108,14 @@ class FirestoreCollections {
     adminClassifications,
     adminUserRecovery,
     admin,
+    societyPolicies,
     disposalInstructions,
     disposalLocations,
     userContributions,
+    subscriptions,
+    webhookEvents,
+    referralCodes,
+    referralRedemptions,
   };
 }
 

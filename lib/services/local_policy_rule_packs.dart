@@ -356,6 +356,381 @@ class LocalPolicyRulePackRegistry {
         ),
       ],
     ),
+
+    // ---- AMC Ahmedabad (draft) ----
+    'amc_ahmedabad': LocalPolicyPackDefinition(
+      governanceStage: 'draft',
+      owningTeam: 'india_city_ops',
+      rules: <LocalPolicyRule>[
+        LocalPolicyRule(
+          ruleId: 'amc_hazardous_special_disposal',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.requiresSpecialDisposalTrue,
+          message: 'Ahmedabad hazardous waste requires special disposal via AMC ward office.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'amc_medical_urgent',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.hasUrgentTimeframeTrue,
+          message: 'Ahmedabad medical waste must be handled via authorized BMW handler.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'amc_hazardous_safety_override',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'AMC requires special disposal for hazardous waste — safety override.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'amc_medical_safety_override',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'AMC requires urgent handling for medical waste — safety override.',
+        ),
+      ],
+    ),
+
+    // ---- SMC Surat (draft) ----
+    'smc_surat': LocalPolicyPackDefinition(
+      governanceStage: 'draft',
+      owningTeam: 'india_city_ops',
+      rules: <LocalPolicyRule>[
+        LocalPolicyRule(
+          ruleId: 'smc_hazardous_special_disposal',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.requiresSpecialDisposalTrue,
+          message: 'Surat hazardous waste requires special disposal via SMC.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'smc_medical_urgent',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.hasUrgentTimeframeTrue,
+          message: 'Surat medical waste must be handled via authorized BMW handler.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'smc_hazardous_safety_override',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'SMC requires special disposal for hazardous waste — safety override.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'smc_medical_safety_override',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'SMC requires urgent handling for medical waste — safety override.',
+        ),
+      ],
+    ),
+
+    // ---- JMC Jaipur (draft) ----
+    'jmc_jaipur': LocalPolicyPackDefinition(
+      governanceStage: 'draft',
+      owningTeam: 'india_city_ops',
+      rules: <LocalPolicyRule>[
+        LocalPolicyRule(
+          ruleId: 'jmc_hazardous_special_disposal',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.requiresSpecialDisposalTrue,
+          message: 'Jaipur hazardous waste requires special disposal via JMC zone office.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'jmc_medical_urgent',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.hasUrgentTimeframeTrue,
+          message: 'Jaipur medical waste must be handled via authorized BMW handler.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'jmc_hazardous_safety_override',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'JMC requires special disposal for hazardous waste — safety override.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'jmc_medical_safety_override',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'JMC requires urgent handling for medical waste — safety override.',
+        ),
+      ],
+    ),
+
+    // ---- LMC Lucknow (draft) ----
+    'lmc_lucknow': LocalPolicyPackDefinition(
+      governanceStage: 'draft',
+      owningTeam: 'india_city_ops',
+      rules: <LocalPolicyRule>[
+        LocalPolicyRule(
+          ruleId: 'lmc_hazardous_special_disposal',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.requiresSpecialDisposalTrue,
+          message: 'Lucknow hazardous waste requires special disposal via LMC zone office.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'lmc_medical_urgent',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.hasUrgentTimeframeTrue,
+          message: 'Lucknow medical waste must be handled via authorized BMW handler.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'lmc_hazardous_safety_override',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'LMC requires special disposal for hazardous waste — safety override.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'lmc_medical_safety_override',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'LMC requires urgent handling for medical waste — safety override.',
+        ),
+      ],
+    ),
+
+    // ---- NMC Nagpur (draft) ----
+    'nmc_nagpur': LocalPolicyPackDefinition(
+      governanceStage: 'draft',
+      owningTeam: 'india_city_ops',
+      rules: <LocalPolicyRule>[
+        LocalPolicyRule(
+          ruleId: 'nmc_hazardous_special_disposal',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.requiresSpecialDisposalTrue,
+          message: 'Nagpur hazardous waste requires special disposal via NMC SWM department.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'nmc_medical_urgent',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.hasUrgentTimeframeTrue,
+          message: 'Nagpur medical waste must be handled via authorized BMW handler.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'nmc_hazardous_safety_override',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'NMC requires special disposal for hazardous waste — safety override.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'nmc_medical_safety_override',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'NMC requires urgent handling for medical waste — safety override.',
+        ),
+      ],
+    ),
+
+    // ---- IMC Indore (draft) ----
+    'imc_indore': LocalPolicyPackDefinition(
+      governanceStage: 'draft',
+      owningTeam: 'india_city_ops',
+      rules: <LocalPolicyRule>[
+        LocalPolicyRule(
+          ruleId: 'imc_hazardous_special_disposal',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.requiresSpecialDisposalTrue,
+          message: 'Indore hazardous waste requires special disposal via IMC ward office.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'imc_medical_urgent',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.hasUrgentTimeframeTrue,
+          message: 'Indore medical waste must be handled via authorized BMW handler.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'imc_wet_segregation',
+          categoryKey: 'wet_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.visualFeatureMustNotContain,
+          targetValue: 'plastic',
+          message: 'Indore enforces strict segregation — wet waste must be free of plastic.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'imc_hazardous_safety_override',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'IMC requires special disposal for hazardous waste — safety override.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'imc_medical_safety_override',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'IMC requires urgent handling for medical waste — safety override.',
+        ),
+      ],
+    ),
+
+    // ---- BMC Bhopal (draft) ----
+    'bmc_bhopal': LocalPolicyPackDefinition(
+      governanceStage: 'draft',
+      owningTeam: 'india_city_ops',
+      rules: <LocalPolicyRule>[
+        LocalPolicyRule(
+          ruleId: 'bhopal_hazardous_special_disposal',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.requiresSpecialDisposalTrue,
+          message: 'Bhopal hazardous waste requires special disposal via BMC zone office.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'bhopal_medical_urgent',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.hasUrgentTimeframeTrue,
+          message: 'Bhopal medical waste must be handled via authorized BMW handler.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'bhopal_hazardous_safety_override',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'BMC Bhopal requires special disposal for hazardous waste — safety override.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'bhopal_medical_safety_override',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'BMC Bhopal requires urgent handling for medical waste — safety override.',
+        ),
+      ],
+    ),
+
+    // ---- CCMC Coimbatore (draft) ----
+    'ccmc_coimbatore': LocalPolicyPackDefinition(
+      governanceStage: 'draft',
+      owningTeam: 'india_city_ops',
+      rules: <LocalPolicyRule>[
+        LocalPolicyRule(
+          ruleId: 'ccmc_hazardous_special_disposal',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.requiresSpecialDisposalTrue,
+          message: 'Coimbatore hazardous waste requires special disposal via CCMC zone office.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'ccmc_medical_urgent',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.hasUrgentTimeframeTrue,
+          message: 'Coimbatore medical waste must be handled via authorized BMW handler.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'ccmc_hazardous_safety_override',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'CCMC requires special disposal for hazardous waste — safety override.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'ccmc_medical_safety_override',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'CCMC requires urgent handling for medical waste — safety override.',
+        ),
+      ],
+    ),
+
+    // ---- Cochin Kochi (draft) ----
+    'cochin_kochi': LocalPolicyPackDefinition(
+      governanceStage: 'draft',
+      owningTeam: 'india_city_ops',
+      rules: <LocalPolicyRule>[
+        LocalPolicyRule(
+          ruleId: 'kochi_hazardous_special_disposal',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.requiresSpecialDisposalTrue,
+          message: 'Kochi hazardous waste requires special disposal via Corporation Health Committee.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'kochi_medical_urgent',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.hasUrgentTimeframeTrue,
+          message: 'Kochi medical waste must be handled via authorized BMW handler.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'kochi_hazardous_safety_override',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'Cochin Corporation requires special disposal for hazardous waste — safety override.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'kochi_medical_safety_override',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'Cochin Corporation requires urgent handling for medical waste — safety override.',
+        ),
+      ],
+    ),
+
+    // ---- MCC Chandigarh (draft) ----
+    'mcc_chandigarh': LocalPolicyPackDefinition(
+      governanceStage: 'draft',
+      owningTeam: 'india_city_ops',
+      rules: <LocalPolicyRule>[
+        LocalPolicyRule(
+          ruleId: 'mcc_hazardous_special_disposal',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.requiresSpecialDisposalTrue,
+          message: 'Chandigarh hazardous waste requires special disposal via MCC helpline 14420.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'mcc_medical_urgent',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.hasUrgentTimeframeTrue,
+          message: 'Chandigarh medical waste must be handled via authorized BMW handler.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'mcc_wet_compostable',
+          categoryKey: 'wet_waste',
+          severity: LocalPolicyRuleSeverity.warning,
+          checkType: LocalPolicyRuleCheckType.isCompostableTrue,
+          message: 'Chandigarh encourages composting; sector-based wet waste collection.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'mcc_hazardous_safety_override',
+          categoryKey: 'hazardous_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'MCC requires special disposal for hazardous waste — safety override.',
+        ),
+        LocalPolicyRule(
+          ruleId: 'mcc_medical_safety_override',
+          categoryKey: 'medical_waste',
+          severity: LocalPolicyRuleSeverity.violation,
+          checkType: LocalPolicyRuleCheckType.safetyOverrideAlways,
+          message: 'MCC requires urgent handling for medical waste — safety override.',
+        ),
+      ],
+    ),
   };
 }
 

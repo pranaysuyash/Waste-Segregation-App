@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/educational_content.dart';
+import '../screens/leaderboard/leaderboard_screen.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../providers/app_providers.dart';
@@ -251,6 +252,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           context,
                           classificationsAsync,
                         ),
+                        const SizedBox(height: 20),
+
+                        // Leaderboard
+                        _buildLeaderboardCard(context),
                         const SizedBox(height: 20),
 
                         // Content with padding
@@ -1115,6 +1120,65 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     }
   }
 
+  Widget _buildLeaderboardCard(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Card(
+        key: const Key('home_leaderboard_card'),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LeaderboardScreen(),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.leaderboard, color: Colors.amber, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Leaderboard',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'See how you rank against others',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCommunityImpactCard(
     BuildContext context,
     AsyncValue<List<WasteClassification>> classificationsAsync,
@@ -1773,8 +1837,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       image ??= await _picker.pickImage(
         source: source,
         imageQuality: 85,
-        maxWidth: 1920,
-        maxHeight: 1080,
+        maxWidth: 1200,
+        maxHeight: 1200,
       );
 
       if (image != null && mounted) {

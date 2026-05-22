@@ -219,6 +219,53 @@ void main() {
       expect(decision.pluginId, equals('kmc_kolkata'));
     });
 
+    test('applies policy for Ahmedabad', () async {
+      final d = await engine.applyPolicy(classification: baseClassification, region: 'Ahmedabad, IN');
+      expect(d.policyApplied, isTrue);
+      expect(d.pluginId, equals('amc_ahmedabad'));
+    });
+
+    test('applies policy for Indore', () async {
+      final d = await engine.applyPolicy(classification: baseClassification, region: 'Indore, IN');
+      expect(d.policyApplied, isTrue);
+      expect(d.pluginId, equals('imc_indore'));
+    });
+
+    test('applies policy for Chandigarh', () async {
+      final d = await engine.applyPolicy(classification: baseClassification, region: 'Chandigarh, IN');
+      expect(d.policyApplied, isTrue);
+      expect(d.pluginId, equals('mcc_chandigarh'));
+    });
+
+    test('applies policy for all 17 registered cities', () async {
+      final cities = [
+        ('Bangalore, IN', 'bbmp_bangalore'),
+        ('Mumbai, IN', 'bmc_mumbai'),
+        ('Delhi, IN', 'mcd_delhi'),
+        ('Pune, IN', 'pmc_pune'),
+        ('Hyderabad, IN', 'ghmc_hyderabad'),
+        ('Chennai, IN', 'gcc_chennai'),
+        ('Kolkata, IN', 'kmc_kolkata'),
+        ('Ahmedabad, IN', 'amc_ahmedabad'),
+        ('Surat, IN', 'smc_surat'),
+        ('Jaipur, IN', 'jmc_jaipur'),
+        ('Lucknow, IN', 'lmc_lucknow'),
+        ('Nagpur, IN', 'nmc_nagpur'),
+        ('Indore, IN', 'imc_indore'),
+        ('Bhopal, IN', 'bmc_bhopal'),
+        ('Coimbatore, IN', 'ccmc_coimbatore'),
+        ('Kochi, IN', 'cochin_kochi'),
+        ('Chandigarh, IN', 'mcc_chandigarh'),
+      ];
+      for (final (region, expectedId) in cities) {
+        final d = await engine.applyPolicy(classification: baseClassification, region: region);
+        expect(d.policyApplied, isTrue, reason: '$region should resolve');
+        expect(d.pluginId, equals(expectedId), reason: '$region should map to $expectedId');
+        expect(d.rulePack, isNotNull, reason: '$region should have a rule pack');
+        expect(d.rulePack!.rules, isNotEmpty, reason: '$region should have rules');
+      }
+    });
+
     test('provenance fields present in decision with high confidence', () async {
       final decision = await engine.applyPolicy(
         classification: baseClassification,

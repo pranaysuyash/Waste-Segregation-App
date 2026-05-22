@@ -395,6 +395,77 @@ class KMKKolkataPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
   }
 }
 
+/// AMC (Ahmedabad Municipal Corporation) — Ahmedabad.
+class AMCAhmedabadPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.amc;
+}
+
+/// SMC (Surat Municipal Corporation) — Surat.
+class SMCSuratPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.smc;
+}
+
+/// JMC (Jaipur Municipal Corporation) — Jaipur.
+class JMCJaipurPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.jmc;
+}
+
+/// LMC (Lucknow Municipal Corporation) — Lucknow.
+class LMCLucknowPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.lmc;
+
+  @override
+  LocalComplianceResult validateCompliance(
+      WasteClassification classification) {
+    final result = cityData.defaultValidateCompliance(this, classification);
+    result.recommendations.add(
+        'Report garbage collection issues to Mayor helpline: ${cityData.helpline}');
+    return result;
+  }
+}
+
+/// NMC (Nagpur Municipal Corporation) — Nagpur.
+class NMCNagpurPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.nmc;
+}
+
+/// IMC (Indore Municipal Corporation) — Indore.
+class IMCIndorePlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.imc;
+}
+
+/// BMC (Bhopal Municipal Corporation) — Bhopal.
+class BMCBhopalPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.bmcBhopal;
+}
+
+/// CCMC (Coimbatore City Municipal Corporation) — Coimbatore.
+class CCMCCoimbatorePlugin extends LocalGuidelinesPlugin
+    with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.ccmc;
+}
+
+/// Cochin Corporation — Kochi.
+class CochinKochiPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.kochi;
+}
+
+/// MCC (Municipal Corporation Chandigarh) — Chandigarh.
+class MCCChandigarhPlugin extends LocalGuidelinesPlugin
+    with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.mcc;
+}
+
 /// Result of local compliance validation.
 class LocalComplianceResult {
   LocalComplianceResult({
@@ -454,6 +525,17 @@ class LocalGuidelinesManager {
     'madras': 'gcc_chennai',
     'kolkata': 'kmc_kolkata',
     'calcutta': 'kmc_kolkata',
+    'ahmedabad': 'amc_ahmedabad',
+    'surat': 'smc_surat',
+    'jaipur': 'jmc_jaipur',
+    'lucknow': 'lmc_lucknow',
+    'nagpur': 'nmc_nagpur',
+    'indore': 'imc_indore',
+    'bhopal': 'bmc_bhopal',
+    'coimbatore': 'ccmc_coimbatore',
+    'kochi': 'cochin_kochi',
+    'cochin': 'cochin_kochi',
+    'chandigarh': 'mcc_chandigarh',
   };
 
   static void registerPlugin(LocalGuidelinesPlugin plugin) {
@@ -508,5 +590,15 @@ class LocalGuidelinesManager {
     registerPlugin(GHMCHyderabadPlugin());
     registerPlugin(GCCChennaiPlugin());
     registerPlugin(KMKKolkataPlugin());
+    registerPlugin(AMCAhmedabadPlugin());
+    registerPlugin(SMCSuratPlugin());
+    registerPlugin(JMCJaipurPlugin());
+    registerPlugin(LMCLucknowPlugin());
+    registerPlugin(NMCNagpurPlugin());
+    registerPlugin(IMCIndorePlugin());
+    registerPlugin(BMCBhopalPlugin());
+    registerPlugin(CCMCCoimbatorePlugin());
+    registerPlugin(CochinKochiPlugin());
+    registerPlugin(MCCChandigarhPlugin());
   }
 }

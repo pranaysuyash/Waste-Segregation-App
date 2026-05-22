@@ -225,6 +225,16 @@
   "@advancedAnalyticsSubtitle": {
     "description": "Subtitle for advanced analytics"
   },
+
+  "advancedSegmentation": "Advanced Segmentation",
+  "@advancedSegmentation": {
+    "description": "Premium segmentation toggle title"
+  },
+
+  "advancedSegmentationSubtitle": "Identify multiple objects in a single image",
+  "@advancedSegmentationSubtitle": {
+    "description": "Premium segmentation toggle subtitle"
+  },
   
   "offlineModeComingSoon": "Offline mode settings coming soon!",
   "@offlineModeComingSoon": {

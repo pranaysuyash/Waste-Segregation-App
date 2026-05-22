@@ -64,9 +64,9 @@ final achievementEarnedProvider = StreamProvider<Achievement>((ref) {
 });
 
 /// Today's goal provider - tracks daily classification progress
+/// Derives from classificationsProvider to avoid duplicate storage reads.
 final todayGoalProvider = FutureProvider<(int, int)>((ref) async {
-  final storageService = ref.watch(storageServiceProvider);
-  final classifications = await storageService.getAllClassifications();
+  final classifications = await ref.watch(classificationsProvider.future);
 
   // Count today's classifications
   final today = DateTime.now();

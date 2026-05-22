@@ -104,9 +104,15 @@ class LiveAdapterNotConfigured:
 def _call_classify_image(case: GoldenCase, image_source: str) -> Dict[str, Any]:
     """Call the classifyImage Cloud Function via HTTPS.
 
-    Requires GOOGLE_APPLICATION_CREDENTIALS, FIREBASE_PROJECT_ID, and
-    CLOUD_FUNCTIONS_REGION env vars.  The service account must have
-    `cloudfunctions.functions.invoke` permission on the target function.
+    Downloads the image from Firebase Storage, encodes as base64, and
+    POSTs to the classifyImage callable endpoint.
+
+    Requires:
+    - GOOGLE_APPLICATION_CREDENTIALS env var pointing to a service account key
+      with `storage.objects.get` + `cloudfunctions.functions.invoke`
+    - FIREBASE_PROJECT_ID env var
+    - CLOUD_FUNCTIONS_REGION env var (default: asia-south1)
+    - google-cloud-storage and google-auth pip packages
     """
     project = os.environ.get("FIREBASE_PROJECT_ID", "")
     region = os.environ.get("CLOUD_FUNCTIONS_REGION", "asia-south1")
@@ -119,16 +125,93 @@ def _call_classify_image(case: GoldenCase, image_source: str) -> Dict[str, Any]:
             "Live mode requires each golden case to reference a real image."
         )
 
-    # Temporary until golden cases carry image data
-    raise NotImplementedError(
-        f"Golden case '{case.case_id}' has image_source='{image_source}' but "
-        "image retrieval from Firebase Storage is not yet wired. "
-        "Next step: download image bytes from image_source, encode as base64, "
-        "and POST to the classifyImage callable:\n"
-        f"  POST https://{region}-{project}.cloudfunctions.net/classifyImage\n"
-        "Body: {\"data\": {\"imageBase64\": \"...\", \"mimeType\": \"image/jpeg\"}}\n"
-        "Auth: Bearer token from google.auth.default()"
-    )
+    try:
+        from google.cloud import storage as gcs
+        from google.auth import default as auth_default
+        from google.auth.transport.requests import Request as AuthRequest
+    except ImportError:
+        raise RuntimeError(
+            "Missing required packages for --mode live. Install with:\n"
+            "  pip install google-cloud-storage google-auth\n"
+            "Then export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json"
+        )
+
+    try:
+        credentials, _ = auth_default()
+        credentials.refresh(AuthRequest())
+        id_token = credentials.id_token
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to obtain identity token from GOOGLE_APPLICATION_CREDENTIALS: {exc}"
+        )
+
+    bucket_name = f"{project}.firebasestorage.app"
+    mime_type = "image/jpeg"
+    image_blob_path = image_source
+    if image_source.startswith("gs://"):
+        parts = image_source.replace("gs://", "").split("/", 1)
+        bucket_name = parts[0]
+        image_blob_path = parts[1] if len(parts) > 1 else ""
+        mime_type = "image/jpeg"
+    elif image_source.startswith("http"):
+        raise RuntimeError(
+            f"URL-based image_source is not yet supported: {image_source}. "
+            "Use a gs:// path or a Firebase Storage relative path."
+        )
+
+    try:
+        client = gcs.Client(project=project)
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(image_blob_path)
+        image_bytes = blob.download_as_bytes()
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to download image from gs://{bucket_name}/{image_blob_path}: "
+            f"{exc}\nMake sure the service account has storage.objects.get permission."
+        )
+
+    import base64
+    image_b64 = base64.b64encode(image_bytes).decode("ascii")
+
+    url = f"https://{region}-{project}.cloudfunctions.net/classifyImage"
+    body = json.dumps({
+        "data": {
+            "imageBase64": image_b64,
+            "mimeType": mime_type,
+        }
+    }).encode("utf-8")
+
+    req = Request(url, data=body, headers={
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {id_token}",
+    }, method="POST")
+
+    try:
+        with urlopen(req) as resp:
+            raw = json.loads(resp.read().decode("utf-8"))
+    except URLError as exc:
+        raise RuntimeError(f"classifyImage request failed: {exc}")
+
+    result = raw.get("result", raw)
+    classification = result.get("classification", {})
+    meta = result.get("meta", {})
+
+    latency = meta.get("serverProcessingMs") or meta.get("latencyMs") or 0
+    cost = meta.get("estimatedCostUsd") or 0
+
+    return {
+        "prediction": {
+            "category": classification.get("category", ""),
+            "itemName": classification.get("itemName", ""),
+            "subcategory": classification.get("subcategory", ""),
+            "material": classification.get("materialType", ""),
+            "confidence": classification.get("confidence"),
+        },
+        "processingTimeMs": latency,
+        "costUsd": cost,
+        "provider": meta.get("provider", "openai"),
+        "model": meta.get("model", "classifyImage"),
+    }
 
 
 class OpenAIViaClassifyImageAdapter:

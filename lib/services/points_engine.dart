@@ -383,7 +383,13 @@ class PointsEngine extends ChangeNotifier {
         lastActivityDate: now,
       );
     } else {
-      // Streak broken, start new
+      // Streak broken - use streak freeze if available
+      if (currentStreak.streakFreezesAvailable > 0) {
+        return currentStreak.copyWith(
+          lastActivityDate: now,
+          streakFreezesAvailable: currentStreak.streakFreezesAvailable - 1,
+        );
+      }
       return currentStreak.copyWith(
         currentCount: 1,
         lastActivityDate: now,

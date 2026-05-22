@@ -99,8 +99,11 @@ class WasteClassification extends HiveObject {
     this.routeReason,
     this.policyPackId,
     this.modelRoute,
+    this.analysisSource,
+    this.analysisFallbackReason,
     this.routeLatencyMs,
     this.routeCostUsd,
+    this.isOfflineHint = false,
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
 
@@ -172,6 +175,8 @@ class WasteClassification extends HiveObject {
       routeReason: 'fallback_classification',
       policyPackId: 'policy-unknown',
       modelRoute: 'fallback',
+      analysisSource: 'cloud_primary',
+      analysisFallbackReason: 'analysis_failed',
       riskLevel: 'unknown',
       suggestedAction:
           'Please identify the item manually and provide feedback to help improve our AI',
@@ -244,6 +249,13 @@ class WasteClassification extends HiveObject {
           ? Map<String, String>.from(json['translatedInstructions'])
           : null,
       source: json['source'],
+      analysisSource: inferAnalysisSource(
+        analysisSource: json['analysisSource'] as String?,
+        source: json['source'] as String?,
+        modelSource: json['modelSource'] as String?,
+        classificationLayer: json['classificationLayer'] as String?,
+      ),
+      analysisFallbackReason: json['analysisFallbackReason'],
       timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'])
           : DateTime.now(),
@@ -315,6 +327,7 @@ class WasteClassification extends HiveObject {
           ? (json['routeLatencyMs'] as num).toInt()
           : json['routeLatencyMs'],
       routeCostUsd: json['routeCostUsd']?.toDouble(),
+      isOfflineHint: json['isOfflineHint'] as bool? ?? false,
     );
   }
   @HiveField(0)
@@ -601,10 +614,18 @@ class WasteClassification extends HiveObject {
   final String? policyPackId;
   @HiveField(98)
   final String? modelRoute;
+  @HiveField(101)
+  final String? analysisSource;
+  @HiveField(102)
+  final String? analysisFallbackReason;
   @HiveField(99)
   final int? routeLatencyMs;
   @HiveField(100)
   final double? routeCostUsd;
+
+  /// Whether this classification was produced as an offline hint from Layer 0.
+  /// Transient display flag — not persisted to Hive or cloud.
+  final bool isOfflineHint;
 
   /// Parse disposal instructions from various input formats
   static DisposalInstructions _parseDisposalInstructions(
@@ -646,6 +667,71 @@ class WasteClassification extends HiveObject {
 
   /// Gets the subcategory value, preferring the newer subCategory field
   String? get normalizedSubcategory => subCategory ?? subcategory;
+
+  static const String analysisSourceCloudPrimary = 'cloud_primary';
+  static const String analysisSourceLocalExperimental =
+      'local_experimental';
+  static const String analysisSourceLocalFailedFallbackCloud =
+      'local_failed_fallback_cloud';
+
+  static String normalizeAnalysisSource(String? value) {
+    final normalized = (value ?? '').trim().toLowerCase();
+    if (normalized.isEmpty) return analysisSourceCloudPrimary;
+    if (normalized == analysisSourceCloudPrimary ||
+        normalized == analysisSourceLocalExperimental ||
+        normalized == analysisSourceLocalFailedFallbackCloud) {
+      return normalized;
+    }
+    return normalized;
+  }
+
+  static String inferAnalysisSource({
+    String? analysisSource,
+    String? source,
+    String? modelSource,
+    String? classificationLayer,
+  }) {
+    final normalized = (analysisSource ?? '').trim();
+    if (normalized.isNotEmpty) {
+      return normalizeAnalysisSource(normalized);
+    }
+
+    final sourceValue = (source ?? '').toLowerCase();
+    final modelSourceValue = (modelSource ?? '').toLowerCase();
+    final layerValue = (classificationLayer ?? '').toLowerCase();
+
+    if (sourceValue.contains('layer1_on_device') ||
+        modelSourceValue.startsWith('on-device-') ||
+        layerValue.contains('layer1_on_device')) {
+      return analysisSourceLocalExperimental;
+    }
+
+    if (sourceValue.contains('fallback') ||
+        modelSourceValue.contains('fallback') ||
+        layerValue.contains('fallback')) {
+      return analysisSourceLocalFailedFallbackCloud;
+    }
+
+    return analysisSourceCloudPrimary;
+  }
+
+  String get effectiveAnalysisSource => normalizeAnalysisSource(analysisSource);
+
+  String get analysisSourceLabel {
+    switch (effectiveAnalysisSource) {
+      case analysisSourceCloudPrimary:
+        return 'Cloud primary';
+      case analysisSourceLocalExperimental:
+        return 'Local experimental';
+      case analysisSourceLocalFailedFallbackCloud:
+        return 'Local fallback to cloud';
+      default:
+        return effectiveAnalysisSource;
+    }
+  }
+
+  bool get isExperimentalAnalysisSource =>
+      effectiveAnalysisSource == analysisSourceLocalExperimental;
 
   /// Gets materials as a list, converting from legacy materialType if needed
   List<String> get normalizedMaterials =>
@@ -961,6 +1047,8 @@ class WasteClassification extends HiveObject {
       'instructionsLang': instructionsLang,
       'translatedInstructions': translatedInstructions,
       'source': source,
+      'analysisSource': analysisSource,
+      'analysisFallbackReason': analysisFallbackReason,
       'timestamp': timestamp.toIso8601String(),
       'reanalysisModelsTried': reanalysisModelsTried,
       'confirmedByModel': confirmedByModel,
@@ -1009,6 +1097,7 @@ class WasteClassification extends HiveObject {
       'modelRoute': modelRoute,
       'routeLatencyMs': routeLatencyMs,
       'routeCostUsd': routeCostUsd,
+      'isOfflineHint': isOfflineHint,
     };
   }
 
@@ -1059,6 +1148,8 @@ class WasteClassification extends HiveObject {
     String? instructionsLang,
     Map<String, String>? translatedInstructions,
     String? source,
+    String? analysisSource,
+    String? analysisFallbackReason,
     DateTime? timestamp,
     List<String>? reanalysisModelsTried,
     String? confirmedByModel,
@@ -1107,6 +1198,7 @@ class WasteClassification extends HiveObject {
     String? modelRoute,
     int? routeLatencyMs,
     double? routeCostUsd,
+    bool? isOfflineHint,
   }) {
     return WasteClassification(
       id: id ?? this.id,
@@ -1157,6 +1249,9 @@ class WasteClassification extends HiveObject {
       translatedInstructions:
           translatedInstructions ?? this.translatedInstructions,
       source: source ?? this.source,
+      analysisSource: analysisSource ?? this.analysisSource,
+      analysisFallbackReason:
+          analysisFallbackReason ?? this.analysisFallbackReason,
       timestamp: timestamp ?? this.timestamp,
       reanalysisModelsTried:
           reanalysisModelsTried ?? this.reanalysisModelsTried,
@@ -1214,6 +1309,7 @@ class WasteClassification extends HiveObject {
       modelRoute: modelRoute ?? this.modelRoute,
       routeLatencyMs: routeLatencyMs ?? this.routeLatencyMs,
       routeCostUsd: routeCostUsd ?? this.routeCostUsd,
+      isOfflineHint: isOfflineHint ?? this.isOfflineHint,
     );
   }
 }

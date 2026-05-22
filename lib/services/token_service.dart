@@ -4,8 +4,13 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 
+import 'dart:convert';
+import 'package:hive/hive.dart';
+
 import '../models/token_wallet.dart';
+import '../utils/wallet_encryption.dart';
 import '../utils/waste_app_logger.dart';
+import '../utils/constants.dart';
 import 'storage_service.dart';
 import 'cloud_storage_service.dart';
 import '../utils/firebase_gate.dart';
@@ -193,12 +198,35 @@ class TokenService extends ChangeNotifier {
     );
   }
 
-  /// Load wallet from storage
+  /// Load wallet from storage with integrity verification
   Future<TokenWallet> _loadWallet() async {
     final userProfile = await _storageService.getCurrentUserProfile();
+    final userId = userProfile?.id ?? 'anonymous';
 
     if (userProfile?.tokenWallet != null) {
-      _cachedWallet = userProfile!.tokenWallet!;
+      final wallet = userProfile!.tokenWallet!;
+      final walletJson = jsonEncode(wallet.toJson());
+      final expectedHash = _readIntegrityHash(userId);
+
+      if (expectedHash != null &&
+          !WalletEncryption.verifyIntegrity(
+            walletJson: walletJson,
+            expectedHash: expectedHash,
+            userId: userId,
+          )) {
+        WasteAppLogger.severe(
+          'Wallet integrity check failed - possible tampering detected',
+          context: {
+            'component': 'token_service',
+            'userId': userId,
+          },
+        );
+        final newWallet = TokenWallet.newUser();
+        await _saveWallet(newWallet);
+        return newWallet;
+      }
+
+      _cachedWallet = wallet;
       notifyListeners();
       return _cachedWallet!;
     }
@@ -207,6 +235,22 @@ class TokenService extends ChangeNotifier {
     final newWallet = TokenWallet.newUser();
     await _saveWallet(newWallet);
     return newWallet;
+  }
+
+  String? _readIntegrityHash(String userId) {
+    try {
+      final box = Hive.box(StorageKeys.settingsBox);
+      return box.get('wallet_integrity_$userId') as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _writeIntegrityHash(String userId, String hash) {
+    try {
+      final box = Hive.box(StorageKeys.settingsBox);
+      box.put('wallet_integrity_$userId', hash);
+    } catch (_) {}
   }
 
   /// Earn tokens with atomic operation
@@ -619,7 +663,7 @@ class TokenService extends ChangeNotifier {
     }
   }
 
-  /// Save wallet to storage
+  /// Save wallet to storage with integrity hash
   Future<void> _saveWallet(TokenWallet wallet) async {
     _cachedWallet = wallet;
     notifyListeners();
@@ -627,6 +671,14 @@ class TokenService extends ChangeNotifier {
     // Save to user profile
     final userProfile = await _storageService.getCurrentUserProfile();
     if (userProfile != null) {
+      final userId = userProfile.id;
+      final walletJson = jsonEncode(wallet.toJson());
+      final integrityHash = WalletEncryption.computeIntegrityHash(
+        walletJson: walletJson,
+        userId: userId,
+      );
+      _writeIntegrityHash(userId, integrityHash);
+
       final updatedProfile = userProfile.copyWith(
         tokenWallet: wallet,
         lastActive: DateTime.now(),
@@ -696,6 +748,37 @@ class TokenService extends ChangeNotifier {
     return date.day == now.day &&
         date.month == now.month &&
         date.year == now.year;
+  }
+
+  /// Restore wallet from backup (with integrity check)
+  Future<void> restoreWallet(TokenWallet restoredWallet) async {
+    return _executeAtomicOperation(() async {
+      await initialize();
+      final userProfile = await _storageService.getCurrentUserProfile();
+      if (userProfile == null) return;
+
+      final userId = userProfile.id;
+      final walletJson = jsonEncode(restoredWallet.toJson());
+      final integrityHash = WalletEncryption.computeIntegrityHash(
+        walletJson: walletJson,
+        userId: userId,
+      );
+
+      _cachedWallet = restoredWallet;
+      _cachedTransactions = [];
+      notifyListeners();
+
+      _writeIntegrityHash(userId, integrityHash);
+
+      final updated = userProfile.copyWith(
+        tokenWallet: restoredWallet,
+        tokenTransactions: [],
+        lastActive: DateTime.now(),
+      );
+      await _storageService.saveUserProfile(updated);
+      unawaited(
+          _cloudStorageService.saveUserProfileToFirestore(updated));
+    });
   }
 
   /// Dispose resources

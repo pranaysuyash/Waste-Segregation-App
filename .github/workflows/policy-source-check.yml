@@ -1,0 +1,82 @@
+# Weekly check for stale municipal policy sources.
+#
+# Reads the POLICY_SOURCES mapping (city → source URL) from a JSON file,
+# HTTP HEADs each URL, and files an issue if any source has changed or is
+# past its review date.
+#
+# Run: manually or on a weekly schedule.
+# Requires: POLICY_SOURCE_CHECK_TOKEN with issues:write permission.
+
+name: Policy Source Freshness Check
+
+on:
+  schedule:
+    # Monday 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  check-sources:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check policy source freshness
+        run: |
+          echo "::notice::Checking policy source freshness..."
+          
+          # Read source URLs from city_policy_data.dart
+          # For now, manual list of source URLs with expected review dates
+          SOURCES=$(cat <<'EOF'
+          BBMP|https://bbmp.gov.in/swm|2026-01-15
+          BMC|https://portal.mcgm.gov.in/swm|2026-03-15
+          MCD|https://mcdonline.nic.in/swm|2026-03-15
+          PMC|https://pmc.gov.in/swm|2026-06-15
+          GHMC|https://ghmc.gov.in/swm|2026-06-15
+          GCC|https://chennaicorporation.gov.in/swm|2026-06-15
+          KMC|https://kmcgov.in/swm|2026-06-15
+          EOF
+          )
+
+          STALE=""
+          for line in $SOURCES; do
+            NAME=$(echo "$line" | cut -d'|' -f1)
+            URL=$(echo "$line" | cut -d'|' -f2)
+            REVIEW_DATE=$(echo "$line" | cut -d'|' -f3)
+
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$URL" || echo "000")
+            TODAY=$(date +%s)
+            REVIEW_TS=$(date -d "$REVIEW_DATE" +%s 2>/dev/null || date -j -f "%Y-%m-%d" "$REVIEW_DATE" +%s 2>/dev/null || echo "0")
+
+            if [ "$HTTP_CODE" = "000" ]; then
+              STALE="$STALE- **$NAME**: Source unreachable ($URL)\n"
+            elif [ "$REVIEW_TS" -le "$TODAY" ] 2>/dev/null; then
+              STALE="$STALE- **$NAME**: Past review date ($REVIEW_DATE) — $URL\n"
+            fi
+          done
+
+          if [ -n "$STALE" ]; then
+            echo "STALE_SOURCES<<EOF" >> "$GITHUB_ENV"
+            printf "$STALE" >> "$GITHUB_ENV"
+            echo "EOF" >> "$GITHUB_ENV"
+            echo "::warning::Stale or unreachable sources detected"
+          else
+            echo "All policy sources are reachable and within review window."
+          fi
+
+      - name: File issue if stale sources found
+        if: env.STALE_SOURCES != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const staleSources = process.env.STALE_SOURCES;
+            const today = new Date().toISOString().split('T')[0];
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[Policy] Stale municipal sources detected — ${today}`,
+              body: `## Policy Source Freshness Alert\n\nThe following municipal policy sources are stale or unreachable:\n\n${staleSources}\n\n### Action required\n1. Visit each URL and check if rules have changed.\n2. If unchanged: update the \`nextReviewDue\` date in the city plugin.\n3. If changed: research new rules and update the plugin.\n\nSee \`docs/playbooks/CITY_RULES_RESEARCH.md\` for the update process.`,
+              labels: ['policy', 'maintenance'],
+            });

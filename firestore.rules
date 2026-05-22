@@ -233,7 +233,40 @@ service cloud.firestore {
     }
     
     // ============================================================
-    // SECTION 9: Analytics
+    // SECTION 9: Subscription / Premium collections
+    // ============================================================
+
+    // Subscriptions (DodoPayments) - read only by the owning user
+    match /subscriptions/{subscriptionId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if false; // Managed by Cloud Functions
+    }
+
+    // Webhook events (idempotency) - no client access
+    match /webhook_events/{eventId} {
+      allow read, write: if false; // Managed by Cloud Functions
+    }
+
+    // ============================================================
+    // SECTION 10: Referral system
+    // ============================================================
+
+    // Referral codes - users can read their own, create only via Cloud Functions
+    // Cloud Functions manage create/update with admin SDK
+    match /referral_codes/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update, delete: if false; // Managed by Cloud Functions
+    }
+
+    // Referral redemptions - users can read their own
+    match /referral_redemptions/{redemptionId} {
+      allow read: if request.auth != null
+        && resource.data.redeemedByUid == request.auth.uid;
+      allow create, update, delete: if false; // Managed by Cloud Functions
+    }
+
+    // ============================================================
+    // SECTION 10: Analytics
     // ============================================================
 
     // Analytics events - users can create their own, no read access

@@ -1,0 +1,701 @@
+Here’s the **biggest unlock task** to give the agent.
+
+# Agent Task — Build the AI Learning Flywheel Foundation
+
+## Mission
+
+Build the first version of the app’s **AI learning flywheel**: eval harness, golden cases, training candidates, annotation/review workflow, and router metrics.
+
+This is the biggest unlock because it enables almost everything else:
+
+```text
+local ML
+segmentation
+small VLMs
+model routing
+OpenAI vs Gemini comparison
+training data collection
+active learning
+quality gates
+privacy-safe data use
+global/local rule validation
+cost vs accuracy decisions
+```
+
+The backend AI gateway now exists. The next problem is that we still do not have a strong truth system to know whether model/router changes are better, safer, cheaper, or ready for local/on-device use.
+
+---
+
+## Context
+
+Inspect these first:
+
+```text
+functions/src/classify_image.ts
+lib/services/ai_service.dart
+lib/services/providers/backend_proxy_provider.dart
+lib/services/providers/classification_provider.dart
+lib/services/providers/local_vlm_provider.dart
+lib/services/result_pipeline.dart
+lib/widgets/correction_dialog.dart
+firestore.rules
+
+docs/review/AI_GATEWAY_ROUTER_IMPLEMENTATION_2026-05-21.md
+docs/review/AI_PIPELINE_TRUTH_MAP_2026-05-21.md
+docs/EXPLORATION_TOPICS.md
+docs/guides/development/data_storage/deletion_recovery_archival_flows.md
+```
+
+Also check issue #182 if available: ML training/data flywheel exploration.
+
+Current state:
+
+```text
+backend AI gateway exists
+OpenAI primary exists
+Gemini fallback exists
+classification cache exists
+token spend/refund exists
+local VLM provider is only a stub
+training-data consent/flywheel is not implemented
+eval harness appears missing
+```
+
+---
+
+# Core principle
+
+Do **not** train a model yet.
+
+Build the foundation that makes training and routing safe:
+
+```text
+classification result
+  ↓
+user feedback / correction
+  ↓
+consented training candidate
+  ↓
+privacy + quality review
+  ↓
+golden eval case / training-eligible case
+  ↓
+eval harness compares providers/routes/local models
+  ↓
+router thresholds improve
+  ↓
+future local ML / segmentation / small VLM training becomes possible
+```
+
+The moat is not “we call OpenAI/Gemini.”
+
+The moat is:
+
+```text
+consented real waste images
++ user corrections
++ reviewed labels
++ golden evals
++ local rules
++ router metrics
++ local-first inference
++ privacy-safe dataset versioning
+```
+
+---
+
+# Part A — Golden eval dataset
+
+Create a canonical eval dataset structure.
+
+Suggested path:
+
+```text
+test/fixtures/ai_eval/
+  schema.md
+  golden_cases.jsonl
+  recorded_outputs/
+  images/README.md
+```
+
+If real images cannot be committed now, use placeholder image refs and metadata-only cases, but design it so images can be added later.
+
+## Eval case schema
+
+Each case should support:
+
+```json
+{
+  "id": "bangalore_greasy_pizza_box_001",
+  "imageRef": "fixtures/images/pizza_box_greasy.jpg",
+  "region": "Bangalore, IN",
+  "language": "en",
+  "inputHints": {
+    "knownContext": "food-soiled cardboard box",
+    "multiItem": false
+  },
+  "expected": {
+    "itemName": "greasy pizza box",
+    "category": "Wet Waste",
+    "subcategory": "Food-soiled cardboard",
+    "materialType": "cardboard + food residue",
+    "isRecyclable": false,
+    "requiresSpecialDisposal": false,
+    "riskLevel": "safe",
+    "localRule": "do_not_put_in_dry_recycling_if_greasy"
+  },
+  "acceptableAlternatives": [
+    {
+      "category": "Reject Waste",
+      "reason": "Acceptable where local compost stream rejects soiled cardboard"
+    }
+  ],
+  "mustNot": [
+    "Dry Waste",
+    "Blue recycling bin",
+    "fully recyclable"
+  ],
+  "safetyCritical": false,
+  "localRuleCritical": true,
+  "notes": "Grease contamination is the key edge case."
+}
+```
+
+## Seed cases
+
+Add at least **30–50** meaningful cases or scaffold them clearly.
+
+Must include:
+
+```text
+clean plastic bottle
+dirty plastic container
+greasy pizza box
+clean cardboard
+banana peel / food waste
+battery
+power bank
+medicine strip
+expired medicine bottle
+sanitary waste
+medical mask
+syringe/sharps placeholder case
+e-waste cable
+phone charger
+broken glass
+glass bottle
+aerosol can
+paint/chemical container
+multilayer chips packet
+compostable-looking plastic bag
+paper cup with plastic lining
+non-waste object
+multi-item mixed waste photo placeholder
+Bangalore/BBMP-specific edge cases
+generic/global fallback cases
+```
+
+---
+
+# Part B — Eval runner
+
+Create an eval runner with three modes:
+
+```text
+offline  - validates schema and runs fake/recorded outputs only
+recorded - compares saved provider outputs against golden cases
+live     - calls real providers/backend only when explicit env flags/API keys exist
+```
+
+Live calls must never run by default.
+
+Suggested command shape:
+
+```bash
+dart run tool/ai_eval_runner.dart --mode offline
+```
+
+or:
+
+```bash
+npm run ai:eval:offline
+```
+
+## Report output
+
+Generate a human-readable summary:
+
+```text
+Eval run: 2026-05-21
+Mode: offline
+Cases: 42
+Strict pass: 26
+Acceptable pass: 8
+Fail: 8
+Safety-critical failures: 1
+Must-not violations: 3
+Local-rule failures: 4
+Avg confidence on correct: 0.84
+Avg confidence on wrong: 0.71
+Provider: backend/classifyImage recorded
+```
+
+Also produce JSON:
+
+```text
+build/reports/ai_eval/latest.json
+```
+
+Per-case report should include:
+
+```text
+case id
+predicted category
+expected category
+acceptable alternative pass/fail
+must-not violations
+safety-critical failure
+local-rule failure
+confidence
+provider/model/route
+latency if available
+estimated cost if available
+cache hit if available
+```
+
+---
+
+# Part C — Eval scoring
+
+Implement scoring that treats these separately:
+
+```text
+strict pass
+acceptable alternative pass
+normal fail
+safety-critical fail
+must-not violation
+local-rule fail
+low-confidence correct
+high-confidence wrong
+```
+
+Important examples:
+
+```text
+Battery classified as Dry Waste = safety-critical fail
+Greasy pizza box classified as clean recyclable cardboard = local-rule fail / must-not violation
+Unknown object with low confidence = acceptable if it asks for clarification
+```
+
+The score should not only be “category accuracy.” Safety matters more.
+
+---
+
+# Part D — Training candidate pipeline
+
+Create/scaffold a consent-aware training candidate pipeline.
+
+Important rule:
+
+```text
+No user image enters training data unless explicit training consent exists.
+```
+
+## Consent model
+
+Define the user profile model, even if UI is only scaffolded first:
+
+```json
+{
+  "trainingConsent": {
+    "enabled": false,
+    "policyVersion": "training-data-v1",
+    "grantedAt": null,
+    "revokedAt": null,
+    "source": null
+  }
+}
+```
+
+Default must be false.
+
+## Training candidate schema
+
+Create or document models for:
+
+```text
+training_candidates
+training_labels
+training_dataset_versions
+```
+
+Candidate shape:
+
+```json
+{
+  "candidateId": "uuid",
+  "userIdHash": "hmac_or_hash_uid",
+  "classificationId": "original-classification-id",
+  "consent": {
+    "enabledAtCapture": true,
+    "policyVersion": "training-data-v1",
+    "consentSnapshotId": "..."
+  },
+  "image": {
+    "storagePath": "training/review/yyyy/mm/candidate.jpg",
+    "contentHash": "sha256...",
+    "perceptualHash": "phash...",
+    "mimeType": "image/jpeg",
+    "width": 1024,
+    "height": 768,
+    "exifStripped": true,
+    "redactionStatus": "pending|passed|redacted|rejected"
+  },
+  "modelPrediction": {
+    "route": "backend|direct_openai|gemini|local_stub",
+    "provider": "openai|gemini|cache|local",
+    "model": "...",
+    "itemName": "...",
+    "category": "...",
+    "confidence": 0.82
+  },
+  "userFeedback": {
+    "isCorrect": false,
+    "correctedCategory": "Wet Waste",
+    "notes": "Greasy pizza box"
+  },
+  "review": {
+    "status": "unreviewed|approved|rejected|needs_redaction|golden|training_eligible|deleted",
+    "reviewer": null,
+    "reviewedAt": null,
+    "qualityFlags": []
+  },
+  "dataset": {
+    "eligible": false,
+    "includedInVersions": []
+  },
+  "createdAt": "...",
+  "deletedAt": null,
+  "excludedFromTrainingAt": null
+}
+```
+
+## Collection flow
+
+Scaffold this around classification/result/feedback flow:
+
+```text
+classification completed
+  ↓
+if trainingConsent.enabled != true: do nothing
+  ↓
+create training candidate metadata
+  ↓
+attach model prediction + hashes + quality metadata
+  ↓
+if user later submits feedback/correction: attach correction to candidate
+  ↓
+review process decides golden/training eligibility
+```
+
+This must not block the user flow.
+
+---
+
+# Part E — Annotation / review workflow
+
+Add a lightweight internal review workflow spec and scaffold.
+
+This can be:
+
+```text
+admin screen scaffold
+CLI export/review/import flow
+JSONL review file workflow
+Firebase-console-compatible review process
+```
+
+Required review states:
+
+```text
+unreviewed
+approved
+rejected
+needs_redaction
+golden
+training_eligible
+deleted
+```
+
+Review must separate:
+
+```text
+model prediction
+user correction
+reviewer-verified label
+golden eval eligibility
+training eligibility
+```
+
+Do not treat model prediction as truth.
+
+Do not treat user correction as automatically verified truth.
+
+---
+
+# Part F — Dataset export and versioning
+
+Create/scaffold export that can produce:
+
+```text
+manifest.jsonl
+labels.jsonl
+datasheet.md
+```
+
+Suggested path:
+
+```text
+tool/ai_dataset_exporter.dart
+```
+
+or:
+
+```text
+scripts/ml/export_training_candidates.ts
+```
+
+Export must exclude by default:
+
+```text
+no consent
+revoked consent
+deleted data
+rejected candidates
+PII/redaction failed
+unreviewed candidates
+raw images not cleared for use
+```
+
+Dataset version metadata:
+
+```json
+{
+  "datasetVersion": "waste-v0.1",
+  "createdAt": "...",
+  "sourcePolicyVersion": "training-data-v1",
+  "caseCount": 0,
+  "categoryBreakdown": {},
+  "regionBreakdown": {},
+  "excludedCounts": {
+    "noConsent": 0,
+    "revoked": 0,
+    "pii": 0,
+    "unreviewed": 0,
+    "rejected": 0
+  }
+}
+```
+
+Every future trained model must be traceable to:
+
+```text
+model version
+dataset version
+eval version
+code version
+local rules version
+```
+
+---
+
+# Part G — Router metrics and model comparison
+
+The eval/report format must support comparison across:
+
+```text
+backend gateway route
+direct OpenAI recorded outputs
+direct Gemini recorded outputs
+cache path
+local VLM stub / future local model
+future segmentation / multi-item route
+```
+
+Metrics:
+
+```text
+accuracy by category
+safety-critical failures
+must-not violations
+local-rule failures
+confidence calibration
+latency
+estimated cost
+cache hit rate
+fallback rate
+provider failure rate
+```
+
+This should eventually drive routing thresholds:
+
+```text
+if local confidence > threshold and not safety-critical → local answer
+if uncertain or safety-critical → backend
+if backend provider conflict → ask user / mark for review
+```
+
+---
+
+# Part H — Tests
+
+Minimum tests:
+
+```text
+1. Eval schema validates good cases.
+2. Eval schema rejects missing expected category.
+3. Must-not violation is counted as failure.
+4. Safety-critical failure is scored separately.
+5. Acceptable alternative can pass non-strictly.
+6. Offline eval mode requires no API keys.
+7. Training candidate is not created when consent is false.
+8. Training candidate can be created when consent is true.
+9. Revoked/deleted/rejected candidates are excluded from dataset export.
+10. User correction does not automatically become golden truth.
+11. Dataset export produces deterministic manifest order.
+12. Router comparison report can handle fake backend/local/provider outputs.
+```
+
+---
+
+# Part I — Documentation
+
+Create:
+
+```text
+docs/review/AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md
+```
+
+Include:
+
+```text
+current gap
+architecture diagram
+eval schema
+training candidate schema
+annotation/review flow
+consent and deletion rules
+dataset export/versioning
+router metrics
+how this unlocks local ML
+how this unlocks segmentation
+how this unlocks global/local rules
+risks and next phases
+```
+
+Also update/link from:
+
+```text
+docs/EXPLORATION_TOPICS.md
+docs/review/AI_GATEWAY_ROUTER_IMPLEMENTATION_2026-05-21.md
+docs/review/AI_PIPELINE_TRUTH_MAP_2026-05-21.md
+issue #182 if relevant
+```
+
+---
+
+# Non-goals
+
+Do **not**:
+
+```text
+train a model yet
+silently retain user images for ML
+treat model predictions as labels
+treat user corrections as verified labels
+run live API eval by default
+build a huge admin dashboard unless needed
+break current classification/result flow
+add image retention without deletion/revocation behavior
+```
+
+---
+
+# Acceptance criteria
+
+The task is complete when:
+
+```text
+1. Golden eval schema exists.
+2. At least 30 meaningful seed eval cases exist or are scaffolded.
+3. Offline eval runner produces a report without API keys.
+4. Safety-critical failures and must-not violations are separately scored.
+5. Training candidate schema exists and is consent-aware.
+6. Candidate creation is gated by explicit training consent.
+7. Review states are defined.
+8. Dataset export/versioning is scaffolded.
+9. Revoked/deleted/rejected/unreviewed candidates are excluded by default.
+10. Router metrics can compare backend/local/future provider outputs.
+11. Tests cover schema, scoring, consent gating, and export exclusion.
+12. Documentation explains how this unlocks local ML, segmentation, global rules, active learning, and future training.
+```
+
+---
+
+# Suggested phases
+
+## Phase 1 — Eval truth system
+
+```text
+schema
+golden cases
+offline runner
+scoring report
+tests
+```
+
+## Phase 2 — Training candidate schema
+
+```text
+consent model
+candidate model
+correction attachment
+export exclusion rules
+```
+
+## Phase 3 — Review workflow scaffold
+
+```text
+review states
+JSONL export/review/import or admin scaffold
+golden/training eligibility split
+```
+
+## Phase 4 — Router comparison
+
+```text
+fake local/backend/provider outputs
+compare cost/latency/accuracy
+prepare thresholds for local-first cascade
+```
+
+---
+
+# Final note to agent
+
+This is a foundational task. Do not reduce it to a small test file or a doc-only note unless implementation becomes genuinely blocked.
+
+The goal is to create the system that lets us safely answer:
+
+```text
+Is local ML good enough?
+Is Gemini better than OpenAI for this category?
+Is the backend gateway improving cost?
+Which examples should become training data?
+Which corrections are trustworthy?
+Which local rules need deterministic overrides?
+Which cases are safety-critical?
+```
+
+Build that foundation.

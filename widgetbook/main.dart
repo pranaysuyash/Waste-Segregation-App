@@ -2417,6 +2417,80 @@ WidgetbookCategory _componentCategory() {
                   ),
                 ],
               ),
+              WidgetbookComponent(
+                name: 'WasteImagePreviewCard',
+                useCases: [
+                  WidgetbookUseCase(
+                    name: 'With Category',
+                    builder: (context) => _surface(
+                      const WasteImagePreviewCard(
+                        category: 'Dry Waste',
+                        size: 80,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              WidgetbookComponent(
+                name: 'ClassificationSummaryCard',
+                useCases: [
+                  WidgetbookUseCase(
+                    name: 'Default',
+                    builder: (context) => _surface(
+                      const ClassificationSummaryCard(
+                        itemName: 'Plastic Bottle',
+                        category: 'Dry Waste',
+                        confidence: 0.89,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              WidgetbookComponent(
+                name: 'OfflineQueueStatusCard',
+                useCases: [
+                  WidgetbookUseCase(
+                    name: 'Pending Items',
+                    builder: (context) => _surface(
+                      const OfflineQueueStatusCard(
+                        pendingCount: 5,
+                        lastSyncAttempt: null,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              WidgetbookComponent(
+                name: 'CorrectionPrompt',
+                useCases: [
+                  WidgetbookUseCase(
+                    name: 'With Alternatives',
+                    builder: (context) => _surface(
+                      const CorrectionPrompt(
+                        category: 'Dry Waste',
+                        alternatives: [
+                          CorrectionAlternative(label: 'Wet Waste', confidence: 0.12),
+                          CorrectionAlternative(label: 'Hazardous Waste', confidence: 0.05),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              WidgetbookComponent(
+                name: 'WasteTipCard',
+                useCases: [
+                  WidgetbookUseCase(
+                    name: 'Default',
+                    builder: (context) => _surface(
+                      const WasteTipCard(
+                        tip: 'Paper can be recycled 5-7 times before fibers become too short.',
+                        category: 'Dry Waste',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           WidgetbookComponent(

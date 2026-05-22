@@ -24,7 +24,10 @@ import '../providers/classification_pipeline_providers.dart';
 import '../providers/classification_state_provider.dart';
 import '../providers/token_providers.dart';
 import '../services/image_quality_gate.dart';
+import '../services/layer0_router.dart';
+import '../services/local_classifier_service.dart';
 import '../services/offline_queue_service.dart';
+import '../services/remote_config_service.dart';
 import 'result_screen_wrapper.dart';
 import 'job_queue_screen.dart';
 import 'zero_balance_sheet.dart';
@@ -96,6 +99,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   bool _isOnline = true;
   int _pendingQueueItems = 0;
   late StreamSubscription<int> _queueCountSubscription;
+
+  // Layer 0 result preserved for offline hint fallback.
+  Layer0Result? _lastLayer0Result;
 
   @override
   String? get restorationId => 'image_capture_screen';
@@ -698,22 +704,62 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   /// Try local classification (Layer 0 deterministic + Layer 1 on-device ML).
   ///
   /// Returns true when a local layer produced an accepted classification
-  /// and the result screen was shown. Returns false when all local layers
-  /// escalated or failed — caller should proceed to cloud.
+  /// and the result screen was shown. Stores the Layer 0 result in
+  /// [_lastLayer0Result] for offline hint fallback.
   Future<bool> _tryLocalClassification(Uint8List imageBytes) async {
     _setClassificationState(ClassificationState.localClassifying);
+    _lastLayer0Result = null;
 
     final pipeline = ref.read(classificationPipelineProvider);
-    final localResult = await pipeline.tryLocalOnly(
+    final result = await pipeline.tryLocalWithHint(
       imageBytes: imageBytes,
       region: 'Bangalore, IN',
     );
 
-    if (localResult != null && mounted && !_isCancelled) {
-      await _showResultOrFallback(localResult);
+    _lastLayer0Result = result.layer0Result;
+
+    if (result.accepted != null && mounted && !_isCancelled) {
+      await _showResultOrFallback(result.accepted!);
       return true;
     }
 
+    return false;
+  }
+
+  /// Show a degraded result when offline and Layer 0 produced a hint.
+  Future<bool> _tryShowOfflineHint(
+    Layer0Result layer0Result,
+    Uint8List imageBytes,
+  ) async {
+    if (layer0Result.decision != Layer0Decision.hint) return false;
+
+    final pipeline = ref.read(classificationPipelineProvider);
+    final hintWc = pipeline.buildLocalClassification(
+      localResult: layer0Result.classificationResult ??
+          LocalClassificationResult(
+            category: layer0Result.barcodeResult?.category ?? 'Unknown',
+            confidence: layer0Result.barcodeResult?.confidence ?? 0.0,
+            modelVersion: 'layer0_hint',
+          ),
+      region: 'Bangalore, IN',
+    );
+
+    final hintClassification = hintWc.copyWith(
+      isOfflineHint: true,
+      classificationLayer: 'layer0_hint_pending_cloud',
+      explanation:
+          'Preliminary classification (offline). '
+          'Will re-verify when connected.',
+    );
+
+    if (!_isOnline && !kIsWeb) {
+      unawaited(_queueAnalysisOffline(imageBytes));
+    }
+
+    if (mounted && !_isCancelled) {
+      await _showResultOrFallback(hintClassification);
+      return true;
+    }
     return false;
   }
 
@@ -816,15 +862,25 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     }
 
     // Layers 0 & 1: Deterministic + on-device ML — zero-cost local classification.
-    // Runs before the quota re-check and before queuing for offline.
     if (imageBytes != null && imageBytes.isNotEmpty) {
-      final pipelineAccepted = await _tryLocalClassification(imageBytes);
-      if (pipelineAccepted) return;
+      final accepted = await _tryLocalClassification(imageBytes);
+      if (accepted) return;
     }
 
-    // Track 2: Check if we're offline — only queue if local layers failed.
+    // Track 2: Check if we're offline — try hint before queuing.
     if (!_isOnline && !kIsWeb) {
       if (imageBytes != null && imageBytes.isNotEmpty) {
+        // If Layer 0 produced a hint, show a degraded result (gated by remote config).
+        final tier2Enabled = await RemoteConfigService()
+            .getBool('offline_degradation_tier2_enabled', defaultValue: true);
+        if (tier2Enabled &&
+            _lastLayer0Result != null &&
+            _lastLayer0Result!.decision == Layer0Decision.hint &&
+            mounted) {
+          final hintShown = await _tryShowOfflineHint(
+              _lastLayer0Result!, imageBytes);
+          if (hintShown) return;
+        }
         if (mounted) {
           await _queueAnalysisOffline(imageBytes);
         } else {

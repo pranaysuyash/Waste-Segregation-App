@@ -41,6 +41,8 @@ void main() {
       expect(classification.clarificationNeeded, true);
       expect(classification.riskLevel, 'unknown');
       expect(classification.alternatives, hasLength(3));
+      expect(classification.analysisSource,
+          WasteClassification.analysisSourceCloudPrimary);
     });
 
     test('should create WasteClassification from JSON', () {
@@ -95,6 +97,31 @@ void main() {
       expect(updated.category, 'Dry Waste'); // Should remain unchanged
       expect(updated.region, 'Original Region'); // Should remain unchanged
       expect(updated.id, original.id); // Should remain unchanged
+    });
+
+    test('should persist analysis source metadata through JSON', () {
+      final original = WasteClassification(
+        itemName: 'Source Item',
+        category: 'Dry Waste',
+        explanation: 'Source explanation',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Original method',
+          steps: ['Original step'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Original Region',
+        visualFeatures: ['original'],
+        alternatives: [],
+        analysisSource: WasteClassification.analysisSourceLocalExperimental,
+        analysisFallbackReason: 'placeholder_local_model',
+      );
+
+      final roundTrip = WasteClassification.fromJson(original.toJson());
+
+      expect(roundTrip.analysisSource,
+          WasteClassification.analysisSourceLocalExperimental);
+      expect(roundTrip.analysisSourceLabel, 'Local experimental');
+      expect(roundTrip.analysisFallbackReason, 'placeholder_local_model');
     });
   });
 

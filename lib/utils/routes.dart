@@ -18,6 +18,7 @@ class Routes {
   static const String premium = '/premium';
   static const String tokenWallet = '/token-wallet';
   static const String wasteDashboard = '/waste_dashboard';
+  static const String leaderboard = '/leaderboard';
 
   // Legal routes
   static const String privacyPolicy = '/privacy_policy';
@@ -51,6 +52,7 @@ class Routes {
     premium,
     tokenWallet,
     wasteDashboard,
+    leaderboard,
     privacyPolicy,
     termsOfService,
     legalDocument,

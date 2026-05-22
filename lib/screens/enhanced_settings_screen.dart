@@ -103,6 +103,8 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
       const SettingsSectionSpacer(),
       const FeedbackSettingsSection(),
       const SettingsSectionSpacer(),
+      const RegionSelectionSection(),
+      const SettingsSectionSpacer(),
       const NavigationSection(),
       const SettingsSectionSpacer(),
       const FeaturesSection(),

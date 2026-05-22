@@ -10,6 +10,14 @@ All notable changes to the Waste Segregation App will be documented in this file
 - **CHANGE**: Default request deduplication disabled (`UnifiedApiClient` default now `enableRequestDeduplication=false`) to avoid ineffective image dedup overhead.
 - **ADD**: A/B routing via `setRacePercentage(double)` on `EnhancedAiApiService` for controlled rollout.
 
+### 🎨 Premium UX Consistency (VIS-13 follow-through)
+
+- **STANDARDIZED**: Premium lock visuals across canonical settings + segmentation entry points (greyed lock state, crown indicator, active premium state).
+- **ENHANCED**: Per-feature upgrade prompts now include useful contextual copy instead of generic-only messaging.
+- **A11Y**: Added locked/unlocked semantics labels and hints for premium-gated items.
+- **TESTED**: Added/updated widget coverage for locked visuals, upgrade tap flow, and enabled state.
+- **DOCS**: Added implementation report: `docs/implementation/VIS_13_PREMIUM_TOGGLE_VISUALS_COMPLETION_2026-05-22.md`.
+
 ---
 
 ## [2.5.4] - 2025-06-16

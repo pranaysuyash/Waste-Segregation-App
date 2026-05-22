@@ -377,6 +377,7 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
     await FirebaseAppCheck.instance
         .activate(
           appleProvider: AppleProvider.appAttest,
+          androidProvider: AndroidProvider.playIntegrity,
         )
         .timeout(const Duration(seconds: 10));
     WasteAppLogger.debug('BOOT: App Check activated for production modes');

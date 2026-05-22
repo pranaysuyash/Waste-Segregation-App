@@ -116,7 +116,7 @@ jobs:
             --golden eval/classification/golden/golden_cases_v1.jsonl \
             --fixtures eval/classification/fixtures/provider_outputs_v1.jsonl \
             --output eval/classification/reports/ci_eval_report.json
-      - name: Check eval gate
+      - name: Check eval gate — regression detection against router_v1 baseline
         run: |
           REPORT="eval/classification/reports/ci_eval_report.json"
           echo "=== Eval Report ==="
@@ -127,24 +127,39 @@ with open('$REPORT') as f:
 print(f'Golden cases: {r[\"golden_case_count\"]}')
 print(f'Providers:    {r[\"providers_evaluated\"]}')
 print(f'Errors:       {len(r[\"errors\"])}')
+
+# Known baselines from golden set v1 (router_v1 = best provider)
+BASELINE_STRICT_RATE = 0.9444
+
 for entry in r['ranking']:
     print(f'  #{entry[\"rank\"]} {entry[\"provider_key\"]}/{entry[\"model\"]}  '
           f'strict={entry[\"strict_pass_rate\"]}  '
           f'safety_failures={entry[\"safety_failures\"]}  '
           f'must_not_violations={entry[\"must_not_violations\"]}')
+
 if r['errors']:
     print('Errors:')
     for e in r['errors']:
         print(f'  {e}')
-total_safety = sum(e['safety_failures'] for e in r['ranking'])
-total_must_not = sum(e['must_not_violations'] for e in r['ranking'])
+    print('FAIL: Eval harness errors detected — BLOCKING')
+    exit(1)
+
+best = r['ranking'][0] if r['ranking'] else None
+if not best:
+    print('FAIL: No providers evaluated — BLOCKING')
+    exit(1)
+
+regression = BASELINE_STRICT_RATE - best['strict_pass_rate']
 print(f'')
-print(f'GATE: safety_failures={total_safety} must_not_violations={total_must_not}')
-if total_safety > 0 or total_must_not > 0:
-    print('STATUS: WARN — known issues in synthetic golden set v1')
-    print('NOTE: Upgrade to BLOCK when golden set v2 (from review pipeline) replaces v1')
-    exit(0)
-print('STATUS: PASS')
+print(f'GATE: best_strict={best[\"strict_pass_rate\"]} baseline={BASELINE_STRICT_RATE} regression={regression:.4f}')
+print(f'      best_safety_failures={best[\"safety_failures\"]} best_must_not_violations={best[\"must_not_violations\"]}')
+
+# Detect regression: if the best provider drops more than 5 points from baseline
+if regression > 0.05:
+    print(f'FAIL: Strict pass rate regressed by {regression*100:.1f} points — BLOCKING')
+    exit(1)
+
+print('PASS: No significant regression detected')
 " 2>&1)
           echo "$OUTPUT"
       - name: Upload eval report

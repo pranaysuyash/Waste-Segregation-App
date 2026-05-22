@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import '../widgets/navigation_wrapper.dart';
-import '../utils/constants.dart';
+import 'package:provider/provider.dart';
+import 'package:waste_segregation_app/l10n/app_localizations.dart';
+import 'package:waste_segregation_app/services/navigation_settings_service.dart';
+import 'package:waste_segregation_app/widgets/navigation_wrapper.dart';
+import 'package:waste_segregation_app/widgets/settings/settings_theme.dart';
+import 'package:waste_segregation_app/utils/constants.dart';
 
-/// Demo screen to showcase different navigation styles
 class NavigationDemoScreen extends StatelessWidget {
   const NavigationDemoScreen({super.key});
 
@@ -48,46 +51,59 @@ class NavigationDemoScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppTheme.paddingLarge * 2),
-
                 Expanded(
-                  child: ListView(
-                    children: [
-                      _buildNavigationStyleCard(
-                        context,
-                        'Glassmorphism Style',
-                        'Modern iOS/Android style with glass effect and smooth animations',
-                        Icons.blur_on,
-                        Colors.blue,
-                        NavigationStyle.glassmorphism,
-                        'Used by: Spotify, Instagram, iOS Control Center',
-                      ),
-                      const SizedBox(height: AppTheme.paddingRegular),
-                      _buildNavigationStyleCard(
-                        context,
-                        'Material 3 Design',
-                        'Google\'s latest Material Design with elevated surfaces and bold colors',
-                        Icons.design_services,
-                        Colors.green,
-                        NavigationStyle.material3,
-                        'Used by: Google apps, Android 12+, Material You',
-                      ),
-                      const SizedBox(height: AppTheme.paddingRegular),
-                      _buildNavigationStyleCard(
-                        context,
-                        'Floating Navigation',
-                        'Elevated floating bar with rounded corners and subtle shadows',
-                        Icons.fiber_manual_record,
-                        Colors.purple,
-                        NavigationStyle.floating,
-                        'Used by: Discord, Figma, Modern productivity apps',
-                      ),
-                    ],
+                  child: Consumer<NavigationSettingsService>(
+                    builder: (context, navSettings, child) {
+                      final currentStyle = navSettings.navigationStyle;
+                      return ListView(
+                        children: [
+                          _buildNavigationStyleCard(
+                            context,
+                            title: 'Glassmorphism Style',
+                            description:
+                                'Modern iOS/Android style with glass effect and smooth animations',
+                            icon: Icons.blur_on,
+                            color: Colors.blue,
+                            style: 'glassmorphism',
+                            examples:
+                                'Used by: Spotify, Instagram, iOS Control Center',
+                            isSelected: currentStyle == 'glassmorphism',
+                            navSettings: navSettings,
+                          ),
+                          const SizedBox(height: AppTheme.paddingRegular),
+                          _buildNavigationStyleCard(
+                            context,
+                            title: 'Material 3 Design',
+                            description:
+                                'Google\'s latest Material Design with elevated surfaces and bold colors',
+                            icon: Icons.design_services,
+                            color: Colors.green,
+                            style: 'material3',
+                            examples:
+                                'Used by: Google apps, Android 12+, Material You',
+                            isSelected: currentStyle == 'material3',
+                            navSettings: navSettings,
+                          ),
+                          const SizedBox(height: AppTheme.paddingRegular),
+                          _buildNavigationStyleCard(
+                            context,
+                            title: 'Floating Navigation',
+                            description:
+                                'Elevated floating bar with rounded corners and subtle shadows',
+                            icon: Icons.fiber_manual_record,
+                            color: Colors.purple,
+                            style: 'floating',
+                            examples:
+                                'Used by: Discord, Figma, Modern productivity apps',
+                            isSelected: currentStyle == 'floating',
+                            navSettings: navSettings,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
-
                 const SizedBox(height: AppTheme.paddingLarge),
-
-                // Back to current navigation button
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -117,29 +133,38 @@ class NavigationDemoScreen extends StatelessWidget {
   }
 
   Widget _buildNavigationStyleCard(
-    BuildContext context,
-    String title,
-    String description,
-    IconData icon,
-    Color color,
-    NavigationStyle style,
-    String examples,
-  ) {
+    BuildContext context, {
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color color,
+    required String style,
+    required String examples,
+    required bool isSelected,
+    required NavigationSettingsService navSettings,
+  }) {
     return Card(
-      elevation: 4,
+      elevation: isSelected ? 6 : 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+        side: isSelected ? BorderSide(color: color, width: 2) : BorderSide.none,
       ),
       child: InkWell(
-        onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AlternativeNavigationWrapper(
-                style: style,
+        onTap: () async {
+          await navSettings.setNavigationStyle(style);
+          if (context.mounted) {
+            final t = AppLocalizations.of(context)!;
+            SettingsTheme.showSuccessSnackBar(
+              context,
+              t.navigationStyleChanged(
+                style == 'glassmorphism'
+                    ? t.glassmorphism
+                    : style == 'material3'
+                        ? t.material3
+                        : t.floating,
               ),
-            ),
-          );
+            );
+          }
         },
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
         child: Padding(
@@ -156,11 +181,7 @@ class NavigationDemoScreen extends StatelessWidget {
                       borderRadius:
                           BorderRadius.circular(AppTheme.borderRadiusRegular),
                     ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 28,
-                    ),
+                    child: Icon(icon, color: color, size: 28),
                   ),
                   const SizedBox(width: AppTheme.paddingRegular),
                   Expanded(
@@ -186,11 +207,14 @@ class NavigationDemoScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    color: color,
-                    size: 20,
-                  ),
+                  if (isSelected)
+                    Icon(Icons.check_circle, color: color, size: 24)
+                  else
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      color: color,
+                      size: 20,
+                    ),
                 ],
               ),
               const SizedBox(height: AppTheme.paddingRegular),

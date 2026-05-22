@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-// TODO: Uncomment when gen_l10n is properly set up
-// import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 
 /// Helper class for consistent dialog management throughout the app
 class DialogHelper {
@@ -19,16 +20,16 @@ class DialogHelper {
 
     return (await showDialog<bool>(
           context: context,
-          builder: (_) => AlertDialog(
+          builder: (dialogContext) => AlertDialog(
             title: Text(title),
             content: Text(body),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(_, false),
+                onPressed: () => Navigator.pop(dialogContext, false),
                 child: Text(cancelLabel ?? 'Cancel'),
               ),
               TextButton(
-                onPressed: () => Navigator.pop(_, true),
+                onPressed: () => Navigator.pop(dialogContext, true),
                 style: TextButton.styleFrom(
                   foregroundColor: okColor ??
                       (isDangerous
@@ -52,10 +53,10 @@ class DialogHelper {
     bool barrierDismissible = false,
   }) async {
     // Show loading dialog
-    showDialog(
+    unawaited(showDialog(
       context: context,
       barrierDismissible: barrierDismissible,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         content: Row(
           children: [
             const CircularProgressIndicator(),
@@ -66,7 +67,7 @@ class DialogHelper {
           ],
         ),
       ),
-    );
+    ));
 
     try {
       return await task();
@@ -87,12 +88,12 @@ class DialogHelper {
   }) async {
     return showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(title),
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(_),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(buttonText ?? 'OK'),
           ),
         ],
@@ -110,7 +111,7 @@ class DialogHelper {
   }) async {
     return showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Row(
           children: [
             if (icon != null) ...[
@@ -123,7 +124,7 @@ class DialogHelper {
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(_),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(buttonText ?? 'OK'),
           ),
         ],
@@ -176,31 +177,41 @@ class DialogHelper {
   static Future<bool> showPremiumPrompt(
     BuildContext context, {
     required String featureName,
+    String? title,
+    String? description,
+    String? dismissCta,
+    String? upgradeCta,
     VoidCallback? onUpgrade,
   }) async {
-    // TODO: Use AppLocalizations when properly set up
-    // final t = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context)!;
 
     return (await showDialog<bool>(
           context: context,
-          builder: (_) => AlertDialog(
-            title: Text('$featureName - Premium Feature'),
-            content: Text(
-                '$featureName is a premium feature. Upgrade to unlock this and other advanced features.'),
+          builder: (dialogContext) => AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.workspace_premium, color: Colors.amber),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(title ?? t.upgradeToUse(featureName)),
+                ),
+              ],
+            ),
+            content: Text(description ?? t.premiumFeatureBody(featureName)),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(_, false),
-                child: const Text('Cancel'),
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(dismissCta ?? t.notNow),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(_, true);
+                  Navigator.pop(dialogContext, true);
                   onUpgrade?.call();
                 },
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.amber,
                 ),
-                child: const Text('Upgrade'),
+                child: Text(upgradeCta ?? t.seePremiumFeatures),
               ),
             ],
           ),

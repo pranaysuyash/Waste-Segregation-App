@@ -109,6 +109,60 @@ class ClassificationPipeline {
     return null;
   }
 
+  /// Try local layers and return the full [Layer0Result] for offline hint use.
+  ///
+  /// Unlike [tryLocalOnly], this returns the raw [Layer0Result] so the caller
+  /// can inspect [Layer0Decision.hint] to show a degraded result when offline.
+  /// Returns `null` only if Layer 0 threw an exception (no result at all).
+  Future<({WasteClassification? accepted, Layer0Result? layer0Result})>
+      tryLocalWithHint({
+    required Uint8List imageBytes,
+    required String region,
+    String? barcode,
+  }) async {
+    Layer0Result? layer0Result;
+    try {
+      layer0Result = await layer0Router.classify(
+        imageBytes: imageBytes,
+        barcode: barcode,
+        region: region,
+      );
+
+      if (layer0Result.decision == Layer0Decision.accept &&
+          layer0Result.wasteClassification != null) {
+        WasteAppLogger.aiEvent(
+          'Pipeline (hint): Layer 0 accepted',
+          model: 'layer0_deterministic',
+          context: {
+            'route_reason': layer0Result.routeReason,
+            'processing_time_ms': layer0Result.totalProcessingTimeMs,
+          },
+        );
+        return (
+          accepted: layer0Result.wasteClassification!.copyWith(
+            classificationLayer: 'layer0_deterministic',
+          ),
+          layer0Result: layer0Result,
+        );
+      }
+
+      WasteAppLogger.aiEvent(
+        'Pipeline (hint): Layer 0 ${layer0Result.decision.name}',
+        model: 'layer0_deterministic',
+        context: {
+          'route_reason': layer0Result.routeReason,
+          'processing_time_ms': layer0Result.totalProcessingTimeMs,
+        },
+      );
+    } catch (e, s) {
+      WasteAppLogger.warning('Pipeline (hint): Layer 0 error',
+          error: e, stackTrace: s);
+    }
+
+    // Layer 1 check skipped for hint path — the purpose is offline fallback.
+    return (accepted: null, layer0Result: layer0Result);
+  }
+
   /// Run the full classification pipeline including cloud fallback.
   ///
   /// [imageBytes] — raw image data to classify.
@@ -142,9 +196,11 @@ class ClassificationPipeline {
       language: 'en',
     );
 
-    return cloudResult.copyWith(
-      classificationLayer: 'layer2_cloud_cheap',
-    );
+      return cloudResult.copyWith(
+        classificationLayer: 'layer2_cloud_cheap',
+        analysisSource: cloudResult.analysisSource ??
+            WasteClassification.analysisSourceCloudPrimary,
+      );
   }
 
   /// Build a [WasteClassification] from a [LocalClassificationResult].
@@ -181,6 +237,7 @@ class ClassificationPipeline {
       modelVersion: localResult.modelVersion,
       classificationLayer: 'layer1_on_device',
       source: 'layer1_on_device',
+      analysisSource: WasteClassification.analysisSourceLocalExperimental,
     );
   }
 }

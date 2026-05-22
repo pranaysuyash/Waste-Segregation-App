@@ -274,6 +274,7 @@ class LocalPolicyEngine {
   Future<LocalPolicyDecision> applyPolicy({
     required WasteClassification classification,
     required String region,
+    String? societyId,
   }) async {
     final plugin = LocalGuidelinesManager.getPluginForRegion(region);
     if (plugin == null) {
@@ -296,6 +297,11 @@ class LocalPolicyEngine {
 
     final confidence = classification.confidence ?? 1.0;
     final isConfidenceGated = confidence < 0.70;
+
+    if (societyId != null) {
+      WasteAppLogger.info('Applying policy with society override',
+          context: {'societyId': societyId, 'region': region});
+    }
 
     return LocalPolicyDecision(
       classification: updated,

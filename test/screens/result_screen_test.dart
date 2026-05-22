@@ -211,6 +211,65 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
     });
 
+    testWidgets('shows analysis source in the snapshot card', (tester) async {
+      final analyticsService = MockAnalyticsService();
+      final gamificationService = MockGamificationService();
+      final storageService = MockStorageService();
+
+      when(gamificationService.getProfile()).thenAnswer(
+        (_) async => const GamificationProfile(
+          userId: 'u1',
+          streaks: {},
+          points: UserPoints(total: 10),
+        ),
+      );
+      when(storageService.getAllClassifications()).thenAnswer((_) async => const []);
+
+      final classification = _classification().copyWith(
+        analysisSource: WasteClassification.analysisSourceLocalExperimental,
+        analysisFallbackReason: 'placeholder_local_model',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(storageService),
+            gamificationServiceProvider.overrideWithValue(gamificationService),
+            cloudStorageServiceProvider.overrideWithValue(
+              MockCloudStorageService(),
+            ),
+            communityServiceProvider.overrideWithValue(
+              MockCommunityService(),
+            ),
+            adServiceProvider.overrideWithValue(MockAdService()),
+            analyticsServiceProvider.overrideWithValue(analyticsService),
+            resultPipelineProvider.overrideWith(
+              (ref) => ResultPipeline(
+                storageService,
+                gamificationService,
+                MockCloudStorageService(),
+                MockCommunityService(),
+                MockAdService(),
+                analyticsService,
+              ),
+            ),
+            disposalInstructionsServiceProvider
+                .overrideWithValue(FakeDisposalInstructionsService()),
+          ],
+          child: MaterialApp(
+            home: ResultScreen(
+              classification: classification,
+              showActions: false,
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Analysis Source: Local experimental'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 2));
+    });
+
     testWidgets(
       'shows correction panel when actions are enabled',
       (tester) async {

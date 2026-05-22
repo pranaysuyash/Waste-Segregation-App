@@ -14,6 +14,10 @@ class SettingTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.enabled = true,
+    this.visuallyDisabled = false,
+    this.semanticsLabel,
+    this.semanticsHint,
+    this.semanticsValue,
   });
 
   final IconData icon;
@@ -24,20 +28,28 @@ class SettingTile extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final bool enabled;
+  final bool visuallyDisabled;
+  final String? semanticsLabel;
+  final String? semanticsHint;
+  final String? semanticsValue;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final effectiveIconColor = iconColor ?? theme.colorScheme.primary;
+    final shouldMuteVisuals = visuallyDisabled || !enabled;
+    final effectiveIconColor = shouldMuteVisuals
+        ? theme.disabledColor
+        : (iconColor ?? theme.colorScheme.primary);
     final effectiveTitleColor = titleColor ??
-        (enabled ? theme.colorScheme.onSurface : theme.disabledColor);
+        (shouldMuteVisuals ? theme.disabledColor : theme.colorScheme.onSurface);
 
     return MouseRegion(
       cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: Semantics(
         button: true,
-        label: title,
-        hint: subtitle,
+        label: semanticsLabel ?? title,
+        hint: semanticsHint ?? subtitle,
+        value: semanticsValue,
         enabled: enabled,
         child: Focus(
           child: Card(
@@ -69,9 +81,9 @@ class SettingTile extends StatelessWidget {
                     ? Text(
                         subtitle!,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: enabled
-                              ? theme.colorScheme.onSurfaceVariant
-                              : theme.disabledColor,
+                          color: shouldMuteVisuals
+                              ? theme.disabledColor
+                              : theme.colorScheme.onSurfaceVariant,
                         ),
                       )
                     : null,

@@ -132,8 +132,7 @@ class GreetingText extends StatelessWidget {
           text: TextSpan(text: greetingText, style: effectiveStyle),
           maxLines: 1,
           textDirection: TextDirection.ltr,
-        );
-        textPainter.layout(maxWidth: constraints.maxWidth);
+        )..layout(maxWidth: constraints.maxWidth);
 
         // If text overflows, use responsive text with auto-sizing
         if (textPainter.didExceedMaxLines ||
@@ -248,8 +247,7 @@ class _ReadMoreTextState extends State<ReadMoreText> {
           text: TextSpan(text: widget.text, style: defaultStyle),
           maxLines: widget.trimLines,
           textDirection: TextDirection.ltr,
-        );
-        textPainter.layout(maxWidth: constraints.maxWidth);
+        )..layout(maxWidth: constraints.maxWidth);
 
         if (!textPainter.didExceedMaxLines) {
           return Text(

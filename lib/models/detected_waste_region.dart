@@ -112,6 +112,8 @@ class NormalizedBoundingBox {
       );
 
   double intersectionOverUnion(NormalizedBoundingBox other) {
+    if (!_isFinite() || !other._isFinite()) return 0.0;
+
     final interLeft = max(left, other.left);
     final interTop = max(top, other.top);
     final interRight = min(right, other.right);
@@ -121,8 +123,18 @@ class NormalizedBoundingBox {
 
     final interArea = (interRight - interLeft) * (interBottom - interTop);
     final unionArea = area + other.area - interArea;
-    return unionArea > 0 ? interArea / unionArea : 0.0;
+    if (unionArea <= 0 || !unionArea.isFinite) return 0.0;
+    final iou = interArea / unionArea;
+    return iou.isFinite ? iou.clamp(0.0, 1.0) : 0.0;
   }
+
+  bool _isFinite() =>
+      left.isFinite &&
+      top.isFinite &&
+      width.isFinite &&
+      height.isFinite &&
+      width >= 0 &&
+      height >= 0;
 
   Map<String, dynamic> toJson() => {
         'left': left,

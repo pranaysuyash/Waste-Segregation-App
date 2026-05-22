@@ -24,15 +24,13 @@ class AppLocalizationsKn extends AppLocalizations {
   String get signOutSubtitle => 'Sign out and return to login screen';
 
   @override
-  String get guestModeSubtitle =>
-      'Currently in guest mode - sign in to sync data';
+  String get guestModeSubtitle => 'Currently in guest mode - sign in to sync data';
 
   @override
   String get signOutConfirmTitle => 'Sign Out';
 
   @override
-  String get signOutConfirmBody =>
-      'Are you sure you want to sign out? Your data will remain on this device, but you won\'t be able to sync with the cloud.';
+  String get signOutConfirmBody => 'Are you sure you want to sign out? Your data will remain on this device, but you won\'t be able to sync with the cloud.';
 
   @override
   String get cancel => 'Cancel';
@@ -118,8 +116,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get trainingReviewQueue => 'Training Review Queue';
 
   @override
-  String get trainingReviewQueueSubtitle =>
-      'Review pending training samples and labels';
+  String get trainingReviewQueueSubtitle => 'Review pending training samples and labels';
 
   @override
   String get featuresSection => 'Features & Tools';
@@ -144,6 +141,12 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get advancedAnalyticsSubtitle => 'Detailed insights and trends';
+
+  @override
+  String get advancedSegmentation => 'Advanced Segmentation';
+
+  @override
+  String get advancedSegmentationSubtitle => 'Identify multiple objects in a single image';
 
   @override
   String get offlineModeComingSoon => 'Offline mode settings coming soon!';
@@ -227,8 +230,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get factoryReset => 'Factory Reset';
 
   @override
-  String get factoryResetBody =>
-      'This will delete ALL app data including classifications, settings, and user preferences. This action cannot be undone.\\n\\nAre you sure you want to continue?';
+  String get factoryResetBody => 'This will delete ALL app data including classifications, settings, and user preferences. This action cannot be undone.\\n\\nAre you sure you want to continue?';
 
   @override
   String get resetAllData => 'Reset All Data';
@@ -237,8 +239,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get clearFirebaseData => 'Clear Firebase Data';
 
   @override
-  String get clearFirebaseDataBody =>
-      'This will clear all Firebase data for testing purposes. This simulates a fresh install experience.\\n\\nContinue?';
+  String get clearFirebaseDataBody => 'This will clear all Firebase data for testing purposes. This simulates a fresh install experience.\\n\\nContinue?';
 
   @override
   String get clearData => 'Clear Data';
@@ -263,12 +264,10 @@ class AppLocalizationsKn extends AppLocalizations {
   String get rateAppComingSoon => 'App rating feature coming soon!';
 
   @override
-  String get aboutDialogBodyLine1 =>
-      'A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.';
+  String get aboutDialogBodyLine1 => 'A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.';
 
   @override
-  String get aboutDialogBodyLine2 =>
-      'Built with Flutter and powered by AI for accurate waste classification.';
+  String get aboutDialogBodyLine2 => 'Built with Flutter and powered by AI for accurate waste classification.';
 
   @override
   String get appName => 'Waste Segregation App';
@@ -426,8 +425,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get feedbackSettings => 'Feedback Settings';
 
   @override
-  String get feedbackSettingsSubtitle =>
-      'Control when you can provide feedback';
+  String get feedbackSettingsSubtitle => 'Control when you can provide feedback';
 
   @override
   String get allowFeedbackRecentHistory => 'Allow Feedback on Recent History';
@@ -462,8 +460,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get syncLocalDataToCloud => 'Sync Local Data to Cloud';
 
   @override
-  String get syncLocalDataSubtitle =>
-      'Upload existing local classifications to cloud';
+  String get syncLocalDataSubtitle => 'Upload existing local classifications to cloud';
 
   @override
   String get forceDownloadFromCloud => 'Force Download from Cloud';
@@ -472,8 +469,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get forceDownloadSubtitle => 'Download latest data from cloud';
 
   @override
-  String get resetAllAppData =>
-      'Reset all app data (history, settings, preferences)';
+  String get resetAllAppData => 'Reset all app data (history, settings, preferences)';
 
   @override
   String get allDataClearedSuccessfully => 'All data cleared successfully';
@@ -524,8 +520,7 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
-  String get unableToOpenAppStore =>
-      'Unable to open app store. Please search for \"Waste Segregation App\" in your app store.';
+  String get unableToOpenAppStore => 'Unable to open app store. Please search for \"Waste Segregation App\" in your app store.';
 
   @override
   String errorOpeningAppStore(String error) {
@@ -553,16 +548,13 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
-  String get factoryResetWarning =>
-      'This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?';
+  String get factoryResetWarning => 'This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?';
 
   @override
-  String get resettingToFactorySettings =>
-      'Resetting app to factory settings...';
+  String get resettingToFactorySettings => 'Resetting app to factory settings...';
 
   @override
-  String get googleSyncDisabled =>
-      'Google sync disabled. Future classifications will be saved locally only.';
+  String get googleSyncDisabled => 'Google sync disabled. Future classifications will be saved locally only.';
 
   @override
   String failedToToggleGoogleSync(String error) {
@@ -574,4 +566,112 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get googleSyncEnabledMessage => 'Google sync is now enabled!';
+
+  @override
+  String get privacySection => 'Privacy & Consent';
+
+  @override
+  String get leaderboardOptOut => 'Hide from Leaderboard';
+
+  @override
+  String get leaderboardOptOutHide => 'Your name and photo are hidden on the leaderboard';
+
+  @override
+  String get leaderboardOptOutVisible => 'Your name and photo are visible on the leaderboard';
+
+  @override
+  String get leaderboardHidden => 'You are now hidden from the leaderboard';
+
+  @override
+  String get leaderboardVisible => 'You are now visible on the leaderboard';
+
+  @override
+  String failedToUpdateLeaderboard(String error) {
+    return 'Failed to update leaderboard privacy: $error';
+  }
+
+  @override
+  String get noUserProfileFound => 'No user profile found. Please sign in first.';
+
+  @override
+  String get trainingConsent => 'Improve model with my images';
+
+  @override
+  String get trainingConsentEnabled => 'Enabled. You can revoke anytime and request deletion of contributed training candidates.';
+
+  @override
+  String get trainingConsentDisabled => 'Disabled. No new image/correction enters training candidates.';
+
+  @override
+  String get trainingConsentGranted => 'Training consent enabled.';
+
+  @override
+  String get trainingConsentRevoked => 'Training consent revoked and deletion requested.';
+
+  @override
+  String couldNotUpdateTrainingConsent(String error) {
+    return 'Could not update training consent: $error';
+  }
+
+  @override
+  String get syncEnabledUploadPrompt => 'Would you like to upload your existing local classifications to the cloud?';
+
+  @override
+  String get syncAvailableAcrossDevices => 'This will make them available across all your devices.';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get uploadNow => 'Upload Now';
+
+  @override
+  String get syncingDataToCloud => 'Syncing data to cloud...';
+
+  @override
+  String syncedToCloud(int count) {
+    return 'Successfully synced $count classifications to cloud!';
+  }
+
+  @override
+  String get noClassificationsSynced => 'No classifications were synced.';
+
+  @override
+  String syncFailed(String error) {
+    return 'Sync failed: $error';
+  }
+
+  @override
+  String get downloadingFromCloud => 'Downloading from cloud...';
+
+  @override
+  String downloadedFromCloud(int count) {
+    return 'Downloaded $count classifications from cloud!';
+  }
+
+  @override
+  String get noClassificationsDownloaded => 'No classifications were downloaded.';
+
+  @override
+  String downloadFailed(String error) {
+    return 'Download failed: $error';
+  }
+
+  @override
+  String get feedbackOnHistoryEnabled => 'Can provide feedback on recent classifications from history';
+
+  @override
+  String get feedbackOnHistoryDisabled => 'Can only provide feedback on new classifications';
+
+  @override
+  String get feedbackExplanationEnabled => 'Perfect for scanning multiple items quickly and providing feedback later when you have more time!';
+
+  @override
+  String get feedbackExplanationDisabled => 'Feedback is only available immediately after classification.';
+
+  @override
+  String get syncClassificationsLocally => 'Classifications sync to cloud automatically';
+
+  @override
+  String get syncClassificationsLocalOnly => 'Classifications saved locally only';
 }

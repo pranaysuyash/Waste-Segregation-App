@@ -147,8 +147,8 @@ _HistogramResult _computeHistogramInIsolate(Uint8List imageBytes) {
   // Compute peak dominance: how much the dominant hue bin exceeds the average.
   // Use 12 hue bins (30 degrees each).
   final hueBins = List.filled(12, 0);
-  for (int y = 0; y < resized.height; y++) {
-    for (int x = 0; x < resized.width; x++) {
+  for (var y = 0; y < resized.height; y++) {
+    for (var x = 0; x < resized.width; x++) {
       final pixel = resized.getPixelSafe(x, y);
       final hsv = _rgbToHsv(pixel.r.toDouble(), pixel.g.toDouble(), pixel.b.toDouble());
       final bin = (hsv[0] / 30).floor().clamp(0, 11);

@@ -131,3 +131,7 @@ sequenceDiagram
 ## 8. Future State Summary
 
 The current architecture is already better than the old client-only story, but it still has a clear next hardening step: make every non-debug classification request use the backend proxy, and then bring the remaining direct-client surfaces under the same safety and telemetry rules. On-device inference can stay deferred until the real TFLite path exists.
+
+## Related flywheel foundation
+
+See [AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md](AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md) for eval/training candidate/dataset export scaffolding that extends this router path.

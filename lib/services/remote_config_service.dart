@@ -71,6 +71,7 @@ class RemoteConfigService {
         'layer0_barcode_lookup_enabled': true,
         'premium_ad_free_enabled': true,
         'interstitial_every_n_classifications': 5,
+        'offline_degradation_tier2_enabled': true,
       });
 
       // Configure fetch settings

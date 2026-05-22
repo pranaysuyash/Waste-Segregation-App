@@ -63,8 +63,7 @@ import 'app_localizations_kn.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -72,8 +71,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -85,8 +83,7 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -363,6 +360,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Detailed insights and trends'**
   String get advancedAnalyticsSubtitle;
+
+  /// Premium segmentation toggle title
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced Segmentation'**
+  String get advancedSegmentation;
+
+  /// Premium segmentation toggle subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Identify multiple objects in a single image'**
+  String get advancedSegmentationSubtitle;
 
   /// SnackBar text for offline mode settings coming soon
   ///
@@ -1125,10 +1134,201 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Google sync is now enabled!'**
   String get googleSyncEnabledMessage;
+
+  /// Header for the privacy and consent section
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy & Consent'**
+  String get privacySection;
+
+  /// Leaderboard opt-out toggle label
+  ///
+  /// In en, this message translates to:
+  /// **'Hide from Leaderboard'**
+  String get leaderboardOptOut;
+
+  /// Subtitle when leaderboard opt-out is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Your name and photo are hidden on the leaderboard'**
+  String get leaderboardOptOutHide;
+
+  /// Subtitle when leaderboard opt-out is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Your name and photo are visible on the leaderboard'**
+  String get leaderboardOptOutVisible;
+
+  /// Snackbar message when user opts out of leaderboard
+  ///
+  /// In en, this message translates to:
+  /// **'You are now hidden from the leaderboard'**
+  String get leaderboardHidden;
+
+  /// Snackbar message when user opts into leaderboard
+  ///
+  /// In en, this message translates to:
+  /// **'You are now visible on the leaderboard'**
+  String get leaderboardVisible;
+
+  /// Error message when leaderboard privacy update fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update leaderboard privacy: {error}'**
+  String failedToUpdateLeaderboard(String error);
+
+  /// Message when no user profile is found
+  ///
+  /// In en, this message translates to:
+  /// **'No user profile found. Please sign in first.'**
+  String get noUserProfileFound;
+
+  /// Training consent toggle label
+  ///
+  /// In en, this message translates to:
+  /// **'Improve model with my images'**
+  String get trainingConsent;
+
+  /// Subtitle when training consent is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled. You can revoke anytime and request deletion of contributed training candidates.'**
+  String get trainingConsentEnabled;
+
+  /// Subtitle when training consent is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled. No new image/correction enters training candidates.'**
+  String get trainingConsentDisabled;
+
+  /// Snackbar when training consent is granted
+  ///
+  /// In en, this message translates to:
+  /// **'Training consent enabled.'**
+  String get trainingConsentGranted;
+
+  /// Snackbar when training consent is revoked
+  ///
+  /// In en, this message translates to:
+  /// **'Training consent revoked and deletion requested.'**
+  String get trainingConsentRevoked;
+
+  /// Error message when training consent update fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update training consent: {error}'**
+  String couldNotUpdateTrainingConsent(String error);
+
+  /// Prompt when enabling sync to upload existing data
+  ///
+  /// In en, this message translates to:
+  /// **'Would you like to upload your existing local classifications to the cloud?'**
+  String get syncEnabledUploadPrompt;
+
+  /// Info text about cloud sync availability
+  ///
+  /// In en, this message translates to:
+  /// **'This will make them available across all your devices.'**
+  String get syncAvailableAcrossDevices;
+
+  /// Skip button text
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// Upload now button text
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Now'**
+  String get uploadNow;
+
+  /// Loading message while syncing data to cloud
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing data to cloud...'**
+  String get syncingDataToCloud;
+
+  /// Message when classifications are synced to cloud
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully synced {count} classifications to cloud!'**
+  String syncedToCloud(int count);
+
+  /// Message when no classifications were synced
+  ///
+  /// In en, this message translates to:
+  /// **'No classifications were synced.'**
+  String get noClassificationsSynced;
+
+  /// Error message when sync fails
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {error}'**
+  String syncFailed(String error);
+
+  /// Loading message while downloading from cloud
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading from cloud...'**
+  String get downloadingFromCloud;
+
+  /// Message when classifications are downloaded from cloud
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded {count} classifications from cloud!'**
+  String downloadedFromCloud(int count);
+
+  /// Message when no classifications were downloaded
+  ///
+  /// In en, this message translates to:
+  /// **'No classifications were downloaded.'**
+  String get noClassificationsDownloaded;
+
+  /// Error message when download fails
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed: {error}'**
+  String downloadFailed(String error);
+
+  /// Subtitle when feedback on history is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Can provide feedback on recent classifications from history'**
+  String get feedbackOnHistoryEnabled;
+
+  /// Subtitle when feedback on history is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Can only provide feedback on new classifications'**
+  String get feedbackOnHistoryDisabled;
+
+  /// Explanation when feedback on history is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect for scanning multiple items quickly and providing feedback later when you have more time!'**
+  String get feedbackExplanationEnabled;
+
+  /// Explanation when feedback on history is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback is only available immediately after classification.'**
+  String get feedbackExplanationDisabled;
+
+  /// Subtitle when Google Cloud Sync is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Classifications sync to cloud automatically'**
+  String get syncClassificationsLocally;
+
+  /// Subtitle when Google Cloud Sync is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Classifications saved locally only'**
+  String get syncClassificationsLocalOnly;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -1137,27 +1337,26 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'hi', 'kn'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'hi', 'kn'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en':
-      return AppLocalizationsEn();
-    case 'hi':
-      return AppLocalizationsHi();
-    case 'kn':
-      return AppLocalizationsKn();
+    case 'en': return AppLocalizationsEn();
+    case 'hi': return AppLocalizationsHi();
+    case 'kn': return AppLocalizationsKn();
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.'
+  );
 }

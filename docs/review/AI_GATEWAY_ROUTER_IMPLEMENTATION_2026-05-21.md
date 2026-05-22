@@ -317,3 +317,7 @@ The backend flag is a build-time constant — no runtime feature flag infrastruc
 - `lib/services/providers/classification_provider.dart` — provider interface
 - `lib/services/providers/local_vlm_provider.dart` — on-device VLM stub
 - `lib/utils/production_safety_config.dart` — canonical flag definition
+
+## Related flywheel foundation
+
+See [AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md](AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md) for eval/training candidate/dataset export scaffolding that extends this router path.

@@ -3,17 +3,24 @@ import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { OpenAI } from 'openai';
 import { toFile } from 'openai/uploads';
-import cors from 'cors';
-import * as fs from 'fs';
-import * as path from 'path';
 import axios from 'axios';
-import { getQuotaConfig, QUOTA_TIER_MULTIPLIERS, QuotaTier } from './rate_limit_config';
+import { QUOTA_TIER_MULTIPLIERS, QuotaTier } from './rate_limit_config';
+import {
+  asiaSouth1, corsHandler, shouldEnforceCallableAppCheck,
+  getBearerToken, getRateLimitConfig, enforceRateLimit,
+  bumpOpsMetric, isProductionRuntime,
+  validateAppCheckProductionGuardrails,
+} from './helpers';
+
+// Re-export all module functions
+export { generateDisposal } from './disposal';
+export { createCheckoutSession } from './create_checkout_session';
+export { dodopaymentsWebhook } from './dodopayments_webhook';
+export { getR2UploadUrl } from './r2_storage';
+export { createReferralCode, redeemReferralCode, getReferralStats } from './referrals';
 
 // Initialize Firebase Admin
 admin.initializeApp();
-
-// Configure region for better performance in Asia
-const asiaSouth1 = functions.region('asia-south1');
 
 export const getOpenAiApiKey = (): string | undefined => {
   return process.env.OPENAI_API_KEY
@@ -23,13 +30,9 @@ export const getOpenAiApiKey = (): string | undefined => {
 // Initialize OpenAI (conditional)
 let openai: OpenAI | null = null;
 try {
-  // Resolve the secret from the process environment only.
   const apiKey = getOpenAiApiKey();
-
   if (apiKey) {
-    openai = new OpenAI({
-      apiKey: apiKey,
-    });
+    openai = new OpenAI({ apiKey });
     functions.logger.info('OpenAI initialized successfully');
   } else {
     functions.logger.warn('OpenAI API key not configured - functions will use fallback responses');
@@ -38,52 +41,11 @@ try {
   functions.logger.warn('Failed to initialize OpenAI', { error });
 }
 
-// CORS configuration
-const corsHandler = cors({ origin: true });
+validateAppCheckProductionGuardrails();
 
-// Load disposal prompt template
-const getDisposalPrompt = (): string => {
-  try {
-    const promptPath = path.join(__dirname, '../../prompts/disposal.txt');
-    return fs.readFileSync(promptPath, 'utf8');
-  } catch (error) {
-    functions.logger.error('Error loading disposal prompt', { error });
-    // Fallback prompt
-    return `You are a waste management expert. Generate disposal instructions for the given material.
-    
-Input: {"material":"$MATERIAL","lang":"$LANG"}
-
-Generate a JSON object with: steps (array), primaryMethod, timeframe, location, warnings (array), tips (array), recyclingInfo, estimatedTime, hasUrgentTimeframe (boolean).
-
-Provide 4-6 specific, actionable steps for proper disposal.`;
-  }
-};
-
-interface DisposalRequest {
-  materialId: string;
-  material: string;
-  category?: string;
-  subcategory?: string;
-  lang?: string;
-}
-
-interface DisposalInstructions {
-  steps: string[];
-  primaryMethod: string;
-  timeframe?: string;
-  location?: string;
-  warnings?: string[];
-  tips?: string[];
-  recyclingInfo?: string;
-  estimatedTime?: string;
-  hasUrgentTimeframe: boolean;
-}
-
-const getBearerToken = (authHeader: string | undefined): string | null => {
-  if (!authHeader) return null;
-  if (!authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.slice('Bearer '.length).trim();
-  return token.length > 0 ? token : null;
+export const __testables = {
+  isProductionRuntime,
+  validateAppCheckProductionGuardrails,
 };
 
 const verifyAdminHttpRequest = async (req: functions.Request): Promise<boolean> => {
@@ -96,430 +58,6 @@ const verifyAdminHttpRequest = async (req: functions.Request): Promise<boolean> 
     return false;
   }
 };
-
-const parseBoolEnv = (value: string | undefined, fallback = false): boolean => {
-  if (value == null) return fallback;
-  const normalized = value.trim().toLowerCase();
-  if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
-  if (['false', '0', 'no', 'off'].includes(normalized)) return false;
-  return fallback;
-};
-
-const isProductionRuntime = (): boolean => {
-  if (process.env.FUNCTIONS_EMULATOR === 'true') return false;
-  if (parseBoolEnv(process.env.HERMES_FORCE_PROD_GUARDRAILS, false)) return true;
-  return Boolean(process.env.K_SERVICE) || process.env.NODE_ENV === 'production';
-};
-
-const validateAppCheckProductionGuardrails = (): void => {
-  if (!isProductionRuntime()) return;
-
-  const violations: string[] = [];
-  if (!parseBoolEnv(process.env.REQUIRE_APPCHECK_CALLABLE, false)) {
-    violations.push('REQUIRE_APPCHECK_CALLABLE must be true in production.');
-  }
-  if (!parseBoolEnv(process.env.REQUIRE_APPCHECK_HTTP, false)) {
-    violations.push('REQUIRE_APPCHECK_HTTP must be true in production.');
-  }
-
-  if (violations.length === 0) return;
-
-  const message = `App Check production guardrail violation: ${violations.join(' ')}`;
-
-  if (parseBoolEnv(process.env.ALLOW_INSECURE_FUNCTIONS_BOOT, false)) {
-    functions.logger.error(`${message} Boot allowed only because ALLOW_INSECURE_FUNCTIONS_BOOT=true.`);
-    return;
-  }
-
-  throw new Error(message);
-};
-
-validateAppCheckProductionGuardrails();
-
-export const __testables = {
-  isProductionRuntime,
-  validateAppCheckProductionGuardrails,
-};
-
-const getClientIp = (req: functions.Request): string => {
-  const xfwd = req.headers['x-forwarded-for'];
-  if (typeof xfwd === 'string' && xfwd.trim().length > 0) {
-    return xfwd.split(',')[0].trim();
-  }
-  return req.ip || 'unknown';
-};
-
-const shouldEnforceHttpAppCheck = (): boolean => {
-  const requireAppCheck = parseBoolEnv(process.env.REQUIRE_APPCHECK_HTTP, false);
-  if (!requireAppCheck) return false;
-  if (process.env.FUNCTIONS_EMULATOR === 'true') {
-    return parseBoolEnv(process.env.ENFORCE_APPCHECK_IN_EMULATOR, false);
-  }
-  return true;
-};
-
-const shouldEnforceCallableAppCheck = (): boolean => {
-  const requireAppCheck = parseBoolEnv(process.env.REQUIRE_APPCHECK_CALLABLE, false);
-  if (!requireAppCheck) return false;
-  if (process.env.FUNCTIONS_EMULATOR === 'true') {
-    return parseBoolEnv(process.env.ENFORCE_APPCHECK_IN_EMULATOR, false);
-  }
-  return true;
-};
-
-/**
- * getRateLimitConfig — thin adapter kept for internal call-site compatibility.
- * All canonical values now live in rate_limit_config.ts via getQuotaConfig().
- */
-const getRateLimitConfig = () => {
-  const cfg = getQuotaConfig();
-  return {
-    windowSeconds: cfg.disposal.windowSeconds,
-    disposalMax: cfg.disposal.maxRequests,
-    spendTokensMax: cfg.tokenSpend.maxRequests,
-  };
-};
-
-const enforceRateLimit = async ({
-  bucket,
-  subject,
-  maxRequests,
-  windowSeconds,
-}: {
-  bucket: string;
-  subject: string;
-  maxRequests: number;
-  windowSeconds: number;
-}): Promise<{ remaining: number; retryAfterSeconds: number }> => {
-  const db = admin.firestore();
-  const safeSubject = subject.replace(/[^a-zA-Z0-9_:\-\.]/g, '_').slice(0, 120);
-  const docRef = db.collection('rate_limits').doc(`${bucket}:${safeSubject}`);
-  const nowMs = Date.now();
-
-  return db.runTransaction(async (tx) => {
-    const snap = await tx.get(docRef);
-    const existing = snap.exists ? (snap.data() ?? {}) : {};
-
-    const currentCount = Number(existing.count ?? 0);
-    const windowStartMs = Number(existing.windowStartMs ?? nowMs);
-    const windowDurationMs = Math.max(1, windowSeconds) * 1000;
-    const inWindow = nowMs - windowStartMs < windowDurationMs;
-
-    if (inWindow && currentCount >= maxRequests) {
-      const elapsedMs = nowMs - windowStartMs;
-      const retryAfterSeconds = Math.max(1, Math.ceil((windowDurationMs - elapsedMs) / 1000));
-      return { remaining: 0, retryAfterSeconds };
-    }
-
-    const nextCount = inWindow ? currentCount + 1 : 1;
-    const nextWindowStartMs = inWindow ? windowStartMs : nowMs;
-
-    tx.set(docRef, {
-      bucket,
-      subject: safeSubject,
-      count: nextCount,
-      windowStartMs: nextWindowStartMs,
-      windowSeconds,
-      updatedAt: FieldValue.serverTimestamp(),
-    }, { merge: true });
-
-    return {
-      remaining: Math.max(0, maxRequests - nextCount),
-      retryAfterSeconds: 0,
-    };
-  });
-};
-
-const bumpOpsMetric = async (
-  metricName: string,
-  tags: Record<string, unknown> = {},
-): Promise<void> => {
-  try {
-    const db = admin.firestore();
-    const day = new Date().toISOString().slice(0, 10);
-    const docRef = db.collection('ops_metrics').doc(day);
-    const sanitizedTags = Object.fromEntries(
-      Object.entries(tags).filter(([, value]) =>
-        ['string', 'number', 'boolean'].includes(typeof value) || value === null,
-      ),
-    );
-
-    await docRef.set(
-      {
-        date: day,
-        updatedAt: FieldValue.serverTimestamp(),
-        [`counters.${metricName}`]: FieldValue.increment(1),
-        [`lastEvent.${metricName}`]: {
-          atIso: new Date().toISOString(),
-          ...sanitizedTags,
-        },
-      },
-      { merge: true },
-    );
-  } catch (error) {
-    functions.logger.warn('Failed to bump ops metric', { metricName, error });
-  }
-};
-
-const verifyHttpAppCheck = async (req: functions.Request): Promise<boolean> => {
-  const tokenHeader = req.headers['x-firebase-appcheck'];
-  const token = Array.isArray(tokenHeader) ? tokenHeader[0] : tokenHeader;
-  if (!token || token.trim().length === 0) return false;
-  try {
-    await admin.appCheck().verifyToken(token.trim());
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
-  return corsHandler(req, res, async () => {
-    try {
-      if (shouldEnforceHttpAppCheck()) {
-        const appCheckValid = await verifyHttpAppCheck(req);
-        if (!appCheckValid) {
-          res.status(401).json({
-            error: 'Unauthorized: valid App Check token required',
-            hint: 'Attach x-firebase-appcheck header from a Firebase App Check enabled client.',
-          });
-          return;
-        }
-      }
-
-      const requireAuth = (process.env.DISPOSAL_API_REQUIRE_AUTH ?? 'true') === 'true';
-      const allowAnonymous = process.env.ALLOW_ANONYMOUS_DISPOSAL === 'true';
-      if (requireAuth && !allowAnonymous) {
-        const token = getBearerToken(req.headers.authorization);
-        if (!token) {
-          res.status(401).json({
-            error: 'Unauthorized: Bearer token required',
-            hint: 'Set ALLOW_ANONYMOUS_DISPOSAL=true only for controlled environments.'
-          });
-          return;
-        }
-        try {
-          await admin.auth().verifyIdToken(token);
-        } catch {
-          res.status(401).json({ error: 'Unauthorized: invalid token' });
-          return;
-        }
-      }
-
-      // Validate request method
-      if (req.method !== 'POST') {
-        res.status(405).json({ error: 'Method not allowed' });
-        return;
-      }
-
-      // Parse request body
-      const { materialId, material, category, subcategory, lang = 'en' }: DisposalRequest = req.body;
-
-      if (!materialId || !material) {
-        res.status(400).json({ error: 'Missing required fields: materialId, material' });
-        return;
-      }
-
-      const rateLimitConfig = getRateLimitConfig();
-      const rateLimitState = await enforceRateLimit({
-        bucket: 'generateDisposal',
-        subject: `ip:${getClientIp(req)}`,
-        maxRequests: Math.max(1, rateLimitConfig.disposalMax),
-        windowSeconds: Math.max(1, rateLimitConfig.windowSeconds),
-      });
-      if (rateLimitState.retryAfterSeconds > 0) {
-        res.setHeader('Retry-After', String(rateLimitState.retryAfterSeconds));
-        res.status(429).json({
-          error: 'Rate limit exceeded',
-          retryAfterSeconds: rateLimitState.retryAfterSeconds,
-        });
-        return;
-      }
-
-      // Check if instructions already exist in cache
-      const db = admin.firestore();
-      const cacheRef = db.collection('disposal_instructions').doc(materialId);
-      const cachedDoc = await cacheRef.get();
-
-      if (cachedDoc.exists) {
-        functions.logger.info('Returning cached disposal instructions', { materialId });
-        res.json(cachedDoc.data());
-        return;
-      }
-
-      // Prepare material description
-      let materialDescription = material;
-      if (category) materialDescription += ` (${category}`;
-      if (subcategory) materialDescription += ` - ${subcategory}`;
-      if (category) materialDescription += ')';
-
-      // Load and prepare prompt
-      const promptTemplate = getDisposalPrompt();
-      const prompt = promptTemplate
-        .replace('$MATERIAL', materialDescription)
-        .replace('$LANG', lang);
-
-      functions.logger.info('Generating disposal instructions', { materialDescription });
-
-      // Check if OpenAI is available
-      if (!openai) {
-        throw new Error('OpenAI not configured - using fallback');
-      }
-
-      // Call OpenAI API
-      // DISPOSAL_MODEL env var allows per-deployment override without redeploying.
-      // Default: gpt-4.1-mini — capable for structured disposal instructions and
-      // cost-efficient compared to gpt-4.  The function-calling API used below
-      // is fully compatible with gpt-4.1-mini.
-      const disposalModel = process.env.DISPOSAL_MODEL ?? 'gpt-4.1-mini';
-      const completion = await openai.chat.completions.create({
-        model: disposalModel,
-        messages: [
-          {
-            role: 'system',
-            content: prompt
-          },
-          {
-            role: 'user',
-            content: JSON.stringify({ material: materialDescription, lang })
-          }
-        ],
-        functions: [
-          {
-            name: 'generate_disposal_instructions',
-            description: 'Generate structured disposal instructions for waste materials',
-            parameters: {
-              type: 'object',
-              properties: {
-                steps: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  description: 'Array of 4-6 specific disposal steps'
-                },
-                primaryMethod: {
-                  type: 'string',
-                  description: 'Brief summary of main disposal method'
-                },
-                timeframe: {
-                  type: 'string',
-                  description: 'When to dispose (e.g., Immediately, Within 24 hours)'
-                },
-                location: {
-                  type: 'string',
-                  description: 'Where to dispose (bin type, facility)'
-                },
-                warnings: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  description: 'Safety or environmental warnings'
-                },
-                tips: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  description: 'Helpful disposal tips'
-                },
-                recyclingInfo: {
-                  type: 'string',
-                  description: 'Additional recycling information'
-                },
-                estimatedTime: {
-                  type: 'string',
-                  description: 'Time needed for disposal process'
-                },
-                hasUrgentTimeframe: {
-                  type: 'boolean',
-                  description: 'True for hazardous/medical waste requiring immediate disposal'
-                }
-              },
-              required: ['steps', 'primaryMethod', 'hasUrgentTimeframe']
-            }
-          }
-        ],
-        function_call: { name: 'generate_disposal_instructions' },
-        temperature: 0.3,
-        max_tokens: 1000
-      });
-
-      // Parse the function call response
-      const functionCall = completion.choices[0]?.message?.function_call;
-      if (!functionCall || !functionCall.arguments) {
-        throw new Error('No function call response from OpenAI');
-      }
-
-      const disposalInstructions: DisposalInstructions = JSON.parse(functionCall.arguments);
-
-      // Validate the response
-      if (!disposalInstructions.steps || !Array.isArray(disposalInstructions.steps) || disposalInstructions.steps.length < 3) {
-        throw new Error('Invalid disposal instructions format');
-      }
-
-      // Add metadata
-      const result = {
-        ...disposalInstructions,
-        materialId,
-        material: materialDescription,
-        language: lang,
-        generatedAt: FieldValue.serverTimestamp(),
-        modelUsed: disposalModel,
-        version: '1.0'
-      };
-
-      // Cache the result
-      await cacheRef.set(result);
-
-      functions.logger.info('Generated and cached disposal instructions', { materialId });
-      res.json(result);
-
-    } catch (error: any) {
-      functions.logger.error('Error generating disposal instructions', { error });
-
-      const isRetryableError = (
-        error.code === 'rate_limit_exceeded' ||
-        error.status === 429 ||
-        error.status === 503 ||
-        error.status === 502 ||
-        error.status === 504 ||
-        (error.message && error.message.includes('timeout'))
-      );
-
-      if (isRetryableError) {
-        functions.logger.info('Retryable error detected, returning 503 with retry-after');
-        res.status(503).json({ 
-          error: 'Service temporarily unavailable',
-          retryAfter: 30,
-          fallback: true,
-          code: 'retryable_error'
-        });
-        return;
-      }
-      
-      // Return fallback instructions for non-retryable errors
-      const fallbackInstructions = {
-        steps: [
-          'Identify the correct waste category for this item',
-          'Clean the item if required (remove food residue, rinse if needed)',
-          'Place in the appropriate disposal bin or take to designated facility',
-          'Follow local waste management guidelines for collection'
-        ],
-        primaryMethod: 'Follow local waste guidelines',
-        timeframe: 'As per local collection schedule',
-        location: 'Appropriate waste bin or facility',
-        warnings: ['Check local regulations for specific requirements'],
-        tips: ['When in doubt, contact local waste management authorities'],
-        hasUrgentTimeframe: false,
-        materialId: req.body.materialId,
-        material: req.body.material,
-        language: req.body.lang || 'en',
-        generatedAt: FieldValue.serverTimestamp(),
-        modelUsed: 'fallback',
-        version: '1.0',
-        error: 'AI generation failed, using fallback instructions'
-      };
-
-      res.status(200).json(fallbackInstructions);
-    }
-  });
-});
 
 // Health check endpoint
 export const healthCheck = asiaSouth1.https.onRequest((req, res) => {
@@ -716,7 +254,7 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
     );
     const BATCH_COST = 1;
 
-    let authorizedAmount = clientAmount; // default: trust client if no opType known
+    let authorizedAmount = clientAmount;
     let serverComputedMinimum: number | null = null;
 
     if (operationType !== null) {
@@ -726,9 +264,6 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
       serverComputedMinimum = serverMin;
 
       if (clientAmount < serverMin) {
-        // Client is claiming a spend lower than what the server authorises for
-        // this tier+operation — this is the fraud vector the fix is designed to
-        // block (e.g. a free-tier user sending amount=3 pretending to be premium).
         throw new functions.https.HttpsError(
           'invalid-argument',
           `Token spend ${clientAmount} is below the server-computed minimum ` +
@@ -745,13 +280,11 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
           operationType,
           tier,
         });
-        // Deduct only the canonical server cost, not the over-specified client amount.
         authorizedAmount = serverMin;
       } else {
         authorizedAmount = serverMin;
       }
     }
-    // -------------------------------------------------------------------------
 
     const amount = authorizedAmount;
     const spendObservabilityMetadata = {
@@ -942,7 +475,7 @@ async function deleteCollectionRecursively(db: admin.firestore.Firestore, collec
 
     await batch.commit();
     functions.logger.info('Deleted batch', { count: snapshot.docs.length, collectionPath });
-    
+
     // Get next batch
     snapshot = await query.get();
   }
@@ -1337,11 +870,11 @@ interface ClassificationResult {
  * Scheduled to run every 10 minutes
  */
 export const processBatchJobs = asiaSouth1.pubsub
-  .schedule('*/10 * * * *') // Run every 10 minutes
+  .schedule('*/10 * * * *')
   .timeZone('UTC')
   .onRun(async (context) => {
     const logger = functions.logger;
-    
+
     try {
       logger.info('Starting batch job processing');
 
@@ -1372,7 +905,7 @@ export const processBatchJobs = asiaSouth1.pubsub
         try {
           // Check OpenAI batch status
           const batchStatus = await checkOpenAIBatchStatus(openAIBatchId);
-          
+
           if (batchStatus.status !== jobData.status) {
             await updateJobStatus(jobId, batchStatus, jobData);
           }
@@ -1408,7 +941,7 @@ export const processBatchJobs = asiaSouth1.pubsub
  */
 async function checkOpenAIBatchStatus(batchId: string): Promise<BatchJobStatus> {
   const openaiApiKey = getOpenAiApiKey();
-  
+
   if (!openaiApiKey) {
     throw new Error('OpenAI API key not configured');
   }
@@ -1431,21 +964,21 @@ async function checkOpenAIBatchStatus(batchId: string): Promise<BatchJobStatus> 
  */
 async function processCompletedJob(jobId: string, outputFileId: string, jobData: any): Promise<void> {
   const logger = functions.logger;
-  
+
   try {
     // Download results from OpenAI
     const results = await downloadOpenAIResults(outputFileId);
-    
+
     // Parse the JSONL results
     const resultLines = results.split('\n').filter((line: string) => line.trim());
-    
+
     for (const line of resultLines) {
       const result = JSON.parse(line);
-      
+
       if (result.custom_id === `job-${jobId}`) {
         // Extract classification result
         const classification = parseClassificationResult(result);
-        
+
         // Update Firestore with results
         const db = admin.firestore();
         await db.collection('ai_jobs').doc(jobId).update({
@@ -1460,7 +993,7 @@ async function processCompletedJob(jobId: string, outputFileId: string, jobData:
 
         // Trigger notification
         await triggerJobCompletionNotification(jobId, jobData.userId, classification);
-        
+
         logger.info(`Successfully processed completed job ${jobId}`);
         break;
       }
@@ -1480,7 +1013,7 @@ async function downloadOpenAIResults(fileId: string): Promise<string> {
   if (!openaiApiKey) {
     throw new Error('OpenAI API key not configured');
   }
-  
+
   const response = await axios.get(
     `https://api.openai.com/v1/files/${fileId}/content`,
     {
@@ -1500,7 +1033,7 @@ function parseClassificationResult(openaiResult: any): ClassificationResult {
   try {
     const response = openaiResult.response.body.choices[0].message.content;
     const parsed = JSON.parse(response);
-    
+
     return {
       itemName: parsed.itemName || 'Unknown Item',
       category: parsed.category || 'general',
@@ -1510,12 +1043,11 @@ function parseClassificationResult(openaiResult: any): ClassificationResult {
       tips: parsed.tips || [],
       timestamp: FieldValue.serverTimestamp(),
       analysisMethod: 'batch_ai',
-      processingTime: 0, // Batch processing time is handled differently
+      processingTime: 0,
     };
   } catch (error) {
     functions.logger.error('Error parsing classification result:', error);
-    
-    // Return fallback classification
+
     return {
       itemName: 'Classification Error',
       category: 'general',
@@ -1561,14 +1093,14 @@ async function updateJobStatus(jobId: string, batchStatus: BatchJobStatus, curre
  */
 async function updateJobWithError(jobId: string, errorMessage: string): Promise<void> {
   const db = admin.firestore();
-  
+
   await db.collection('ai_jobs').doc(jobId).update({
     status: 'failed',
     error: errorMessage,
     failedAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   });
-  
+
   functions.logger.error(`Job ${jobId} failed: ${errorMessage}`);
 }
 
@@ -1577,7 +1109,7 @@ async function updateJobWithError(jobId: string, errorMessage: string): Promise<
  */
 async function addToClassificationHistory(userId: string, classification: ClassificationResult, jobData: any): Promise<void> {
   const db = admin.firestore();
-  
+
   const historyEntry = {
     ...classification,
     userId,
@@ -1587,7 +1119,7 @@ async function addToClassificationHistory(userId: string, classification: Classi
     source: 'batch_processing',
     jobId: jobData.id,
   };
-  
+
   await db.collection('classifications').add(historyEntry);
   functions.logger.info(`Added classification to history for user ${userId}`);
 }
@@ -1597,7 +1129,7 @@ async function addToClassificationHistory(userId: string, classification: Classi
  */
 async function triggerJobCompletionNotification(jobId: string, userId: string, classification: ClassificationResult): Promise<void> {
   const db = admin.firestore();
-  
+
   const notification = {
     userId,
     type: 'batch_job_completed',
@@ -1610,7 +1142,7 @@ async function triggerJobCompletionNotification(jobId: string, userId: string, c
     createdAt: FieldValue.serverTimestamp(),
     read: false,
   };
-  
+
   await db.collection('notifications').add(notification);
   functions.logger.info(`Created notification for user ${userId} - job ${jobId}`);
 }
@@ -1648,7 +1180,7 @@ export const getBatchStats = asiaSouth1.https.onRequest(async (req, res) => {
   return corsHandler(req, res, async () => {
     try {
       const db = admin.firestore();
-      
+
       // Get job counts by status
       const [queuedJobs, processingJobs, completedJobs, failedJobs] = await Promise.all([
         db.collection('ai_jobs').where('status', '==', 'queued').get(),
@@ -1656,7 +1188,7 @@ export const getBatchStats = asiaSouth1.https.onRequest(async (req, res) => {
         db.collection('ai_jobs').where('status', '==', 'completed').get(),
         db.collection('ai_jobs').where('status', '==', 'failed').get(),
       ]);
-      
+
       const stats = {
         queued: queuedJobs.size,
         processing: processingJobs.size,
@@ -1665,9 +1197,9 @@ export const getBatchStats = asiaSouth1.https.onRequest(async (req, res) => {
         total: queuedJobs.size + processingJobs.size + completedJobs.size + failedJobs.size,
         timestamp: new Date().toISOString(),
       };
-      
+
       res.json(stats);
-      
+
     } catch (error) {
       functions.logger.error('Error getting batch stats', { error });
       res.status(500).json({ error: 'Failed to get batch statistics' });

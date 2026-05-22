@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -326,19 +328,19 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
     final hapticService =
         Provider.of<HapticSettingsService>(context, listen: false);
 
-    // Track re-analysis event
-    analyticsService
+    // Track re-analysis event (fire-and-forget — do not block UI on analytics)
+    unawaited(analyticsService
         .trackUserAction('enhanced_reanalysis_triggered', parameters: {
       'original_category': widget.classification.category,
       'original_confidence': widget.classification.confidence,
       'has_user_correction': widget.userCorrection != null,
       'is_low_confidence': (widget.classification.confidence ?? 1.0) < 0.7,
       'user_correction': widget.userCorrection,
-    });
+    }));
 
-    // Haptic feedback
+    // Haptic feedback (fire-and-forget)
     if (hapticService.enabled) {
-      HapticFeedback.lightImpact();
+      unawaited(HapticFeedback.lightImpact());
     }
 
     setState(() {
@@ -348,18 +350,18 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
     widget.onReanalysisStarted?.call();
 
     try {
-      // For now, use the existing re-analyze functionality
       // Navigate back to capture screen for re-analysis
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/capture');
+        unawaited(Navigator.pushReplacementNamed(context, '/capture'));
       }
     } catch (e) {
       if (mounted) {
-        // Track failed re-analysis
-        analyticsService.trackUserAction('reanalysis_failed', parameters: {
-          'error': e.toString(),
-          'original_category': widget.classification.category,
-        });
+        // Track failed re-analysis (fire-and-forget)
+        unawaited(analyticsService.trackUserAction('reanalysis_failed',
+            parameters: {
+              'error': e.toString(),
+              'original_category': widget.classification.category,
+            }));
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -392,15 +394,14 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
   }
 
   void _cancelReanalysis() {
-    final aiService = Provider.of<AiService>(context, listen: false);
-    aiService.cancelAnalysis();
+    Provider.of<AiService>(context, listen: false).cancelAnalysis();
 
     setState(() {
       _isReanalyzing = false;
     });
 
-    Provider.of<AnalyticsService>(context, listen: false)
-        .trackUserAction('reanalysis_cancelled');
+    unawaited(Provider.of<AnalyticsService>(context, listen: false)
+        .trackUserAction('reanalysis_cancelled'));
   }
 
   void _showReanalysisOptions() {

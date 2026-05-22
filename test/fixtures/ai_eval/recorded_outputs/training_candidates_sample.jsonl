@@ -1,0 +1,5 @@
+{"candidateId": "c001", "consent": {"enabledAtCapture": true, "policyVersion": "training-data-v1"}, "review": {"status": "training_eligible", "verifiedLabel": "Wet Waste"}, "image": {"redactionStatus": "passed"}, "deletedAt": null, "excludedFromTrainingAt": null}
+{"candidateId": "c002", "consent": {"enabledAtCapture": false, "policyVersion": "training-data-v1"}, "review": {"status": "training_eligible"}, "image": {"redactionStatus": "passed"}}
+{"candidateId": "c003", "consent": {"enabledAtCapture": true, "policyVersion": "training-data-v1", "revokedAt": "2026-05-22T00:00:00Z"}, "review": {"status": "golden"}, "image": {"redactionStatus": "passed"}}
+{"candidateId": "c004", "consent": {"enabledAtCapture": true, "policyVersion": "training-data-v1"}, "review": {"status": "unreviewed"}, "image": {"redactionStatus": "pending"}}
+{"candidateId": "c005", "consent": {"enabledAtCapture": true, "policyVersion": "training-data-v1"}, "review": {"status": "rejected"}, "image": {"redactionStatus": "passed"}}

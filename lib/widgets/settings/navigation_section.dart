@@ -18,7 +18,6 @@ class NavigationSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SettingsSectionHeader(title: t.navigationSection),
-
         Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Consumer<NavigationSettingsService>(
@@ -100,40 +99,7 @@ class NavigationSection extends StatelessWidget {
             },
           ),
         ),
-
-        // Navigation Demo
-        SettingTile(
-          icon: Icons.navigation,
-          iconColor: SettingsTheme.navigationColor,
-          title: t.navigationStyles,
-          subtitle: t.navigationStylesSubtitle,
-          trailing: _buildNewBadge(context),
-          onTap: () => _navigateToNavigationDemo(context),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNewBadge(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: SettingsTheme.navigationColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: SettingsTheme.navigationColor.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Text(
-        t.newBadge,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: SettingsTheme.navigationColor,
-        ),
-      ),
+        ],
     );
   }
 

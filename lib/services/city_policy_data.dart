@@ -820,4 +820,372 @@ class CityPolicyData {
     },
     penaltyInfo: 'Penalty varies by borough; segregation not strictly enforced',
   );
+
+  // ========== Tier 2 Cities ==========
+
+  static const CityPolicyData amc = CityPolicyData(
+    pluginId: 'amc_ahmedabad',
+    authorityName: 'Ahmedabad Municipal Corporation',
+    region: 'Ahmedabad, IN',
+    guidelinesVersion: 'AMC-2025.1',
+    governanceStage: 'draft',
+    owningTeam: 'india_city_ops',
+    helpline: 'Not available',
+    sourceUrl: 'https://ahmedabadcity.gov.in',
+    colorCoding: {
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    },
+    collectionSchedule: {
+      'wet_waste': {'frequency': 'daily', 'time': '7:00 AM - 10:00 AM', 'notes': 'Door-to-door collection across 7 zones'},
+      'dry_waste': {'frequency': 'alternate_days', 'time': '7:00 AM - 10:00 AM', 'notes': 'Segregation at source mandatory'},
+      'hazardous_waste': {'frequency': 'monthly', 'time': 'Contact AMC ward office', 'notes': 'Special collection'},
+      'medical_waste': {'frequency': 'immediate', 'time': 'Contact authorized BMW handler', 'notes': 'Never mix with MSW'},
+    },
+    disposalInstructions: {
+      'wet_waste': {'primaryMethod': 'Green bin for daily collection', 'location': 'Green bin', 'timeframe': 'Daily', 'amc_specific': 'AMC operates door-to-door collection across 7 zones'},
+      'dry_waste': {'primaryMethod': 'Blue bin for recyclables', 'location': 'Blue bin', 'timeframe': 'Alternate days', 'amc_specific': 'Clean and dry before disposal'},
+      'hazardous_waste': {'primaryMethod': 'Special collection via ward office', 'location': 'Red bin', 'timeframe': 'Monthly', 'amc_specific': 'Contact AMC ward office'},
+    },
+    regulations: {
+      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation at source under SWM 2016'},
+      'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
+      'hazardous_waste': {'bin': 'Red bin', 'contact': 'AMC ward office'},
+    },
+    penaltyInfo: 'As per SWM 2016 guidelines — fine for non-segregation',
+  );
+
+  static const CityPolicyData smc = CityPolicyData(
+    pluginId: 'smc_surat',
+    authorityName: 'Surat Municipal Corporation',
+    region: 'Surat, IN',
+    guidelinesVersion: 'SMC-2025.1',
+    governanceStage: 'draft',
+    owningTeam: 'india_city_ops',
+    helpline: 'Not available',
+    sourceUrl: 'https://www.suratmunicipal.gov.in',
+    colorCoding: {
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    },
+    collectionSchedule: {
+      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door collection; SMC ranked 7th in administrative practices'},
+      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Segregation recommended'},
+      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Special collection via SMC'},
+      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+    },
+    disposalInstructions: {
+      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'smc_specific': 'SMC provides door-to-door collection'},
+      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'smc_specific': 'Clean and dry before disposal'},
+      'hazardous_waste': {'primaryMethod': 'Special SMC collection', 'timeframe': 'Monthly', 'smc_specific': 'Contact SMC ward office'},
+    },
+    regulations: {
+      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation under SWM 2016'},
+      'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Items must be clean and dry'},
+      'hazardous_waste': {'bin': 'Red bin', 'disposal': 'Special collection required'},
+    },
+    penaltyInfo: 'As per Gujarat SWM rules',
+  );
+
+  static const CityPolicyData jmc = CityPolicyData(
+    pluginId: 'jmc_jaipur',
+    authorityName: 'Jaipur Municipal Corporation',
+    region: 'Jaipur, IN',
+    guidelinesVersion: 'JMC-2025.1',
+    governanceStage: 'draft',
+    owningTeam: 'india_city_ops',
+    helpline: 'Not available',
+    sourceUrl: 'https://jaipurmc.org',
+    colorCoding: {
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    },
+    collectionSchedule: {
+      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door collection; JMC operates Greater (150 wards) and Heritage (100 wards)'},
+      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Segregation mandatory'},
+      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact JMC zone office'},
+      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+    },
+    disposalInstructions: {
+      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'jmc_specific': 'JMC covers 250 wards across Greater and Heritage zones'},
+      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'jmc_specific': 'Sort by material type'},
+      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'jmc_specific': 'Contact JMC zone office'},
+    },
+    regulations: {
+      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation under Rajasthan SWM rules'},
+      'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
+      'hazardous_waste': {'bin': 'Red bin', 'contact': 'JMC zone office'},
+    },
+    penaltyInfo: 'As per Rajasthan Municipal SWM rules',
+  );
+
+  static const CityPolicyData lmc = CityPolicyData(
+    pluginId: 'lmc_lucknow',
+    authorityName: 'Lucknow Municipal Corporation',
+    region: 'Lucknow, IN',
+    guidelinesVersion: 'LMC-2025.1',
+    governanceStage: 'draft',
+    owningTeam: 'india_city_ops',
+    helpline: '6389200005',
+    sourceUrl: 'https://lmc.up.nic.in',
+    colorCoding: {
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    },
+    collectionSchedule: {
+      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door collection; report issues to Mayor helpline 6389200005'},
+      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Zero Waste initiative for large events'},
+      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact LMC zone office'},
+      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+    },
+    disposalInstructions: {
+      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'lmc_specific': 'Zero Waste protocol for large events. Helpline 6389200005'},
+      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'lmc_specific': 'City Sanitation Plan published on lmc.up.nic.in'},
+      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'lmc_specific': 'Contact LMC zone office'},
+    },
+    regulations: {
+      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation mandatory; Zero Waste for events'},
+      'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
+      'hazardous_waste': {'bin': 'Red bin', 'contact': 'LMC helpline 6389200005'},
+    },
+    specialPrograms: {
+      'zero_waste': 'Zero Waste protocol for large events (Bada Mangal Bhandara)',
+      'complaints': 'Online complaint system via Mayor helpline 6389200005',
+    },
+    penaltyInfo: 'As per UP SWM rules; extra money demand for garbage pickup is reportable',
+  );
+
+  static const CityPolicyData nmc = CityPolicyData(
+    pluginId: 'nmc_nagpur',
+    authorityName: 'Nagpur Municipal Corporation',
+    region: 'Nagpur, IN',
+    guidelinesVersion: 'NMC-2025.1',
+    governanceStage: 'draft',
+    owningTeam: 'india_city_ops',
+    helpline: '8275036200 (SWM Deputy Commissioner)',
+    sourceUrl: 'https://nmcnagpur.gov.in',
+    colorCoding: {
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    },
+    collectionSchedule: {
+      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door across 10 zones; use My Nagpur app'},
+      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Segregation mandatory'},
+      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact SWM Deputy Commissioner 8275036200'},
+      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler'},
+    },
+    disposalInstructions: {
+      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'nmc_specific': 'My Nagpur app available for Android/iOS. 10 administrative zones.'},
+      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'nmc_specific': 'Clean and dry before disposal'},
+      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'nmc_specific': 'Contact SWM Deputy Commissioner 8275036200'},
+    },
+    regulations: {
+      'wet_waste': {'bin': 'Green bin', 'mandate': 'Door-to-door across 10 zones', 'app': 'My Nagpur app for reports'},
+      'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
+      'hazardous_waste': {'bin': 'Red bin', 'contact': '8275036200 or WhatsApp 917397807397'},
+    },
+    specialPrograms: {
+      'mobile_app': 'My Nagpur app (Android/iOS) for citizen services',
+      'swm_helpline': 'WhatsApp 917397807397 for SWM complaints',
+    },
+    penaltyInfo: 'As per Maharashtra SWM rules',
+  );
+
+  static const CityPolicyData imc = CityPolicyData(
+    pluginId: 'imc_indore',
+    authorityName: 'Indore Municipal Corporation',
+    region: 'Indore, IN',
+    guidelinesVersion: 'IMC-2025.1',
+    governanceStage: 'draft',
+    owningTeam: 'india_city_ops',
+    helpline: 'Not available',
+    sourceUrl: 'https://imcindore.mp.gov.in',
+    colorCoding: {
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    },
+    collectionSchedule: {
+      'wet_waste': {'frequency': 'daily', 'notes': '100% door-to-door coverage; Indore is India\'s #1 cleanest city'},
+      'dry_waste': {'frequency': 'daily', 'notes': 'Strict segregation enforcement; 100% collection'},
+      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact IMC ward office'},
+      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+    },
+    disposalInstructions: {
+      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'imc_specific': 'India\'s #1 cleanest city — strict segregation at source enforced. Pioneered waste-to-energy.'},
+      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Daily', 'imc_specific': '100% door-to-door collection. Bio-remediation of legacy waste.'},
+      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'imc_specific': 'Contact IMC ward office'},
+    },
+    regulations: {
+      'wet_waste': {'bin': 'Green bin', 'mandate': 'Strict segregation enforced — national benchmark city'},
+      'dry_waste': {'bin': 'Blue bin', 'collection': '100% door-to-door coverage'},
+      'hazardous_waste': {'bin': 'Red bin', 'contact': 'IMC ward office'},
+    },
+    specialPrograms: {
+      'waste_to_energy': 'Pioneered waste-to-energy in India',
+      'bio_remediation': 'Bio-remediation of legacy waste sites',
+      'carbon_credits': 'First Indian city to trade carbon credits from waste management',
+    },
+    penaltyInfo: 'Strict enforcement — fines for non-segregation; India\'s highest compliance city',
+  );
+
+  static const CityPolicyData bmcBhopal = CityPolicyData(
+    pluginId: 'bmc_bhopal',
+    authorityName: 'Bhopal Municipal Corporation',
+    region: 'Bhopal, IN',
+    guidelinesVersion: 'BMC-BHOPAL-2025.1',
+    governanceStage: 'draft',
+    owningTeam: 'india_city_ops',
+    helpline: 'Not available',
+    sourceUrl: 'https://www.bmconline.gov.in',
+    colorCoding: {
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    },
+    collectionSchedule: {
+      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door; BMC automated services via SAP'},
+      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Segregation mandatory; 85 wards across 463 sq km'},
+      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact BMC zone office'},
+      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+    },
+    disposalInstructions: {
+      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'bmc_specific': 'First Indian corporation to adopt SAP for full automation (2014)'},
+      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'bmc_specific': '85 wards; mobile app for citizen services'},
+      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'bmc_specific': 'Contact BMC zone office'},
+    },
+    regulations: {
+      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation under MP SWM rules'},
+      'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
+      'hazardous_waste': {'bin': 'Red bin', 'contact': 'BMC zone office'},
+    },
+    specialPrograms: {
+      'sap_automation': 'First Indian city with SAP-automated citizen services',
+      'mobile_app': 'Mobile app for citizen service requests',
+    },
+    penaltyInfo: 'As per Madhya Pradesh SWM rules',
+  );
+
+  static const CityPolicyData ccmc = CityPolicyData(
+    pluginId: 'ccmc_coimbatore',
+    authorityName: 'Coimbatore City Municipal Corporation',
+    region: 'Coimbatore, IN',
+    guidelinesVersion: 'CCMC-2025.1',
+    governanceStage: 'draft',
+    owningTeam: 'india_city_ops',
+    helpline: 'Not available',
+    sourceUrl: 'https://www.ccmc.gov.in',
+    colorCoding: {
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    },
+    collectionSchedule: {
+      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door; largest corporation in TN by area (415 sq km)'},
+      'dry_waste': {'frequency': 'alternate_days', 'notes': '5 zones (North, South, East, West, Central); 100 wards'},
+      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact CCMC zone office'},
+      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+    },
+    disposalInstructions: {
+      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'ccmc_specific': 'Largest municipal corporation in Tamil Nadu. 5 zones, 100 wards.'},
+      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'ccmc_specific': 'Best Corporation Award from TN Govt (2012)'},
+      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'ccmc_specific': 'Contact CCMC zone office'},
+    },
+    regulations: {
+      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation under Tamil Nadu SWM rules'},
+      'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
+      'hazardous_waste': {'bin': 'Red bin', 'contact': 'CCMC zone office'},
+    },
+    penaltyInfo: 'As per Tamil Nadu SWM rules',
+  );
+
+  static const CityPolicyData kochi = CityPolicyData(
+    pluginId: 'cochin_kochi',
+    authorityName: 'Kochi Municipal Corporation',
+    region: 'Kochi, IN',
+    guidelinesVersion: 'COCHIN-2025.1',
+    governanceStage: 'draft',
+    owningTeam: 'india_city_ops',
+    helpline: 'Not available',
+    sourceUrl: 'https://kochicorporation.lsgkerala.gov.in',
+    colorCoding: {
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+    },
+    collectionSchedule: {
+      'wet_waste': {'frequency': 'daily', 'notes': '74 wards; backwater-sensitive disposal rules'},
+      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Segregation mandatory in Kerala'},
+      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact Corporation Health Standing Committee'},
+      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+    },
+    disposalInstructions: {
+      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'kochi_specific': 'Brahmapuram waste plant fire (2023) highlighted need for proper disposal. 74 wards.'},
+      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'kochi_specific': 'Most densely populated corporation in Kerala'},
+      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'kochi_specific': 'Contact Health Standing Committee'},
+    },
+    regulations: {
+      'wet_waste': {'bin': 'Green bin', 'mandate': 'Kerala SWM rules; backwater-sensitive areas'},
+      'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
+      'hazardous_waste': {'bin': 'Red bin', 'contact': 'Corporation Health Standing Committee'},
+    },
+    specialPrograms: {
+      'janasevanakendram': 'Citizen service centers across 74 wards',
+    },
+    penaltyInfo: 'As per Kerala SWM rules',
+  );
+
+  static const CityPolicyData mcc = CityPolicyData(
+    pluginId: 'mcc_chandigarh',
+    authorityName: 'Municipal Corporation Chandigarh',
+    region: 'Chandigarh, IN',
+    guidelinesVersion: 'MCC-2025.1',
+    governanceStage: 'draft',
+    owningTeam: 'india_city_ops',
+    helpline: '14420',
+    sourceUrl: 'https://mcchandigarh.gov.in',
+    colorCoding: {
+      'wet_waste': 'Green Bin/Bag',
+      'dry_waste': 'Blue Bin/Bag',
+      'hazardous_waste': 'Red Bin/Bag',
+      'medical_waste': 'Yellow Bin/Bag',
+      'sanitary_waste': 'Pink Bin (progressive — aligned with MCD Delhi pattern)',
+    },
+    collectionSchedule: {
+      'wet_waste': {'frequency': 'daily', 'notes': 'Sector-based collection in planned city. Toll-free helpline 14420.'},
+      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Clean and dry; sector-based scheduling'},
+      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact MCC helpline 14420'},
+      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+    },
+    disposalInstructions: {
+      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'mcc_specific': 'Planned city by Le Corbusier — sector-based collection. Helpline 14420.'},
+      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'mcc_specific': 'Waste to Wonder initiative under Swachh Survekshan 2025-26'},
+      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'mcc_specific': 'Toll-free helpline: 14420'},
+    },
+    regulations: {
+      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation mandatory in Chandigarh'},
+      'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
+      'hazardous_waste': {'bin': 'Red bin', 'helpline': '14420'},
+    },
+    specialPrograms: {
+      'toll_free': 'Dedicated SWM helpline 14420 (8 AM - 8 PM)',
+      'waste_to_wonder': 'Waste to Wonder sculpture initiative under Swachh Survekshan',
+      'cd_waste': 'C&D waste processing plant operated',
+    },
+    penaltyInfo: 'eChallan system active; as per Punjab SWM rules extended to Chandigarh',
+  );
 }

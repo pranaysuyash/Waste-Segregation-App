@@ -179,11 +179,18 @@ void main() {
       WidgetTester tester,
       String tileText,
       String routeName,
-      String routeTargetLabel,
-    ) async {
+      String routeTargetLabel, {
+      Map<String, bool> premiumOverrides = const <String, bool>{},
+    }) async {
+      final premiumService = _FakePremiumService();
+      for (final entry in premiumOverrides.entries) {
+        await premiumService.setPremiumFeature(entry.key, entry.value);
+      }
+
       await tester.pumpWidget(
         _buildApp(
           hapticSettingsService: _FakeHapticSettingsService(),
+          premiumService: premiumService,
           child: const AppSettingsSection(),
           routes: {
             Routes.themeSettings: (_) =>
@@ -193,6 +200,7 @@ void main() {
             Routes.offlineModeSettings: (_) =>
                 const _RouteTarget('offline-settings-route'),
             Routes.dataExport: (_) => const _RouteTarget('data-export-route'),
+            Routes.premiumFeatures: (_) => const _RouteTarget('premium-route'),
           },
         ),
       );
@@ -212,6 +220,7 @@ void main() {
         'Theme Settings',
         Routes.themeSettings,
         'theme-settings-route',
+        premiumOverrides: const {'theme_customization': true},
       );
     });
 
@@ -232,6 +241,7 @@ void main() {
         'Offline Mode',
         Routes.offlineModeSettings,
         'offline-settings-route',
+        premiumOverrides: const {'offline_mode': true},
       );
     });
 
@@ -242,7 +252,34 @@ void main() {
         'Data Export',
         Routes.dataExport,
         'data-export-route',
+        premiumOverrides: const {'export_data': true},
       );
+    });
+
+    testWidgets('AppSettingsSection locked premium feature opens upgrade flow',
+        (tester) async {
+      await tester.pumpWidget(
+        _buildApp(
+          hapticSettingsService: _FakeHapticSettingsService(),
+          premiumService: _FakePremiumService(),
+          child: const AppSettingsSection(),
+          routes: {
+            Routes.premiumFeatures: (_) => const _RouteTarget('premium-route'),
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Offline Mode'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Upgrade to Use Offline Mode'), findsOneWidget);
+      expect(find.text('See Premium Features'), findsOneWidget);
+
+      await tester.tap(find.text('See Premium Features'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('premium-route'), findsOneWidget);
     });
 
     testWidgets('NavigationSection routes navigation styles to the demo',

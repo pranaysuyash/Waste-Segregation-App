@@ -327,6 +327,12 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         'category': classification.category,
         'item_name': classification.itemName,
         'confidence': classification.confidence,
+        if (classification.analysisSource != null)
+          'analysis_source': classification.analysisSource,
+        if (classification.modelVersion != null)
+          'model_version': classification.modelVersion,
+        if (classification.analysisFallbackReason != null)
+          'fallback_reason': classification.analysisFallbackReason,
       });
     } catch (e) {
       WasteAppLogger.warning('Failed to track screen view', error: e, context: {
@@ -755,6 +761,12 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       routeReason: routeReason,
       policyPackId: classification.localGuidelinesVersion ?? 'policy-unknown',
       modelRoute: classification.modelSource ?? 'unknown',
+      analysisSource: WasteClassification.inferAnalysisSource(
+        analysisSource: classification.analysisSource,
+        source: classification.source,
+        modelSource: classification.modelSource,
+        classificationLayer: classification.classificationLayer,
+      ),
       routeLatencyMs: classification.processingTimeMs,
     );
   }

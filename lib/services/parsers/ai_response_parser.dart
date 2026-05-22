@@ -331,6 +331,7 @@ class AiResponseParser {
             safeStringParse(jsonContent['environmentalImpact']),
         relatedItems: parseStringListSafely(jsonContent['relatedItems']),
         source: 'ai_analysis_$provider',
+        analysisSource: WasteClassification.analysisSourceCloudPrimary,
         reanalysisModelsTried: reanalysisModelsTried,
         recyclability: safeStringParse(jsonContent['recyclability']),
         hazardLevel: parseInt(jsonContent['hazardLevel']),
@@ -552,12 +553,14 @@ class AiResponseParser {
     return WasteClassification.fallback(
       imagePath,
       id: classificationId,
-    ).copyWith(
-      itemName: itemName,
-      category: category,
-      explanation: explanation,
-      modelSource: '$provider-$model',
-      source: 'ai_analysis_$provider',
-    );
+      ).copyWith(
+        itemName: itemName,
+        category: category,
+        explanation: explanation,
+        modelSource: '$provider-$model',
+        source: 'ai_analysis_$provider',
+        analysisSource: WasteClassification.analysisSourceCloudPrimary,
+        analysisFallbackReason: 'malformed_provider_response',
+      );
   }
 }
