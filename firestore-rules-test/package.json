@@ -7,7 +7,9 @@
     "test": "mocha --exit --timeout 30000 rules-test.spec.js classification-feedback-rules-test.spec.js family-rules-test.spec.js",
     "test:emulator": "firebase emulators:exec --only firestore \"npm test\"",
     "test:classification-feedback": "mocha --exit --timeout 30000 classification-feedback-rules-test.spec.js",
-    "test:family": "mocha --exit --timeout 30000 family-rules-test.spec.js"
+    "test:family": "mocha --exit --timeout 30000 family-rules-test.spec.js",
+    "test:storage": "mocha --exit --timeout 30000 storage-rules-test.spec.js",
+    "test:storage:emulator": "firebase emulators:exec --only storage \"npm run test:storage\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.0",

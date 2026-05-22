@@ -1068,7 +1068,6 @@ class StorageService {
       // Clear SharedPreferences (theme, user consent, etc.) with proper error handling
       try {
         final prefs = await SharedPreferences.getInstance();
-        final keyCount = prefs.getKeys().length;
         // Use atomic clear() instead of per-key loop for better performance
         await prefs.clear();
       } catch (prefsError) {
@@ -1409,7 +1408,7 @@ class StorageService {
           ClassificationMigrationService(this, cloudStorageService);
 
       // Run migration
-      final result = await migrationService.migrateOldClassifications();
+      await migrationService.migrateOldClassifications();
 
       WasteAppLogger.performanceLog('storage', 0,
           context: {'service': 'storage', 'file': 'storage_service'});
@@ -1430,7 +1429,7 @@ class StorageService {
       final migrationService = ThumbnailMigrationService(imageService, this);
 
       // Run migration
-      final result = await migrationService.migrateThumbnails();
+      await migrationService.migrateThumbnails();
 
       WasteAppLogger.performanceLog('storage', 0,
           context: {'service': 'storage', 'file': 'storage_service'});

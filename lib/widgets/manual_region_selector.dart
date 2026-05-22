@@ -175,13 +175,6 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
     widget.onRegionsChanged(List.unmodifiable(_regions));
   }
 
-  void _clearRegions() {
-    setState(() {
-      _regions.clear();
-    });
-    widget.onRegionsChanged(List.unmodifiable(_regions));
-  }
-
   void _onPanStart(DragStartDetails details, Size imageSize) {
     if (_regions.length >= widget.maxRegions) return;
     setState(() {

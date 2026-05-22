@@ -59,12 +59,11 @@ void main() {
       );
 
       await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump();
 
       expect(dismissed, isTrue);
-    },
-        skip:
-            true // Current popup animation sequence is flaky under widget tests.
-        );
+    });
   });
 }

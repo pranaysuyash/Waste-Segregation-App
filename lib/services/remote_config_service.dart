@@ -65,6 +65,11 @@ class RemoteConfigService {
         'use_backend_classification': true,
         'classify_image_token_cost': 5,
         'classify_image_premium_discount_percent': 50,
+
+        // Layer 0 deterministic classifier
+        'layer0_enabled': true,
+        'layer0_color_histogram_enabled': true,
+        'layer0_barcode_lookup_enabled': true,
         'daily_free_classifications': 5,
         'premium_ad_free_enabled': true,
         'interstitial_every_n_classifications': 5,

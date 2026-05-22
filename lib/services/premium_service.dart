@@ -55,6 +55,15 @@ class PremiumService extends ChangeNotifier {
       _isInitialized = true;
       _migrateLegacyPremiumSignal();
 
+      // Boot-time Firestore sync: if the user already has premium in Hive
+      // (from a purchase made before this sync path existed), push the tier to
+      // Firestore so the server-side spendUserTokens guard sees 'premium'
+      // without waiting for a new purchase or restore event.
+      // Fire-and-forget — Hive is always authoritative client-side.
+      if (hasActivePremiumPlan()) {
+        unawaited(_syncTierToFirestore(true));
+      }
+
       // Opt-in only: do not implicitly grant premium in debug/test runs.
       if (kDebugMode && _enableDebugAutoSeed) {
         _initTestFeatures();
@@ -74,6 +83,9 @@ class PremiumService extends ChangeNotifier {
           _premiumBox = Hive.box<bool>(_premiumBoxName);
         }
         _isInitialized = true;
+        if (hasActivePremiumPlan()) {
+          unawaited(_syncTierToFirestore(true));
+        }
         notifyListeners();
       } catch (e) {
         WasteAppLogger.severe(

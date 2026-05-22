@@ -76,6 +76,8 @@ final aiJobQueueProvider = FutureProvider<List<AiJob>>((ref) async {
   }
   final firestore = FirebaseFirestore.instance;
   final activeStatuses = [
+    AiJobStatus.queued.name,
+    AiJobStatus.processing.name,
     AiJobStatus.queued.toString(),
     AiJobStatus.processing.toString(),
   ];
@@ -103,16 +105,16 @@ final tokenQueueStatsProvider = FutureProvider<QueueStats>((ref) async {
   if (snapshot.docs.isEmpty) return QueueStats.empty();
 
   final jobs = snapshot.docs.map((doc) => doc.data()).toList();
-  final queuedStatus = AiJobStatus.queued.toString();
-  final processingStatus = AiJobStatus.processing.toString();
-  final completedStatus = AiJobStatus.completed.toString();
-  final failedStatus = AiJobStatus.failed.toString();
-  final queuedJobs = jobs.where((j) => j['status'] == queuedStatus).length;
+  final queuedStatuses = {AiJobStatus.queued.name, AiJobStatus.queued.toString()};
+  final processingStatuses = {AiJobStatus.processing.name, AiJobStatus.processing.toString()};
+  final completedStatuses = {AiJobStatus.completed.name, AiJobStatus.completed.toString()};
+  final failedStatuses = {AiJobStatus.failed.name, AiJobStatus.failed.toString()};
+  final queuedJobs = jobs.where((j) => queuedStatuses.contains(j['status'])).length;
   final processingJobs =
-      jobs.where((j) => j['status'] == processingStatus).length;
+      jobs.where((j) => processingStatuses.contains(j['status'])).length;
   final completedJobs =
-      jobs.where((j) => j['status'] == completedStatus).length;
-  final failedJobs = jobs.where((j) => j['status'] == failedStatus).length;
+      jobs.where((j) => completedStatuses.contains(j['status'])).length;
+  final failedJobs = jobs.where((j) => failedStatuses.contains(j['status'])).length;
   final total = jobs.length;
 
   return QueueStats(

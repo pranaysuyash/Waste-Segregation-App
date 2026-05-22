@@ -446,14 +446,7 @@ class AiService {
       ClassificationPrompts.correctionPrompt(
           previousClassification, userCorrection, userReason);
 
-  // Convert image to base64 for API request
-  Future<String> _imageToBase64(File imageFile) async {
-    final List<int> imageBytes = await imageFile.readAsBytes();
-    return base64Encode(imageBytes);
-  }
-
   /// Converts [Uint8List] image data to a base64 encoded string.
-  /// Suitable for web environments where [File] objects are not available.
   String _bytesToBase64(Uint8List bytes) {
     return base64Encode(bytes);
   }

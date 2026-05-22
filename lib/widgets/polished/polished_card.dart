@@ -38,7 +38,6 @@ class _PolishedCardState extends State<PolishedCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  bool _isPressed = false;
 
   @override
   void initState() {
@@ -64,21 +63,18 @@ class _PolishedCardState extends State<PolishedCard>
 
   void _handleTapDown(TapDownDetails details) {
     if (widget.enableScaleAnimation && widget.onTap != null) {
-      setState(() => _isPressed = true);
       _animationController.forward();
     }
   }
 
   void _handleTapUp(TapUpDetails details) {
     if (widget.enableScaleAnimation && widget.onTap != null) {
-      setState(() => _isPressed = false);
       _animationController.reverse();
     }
   }
 
   void _handleTapCancel() {
     if (widget.enableScaleAnimation && widget.onTap != null) {
-      setState(() => _isPressed = false);
       _animationController.reverse();
     }
   }

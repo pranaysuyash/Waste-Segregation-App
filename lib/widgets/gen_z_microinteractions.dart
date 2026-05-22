@@ -235,7 +235,6 @@ class GenZMicrointeractions {
         child,
         if (isActive)
           ...List.generate(particleCount, (index) {
-            final angle = (index * 360 / particleCount) * (3.14159 / 180);
             const distance = 50.0;
 
             return AnimatedPositioned(

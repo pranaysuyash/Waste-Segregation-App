@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../models/classification_state.dart';
 import '../models/gamification.dart';
 import '../services/result_pipeline.dart';
 import '../services/haptic_settings_service.dart';
@@ -163,19 +164,19 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     }
   }
 
-  AnalysisProgressStage _pipelineProgressStage(
+  ClassificationState _pipelineProgressState(
       ResultPipelineState pipelineState) {
     if (pipelineState.error != null) {
-      return AnalysisProgressStage.failedRetryable;
+      return ClassificationState.failedRetryable;
     }
     if (pipelineState.isProcessing) {
-      return AnalysisProgressStage.applyingLocalRules;
+      return ClassificationState.policyApplied;
     }
     final shouldShowFallback = _classification.clarificationNeeded == true ||
         _classification.category.toLowerCase() == 'requires manual review';
     return shouldShowFallback
-        ? AnalysisProgressStage.fallback
-        : AnalysisProgressStage.success;
+        ? ClassificationState.awaitingUserConfirmation
+        : ClassificationState.classificationSucceeded;
   }
 
   String _pipelineStatusMessage(ResultPipelineState pipelineState) {
@@ -771,23 +772,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     );
   }
 
-  void _handleEducationalContent() {
-    // Track user action (Legacy parity)
-    _analyticsService.trackUserAction(
-      'educational_content_viewed',
-      parameters: {
-        'category': _classification.category,
-        'item': _classification.itemName,
-      },
-    );
-
-    // Navigate to educational content
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const EducationalContentScreen()),
-    );
-  }
-
   /// Process gamification state changes
   void _processGamificationState(ResultPipelineState state) {
     if (_hasProcessedGamification || state.isProcessing) {
@@ -1121,12 +1105,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
   Widget _buildPipelineProgress(
       BuildContext context, ResultPipelineState pipelineState) {
-    final stage = _pipelineProgressStage(pipelineState);
+    final state = _pipelineProgressState(pipelineState);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: AnalysisProgressView(
-        stage: stage,
+        state: state,
         statusMessage: _pipelineStatusMessage(pipelineState),
         localRuleChipText: pipelineState.isProcessing
             ? 'Applying local rules and saving your scan result.'
@@ -1136,16 +1120,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
             : null,
         resultCategoryColor:
             WasteAppDesignSystem.getCategoryColor(_classification.category),
-        onRetry: stage == AnalysisProgressStage.failedRetryable
+        onRetry: state == ClassificationState.failedRetryable
             ? _retryClassificationProcessing
             : null,
-        onCancel: stage == AnalysisProgressStage.failedRetryable ||
-                stage == AnalysisProgressStage.checkingQuality
-            ? () => Navigator.of(context).pop()
-            : null,
-        onContinue: null,
-        showRetry: stage == AnalysisProgressStage.failedRetryable,
-        showCancel: false,
+        onCancel: null,
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'token_wallet.dart';
 
 /// AI processing job for batch queue system
@@ -22,29 +23,66 @@ class AiJob {
 
   factory AiJob.fromJson(Map<String, dynamic> json) {
     return AiJob(
-      id: json['id'],
-      userId: json['userId'],
-      imagePath: json['imagePath'],
-      speed: AnalysisSpeed.values.firstWhere(
-        (e) => e.toString() == json['speed'],
-      ),
-      status: AiJobStatus.values.firstWhere(
-        (e) => e.toString() == json['status'],
-      ),
-      createdAt: DateTime.parse(json['createdAt']),
-      result: json['result']?.cast<String, dynamic>(),
-      completedAt: json['completedAt'] != null
-          ? DateTime.parse(json['completedAt'])
+      id: (json['id'] ?? '').toString(),
+      userId: (json['userId'] ?? '').toString(),
+      imagePath: (json['imagePath'] ?? '').toString(),
+      speed: _parseAnalysisSpeed(json['speed']),
+      status: _parseAiJobStatus(json['status']),
+      createdAt: _parseDateTime(json['createdAt']) ??
+          _parseDateTime(json['createdAtIso']) ??
+          DateTime.now(),
+      result: json['result'] is Map
+          ? Map<String, dynamic>.from(json['result'] as Map)
           : null,
-      errorMessage: json['errorMessage'],
-      priority: json['priority'] ?? false,
-      tokensSpent: json['tokensSpent'] ?? 0,
-      metadata: json['metadata']?.cast<String, dynamic>(),
-      queuePosition: json['queuePosition'],
-      estimatedCompletion: json['estimatedCompletion'] != null
-          ? DateTime.parse(json['estimatedCompletion'])
+      completedAt: _parseDateTime(json['completedAt']) ??
+          _parseDateTime(json['completedAtIso']),
+      errorMessage: json['errorMessage']?.toString(),
+      priority: json['priority'] == true,
+      tokensSpent: (json['tokensSpent'] as num?)?.toInt() ?? 0,
+      metadata: json['metadata'] is Map
+          ? Map<String, dynamic>.from(json['metadata'] as Map)
           : null,
+      queuePosition: (json['queuePosition'] as num?)?.toInt(),
+      estimatedCompletion: _parseDateTime(json['estimatedCompletion']) ??
+          _parseDateTime(json['estimatedCompletionIso']),
     );
+  }
+
+  static AnalysisSpeed _parseAnalysisSpeed(dynamic rawValue) {
+    final raw = (rawValue ?? '').toString();
+    for (final speed in AnalysisSpeed.values) {
+      if (raw == speed.name || raw == speed.toString()) {
+        return speed;
+      }
+    }
+    return AnalysisSpeed.batch;
+  }
+
+  static AiJobStatus _parseAiJobStatus(dynamic rawValue) {
+    final raw = (rawValue ?? '').toString();
+    for (final status in AiJobStatus.values) {
+      if (raw == status.name || raw == status.toString()) {
+        return status;
+      }
+    }
+    return AiJobStatus.queued;
+  }
+
+  static DateTime? _parseDateTime(dynamic rawValue) {
+    if (rawValue == null) return null;
+    if (rawValue is DateTime) return rawValue;
+    if (rawValue is Timestamp) return rawValue.toDate();
+    if (rawValue is num) {
+      return DateTime.fromMillisecondsSinceEpoch(rawValue.toInt());
+    }
+
+    if (rawValue is String) {
+      final trimmed = rawValue.trim();
+      if (trimmed.isEmpty) return null;
+      return DateTime.tryParse(trimmed);
+    }
+
+    return null;
   }
 
   /// Create a new job for the queue
@@ -190,8 +228,8 @@ class AiJob {
       'id': id,
       'userId': userId,
       'imagePath': imagePath,
-      'speed': speed.toString(),
-      'status': status.toString(),
+      'speed': speed.name,
+      'status': status.name,
       'createdAt': createdAt.toIso8601String(),
       'result': result,
       'completedAt': completedAt?.toIso8601String(),

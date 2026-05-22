@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:waste_segregation_app/models/classification_state.dart';
 import 'package:waste_segregation_app/widgets/analysis_progress_view.dart';
 
 void main() {
   group('AnalysisProgressView', () {
-    Widget buildStage(
-      AnalysisProgressStage stage, {
+    Widget buildState(
+      ClassificationState state, {
       String? imageName,
       String? errorMessage,
       String? statusMessage,
@@ -15,12 +16,10 @@ void main() {
       VoidCallback? onRetry,
       VoidCallback? onCancel,
       VoidCallback? onContinue,
-      bool showRetry = false,
-      bool showCancel = false,
       bool disableAnimations = false,
     }) {
       final stageWidget = AnalysisProgressView(
-        stage: stage,
+        state: state,
         imageName: imageName,
         errorMessage: errorMessage,
         statusMessage: statusMessage,
@@ -30,8 +29,6 @@ void main() {
         onRetry: onRetry,
         onCancel: onCancel,
         onContinue: onContinue,
-        showRetry: showRetry,
-        showCancel: showCancel,
       );
 
       final mediaQueryData = MediaQueryData(
@@ -50,8 +47,8 @@ void main() {
 
     testWidgets('renders checking quality stage messaging', (tester) async {
       await tester.pumpWidget(
-        buildStage(
-          AnalysisProgressStage.checkingQuality,
+        buildState(
+          ClassificationState.qualityChecking,
           imageName: 'captured_photo.jpg',
           statusMessage: 'Checking edges and brightness',
         ),
@@ -65,8 +62,8 @@ void main() {
     testWidgets('renders offline queue state with queue position',
         (tester) async {
       await tester.pumpWidget(
-        buildStage(
-          AnalysisProgressStage.queuedOffline,
+        buildState(
+          ClassificationState.queuedOffline,
           offlineQueueCount: 3,
           imageName: 'captured_photo.jpg',
         ),
@@ -79,8 +76,8 @@ void main() {
     testWidgets('renders local-rule chip when applying local rules',
         (tester) async {
       await tester.pumpWidget(
-        buildStage(
-          AnalysisProgressStage.applyingLocalRules,
+        buildState(
+          ClassificationState.policyApplied,
           localRuleChipText: 'Regional waste rules matched for your city.',
         ),
       );
@@ -93,20 +90,20 @@ void main() {
     testWidgets('renders confidence in success and fallback states',
         (tester) async {
       await tester.pumpWidget(
-        buildStage(
-          AnalysisProgressStage.success,
+        buildState(
+          ClassificationState.classificationSucceeded,
           confidenceText: 'Confidence: 93%',
           onContinue: () {},
         ),
       );
 
-      expect(find.text('Result ready'), findsOneWidget);
+      expect(find.text('Classification complete'), findsOneWidget);
       expect(find.text('Confidence: 93%'), findsOneWidget);
       expect(find.text('View result'), findsOneWidget);
 
       await tester.pumpWidget(
-        buildStage(
-          AnalysisProgressStage.fallback,
+        buildState(
+          ClassificationState.awaitingUserConfirmation,
           confidenceText: 'Confidence: 58%',
         ),
       );
@@ -120,13 +117,11 @@ void main() {
       var retryed = false;
 
       await tester.pumpWidget(
-        buildStage(
-          AnalysisProgressStage.failedRetryable,
+        buildState(
+          ClassificationState.failedRetryable,
           errorMessage: 'Network request timed out.',
           onRetry: () => retryed = true,
-          showRetry: true,
           onCancel: () {},
-          showCancel: true,
         ),
       );
 
@@ -141,10 +136,9 @@ void main() {
 
     testWidgets('honors reduced-motion in visual contract', (tester) async {
       await tester.pumpWidget(
-        buildStage(
-          AnalysisProgressStage.applyingLocalRules,
+        buildState(
+          ClassificationState.policyApplied,
           disableAnimations: true,
-          showCancel: true,
           onCancel: () {},
         ),
       );

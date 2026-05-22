@@ -24,9 +24,22 @@ jobs:
     - name: Get dependencies
       run: flutter pub get
       
+    - name: Safety flag audit (block accidental ALLOW_CLIENT_AI_IN_RELEASE)
+      run: |
+        # Fail the release build if any workflow file, script, or Makefile
+        # accidentally enables direct client-side AI calls in release builds.
+        if grep -rn "ALLOW_CLIENT_AI_IN_RELEASE=true" \
+            .github/ Makefile scripts/ 2>/dev/null; then
+          echo "❌ ALLOW_CLIENT_AI_IN_RELEASE=true found in CI/build scripts."
+          echo "   Release builds must route through the backend proxy."
+          echo "   Remove the flag or use USE_BACKEND_CLASSIFICATION=true instead."
+          exit 1
+        fi
+        echo "✅ ALLOW_CLIENT_AI_IN_RELEASE=true not present in release pipeline."
+
     - name: Run tests
       run: flutter test --coverage --exclude-tags=golden
-      
+
     - name: Build Android APK
       run: flutter build apk --release
       

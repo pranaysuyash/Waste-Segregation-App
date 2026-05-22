@@ -13,11 +13,11 @@
 - **Severity**: Resolved (was Environment blocker)
 - **Evidence**: The NDK at `/Users/pranay/Projects/adhoc_resources/ndk/27.1.12297006` was incomplete (missing `build/cmake/android.toolchain.cmake`). Fixed by uninstalling the broken NDK via `sdkmanager --uninstall`, then reinstalling a complete copy. Also set `ndkVersion = "27.1.12297006"` explicitly in `android/app/build.gradle` instead of using Flutter's default (`26.3.11579264`), which avoids Gradle auto-downloading the older NDK and saves ~3GB disk space.
 - **User impact**: None. App builds successfully.
-- **Fix applied**: 
+- **Fix applied**:
   1. Uninstalled incomplete NDK 27.1 via sdkmanager, reinstalled complete version.
   2. Overrode `ndkVersion` in `android/app/build.gradle` to `"27.1.12297006"` (the locally installed complete NDK) instead of `flutter.ndkVersion` (which resolved to `26.3.11579264`).
   3. Verified `flutter build apk --debug` produces `build/app/outputs/flutter-apk/app-debug.apk`.
-- **Verification**: `flutter build apk --debug` succeeds; all 82 Dart tests pass; all 80 Firestore emulator rules tests pass.
+- **Verification**: `flutter build apk --debug` succeeds; all 1944 Dart unit/widget tests pass (12 skipped); all 83 Firestore emulator rules tests pass.
 - **Status**: Resolved
 
 ## HIGH-001: Firestore rules not deployed
@@ -29,12 +29,13 @@
 - **Test needed**: Verify `firebase deploy --only firestore:rules --project <project_id>` succeeds and that deployed rules match local `firestore.rules`.
 - **Status**: Open
 
-## INFO-001: 39 analyzer warnings, 374 info lints
+## INFO-001: Analyzer lint baseline
 
 - **Severity**: Info (not blocker)
-- **Evidence**: `flutter analyze` reports 39 warnings (unused imports, unused variables, unnecessary null comparisons) and 374 info lints. No errors.
-- **User impact**: None at runtime. Warnings indicate dead code paths that could be cleaned up.
-- **Fix recommendation**: Address unused imports/variables in a cleanup pass. Not launch-blocking.
+- **Evidence**: `flutter analyze` reports **0 errors**, 42 warnings (unused imports, unused variables, dead code, null comparison issues) and 397 info lints. Total: 439 issues. No compile errors.
+- **User impact**: None at runtime. Warnings indicate dead code paths and style issues that can be cleaned up.
+- **Fix recommendation**: Address warnings (duplicate imports, unused fields/locals, dead code) in a cleanup pass. Not launch-blocking.
+- **Baseline verified**: 2025-06-01 — `flutter test` 1944 passed / 12 skipped / 0 failed.
 - **Status**: Open
 
 ## INFO-002: temp/debug files in repo

@@ -63,20 +63,21 @@ class HomeHeaderWrapper extends ConsumerWidget {
 
 /// Analytics helper for A/B testing
 class HomeHeaderAnalytics {
-  static const String _headerV2ViewEvent = 'home_header_v2_viewed';
-  static const String _headerV2InteractionEvent = 'home_header_v2_interaction';
-  static const String _headerLegacyViewEvent = 'home_header_legacy_viewed';
+  static const String headerV2ViewEvent = 'home_header_v2_viewed';
+  static const String headerV2InteractionEvent =
+      'home_header_v2_interaction';
+  static const String headerLegacyViewEvent = 'home_header_legacy_viewed';
 
   /// Track when HomeHeader v2 is viewed
   static void trackHeaderV2View() {
     // TODO: Integrate with your analytics service
-    // AnalyticsService.logEvent(_headerV2ViewEvent);
+    // AnalyticsService.logEvent(headerV2ViewEvent);
   }
 
   /// Track interactions with HomeHeader v2
   static void trackHeaderV2Interaction(String interaction) {
     // TODO: Integrate with your analytics service
-    // AnalyticsService.logEvent(_headerV2InteractionEvent, {
+    // AnalyticsService.logEvent(headerV2InteractionEvent, {
     //   'interaction_type': interaction,
     // });
   }
@@ -84,7 +85,7 @@ class HomeHeaderAnalytics {
   /// Track when legacy header is viewed
   static void trackLegacyHeaderView() {
     // TODO: Integrate with your analytics service
-    // AnalyticsService.logEvent(_headerLegacyViewEvent);
+    // AnalyticsService.logEvent(headerLegacyViewEvent);
   }
 }
 

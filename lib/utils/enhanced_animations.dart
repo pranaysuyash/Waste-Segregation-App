@@ -181,10 +181,10 @@ class WasteAppAnimations {
     Duration duration = fast,
     Color? rippleColor,
   }) {
+    var isPressed = false;
+
     return StatefulBuilder(
       builder: (context, setState) {
-        var isPressed = false;
-
         return GestureDetector(
           onTapDown: (_) => setState(() => isPressed = true),
           onTapUp: (_) => setState(() => isPressed = false),

@@ -25,38 +25,11 @@ class ExpandableSection extends StatefulWidget {
   State<ExpandableSection> createState() => _ExpandableSectionState();
 }
 
-class _ExpandableSectionState extends State<ExpandableSection>
-    with TickerProviderStateMixin {
+class _ExpandableSectionState extends State<ExpandableSection> {
   bool _expanded = false;
-  late final AnimationController _controller;
-  late final Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    );
-  }
 
   void _toggle() {
     setState(() => _expanded = !_expanded);
-    if (_expanded) {
-      _controller.forward();
-    } else {
-      _controller.reverse();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   @override

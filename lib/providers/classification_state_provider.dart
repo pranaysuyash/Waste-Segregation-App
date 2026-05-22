@@ -8,7 +8,7 @@ import '../models/classification_state.dart';
 /// Consumers:
 /// - `ImageCaptureScreen` → renders progress, action buttons
 /// - `ResultScreen` / `ResultPipeline` → gates save/sync/gamification
-/// - `AnalysisProgressView` → replaces `AnalysisProgressStage`
+/// - `AnalysisProgressView` → renders from [ClassificationState]
 final classificationStateMachineProvider =
     StateNotifierProvider<ClassificationStateMachineNotifier,
         ClassificationStateMachine>(

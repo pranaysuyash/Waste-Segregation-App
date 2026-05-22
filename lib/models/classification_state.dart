@@ -123,6 +123,7 @@ final Map<ClassificationState, Set<ClassificationState>>
     },
     ClassificationState.localClassifying: {
       ClassificationState.classificationSucceeded,
+      ClassificationState.cloudClassifying,
       ClassificationState.failedRetryable,
       ClassificationState.failedPermanent,
       ClassificationState.cancelled,

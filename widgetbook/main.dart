@@ -10,6 +10,7 @@ import 'package:waste_segregation_app/widgets/expandable_section.dart';
 import 'package:waste_segregation_app/widgets/premium_badge.dart';
 import 'package:waste_segregation_app/widgets/responsive_text.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/classification_state.dart';
 import 'package:waste_segregation_app/widgets/result_screen/action_buttons.dart';
 import 'package:waste_segregation_app/widgets/result_screen/action_row.dart';
 import 'package:waste_segregation_app/widgets/result_screen/disposal_accordion.dart';
@@ -47,7 +48,6 @@ import 'package:waste_segregation_app/widgets/enhanced_analysis_loader.dart';
 import 'package:waste_segregation_app/widgets/animations/success_celebrations.dart';
 import 'package:waste_segregation_app/widgets/enhanced_gamification_widgets.dart'
     hide PointsEarnedPopup;
-import 'package:waste_segregation_app/widgets/animations/enhanced_loading_states.dart';
 import 'package:waste_segregation_app/widgets/animations/error_recovery_animations.dart';
 import 'package:waste_segregation_app/widgets/advanced_ui/impact_dashboard_example.dart';
 import 'package:waste_segregation_app/widgets/advanced_ui/cyberpunk_dashboard_example.dart';
@@ -2793,9 +2793,9 @@ WidgetbookCategory _componentCategory() {
                 name: 'AnalysisProgressView',
                 builder: (context) => _surface(
                   const AnalysisProgressView(
-                    stage: AnalysisProgressStage.analyzingImage,
+                    state: ClassificationState.cloudClassifying,
                     imageName: 'plastic-bottle.jpg',
-                    showCancel: false,
+                    statusMessage: 'Analyzing image',
                   ),
                 ),
               ),
@@ -3546,6 +3546,7 @@ Widget _tabBuilder(BuildContext context, TabController controller) {
   );
 }
 
+// ignore: unused_element
 List<Widget> _referenceCoverageOnlyWidgets() {
   return [
     AchievementCelebration(

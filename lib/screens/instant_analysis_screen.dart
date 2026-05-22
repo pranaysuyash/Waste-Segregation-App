@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
+import 'package:waste_segregation_app/models/classification_state.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/ai_service.dart';
 import '../services/instant_analysis_flow_coordinator.dart';
@@ -13,8 +14,7 @@ import '../widgets/analysis_progress_view.dart';
 import '../screens/result_screen_wrapper.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
-/// Screen that performs instant analysis without showing review screen
-/// Provides the most streamlined experience: capture → analyze → results
+/// Screen that performs instant analysis without showing review screen.
 class InstantAnalysisScreen extends StatefulWidget {
   const InstantAnalysisScreen({
     super.key,
@@ -29,15 +29,20 @@ class InstantAnalysisScreen extends StatefulWidget {
 class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
   static const InstantAnalysisFlowCoordinator _flowCoordinator =
       InstantAnalysisFlowCoordinator();
-  bool _isAnalyzing = false;
-  bool _isCancelled = false;
-  AnalysisProgressStage _analysisStage = AnalysisProgressStage.checkingQuality;
+  ClassificationState _state = ClassificationState.idle;
   String? _analysisErrorMessage;
+
+  bool get _isAnalyzing =>
+      _state != ClassificationState.idle &&
+      _state != ClassificationState.failedRetryable &&
+      _state != ClassificationState.failedPermanent &&
+      _state != ClassificationState.cancelled;
+
+  bool get _isCancelled => _state == ClassificationState.cancelled;
 
   @override
   void initState() {
     super.initState();
-    // Start analysis immediately when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startInstantAnalysis();
     });
@@ -47,65 +52,42 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
     if (_isCancelled || _isAnalyzing) return;
 
     setState(() {
-      _isAnalyzing = true;
+      _state = ClassificationState.cloudClassifying;
       _analysisErrorMessage = null;
-      _analysisStage = AnalysisProgressStage.checkingQuality;
     });
 
     try {
-      WasteAppLogger.info(
-          '🚀 Auto-analyze enabled - starting analysis immediately');
-      if (mounted) {
-        setState(() {
-          _analysisStage = AnalysisProgressStage.uploading;
-        });
-      }
-
       final aiService = Provider.of<AiService>(context, listen: false);
-      WasteClassification? result;
+      late final WasteClassification result;
 
       if (kIsWeb) {
-        // Web platform
         final bytes = await widget.image.readAsBytes();
         if (bytes.isEmpty) {
           throw Exception('Failed to read image data - empty bytes');
         }
-        if (mounted) {
-          setState(() {
-            _analysisStage = AnalysisProgressStage.analyzingImage;
-          });
-        }
         result = await aiService.analyzeWebImage(bytes, widget.image.name);
       } else {
-        // Mobile platform
         final file = File(widget.image.path);
         if (!await file.exists()) {
           throw Exception('Image file does not exist: ${widget.image.path}');
-        }
-        if (mounted) {
-          setState(() {
-            _analysisStage = AnalysisProgressStage.analyzingImage;
-          });
         }
         result = await aiService.analyzeImage(file);
       }
 
       if (!_isCancelled && mounted) {
-        WasteAppLogger.info(
-            '✅ Analysis complete - saving classification immediately');
+        WasteAppLogger.info('Analysis complete - saving classification');
         await _flowCoordinator.completeSuccessFlow(
-          classification: result!,
+          classification: result,
           isMounted: () => mounted,
           isCancelled: () => _isCancelled,
-          setStage: (stage) {
+          setStage: (state) {
             if (!mounted) return;
             setState(() {
-              _analysisStage = stage;
+              _state = state;
             });
           },
           navigateToResult: (classification) async {
-            WasteAppLogger.info(
-                '✅ Classification saved - navigating to results screen');
+            WasteAppLogger.info('Navigating to results screen');
             unawaited(
               Navigator.pushReplacement<void, void>(
                 context,
@@ -125,8 +107,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
         WasteAppLogger.severe('Error during instant analysis: $e');
         setState(() {
           _analysisErrorMessage = AiErrorMessages.toUserMessage(e);
-          _analysisStage = AnalysisProgressStage.failedRetryable;
-          _isAnalyzing = false;
+          _state = ClassificationState.failedRetryable;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -138,7 +119,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _isAnalyzing = false;
+          _state = ClassificationState.idle;
         });
       }
     }
@@ -147,26 +128,21 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
   Future<void> _retryAnalysis() async {
     if (_isAnalyzing) return;
     setState(() {
-      _isCancelled = false;
       _analysisErrorMessage = null;
-      _analysisStage = AnalysisProgressStage.checkingQuality;
+      _state = ClassificationState.cloudClassifying;
     });
     await _startInstantAnalysis();
   }
 
   void _cancelAnalysis() {
-    // Cancel the AI service analysis
     final aiService = Provider.of<AiService>(context, listen: false);
     aiService.cancelAnalysis();
 
     setState(() {
-      _isCancelled = true;
-      _isAnalyzing = false;
-      _analysisStage = AnalysisProgressStage.checkingQuality;
+      _state = ClassificationState.cancelled;
     });
     WasteAppLogger.info('Analysis cancelled by user');
 
-    // Show cancellation feedback
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -175,7 +151,6 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
         ),
       );
     }
-    // Navigate back to home screen.
     if (mounted && Navigator.canPop(context)) {
       Navigator.of(context).pop();
     }
@@ -185,27 +160,20 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _isAnalyzing ||
-              _analysisStage == AnalysisProgressStage.failedRetryable
+              _state == ClassificationState.failedRetryable
           ? AnalysisProgressView(
-              stage: _analysisStage,
+              state: _state,
               imageName: widget.image.name,
               statusMessage: _analysisErrorMessage,
               localRuleChipText:
                   'Applying disposal rules and processing result.',
-              onCancel: _analysisStage ==
-                          AnalysisProgressStage.failedRetryable ||
-                      _analysisStage == AnalysisProgressStage.checkingQuality ||
-                      _analysisStage == AnalysisProgressStage.uploading ||
-                      _analysisStage == AnalysisProgressStage.analyzingImage ||
-                      _analysisStage == AnalysisProgressStage.applyingLocalRules
+              onCancel: _state == ClassificationState.failedRetryable ||
+                      _state == ClassificationState.cloudClassifying
                   ? _cancelAnalysis
                   : null,
-              onRetry: _analysisStage == AnalysisProgressStage.failedRetryable
+              onRetry: _state == ClassificationState.failedRetryable
                   ? _retryAnalysis
                   : null,
-              showRetry:
-                  _analysisStage == AnalysisProgressStage.failedRetryable,
-              showCancel: _analysisStage != AnalysisProgressStage.success,
             )
           : const Center(
               child: Column(

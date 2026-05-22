@@ -1,9 +1,9 @@
+import 'package:waste_segregation_app/models/classification_state.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/widgets/analysis_progress_view.dart';
 
 typedef InstantAnalysisDelay = Future<void> Function(Duration duration);
 typedef InstantAnalysisStageSetter = void Function(
-  AnalysisProgressStage stage,
+  ClassificationState state,
 );
 typedef InstantAnalysisNavigationCallback = Future<void> Function(
   WasteClassification classification,
@@ -29,11 +29,11 @@ class InstantAnalysisFlowCoordinator {
   }) async {
     if (isCancelled() || !isMounted()) return;
 
-    setStage(AnalysisProgressStage.applyingLocalRules);
+    setStage(ClassificationState.policyApplied);
     await delay(localRulesDelay);
     if (isCancelled() || !isMounted()) return;
 
-    setStage(AnalysisProgressStage.success);
+    setStage(ClassificationState.classificationSucceeded);
     await delay(successDelay);
     if (isCancelled() || !isMounted()) return;
 

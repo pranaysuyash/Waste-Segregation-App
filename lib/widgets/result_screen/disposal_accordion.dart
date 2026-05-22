@@ -93,7 +93,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
 
   Widget _buildHeader(BuildContext context, ColorScheme colorScheme) {
     final disposalSteps =
-        widget.classification.disposalInstructions.steps ?? [];
+        widget.classification.disposalInstructions.steps;
     final stepCount = disposalSteps.length;
 
     return InkWell(
@@ -186,7 +186,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
 
   Widget _buildStaggeredSteps(BuildContext context, ColorScheme colorScheme) {
     final disposalSteps =
-        widget.classification.disposalInstructions.steps ?? [];
+        widget.classification.disposalInstructions.steps;
 
     if (disposalSteps.isEmpty) {
       return _buildNoStepsMessage(context, colorScheme);
@@ -351,7 +351,7 @@ class _DisposalAccordionState extends ConsumerState<DisposalAccordion>
 
   String _getPreviewText() {
     final disposalSteps =
-        widget.classification.disposalInstructions.steps ?? [];
+        widget.classification.disposalInstructions.steps;
     if (disposalSteps.isEmpty) {
       return 'Tap to view disposal guidelines';
     }

@@ -42,8 +42,6 @@ class ModernCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     final effectiveRadius = borderRadius ?? AppTheme.borderRadiusLg;
 
     final cardContent = Material(
@@ -736,8 +734,6 @@ class RecentClassificationCard extends StatelessWidget {
     bool isNarrow,
     bool isVeryNarrow,
   ) {
-    final theme = Theme.of(context);
-
     // Calculate space needed for property indicators
     var indicatorCount = 0;
     if (showPropertyIndicators) {

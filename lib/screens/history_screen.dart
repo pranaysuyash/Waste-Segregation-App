@@ -47,7 +47,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   bool _isLoading = true;
 
   List<WasteClassification> _classifications = [];
-  List<WasteClassification> _allClassifications = [];
 
   bool _allowHistoryFeedback = true;
   int _feedbackTimeframeDays = 7;
@@ -164,8 +163,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
               allClassifications, _filterOptions)
           : allClassifications;
 
-      _allClassifications = filteredClassifications;
-
       final startIndex = _currentPage * _itemsPerPage;
       final endIndex = startIndex + _itemsPerPage;
       final pageClassifications = filteredClassifications.length > startIndex
@@ -270,10 +267,6 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     _activeFilterChip = label;
     _selectedCategories.clear();
     _selectedCategories.add(label);
-    _applyFilters();
-  }
-
-  void _onSearchChanged(String value) {
     _applyFilters();
   }
 

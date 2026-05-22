@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:math';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
@@ -11,6 +10,7 @@ import '../utils/waste_app_logger.dart';
 import '../utils/constants.dart';
 import 'api_client_factory.dart';
 import 'providers/backend_proxy_provider.dart';
+import 'providers/classification_provider.dart';
 import 'unified_api_client.dart';
 
 /// Enhanced AI API service using the unified API client
@@ -28,12 +28,22 @@ class EnhancedAiApiService {
     this.enableFallback = true,
     this.defaultRegion = 'Bangalore, IN',
     this.defaultLanguage = 'en',
-  });
+
+    /// Optional injectable [ClassificationProvider] for the backend path.
+    ///
+    /// When null (the default), [_analyzeWithBackend] creates a
+    /// [BackendProxyProvider] bound to [FirebaseFunctions.instance]. Pass a
+    /// test double to intercept backend calls without a live Firebase instance.
+    ClassificationProvider? backendProxy,
+  }) : _backendProxy = backendProxy;
 
   final bool enableCostOptimization;
   final bool enableFallback;
   final String defaultRegion;
   final String defaultLanguage;
+
+  /// Injectable backend proxy — null means use [BackendProxyProvider] lazily.
+  final ClassificationProvider? _backendProxy;
 
   // A/B routing for race-based analysis (0.0 - 1.0)
   static final Random _random = Random();
@@ -44,7 +54,24 @@ class EnhancedAiApiService {
     _racePercentage = p.clamp(0.0, 1.0);
   }
 
+  // ---------------------------------------------------------------------------
+  // Routing flags
+  // ---------------------------------------------------------------------------
+
+  bool? _backendRoutingOverride;
+
+  /// Override backend routing for unit tests without needing dart-defines.
+  ///
+  /// Call `service.overrideBackendRoutingForTest(true)` to force the backend
+  /// path; call with `null` to restore production behaviour.
+  @visibleForTesting
+  // ignore: use_setters_to_change_properties
+  void overrideBackendRoutingForTest(bool? value) {
+    _backendRoutingOverride = value;
+  }
+
   bool get _backendRoutingEnabled {
+    if (_backendRoutingOverride != null) return _backendRoutingOverride!;
     return kReleaseMode ||
         ProductionSafetyConfig.useBackendAiInRelease ||
         BackendProxyProvider.isEnabled;
@@ -60,6 +87,17 @@ class EnhancedAiApiService {
         kind == AiFailureKind.auth ||
         kind == AiFailureKind.budgetExceeded;
   }
+
+  // ---------------------------------------------------------------------------
+  // Provider call telemetry (mirrors AiService.providerCallCount)
+  // ---------------------------------------------------------------------------
+
+  int _providerCallCount = 0;
+
+  /// Number of times a provider (backend, OpenAI, or Gemini) was called.
+  /// Resets on [resetStatistics].
+  @visibleForTesting
+  int get providerCallCount => _providerCallCount;
 
   // API clients
   late final UnifiedApiClient _openAiClient;
@@ -403,6 +441,7 @@ class EnhancedAiApiService {
     bool enableSegmentation = false,
   }) async {
     ProductionSafetyConfig.guardClientAiCall('OpenAI');
+    _providerCallCount++;
     final base64Image = base64Encode(imageBytes);
 
     final requestData = {
@@ -476,9 +515,11 @@ class EnhancedAiApiService {
     bool enableSegmentation = false,
   }) async {
     final compressedBytes = await _compressImage(imageBytes);
-    final proxy = BackendProxyProvider(
-      functions: FirebaseFunctions.instance,
-    );
+    final proxy = _backendProxy ??
+        BackendProxyProvider(
+          functions: FirebaseFunctions.instance,
+        );
+    _providerCallCount++;
 
     final response = await proxy.analyze(
       imageBytes: compressedBytes,
@@ -529,6 +570,7 @@ class EnhancedAiApiService {
     bool enableSegmentation = false,
   }) async {
     ProductionSafetyConfig.guardClientAiCall('Gemini');
+    _providerCallCount++;
     final base64Image = base64Encode(imageBytes);
 
     final requestData = {
@@ -849,12 +891,12 @@ Analyze this waste item image and provide a JSON response with:
 
   /// Get service statistics
   Map<String, dynamic> getStatistics() {
-    final backendProxyMode = kReleaseMode;
-    final openAiStats = backendProxyMode
-        ? {'backend_proxy_mode': true}
+    const backendProxyMode = kReleaseMode;
+    final openAiStats = (backendProxyMode || !_initialized)
+        ? {'backend_proxy_mode': backendProxyMode, 'initialized': _initialized}
         : _openAiClient.getStatistics();
-    final geminiStats = backendProxyMode
-        ? {'backend_proxy_mode': true}
+    final geminiStats = (backendProxyMode || !_initialized)
+        ? {'backend_proxy_mode': backendProxyMode, 'initialized': _initialized}
         : _geminiClient.getStatistics();
 
     return {
@@ -875,6 +917,7 @@ Analyze this waste item image and provide a JSON response with:
   void resetStatistics() {
     _modelUsageCount.clear();
     _modelCosts.clear();
+    _providerCallCount = 0;
 
     WasteAppLogger.info('Enhanced AI API service statistics reset', context: {
       'timestamp': DateTime.now().toIso8601String(),

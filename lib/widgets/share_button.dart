@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../utils/share_service.dart';
-import '../utils/waste_app_logger.dart';
 
 /// A reusable share button widget that can be added to any screen
 class ShareButton extends StatelessWidget {

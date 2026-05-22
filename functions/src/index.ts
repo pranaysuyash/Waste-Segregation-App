@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { OpenAI } from 'openai';
+import { toFile } from 'openai/uploads';
 import cors from 'cors';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -556,48 +557,77 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
     // -------------------------------------------------------------------------
     // Server-side subscription tier verification.
     //
-    // The user's tier is read directly from their Firestore profile; the client
-    // is NEVER trusted to supply tier or discount information.
+    // Canonical entitlement authority is Firestore:
+    //   users/{uid}.billing.entitlements.pro_subscription
     //
-    // Field priority (first non-empty value wins):
-    //   userData.subscriptionTier   — canonical field set by billing webhooks
-    //   userData.tier               — legacy alias some older clients wrote
-    //
-    // Defaults to 'free' when the field is absent or contains an unrecognised
-    // value.  QUOTA_TIER_MULTIPLIERS is the authoritative set of valid tiers.
+    // We still accept auth claims as fallback to avoid hard user breakage during
+    // propagation delays, but the client payload is never trusted.
     // -------------------------------------------------------------------------
+    const billing = (userData.billing && typeof userData.billing === 'object')
+      ? (userData.billing as Record<string, unknown>)
+      : {};
+    const billingEntitlements =
+      (billing.entitlements && typeof billing.entitlements === 'object')
+        ? (billing.entitlements as Record<string, unknown>)
+        : {};
+    const hasBillingPremium = billingEntitlements.pro_subscription === true;
+
+    const authClaims = (context.auth?.token && typeof context.auth.token === 'object')
+      ? (context.auth.token as Record<string, unknown>)
+      : {};
+    const claimEntitlements =
+      (authClaims.entitlements && typeof authClaims.entitlements === 'object')
+        ? (authClaims.entitlements as Record<string, unknown>)
+        : {};
+    const hasClaimsPremium =
+      authClaims.pro_subscription === true ||
+      authClaims.premium === true ||
+      authClaims.pro === true ||
+      claimEntitlements.pro_subscription === true;
+
+    const hasPremiumEntitlement = hasBillingPremium || hasClaimsPremium;
+
     const rawTierValue = String(
       userData.subscriptionTier ?? userData.tier ?? 'free'
     ).toLowerCase().trim();
-    const tier: QuotaTier = (rawTierValue in QUOTA_TIER_MULTIPLIERS)
+    const normalizedTier: QuotaTier = (rawTierValue in QUOTA_TIER_MULTIPLIERS)
       ? (rawTierValue as QuotaTier)
       : 'free';
+
+    const tier: QuotaTier = hasPremiumEntitlement
+      ? (normalizedTier === 'enterprise' ? 'enterprise' : 'premium')
+      : normalizedTier;
+
+    if (!hasBillingPremium && hasClaimsPremium) {
+      functions.logger.warn('spendUserTokens: premium derived from claims fallback', {
+        uid,
+        normalizedTier,
+      });
+    }
 
     // -------------------------------------------------------------------------
     // Server-side canonical cost computation.
     //
     // Base costs (mirror token_wallet.dart / token_service.dart):
-    //   batch  = 1 token  (same for all tiers — batch is already cheap)
-    //   instant = 5 tokens (free tier)
-    //             3 tokens (premium/enterprise: 40% off, not 50% — intentional
-    //                       to keep the pricing defensible server-side)
+    //   batch   = 1 token
+    //   instant = 5 tokens (free)
     //
-    // When the client sends an operationType / analysis_speed we compute the
-    // server-authoritative minimum spend for that operation + verified tier.
-    //
-    // Security model:
-    //   • If client amount < serverMin  → REJECT  (fraud: client claiming a
-    //     discount it hasn't earned)
-    //   • If client amount == serverMin → ACCEPT using serverMin
-    //   • If client amount > serverMin  → WARN + ACCEPT using serverMin
-    //     (user spending more tokens than required is unusual but not harmful;
-    //     we still deduct exactly serverMin to avoid wallet confusion)
+    // Premium/enterprise instant discount is server-configurable via
+    // SPEND_PREMIUM_DISCOUNT_PERCENT (default 40) and is always computed on
+    // server-authoritative entitlement.
     // -------------------------------------------------------------------------
-
-    // Server-side canonical costs — NOT overridable by the client.
     const INSTANT_COST_FREE = 5;
-    const INSTANT_COST_PREMIUM = 3;  // 40% off instant for premium/enterprise
-    const BATCH_COST = 1;            // same for all tiers
+    const premiumDiscountPercentRaw = Number(
+      process.env.SPEND_PREMIUM_DISCOUNT_PERCENT ?? 40,
+    );
+    const premiumDiscountPercent = Number.isFinite(premiumDiscountPercentRaw)
+      ? Math.max(0, Math.min(100, premiumDiscountPercentRaw))
+      : 40;
+    const INSTANT_COST_PREMIUM = Math.max(
+      1,
+      Math.ceil(INSTANT_COST_FREE * (1 - premiumDiscountPercent / 100)),
+    );
+    const BATCH_COST = 1;
 
     let authorizedAmount = clientAmount; // default: trust client if no opType known
 
@@ -821,6 +851,340 @@ async function deleteCollectionRecursively(db: admin.firestore.Firestore, collec
 
 // ===== BATCH PROCESSING FUNCTIONS =====
 
+const normalizeOpenAIBatchStatus = (openAiStatus: string, fallback: string): string => {
+  const statusMapping: Record<string, string> = {
+    validating: 'queued',
+    in_progress: 'processing',
+    finalizing: 'processing',
+    completed: 'completed',
+    failed: 'failed',
+    expired: 'failed',
+    cancelled: 'failed',
+  };
+
+  return statusMapping[openAiStatus] ?? fallback;
+};
+
+const isUserOwnedBatchImageUrl = (imageUrl: string, uid: string): boolean => {
+  const raw = imageUrl.trim();
+  if (!raw.startsWith('https://') && !raw.startsWith('http://')) return false;
+
+  try {
+    const decoded = decodeURIComponent(raw);
+    if (decoded.includes(`/batch_images/${uid}/`)) return true;
+  } catch {
+    // Ignore decode errors and continue with raw checks.
+  }
+
+  return raw.includes(`/batch_images/${uid}/`) ||
+    raw.includes(`%2Fbatch_images%2F${uid}%2F`);
+};
+
+const getBatchClassificationPrompt = (): string => {
+  return [
+    'You are an expert waste classification AI.',
+    'Classify the waste item from the image and return STRICT JSON only.',
+    'Required JSON keys: itemName, category, confidence, disposalInstructions, environmentalImpact, tips.',
+    'confidence must be a number between 0 and 1.',
+    'tips must be an array of strings.',
+    'Do not include markdown or extra prose.',
+  ].join(' ');
+};
+
+async function createOpenAIBatchSubmission(jobId: string, imageUrl: string): Promise<{ batchId: string; batchFileId: string }> {
+  if (!openai) {
+    throw new Error('OpenAI not configured on server');
+  }
+
+  const batchRequest = {
+    custom_id: `job-${jobId}`,
+    method: 'POST',
+    url: '/v1/chat/completions',
+    body: {
+      model: process.env.BATCH_OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: getBatchClassificationPrompt(),
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Classify this waste item for proper disposal.' },
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageUrl,
+                detail: 'high',
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 900,
+      temperature: 0.1,
+      response_format: {
+        type: 'json_object',
+      },
+    },
+  };
+
+  const jsonl = `${JSON.stringify(batchRequest)}\n`;
+  const file = await openai.files.create({
+    file: await toFile(Buffer.from(jsonl, 'utf8'), `batch_${jobId}.jsonl`),
+    purpose: 'batch',
+  });
+
+  const batch = await openai.batches.create({
+    input_file_id: file.id,
+    endpoint: '/v1/chat/completions',
+    completion_window: '24h',
+  });
+
+  return {
+    batchId: batch.id,
+    batchFileId: file.id,
+  };
+}
+
+export const createBatchAiJob = asiaSouth1.https.onCall(async (data, context) => {
+  if (!context.auth?.uid) {
+    throw new functions.https.HttpsError('unauthenticated', 'Authentication required.');
+  }
+
+  if (shouldEnforceCallableAppCheck() && !context.app) {
+    throw new functions.https.HttpsError(
+      'failed-precondition',
+      'App Check token required for createBatchAiJob.'
+    );
+  }
+
+  const uid = context.auth.uid;
+  const imageUrl = String(data?.imageUrl ?? '').trim();
+
+  if (!imageUrl) {
+    throw new functions.https.HttpsError('invalid-argument', 'imageUrl is required.');
+  }
+
+  if (imageUrl.length > 2048) {
+    throw new functions.https.HttpsError('invalid-argument', 'imageUrl is too long.');
+  }
+
+  if (!isUserOwnedBatchImageUrl(imageUrl, uid)) {
+    throw new functions.https.HttpsError(
+      'permission-denied',
+      'imageUrl must reference an authenticated user-owned batch_images path.'
+    );
+  }
+
+  const rateLimitConfig = getRateLimitConfig();
+  const rateLimitState = await enforceRateLimit({
+    bucket: 'createBatchAiJob',
+    subject: `uid:${uid}`,
+    maxRequests: Math.max(1, rateLimitConfig.spendTokensMax),
+    windowSeconds: Math.max(1, rateLimitConfig.windowSeconds),
+  });
+
+  if (rateLimitState.retryAfterSeconds > 0) {
+    throw new functions.https.HttpsError(
+      'resource-exhausted',
+      'Rate limit exceeded for createBatchAiJob.',
+      { retryAfterSeconds: rateLimitState.retryAfterSeconds }
+    );
+  }
+
+  const db = admin.firestore();
+  const userRef = db.collection('users').doc(uid);
+  const jobsRef = db.collection('ai_jobs');
+  const tokenCost = 1;
+  const jobId = jobsRef.doc().id;
+  const spendReference = `batch_job:${jobId}`;
+  const nowIso = new Date().toISOString();
+
+  const spendResult = await db.runTransaction(async (tx) => {
+    const userSnap = await tx.get(userRef);
+    if (!userSnap.exists) {
+      throw new functions.https.HttpsError('not-found', 'User profile not found.');
+    }
+
+    const userData = userSnap.data() ?? {};
+    const walletRaw = (userData.tokenWallet && typeof userData.tokenWallet === 'object')
+      ? userData.tokenWallet as Record<string, unknown>
+      : {};
+
+    const currentBalance = Number(walletRaw.balance ?? 50);
+    const totalEarned = Number(walletRaw.totalEarned ?? 50);
+    const totalSpent = Number(walletRaw.totalSpent ?? 0);
+    const dailyConversionsUsed = Number(walletRaw.dailyConversionsUsed ?? 0);
+    const lastConversionDate = walletRaw.lastConversionDate ?? null;
+
+    if (!Number.isFinite(currentBalance) || currentBalance < tokenCost) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        `Insufficient tokens. Need ${tokenCost}, have ${Number.isFinite(currentBalance) ? currentBalance : 0}.`
+      );
+    }
+
+    const nextWallet = {
+      balance: currentBalance - tokenCost,
+      totalEarned,
+      totalSpent: totalSpent + tokenCost,
+      lastUpdated: nowIso,
+      dailyConversionsUsed,
+      lastConversionDate,
+    };
+
+    const txId = db.collection('_tmp').doc().id;
+    const ledgerRef = db.collection('token_spend_ledger').doc(txId);
+    const transaction = {
+      id: txId,
+      delta: -tokenCost,
+      type: 'TokenTransactionType.spend',
+      timestamp: nowIso,
+      description: 'Batch AI analysis',
+      reference: spendReference,
+      metadata: {
+        operationType: 'batch',
+        source: 'createBatchAiJob',
+        jobId,
+      },
+    };
+
+    const currentTransactions = Array.isArray(userData.tokenTransactions)
+      ? userData.tokenTransactions as unknown[]
+      : [];
+    const updatedTransactions = [transaction, ...currentTransactions].slice(0, 200);
+
+    tx.update(userRef, {
+      tokenWallet: nextWallet,
+      tokenTransactions: updatedTransactions,
+      lastActive: nowIso,
+    });
+
+    tx.set(ledgerRef, {
+      id: txId,
+      uid,
+      amount: tokenCost,
+      description: 'Batch AI analysis',
+      reference: spendReference,
+      metadata: {
+        operationType: 'batch',
+        source: 'createBatchAiJob',
+        jobId,
+      },
+      subscriptionTier: 'batch',
+      createdAtIso: nowIso,
+      createdAt: FieldValue.serverTimestamp(),
+      walletBalanceAfter: nextWallet.balance,
+      walletSpentAfter: nextWallet.totalSpent,
+    });
+
+    return {
+      wallet: nextWallet,
+      transaction,
+      ledgerId: txId,
+    };
+  });
+
+  let batchSubmission: { batchId: string; batchFileId: string };
+
+  try {
+    batchSubmission = await createOpenAIBatchSubmission(jobId, imageUrl);
+  } catch (error) {
+    functions.logger.error('createBatchAiJob: OpenAI submission failed, refunding token', {
+      uid,
+      jobId,
+      error,
+    });
+
+    const refundIso = new Date().toISOString();
+
+    await db.runTransaction(async (tx) => {
+      const userSnap = await tx.get(userRef);
+      if (!userSnap.exists) return;
+
+      const userData = userSnap.data() ?? {};
+      const walletRaw = (userData.tokenWallet && typeof userData.tokenWallet === 'object')
+        ? userData.tokenWallet as Record<string, unknown>
+        : {};
+
+      const currentBalance = Number(walletRaw.balance ?? 0);
+      const totalEarned = Number(walletRaw.totalEarned ?? 0);
+      const totalSpent = Number(walletRaw.totalSpent ?? 0);
+      const dailyConversionsUsed = Number(walletRaw.dailyConversionsUsed ?? 0);
+      const lastConversionDate = walletRaw.lastConversionDate ?? null;
+
+      const refundedWallet = {
+        balance: currentBalance + tokenCost,
+        totalEarned,
+        totalSpent: Math.max(0, totalSpent - tokenCost),
+        lastUpdated: refundIso,
+        dailyConversionsUsed,
+        lastConversionDate,
+      };
+
+      const refundTxId = db.collection('_tmp').doc().id;
+      const refundTx = {
+        id: refundTxId,
+        delta: tokenCost,
+        type: 'TokenTransactionType.refund',
+        timestamp: refundIso,
+        description: 'Batch AI submission failed - token refund',
+        reference: `${spendReference}:refund`,
+        metadata: {
+          operationType: 'batch',
+          source: 'createBatchAiJob',
+          jobId,
+        },
+      };
+
+      const currentTransactions = Array.isArray(userData.tokenTransactions)
+        ? userData.tokenTransactions as unknown[]
+        : [];
+      const updatedTransactions = [refundTx, ...currentTransactions].slice(0, 200);
+
+      tx.update(userRef, {
+        tokenWallet: refundedWallet,
+        tokenTransactions: updatedTransactions,
+        lastActive: refundIso,
+      });
+    });
+
+    throw new functions.https.HttpsError(
+      'internal',
+      'Failed to create OpenAI batch submission. Token has been refunded.'
+    );
+  }
+
+  await jobsRef.doc(jobId).set({
+    id: jobId,
+    userId: uid,
+    imagePath: imageUrl,
+    speed: 'batch',
+    status: 'queued',
+    openAIBatchId: batchSubmission.batchId,
+    batchFileId: batchSubmission.batchFileId,
+    tokensSpent: tokenCost,
+    createdAtIso: nowIso,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+    metadata: {
+      source: 'createBatchAiJob',
+      spendLedgerId: spendResult.ledgerId,
+    },
+  });
+
+  return {
+    success: true,
+    jobId,
+    status: 'queued',
+    openAIBatchId: batchSubmission.batchId,
+    tokensCharged: tokenCost,
+    walletBalance: spendResult.wallet.balance,
+    ledgerId: spendResult.ledgerId,
+  };
+});
+
 interface BatchJobStatus {
   status: string;
   output_file_id?: string;
@@ -855,7 +1219,7 @@ export const processBatchJobs = asiaSouth1.pubsub
       // Get all active batch jobs from Firestore
       const db = admin.firestore();
       const activeJobs = await db.collection('ai_jobs')
-        .where('status', 'in', ['queued', 'processing'])
+        .where('status', 'in', ['queued', 'processing', 'AiJobStatus.queued', 'AiJobStatus.processing'])
         .get();
 
       if (activeJobs.empty) {
@@ -1042,16 +1406,25 @@ function parseClassificationResult(openaiResult: any): ClassificationResult {
  */
 async function updateJobStatus(jobId: string, batchStatus: BatchJobStatus, currentJobData: any): Promise<void> {
   const db = admin.firestore();
-  
+  const currentStatus = String(currentJobData?.status ?? 'queued');
+  const nextStatus = normalizeOpenAIBatchStatus(batchStatus.status, currentStatus);
+
+  if (nextStatus === currentStatus && batchStatus.status === currentJobData?.openAIStatus) {
+    return;
+  }
+
   await db.collection('ai_jobs').doc(jobId).update({
-    status: batchStatus.status,
+    status: nextStatus,
+    openAIStatus: batchStatus.status,
     updatedAt: FieldValue.serverTimestamp(),
-    ...(batchStatus.status === 'processing' && !currentJobData.processingStartedAt && {
+    ...(nextStatus === 'processing' && !currentJobData.processingStartedAt && {
       processingStartedAt: FieldValue.serverTimestamp()
     })
   });
-  
-  functions.logger.info(`Updated job ${jobId} status to ${batchStatus.status}`);
+
+  functions.logger.info(`Updated job ${jobId} status: ${currentStatus} -> ${nextStatus}`, {
+    openAIStatus: batchStatus.status,
+  });
 }
 
 /**

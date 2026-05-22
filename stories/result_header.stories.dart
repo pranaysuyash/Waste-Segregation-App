@@ -20,6 +20,7 @@ Widget resultHeaderLowConfidenceUseCase(BuildContext context) {
     itemName: 'Battery',
     confidence: 0.65,
     pointsEarned: 5,
+    hasImage: false,
   );
 }
 

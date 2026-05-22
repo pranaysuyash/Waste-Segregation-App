@@ -4,7 +4,10 @@ import '../models/leaderboard.dart'; // Assuming this is where LeaderboardEntry 
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class LeaderboardService {
-  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  LeaderboardService({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
   static const String _leaderboardCollection =
       FirestoreCollections.leaderboardAllTime;
 

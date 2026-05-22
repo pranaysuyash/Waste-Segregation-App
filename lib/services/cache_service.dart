@@ -11,8 +11,6 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 import '../models/cached_classification.dart' show CachedClassification;
 
-import 'ai_service.dart' show AiService;
-
 /// Safely truncates a hash string for logging preview.
 /// Returns '<empty>' when [value] is null or empty.
 String _previewHash(String? value) {
@@ -220,7 +218,7 @@ class ClassificationCacheService {
             key: _previewHash(cacheKey),
             context: {
               'similarity_threshold': similarityThreshold,
-              'has_content_hash': contentHash != null
+              'has_content_hash': true
             });
         final similarKey = await _findSimilarPerceptualHashWithVerification(
             cacheKey, contentHash, similarityThreshold);

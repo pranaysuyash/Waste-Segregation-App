@@ -470,7 +470,6 @@ class MemoryManagementService {
       await checkMemoryLeaks();
 
       // Cleanup expired resources
-      final now = DateTime.now();
       final expiredResources = <String>[];
 
       for (final entry in _disposableResources.entries) {

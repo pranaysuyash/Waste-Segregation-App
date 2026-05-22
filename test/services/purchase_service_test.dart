@@ -27,6 +27,8 @@ void main() {
       when(() => gateway.purchaseUpdates).thenAnswer((_) => updates.stream);
       when(() => premiumService.setPremiumFeature(any(), any()))
           .thenAnswer((_) async {});
+      when(() => premiumService.setPremiumPlanEntitlement(any()))
+          .thenAnswer((_) async {});
       when(() => premiumService.hasActivePremiumPlan()).thenReturn(false);
     });
 
@@ -107,10 +109,7 @@ void main() {
 
       await Future<void>.delayed(const Duration(milliseconds: 20));
 
-      verify(() => premiumService.setPremiumFeature(
-            PremiumService.proSubscriptionEntitlement,
-            true,
-          )).called(1);
+      verify(() => premiumService.setPremiumPlanEntitlement(true)).called(1);
       verify(() => premiumService.setPremiumFeature('remove_ads', true))
           .called(greaterThanOrEqualTo(1));
       verify(() => gateway.completePurchase(any())).called(1);

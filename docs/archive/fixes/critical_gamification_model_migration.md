@@ -205,4 +205,45 @@ This migration enables several advanced gamification features:
 
 ## Conclusion
 
-This migration successfully modernized the gamification system while maintaining all existing functionality. The app now compiles successfully and is ready for implementing advanced gamification features. The new architecture provides a solid foundation for future enhancements while ensuring backward compatibility. 
+This migration successfully modernized the gamification system while maintaining all existing functionality. The app now compiles successfully and is ready for implementing advanced gamification features. The new architecture provides a solid foundation for future enhancements while ensuring backward compatibility.
+
+## Addendum - Reality Check (2026-05-22)
+
+This section captures current repo reality after re-verification and should be treated as the source of truth for next work selection.
+
+### What was verified
+
+- Multi-streak model is live in code (`GamificationProfile.streaks`, `StreakDetails`, `StreakType`).
+- Legacy `profile.streak.current/longest/lastUsageDate` usage was not found in `lib/`.
+- `lib/screens/modern_home_screen.dart` does not exist in the current tree.
+- Canonical routed home surface is `HomeScreen` from `lib/screens/home_screen.dart`.
+
+### Drift corrected in this pass
+
+1. Widgetbook API drift fixed:
+   - `widgetbook/main.dart` now uses `AnalysisProgressView(state: ...)` API.
+   - Removed stale `AnalysisProgressStage`/`showCancel` usage.
+2. Test drift fixed:
+   - `test/widgets/navigation_test.dart` migrated from `AnalysisProgressStage` to `ClassificationState`.
+3. Streak key drift fixed:
+   - `lib/screens/ultra_modern_home_screen.dart` now uses
+     `StreakType.dailyClassification.toString()` instead of hardcoded `'daily'`.
+4. Lifecycle guardrail added:
+   - `UltraModernHomeScreen` marked deprecated with explicit note that `HomeScreen` is canonical.
+
+### Current verification snapshot
+
+- `flutter analyze --no-pub`: no analyzer errors (remaining warnings/info only).
+- `flutter test test/widgetbook/widgetbook_smoke_test.dart test/widgets/navigation_test.dart`: pass.
+- Full `flutter test`: still failing, but narrowed to pre-existing golden-test failures:
+  - `ResultScreen V2 Golden Tests High Confidence Classification State`
+  - `ResultScreen V2 Golden Tests Low Confidence Classification State`
+  - `ResultScreen V2 Golden Tests Hazardous Classification State`
+
+### Process gate policy applied in this pass
+
+- Baseline recorded before fixes.
+- Compile/API drift issues fixed first.
+- Targeted verification run after each drift fix.
+- Full-suite rerun performed after fixes.
+- Remaining failures are explicitly separated as pre-existing/non-gamification blockers.

@@ -321,8 +321,10 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
   }
 
   void _triggerReanalysis() async {
-    final analyticsService = context.read<AnalyticsService>();
-    final hapticService = context.read<HapticSettingsService>();
+    final analyticsService =
+        Provider.of<AnalyticsService>(context, listen: false);
+    final hapticService =
+        Provider.of<HapticSettingsService>(context, listen: false);
 
     // Track re-analysis event
     analyticsService
@@ -346,8 +348,6 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
     widget.onReanalysisStarted?.call();
 
     try {
-      final aiService = context.read<AiService>();
-
       // For now, use the existing re-analyze functionality
       // Navigate back to capture screen for re-analysis
       if (mounted) {
@@ -392,14 +392,15 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
   }
 
   void _cancelReanalysis() {
-    final aiService = context.read<AiService>();
+    final aiService = Provider.of<AiService>(context, listen: false);
     aiService.cancelAnalysis();
 
     setState(() {
       _isReanalyzing = false;
     });
 
-    context.read<AnalyticsService>().trackUserAction('reanalysis_cancelled');
+    Provider.of<AnalyticsService>(context, listen: false)
+        .trackUserAction('reanalysis_cancelled');
   }
 
   void _showReanalysisOptions() {

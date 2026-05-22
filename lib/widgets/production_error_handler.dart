@@ -67,61 +67,6 @@ class ProductionErrorHandler extends StatelessWidget {
     );
   }
 
-  Widget _buildDebugErrorWidget(
-      BuildContext context, FlutterErrorDetails details) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.red.shade50,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.bug_report,
-            size: 48,
-            color: Colors.red.shade600,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Debug Error',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.red.shade800,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.red.shade100,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.shade300),
-            ),
-            child: Text(
-              details.exception.toString(),
-              style: TextStyle(
-                fontSize: 12,
-                fontFamily: 'monospace',
-                color: Colors.red.shade700,
-              ),
-            ),
-          ),
-          if (onRetry != null) ...[
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade600,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
 }
 
 /// Network error handler for API failures

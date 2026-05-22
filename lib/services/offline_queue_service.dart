@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:hive/hive.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'enhanced_ai_api_service.dart';
 import 'storage_service.dart';
@@ -13,6 +13,12 @@ import '../utils/waste_app_logger.dart';
 import '../utils/production_safety_config.dart';
 
 part 'offline_queue_service.g.dart';
+
+typedef OfflineQueueAnalyticsTracker = Future<void> Function({
+  required String eventType,
+  required String eventName,
+  Map<String, dynamic> parameters,
+});
 
 /// Queued classification for offline processing
 @HiveType(typeId: 100)
@@ -61,6 +67,9 @@ class OfflineQueueService {
   OfflineQueueService._internal();
   static final OfflineQueueService _instance = OfflineQueueService._internal();
 
+  @visibleForTesting
+  static OfflineQueueAnalyticsTracker? analyticsTrackerOverride;
+
   Box<QueuedClassification>? _queueBox;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   bool _isProcessing = false;
@@ -90,7 +99,7 @@ class OfflineQueueService {
         final isOnline =
             results.isNotEmpty && !results.contains(ConnectivityResult.none);
         if (isOnline && !_isProcessing) {
-          _processQueue();
+          unawaited(_processQueue());
         }
       });
 
@@ -99,7 +108,7 @@ class OfflineQueueService {
       final isOnline =
           current.isNotEmpty && !current.contains(ConnectivityResult.none);
       if (isOnline) {
-        _processQueue();
+        unawaited(_processQueue());
       }
 
       _isInitialized = true;
@@ -167,7 +176,7 @@ class OfflineQueueService {
             'image_size_kb': (imageBytes.length / 1024).toStringAsFixed(1),
           });
 
-      AnalyticsService(StorageService()).trackEvent(
+      await _trackQueueAnalyticsEvent(
         eventType: 'classification',
         eventName: 'queued_offline',
         parameters: {
@@ -253,7 +262,7 @@ class OfflineQueueService {
                   'remaining': _queueBox!.length,
                 },
               );
-              AnalyticsService(StorageService()).trackEvent(
+              await _trackQueueAnalyticsEvent(
                 eventType: 'classification',
                 eventName: 'queue_blocked_insufficient_tokens',
                 parameters: {
@@ -288,8 +297,42 @@ class OfflineQueueService {
           // Optional: Show notification
           // await _notifyCompletion(result);
         } catch (e, stackTrace) {
-          // Safety exceptions are terminal — do not retry.
-          if (e is ProductionSafetyException) rethrow;
+          // Safety exceptions are terminal — the entire build is misconfigured.
+          // Refund the token that was just spent, clear all pending queue items
+          // (every item will fail for the same reason), and stop processing.
+          if (e is ProductionSafetyException) {
+            WasteAppLogger.severe(
+              '[PRODUCTION_SAFETY] Offline queue blocked: client AI calls are '
+              'disabled in this build. Clearing all pending items.',
+              error: e,
+              stackTrace: stackTrace,
+              context: {
+                'queue_id': item.id,
+                'items_cleared': _queueBox?.length ?? 0,
+              },
+            );
+            try {
+              await tokenService.earnTokens(
+                AnalysisSpeed.batch.cost,
+                TokenTransactionType.refund,
+                'Offline queue blocked — client AI disabled in build',
+                reference: item.id,
+                metadata: {
+                  'source': 'offline_queue',
+                  'reason': 'production_safety_exception',
+                },
+              );
+            } catch (refundError) {
+              WasteAppLogger.warning(
+                'Failed to refund token after safety block',
+                error: refundError,
+                context: {'queue_id': item.id},
+              );
+            }
+            permanentFailCount += items.length - successCount;
+            await _queueBox?.clear();
+            break; // stop the loop; _processQueue exits normally via finally
+          }
           try {
             await tokenService.earnTokens(
               AnalysisSpeed.batch.cost,
@@ -328,7 +371,7 @@ class OfflineQueueService {
             await item.delete();
             permanentFailCount++;
 
-            AnalyticsService(StorageService()).trackEvent(
+            await _trackQueueAnalyticsEvent(
               eventType: 'classification',
               eventName: 'queue_permanent_fail',
               parameters: {
@@ -359,7 +402,7 @@ class OfflineQueueService {
       'remaining': _queueBox!.length,
     });
 
-    AnalyticsService(StorageService()).trackEvent(
+    await _trackQueueAnalyticsEvent(
       eventType: 'classification',
       eventName: 'queue_processed',
       parameters: {
@@ -403,7 +446,7 @@ class OfflineQueueService {
       'items_cleared': count,
     });
 
-    AnalyticsService(StorageService()).trackEvent(
+    await _trackQueueAnalyticsEvent(
       eventType: 'classification',
       eventName: 'queue_cleared',
       parameters: {
@@ -443,5 +486,27 @@ class OfflineQueueService {
   void dispose() {
     _connectivitySub?.cancel();
     _queueCountController.close();
+  }
+
+  Future<void> _trackQueueAnalyticsEvent({
+    required String eventType,
+    required String eventName,
+    Map<String, dynamic> parameters = const {},
+  }) async {
+    final tracker = analyticsTrackerOverride;
+    if (tracker != null) {
+      await tracker(
+        eventType: eventType,
+        eventName: eventName,
+        parameters: parameters,
+      );
+      return;
+    }
+
+    await AnalyticsService(StorageService()).trackEvent(
+      eventType: eventType,
+      eventName: eventName,
+      parameters: parameters,
+    );
   }
 }

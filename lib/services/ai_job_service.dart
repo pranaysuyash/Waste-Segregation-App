@@ -1,15 +1,11 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http;
+import 'package:cloud_functions/cloud_functions.dart';
 import '../models/ai_job.dart';
-import '../models/token_wallet.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import '../services/token_service.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/waste_app_logger.dart';
-import '../utils/production_safety_config.dart';
 import 'firestore_schema_registry.dart';
 
 /// Service for managing AI analysis jobs using OpenAI Batch API
@@ -22,36 +18,27 @@ import 'firestore_schema_registry.dart';
 class AiJobService {
   AiJobService({
     FirebaseFirestore? firestore,
-    TokenService? tokenService,
     StorageService? storageService,
   })  : _firestoreOverride = firestore,
-        _storageService = storageService ?? StorageService(),
-        _tokenService = tokenService ??
-            TokenService(storageService ?? StorageService(),
-                CloudStorageService(storageService ?? StorageService()));
+        _storageService = storageService ?? StorageService();
 
   final FirebaseFirestore? _firestoreOverride;
   FirebaseFirestore get _firestore =>
       _firestoreOverride ?? FirebaseFirestore.instance;
-  final TokenService _tokenService;
   final StorageService _storageService;
 
   static const String _jobsCollection = FirestoreCollections.aiJobs;
-  static const String _openaiApiBase = 'https://api.openai.com/v1';
 
   /// Creates a new batch job for AI analysis
   ///
   /// This method:
-  /// 1. Deducts tokens from user's wallet
-  /// 2. Uploads image to storage
-  /// 3. Creates JSONL batch file
-  /// 4. Submits to OpenAI Batch API
-  /// 5. Stores job metadata in Firestore
+  /// 1. Uploads image to storage
+  /// 2. Calls backend callable for authoritative token debit + OpenAI batch submission
+  /// 3. Returns created job id
   Future<String> createBatchJob({
     required String userId,
     required File imageFile,
   }) async {
-    ProductionSafetyConfig.guardClientAiCall('OpenAI Batch API');
     try {
       WasteAppLogger.info('Creating batch job for user: $userId', context: {
         'service': 'ai_job_service',
@@ -59,224 +46,55 @@ class AiJobService {
         'userId': userId,
       });
 
-      // 1. Check and deduct tokens
-      final tokenCost = AnalysisSpeed.batch.cost;
-      try {
-        await _tokenService.spendTokens(
-          tokenCost,
-          'Batch AI analysis',
-          reference: 'batch_analysis',
-        );
-      } catch (e) {
-        throw Exception('Insufficient tokens for batch analysis: $e');
-      }
-
-      // 2. Upload image to Cloud Storage
+      // 1. Upload image to Cloud Storage
       final cloudStorageService = CloudStorageService(_storageService);
       final imagePath = await cloudStorageService.uploadImageForBatchProcessing(
         imageFile,
         userId,
       );
 
-      // 3. Create job document
-      final jobId = _firestore.collection(_jobsCollection).doc().id;
-      final job = AiJob(
-        id: jobId,
-        userId: userId,
-        imagePath: imagePath,
-        speed: AnalysisSpeed.batch,
-        status: AiJobStatus.queued,
-        createdAt: DateTime.now(),
-        tokensSpent: tokenCost,
-      );
+      // 2. Delegate authoritative token debit + OpenAI batch submission +
+      //    ai_jobs document creation to backend callable.
+      final callable = FirebaseFunctions.instanceFor(region: 'asia-south1')
+          .httpsCallable('createBatchAiJob');
+      final response = await callable.call(<String, dynamic>{
+        'imageUrl': imagePath,
+      });
 
-      // 4. Create OpenAI batch request
-      final batchFileId = await _createOpenAIBatchFile(job);
-
-      // 5. Submit batch job to OpenAI
-      final openAIBatchId = await _submitOpenAIBatchJob(batchFileId);
-
-      // 6. Update job with OpenAI batch ID
-      final updatedJob = job.copyWith(
-        metadata: {
-          'openAIBatchId': openAIBatchId,
-          'batchFileId': batchFileId,
-        },
-      );
-
-      // 7. Save to Firestore
-      await _firestore
-          .collection(_jobsCollection)
-          .doc(jobId)
-          .set(updatedJob.toJson());
+      final payload = Map<String, dynamic>.from(response.data as Map);
+      final success = payload['success'] == true;
+      final jobId = (payload['jobId'] as String?)?.trim() ?? '';
+      if (!success || jobId.isEmpty) {
+        throw Exception(payload['error'] ?? 'Failed to create batch job');
+      }
 
       WasteAppLogger.info('Batch job created successfully', context: {
         'service': 'ai_job_service',
         'jobId': jobId,
-        'tokenCost': tokenCost,
-        'openAIBatchId': openAIBatchId,
+        'openAIBatchId': payload['openAIBatchId'],
+        'tokensCharged': payload['tokensCharged'],
       });
 
       return jobId;
+    } on FirebaseFunctionsException catch (e) {
+      WasteAppLogger.severe('Backend callable failed to create batch job',
+          error: e,
+          context: {
+            'service': 'ai_job_service',
+            'userId': userId,
+            'code': e.code,
+            'message': e.message,
+          });
+      rethrow;
     } catch (e) {
       WasteAppLogger.severe('Failed to create batch job', error: e, context: {
         'service': 'ai_job_service',
         'userId': userId,
       });
-
-      // Refund tokens on failure
-      try {
-        await _tokenService.earnTokens(
-          AnalysisSpeed.batch.cost,
-          TokenTransactionType.refund,
-          'Batch job creation failed - token refund',
-          reference: 'batch_job_refund',
-        );
-      } catch (refundError) {
-        WasteAppLogger.severe('Failed to refund tokens after batch job failure',
-            error: refundError,
-            context: {
-              'service': 'ai_job_service',
-              'userId': userId,
-            });
-      }
-
       rethrow;
     }
   }
 
-  /// Creates a JSONL file for OpenAI Batch API
-  Future<String> _createOpenAIBatchFile(AiJob job) async {
-    try {
-      // Create batch request in OpenAI format
-      final batchRequest = {
-        'custom_id': 'job-${job.id}',
-        'method': 'POST',
-        'url': '/v1/chat/completions',
-        'body': {
-          'model': 'gpt-4o-mini',
-          'messages': [
-            {
-              'role': 'system',
-              'content': _getSystemPrompt(false),
-            },
-            {
-              'role': 'user',
-              'content': [
-                {
-                  'type': 'text',
-                  'text': 'Classify this waste item for proper disposal.',
-                },
-                {
-                  'type': 'image_url',
-                  'image_url': {
-                    'url': job.imagePath,
-                    'detail': 'high',
-                  },
-                },
-              ],
-            },
-          ],
-          'max_tokens': 1000,
-          'temperature': 0.1,
-          'response_format': {
-            'type': 'json_object',
-          },
-        },
-      };
-
-      // Convert to JSONL format
-      final jsonlContent = json.encode(batchRequest);
-
-      // Upload to OpenAI Files API
-      final fileId =
-          await _uploadToOpenAI(jsonlContent, 'batch_${job.id}.jsonl');
-
-      WasteAppLogger.info('Created OpenAI batch file', context: {
-        'service': 'ai_job_service',
-        'jobId': job.id,
-        'fileId': fileId,
-      });
-
-      return fileId;
-    } catch (e) {
-      WasteAppLogger.severe('Failed to create OpenAI batch file',
-          error: e,
-          context: {
-            'service': 'ai_job_service',
-            'jobId': job.id,
-          });
-      rethrow;
-    }
-  }
-
-  /// Uploads JSONL content to OpenAI Files API
-  Future<String> _uploadToOpenAI(String jsonlContent, String filename) async {
-    try {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$_openaiApiBase/files'),
-      );
-
-      request.headers['Authorization'] = 'Bearer ${_getOpenAIApiKey()}';
-      request.fields['purpose'] = 'batch';
-
-      request.files.add(http.MultipartFile.fromString(
-        'file',
-        jsonlContent,
-        filename: filename,
-      ));
-
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-
-      if (response.statusCode == 200) {
-        final data = json.decode(responseBody);
-        return data['id'];
-      } else {
-        throw Exception('Failed to upload file to OpenAI: $responseBody');
-      }
-    } catch (e) {
-      WasteAppLogger.severe('Failed to upload to OpenAI', error: e, context: {
-        'service': 'ai_job_service',
-        'filename': filename,
-      });
-      rethrow;
-    }
-  }
-
-  /// Submits batch job to OpenAI Batch API
-  Future<String> _submitOpenAIBatchJob(String fileId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_openaiApiBase/batches'),
-        headers: {
-          'Authorization': 'Bearer ${_getOpenAIApiKey()}',
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({
-          'input_file_id': fileId,
-          'endpoint': '/v1/chat/completions',
-          'completion_window': '24h', // OpenAI requires 24h window
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['id'];
-      } else {
-        throw Exception('Failed to submit batch job: ${response.body}');
-      }
-    } catch (e) {
-      WasteAppLogger.severe('Failed to submit OpenAI batch job',
-          error: e,
-          context: {
-            'service': 'ai_job_service',
-            'fileId': fileId,
-          });
-      rethrow;
-    }
-  }
 
   /// Updates job status from OpenAI batch status
   Future<void> updateJobStatus({
@@ -357,21 +175,26 @@ class AiJobService {
 
       final jobs = snapshot.docs.map((doc) => doc.data()).toList();
       final totalJobs = jobs.length;
+      final queuedStatuses = {AiJobStatus.queued.name, AiJobStatus.queued.toString()};
+      final processingStatuses = {AiJobStatus.processing.name, AiJobStatus.processing.toString()};
+      final completedStatuses = {AiJobStatus.completed.name, AiJobStatus.completed.toString()};
+      final failedStatuses = {AiJobStatus.failed.name, AiJobStatus.failed.toString()};
+
       final queuedJobs =
-          jobs.where((job) => job['status'] == AiJobStatus.queued.name).length;
+          jobs.where((job) => queuedStatuses.contains(job['status'])).length;
       final processingJobs = jobs
-          .where((job) => job['status'] == AiJobStatus.processing.name)
+          .where((job) => processingStatuses.contains(job['status']))
           .length;
       final completedJobs = jobs
-          .where((job) => job['status'] == AiJobStatus.completed.name)
+          .where((job) => completedStatuses.contains(job['status']))
           .length;
       final failedJobs =
-          jobs.where((job) => job['status'] == AiJobStatus.failed.name).length;
+          jobs.where((job) => failedStatuses.contains(job['status'])).length;
 
       // Calculate average processing time from completed jobs
       final completedJobsWithTimes = jobs
           .where((job) =>
-              job['status'] == AiJobStatus.completed.name &&
+              completedStatuses.contains(job['status']) &&
               job['completedAt'] != null &&
               job['createdAt'] != null)
           .toList();
@@ -450,13 +273,16 @@ class AiJobService {
 
       final jobs = snapshot.docs.map((doc) => doc.data()).toList();
       final totalJobs = jobs.length;
-      final completedJobs = jobs
-          .where((job) => job['status'] == AiJobStatus.completed.name)
-          .length;
+      final queuedStatuses = {AiJobStatus.queued.name, AiJobStatus.queued.toString()};
+      final completedStatuses = {AiJobStatus.completed.name, AiJobStatus.completed.toString()};
+      final failedStatuses = {AiJobStatus.failed.name, AiJobStatus.failed.toString()};
+
+      final completedJobs =
+          jobs.where((job) => completedStatuses.contains(job['status'])).length;
       final failedJobs =
-          jobs.where((job) => job['status'] == AiJobStatus.failed.name).length;
+          jobs.where((job) => failedStatuses.contains(job['status'])).length;
       final queuedJobs =
-          jobs.where((job) => job['status'] == AiJobStatus.queued.name).length;
+          jobs.where((job) => queuedStatuses.contains(job['status'])).length;
 
       // Log queue statistics for monitoring
       WasteAppLogger.info('Queue health check', context: {
@@ -484,41 +310,5 @@ class AiJobService {
       });
       return QueueHealth.healthy;
     }
-  }
-
-  /// Get the system prompt for waste classification
-  String _getSystemPrompt(bool useSegmentation) {
-    return '''You are an expert waste classification AI. Analyze the provided image and classify the waste item for proper disposal.
-
-IMPORTANT: Your response must be valid JSON with the following structure:
-{
-  "itemName": "string - name of the waste item",
-  "category": "string - waste category (recyclable, organic, hazardous, general)",
-  "confidence": number - confidence score 0-1,
-  "disposalInstructions": "string - how to dispose of this item",
-  "environmentalImpact": "string - environmental impact if disposed incorrectly",
-  "alternativeUses": "string - potential reuse or recycling options",
-  "location": "string - where to dispose (recycling center, compost, etc.)"
-}
-
-Focus on accuracy and provide clear, actionable disposal instructions. Consider local waste management practices and environmental impact.''';
-  }
-
-  /// Get the OpenAI API key from environment or configuration
-  String _getOpenAIApiKey() {
-    // In production, this would come from secure environment variables
-    // For now, return a placeholder that indicates missing configuration
-    const apiKey = String.fromEnvironment('OPENAI_API_KEY');
-
-    if (apiKey.isEmpty) {
-      WasteAppLogger.severe('OpenAI API key not configured', context: {
-        'service': 'ai_job_service',
-        'method': '_getOpenAIApiKey',
-      });
-      throw Exception(
-          'OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.');
-    }
-
-    return apiKey;
   }
 }

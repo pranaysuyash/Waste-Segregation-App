@@ -1,12 +1,9 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../models/premium_feature.dart';
-import '../utils/firebase_gate.dart';
 import '../utils/waste_app_logger.dart';
 import 'premium_service.dart';
 
@@ -19,11 +16,7 @@ class PurchaseService extends ChangeNotifier {
     this._premiumService, {
     StoreBillingGateway? gateway,
     this.productId = _defaultProductId,
-    FirebaseFirestore? firestore,
-    FirebaseAuth? auth,
-  })  : _gateway = gateway ?? InAppPurchaseGateway(),
-        _firestore = firestore,
-        _auth = auth;
+  }) : _gateway = gateway ?? InAppPurchaseGateway();
 
   static const String _defaultProductId = String.fromEnvironment(
       'PREMIUM_SUBSCRIPTION_PRODUCT_ID',
@@ -32,8 +25,6 @@ class PurchaseService extends ChangeNotifier {
   final PremiumService _premiumService;
   final StoreBillingGateway _gateway;
   final String productId;
-  final FirebaseFirestore? _firestore;
-  final FirebaseAuth? _auth;
 
   bool _initialized = false;
   bool _isAvailable = false;
@@ -192,42 +183,12 @@ class PurchaseService extends ChangeNotifier {
   }
 
   Future<void> _grantPremiumEntitlements() async {
-    await _premiumService.setPremiumFeature(
-        PremiumService.proSubscriptionEntitlement, true);
+    // setPremiumPlanEntitlement sets both canonical and legacy Hive flags and
+    // fires the Firestore subscriptionTier sync via PremiumService — no
+    // separate write needed here.
+    await _premiumService.setPremiumPlanEntitlement(true);
     for (final feature in PremiumFeature.features) {
       await _premiumService.setPremiumFeature(feature.id, true);
-    }
-    await _syncSubscriptionTierToFirestore('premium');
-  }
-
-  Future<void> _syncSubscriptionTierToFirestore(String tier) async {
-    if (!isFirebaseEnabled) return;
-    try {
-      final uid = (_auth ?? FirebaseAuth.instance).currentUser?.uid;
-      if (uid == null || uid.isEmpty) {
-        WasteAppLogger.warning(
-          'Cannot sync subscriptionTier: no authenticated user',
-          context: {'service': 'purchase_service', 'tier': tier},
-        );
-        return;
-      }
-      await (_firestore ?? FirebaseFirestore.instance)
-          .collection('users')
-          .doc(uid)
-          .set({'subscriptionTier': tier}, SetOptions(merge: true));
-      WasteAppLogger.info('subscriptionTier synced to Firestore', context: {
-        'service': 'purchase_service',
-        'uid': uid,
-        'tier': tier,
-      });
-    } catch (e, s) {
-      // Non-fatal: local entitlement grant still succeeded.
-      WasteAppLogger.severe(
-        'Failed to sync subscriptionTier to Firestore',
-        error: e,
-        stackTrace: s,
-        context: {'service': 'purchase_service', 'tier': tier},
-      );
     }
   }
 

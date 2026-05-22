@@ -70,7 +70,7 @@ class OnDeviceVisionService {
       final modelDir = Directory(path.join(appDir.path, 'models'));
       final modelFile = File(path.join(modelDir.path, _getModelFileName()));
 
-      if (await modelFile.exists()) {
+      if (modelFile.existsSync()) {
         _modelPath = modelFile.path;
         return true;
       }
@@ -88,8 +88,8 @@ class OnDeviceVisionService {
       final appDir = await getApplicationDocumentsDirectory();
       final modelDir = Directory(path.join(appDir.path, 'models'));
 
-      if (!await modelDir.exists()) {
-        await modelDir.create(recursive: true);
+      if (!modelDir.existsSync()) {
+        modelDir.createSync(recursive: true);
       }
 
       final modelFileName = _getModelFileName();
@@ -263,6 +263,7 @@ class OnDeviceVisionService {
       ],
       region: region ?? 'Global',
       confidence: 0.0, // Indicates placeholder result
+      needsReview: true,
       modelSource: 'on-device-${_config.modelType.name}',
       modelVersion: '1.0.0-placeholder',
     );

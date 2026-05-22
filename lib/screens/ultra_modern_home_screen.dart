@@ -27,7 +27,15 @@ import '../widgets/advanced_ui/achievement_celebration.dart';
 import '../widgets/community_impact_card.dart';
 
 
-/// Ultra-modern home screen with Material 3 design improvements
+/// Deprecated compatibility screen.
+///
+/// Canonical home surface is [HomeScreen] in lib/screens/home_screen.dart.
+/// Keep this only for backward compatibility until routed references are
+/// fully removed.
+@Deprecated(
+  'Use HomeScreen (lib/screens/home_screen.dart). UltraModernHomeScreen is '
+  'kept only as a compatibility surface and is not canonical.',
+)
 class UltraModernHomeScreen extends ConsumerStatefulWidget {
   const UltraModernHomeScreen({super.key, this.isGuestMode = false});
 
@@ -52,6 +60,13 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
   @override
   void initState() {
     super.initState();
+    WasteAppLogger.warning(
+      'UltraModernHomeScreen is deprecated and non-canonical. Prefer HomeScreen.',
+      context: {
+        'screen': 'UltraModernHomeScreen',
+        'canonical_screen': 'HomeScreen',
+      },
+    );
     _initializeAnimations();
   }
 
@@ -582,7 +597,10 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
         return profileAsync.when(
           data: (profile) {
             final totalPoints = profile?.points.total ?? 0;
-            final streakDays = profile?.streaks['daily']?.currentCount ?? 0;
+            final streakDays = profile
+                    ?.streaks[StreakType.dailyClassification.toString()]
+                    ?.currentCount ??
+                0;
 
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1683,33 +1701,6 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${AppStrings.errorTakingPhoto}: $e')),
-        );
-      }
-    } finally {
-      _isNavigating = false;
-    }
-  }
-
-  Future<void> _pickImageInstant() async {
-    if (_isNavigating) return;
-    _isNavigating = true;
-
-    try {
-      final image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 85,
-        maxWidth: 1920,
-        maxHeight: 1080,
-      );
-
-      if (image != null && mounted) {
-        await _navigateToInstantAnalysis(image);
-      }
-    } catch (e) {
-      WasteAppLogger.severe('${AppStrings.errorPickingImage}: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.errorPickingImage}: $e')),
         );
       }
     } finally {

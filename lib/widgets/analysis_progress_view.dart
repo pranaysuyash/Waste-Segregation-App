@@ -6,24 +6,15 @@ import 'package:flutter/services.dart';
 import '../models/classification_state.dart';
 import '../utils/constants.dart';
 
-/// DEPRECATED: Use [ClassificationState] instead. Retained temporarily for
-/// backward compatibility during migration.
-@Deprecated('Use ClassificationState instead')
-enum AnalysisProgressStage {
-  checkingQuality,
-  queuedOffline,
-  uploading,
-  analyzingImage,
-  applyingLocalRules,
-  success,
-  fallback,
-  failedRetryable,
-}
-
+/// Progress/status view rendered during image analysis.
+///
+/// Driven entirely by [ClassificationState] — the canonical lifecycle enum.
+/// Every title, icon, color, and action button is derived from a single
+/// state value, replacing the old boolean/flag approach.
 class AnalysisProgressView extends StatefulWidget {
   const AnalysisProgressView({
     super.key,
-    required this.stage,
+    required this.state,
     this.imageName,
     this.offlineQueueCount,
     this.queuePosition,
@@ -35,93 +26,9 @@ class AnalysisProgressView extends StatefulWidget {
     this.onCancel,
     this.onContinue,
     this.resultCategoryColor,
-    this.showRetry = false,
-    this.showCancel = false,
   });
 
-  /// Construct from canonical [ClassificationState] instead of legacy enum.
-  factory AnalysisProgressView.fromState({
-    Key? key,
-    required ClassificationState state,
-    String? imageName,
-    int? offlineQueueCount,
-    int? queuePosition,
-    String? localRuleChipText,
-    String? statusMessage,
-    String? errorMessage,
-    String? confidenceText,
-    VoidCallback? onRetry,
-    VoidCallback? onCancel,
-    VoidCallback? onContinue,
-    Color? resultCategoryColor,
-  }) {
-    return AnalysisProgressView(
-      key: key,
-      stage: classificationStateToStage(state),
-      imageName: imageName,
-      offlineQueueCount: offlineQueueCount,
-      queuePosition: queuePosition,
-      localRuleChipText: localRuleChipText,
-      statusMessage: statusMessage,
-      errorMessage: errorMessage,
-      confidenceText: confidenceText,
-      onRetry: onRetry,
-      onCancel: onCancel,
-      onContinue: onContinue,
-      resultCategoryColor: resultCategoryColor,
-      showRetry: state == ClassificationState.failedRetryable,
-      showCancel: !_isTerminalDisplayState(state),
-    );
-  }
-
-  static bool _isTerminalDisplayState(ClassificationState state) {
-    return state == ClassificationState.synced ||
-        state == ClassificationState.saved ||
-        state == ClassificationState.cancelled ||
-        state == ClassificationState.failedPermanent;
-  }
-
-  /// Map canonical state to the legacy progress stage for the existing widget.
-  static AnalysisProgressStage classificationStateToStage(
-    ClassificationState cs,
-  ) {
-    switch (cs) {
-      case ClassificationState.idle:
-      case ClassificationState.imageSelected:
-        return AnalysisProgressStage.checkingQuality;
-      case ClassificationState.qualityChecking:
-      case ClassificationState.qualityRejected:
-        return AnalysisProgressStage.checkingQuality;
-      case ClassificationState.cacheChecking:
-        return AnalysisProgressStage.checkingQuality;
-      case ClassificationState.cacheHit:
-        return AnalysisProgressStage.success;
-      case ClassificationState.cloudClassifying:
-      case ClassificationState.localClassifying:
-        return AnalysisProgressStage.analyzingImage;
-      case ClassificationState.queuedOffline:
-        return AnalysisProgressStage.queuedOffline;
-      case ClassificationState.classificationSucceeded:
-        return AnalysisProgressStage.success;
-      case ClassificationState.policyApplied:
-        return AnalysisProgressStage.applyingLocalRules;
-      case ClassificationState.awaitingUserConfirmation:
-        return AnalysisProgressStage.fallback;
-      case ClassificationState.saving:
-      case ClassificationState.saved:
-      case ClassificationState.syncing:
-      case ClassificationState.synced:
-        return AnalysisProgressStage.success;
-      case ClassificationState.failedRetryable:
-        return AnalysisProgressStage.failedRetryable;
-      case ClassificationState.failedPermanent:
-        return AnalysisProgressStage.failedRetryable;
-      case ClassificationState.cancelled:
-        return AnalysisProgressStage.checkingQuality;
-    }
-  }
-
-  final AnalysisProgressStage stage;
+  final ClassificationState state;
   final String? imageName;
   final int? offlineQueueCount;
   final int? queuePosition;
@@ -133,8 +40,24 @@ class AnalysisProgressView extends StatefulWidget {
   final VoidCallback? onCancel;
   final VoidCallback? onContinue;
   final Color? resultCategoryColor;
-  final bool showRetry;
-  final bool showCancel;
+
+  bool get showRetry => state == ClassificationState.failedRetryable;
+
+  bool get showCancel {
+    switch (state) {
+      case ClassificationState.synced:
+      case ClassificationState.saved:
+      case ClassificationState.cancelled:
+      case ClassificationState.failedPermanent:
+        return false;
+      default:
+        return true;
+    }
+  }
+
+  bool get showContinue =>
+      state == ClassificationState.awaitingUserConfirmation ||
+      state == ClassificationState.classificationSucceeded;
 
   @override
   State<AnalysisProgressView> createState() => _AnalysisProgressViewState();
@@ -144,45 +67,52 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
   @override
   void didUpdateWidget(covariant AnalysisProgressView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.stage != widget.stage) {
-      _triggerStageHaptic(widget.stage);
+    if (oldWidget.state != widget.state) {
+      _triggerStateHaptic(widget.state);
     }
   }
 
-  void _triggerStageHaptic(AnalysisProgressStage stage) {
+  void _triggerStateHaptic(ClassificationState state) {
     if (MediaQuery.accessibleNavigationOf(context) ||
         !_shouldAnimate(context)) {
       return;
     }
-
     try {
-      switch (stage) {
-        case AnalysisProgressStage.checkingQuality:
+      switch (state) {
+        case ClassificationState.qualityChecking:
+        case ClassificationState.qualityRejected:
+        case ClassificationState.cacheChecking:
+        case ClassificationState.cloudClassifying:
+        case ClassificationState.localClassifying:
           HapticFeedback.selectionClick();
           break;
-        case AnalysisProgressStage.queuedOffline:
+        case ClassificationState.queuedOffline:
           HapticFeedback.lightImpact();
           break;
-        case AnalysisProgressStage.uploading:
-        case AnalysisProgressStage.analyzingImage:
-          HapticFeedback.selectionClick();
-          break;
-        case AnalysisProgressStage.applyingLocalRules:
+        case ClassificationState.policyApplied:
+        case ClassificationState.classificationSucceeded:
+        case ClassificationState.saved:
+        case ClassificationState.synced:
           HapticFeedback.mediumImpact();
           break;
-        case AnalysisProgressStage.success:
-          HapticFeedback.mediumImpact();
-          break;
-        case AnalysisProgressStage.fallback:
+        case ClassificationState.awaitingUserConfirmation:
           HapticFeedback.selectionClick();
           break;
-        case AnalysisProgressStage.failedRetryable:
+        case ClassificationState.failedRetryable:
           HapticFeedback.heavyImpact();
           break;
+        case ClassificationState.failedPermanent:
+          HapticFeedback.heavyImpact();
+          break;
+        case ClassificationState.idle:
+        case ClassificationState.imageSelected:
+        case ClassificationState.cacheHit:
+        case ClassificationState.saving:
+        case ClassificationState.syncing:
+        case ClassificationState.cancelled:
+          break;
       }
-    } catch (_) {
-      // Haptic feedback is non-critical for state transitions.
-    }
+    } catch (_) {}
   }
 
   bool _shouldAnimate(BuildContext context) {
@@ -198,42 +128,75 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
       );
 
   double get _stageProgress {
-    switch (widget.stage) {
-      case AnalysisProgressStage.checkingQuality:
+    switch (widget.state) {
+      case ClassificationState.idle:
+      case ClassificationState.imageSelected:
+        return 0.0;
+      case ClassificationState.qualityChecking:
+      case ClassificationState.qualityRejected:
+      case ClassificationState.cacheChecking:
         return 0.12;
-      case AnalysisProgressStage.queuedOffline:
-        return 0.22;
-      case AnalysisProgressStage.uploading:
-        return 0.38;
-      case AnalysisProgressStage.analyzingImage:
+      case ClassificationState.cacheHit:
+        return 0.50;
+      case ClassificationState.cloudClassifying:
+      case ClassificationState.localClassifying:
         return 0.62;
-      case AnalysisProgressStage.applyingLocalRules:
+      case ClassificationState.queuedOffline:
+        return 0.22;
+      case ClassificationState.classificationSucceeded:
         return 0.82;
-      case AnalysisProgressStage.success:
-      case AnalysisProgressStage.fallback:
-      case AnalysisProgressStage.failedRetryable:
+      case ClassificationState.policyApplied:
+        return 0.90;
+      case ClassificationState.awaitingUserConfirmation:
+        return 0.95;
+      case ClassificationState.saving:
+      case ClassificationState.syncing:
+        return 0.96;
+      case ClassificationState.saved:
+      case ClassificationState.synced:
+      case ClassificationState.failedRetryable:
+      case ClassificationState.failedPermanent:
+      case ClassificationState.cancelled:
         return 1.0;
     }
   }
 
   String get _stageTitle {
-    switch (widget.stage) {
-      case AnalysisProgressStage.checkingQuality:
+    switch (widget.state) {
+      case ClassificationState.idle:
+      case ClassificationState.imageSelected:
+        return 'Ready to analyze';
+      case ClassificationState.qualityChecking:
+      case ClassificationState.qualityRejected:
+      case ClassificationState.cacheChecking:
         return 'Checking image quality';
-      case AnalysisProgressStage.queuedOffline:
-        return 'Queued for offline processing';
-      case AnalysisProgressStage.uploading:
-        return 'Uploading image';
-      case AnalysisProgressStage.analyzingImage:
+      case ClassificationState.cacheHit:
+        return 'Found cached result';
+      case ClassificationState.cloudClassifying:
+      case ClassificationState.localClassifying:
         return 'Analyzing image';
-      case AnalysisProgressStage.applyingLocalRules:
+      case ClassificationState.queuedOffline:
+        return 'Queued for offline processing';
+      case ClassificationState.classificationSucceeded:
+        return 'Classification complete';
+      case ClassificationState.policyApplied:
         return 'Applying local rules';
-      case AnalysisProgressStage.success:
-        return 'Result ready';
-      case AnalysisProgressStage.fallback:
+      case ClassificationState.awaitingUserConfirmation:
         return 'Result needs review';
-      case AnalysisProgressStage.failedRetryable:
+      case ClassificationState.saving:
+        return 'Saving result';
+      case ClassificationState.saved:
+        return 'Saved';
+      case ClassificationState.syncing:
+        return 'Syncing to cloud';
+      case ClassificationState.synced:
+        return 'Synced';
+      case ClassificationState.failedRetryable:
         return 'Analysis interrupted';
+      case ClassificationState.failedPermanent:
+        return 'Analysis failed';
+      case ClassificationState.cancelled:
+        return 'Cancelled';
     }
   }
 
@@ -241,37 +204,94 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
     if (widget.statusMessage != null && widget.statusMessage!.isNotEmpty) {
       return widget.statusMessage!;
     }
-
-    switch (widget.stage) {
-      case AnalysisProgressStage.checkingQuality:
+    switch (widget.state) {
+      case ClassificationState.idle:
+      case ClassificationState.imageSelected:
+        return 'Tap analyze to start.';
+      case ClassificationState.qualityChecking:
+      case ClassificationState.qualityRejected:
+      case ClassificationState.cacheChecking:
         return 'Validating sharpness, brightness, and resolution.';
-      case AnalysisProgressStage.queuedOffline:
-        return 'Offline network is enabled fallback queue; your item is stored and will process when online.';
-      case AnalysisProgressStage.uploading:
-        return 'Preparing your photo and metadata for secure processing.';
-      case AnalysisProgressStage.analyzingImage:
+      case ClassificationState.cacheHit:
+        return 'Using a previous result for this image.';
+      case ClassificationState.cloudClassifying:
+      case ClassificationState.localClassifying:
         return 'Model inference, classification, and confidence scoring.';
-      case AnalysisProgressStage.applyingLocalRules:
+      case ClassificationState.queuedOffline:
+        return 'Offline queue: your item is stored and will process when online.';
+      case ClassificationState.classificationSucceeded:
+        return 'Category and local guidance are being finalized.';
+      case ClassificationState.policyApplied:
         return 'Checking municipal guidance and local disposal hints.';
-      case AnalysisProgressStage.success:
-        return 'Category and local guidance have been finalized.';
-      case AnalysisProgressStage.fallback:
+      case ClassificationState.awaitingUserConfirmation:
         return 'The result is available but needs manual verification.';
-      case AnalysisProgressStage.failedRetryable:
+      case ClassificationState.saving:
+        return 'Writing classification to local storage.';
+      case ClassificationState.saved:
+        return 'Classification saved successfully.';
+      case ClassificationState.syncing:
+        return 'Uploading to cloud storage.';
+      case ClassificationState.synced:
+        return 'Fully synced.';
+      case ClassificationState.failedRetryable:
         return 'We can retry this step with the same image.';
+      case ClassificationState.failedPermanent:
+        return 'This cannot be retried. Please start again.';
+      case ClassificationState.cancelled:
+        return 'Analysis was cancelled.';
     }
   }
 
   Color _primaryColor(BuildContext context) {
     final theme = Theme.of(context);
     final base = widget.resultCategoryColor ?? AppTheme.primaryColor;
-    if (widget.stage == AnalysisProgressStage.fallback) {
-      return theme.colorScheme.error;
+    switch (widget.state) {
+      case ClassificationState.awaitingUserConfirmation:
+      case ClassificationState.failedRetryable:
+      case ClassificationState.failedPermanent:
+        return theme.colorScheme.error;
+      default:
+        return base;
     }
-    if (widget.stage == AnalysisProgressStage.failedRetryable) {
-      return theme.colorScheme.error;
+  }
+
+  IconData get _stageIcon {
+    switch (widget.state) {
+      case ClassificationState.idle:
+      case ClassificationState.imageSelected:
+        return Icons.image_outlined;
+      case ClassificationState.qualityChecking:
+      case ClassificationState.qualityRejected:
+      case ClassificationState.cacheChecking:
+        return Icons.fact_check_outlined;
+      case ClassificationState.cacheHit:
+        return Icons.memory;
+      case ClassificationState.cloudClassifying:
+      case ClassificationState.localClassifying:
+        return Icons.psychology_outlined;
+      case ClassificationState.queuedOffline:
+        return Icons.cloud_queue;
+      case ClassificationState.classificationSucceeded:
+        return Icons.check_circle_outline;
+      case ClassificationState.policyApplied:
+        return Icons.gavel;
+      case ClassificationState.awaitingUserConfirmation:
+        return Icons.help_outline;
+      case ClassificationState.saving:
+        return Icons.save_outlined;
+      case ClassificationState.saved:
+        return Icons.save;
+      case ClassificationState.syncing:
+        return Icons.cloud_upload_outlined;
+      case ClassificationState.synced:
+        return Icons.cloud_done;
+      case ClassificationState.failedRetryable:
+        return Icons.refresh;
+      case ClassificationState.failedPermanent:
+        return Icons.error_outline;
+      case ClassificationState.cancelled:
+        return Icons.cancel_outlined;
     }
-    return base;
   }
 
   @override
@@ -279,6 +299,7 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
     final theme = Theme.of(context);
     final reducedMotion = !_shouldAnimate(context);
     final stageColor = _primaryColor(context);
+    final cs = widget.state;
 
     return SafeArea(
       child: Padding(
@@ -336,14 +357,14 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                if (widget.stage == AnalysisProgressStage.queuedOffline)
+                if (cs == ClassificationState.queuedOffline)
                   _buildQueuedStack(reducedMotion, stageColor),
-                if (widget.stage == AnalysisProgressStage.applyingLocalRules)
+                if (cs == ClassificationState.policyApplied)
                   _buildRuleChip(context, reducedMotion, stageColor),
                 if (widget.confidenceText != null &&
                     widget.confidenceText!.isNotEmpty &&
-                    (widget.stage == AnalysisProgressStage.fallback ||
-                        widget.stage == AnalysisProgressStage.success))
+                    (cs == ClassificationState.awaitingUserConfirmation ||
+                        cs == ClassificationState.classificationSucceeded))
                   _buildConfidenceRow(theme, stageColor),
                 const SizedBox(height: 16),
                 AnimatedSwitcher(
@@ -351,7 +372,7 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
                   switchInCurve: Curves.easeOutCubic,
                   switchOutCurve: Curves.easeInCubic,
                   child: Column(
-                    key: ValueKey(widget.stage),
+                    key: ValueKey(cs),
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       LinearProgressIndicator(
@@ -372,15 +393,15 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
                   AnimatedSwitcher(
                     duration: _microAnimationDuration,
                     child: Container(
-                      key: ValueKey('error-${widget.stage}'),
+                      key: ValueKey('error-${cs.name}'),
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.errorContainer
                             .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color:
-                              theme.colorScheme.error.withValues(alpha: 0.45),
+                          color: theme.colorScheme.error
+                              .withValues(alpha: 0.45),
                         ),
                       ),
                       child: Text(
@@ -410,7 +431,7 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
                           widget.showCancel)
                         const SizedBox(width: 8),
                       if (widget.onContinue != null &&
-                          widget.stage == AnalysisProgressStage.fallback)
+                          cs == ClassificationState.awaitingUserConfirmation)
                         Expanded(
                           child: TextButton(
                             onPressed: widget.onContinue,
@@ -419,14 +440,14 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
                         ),
                       if (widget.onRetry != null &&
                           widget.showRetry &&
-                          widget.stage == AnalysisProgressStage.failedRetryable)
+                          cs == ClassificationState.failedRetryable)
                         Expanded(
                           child: ElevatedButton(
                             onPressed: widget.onRetry,
                             child: const Text('Retry'),
                           ),
                         ),
-                      if (widget.stage == AnalysisProgressStage.success &&
+                      if (cs == ClassificationState.classificationSucceeded &&
                           widget.onContinue != null)
                         Expanded(
                           child: ElevatedButton(
@@ -447,8 +468,9 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
 
   bool _shouldRenderError(BuildContext context) {
     return widget.errorMessage != null &&
-        (widget.stage == AnalysisProgressStage.fallback ||
-            widget.stage == AnalysisProgressStage.failedRetryable);
+        (widget.state == ClassificationState.awaitingUserConfirmation ||
+            widget.state == ClassificationState.failedRetryable ||
+            widget.state == ClassificationState.failedPermanent);
   }
 
   Widget _buildLeadingIcon(ThemeData theme, Color stageColor) {
@@ -483,51 +505,39 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
     );
   }
 
-  IconData get _stageIcon {
-    switch (widget.stage) {
-      case AnalysisProgressStage.checkingQuality:
-        return Icons.fact_check_outlined;
-      case AnalysisProgressStage.queuedOffline:
-        return Icons.cloud_queue;
-      case AnalysisProgressStage.uploading:
-        return Icons.cloud_upload_outlined;
-      case AnalysisProgressStage.analyzingImage:
-        return Icons.psychology_outlined;
-      case AnalysisProgressStage.applyingLocalRules:
-        return Icons.gavel;
-      case AnalysisProgressStage.success:
-        return Icons.check_circle;
-      case AnalysisProgressStage.fallback:
-        return Icons.help_outline;
-      case AnalysisProgressStage.failedRetryable:
-        return Icons.refresh;
-    }
-  }
-
   Widget _buildStagedSubtext(BuildContext context, Color stageColor) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
-        _buildPill(context, 'Quality',
-            widget.stage != AnalysisProgressStage.checkingQuality),
         _buildPill(
-            context, 'Upload', _stageReached(AnalysisProgressStage.uploading)),
-        _buildPill(context, 'Analyze',
-            _stageReached(AnalysisProgressStage.analyzingImage)),
+          context,
+          'Quality',
+          _stateReached(ClassificationState.cacheChecking),
+        ),
+        _buildPill(
+          context,
+          'Analyze',
+          _stateReached(ClassificationState.cloudClassifying),
+        ),
         _buildPill(
           context,
           'Local rules',
-          _stageReached(AnalysisProgressStage.applyingLocalRules),
+          _stateReached(ClassificationState.policyApplied),
           accent: stageColor,
+        ),
+        _buildPill(
+          context,
+          'Save',
+          _stateReached(ClassificationState.saving),
         ),
       ],
     );
   }
 
-  bool _stageReached(AnalysisProgressStage value) {
-    const order = AnalysisProgressStage.values;
-    return order.indexOf(widget.stage) >= order.indexOf(value);
+  bool _stateReached(ClassificationState threshold) {
+    const order = ClassificationState.values;
+    return order.indexOf(widget.state) >= order.indexOf(threshold);
   }
 
   Widget _buildPill(BuildContext context, String label, bool active,
@@ -580,7 +590,6 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
       child: Stack(
         alignment: Alignment.center,
         children: List.generate(stackDepth, (index) {
-          final delay = reducedMotion ? 0.0 : index * 0.12;
           return AnimatedSlide(
             duration: _macroAnimationDuration,
             curve: Curves.easeOutCubic,

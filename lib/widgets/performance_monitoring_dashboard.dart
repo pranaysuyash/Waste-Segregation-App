@@ -258,12 +258,6 @@ class _PerformanceMonitoringDashboardState
     final totalAnalyses = stats['total_analyses'] as int;
 
     // Estimate potential savings with different strategies
-    final currentAvgCost = totalAnalyses > 0 ? totalCost / totalAnalyses : 0.0;
-    final onDevicePercent = double.tryParse(
-            stats['on_device_percentage'].toString().replaceAll('%', '')) ??
-        0.0;
-
-    // Calculate what cost would be with different strategies
     final cloudOnlyCost = totalAnalyses * 0.01; // $0.01 per analysis
     final hybridCost = totalAnalyses * 0.003; // 70% on-device
     const onDeviceCost = 0.0;

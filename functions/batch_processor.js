@@ -9,13 +9,10 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// Migration bridge for Functions 2nd gen: prefer process.env, keep
-// functions.config() fallback until legacy config is fully removed.
+// 2nd-gen-safe secret resolution: env/params only.
+// Legacy functions.config() fallback has been removed intentionally.
 const getOpenAiApiKey = () => {
-  return process.env.OPENAI_API_KEY
-    || process.env.OPENAI_KEY
-    || functions.config().openai?.api_key
-    || functions.config().openai?.key;
+  return process.env.OPENAI_API_KEY || process.env.OPENAI_KEY;
 };
 
 /**

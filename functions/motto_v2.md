@@ -490,6 +490,27 @@ If logic is preserved but not used, inventory it before deleting or archiving.
 
 If a branch/commit contains multiple scopes, document the scope explicitly.
 
+### 15.1 Project Artifact Location Rule
+
+All project-related artifacts — plans, implementation docs, worklogs, reports, investigation notes, handoff content, agent-generated plans, review findings — MUST live inside the project tree.
+
+**Forbidden locations** for project artifacts:
+
+- `/tmp/`
+- `~/.claude/` (plans, memory, settings are agent infrastructure, NOT project docs)
+- `~/.codex/`, `~/.gemini/`, `~/.agents/`, or any other agent-specific directory outside the project
+- Any path outside the project root that is not a global instruction file (`AGENTS.md`, `CLAUDE.md`, `motto_v2.md`)
+
+**Required locations** for project artifacts:
+
+- Plans → `docs/implementation/` or `docs/planning/`
+- Review findings → `docs/review/`
+- Investigation/issue notes → `docs/review/` or `docs/archive/`
+- Worklogs → `docs/` with appropriate subdirectory
+- Agent context packs → `Docs/context/agent-start/` (already the canonical path)
+
+**Why**: Scattering project work across agent directories, tmp, or user home makes artifacts invisible to other agents, fails to survive project moves, and breaks the single-source-of-truth principle. The project tree IS the source of truth.
+
 ---
 
 ## 16. Branch / Review Branch Rules

@@ -14,23 +14,39 @@ import '../utils/waste_app_logger.dart';
 import 'firestore_schema_registry.dart';
 
 class GoogleDriveService {
-  GoogleDriveService(this._storageService);
-  final GoogleSignIn? _googleSignIn = kIsWeb
-      ? null
-      : GoogleSignIn(
-          scopes: [
-            'email',
-            'https://www.googleapis.com/auth/drive.file',
-          ],
-        );
+  GoogleDriveService(
+    this._storageService, {
+    GoogleSignIn? googleSignIn,
+    FirebaseFirestore? firestore,
+    Future<Directory> Function()? temporaryDirectoryProvider,
+    Future<http.Client> Function()? authenticatedHttpClientOverride,
+  })  : _googleSignIn = googleSignIn ??
+            (kIsWeb
+                ? null
+                : GoogleSignIn(
+                    scopes: [
+                      'email',
+                      'https://www.googleapis.com/auth/drive.file',
+                    ],
+                  )),
+        _firestore = firestore,
+        _temporaryDirectoryProvider =
+            temporaryDirectoryProvider ?? getTemporaryDirectory,
+        _authenticatedHttpClientOverride = authenticatedHttpClientOverride;
 
+  final GoogleSignIn? _googleSignIn;
   final StorageService _storageService;
-  late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore? _firestore;
+  final Future<Directory> Function() _temporaryDirectoryProvider;
+  final Future<http.Client> Function()? _authenticatedHttpClientOverride;
+
+  FirebaseFirestore get _firestoreInstance =>
+      _firestore ?? FirebaseFirestore.instance;
 
   // Helper method to fetch UserProfile from Firestore
   Future<UserProfile?> _fetchUserProfileFromFirestore(String userId) async {
     try {
-      final docSnapshot = await _firestore
+      final docSnapshot = await _firestoreInstance
           .collection(FirestoreCollections.users)
           .doc(userId)
           .get();
@@ -113,7 +129,7 @@ class GoogleDriveService {
         if (userProfile.createdAt == userProfile.lastActive) {
           // Heuristic for new profile
           try {
-            await _firestore
+            await _firestoreInstance
                 .collection(FirestoreCollections.users)
                 .doc(userProfile.id)
                 .set(userProfile.toJson(), SetOptions(merge: true));
@@ -159,6 +175,11 @@ class GoogleDriveService {
 
   // Get authenticated HTTP client
   Future<http.Client> _getAuthenticatedHttpClient() async {
+    final override = _authenticatedHttpClientOverride;
+    if (override != null) {
+      return override();
+    }
+
     final googleSignIn = _googleSignIn;
     if (googleSignIn == null) {
       throw UnsupportedError(
@@ -191,7 +212,7 @@ class GoogleDriveService {
       final driveApi = drive.DriveApi(client);
 
       // Create a temporary file
-      final tempDir = await getTemporaryDirectory();
+      final tempDir = await _temporaryDirectoryProvider();
       final extension = p.extension(fileName);
       final safeFileName = sanitizeFileName(
         fileName,

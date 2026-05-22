@@ -182,64 +182,6 @@ class ClassificationCard extends StatelessWidget {
     );
   }
 
-  void _showDetails(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        builder: (_, ctl) => Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: ListView(
-            controller: ctl,
-            padding: const EdgeInsets.all(20),
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Text(
-                'Classification Details',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Text(classification.itemName,
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Text('Category: ${classification.category}'),
-              if (classification.confidence != null)
-                Text(
-                    'Confidence: ${(classification.confidence! * 100).toInt()}%'),
-              if (classification.disposalMethod != null)
-                Text('Disposal: ${classification.disposalMethod}'),
-              Text(
-                  'Date: ${_formatDate(classification.timestamp)} at ${_formatTime(classification.timestamp)}'),
-              if (classification.environmentalImpact != null)
-                Text(
-                    'Environmental Impact: +${classification.environmentalImpact} points'),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Color _categoryColor(String cat) => WasteTheme.categoryColor(cat);
 
   IconData _categoryIcon(String cat) => WasteTheme.categoryIcon(cat);
@@ -271,29 +213,5 @@ class ClassificationCard extends StatelessWidget {
     if (diff.inDays == 1) return 'Yesterday';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
     return '${ts.day}/${ts.month}/${ts.year}';
-  }
-
-  String _formatDate(DateTime dateTime) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final classificationDate =
-        DateTime(dateTime.year, dateTime.month, dateTime.day);
-
-    if (classificationDate == today) {
-      return 'Today';
-    } else if (classificationDate == yesterday) {
-      return 'Yesterday';
-    } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    }
-  }
-
-  String _formatTime(DateTime dateTime) {
-    final hour = dateTime.hour;
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-    return '$displayHour:$minute $period';
   }
 }

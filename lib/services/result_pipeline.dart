@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../models/classification_state.dart';
 import '../models/gamification.dart';
 import '../models/classification_feedback.dart';
 import '../services/storage_service.dart';
@@ -16,6 +17,7 @@ import '../utils/share_service.dart';
 import '../utils/waste_app_logger.dart';
 import '../utils/error_handler.dart';
 import '../providers/app_providers.dart';
+import '../providers/classification_state_provider.dart';
 
 /// Result of a feedback submission, carrying outcome details for the UI.
 class FeedbackResult {
@@ -92,7 +94,9 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     this._adService,
     this._analyticsService, {
     TrainingDataService? trainingDataService,
+    ClassificationStateMachineNotifier? stateMachine,
   })  : _trainingDataService = trainingDataService,
+        _stateMachine = stateMachine,
         super(const ResultPipelineState());
   final StorageService _storageService;
   final GamificationService _gamificationService;
@@ -101,9 +105,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
   final AdService _adService;
   final AnalyticsService _analyticsService;
   final TrainingDataService? _trainingDataService;
-
-  // Track classifications being processed to prevent duplicates
-  static final Set<String> _processingClassifications = <String>{};
+  final ClassificationStateMachineNotifier? _stateMachine;
 
   /// Main pipeline execution - processes classification through all stages
   Future<void> processClassification(
@@ -113,17 +115,27 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
   }) async {
     final classificationId = classification.id;
 
-    // Prevent duplicate processing
-    if (_processingClassifications.contains(classificationId) && !force) {
-      WasteAppLogger.warning('Classification already being processed',
+    // State machine guard: prevent duplicate pipeline runs.
+    // After the first successful transition to saving, subsequent calls
+    // will fail the transition guard (saving → saving is not allowed).
+    if (!force && _stateMachine != null) {
+      final sm = _stateMachine;
+      final cs = sm.current;
+      if (cs != ClassificationState.classificationSucceeded &&
+          cs != ClassificationState.policyApplied &&
+          cs != ClassificationState.awaitingUserConfirmation) {
+        WasteAppLogger.warning(
+          'Pipeline blocked by state machine (${cs.name})',
           context: {
             'classificationId': classificationId,
             'service': 'ResultPipeline',
-          });
-      return;
+          },
+        );
+        return;
+      }
+      sm.transitionTo(ClassificationState.saving);
     }
 
-    _processingClassifications.add(classificationId);
     state = state.copyWith(isProcessing: true);
 
     try {
@@ -131,8 +143,8 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       WasteAppLogger.info('Starting classification processing pipeline',
           context: {
             'classificationId': classificationId,
-          'stage': 'local_save',
-          'service': 'ResultPipeline',
+            'stage': 'local_save',
+            'service': 'ResultPipeline',
           });
 
       final duplicateClassificationId = force
@@ -247,6 +259,9 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       // Stage 5: Maybe show interstitial ad
       _maybeShowInterstitial();
 
+      // Mark saved in the state machine
+      _stateMachine?.tryTransitionTo(ClassificationState.saved);
+
       // Update state with results
       state = state.copyWith(
         isProcessing: false,
@@ -264,6 +279,9 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
             'service': 'ResultPipeline',
           });
     } catch (error, stackTrace) {
+      _stateMachine?.tryTransitionTo(
+        ClassificationState.failedRetryable,
+      );
       WasteAppLogger.severe('Classification processing pipeline failed',
           error: error,
           stackTrace: stackTrace,
@@ -276,8 +294,6 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         isProcessing: false,
         error: error.toString(),
       );
-    } finally {
-      _processingClassifications.remove(classificationId);
     }
   }
 
@@ -795,6 +811,8 @@ final resultPipelineProvider =
   final adService = ref.read(adServiceProvider);
   final analyticsService = ref.read(analyticsServiceProvider);
   final trainingDataService = ref.read(trainingDataServiceProvider);
+  final stateMachine =
+      ref.read(classificationStateMachineProvider.notifier);
 
   return ResultPipeline(
     storageService,
@@ -804,6 +822,7 @@ final resultPipelineProvider =
     adService,
     analyticsService,
     trainingDataService: trainingDataService,
+    stateMachine: stateMachine,
   );
 });
 

@@ -1,0 +1,27 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Batch AI pipeline images (user-owned)
+    match /batch_images/{userId}/{allPaths=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Community contribution photos (user-owned)
+    match /contribution_photos/{userId}/{allPaths=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Default deny for everything else.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -7,8 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import '../models/detected_waste_region.dart';
-import '../models/multi_item_classification_result.dart';
 import '../utils/constants.dart';
 import '../utils/design_system.dart';
 import '../widgets/analysis_progress_view.dart';
@@ -21,6 +19,8 @@ import '../providers/ai_job_providers.dart';
 import '../providers/app_providers.dart';
 import '../providers/classification_state_provider.dart';
 import '../providers/token_providers.dart';
+import '../providers/layer0_providers.dart';
+import '../services/layer0_router.dart';
 import '../services/image_quality_gate.dart';
 import '../services/offline_queue_service.dart';
 import 'result_screen_wrapper.dart';
@@ -390,7 +390,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
   Widget _buildAnalysisProgressView() {
     final cs = _classificationState;
-    return AnalysisProgressView.fromState(
+    return AnalysisProgressView(
       state: cs,
       imageName: _currentImageName(),
       offlineQueueCount: _pendingQueueItems,
@@ -761,6 +761,58 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           _stateMachineNotifier.reset();
         }
         return;
+      }
+    }
+
+    // Layer 0: Deterministic pre-processing classifier (zero AI cost).
+    // Runs before the quota re-check because a Layer 0 accept costs zero tokens.
+    if (imageBytes != null && imageBytes.isNotEmpty) {
+      try {
+        final layer0Enabled = await ref.read(layer0EnabledProvider.future);
+        if (layer0Enabled) {
+          _setClassificationState(ClassificationState.localClassifying);
+          final router = ref.read(layer0RouterProvider);
+          final layer0Result = await router.classify(
+            imageBytes: imageBytes,
+            region: 'Bangalore, IN',
+          );
+
+          if (layer0Result.decision == Layer0Decision.accept &&
+              layer0Result.wasteClassification != null) {
+            WasteAppLogger.aiEvent(
+              'Layer 0 accepted classification',
+              model: 'layer0_deterministic',
+              context: {
+                'category': layer0Result.wasteClassification!.category,
+                'route_reason': layer0Result.routeReason,
+                'processing_time_ms': layer0Result.totalProcessingTimeMs,
+              },
+            );
+            if (mounted && !_isCancelled) {
+              await _showResultOrFallback(
+                layer0Result.wasteClassification!,
+              );
+            }
+            return;
+          }
+          // Layer 0 did not accept — fall through to cloud classification.
+          // Log the decision for analytics.
+          WasteAppLogger.aiEvent(
+            'Layer 0 ${layer0Result.decision.name}',
+            model: 'layer0_deterministic',
+            context: {
+              'route_reason': layer0Result.routeReason,
+              'processing_time_ms': layer0Result.totalProcessingTimeMs,
+            },
+          );
+        }
+      } catch (e, s) {
+        WasteAppLogger.warning(
+          'Layer 0 error, falling back to AI',
+          error: e,
+          stackTrace: s,
+        );
+        // Fall through to cloud classification.
       }
     }
 
