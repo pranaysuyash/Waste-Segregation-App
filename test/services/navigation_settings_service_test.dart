@@ -212,17 +212,20 @@ void main() {
         expect(notificationCount, equals(3));
       });
 
-      test('should handle custom navigation styles', () async {
+      test('should reject invalid navigation styles and keep prior style',
+          () async {
+        // Starts at default.
+        expect(service.navigationStyle, equals('glassmorphism'));
+
         await service.setNavigationStyle('custom_style');
-        expect(service.navigationStyle, equals('custom_style'));
+        expect(service.navigationStyle, equals('glassmorphism'));
 
         await service.setNavigationStyle('');
-        expect(service.navigationStyle, equals(''));
+        expect(service.navigationStyle, equals('glassmorphism'));
 
         await service.setNavigationStyle(
             'very_long_style_name_with_special_chars_123!@#');
-        expect(service.navigationStyle,
-            equals('very_long_style_name_with_special_chars_123!@#'));
+        expect(service.navigationStyle, equals('glassmorphism'));
       });
     });
 
@@ -432,7 +435,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         await service.setNavigationStyle('');
-        expect(service.navigationStyle, equals(''));
+        expect(service.navigationStyle, equals('glassmorphism'));
       });
 
       test('should handle very long navigation style', () async {
@@ -441,7 +444,7 @@ void main() {
 
         final longStyle = 'a' * 1000;
         await service.setNavigationStyle(longStyle);
-        expect(service.navigationStyle, equals(longStyle));
+        expect(service.navigationStyle, equals('glassmorphism'));
       });
 
       test('should handle special characters in navigation style', () async {
@@ -450,7 +453,7 @@ void main() {
 
         const specialStyle = 'style-with_special.chars@123!';
         await service.setNavigationStyle(specialStyle);
-        expect(service.navigationStyle, equals(specialStyle));
+        expect(service.navigationStyle, equals('glassmorphism'));
       });
 
       test('should handle unicode characters in navigation style', () async {
@@ -459,7 +462,7 @@ void main() {
 
         const unicodeStyle = 'стиль_навигации_🎯_テーマ';
         await service.setNavigationStyle(unicodeStyle);
-        expect(service.navigationStyle, equals(unicodeStyle));
+        expect(service.navigationStyle, equals('glassmorphism'));
       });
     });
 
@@ -504,7 +507,8 @@ void main() {
         expect(service.bottomNavEnabled,
             isFalse); // i=9, 9%2 != 0, so setBottomNavEnabled(false)
         expect(service.fabEnabled, isTrue); // i=9, 9%3 == 0, so true
-        expect(service.navigationStyle, equals('style_9'));
+        expect(service.navigationStyle,
+            equals('glassmorphism')); // invalid custom styles are rejected
       });
     });
 
@@ -531,7 +535,8 @@ void main() {
         expect(service.bottomNavEnabled,
             isFalse); // 99 % 2 != 0, so setBottomNavEnabled(false)
         expect(service.fabEnabled, isTrue); // 99 % 3 == 0
-        expect(service.navigationStyle, equals('style_4')); // 99 % 5 = 4
+        expect(service.navigationStyle,
+            equals('glassmorphism')); // style_${i % 5} values are invalid
       });
 
       test('should handle many listeners efficiently', () async {

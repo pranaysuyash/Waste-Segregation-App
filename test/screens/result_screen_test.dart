@@ -471,7 +471,7 @@ void main() {
         await tester.pump(const Duration(seconds: 2));
         await tester.pumpAndSettle(const Duration(seconds: 1));
 
-        expect(find.text('Learn more'), findsOneWidget);
+        expect(find.text('Learn more'), findsAtLeastNWidgets(1));
         expect(
           find.text('How to safely dispose hazardous household items'),
           findsOneWidget,

@@ -1291,6 +1291,7 @@ class StreakDetails {
     required this.lastActivityDate,
     this.lastMaintenanceAwardedDate,
     this.lastMilestoneAwardedLevel = 0,
+    this.streakFreezesAvailable = 0,
   });
 
   factory StreakDetails.fromJson(Map<String, dynamic> json) {
@@ -1304,6 +1305,7 @@ class StreakDetails {
           ? DateTime.parse(json['lastMaintenanceAwardedDate'])
           : null,
       lastMilestoneAwardedLevel: json['lastMilestoneAwardedLevel'] ?? 0,
+      streakFreezesAvailable: json['streakFreezesAvailable'] ?? 0,
     );
   }
   @HiveField(0)
@@ -1318,6 +1320,8 @@ class StreakDetails {
   final DateTime? lastMaintenanceAwardedDate;
   @HiveField(5)
   final int lastMilestoneAwardedLevel;
+  @HiveField(6)
+  final int streakFreezesAvailable;
 
   Map<String, dynamic> toJson() => {
         'type': type.name,
@@ -1327,6 +1331,7 @@ class StreakDetails {
         'lastMaintenanceAwardedDate':
             lastMaintenanceAwardedDate?.toIso8601String(),
         'lastMilestoneAwardedLevel': lastMilestoneAwardedLevel,
+        'streakFreezesAvailable': streakFreezesAvailable,
       };
 
   StreakDetails copyWith({
@@ -1336,6 +1341,7 @@ class StreakDetails {
     DateTime? lastActivityDate,
     DateTime? lastMaintenanceAwardedDate,
     int? lastMilestoneAwardedLevel,
+    int? streakFreezesAvailable,
   }) {
     return StreakDetails(
       type: type ?? this.type,
@@ -1346,6 +1352,8 @@ class StreakDetails {
           lastMaintenanceAwardedDate ?? this.lastMaintenanceAwardedDate,
       lastMilestoneAwardedLevel:
           lastMilestoneAwardedLevel ?? this.lastMilestoneAwardedLevel,
+      streakFreezesAvailable:
+          streakFreezesAvailable ?? this.streakFreezesAvailable,
     );
   }
 }

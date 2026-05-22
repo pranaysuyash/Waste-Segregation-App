@@ -72,8 +72,8 @@ const Map<String, ({String category, String subcategory})> _foodCategoryToWaste 
 /// Standalone service that looks up a barcode via the Open Food Facts API
 /// and maps the product's packaging/category to a waste classification.
 ///
-/// This is NOT a [LocalClassifier] — it takes a barcode string, not image bytes.
-/// The [Layer0Router] unifies this with the color histogram classifier.
+/// This is NOT a `LocalClassifier` — it takes a barcode string, not image bytes.
+/// The `Layer0Router` unifies this with the color histogram classifier.
 class BarcodeLookupService {
   BarcodeLookupService({http.Client? client}) : _client = client ?? http.Client();
 

@@ -22,6 +22,10 @@ const {
   getClassifyRateLimitConfig,
   getCacheTtlSeconds,
   getClassifyTokenCost,
+  getClassifyPremiumDiscountPercent,
+  getDailyFreeScanLimit,
+  toUtcDayKey,
+  resolveDailyFreeUsageState,
   estimateCostUsd,
   buildClassificationPrompt,
   buildReservationId,
@@ -149,6 +153,59 @@ test('getClassifyTokenCost: minimum 1 even when env says 0', () => {
   process.env.CLASSIFY_IMAGE_TOKEN_COST = '0';
   assert.equal(getClassifyTokenCost(), 1);
   delete process.env.CLASSIFY_IMAGE_TOKEN_COST;
+});
+
+test('getClassifyTokenCost: canonical MONETIZATION_* env key takes precedence', () => {
+  process.env.MONETIZATION_CLASSIFY_IMAGE_TOKEN_COST = '7';
+  process.env.CLASSIFY_IMAGE_TOKEN_COST = '3';
+  assert.equal(getClassifyTokenCost(), 7);
+  delete process.env.MONETIZATION_CLASSIFY_IMAGE_TOKEN_COST;
+  delete process.env.CLASSIFY_IMAGE_TOKEN_COST;
+});
+
+test('getClassifyPremiumDiscountPercent: canonical MONETIZATION_* env key takes precedence', () => {
+  process.env.MONETIZATION_CLASSIFY_IMAGE_PREMIUM_DISCOUNT_PERCENT = '35';
+  process.env.CLASSIFY_IMAGE_PREMIUM_DISCOUNT_PERCENT = '5';
+  assert.equal(getClassifyPremiumDiscountPercent(), 35);
+  delete process.env.MONETIZATION_CLASSIFY_IMAGE_PREMIUM_DISCOUNT_PERCENT;
+  delete process.env.CLASSIFY_IMAGE_PREMIUM_DISCOUNT_PERCENT;
+});
+
+// ---------------------------------------------------------------------------
+// Daily free-scan quota helpers
+// ---------------------------------------------------------------------------
+
+test('getDailyFreeScanLimit: defaults to 5 and reads canonical env key', () => {
+  delete process.env.MONETIZATION_FREE_DAILY_SCAN_LIMIT;
+  delete process.env.CLASSIFY_DAILY_FREE_CLASSIFICATIONS;
+  delete process.env.DAILY_FREE_CLASSIFICATIONS;
+  assert.equal(getDailyFreeScanLimit(), 5);
+
+  process.env.MONETIZATION_FREE_DAILY_SCAN_LIMIT = '9';
+  process.env.CLASSIFY_DAILY_FREE_CLASSIFICATIONS = '4';
+  assert.equal(getDailyFreeScanLimit(), 9);
+
+  delete process.env.MONETIZATION_FREE_DAILY_SCAN_LIMIT;
+  delete process.env.CLASSIFY_DAILY_FREE_CLASSIFICATIONS;
+  delete process.env.DAILY_FREE_CLASSIFICATIONS;
+});
+
+test('toUtcDayKey: normalizes date-like inputs', () => {
+  assert.equal(toUtcDayKey('2026-05-22'), '2026-05-22');
+  assert.equal(toUtcDayKey('2026-05-22T11:22:33.000Z'), '2026-05-22');
+  assert.equal(toUtcDayKey(new Date('2026-05-22T03:00:00.000Z')), '2026-05-22');
+  assert.equal(toUtcDayKey('not-a-date'), null);
+});
+
+test('resolveDailyFreeUsageState: resets usage on day rollover', () => {
+  const now = new Date('2026-05-23T10:00:00.000Z');
+  const rollover = resolveDailyFreeUsageState(5, '2026-05-22', now);
+  assert.equal(rollover.todayKey, '2026-05-23');
+  assert.equal(rollover.usedToday, 0);
+
+  const sameDay = resolveDailyFreeUsageState(3, '2026-05-23T01:20:00.000Z', now);
+  assert.equal(sameDay.usedToday, 3);
+  assert.equal(sameDay.todayKey, '2026-05-23');
 });
 
 // ---------------------------------------------------------------------------

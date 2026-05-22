@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/services/barcode_lookup_service.dart';
 import 'package:waste_segregation_app/services/classification_pipeline.dart';
-import 'package:waste_segregation_app/services/color_histogram_classifier.dart';
 import 'package:waste_segregation_app/services/layer0_router.dart';
 import 'package:waste_segregation_app/services/local_classifier_service.dart';
 
@@ -329,7 +328,7 @@ class StubLayer0Router extends Layer0Router {
     this.stubbedWasteClassification,
     this.shouldThrow = false,
   }) : super(
-          colorClassifier: ColorHistogramClassifier(),
+          colorClassifier: _NoOpLocalClassifier(),
           barcodeService: StubBarcodeLookupService(),
         );
 
@@ -364,4 +363,34 @@ class StubBarcodeLookupService implements BarcodeLookupService {
   }) async {
     return BarcodeLookupResult(found: false);
   }
+}
+
+/// No-op [LocalClassifier] for stubbing the Layer0Router constructor.
+class _NoOpLocalClassifier implements LocalClassifier {
+  @override
+  String get modelId => 'noop';
+
+  @override
+  String get modelVersion => 'noop';
+
+  @override
+  bool get isModelLoaded => false;
+
+  @override
+  Future<LocalClassificationResult> classify({
+    required Uint8List imageBytes,
+    required String region,
+  }) async {
+    return LocalClassificationResult(
+      category: 'Unknown',
+      confidence: 0.0,
+      modelVersion: 'noop',
+    );
+  }
+
+  @override
+  Future<void> loadModel() async {}
+
+  @override
+  Future<void> unloadModel() async {}
 }

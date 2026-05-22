@@ -382,8 +382,8 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
   /// Save classification without full processing (for manual save).
   ///
   /// Gated by the state machine: only proceeds when the machine is in
-  /// a pre-save state ([classificationSucceeded], [policyApplied], or
-  /// [awaitingUserConfirmation]), or when [force] is true.
+  /// a pre-save state (`classificationSucceeded`, `policyApplied`, or
+  /// `awaitingUserConfirmation`), or when `force` is true.
   Future<void> saveClassificationOnly(WasteClassification classification,
       {bool force = false}) async {
     // State machine guard: reject if no classification is in-flight.

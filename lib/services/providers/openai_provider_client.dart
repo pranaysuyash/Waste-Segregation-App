@@ -14,8 +14,8 @@ import 'classification_provider.dart';
 /// Responsibilities (only):
 /// - Build the Chat Completions request body.
 /// - Attach the base64-encoded image as a data URL.
-/// - POST to [baseUrl]/chat/completions.
-/// - Return a raw [AiProviderResponse] with usage metadata.
+/// - POST to `baseUrl/chat/completions`.
+/// - Return a raw `AiProviderResponse` with usage metadata.
 /// - Map transport and HTTP errors to [AiFailure].
 ///
 /// Does **not** build classification prompts, parse [WasteClassification],

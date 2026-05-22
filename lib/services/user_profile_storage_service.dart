@@ -24,7 +24,7 @@ import 'dart:convert';
 ///   - This means a naive wire would silently "log out" the current user.
 ///
 /// Safe usage:
-///   - Read/helper methods (getSetting<T>, isGoogleSyncEnabled, CSV export)
+///   - Read/helper methods (`getSetting<T>`, isGoogleSyncEnabled, CSV export)
 ///     are format-safe because both services handle multi-format reads.
 ///   - Do NOT call saveUserProfile / getCurrentUserProfile from app code —
 ///     use StorageService which is the canonical write path.

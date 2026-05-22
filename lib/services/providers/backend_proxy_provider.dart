@@ -3,8 +3,6 @@ import 'dart:typed_data';
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:dio/dio.dart';
-import 'package:waste_segregation_app/models/waste_classification.dart'
-    show WasteClassification;
 
 import '../ai_failure.dart';
 import 'ai_provider_response.dart';
@@ -13,21 +11,21 @@ import 'classification_provider.dart';
 /// Thin callable-function client for the backend classification gateway.
 ///
 /// Responsibilities (only):
-/// - Encode [imageBytes] as base64 and attach a client-side hash hint.
+/// - Encode `imageBytes` as base64 and attach a client-side hash hint.
 /// - Call the `classifyImage` Firebase HTTPS Callable function.
-/// - Return a raw [AiProviderResponse] whose [rawResponseMap] is the
+/// - Return a raw `AiProviderResponse` whose `rawResponseMap` is the
 ///   `classification` sub-object returned by the function, so that
-///   [AiService]'s existing parser (`_processAiResponseData`) can parse it
-///   into a [WasteClassification] without modification.
-/// - Map Firebase function errors to [AiFailure].
+///   `AiService`'s existing parser (`_processAiResponseData`) can parse it
+///   into a `WasteClassification` without modification.
+/// - Map Firebase function errors to `AiFailure`.
 ///
-/// Does NOT build classification prompts, parse [WasteClassification],
+/// Does NOT build classification prompts, parse `WasteClassification`,
 /// apply local guidelines, cache, record spending, decide fallback, or
-/// compress images — all of those remain in [AiService].
+/// compress images — all of those remain in `AiService`.
 ///
 /// ## Safety note
 ///
-/// This provider does NOT call [ProductionSafetyConfig.guardClientAiCall]
+/// This provider does NOT call `ProductionSafetyConfig.guardClientAiCall`
 /// because it routes through the secure backend rather than calling an AI
 /// provider directly from the client. The backend enforces App Check,
 /// auth, and rate limits.
@@ -36,8 +34,8 @@ import 'classification_provider.dart';
 ///
 /// Enable via `--dart-define=USE_BACKEND_CLASSIFICATION=true` at build time
 /// (legacy alias: `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`).
-/// Same flag is exposed via [ProductionSafetyConfig.useBackendAiInRelease].
-/// [AiService] checks [BackendProxyProvider.isEnabled] and, when true,
+/// Same flag is exposed via `ProductionSafetyConfig.useBackendAiInRelease`.
+/// `AiService` checks `BackendProxyProvider.isEnabled` and, when true,
 /// uses this provider as the primary route before OpenAI/Gemini.
 class BackendProxyProvider implements ClassificationProvider {
   BackendProxyProvider({
@@ -77,7 +75,7 @@ class BackendProxyProvider implements ClassificationProvider {
   /// Canonical dart-define: `--dart-define=USE_BACKEND_CLASSIFICATION=true`
   /// Legacy alias: `--dart-define=USE_BACKEND_AI_IN_RELEASE=true`
   ///
-  /// This reads the same flag as [ProductionSafetyConfig.useBackendAiInRelease]
+  /// This reads the same flag as `ProductionSafetyConfig.useBackendAiInRelease`
   /// so there is exactly ONE logical build switch that controls backend
   /// routing, while preserving backward compatibility with the legacy alias.
   static const bool _useBackendClassification =
@@ -94,7 +92,7 @@ class BackendProxyProvider implements ClassificationProvider {
   /// perform any compression.
   ///
   /// [clientHash] is an optional deduplication hint computed by the caller
-  /// (e.g. via [ImageUtils.generateDualHashes]). The server never trusts it
+  /// (e.g. via `ImageUtils.generateDualHashes`). The server never trusts it
   /// as a cache key — it computes its own SHA-256 — but it can use it as a
   /// hint to skip re-hashing identical payloads it has already seen.
   ///
@@ -102,7 +100,7 @@ class BackendProxyProvider implements ClassificationProvider {
   /// aware prompts and cache keys.
   ///
   /// [requestId] is an optional idempotency key for retry-safe calls.
-  /// Not part of the [ClassificationProvider] interface — additional param.
+  /// Not part of the `ClassificationProvider` interface — additional param.
   @override
   Future<AiProviderResponse> analyze({
     required Uint8List imageBytes,

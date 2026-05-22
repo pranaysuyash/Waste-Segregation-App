@@ -152,7 +152,7 @@ enum RuleOverrideType {
   customInstruction,
 }
 
-/// Enhanced [LocalPolicyDecision] extension when society override is applied.
+/// Enhanced `LocalPolicyDecision` extension when society override is applied.
 class SocietyAwareDecision {
   const SocietyAwareDecision({
     required this.society,

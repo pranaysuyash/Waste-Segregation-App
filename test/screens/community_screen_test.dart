@@ -37,8 +37,10 @@ class MockCommunityService extends Mock implements CommunityService {
       ) as Future<List<CommunityFeedItem>>;
 
   @override
-  Future<CommunityStats> getStats() => super.noSuchMethod(
-        Invocation.method(#getStats, const []),
+  Future<CommunityStats> getStats({bool forceRecompute = false}) =>
+      super.noSuchMethod(
+        Invocation.method(
+            #getStats, const [], {#forceRecompute: forceRecompute}),
         returnValue: Future<CommunityStats>.value(const CommunityStats(
           totalUsers: 0,
           totalClassifications: 0,
@@ -115,6 +117,50 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       expect(find.text('Community'), findsOneWidget);
+    });
+
+    testWidgets('shows loading and empty-state copy when no community data', (
+      tester,
+    ) async {
+      final storageService = MockStorageService();
+      final communityService = MockCommunityService();
+
+      when(storageService.getCurrentUserProfile()).thenAnswer((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        return null;
+      });
+      when(storageService.getAllClassifications())
+          .thenAnswer((_) async => const []);
+
+      when(communityService.initCommunity()).thenAnswer((_) async {});
+      when(communityService.syncWithUserData(const [], null))
+          .thenAnswer((_) async {});
+      when(communityService.getFeedItems())
+          .thenAnswer((_) async => <CommunityFeedItem>[]);
+      when(communityService.getStats()).thenAnswer(
+        (_) async => const CommunityStats(
+          totalUsers: 0,
+          totalClassifications: 0,
+          totalPoints: 0,
+        ),
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<StorageService>.value(value: storageService),
+            Provider<CommunityService>.value(value: communityService),
+          ],
+          child: const MaterialApp(home: CommunityScreen()),
+        ),
+      );
+
+      await tester.pump();
+      expect(find.text('Syncing your scans'), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.text('No community activity yet'), findsOneWidget);
+      expect(find.text('Pull to refresh'), findsWidgets);
     });
   });
 }

@@ -13,8 +13,8 @@ import 'classification_provider.dart';
 /// Responsibilities (only):
 /// - Build the generateContent request body.
 /// - Attach the base64-encoded image as inline_data.
-/// - POST to [baseUrl]/models/{model}:generateContent.
-/// - Return a raw [AiProviderResponse] with extracted text content
+/// - POST to `baseUrl/models/{model}:generateContent`.
+/// - Return a raw `AiProviderResponse` with extracted text content
 ///   and usage metadata.
 /// - Map transport and HTTP errors to [AiFailure].
 ///

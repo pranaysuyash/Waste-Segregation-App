@@ -39,9 +39,9 @@ class LocalClassifierThresholds {
 
 /// Lightweight result from a [LocalClassifier] inference run.
 ///
-/// This is distinct from [WasteClassification] — it carries only the data
+/// This is distinct from `WasteClassification` — it carries only the data
 /// the local model can produce. The router enriches it into a full
-/// [WasteClassification] after the layer decision.
+/// `WasteClassification` after the layer decision.
 class LocalClassificationResult {
   LocalClassificationResult({
     required this.category,
@@ -123,7 +123,7 @@ class LocalClassificationResult {
 /// The [classify] method returns a [LocalClassificationResult] that
 /// explicitly encodes whether the result should be escalated to cloud.
 ///
-/// This is intentionally separate from [ClassificationProvider] because
+/// This is intentionally separate from `ClassificationProvider` because
 /// local inference has different lifecycle, error, and cost semantics
 /// than cloud HTTP providers.
 abstract class LocalClassifier {

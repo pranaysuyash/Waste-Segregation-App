@@ -95,11 +95,22 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   @override
   void initState() {
     super.initState();
-    _analyticsService = Provider.of<AnalyticsService>(context, listen: false)
-      ..trackScreenView('HistoryScreen', parameters: {
-        'filter_category': widget.filterCategory,
-        'filter_subcategory': widget.filterSubcategory,
-      });
+    try {
+      _analyticsService = Provider.of<AnalyticsService>(context, listen: false);
+    } catch (_) {
+      _analyticsService = AnalyticsService(
+        StorageService(),
+        enableFirestore: false,
+      );
+      WasteAppLogger.warning(
+        'HistoryScreen: AnalyticsService provider missing, using local fallback',
+        context: {'screen': 'HistoryScreen'},
+      );
+    }
+    _analyticsService.trackScreenView('HistoryScreen', parameters: {
+      'filter_category': widget.filterCategory,
+      'filter_subcategory': widget.filterSubcategory,
+    });
 
     if (widget.filterCategory != null) {
       _selectedCategories.add(widget.filterCategory!);
@@ -145,19 +156,24 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     try {
       final storageService =
           Provider.of<StorageService>(context, listen: false);
-      final cloudStorageService =
-          Provider.of<CloudStorageService>(context, listen: false);
 
       final settings = await storageService.getSettings();
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
       _allowHistoryFeedback = settings['allowHistoryFeedback'] ?? true;
       _feedbackTimeframeDays = settings['feedbackTimeframeDays'] ?? 7;
 
-      final allClassifications = isGoogleSyncEnabled
-          ? await cloudStorageService
-              .getAllClassificationsWithCloudSync(isGoogleSyncEnabled)
-          : await storageService.getAllClassifications(
-              filterOptions: _filterOptions);
+      final List<WasteClassification> allClassifications;
+      if (isGoogleSyncEnabled) {
+        if (!mounted) return;
+        final cloudStorageService =
+            Provider.of<CloudStorageService>(context, listen: false);
+        allClassifications = await cloudStorageService
+            .getAllClassificationsWithCloudSync(isGoogleSyncEnabled);
+      } else {
+        allClassifications = await storageService.getAllClassifications(
+          filterOptions: _filterOptions,
+        );
+      }
 
       final filteredClassifications = isGoogleSyncEnabled
           ? storageService.applyFiltersToClassifications(
@@ -637,25 +653,31 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   }
 
   void _showErrorSnackBar(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      messenger?.showSnackBar(
         SnackBar(
           content: Text(message),
           backgroundColor: Colors.red,
         ),
       );
-    }
+    });
   }
 
   void _showSuccessSnackBar(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      messenger?.showSnackBar(
         SnackBar(
           content: Text(message),
           backgroundColor: Colors.green,
         ),
       );
-    }
+    });
   }
 
   String _formatDate(DateTime date) {

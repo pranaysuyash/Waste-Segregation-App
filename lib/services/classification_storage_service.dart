@@ -27,7 +27,7 @@ import 'package:uuid/uuid.dart';
 ///     would not find a record written by UserProfileStorageService.
 ///
 /// Safe usage:
-///   - Read/helper methods (getClassificationById, getSetting<T>, CSV export)
+///   - Read/helper methods (getClassificationById, `getSetting<T>`, CSV export)
 ///     are format-safe because both services handle multi-format reads.
 ///   - Do NOT call saveClassification / saveUserProfile from app code —
 ///     use StorageService which is the canonical write path.

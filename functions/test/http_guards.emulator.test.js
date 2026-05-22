@@ -53,20 +53,36 @@ async function createOrResetUser({ uid, email, password, adminClaim, customClaim
   return signInWithPassword(email, password);
 }
 
-async function upsertUserProfile(uid, tokenBalance) {
-  await admin.firestore().collection('users').doc(uid).set({
+async function upsertUserProfile(uid, tokenBalance, options = {}) {
+  const {
+    dailyConversionsUsed = 0,
+    lastConversionDate = null,
+    billingEntitlement = null,
+  } = options;
+
+  const payload = {
     id: uid,
     tokenWallet: {
       balance: tokenBalance,
       totalEarned: tokenBalance,
       totalSpent: 0,
       lastUpdated: new Date().toISOString(),
-      dailyConversionsUsed: 0,
-      lastConversionDate: null,
+      dailyConversionsUsed,
+      lastConversionDate,
     },
     tokenTransactions: [],
     lastActive: new Date().toISOString(),
-  }, { merge: true });
+  };
+
+  if (billingEntitlement !== null) {
+    payload.billing = {
+      entitlements: {
+        pro_subscription: billingEntitlement === true,
+      },
+    };
+  }
+
+  await admin.firestore().collection('users').doc(uid).set(payload, { merge: true });
 }
 
 async function invokeCallable(functionName, token, data) {
@@ -226,6 +242,56 @@ test('spendUserTokens applies claims-based premium fallback when Firestore billi
   assert.equal(ledger.metadata?.serverTier, 'premium');
 });
 
+test('spendUserTokens uses billing entitlement as canonical authority even when claims are stale free-tier', async () => {
+  const token = await createOrResetUser({
+    uid: 'it-premium-billing-authority',
+    email: 'it-premium-billing-authority@example.com',
+    password: 'Test1!',
+    adminClaim: false,
+    customClaims: { pro_subscription: false },
+  });
+
+  await upsertUserProfile('it-premium-billing-authority', 10, {
+    billingEntitlement: true,
+  });
+
+  const spendRes = await fetch(`${FUNCTIONS_BASE}/spendUserTokens`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      data: {
+        amount: 4,
+        description: 'Instant AI analysis',
+        operationType: 'instant',
+      },
+    }),
+  });
+
+  const spendBody = await spendRes.json();
+  assert.equal(spendRes.status, 200);
+
+  const payload = spendBody.result ?? spendBody;
+  assert.equal(payload.success, true);
+  assert.equal(payload.wallet.balance, 7);
+  assert.equal(payload.transaction.delta, -3);
+  assert.equal(payload.transaction.metadata.spendAuthoritySource, 'billing_entitlement');
+  assert.equal(payload.transaction.metadata.serverTier, 'premium');
+  assert.equal(payload.transaction.metadata.authorizedAmount, 3);
+
+  const ledgerSnap = await admin
+    .firestore()
+    .collection('token_spend_ledger')
+    .doc(payload.ledgerId)
+    .get();
+  assert.equal(ledgerSnap.exists, true);
+  const ledger = ledgerSnap.data() ?? {};
+  assert.equal(ledger.metadata?.spendAuthoritySource, 'billing_entitlement');
+  assert.equal(ledger.metadata?.serverTier, 'premium');
+});
+
 test('createBatchAiJob callable enforces auth and user-owned batch image path', async () => {
   const unauthorizedRes = await fetch(`${FUNCTIONS_BASE}/createBatchAiJob`, {
     method: 'POST',
@@ -264,14 +330,17 @@ test('createBatchAiJob callable enforces auth and user-owned batch image path', 
   assert.match(message, /imageUrl must reference an authenticated user-owned batch_images path/i);
 });
 
-test('classifyImage denies execution when token wallet is insufficient', async () => {
+test('classifyImage denies execution when free quota is exhausted and token wallet is insufficient', async () => {
   const token = await createOrResetUser({
     uid: 'it-classify-no-tokens',
     email: 'it-classify-no-tokens@example.com',
     password: 'Test1!',
     adminClaim: false,
   });
-  await upsertUserProfile('it-classify-no-tokens', 0);
+  await upsertUserProfile('it-classify-no-tokens', 0, {
+    dailyConversionsUsed: 5,
+    lastConversionDate: new Date().toISOString().slice(0, 10),
+  });
 
   const { response, body } = await invokeCallable('classifyImage', token, {
     imageBase64: makeTinyPngBase64(),
@@ -283,6 +352,68 @@ test('classifyImage denies execution when token wallet is insufficient', async (
   assert.equal(response.status, 400);
   const message = body?.error?.message ?? '';
   assert.match(message, /Insufficient tokens/i);
+});
+
+test('classifyImage consumes free daily quota before requiring tokens', async () => {
+  const token = await createOrResetUser({
+    uid: 'it-classify-free-quota',
+    email: 'it-classify-free-quota@example.com',
+    password: 'Test1!',
+    adminClaim: false,
+  });
+  await upsertUserProfile('it-classify-free-quota', 0, {
+    dailyConversionsUsed: 0,
+    lastConversionDate: new Date().toISOString().slice(0, 10),
+  });
+
+  const { body } = await invokeCallable('classifyImage', token, {
+    imageBase64: makeTinyPngBase64(),
+    mimeType: 'image/png',
+    region: 'Free-Quota-Region',
+    lang: 'en',
+    requestId: 'free-quota-smoke-0001',
+  });
+
+  const message = body?.error?.message ?? '';
+  assert.ok(!/Insufficient tokens/i.test(message));
+
+  const userSnap = await admin.firestore().collection('users').doc('it-classify-free-quota').get();
+  const wallet = userSnap.data()?.tokenWallet ?? {};
+  assert.equal(wallet.balance, 0);
+  assert.equal(wallet.dailyConversionsUsed, 1);
+  assert.equal(wallet.lastConversionDate, new Date().toISOString().slice(0, 10));
+});
+
+test('classifyImage resets free daily quota on day rollover', async () => {
+  const token = await createOrResetUser({
+    uid: 'it-classify-day-rollover',
+    email: 'it-classify-day-rollover@example.com',
+    password: 'Test1!',
+    adminClaim: false,
+  });
+
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  await upsertUserProfile('it-classify-day-rollover', 0, {
+    dailyConversionsUsed: 5,
+    lastConversionDate: yesterday,
+  });
+
+  const { body } = await invokeCallable('classifyImage', token, {
+    imageBase64: makeTinyPngBase64(),
+    mimeType: 'image/png',
+    region: 'Free-Quota-Rollover',
+    lang: 'en',
+    requestId: 'free-quota-rollover-0001',
+  });
+
+  const message = body?.error?.message ?? '';
+  assert.ok(!/Insufficient tokens/i.test(message));
+
+  const userSnap = await admin.firestore().collection('users').doc('it-classify-day-rollover').get();
+  const wallet = userSnap.data()?.tokenWallet ?? {};
+  assert.equal(wallet.balance, 0);
+  assert.equal(wallet.dailyConversionsUsed, 1);
+  assert.equal(wallet.lastConversionDate, new Date().toISOString().slice(0, 10));
 });
 
 test('classifyImage cache hit does not charge tokens when classification is already cached', async () => {

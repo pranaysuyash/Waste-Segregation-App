@@ -1,5 +1,6 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
+import '../config/monetization_ai_config_contract.dart';
 import '../utils/waste_app_logger.dart';
 
 /// Service for managing Firebase Remote Config for A/B testing and feature flags
@@ -62,15 +63,12 @@ class RemoteConfigService {
         'force_batch_mode_on_threshold': true,
 
         // Backend classification and monetization controls
-        'use_backend_classification': true,
-        'classify_image_token_cost': 5,
-        'classify_image_premium_discount_percent': 50,
+        ...MonetizationAiConfigKeys.defaultRemoteConfigValues(),
 
         // Layer 0 deterministic classifier
         'layer0_enabled': true,
         'layer0_color_histogram_enabled': true,
         'layer0_barcode_lookup_enabled': true,
-        'daily_free_classifications': 5,
         'premium_ad_free_enabled': true,
         'interstitial_every_n_classifications': 5,
       });
@@ -145,6 +143,50 @@ class RemoteConfigService {
       }
       return defaultValue;
     }
+  }
+
+  /// Resolve canonical monetization + AI routing contract values.
+  ///
+  /// Reads canonical keys first, then legacy aliases, then defaults.
+  Future<Map<String, dynamic>> getMonetizationAiRoutingConfig() async {
+    await initialize();
+
+    final rawValues = _remoteConfig?.getAll().map(
+          (key, value) => MapEntry(key, value.asString()),
+        ) ??
+        <String, Object?>{};
+
+    return {
+      MonetizationAiConfigKeys.backendRequiredRelease:
+          MonetizationAiConfigKeys.readBool(
+        rawValues,
+        MonetizationAiConfigKeys.backendRequiredRelease,
+        defaultValue: true,
+      ),
+      MonetizationAiConfigKeys.freeDailyScanLimit: MonetizationAiConfigKeys.readInt(
+        rawValues,
+        MonetizationAiConfigKeys.freeDailyScanLimit,
+        defaultValue: 5,
+        min: 0,
+        max: 200,
+      ),
+      MonetizationAiConfigKeys.classifyImageTokenCost:
+          MonetizationAiConfigKeys.readInt(
+        rawValues,
+        MonetizationAiConfigKeys.classifyImageTokenCost,
+        defaultValue: 5,
+        min: 1,
+        max: 200,
+      ),
+      MonetizationAiConfigKeys.classifyImagePremiumDiscountPercent:
+          MonetizationAiConfigKeys.readInt(
+        rawValues,
+        MonetizationAiConfigKeys.classifyImagePremiumDiscountPercent,
+        defaultValue: 50,
+        min: 0,
+        max: 90,
+      ),
+    };
   }
 
   /// Force fetch new config (for testing)

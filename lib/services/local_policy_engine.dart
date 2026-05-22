@@ -159,7 +159,7 @@ class LocalPolicyComplianceEvaluator {
   /// Resolves the effective severity of a rule-pack rule, applying confidence
   /// gating.
   ///
-  /// Rules with check type [safetyOverrideAlways] are held to a higher
+  /// Rules with check type `safetyOverrideAlways` are held to a higher
   /// standard — they remain violations at ≥0.70 but demote below that.
   ///
   ///   ≥ 0.90  — full enforcement per rule

@@ -291,13 +291,13 @@ void main() {
   });
 
   group('GamificationService pointValues', () {
-    test('feedback_provided is 5 points', () {
-      expect(GamificationService.pointValues['feedback_provided'], equals(5));
+    test('feedback_provided uses canonical points', () {
+      expect(GamificationService.pointValues['feedback_provided'], equals(3));
     });
 
-    test('correction_provided is 10 points', () {
+    test('correction_provided uses canonical points', () {
       expect(
-          GamificationService.pointValues['correction_provided'], equals(10));
+          GamificationService.pointValues['correction_provided'], equals(15));
     });
 
     test('pointValues map is not empty and contains canonical actions', () {
@@ -311,17 +311,17 @@ void main() {
         'no duplicate ad-hoc customPoints path for feedback/correction in pointValues',
         () {
       // The canonical map is the single source of truth.
-      // No other key should map to 5 or 10 for feedback/correction.
+      // No other key should map to 3 or 15 for feedback/correction.
       final values = GamificationService.pointValues;
-      final fivePointKeys =
-          values.entries.where((e) => e.value == 5).map((e) => e.key).toList();
-      final tenPointKeys =
-          values.entries.where((e) => e.value == 10).map((e) => e.key).toList();
+      final threePointKeys =
+          values.entries.where((e) => e.value == 3).map((e) => e.key).toList();
+      final fifteenPointKeys =
+          values.entries.where((e) => e.value == 15).map((e) => e.key).toList();
 
-      // feedback_provided should be the canonical 5-point action
-      expect(fivePointKeys, contains('feedback_provided'));
-      // correction_provided should be the canonical 10-point action
-      expect(tenPointKeys, contains('correction_provided'));
+      // feedback_provided should be the canonical 3-point action
+      expect(threePointKeys, contains('feedback_provided'));
+      // correction_provided should be the canonical 15-point action
+      expect(fifteenPointKeys, contains('correction_provided'));
     });
   });
 
@@ -478,19 +478,19 @@ void main() {
     });
 
     test(
-        'correction awards correction_provided (10 points) not feedback_provided',
+        'correction awards correction_provided (15 points) not feedback_provided',
         () async {
       final action = 'correction_provided';
       final points = GamificationService.pointValues[action] ?? 0;
       expect(action, equals('correction_provided'));
-      expect(points, equals(10));
+      expect(points, equals(15));
 
       // Verify the point value mapping
       await gamification.addPoints(action, customPoints: points);
       expect(gamification.addPointsCalls.length, equals(1));
       expect(
           gamification.addPointsCalls.first.$1, equals('correction_provided'));
-      expect(gamification.addPointsCalls.first.$2, equals(10));
+      expect(gamification.addPointsCalls.first.$2, equals(15));
     });
 
     test('cloud check failure does not block submission', () async {
@@ -595,14 +595,14 @@ void main() {
       await gamification.addPoints('feedback_provided',
           customPoints: feedbackPoints!);
       expect(gamification.addPointsCalls.last.$1, equals('feedback_provided'));
-      expect(gamification.addPointsCalls.last.$2, equals(5));
+      expect(gamification.addPointsCalls.last.$2, equals(3));
 
       // Correction
       await gamification.addPoints('correction_provided',
           customPoints: correctionPoints!);
       expect(
           gamification.addPointsCalls.last.$1, equals('correction_provided'));
-      expect(gamification.addPointsCalls.last.$2, equals(10));
+      expect(gamification.addPointsCalls.last.$2, equals(15));
     });
 
     test('analytics event has correct name and structure for feedback',

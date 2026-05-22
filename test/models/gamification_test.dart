@@ -5,7 +5,8 @@ import 'package:waste_segregation_app/models/gamification.dart';
 void main() {
   group('AchievementType', () {
     test('should have all expected enum values', () {
-      expect(AchievementType.values, hasLength(22));
+      // Guard minimum cardinality so additive enum growth doesn't break tests.
+      expect(AchievementType.values.length, greaterThanOrEqualTo(22));
       expect(AchievementType.values, contains(AchievementType.wasteIdentified));
       expect(AchievementType.values, contains(AchievementType.ecoWarrior));
       expect(

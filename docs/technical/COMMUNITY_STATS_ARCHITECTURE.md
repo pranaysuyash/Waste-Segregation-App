@@ -2,19 +2,20 @@
 
 **Status**: Production-Ready (Real Data Only)  
 **Last Updated**: 2026-05-22  
-**Source of Truth**: Firestore `community_feed` collection  
+**Source of Truth**: Firestore `community_stats/main` (fast canonical cache) with fallback recomputation from `community_feed`  
 
 ---
 
 ## Overview
 
-Community Stats provides real-time aggregation of community-wide waste classification activity. **All stats are calculated from real user data stored in Firestore**, never from dummy or cached values.
+Community Stats provides real-time aggregation of community-wide waste classification activity. **All stats are calculated from real `community_feed` data**, and the app uses a canonical cached aggregate (`community_stats/main`) for fast reads.
 
 The system is designed for accuracy, simplicity, and operator transparency:
 - ✅ Real data only (Firestore feed items)
 - ✅ No placeholder values in production flow
 - ✅ Explicit empty/error states
-- ✅ On-demand aggregation (no cache invalidation complexity)
+- ✅ Canonical cached aggregate read path with stale-aware fallback
+- ✅ Dedicated reconciliation path for cache-vs-feed drift checks
 
 ---
 
@@ -31,7 +32,7 @@ Firestore Feed Item (async, when online)
     ↓
 Community Feed Collection (primary source)
     ↓
-CommunityService.getStats() Aggregation
+CommunityService.getStats() canonicalized read + reconciliation fallback
     ↓
 CommunityScreen Stats Tab UI
     ↓
@@ -76,6 +77,13 @@ await communityService.syncWithUserData(userClassifications, userProfile);
 ```dart
 // lib/services/community_service.dart
 Future<CommunityStats> getStats() async {
+  final storedStats = await getStoredCommunityStats();
+  if (storedStats != null && storedStats.lastUpdated != null) {
+    // Fast canonical path from materialized doc
+    return storedStats;
+  }
+  
+  // Fallback safety path: recompute from live feed
   final feedItems = await getFeedItems(limit: 10000);
   
   var totalClassifications = 0;
@@ -108,7 +116,7 @@ Future<CommunityStats> getStats() async {
 
 **Timing**: Real-time (on demand)  
 **Complexity**: O(n) where n = feed items  
-**Caching**: None (always fresh)
+**Caching**: Canonical materialized cache (`community_stats/main`) with stale-while-revalidate refresh
 
 ### Step 4: Render UI
 
@@ -185,7 +193,7 @@ service cloud.firestore {
 
 ### `community_stats` (Materialized View, Optional Future)
 
-**Purpose**: Cached aggregate for dashboard performance (not currently used)  
+**Purpose**: Canonical cached aggregate for dashboard performance  
 **Document**:
 
 ```firestore
@@ -203,8 +211,8 @@ service cloud.firestore {
 }
 ```
 
-**Status**: Not actively updated (getStats() reads from feed instead)  
-**Future**: When community grows large (>100k items), populate via Cloud Functions
+**Status**: Updated by activity writes and scheduled cloud aggregation
+**Fallback**: Recompute from `community_feed` when doc is missing or explicitly forced
 
 ---
 
@@ -241,16 +249,16 @@ service cloud.firestore {
 
 | Metric | Value | Impact |
 |--------|-------|--------|
-| Feed items read per call | Up to 10,000 | O(n) aggregation |
-| Aggregation time | ~100-500ms (in-memory) | Acceptable for MVP |
-| Firestore reads | 1 read per `getStats()` call | ~$0.06 per 100k calls |
-| Memory usage | ~500KB for 10k items | Acceptable |
+| Fast path per call | 1 read (`community_stats/main`) | ~5–20ms |
+| Fallback path per call | Up to 10,000 `community_feed` reads | O(n) aggregation |
+| Stale handling | Cache refreshed in background, then corrected on next read | Small eventuality window |
+| Memory usage | ~1KB + doc size; no large per-call in-memory scans | Minimal |
 
 ### Scaling Plan (Future)
 
 **When community grows to 100k+ items:**
 
-1. **Option A: Batch Aggregation** (Recommended)
+1. **Option A: Batch Aggregation** (Implemented)
    - Cloud Function runs hourly
    - Populates `community_stats` document
    - Frontend reads cached document (1 read instead of 10k)
@@ -268,7 +276,7 @@ service cloud.firestore {
    - Pull weekly/monthly aggregates back to Firestore
    - Trade-off: Delayed reporting, but unlimited scale
 
-**Decision point**: When `getFeedItems()` takes >1 second, migrate to hourly Cloud Function aggregation.
+**Status**: Hourly batch aggregation is implemented and on by default; only stale/missing cache falls back to live recomputation.
 
 ---
 

@@ -30,7 +30,7 @@ import '../widgets/community_impact_card.dart';
 
 /// Deprecated compatibility screen.
 ///
-/// Canonical home surface is [HomeScreen] in lib/screens/home_screen.dart.
+/// Canonical home surface is `HomeScreen` in lib/screens/home_screen.dart.
 /// Keep this only for backward compatibility until routed references are
 /// fully removed.
 @Deprecated(

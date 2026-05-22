@@ -334,13 +334,14 @@ class StreakDetailsAdapter extends TypeAdapter<StreakDetails> {
       lastActivityDate: fields[3] as DateTime,
       lastMaintenanceAwardedDate: fields[4] as DateTime?,
       lastMilestoneAwardedLevel: fields[5] as int,
+      streakFreezesAvailable: fields[6] as int? ?? 0,
     );
   }
 
   @override
   void write(BinaryWriter writer, StreakDetails obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.type)
       ..writeByte(1)
@@ -352,7 +353,9 @@ class StreakDetailsAdapter extends TypeAdapter<StreakDetails> {
       ..writeByte(4)
       ..write(obj.lastMaintenanceAwardedDate)
       ..writeByte(5)
-      ..write(obj.lastMilestoneAwardedLevel);
+      ..write(obj.lastMilestoneAwardedLevel)
+      ..writeByte(6)
+      ..write(obj.streakFreezesAvailable);
   }
 
   @override

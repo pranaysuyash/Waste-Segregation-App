@@ -4,24 +4,176 @@ import 'package:mockito/mockito.dart';
 import 'package:waste_segregation_app/services/firestore_schema_registry.dart';
 import 'package:waste_segregation_app/services/leaderboard_service.dart';
 
-class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+class MockFirebaseFirestore extends Mock implements FirebaseFirestore {
+  @override
+  CollectionReference<Map<String, dynamic>> collection(String path) =>
+      super.noSuchMethod(
+        Invocation.method(#collection, [path]),
+        returnValue: MockCollectionReference<Map<String, dynamic>>(),
+        returnValueForMissingStub:
+            MockCollectionReference<Map<String, dynamic>>(),
+      ) as CollectionReference<Map<String, dynamic>>;
+}
 
 class MockCollectionReference<T extends Object?> extends Mock
-    implements CollectionReference<T> {}
+    implements CollectionReference<T> {
+  @override
+  Query<T> orderBy(Object field, {bool descending = false}) =>
+      super.noSuchMethod(
+        Invocation.method(
+            #orderBy, [field], {#descending: descending}),
+        returnValue: MockQuery<T>(),
+        returnValueForMissingStub: MockQuery<T>(),
+      ) as Query<T>;
 
-class MockQuery<T extends Object?> extends Mock implements Query<T> {}
+  @override
+  Query<T> limit(int limit) => super.noSuchMethod(
+        Invocation.method(#limit, [limit]),
+        returnValue: MockQuery<T>(),
+        returnValueForMissingStub: MockQuery<T>(),
+      ) as Query<T>;
+
+  @override
+  Future<QuerySnapshot<T>> get([GetOptions? options]) => super.noSuchMethod(
+        Invocation.method(#get, [options]),
+        returnValue: Future<QuerySnapshot<T>>.value(MockQuerySnapshot<T>()),
+        returnValueForMissingStub:
+            Future<QuerySnapshot<T>>.value(MockQuerySnapshot<T>()),
+      ) as Future<QuerySnapshot<T>>;
+
+  @override
+  DocumentReference<T> doc([String? path]) => super.noSuchMethod(
+        Invocation.method(#doc, [path]),
+        returnValue: MockDocumentReference<T>(),
+        returnValueForMissingStub: MockDocumentReference<T>(),
+      ) as DocumentReference<T>;
+
+  @override
+  Query<T> where(
+    Object field, {
+    Object? isEqualTo,
+    Object? isNotEqualTo,
+    Object? isLessThan,
+    Object? isLessThanOrEqualTo,
+    Object? isGreaterThan,
+    Object? isGreaterThanOrEqualTo,
+    Object? arrayContains,
+    Iterable<Object?>? arrayContainsAny,
+    Iterable<Object?>? whereIn,
+    Iterable<Object?>? whereNotIn,
+    bool? isNull,
+  }) =>
+      super.noSuchMethod(
+        Invocation.method(#where, [field], {
+          #isEqualTo: isEqualTo,
+          #isNotEqualTo: isNotEqualTo,
+          #isLessThan: isLessThan,
+          #isLessThanOrEqualTo: isLessThanOrEqualTo,
+          #isGreaterThan: isGreaterThan,
+          #isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+          #arrayContains: arrayContains,
+          #arrayContainsAny: arrayContainsAny,
+          #whereIn: whereIn,
+          #whereNotIn: whereNotIn,
+          #isNull: isNull,
+        }),
+        returnValue: MockQuery<T>(),
+        returnValueForMissingStub: MockQuery<T>(),
+      ) as Query<T>;
+}
+
+class MockQuery<T extends Object?> extends Mock implements Query<T> {
+  @override
+  Query<T> limit(int limit) => super.noSuchMethod(
+        Invocation.method(#limit, [limit]),
+        returnValue: this,
+        returnValueForMissingStub: this,
+      ) as Query<T>;
+
+  @override
+  Future<QuerySnapshot<T>> get([GetOptions? options]) => super.noSuchMethod(
+        Invocation.method(#get, [options]),
+        returnValue: Future<QuerySnapshot<T>>.value(MockQuerySnapshot<T>()),
+        returnValueForMissingStub:
+            Future<QuerySnapshot<T>>.value(MockQuerySnapshot<T>()),
+      ) as Future<QuerySnapshot<T>>;
+
+  @override
+  AggregateQuery count() => super.noSuchMethod(
+        Invocation.method(#count, []),
+        returnValue: FakeAggregateQuery(
+          FakeAggregateQuerySnapshot(0, this),
+          this,
+        ),
+        returnValueForMissingStub: FakeAggregateQuery(
+          FakeAggregateQuerySnapshot(0, this),
+          this,
+        ),
+      ) as AggregateQuery;
+}
 
 class MockQuerySnapshot<T extends Object?> extends Mock
-    implements QuerySnapshot<T> {}
+    implements QuerySnapshot<T> {
+  @override
+  List<QueryDocumentSnapshot<T>> get docs => super.noSuchMethod(
+        Invocation.getter(#docs),
+        returnValue: <QueryDocumentSnapshot<T>>[],
+        returnValueForMissingStub: <QueryDocumentSnapshot<T>>[],
+      ) as List<QueryDocumentSnapshot<T>>;
+}
 
 class MockQueryDocumentSnapshot<T extends Object?> extends Mock
-    implements QueryDocumentSnapshot<T> {}
+    implements QueryDocumentSnapshot<T> {
+  @override
+  String get id => super.noSuchMethod(
+        Invocation.getter(#id),
+        returnValue: '',
+        returnValueForMissingStub: '',
+      ) as String;
+
+  @override
+  T data() => super.noSuchMethod(
+        Invocation.method(#data, []),
+        returnValue: <String, dynamic>{} as T,
+        returnValueForMissingStub: <String, dynamic>{} as T,
+      ) as T;
+}
 
 class MockDocumentReference<T extends Object?> extends Mock
-    implements DocumentReference<T> {}
+    implements DocumentReference<T> {
+  @override
+  Future<DocumentSnapshot<T>> get([GetOptions? options]) => super.noSuchMethod(
+        Invocation.method(#get, [options]),
+        returnValue:
+            Future<DocumentSnapshot<T>>.value(MockDocumentSnapshot<T>()),
+        returnValueForMissingStub:
+            Future<DocumentSnapshot<T>>.value(MockDocumentSnapshot<T>()),
+      ) as Future<DocumentSnapshot<T>>;
+}
 
 class MockDocumentSnapshot<T extends Object?> extends Mock
-    implements DocumentSnapshot<T> {}
+    implements DocumentSnapshot<T> {
+  @override
+  bool get exists => super.noSuchMethod(
+        Invocation.getter(#exists),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool;
+
+  @override
+  String get id => super.noSuchMethod(
+        Invocation.getter(#id),
+        returnValue: '',
+        returnValueForMissingStub: '',
+      ) as String;
+
+  @override
+  T? data() => super.noSuchMethod(
+        Invocation.method(#data, []),
+        returnValue: null,
+        returnValueForMissingStub: null,
+      ) as T?;
+}
 
 class FakeAggregateQuerySnapshot implements AggregateQuerySnapshot {
   FakeAggregateQuerySnapshot(this._count, this.query);

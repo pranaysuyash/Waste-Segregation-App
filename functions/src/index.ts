@@ -105,6 +105,42 @@ const parseBoolEnv = (value: string | undefined, fallback = false): boolean => {
   return fallback;
 };
 
+const isProductionRuntime = (): boolean => {
+  if (process.env.FUNCTIONS_EMULATOR === 'true') return false;
+  if (parseBoolEnv(process.env.HERMES_FORCE_PROD_GUARDRAILS, false)) return true;
+  return Boolean(process.env.K_SERVICE) || process.env.NODE_ENV === 'production';
+};
+
+const validateAppCheckProductionGuardrails = (): void => {
+  if (!isProductionRuntime()) return;
+
+  const violations: string[] = [];
+  if (!parseBoolEnv(process.env.REQUIRE_APPCHECK_CALLABLE, false)) {
+    violations.push('REQUIRE_APPCHECK_CALLABLE must be true in production.');
+  }
+  if (!parseBoolEnv(process.env.REQUIRE_APPCHECK_HTTP, false)) {
+    violations.push('REQUIRE_APPCHECK_HTTP must be true in production.');
+  }
+
+  if (violations.length === 0) return;
+
+  const message = `App Check production guardrail violation: ${violations.join(' ')}`;
+
+  if (parseBoolEnv(process.env.ALLOW_INSECURE_FUNCTIONS_BOOT, false)) {
+    functions.logger.error(`${message} Boot allowed only because ALLOW_INSECURE_FUNCTIONS_BOOT=true.`);
+    return;
+  }
+
+  throw new Error(message);
+};
+
+validateAppCheckProductionGuardrails();
+
+export const __testables = {
+  isProductionRuntime,
+  validateAppCheckProductionGuardrails,
+};
+
 const getClientIp = (req: functions.Request): string => {
   const xfwd = req.headers['x-forwarded-for'];
   if (typeof xfwd === 'string' && xfwd.trim().length > 0) {
@@ -1584,6 +1620,7 @@ async function triggerJobCompletionNotification(jobId: string, userId: string, c
 // ---------------------------------------------------------------------------
 export { classifyImage } from './classify_image';
 export {
+  evaluateOpsThresholdAlerts,
   getClassifyReservationDashboard,
   reconcileStaleClassifyReservations,
   syncEntitlementClaims,
@@ -1597,6 +1634,12 @@ export {
   reviewTrainingCandidate,
   revokeTrainingConsent,
 } from './training_data';
+
+// Phase 5 community stats scaling path: materialized aggregates with hourly batching
+export {
+  aggregateCommunityStats,
+  aggregateCommunityStatsHttp,
+} from './community_stats_aggregator';
 
 /**
  * HTTP endpoint to get batch processing statistics

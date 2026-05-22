@@ -5,6 +5,7 @@ import '../services/community_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../widgets/modern_ui/modern_cards.dart';
+import 'package:flutter/foundation.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 class CommunityScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class _CommunityScreenState extends State<CommunityScreen>
   List<CommunityFeedItem> _feedItems = [];
   CommunityStats? _stats;
   bool _isLoading = true;
+  String _loadingMessage = 'Loading community data';
 
   @override
   void initState() {
@@ -36,11 +38,22 @@ class _CommunityScreenState extends State<CommunityScreen>
   }
 
   Future<void> _loadCommunityData() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+      _loadingMessage = 'Syncing your scans';
+    });
+
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
-      final communityService =
-          Provider.of<CommunityService>(context, listen: false);
+      final storageService = Provider.of<StorageService>(
+        context,
+        listen: false,
+      );
+      final communityService = Provider.of<CommunityService>(
+        context,
+        listen: false,
+      );
       final userProfile = await storageService.getCurrentUserProfile();
 
       await communityService.initCommunity();
@@ -51,12 +64,16 @@ class _CommunityScreenState extends State<CommunityScreen>
 
       final feedItems = await communityService.getFeedItems();
       final stats = await communityService.getStats();
+      await communityService.reconcileCommunityStats(
+        runDriftCheck: kDebugMode,
+      );
 
       if (mounted) {
         setState(() {
           _feedItems = feedItems;
           _stats = stats;
           _isLoading = false;
+          _loadingMessage = 'Done';
         });
       }
     } catch (e) {
@@ -64,6 +81,7 @@ class _CommunityScreenState extends State<CommunityScreen>
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _loadingMessage = 'Failed to load community data';
         });
       }
     }
@@ -74,13 +92,18 @@ class _CommunityScreenState extends State<CommunityScreen>
 
     setState(() {
       _isLoading = true;
+      _loadingMessage = 'Syncing your scans';
     });
 
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
-      final communityService =
-          Provider.of<CommunityService>(context, listen: false);
+      final storageService = Provider.of<StorageService>(
+        context,
+        listen: false,
+      );
+      final communityService = Provider.of<CommunityService>(
+        context,
+        listen: false,
+      );
       final userProfile = await storageService.getCurrentUserProfile();
 
       if (userProfile != null) {
@@ -91,14 +114,20 @@ class _CommunityScreenState extends State<CommunityScreen>
         final userClassifications =
             await storageService.getAllClassifications();
         WasteAppLogger.info(
-            '🔄 FORCE SYNC: Starting with ${userClassifications.length} classifications');
+          '🔄 FORCE SYNC: Starting with ${userClassifications.length} classifications',
+        );
 
         await communityService.syncWithUserData(
-            userClassifications, userProfile);
+          userClassifications,
+          userProfile,
+        );
 
         // Reload data after sync
         final feedItems = await communityService.getFeedItems();
         final stats = await communityService.getStats();
+        final reconciliation = await communityService.reconcileCommunityStats(
+          runDriftCheck: kDebugMode,
+        );
 
         if (mounted) {
           setState(() {
@@ -109,10 +138,10 @@ class _CommunityScreenState extends State<CommunityScreen>
 
           // Calculate delta for feedback
           final userDelta = (stats.totalUsers) - (statsBefore?.totalUsers ?? 0);
-          final classDelta =
-              (stats.totalClassifications) -
-                  (statsBefore?.totalClassifications ?? 0);
-          final pointsDelta = (stats.totalPoints) - (statsBefore?.totalPoints ?? 0);
+          final classDelta = (stats.totalClassifications) -
+              (statsBefore?.totalClassifications ?? 0);
+          final pointsDelta =
+              (stats.totalPoints) - (statsBefore?.totalPoints ?? 0);
 
           // Show detailed success message with delta
           String deltaMessage = '✅ Sync Complete!';
@@ -122,8 +151,13 @@ class _CommunityScreenState extends State<CommunityScreen>
             if (pointsDelta > 0) parts.add('+$pointsDelta points');
             if (userDelta > 0) parts.add('+$userDelta users');
             deltaMessage = '✅ Synced: ${parts.join(', ')}';
-          } else if (feedItems.isNotEmpty) {
+          } else if (reconciliation.isInSync && feedItems.isNotEmpty) {
             deltaMessage = '✅ Synced ${feedItems.length} community activities';
+          } else if (!reconciliation.isInSync) {
+            deltaMessage =
+                '⚠️ Sync complete, but stats reconciliation flagged drift';
+          } else {
+            deltaMessage = '✅ Sync complete';
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -140,6 +174,7 @@ class _CommunityScreenState extends State<CommunityScreen>
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _loadingMessage = 'Sync failed';
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -184,43 +219,62 @@ class _CommunityScreenState extends State<CommunityScreen>
             )
           : null,
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 12),
+                  Text(_loadingMessage),
+                ],
+              ),
+            )
           : TabBarView(
               controller: _tabController,
-              children: [
-                _buildFeedTab(),
-                _buildStatsTab(),
-                _buildMembersTab(),
-              ],
+              children: [_buildFeedTab(), _buildStatsTab(), _buildMembersTab()],
             ),
     );
   }
 
   Widget _buildFeedTab() {
     if (_feedItems.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.people_outline,
-              size: 64,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'No community activity yet',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
+      return RefreshIndicator(
+        onRefresh: _loadCommunityData,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppTheme.paddingRegular),
+          children: const [
+            SizedBox(height: 160),
+            Center(
+              child: Column(
+                children: [
+                  Icon(Icons.people_outline, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'No community activity yet',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Pull to refresh',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Start classifying items or sync your data to see community activity.',
+                    style: TextStyle(color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Start classifying items to see community activity!',
-              style: TextStyle(color: Colors.grey),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -268,11 +322,7 @@ class _CommunityScreenState extends State<CommunityScreen>
               CircleAvatar(
                 radius: 20,
                 backgroundColor: item.activityColor,
-                child: Icon(
-                  item.activityIcon,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                child: Icon(item.activityIcon, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -288,10 +338,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                     ),
                     Text(
                       item.description,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                   ],
                 ),
@@ -304,10 +351,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                   children: [
                     Text(
                       item.relativeTime,
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 11,
-                      ),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 11),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
@@ -320,8 +364,9 @@ class _CommunityScreenState extends State<CommunityScreen>
                         ),
                         decoration: BoxDecoration(
                           color: AppTheme.accentColor.withValues(alpha: 0.15),
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.borderRadiusSm),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.borderRadiusSm,
+                          ),
                         ),
                         child: Text(
                           '+${item.points} pts',
@@ -356,27 +401,20 @@ class _CommunityScreenState extends State<CommunityScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.groups_outlined,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.groups_outlined, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'No community activity yet',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                'Start classifying items or sync your data to see community stats.',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 14,
-                ),
+                'Pull to refresh or sync your data to see community stats.',
+                style: TextStyle(color: Colors.grey[500], fontSize: 14),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -419,20 +457,17 @@ class _CommunityScreenState extends State<CommunityScreen>
                     const SizedBox(width: 8),
                     Text(
                       'Data Reconciliation',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'Since you\'re the only user, community stats should match your personal stats exactly.',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -518,12 +553,16 @@ class _CommunityScreenState extends State<CommunityScreen>
                               color: Colors.orange.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                  color: Colors.orange.withValues(alpha: 0.3)),
+                                color: Colors.orange.withValues(alpha: 0.3),
+                              ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.warning_amber,
-                                    color: Colors.orange, size: 16),
+                                const Icon(
+                                  Icons.warning_amber,
+                                  color: Colors.orange,
+                                  size: 16,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -560,7 +599,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Real-time aggregation from Firestore feed items',
+                  'Canonical aggregate from community_stats (reconciled from feed)',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
@@ -571,16 +610,15 @@ class _CommunityScreenState extends State<CommunityScreen>
                 if (_stats!.lastUpdated != null) ...[
                   Text(
                     'Last updated: ${_formatDateTime(_stats!.lastUpdated!)}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 11, color: Colors.grey[500]),
                   ),
                   const SizedBox(height: 12),
                 ],
                 _buildStatRow('Total Users', '${_stats!.totalUsers}'),
                 _buildStatRow(
-                    'Total Classifications', '${_stats!.totalClassifications}'),
+                  'Total Classifications',
+                  '${_stats!.totalClassifications}',
+                ),
                 _buildStatRow('Total Points Earned', '${_stats!.totalPoints}'),
               ],
             ),
@@ -596,10 +634,10 @@ class _CommunityScreenState extends State<CommunityScreen>
                   children: [
                     Text(
                       'Popular Categories',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: AppTheme.paddingRegular),
                     ..._stats!.topCategories.entries.map((entry) {
@@ -641,8 +679,10 @@ class _CommunityScreenState extends State<CommunityScreen>
 
   Future<int> _getExpectedActivityCount() async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = Provider.of<StorageService>(
+        context,
+        listen: false,
+      );
       final classifications = await storageService.getAllClassifications();
       // Expected activity count should be at least the number of classifications
       // plus any achievements (rough estimate)
@@ -693,11 +733,7 @@ class _CommunityScreenState extends State<CommunityScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.construction,
-              size: 64,
-              color: Colors.grey,
-            ),
+            Icon(Icons.construction, size: 64, color: Colors.grey),
             SizedBox(height: 16),
             Text(
               'Members Directory',

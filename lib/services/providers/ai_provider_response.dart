@@ -26,7 +26,7 @@ class AiProviderResponse {
   /// Full response map returned by the provider wire API.
   ///
   /// The caller (AiService) uses this for response parsing via
-  /// [_processAiResponseData], error diagnostics, and debugging.
+  /// `_processAiResponseData`, error diagnostics, and debugging.
   final Map<String, dynamic> rawResponseMap;
 
   /// Pre-extracted text content, primarily for Gemini which nests the

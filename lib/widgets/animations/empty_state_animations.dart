@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 
@@ -48,6 +50,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
   late Animation<Offset> _slideAnimation;
   late Animation<double> _pulseAnimation;
   late Animation<double> _tipFadeAnimation;
+  Timer? _tipTimer;
 
   @override
   void initState() {
@@ -126,7 +129,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
     }
 
     if (widget.educationalTip != null) {
-      Future.delayed(const Duration(milliseconds: 2000), () {
+      _tipTimer = Timer(const Duration(milliseconds: 2000), () {
         if (mounted) {
           _tipController.forward();
         }
@@ -136,6 +139,7 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget>
 
   @override
   void dispose() {
+    _tipTimer?.cancel();
     _primaryController.dispose();
     _pulseController.dispose();
     _tipController.dispose();

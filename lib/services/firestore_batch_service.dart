@@ -199,7 +199,8 @@ class FirestoreBatchManager {
 
     WasteAppLogger.info('Committed all batches', context: {
       'batches': results.length,
-      'total_operations': results.values.fold(0, (sum, count) => sum + count),
+      'total_operations':
+          results.values.fold(0, (totalOps, opCount) => totalOps + opCount),
     });
 
     return results;
@@ -208,7 +209,7 @@ class FirestoreBatchManager {
   /// Get total pending operations across all batches
   int get totalPendingOperations {
     return _batches.values
-        .fold(0, (sum, batch) => sum + batch.pendingOperations);
+        .fold(0, (totalOps, batchOps) => totalOps + batchOps.pendingOperations);
   }
 
   /// Dispose all batches

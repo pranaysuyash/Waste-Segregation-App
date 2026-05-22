@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import '../models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
 import 'barcode_lookup_service.dart';
-import 'color_histogram_classifier.dart';
 import 'layer0_disposal_mapping.dart';
 import 'local_classifier_service.dart';
 
@@ -47,15 +46,15 @@ class Layer0Result {
 /// Runs barcode lookup (if barcode provided) and color histogram analysis,
 /// then decides whether to accept, hint, escalate, or reject.
 ///
-/// When [accept], builds a complete [WasteClassification] using
-/// [Layer0DisposalMapping] — no AI call needed.
+/// When `accept`, builds a complete `WasteClassification` using
+/// `Layer0DisposalMapping` — no AI call needed.
 class Layer0Router {
   Layer0Router({
     required this.colorClassifier,
     required this.barcodeService,
   });
 
-  final ColorHistogramClassifier colorClassifier;
+  final LocalClassifier colorClassifier;
   final BarcodeLookupService barcodeService;
 
   /// Acceptance confidence threshold for non-safety items.

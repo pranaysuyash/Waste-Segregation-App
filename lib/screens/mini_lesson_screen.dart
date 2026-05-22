@@ -100,7 +100,6 @@ class MiniLessonScreen extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: EducationCardWidget(
                     card: related,
-                    onDismiss: null,
                   ),
                 ),
               ),

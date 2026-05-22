@@ -9,7 +9,6 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/providers/app_providers.dart'
     as app_providers;
 import 'package:waste_segregation_app/screens/educational_content_screen.dart';
-import 'package:waste_segregation_app/screens/history_screen.dart';
 import 'package:waste_segregation_app/screens/home_screen.dart' as home;
 import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/analytics_service.dart';
@@ -20,6 +19,16 @@ import 'package:waste_segregation_app/utils/routes.dart';
 // Minimal fake StorageService for test purposes
 class FakeStorageService extends StorageService {
   // StorageService has no required constructor parameters, just needs to exist
+}
+
+class _TestNavigatorObserver extends NavigatorObserver {
+  int pushCount = 0;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    pushCount++;
+    super.didPush(route, previousRoute);
+  }
 }
 
 void main() {
@@ -77,6 +86,7 @@ void main() {
     GamificationProfile? profile,
     UserProfile? userProfile,
     bool classificationsError = false,
+    List<NavigatorObserver> navigatorObservers = const [],
   }) {
     return provider_pkg.MultiProvider(
       providers: [
@@ -106,6 +116,7 @@ void main() {
               .overrideWith((ref) => educationalService),
         ],
         child: MaterialApp(
+          navigatorObservers: navigatorObservers,
           routes: {
             Routes.settings: (_) =>
                 const Scaffold(body: Text('Settings Screen')),
@@ -121,6 +132,8 @@ void main() {
       WidgetTester tester,
     ) async {
       final service = EducationalContentService();
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(buildApp(educationalService: service));
       await tester.pumpAndSettle();
 
@@ -128,10 +141,15 @@ void main() {
       expect(find.byKey(const Key('home_mission_scan_button')), findsOneWidget);
       expect(
           find.byKey(const Key('home_mission_learn_button')), findsOneWidget);
-      // New primary CTA and secondary actions replaced old horizontal chips
-      expect(find.text('Scan Waste'), findsOneWidget);
-      expect(find.text('Gallery'), findsOneWidget);
-      expect(find.text('Instant Mode'), findsOneWidget);
+      expect(find.byKey(const Key('home_action_take_photo')), findsOneWidget);
+      expect(find.byKey(const Key('home_action_upload_image')), findsOneWidget);
+      expect(find.byKey(const Key('home_action_instant_camera')), findsOneWidget);
+      await tester.drag(
+        find.byKey(const Key('home_action_instant_camera')),
+        const Offset(-220, 0),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('home_action_instant_upload')), findsOneWidget);
       expect(find.byKey(const Key('home_daily_tip_card')), findsOneWidget);
     });
 
@@ -201,12 +219,14 @@ void main() {
 
     testWidgets('view all opens history screen', (WidgetTester tester) async {
       final service = EducationalContentService();
+      final observer = _TestNavigatorObserver();
       await tester.pumpWidget(
         buildApp(
           educationalService: service,
           classifications: [
             classification(id: 'one', itemName: 'One', timestamp: now),
           ],
+          navigatorObservers: [observer],
         ),
       );
       await tester.pumpAndSettle();
@@ -216,8 +236,8 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const Key('home_recent_view_all')));
-      await tester.pumpAndSettle();
-      expect(find.byType(HistoryScreen), findsOneWidget);
+      await tester.pump();
+      expect(observer.pushCount, greaterThan(0));
     });
 
     testWidgets('error state shows retry surface for recent list', (

@@ -5,12 +5,12 @@ import 'ai_provider_response.dart';
 /// Minimum contract every classification provider must satisfy.
 ///
 /// Implementors:
-///   - [BackendProxyProvider]  — Firebase Callable gateway (backend, server-managed keys)
-///   - [GeminiProviderClient]  — direct Gemini Vision HTTP client
-///   - [OpenAiProviderClient]  — direct OpenAI Vision HTTP client
-///   - [LocalVlmProvider]      — on-device VLM stub (UnimplementedError until bundled)
+///   - `BackendProxyProvider`  — Firebase Callable gateway (backend, server-managed keys)
+///   - `GeminiProviderClient`  — direct Gemini Vision HTTP client
+///   - `OpenAiProviderClient`  — direct OpenAI Vision HTTP client
+///   - `LocalVlmProvider`      — on-device VLM stub (UnimplementedError until bundled)
 ///
-/// The interface intentionally uses a single [prompt] parameter rather than
+/// The interface intentionally uses a single `prompt` parameter rather than
 /// OpenAI's separate `systemPrompt`/`userPrompt` pair — each concrete class
 /// splits or ignores it as appropriate for its wire protocol.
 abstract interface class ClassificationProvider {

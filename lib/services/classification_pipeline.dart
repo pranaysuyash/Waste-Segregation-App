@@ -10,8 +10,8 @@ import 'local_classifier_service.dart';
 /// Layer 0 (deterministic) → Layer 1 (on-device ML) → Cloud.
 ///
 /// Each layer is tried in order. The first layer that produces a confident
-/// result short-circuits the pipeline. The [classificationLayer] field on
-/// the returned [WasteClassification] records which layer handled it.
+/// result short-circuits the pipeline. The `classificationLayer` field on
+/// the returned `WasteClassification` records which layer handled it.
 class ClassificationPipeline {
   ClassificationPipeline({
     required this.layer0Router,

@@ -181,6 +181,140 @@ export const reconcileStaleClassifyReservations = asiaSouth1.pubsub
     return null;
   });
 
+const buildThresholdAlerts = (input: {
+  counters: Record<string, unknown>;
+  refundRate: number;
+}): Array<{
+  alertType: string;
+  value: number;
+  threshold: number;
+  severity: 'warning' | 'critical';
+}> => {
+  const claimsFallback = Number(input.counters.spendUserTokens_claims_fallback ?? 0);
+  const appCheckMissing = Number(input.counters.appcheck_missing ?? 0);
+  const classifyRateLimited = Number(input.counters.classifyImage_rate_limited ?? 0);
+
+  const thresholds = {
+    claimsFallback: Math.max(1, Number(process.env.OPS_ALERT_CLAIMS_FALLBACK_THRESHOLD ?? 25)),
+    appCheckMissing: Math.max(1, Number(process.env.OPS_ALERT_APPCHECK_MISSING_THRESHOLD ?? 10)),
+    classifyRateLimited: Math.max(1, Number(process.env.OPS_ALERT_CLASSIFY_RATE_LIMITED_THRESHOLD ?? 150)),
+    refundRate: Math.min(1, Math.max(0, Number(process.env.OPS_ALERT_REFUND_RATE_THRESHOLD ?? 0.15))),
+  };
+
+  const alerts: Array<{
+    alertType: string;
+    value: number;
+    threshold: number;
+    severity: 'warning' | 'critical';
+  }> = [];
+
+  if (claimsFallback >= thresholds.claimsFallback) {
+    alerts.push({
+      alertType: 'claims_fallback_spike',
+      value: claimsFallback,
+      threshold: thresholds.claimsFallback,
+      severity: 'warning',
+    });
+  }
+
+  if (appCheckMissing >= thresholds.appCheckMissing) {
+    alerts.push({
+      alertType: 'appcheck_missing_spike',
+      value: appCheckMissing,
+      threshold: thresholds.appCheckMissing,
+      severity: 'critical',
+    });
+  }
+
+  if (classifyRateLimited >= thresholds.classifyRateLimited) {
+    alerts.push({
+      alertType: 'classify_rate_limit_spike',
+      value: classifyRateLimited,
+      threshold: thresholds.classifyRateLimited,
+      severity: 'warning',
+    });
+  }
+
+  if (input.refundRate >= thresholds.refundRate) {
+    alerts.push({
+      alertType: 'refund_rate_spike',
+      value: Number(input.refundRate.toFixed(4)),
+      threshold: thresholds.refundRate,
+      severity: 'critical',
+    });
+  }
+
+  return alerts;
+};
+
+export const evaluateOpsThresholdAlerts = asiaSouth1.pubsub
+  .schedule('every 15 minutes')
+  .timeZone('UTC')
+  .onRun(async () => {
+    const db = admin.firestore();
+    const day = new Date().toISOString().slice(0, 10);
+
+    const [opsMetricsSnap, monitorSnap] = await Promise.all([
+      db.collection('ops_metrics').doc(day).get(),
+      db.collection('ops_monitoring').doc('classify_reservation_reconciliation').get(),
+    ]);
+
+    const counters = (opsMetricsSnap.data()?.counters ?? {}) as Record<string, unknown>;
+    const monitor = (monitorSnap.data() ?? {}) as Record<string, unknown>;
+
+    const totalFinalized = Number(monitor.totalFinalized ?? 0);
+    const refunded = Number(monitor.refundedCount ?? 0);
+    const fallbackRefundRate = totalFinalized > 0 ? refunded / totalFinalized : 0;
+    const monitorRefundRate = Number(monitor.refundRate ?? NaN);
+    const refundRate = Number.isFinite(monitorRefundRate) ? monitorRefundRate : fallbackRefundRate;
+
+    const alerts = buildThresholdAlerts({ counters, refundRate });
+
+    await db.collection('ops_monitoring').doc('ops_threshold_alerts').set({
+      evaluatedAt: FieldValue.serverTimestamp(),
+      evaluatedAtIso: new Date().toISOString(),
+      day,
+      alertCount: alerts.length,
+      alerts,
+      counters,
+      refundRate,
+      runbook: 'docs/review/MONEY_FIRST_LAUNCH_CONFIG_CHECKLIST_2026-05-22.md',
+    }, { merge: true });
+
+    for (const alert of alerts) {
+      const alertId = `${day}_${alert.alertType}`;
+      await db.collection('ops_alerts').doc(alertId).set({
+        day,
+        alertType: alert.alertType,
+        severity: alert.severity,
+        value: alert.value,
+        threshold: alert.threshold,
+        status: 'open',
+        source: 'evaluateOpsThresholdAlerts',
+        createdAt: FieldValue.serverTimestamp(),
+        createdAtIso: new Date().toISOString(),
+      }, { merge: true });
+
+      functions.logger.error('evaluateOpsThresholdAlerts: threshold breached', {
+        alertType: alert.alertType,
+        severity: alert.severity,
+        value: alert.value,
+        threshold: alert.threshold,
+        day,
+      });
+    }
+
+    if (alerts.length === 0) {
+      functions.logger.info('evaluateOpsThresholdAlerts: no threshold breaches', { day });
+    }
+
+    return null;
+  });
+
+export const __testables = {
+  buildThresholdAlerts,
+};
+
 const getBearerToken = (authHeader: string | undefined): string | null => {
   if (!authHeader) return null;
   if (!authHeader.startsWith('Bearer ')) return null;

@@ -272,6 +272,8 @@ interface TokenReservationResult {
   transaction: ServerTokenTransaction;
   tokenCost: number;
   premiumApplied: boolean;
+  freeQuotaApplied: boolean;
+  freeQuotaLimit: number;
   reservationId: string;
   status: 'reserved' | 'consumed' | 'refunded';
   reusedExistingReservation: boolean;
@@ -296,13 +298,88 @@ const getClassifyRateLimitConfig = () => ({
 const getCacheTtlSeconds = (): number =>
   Number(process.env.CLASSIFY_CACHE_TTL_SECONDS ?? 86400);
 
+const getNumberEnvWithAliases = (
+  keys: string[],
+  fallback: number,
+): number => {
+  for (const key of keys) {
+    const raw = process.env[key];
+    if (raw == null || raw.trim().length === 0) continue;
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
+};
+
 const getClassifyTokenCost = (): number =>
-  Math.max(1, Number(process.env.CLASSIFY_IMAGE_TOKEN_COST ?? 5));
+  Math.max(1, getNumberEnvWithAliases([
+    'MONETIZATION_CLASSIFY_IMAGE_TOKEN_COST',
+    'CLASSIFY_IMAGE_TOKEN_COST',
+  ], 5));
 
 const getClassifyPremiumDiscountPercent = (): number => {
-  const value = Number(process.env.CLASSIFY_IMAGE_PREMIUM_DISCOUNT_PERCENT ?? 50);
+  const value = getNumberEnvWithAliases([
+    'MONETIZATION_CLASSIFY_IMAGE_PREMIUM_DISCOUNT_PERCENT',
+    'CLASSIFY_IMAGE_PREMIUM_DISCOUNT_PERCENT',
+  ], 50);
   if (!Number.isFinite(value)) return 50;
   return Math.min(90, Math.max(0, value));
+};
+
+const getDailyFreeScanLimit = (): number => {
+  const value = getNumberEnvWithAliases([
+    'MONETIZATION_FREE_DAILY_SCAN_LIMIT',
+    'CLASSIFY_DAILY_FREE_CLASSIFICATIONS',
+    'DAILY_FREE_CLASSIFICATIONS',
+  ], 5);
+  return Math.max(0, Math.floor(value));
+};
+
+const toUtcDayKey = (value: unknown): string | null => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+    return null;
+  }
+
+  if (value instanceof Date) {
+    if (!Number.isNaN(value.getTime())) return value.toISOString().slice(0, 10);
+    return null;
+  }
+
+  if (value && typeof value === 'object') {
+    const maybeTimestamp = value as { toDate?: () => Date };
+    if (typeof maybeTimestamp.toDate === 'function') {
+      const dateValue = maybeTimestamp.toDate();
+      if (dateValue instanceof Date && !Number.isNaN(dateValue.getTime())) {
+        return dateValue.toISOString().slice(0, 10);
+      }
+    }
+  }
+
+  return null;
+};
+
+const resolveDailyFreeUsageState = (
+  dailyConversionsUsedRaw: number,
+  lastConversionDateRaw: unknown,
+  now: Date,
+): { usedToday: number; todayKey: string } => {
+  const todayKey = now.toISOString().slice(0, 10);
+  const lastDayKey = toUtcDayKey(lastConversionDateRaw);
+  const safeUsed = Number.isFinite(dailyConversionsUsedRaw)
+    ? Math.max(0, Math.floor(dailyConversionsUsedRaw))
+    : 0;
+
+  if (lastDayKey !== todayKey) {
+    return { usedToday: 0, todayKey };
+  }
+
+  return { usedToday: safeUsed, todayKey };
 };
 
 const isTokenSpendEnforced = (): boolean =>
@@ -401,7 +478,7 @@ async function reserveClassificationTokens(params: {
       : {};
 
     const entitlement = resolvePremiumEntitlement(userData, authToken);
-    const { tokenCost, premiumApplied } = computeClassifyTokenCost(
+    const { tokenCost: configuredTokenCost, premiumApplied } = computeClassifyTokenCost(
       getClassifyTokenCost(),
       entitlement.hasPremium,
     );
@@ -409,14 +486,26 @@ async function reserveClassificationTokens(params: {
     const currentBalance = Number(walletRaw.balance ?? 50);
     const totalEarned = Number(walletRaw.totalEarned ?? 50);
     const totalSpent = Number(walletRaw.totalSpent ?? 0);
-    const dailyConversionsUsed = Number(walletRaw.dailyConversionsUsed ?? 0);
-    const lastConversionDate = walletRaw.lastConversionDate ?? null;
+    const dailyConversionsUsedRaw = Number(walletRaw.dailyConversionsUsed ?? 0);
+    const lastConversionDateRaw = walletRaw.lastConversionDate ?? null;
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const { usedToday, todayKey } = resolveDailyFreeUsageState(
+      dailyConversionsUsedRaw,
+      lastConversionDateRaw,
+      now,
+    );
+    const freeQuotaLimit = getDailyFreeScanLimit();
+    const freeQuotaApplied = freeQuotaLimit > 0 && usedToday < freeQuotaLimit;
+    const tokenCost = freeQuotaApplied ? 0 : configuredTokenCost;
 
     if (reservationSnap.exists && normalizedRequestId) {
       const existing = reservationSnap.data() as Record<string, unknown>;
       const existingStatus = (existing.status as ReservationStatus | undefined) ?? 'reserved';
       const existingTokenCost = Number(existing.tokenCost ?? tokenCost);
       const existingPremiumApplied = existing.premiumApplied === true;
+      const existingFreeQuotaApplied = existing.freeQuotaApplied === true;
+      const existingFreeQuotaLimit = Number(existing.freeQuotaLimit ?? freeQuotaLimit);
       const existingTxId = String(existing.reservationTransactionId ?? 'existing_reservation');
 
       if (existingStatus === 'reserved' || existingStatus === 'consumed') {
@@ -425,26 +514,32 @@ async function reserveClassificationTokens(params: {
             balance: currentBalance,
             totalEarned,
             totalSpent,
-            lastUpdated: String(walletRaw.lastUpdated ?? new Date().toISOString()),
-            dailyConversionsUsed,
-            lastConversionDate,
+            lastUpdated: String(walletRaw.lastUpdated ?? nowIso),
+            dailyConversionsUsed: Number(walletRaw.dailyConversionsUsed ?? usedToday),
+            lastConversionDate: walletRaw.lastConversionDate ?? todayKey,
           },
           transaction: {
             id: existingTxId,
             delta: -Math.abs(existingTokenCost),
             type: 'TokenTransactionType.spend',
-            timestamp: String(existing.createdAtIso ?? new Date().toISOString()),
-            description: 'Instant AI image classification (idempotent retry)',
+            timestamp: String(existing.createdAtIso ?? nowIso),
+            description: existingFreeQuotaApplied
+              ? 'Instant AI image classification (idempotent retry, free quota)'
+              : 'Instant AI image classification (idempotent retry)',
             reference: `classifyImage:${imageHash.slice(0, 12)}:${region}:${lang}`,
             metadata: {
               source: 'classifyImage',
               tokenCost: existingTokenCost,
               premiumApplied: existingPremiumApplied,
+              freeQuotaApplied: existingFreeQuotaApplied,
+              freeQuotaLimit: existingFreeQuotaLimit,
               reusedReservation: true,
             },
           },
           tokenCost: existingTokenCost,
           premiumApplied: existingPremiumApplied,
+          freeQuotaApplied: existingFreeQuotaApplied,
+          freeQuotaLimit: existingFreeQuotaLimit,
           reservationId,
           status: existingStatus,
           reusedExistingReservation: true,
@@ -459,36 +554,41 @@ async function reserveClassificationTokens(params: {
       }
     }
 
-    if (!Number.isFinite(currentBalance) || currentBalance < tokenCost) {
+    if (tokenCost > 0 && (!Number.isFinite(currentBalance) || currentBalance < tokenCost)) {
       throw new functions.https.HttpsError(
         'failed-precondition',
         `Insufficient tokens for classification. Need ${tokenCost}, have ${Number.isFinite(currentBalance) ? currentBalance : 0}.`,
       );
     }
 
-    const nowIso = new Date().toISOString();
     const txId = db.collection('_tmp').doc().id;
+    const nextDailyConversionsUsed = freeQuotaApplied ? usedToday + 1 : usedToday;
 
     const nextWallet: ServerTokenWallet = {
       balance: currentBalance - tokenCost,
       totalEarned,
       totalSpent: totalSpent + tokenCost,
       lastUpdated: nowIso,
-      dailyConversionsUsed,
-      lastConversionDate,
+      dailyConversionsUsed: nextDailyConversionsUsed,
+      lastConversionDate: todayKey,
     };
 
     const transaction: ServerTokenTransaction = {
       id: txId,
       delta: -tokenCost,
-      type: 'TokenTransactionType.spend',
+      type: tokenCost === 0 ? 'TokenTransactionType.free' : 'TokenTransactionType.spend',
       timestamp: nowIso,
-      description: 'Instant AI image classification',
+      description: freeQuotaApplied
+        ? 'Instant AI image classification (free daily quota)'
+        : 'Instant AI image classification',
       reference: `classifyImage:${imageHash.slice(0, 12)}:${region}:${lang}`,
       metadata: {
         source: 'classifyImage',
         tokenCost,
         premiumApplied,
+        freeQuotaApplied,
+        freeQuotaLimit,
+        freeQuotaRemaining: Math.max(0, freeQuotaLimit - nextDailyConversionsUsed),
         entitlementSource: entitlement.source,
         region,
         lang,
@@ -515,15 +615,19 @@ async function reserveClassificationTokens(params: {
       lang,
       tokenCost,
       premiumApplied,
+      freeQuotaApplied,
+      freeQuotaLimit,
       entitlementSource: entitlement.source,
       status: 'reserved',
       reservationTransactionId: txId,
       createdAtIso: nowIso,
+      reservedAtIso: nowIso,
       updatedAtIso: nowIso,
       consumedAtIso: null,
       refundedAtIso: null,
       refundTransactionId: null,
       createdAt: FieldValue.serverTimestamp(),
+      reservedAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
 
@@ -532,6 +636,8 @@ async function reserveClassificationTokens(params: {
       transaction,
       tokenCost,
       premiumApplied,
+      freeQuotaApplied,
+      freeQuotaLimit,
       reservationId,
       status: 'reserved',
       reusedExistingReservation: false,
@@ -924,6 +1030,10 @@ export const __testables = {
   getClassifyRateLimitConfig,
   getCacheTtlSeconds,
   getClassifyTokenCost,
+  getClassifyPremiumDiscountPercent,
+  getDailyFreeScanLimit,
+  toUtcDayKey,
+  resolveDailyFreeUsageState,
   estimateCostUsd,
   buildClassificationPrompt,
   buildReservationId,
@@ -1339,6 +1449,8 @@ export const classifyImage = functions
     tokenSpendEnforced: isTokenSpendEnforced(),
     tokenCost: tokenReservation?.tokenCost ?? 0,
     premiumApplied: tokenReservation?.premiumApplied ?? false,
+    freeQuotaApplied: tokenReservation?.freeQuotaApplied ?? false,
+    freeQuotaLimit: tokenReservation?.freeQuotaLimit ?? getDailyFreeScanLimit(),
     reservationId: tokenReservation?.reservationId ?? null,
     reservationStatus: tokenReservation?.status ?? null,
     reservationReused: tokenReservation?.reusedExistingReservation ?? false,
@@ -1356,6 +1468,8 @@ export const classifyImage = functions
       tokenSpendEnforced: isTokenSpendEnforced(),
       tokensCharged: tokenReservation?.tokenCost ?? 0,
       premiumApplied: tokenReservation?.premiumApplied ?? false,
+      freeQuotaApplied: tokenReservation?.freeQuotaApplied ?? false,
+      freeQuotaLimit: tokenReservation?.freeQuotaLimit ?? getDailyFreeScanLimit(),
       tokenReservationId: tokenReservation?.reservationId ?? null,
       tokenReservationStatus: tokenReservation?.status ?? null,
       tokenReservationReused: tokenReservation?.reusedExistingReservation ?? false,

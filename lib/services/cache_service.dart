@@ -12,7 +12,7 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../models/cached_classification.dart' show CachedClassification;
 
 /// Safely truncates a hash string for logging preview.
-/// Returns '<empty>' when [value] is null or empty.
+/// Returns `<empty>` when `value` is null or empty.
 String _previewHash(String? value) {
   if (value == null || value.isEmpty) return '<empty>';
   return value.length <= 16 ? value : value.substring(0, 16);

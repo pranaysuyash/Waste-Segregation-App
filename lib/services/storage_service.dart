@@ -43,7 +43,7 @@ class StorageService {
 
   /// Facade: focused services extracted from the original monolith.
   /// These are wired at runtime and provide unique API surface
-  /// (getClassificationById, updateUserProfile, getSetting<T>)
+  /// (`getClassificationById`, `updateUserProfile`, `getSetting<T>`)
   /// plus delegation for simple persistence operations.
   /// Complex operations (saveClassification dedup, TypeAdapter format)
   /// remain in StorageService for backward data compatibility.

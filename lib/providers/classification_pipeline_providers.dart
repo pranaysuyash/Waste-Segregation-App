@@ -11,7 +11,7 @@ import 'cost_management_providers.dart';
 /// until a real on-device model is wired (Phase C). This ensures the
 /// pipeline gracefully falls through to cloud classification.
 ///
-/// Replace this provider with [TfliteLocalClassifier] once real inference
+/// Replace this provider with `TfliteLocalClassifier` once real inference
 /// is implemented.
 final localClassifierProvider = Provider<LocalClassifier>((ref) {
   return FakeLocalClassifier(isModelLoaded: false);
