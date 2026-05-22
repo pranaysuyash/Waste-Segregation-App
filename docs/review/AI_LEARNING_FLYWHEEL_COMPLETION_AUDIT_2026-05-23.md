@@ -87,3 +87,6 @@ This command runs tests, evals, dataset export, annotation workflow steps, and e
 
 ## Acceptance report tool
 - `tool/ai_flywheel_acceptance_report.dart` produces criterion-by-criterion audit JSON from generated evidence artifacts.
+
+## Seed coverage validator
+- `tool/ai_eval_seed_coverage_report.dart` verifies semantic seed coverage for required case families (not only case count).

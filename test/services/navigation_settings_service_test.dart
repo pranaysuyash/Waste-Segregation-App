@@ -20,5 +20,16 @@ void main() {
       expect(NavigationSettingsService.validStyles, containsAll(['glassmorphism', 'material3', 'floating']));
       expect(NavigationSettingsService.validStyles.length, equals(3));
     });
+
+    test('setNavigationStyle rejects invalid styles silently', () async {
+      SharedPreferences.setMockInitialValues({});
+      final service = NavigationSettingsService();
+      await Future.delayed(const Duration(milliseconds: 10));
+      final initialStyle = service.navigationStyle;
+      
+      await service.setNavigationStyle('invalid_style');
+      expect(service.navigationStyle, equals(initialStyle));
+      expect(NavigationSettingsService.isValidStyle(service.navigationStyle), isTrue);
+    });
   });
 }

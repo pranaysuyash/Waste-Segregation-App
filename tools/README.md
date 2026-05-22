@@ -79,3 +79,11 @@ Usage:
 ```bash
 dart run tool/ai_flywheel_acceptance_report.dart --out build/reports/ai_flywheel/acceptance_report.json
 ```
+
+## 8) `../tool/ai_eval_seed_coverage_report.dart`
+Validates seed-case semantic coverage against goal-required case families.
+
+Usage:
+```bash
+dart run tool/ai_eval_seed_coverage_report.dart --input test/fixtures/ai_eval/golden_cases.jsonl --out build/reports/ai_eval/seed_coverage_report.json
+```

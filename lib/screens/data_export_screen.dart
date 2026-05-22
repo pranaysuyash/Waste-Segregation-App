@@ -322,6 +322,13 @@ class _DataExportScreenState extends State<DataExportScreen> {
     }
   }
 
+  String _escapeCsvField(String field) {
+    if (field.contains('"') || field.contains(',') || field.contains('\n')) {
+      return '"${field.replaceAll('"', '""')}"';
+    }
+    return field;
+  }
+
   String _generateCSV(List<WasteClassification> data) {
     final buffer = StringBuffer();
 
@@ -339,24 +346,24 @@ class _DataExportScreenState extends State<DataExportScreen> {
     // Data rows
     for (final item in data) {
       final row = <String>[
-        '"${item.itemName}"',
-        '"${item.category}"',
-        '"${DateFormat('yyyy-MM-dd HH:mm:ss').format(item.timestamp)}"',
+        _escapeCsvField(item.itemName),
+        _escapeCsvField(item.category),
+        _escapeCsvField(DateFormat('yyyy-MM-dd HH:mm:ss').format(item.timestamp)),
       ];
 
       if (_includeAnalytics) {
         row.addAll([
-          '"${item.confidence != null ? (item.confidence! * 100).toStringAsFixed(1) : 'N/A'}%"',
-          '"${item.subcategory ?? 'N/A'}"',
-          '"${item.materialType ?? 'N/A'}"',
-          '"${item.modelVersion ?? 'N/A'}"',
+          _escapeCsvField(item.confidence != null ? (item.confidence! * 100).toStringAsFixed(1) : 'N/A') + '%',
+          _escapeCsvField(item.subcategory ?? 'N/A'),
+          _escapeCsvField(item.materialType ?? 'N/A'),
+          _escapeCsvField(item.modelVersion ?? 'N/A'),
         ]);
       }
       if (_includePersonalData) {
-        row.add('"Mobile Device"');
+        row.add(_escapeCsvField('Mobile Device'));
       }
       if (_includeImages && !kIsWeb) {
-        row.add('"${item.imageUrl ?? ''}"');
+        row.add(_escapeCsvField(item.imageUrl ?? ''));
       }
 
       buffer.writeln(row.join(','));
