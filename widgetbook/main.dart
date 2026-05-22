@@ -2341,13 +2341,14 @@ WidgetbookCategory _componentCategory() {
               WidgetbookUseCase(
                 name: 'RecyclingCodeInfoCard',
                 builder: (context) => _surface(
-                 const RecyclingCodeInfoCard(code: '1'),
+                  const RecyclingCodeInfoCard(code: '1'),
                   ),
                 ),
               ],
             ),
-          ),
-          WidgetbookFolder(
+        ],
+      ),
+      WidgetbookFolder(
             name: 'Waste Components (v2)',
             children: [
               WidgetbookComponent(
@@ -3006,9 +3007,7 @@ WidgetbookCategory _componentCategory() {
             ],
           ),
         ],
-      ),
-    ],
-  );
+      );
 }
 
 Widget _surface(Widget child) {

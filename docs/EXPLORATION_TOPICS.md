@@ -661,6 +661,36 @@ This explicitly decouples "understanding the image" from "telling the user what 
 
 ---
 
+### 19a. Waste-Specific UI Component System 🟢
+
+**Status**: Implemented 2026-05-21. Canonical waste-domain helpers and 8 reusable
+UI components now live at `lib/utils/waste_theme.dart` and
+`lib/widgets/waste_components/`. Four screens already migrated.
+
+**Overview**: Before the component system, category→colour mappings were
+duplicated across 5 files, confidence→colour logic across 3, and every screen
+built its own inline badges/chips. The consolidation provides a single source of
+truth for waste-domain colour semantics and reusable, accessible components.
+
+**Key components delivered**:
+- `WasteTheme` — canonical colour/icon/label helpers (category, confidence, bin, disposal)
+- `ConfidenceIndicator` — confidence % pill with semantic colours
+- `BinRecommendationChip` — bin colour recommendation chip
+- `PointsRewardChip` — points/reward display chip
+- `DisposalWarningCard` — warning card with severity levels
+- `WasteImagePreviewCard` — thumbnail with category-coloured border
+- `ClassificationSummaryCard` — full classification summary card
+- `OfflineQueueStatusCard` — offline queue status card
+- `LocalRuleChip` — local regulation applied indicator
+
+**Frontier bets enabled**: F2 (Region-Aware Disposal Reasoning), F4 (Neighbourhood
+Reuse Marketplace), F5 (Smart-Bin QR Layer) — all need consistent waste-domain UI
+primitives for category, bin, confidence, and disposal display.
+
+**Deliverable**: `docs/review/WASTE_UI_COMPONENT_SYSTEM_2026-05-21.md`.
+
+---
+
 ## COMMUNITY & SOCIAL
 
 ### 20. Community Feed Trust Layer 🟡

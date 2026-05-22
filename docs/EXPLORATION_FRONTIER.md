@@ -264,5 +264,6 @@
 | Date | Bet | Action | Rationale |
 |------|-----|--------|-----------|
 | 2026-05-19 | All bets above | Seeded | Initial frontier list captured. |
+| 2026-05-21 | Waste UI Component System | Promoted to EXPLORATION_TOPICS.md (19a) | Canonical waste-domain helpers + 8 components built; enables F2/F4/F5 display consistency. See `docs/review/WASTE_UI_COMPONENT_SYSTEM_2026-05-21.md`. |
 
 (Append entries here as bets promote into EXPLORATION_TOPICS.md, get killed, or change status.)

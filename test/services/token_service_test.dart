@@ -224,7 +224,7 @@ void main() {
   });
 
   test(
-      'spendTokens falls back to local spend for guest when server returns unauthenticated',
+      'spendTokens rethrows unauthenticated server errors when Firebase is enabled',
       () async {
     final mockFunctions = _MockFirebaseFunctions();
     final mockCallable = _MockHttpsCallable();
@@ -257,13 +257,15 @@ void main() {
     TokenService.enableServerSideValidation = true;
 
     if (isFirebaseEnabled) {
-      final updated =
-          await guestTokenService.spendTokens(5, 'Instant analysis');
-      expect(updated.balance, 7);
-      expect(updated.totalSpent, 13);
-      final txns = await guestTokenService.getTransactionHistory();
-      expect(txns, isNotEmpty);
-      expect(txns.first.delta, -5);
+      expect(
+        () => guestTokenService.spendTokens(5, 'Instant analysis'),
+        throwsA(isA<FirebaseFunctionsException>().having(
+          (error) => error.code,
+          'code',
+          'unauthenticated',
+        )),
+      );
+      expect(cloud.savedProfiles, isEmpty);
     }
   });
 }

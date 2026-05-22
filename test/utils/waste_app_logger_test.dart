@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
@@ -5,13 +7,21 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 void main() {
   group('WasteAppLogger', () {
     late List<LogRecord> capturedRecords;
+    StreamSubscription<LogRecord>? subscription;
 
     Stream<LogRecord> recordStream() => Logger.root.onRecord;
 
-    setUp(() {
+    setUp(() async {
+      await WasteAppLogger.resetForTests();
       capturedRecords = [];
       Logger.root.level = Level.ALL;
-      recordStream().listen(capturedRecords.add);
+      subscription = recordStream().listen(capturedRecords.add);
+    });
+
+    tearDown(() async {
+      await subscription?.cancel();
+      subscription = null;
+      await WasteAppLogger.resetForTests();
     });
 
     test('initialize sets session ID and marks initialized', () async {

@@ -197,3 +197,11 @@ eval/classification/feedback_exports/*.jsonl
 eval/classification/feedback_exports/*.json
 !eval/classification/feedback_exports/sample_feedback_input.json
 scripts/eval/__pycache__/
+
+# Local generated build/test/workspace artifacts (do not commit)
+.tmp_test_hive/
+android/.kotlin/
+ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+ios/Runner.xcworkspace/xcshareddata/swiftpm/
+macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+macos/Runner.xcworkspace/xcshareddata/swiftpm/

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class WasteAppLogger {
   static final Logger _logger = Logger('WasteApp');
+  static StreamSubscription<LogRecord>? _rootSubscription;
   static String _sessionId = '';
   static String _appVersion = 'unknown';
   static String _currentAction = 'unknown';
@@ -27,7 +30,8 @@ class WasteAppLogger {
       }
 
       Logger.root.level = Level.ALL;
-      Logger.root.onRecord.listen((record) {
+      await _rootSubscription?.cancel();
+      _rootSubscription = Logger.root.onRecord.listen((record) {
         if (kDebugMode) {
           final time =
               record.time.toIso8601String().split('T').last.substring(0, 8);
@@ -41,6 +45,18 @@ class WasteAppLogger {
     } catch (e) {
       debugPrint('WasteAppLogger critical failure: $e');
     }
+  }
+
+  @visibleForTesting
+  static Future<void> resetForTests() async {
+    await _rootSubscription?.cancel();
+    _rootSubscription = null;
+    _sessionId = '';
+    _appVersion = 'unknown';
+    _currentAction = 'unknown';
+    _currentScreen = 'unknown';
+    _userContext = {};
+    _initialized = false;
   }
 
   static void setCurrentAction(String action) => _currentAction = action;
