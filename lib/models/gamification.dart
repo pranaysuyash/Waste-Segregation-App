@@ -4,6 +4,10 @@ import 'package:hive/hive.dart';
 
 part 'gamification.g.dart';
 
+// Compatibility alias for stale Hive generator outputs that emit `InvalidType`
+// for Flutter `Color` fields under older analyzer/generator combinations.
+typedef InvalidType = Color;
+
 /// Custom TypeAdapter for Flutter Color class
 class ColorAdapter extends TypeAdapter<Color> {
   @override
@@ -69,6 +73,12 @@ enum AchievementType {
   helpfulMember,
   @HiveField(21)
   educationalContent,
+  @HiveField(22)
+  hazardousWasteExpert,
+  @HiveField(23)
+  eWasteCollector,
+  @HiveField(24)
+  accuracyChampion,
 }
 
 /// Represents the tiers of achievements (increasing difficulty/rarity)

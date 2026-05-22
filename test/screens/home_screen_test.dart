@@ -8,139 +8,307 @@ import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/providers/app_providers.dart'
     as app_providers;
+import 'package:waste_segregation_app/screens/educational_content_screen.dart';
+import 'package:waste_segregation_app/screens/history_screen.dart';
 import 'package:waste_segregation_app/screens/home_screen.dart' as home;
 import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/educational_content_service.dart';
-import 'package:waste_segregation_app/utils/constants.dart';
+import 'package:waste_segregation_app/utils/routes.dart';
 
 void main() {
+  final now = DateTime.now();
   final mockProfile = GamificationProfile(
     userId: 'test_user',
     points: const UserPoints(total: 500),
-    streaks: {},
-    achievements: [],
-    discoveredItemIds: [],
-    unlockedHiddenContentIds: [],
+    streaks: {
+      StreakType.dailyClassification.toString(): StreakDetails(
+        type: StreakType.dailyClassification,
+        currentCount: 3,
+        longestCount: 8,
+        lastActivityDate: now,
+      ),
+    },
+    achievements: const [],
+    discoveredItemIds: const [],
+    unlockedHiddenContentIds: const [],
   );
 
   final mockUserProfile = UserProfile(
     id: 'test_user',
-    displayName: 'Jane',
+    displayName: 'Jane Very Long Lastname',
     email: 'jane@test.com',
-    createdAt: DateTime.now(),
+    createdAt: DateTime.now().subtract(const Duration(days: 20)),
   );
 
-  final mockClassification = WasteClassification(
-    id: 'test-1',
-    itemName: 'Plastic Bottle',
-    category: 'Dry Waste',
-    explanation: 'A recyclable plastic bottle',
-    disposalInstructions: DisposalInstructions(
-      primaryMethod: 'Recycle',
-      steps: ['Rinse', 'Recycle'],
-      hasUrgentTimeframe: false,
-    ),
-    region: 'Test',
-    visualFeatures: ['plastic'],
-    alternatives: [],
-    confidence: 0.92,
-    timestamp: DateTime.now(),
-  );
+  WasteClassification classification({
+    required String id,
+    required String itemName,
+    required DateTime timestamp,
+    String category = 'Dry Waste',
+  }) {
+    return WasteClassification(
+      id: id,
+      itemName: itemName,
+      category: category,
+      explanation: 'Explanation',
+      disposalInstructions: DisposalInstructions(
+        primaryMethod: 'Recycle',
+        steps: const ['Step 1'],
+        hasUrgentTimeframe: false,
+      ),
+      region: 'Test',
+      visualFeatures: const ['plastic'],
+      alternatives: const [],
+      confidence: 0.92,
+      timestamp: timestamp,
+    );
+  }
 
   Widget buildApp({
     required EducationalContentService educationalService,
     List<WasteClassification> classifications = const [],
+    GamificationProfile? profile,
+    UserProfile? userProfile,
+    bool classificationsError = false,
   }) {
     return provider_pkg.MultiProvider(
       providers: [
         provider_pkg.ChangeNotifierProvider<AdService>(
-            create: (_) => AdService()),
+          create: (_) => AdService(),
+        ),
       ],
       child: ProviderScope(
         overrides: [
-          app_providers.profileProvider.overrideWith((ref) async => mockProfile),
+          app_providers.profileProvider
+              .overrideWith((ref) async => profile ?? mockProfile),
           app_providers.userProfileProvider
-              .overrideWith((ref) async => mockUserProfile),
-          app_providers.classificationsProvider
-              .overrideWith((ref) async => classifications),
+              .overrideWith((ref) async => userProfile ?? mockUserProfile),
+          app_providers.classificationsProvider.overrideWith((ref) async {
+            if (classificationsError) {
+              throw Exception('boom');
+            }
+            return classifications;
+          }),
           app_providers.educationalContentServiceProvider
               .overrideWith((ref) => educationalService),
         ],
-        child: const MaterialApp(home: home.HomeScreen()),
+        child: MaterialApp(
+          routes: {
+            Routes.settings: (_) =>
+                const Scaffold(body: Text('Settings Screen')),
+          },
+          home: const home.HomeScreen(),
+        ),
       ),
     );
   }
 
-  group('Home Screen - Daily Tip', () {
-    testWidgets('shows daily tip card', (WidgetTester tester) async {
-      final service = EducationalContentService();
-      await tester.pumpWidget(
-        buildApp(educationalService: service),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining("Today's sorting tip"), findsOneWidget);
-    });
-
-    testWidgets('daily tip card has action icon', (
-      WidgetTester tester,
-    ) async {
-      final service = _TestEducationalContentService();
-      await tester.pumpWidget(
-        buildApp(educationalService: service),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining("Today's sorting tip"), findsOneWidget);
-      expect(find.byIcon(Icons.arrow_forward), findsOneWidget);
-    });
-  });
-
-  group('Home Screen - Empty State', () {
-    testWidgets('shows empty state when no classifications', (
+  group('Home Screen', () {
+    testWidgets('renders mission and action surfaces', (
       WidgetTester tester,
     ) async {
       final service = EducationalContentService();
+      await tester.pumpWidget(buildApp(educationalService: service));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('home_settings_button')), findsOneWidget);
+      expect(find.byKey(const Key('home_mission_scan_button')), findsOneWidget);
+      expect(
+          find.byKey(const Key('home_mission_learn_button')), findsOneWidget);
+      expect(find.byKey(const Key('home_action_take_photo')), findsOneWidget);
+      expect(find.byKey(const Key('home_action_upload_image')), findsOneWidget);
+      expect(
+          find.byKey(const Key('home_action_instant_camera')), findsOneWidget);
+      await tester.drag(find.byType(ListView).first, const Offset(-220, 0));
+      await tester.pumpAndSettle();
+      expect(
+          find.byKey(const Key('home_action_instant_upload')), findsOneWidget);
+      expect(find.byKey(const Key('home_daily_tip_card')), findsOneWidget);
+    });
+
+    testWidgets('settings button navigates to settings route', (
+      WidgetTester tester,
+    ) async {
+      final service = EducationalContentService();
+      await tester.pumpWidget(buildApp(educationalService: service));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('home_settings_button')));
+      await tester.pumpAndSettle();
+      expect(find.text('Settings Screen'), findsOneWidget);
+    });
+
+    testWidgets('mission learn navigates to educational screen', (
+      WidgetTester tester,
+    ) async {
+      final service = EducationalContentService();
+      await tester.pumpWidget(buildApp(educationalService: service));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('home_mission_learn_button')));
+      await tester.pumpAndSettle();
+      expect(find.byType(EducationalContentScreen), findsOneWidget);
+    });
+
+    testWidgets('recent list is sorted newest first and capped at 3', (
+      WidgetTester tester,
+    ) async {
+      final service = EducationalContentService();
+      final old = classification(
+        id: 'old',
+        itemName: 'Old Item',
+        timestamp: now.subtract(const Duration(days: 3)),
+      );
+      final newest = classification(
+        id: 'new',
+        itemName: 'Newest Item',
+        timestamp: now,
+      );
+      final middle = classification(
+        id: 'mid',
+        itemName: 'Middle Item',
+        timestamp: now.subtract(const Duration(days: 1)),
+      );
+      final fourth = classification(
+        id: 'fourth',
+        itemName: 'Fourth Item',
+        timestamp: now.subtract(const Duration(days: 2)),
+      );
+
       await tester.pumpWidget(
-        buildApp(educationalService: service),
+        buildApp(
+          educationalService: service,
+          classifications: [old, middle, newest, fourth],
+        ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text(AppStrings.startYourJourney), findsOneWidget);
-      expect(find.text(AppStrings.takeFirstPhoto), findsOneWidget);
+      expect(find.byKey(const Key('home_recent_section')), findsOneWidget);
+      expect(find.text('Newest Item'), findsOneWidget);
+      expect(find.text('Middle Item'), findsOneWidget);
+      expect(find.text('Fourth Item'), findsOneWidget);
+      expect(find.text('Old Item'), findsNothing);
     });
-  });
 
-  group('Home Screen - With Classifications', () {
-    testWidgets('shows recent classification card', (
+    testWidgets('view all opens history screen', (WidgetTester tester) async {
+      final service = EducationalContentService();
+      await tester.pumpWidget(
+        buildApp(
+          educationalService: service,
+          classifications: [
+            classification(id: 'one', itemName: 'One', timestamp: now),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byKey(const Key('home_recent_view_all')));
+      await tester.tap(find.byKey(const Key('home_recent_view_all')));
+      await tester.pumpAndSettle();
+      expect(find.byType(HistoryScreen), findsOneWidget);
+    });
+
+    testWidgets('error state shows retry surface for recent list', (
       WidgetTester tester,
     ) async {
       final service = EducationalContentService();
       await tester.pumpWidget(
         buildApp(
           educationalService: service,
-          classifications: [mockClassification],
+          classificationsError: true,
         ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Plastic Bottle'), findsOneWidget);
-      // "Dry Waste" appears in both the classification card and
-      // the CommunityImpactCard's "Most common" row.
-      expect(find.text('Dry Waste'), findsAtLeastNWidgets(2));
+      expect(find.byKey(const Key('home_recent_error_state')), findsOneWidget);
+    });
+
+    testWidgets('empty state includes direct CTA', (WidgetTester tester) async {
+      final service = EducationalContentService();
+      await tester.pumpWidget(buildApp(educationalService: service));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('home_empty_state')), findsOneWidget);
+      expect(find.text('Take first photo'), findsOneWidget);
+      expect(find.text('Upload image'), findsOneWidget);
+    });
+
+    testWidgets('daily tip uses preferred category when recent exists', (
+      WidgetTester tester,
+    ) async {
+      final service = _RecordingEducationalContentService();
+      await tester.pumpWidget(
+        buildApp(
+          educationalService: service,
+          classifications: [
+            classification(
+              id: 'recent',
+              itemName: 'Bottle',
+              timestamp: now,
+              category: 'Dry Waste',
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(service.lastPreferredCategory, 'Dry Waste');
+    });
+
+    testWidgets('daily tip does not use preferred category when stale', (
+      WidgetTester tester,
+    ) async {
+      final service = _RecordingEducationalContentService();
+      await tester.pumpWidget(
+        buildApp(
+          educationalService: service,
+          classifications: [
+            classification(
+              id: 'stale',
+              itemName: 'Bottle',
+              timestamp: now.subtract(const Duration(days: 10)),
+              category: 'Dry Waste',
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(service.lastPreferredCategory, isNull);
+    });
+
+    testWidgets('supports small width and larger text scale', (
+      WidgetTester tester,
+    ) async {
+      final service = EducationalContentService();
+      await tester.binding.setSurfaceSize(const Size(320, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.5)),
+          child: buildApp(educationalService: service),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
     });
   });
 }
 
-class _TestEducationalContentService extends EducationalContentService {
+class _RecordingEducationalContentService extends EducationalContentService {
+  String? lastPreferredCategory;
+
   @override
   DailyTip getDailyTipForHome({DateTime? date, String? preferredCategory}) {
+    lastPreferredCategory = preferredCategory;
     return DailyTip(
       id: 'test_tip',
       title: 'Test Tip',
-      content: 'Test content for tap',
-      category: 'General',
-      date: DateTime.now(),
+      content: 'Test content',
+      category: preferredCategory ?? 'General',
+      date: date ?? DateTime.now(),
+      contentId: '',
     );
   }
 }

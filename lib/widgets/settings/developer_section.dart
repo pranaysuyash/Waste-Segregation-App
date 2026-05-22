@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import '../../l10n/app_localizations.dart';
-import '../../services/premium_service.dart';
-import '../../services/storage_service.dart';
-import '../../services/cloud_storage_service.dart';
-import '../../services/classification_migration_service.dart';
-import '../../services/firebase_cleanup_service.dart';
-import '../../utils/developer_config.dart';
-import 'settings_theme.dart';
-import 'setting_tile.dart';
-import '../../utils/dialog_helper.dart';
+import 'package:waste_segregation_app/l10n/app_localizations.dart';
+import 'package:waste_segregation_app/services/premium_service.dart';
+import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/services/classification_migration_service.dart';
+import 'package:waste_segregation_app/services/firebase_cleanup_service.dart';
+import 'package:waste_segregation_app/utils/developer_config.dart';
+import 'package:waste_segregation_app/widgets/settings/settings_theme.dart';
+import 'package:waste_segregation_app/widgets/settings/setting_tile.dart';
+import 'package:waste_segregation_app/utils/dialog_helper.dart';
 
 /// Developer options section for settings screen (debug builds only)
 class DeveloperSection extends StatelessWidget {
@@ -133,7 +133,7 @@ class DeveloperSection extends StatelessWidget {
       subtitle: Text(t.testModeFeature(featureKey.replaceAll('_', ' '))),
       value: premiumService.isPremiumFeature(featureKey),
       onChanged: (value) async {
-        // await premiumService.togglePremiumFeature(featureKey, value); // TODO: Check correct method name
+        await premiumService.setPremiumFeature(featureKey, value);
         if (context.mounted) {
           SettingsTheme.showInfoSnackBar(
             context,

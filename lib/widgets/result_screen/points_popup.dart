@@ -439,7 +439,10 @@ class PointsPopupOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!isVisible || points <= 0) {
+    // Suppress popup for trivial point amounts (<5):
+    // low-value feedback confirmations and streak maintenance
+    // are not worth interrupting the user's flow.
+    if (!isVisible || points < 5) {
       return const SizedBox.shrink();
     }
 

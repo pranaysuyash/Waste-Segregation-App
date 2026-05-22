@@ -175,6 +175,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
               'contentHash': saveResult.contentHash,
               'service': 'ResultPipeline',
             });
+        _stateMachine?.tryTransitionTo(ClassificationState.synced);
         state = const ResultPipelineState(isSaved: true);
         return;
       }
@@ -217,6 +218,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
 
       if (isGoogleSyncEnabled) {
+        _stateMachine?.tryTransitionTo(ClassificationState.syncing);
         WasteAppLogger.info('Syncing to cloud', context: {
           'classificationId': classificationId,
           'stage': 'cloud_sync',
@@ -229,6 +231,10 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
           processGamification: false, // Already processed
         );
         await _gamificationService.saveProfile(newProfile);
+        _stateMachine?.tryTransitionTo(ClassificationState.synced);
+      } else {
+        // Sync disabled — skip directly to synced.
+        _stateMachine?.tryTransitionTo(ClassificationState.synced);
       }
 
       // Stage 4: Community post (if opted-in)
@@ -373,9 +379,32 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     }
   }
 
-  /// Save classification without full processing (for manual save)
+  /// Save classification without full processing (for manual save).
+  ///
+  /// Gated by the state machine: only proceeds when the machine is in
+  /// a pre-save state ([classificationSucceeded], [policyApplied], or
+  /// [awaitingUserConfirmation]), or when [force] is true.
   Future<void> saveClassificationOnly(WasteClassification classification,
       {bool force = false}) async {
+    // State machine guard: reject if no classification is in-flight.
+    if (!force && _stateMachine != null) {
+      final sm = _stateMachine;
+      final cs = sm.current;
+      if (cs != ClassificationState.classificationSucceeded &&
+          cs != ClassificationState.policyApplied &&
+          cs != ClassificationState.awaitingUserConfirmation) {
+        WasteAppLogger.warning(
+          'saveClassificationOnly blocked by state machine (${cs.name})',
+          context: {
+            'classificationId': classification.id,
+            'service': 'ResultPipeline',
+          },
+        );
+        return;
+      }
+      sm.transitionTo(ClassificationState.saving);
+    }
+
     try {
       await trackUserAction('classification_save', classification);
 
@@ -391,6 +420,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         force: force,
       );
       if (saveResult.wasDuplicate) {
+        _stateMachine?.tryTransitionTo(ClassificationState.synced);
         state = const ResultPipelineState(isSaved: true);
         WasteAppLogger.info('Duplicate classification save skipped', context: {
           'classificationId': classification.id,
@@ -405,6 +435,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         captureSource: 'manual_save',
       );
 
+      _stateMachine?.tryTransitionTo(ClassificationState.synced);
       state = state.copyWith(isSaved: true);
 
       WasteAppLogger.info('Classification saved manually', context: {
@@ -412,6 +443,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         'service': 'ResultPipeline',
       });
     } catch (e, stackTrace) {
+      _stateMachine?.tryTransitionTo(ClassificationState.failedRetryable);
       final error = 'Error saving: ${ErrorHandler.getUserFriendlyMessage(e)}';
       WasteAppLogger.severe('Failed to save classification',
           error: e,
@@ -573,6 +605,11 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       // 4. Award gamification points
       try {
         await _gamificationService.addPoints(action, customPoints: points);
+        // Track accuracy achievement for corrections
+        if (isCorrection) {
+          await _gamificationService
+              .updateAchievementProgress(AchievementType.accuracyChampion, 1);
+        }
       } catch (e) {
         WasteAppLogger.warning('Feedback points award failed', error: e);
       }
@@ -615,8 +652,20 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     }
   }
 
-  /// Check and process retroactive gamification for existing classifications
+  /// Check and process retroactive gamification for existing classifications.
+  ///
+  /// Skipped when the state machine is active (a classification is currently
+  /// being processed) to prevent double-award races.
   Future<void> processRetroactiveGamification() async {
+    final sm = _stateMachine;
+    if (sm != null && sm.state.isActive) {
+      WasteAppLogger.info(
+        'Retroactive gamification skipped — classification in flight',
+        context: {'service': 'ResultPipeline'},
+      );
+      return;
+    }
+
     try {
       WasteAppLogger.info('Checking retroactive gamification processing',
           context: {

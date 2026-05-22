@@ -30,6 +30,9 @@ import '../widgets/correction_dialog.dart';
 import '../widgets/responsive_text.dart';
 import '../utils/classification_tags.dart';
 import '../utils/waste_app_logger.dart';
+import '../utils/education_card_engine.dart';
+import '../models/education_card.dart';
+import '../widgets/education_card_widget.dart';
 import '../config/debug_config.dart';
 import '../utils/design_system.dart';
 import '../widgets/analysis_progress_view.dart';
@@ -80,6 +83,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   bool _hasProcessedGamification = false;
   bool _isRetryingPipeline = false;
 
+  // Education card state
+  WasteEducationCard? _educationCard;
+  final Set<String> _dismissedCardIds = {};
+  final EducationCardEngine _educationEngine = EducationCardEngine();
+
   @override
   void initState() {
     super.initState();
@@ -110,6 +118,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _processClassification();
       _trackScreenView();
+      _selectEducationCard();
 
       // Check retroactive gamification for existing classifications
       if (!widget.showActions && !widget.autoAnalyze) {
@@ -187,6 +196,30 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       return 'Applying local rules, saving, and preparing rewards.';
     }
     return '';
+  }
+
+  void _selectEducationCard() {
+    final loadedDismissed = EducationCardEngine.readDismissedIds();
+    _dismissedCardIds.addAll(loadedDismissed);
+
+    final card = _educationEngine.bestCardFor(
+      _classification,
+      _classification.region,
+      excludeIds: _dismissedCardIds,
+    );
+    if (card != null && mounted) {
+      setState(() => _educationCard = card);
+    }
+  }
+
+  void _dismissEducationCard() {
+    if (_educationCard == null) return;
+    final cardId = _educationCard!.id;
+    setState(() {
+      _dismissedCardIds.add(cardId);
+      _educationCard = null;
+    });
+    EducationCardEngine.persistDismissedIds(_dismissedCardIds);
   }
 
   void _trackScreenView() {
@@ -344,6 +377,15 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                             if (_buildStoryCards(context) != null) ...[
                               const SizedBox(height: 16),
                               _buildStoryCards(context)!,
+                            ],
+
+                            // Education card (one relevant card picked by engine)
+                            if (_educationCard != null) ...[
+                              const SizedBox(height: 16),
+                              EducationCardWidget(
+                                card: _educationCard!,
+                                onDismiss: _dismissEducationCard,
+                              ),
                             ],
 
                             // Learn More recommendation card

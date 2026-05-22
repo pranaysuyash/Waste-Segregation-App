@@ -75,7 +75,7 @@ class MultiItemRegionReview extends StatelessWidget {
                 Text(
                   allConfirmed
                       ? 'All items confirmed'
-                      : 'I see $regions.length possible items',
+                      : 'I see ${regions.length} possible items',
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -100,7 +100,7 @@ class MultiItemRegionReview extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                '$confirmedCount/$regions.length',
+                '$confirmedCount/${regions.length}',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

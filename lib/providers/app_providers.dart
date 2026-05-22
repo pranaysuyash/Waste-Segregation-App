@@ -76,8 +76,8 @@ final todayGoalProvider = FutureProvider<(int, int)>((ref) async {
         c.timestamp.day == today.day;
   }).length;
 
-  // Default daily goal is 10 items
-  const dailyGoal = 10;
+  // Default daily goal for home habit loop.
+  const dailyGoal = 3;
 
   return (todayClassifications, dailyGoal);
 });

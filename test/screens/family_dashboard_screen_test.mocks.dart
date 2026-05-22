@@ -53,6 +53,17 @@ class _FakeUserProfileStorageService_1 extends _i1.SmartFake
         );
 }
 
+class _FakeClassificationSaveResult_2 extends _i1.SmartFake
+    implements _i4.ClassificationSaveResult {
+  _FakeClassificationSaveResult_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [StorageService].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -86,6 +97,42 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
         Invocation.method(
           #saveUserProfile,
           [userProfile],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> updateTrainingConsent(
+          _i6.TrainingConsent? trainingConsent) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateTrainingConsent,
+          [trainingConsent],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> grantTrainingConsent({required String? source}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #grantTrainingConsent,
+          [],
+          {#source: source},
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> revokeTrainingConsent({String? source = r'settings'}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #revokeTrainingConsent,
+          [],
+          {#source: source},
         ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
@@ -133,6 +180,39 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<_i4.ClassificationSaveResult> saveClassificationWithResult(
+    _i7.WasteClassification? classification, {
+    bool? force = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveClassificationWithResult,
+          [classification],
+          {#force: force},
+        ),
+        returnValue: _i5.Future<_i4.ClassificationSaveResult>.value(
+            _FakeClassificationSaveResult_2(
+          this,
+          Invocation.method(
+            #saveClassificationWithResult,
+            [classification],
+            {#force: force},
+          ),
+        )),
+      ) as _i5.Future<_i4.ClassificationSaveResult>);
+
+  @override
+  _i5.Future<String?> findDuplicateClassificationId(
+          _i7.WasteClassification? classification) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findDuplicateClassificationId,
+          [classification],
+        ),
+        returnValue: _i5.Future<String?>.value(),
+      ) as _i5.Future<String?>);
 
   @override
   _i5.Future<List<_i7.WasteClassification>> getAllClassifications(

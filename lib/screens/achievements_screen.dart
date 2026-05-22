@@ -1667,6 +1667,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         return 'Helpful Member';
       case AchievementType.educationalContent:
         return 'Educational Content';
+      case AchievementType.hazardousWasteExpert:
+        return 'Hazardous Waste Expert';
+      default:
+        return 'Achievement';
     }
   }
 

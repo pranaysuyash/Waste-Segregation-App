@@ -186,12 +186,16 @@ class CommunityImpactCard extends StatelessWidget {
                 color: AppTheme.primaryColor,
               ),
               const SizedBox(width: AppTheme.spacingXs),
-              Text(
-                'Tap to scan your first item',
-                style: GoogleFonts.inter(
-                  fontSize: AppTheme.fontSizeSmall,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryColor,
+              Expanded(
+                child: Text(
+                  'Tap to scan your first item',
+                  style: GoogleFonts.inter(
+                    fontSize: AppTheme.fontSizeSmall,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

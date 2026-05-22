@@ -7,8 +7,8 @@ import 'dart:async' as _i8;
 import 'dart:io' as _i21;
 import 'dart:ui' as _i10;
 
-import 'package:flutter/foundation.dart' as _i5;
-import 'package:flutter/material.dart' as _i4;
+import 'package:flutter/foundation.dart' as _i6;
+import 'package:flutter/material.dart' as _i5;
 import 'package:google_sign_in/google_sign_in.dart' as _i19;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i14;
@@ -26,10 +26,12 @@ import 'package:waste_segregation_app/services/cloud_storage_service.dart'
     as _i20;
 import 'package:waste_segregation_app/services/google_drive_service.dart'
     as _i18;
+import 'package:waste_segregation_app/services/haptic_settings_service.dart'
+    as _i23;
 import 'package:waste_segregation_app/services/navigation_settings_service.dart'
     as _i22;
 import 'package:waste_segregation_app/services/premium_service.dart' as _i7;
-import 'package:waste_segregation_app/services/storage_service.dart' as _i6;
+import 'package:waste_segregation_app/services/storage_service.dart' as _i4;
 import 'package:waste_segregation_app/services/user_profile_storage_service.dart'
     as _i3;
 
@@ -68,8 +70,19 @@ class _FakeUserProfileStorageService_1 extends _i1.SmartFake
         );
 }
 
-class _FakeWidget_2 extends _i1.SmartFake implements _i4.Widget {
-  _FakeWidget_2(
+class _FakeClassificationSaveResult_2 extends _i1.SmartFake
+    implements _i4.ClassificationSaveResult {
+  _FakeClassificationSaveResult_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeWidget_3 extends _i1.SmartFake implements _i5.Widget {
+  _FakeWidget_3(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -78,13 +91,13 @@ class _FakeWidget_2 extends _i1.SmartFake implements _i4.Widget {
         );
 
   @override
-  String toString({_i5.DiagnosticLevel? minLevel = _i5.DiagnosticLevel.info}) =>
+  String toString({_i6.DiagnosticLevel? minLevel = _i6.DiagnosticLevel.info}) =>
       super.toString();
 }
 
-class _FakeStorageService_3 extends _i1.SmartFake
-    implements _i6.StorageService {
-  _FakeStorageService_3(
+class _FakeStorageService_4 extends _i1.SmartFake
+    implements _i4.StorageService {
+  _FakeStorageService_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -153,6 +166,17 @@ class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
             featureId,
             isPremium,
           ],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> setPremiumPlanEntitlement(bool? isPremium) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setPremiumPlanEntitlement,
+          [isPremium],
         ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
@@ -236,7 +260,7 @@ class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
 /// A class which mocks [StorageService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockStorageService extends _i1.Mock implements _i6.StorageService {
+class MockStorageService extends _i1.Mock implements _i4.StorageService {
   MockStorageService() {
     _i1.throwOnMissingStub(this);
   }
@@ -266,6 +290,42 @@ class MockStorageService extends _i1.Mock implements _i6.StorageService {
         Invocation.method(
           #saveUserProfile,
           [userProfile],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> updateTrainingConsent(
+          _i11.TrainingConsent? trainingConsent) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateTrainingConsent,
+          [trainingConsent],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> grantTrainingConsent({required String? source}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #grantTrainingConsent,
+          [],
+          {#source: source},
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> revokeTrainingConsent({String? source = r'settings'}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #revokeTrainingConsent,
+          [],
+          {#source: source},
         ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
@@ -313,6 +373,39 @@ class MockStorageService extends _i1.Mock implements _i6.StorageService {
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
       ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<_i4.ClassificationSaveResult> saveClassificationWithResult(
+    _i12.WasteClassification? classification, {
+    bool? force = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveClassificationWithResult,
+          [classification],
+          {#force: force},
+        ),
+        returnValue: _i8.Future<_i4.ClassificationSaveResult>.value(
+            _FakeClassificationSaveResult_2(
+          this,
+          Invocation.method(
+            #saveClassificationWithResult,
+            [classification],
+            {#force: force},
+          ),
+        )),
+      ) as _i8.Future<_i4.ClassificationSaveResult>);
+
+  @override
+  _i8.Future<String?> findDuplicateClassificationId(
+          _i12.WasteClassification? classification) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findDuplicateClassificationId,
+          [classification],
+        ),
+        returnValue: _i8.Future<String?>.value(),
+      ) as _i8.Future<String?>);
 
   @override
   _i8.Future<List<_i12.WasteClassification>> getAllClassifications(
@@ -711,6 +804,15 @@ class MockAdService extends _i1.Mock implements _i16.AdService {
       ) as bool);
 
   @override
+  void debugSetCanRequestAds(bool? value) => super.noSuchMethod(
+        Invocation.method(
+          #debugSetCanRequestAds,
+          [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   void setPremiumStatus(bool? hasPremium) => super.noSuchMethod(
         Invocation.method(
           #setPremiumStatus,
@@ -730,19 +832,19 @@ class MockAdService extends _i1.Mock implements _i16.AdService {
       ) as _i8.Future<void>);
 
   @override
-  _i4.Widget getBannerAd() => (super.noSuchMethod(
+  _i5.Widget getBannerAd() => (super.noSuchMethod(
         Invocation.method(
           #getBannerAd,
           [],
         ),
-        returnValue: _FakeWidget_2(
+        returnValue: _FakeWidget_3(
           this,
           Invocation.method(
             #getBannerAd,
             [],
           ),
         ),
-      ) as _i4.Widget);
+      ) as _i5.Widget);
 
   @override
   _i8.Future<bool> showInterstitialAd() => (super.noSuchMethod(
@@ -1517,14 +1619,13 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
       );
 
   @override
-  _i8.Future<void> dispose() => (super.noSuchMethod(
+  void dispose() => super.noSuchMethod(
         Invocation.method(
           #dispose,
           [],
         ),
-        returnValue: _i8.Future<void>.value(),
-        returnValueForMissingStub: _i8.Future<void>.value(),
-      ) as _i8.Future<void>);
+        returnValueForMissingStub: null,
+      );
 
   @override
   void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(
@@ -1715,13 +1816,13 @@ class MockCloudStorageService extends _i1.Mock
   }
 
   @override
-  _i6.StorageService get localStorageService => (super.noSuchMethod(
+  _i4.StorageService get localStorageService => (super.noSuchMethod(
         Invocation.getter(#localStorageService),
-        returnValue: _FakeStorageService_3(
+        returnValue: _FakeStorageService_4(
           this,
           Invocation.getter(#localStorageService),
         ),
-      ) as _i6.StorageService);
+      ) as _i4.StorageService);
 
   @override
   _i8.Future<void> saveUserProfileToFirestore(
@@ -1815,6 +1916,17 @@ class MockCloudStorageService extends _i1.Mock
         Invocation.method(
           #clearCloudData,
           [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> deleteUserStorageBlobs(String? userId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteUserStorageBlobs,
+          [userId],
         ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),
@@ -1951,6 +2063,74 @@ class MockNavigationSettingsService extends _i1.Mock
         Invocation.method(
           #resetToDefaults,
           [],
+        ),
+        returnValue: _i8.Future<void>.value(),
+        returnValueForMissingStub: _i8.Future<void>.value(),
+      ) as _i8.Future<void>);
+
+  @override
+  void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+        Invocation.method(
+          #notifyListeners,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+}
+
+/// A class which mocks [HapticSettingsService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockHapticSettingsService extends _i1.Mock
+    implements _i23.HapticSettingsService {
+  MockHapticSettingsService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  bool get enabled => (super.noSuchMethod(
+        Invocation.getter(#enabled),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  bool get hasListeners => (super.noSuchMethod(
+        Invocation.getter(#hasListeners),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  _i8.Future<void> setEnabled(bool? value) => (super.noSuchMethod(
+        Invocation.method(
+          #setEnabled,
+          [value],
         ),
         returnValue: _i8.Future<void>.value(),
         returnValueForMissingStub: _i8.Future<void>.value(),

@@ -80,9 +80,20 @@ class _FakeUserProfileStorageService_3 extends _i1.SmartFake
         );
 }
 
-class _FakeStorageService_4 extends _i1.SmartFake
+class _FakeClassificationSaveResult_4 extends _i1.SmartFake
+    implements _i5.ClassificationSaveResult {
+  _FakeClassificationSaveResult_4(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeStorageService_5 extends _i1.SmartFake
     implements _i5.StorageService {
-  _FakeStorageService_4(
+  _FakeStorageService_5(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -196,6 +207,42 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
       ) as _i7.Future<void>);
 
   @override
+  _i7.Future<void> updateTrainingConsent(
+          _i8.TrainingConsent? trainingConsent) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateTrainingConsent,
+          [trainingConsent],
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> grantTrainingConsent({required String? source}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #grantTrainingConsent,
+          [],
+          {#source: source},
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> revokeTrainingConsent({String? source = r'settings'}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #revokeTrainingConsent,
+          [],
+          {#source: source},
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+
+  @override
   _i7.Future<_i8.UserProfile?> getCurrentUserProfile() => (super.noSuchMethod(
         Invocation.method(
           #getCurrentUserProfile,
@@ -237,6 +284,39 @@ class MockStorageService extends _i1.Mock implements _i5.StorageService {
         returnValue: _i7.Future<void>.value(),
         returnValueForMissingStub: _i7.Future<void>.value(),
       ) as _i7.Future<void>);
+
+  @override
+  _i7.Future<_i5.ClassificationSaveResult> saveClassificationWithResult(
+    _i9.WasteClassification? classification, {
+    bool? force = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveClassificationWithResult,
+          [classification],
+          {#force: force},
+        ),
+        returnValue: _i7.Future<_i5.ClassificationSaveResult>.value(
+            _FakeClassificationSaveResult_4(
+          this,
+          Invocation.method(
+            #saveClassificationWithResult,
+            [classification],
+            {#force: force},
+          ),
+        )),
+      ) as _i7.Future<_i5.ClassificationSaveResult>);
+
+  @override
+  _i7.Future<String?> findDuplicateClassificationId(
+          _i9.WasteClassification? classification) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findDuplicateClassificationId,
+          [classification],
+        ),
+        returnValue: _i7.Future<String?>.value(),
+      ) as _i7.Future<String?>);
 
   @override
   _i7.Future<List<_i9.WasteClassification>> getAllClassifications(
@@ -608,7 +688,7 @@ class MockCloudStorageService extends _i1.Mock
   @override
   _i5.StorageService get localStorageService => (super.noSuchMethod(
         Invocation.getter(#localStorageService),
-        returnValue: _FakeStorageService_4(
+        returnValue: _FakeStorageService_5(
           this,
           Invocation.getter(#localStorageService),
         ),
@@ -706,6 +786,17 @@ class MockCloudStorageService extends _i1.Mock
         Invocation.method(
           #clearCloudData,
           [],
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> deleteUserStorageBlobs(String? userId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteUserStorageBlobs,
+          [userId],
         ),
         returnValue: _i7.Future<void>.value(),
         returnValueForMissingStub: _i7.Future<void>.value(),

@@ -65,25 +65,33 @@ class _AchievementCelebrationWrapperState
 
     _hasProcessedCelebrations = true;
 
-    // Select the most significant achievement to celebrate
-    // Matches Legacy logic: prefer non-bronze or high-point achievements
-    final achievementToShow = achievements.firstWhere(
-      (a) => a.tier != AchievementTier.bronze || a.pointsReward >= 25,
-      orElse: () => achievements.first,
-    );
+    // Select the most significant achievement to celebrate.
+    // Skip bronze achievements — they get a silent badge increment, not full-screen confetti.
+    // Only silver+ or significant (>=25pt) bronze achievements trigger the celebration.
+    if (achievements.any((a) => a.tier != AchievementTier.bronze || a.pointsReward >= 25)) {
+      final achievementToShow = achievements.firstWhere(
+        (a) => a.tier != AchievementTier.bronze || a.pointsReward >= 25,
+        orElse: () => achievements.first,
+      );
 
-    setState(() {
-      _celebrationAchievement = achievementToShow;
-    });
+      setState(() {
+        _celebrationAchievement = achievementToShow;
+      });
 
-    // Log analytics event
-    WasteAppLogger.aiEvent('achievement_celebration_shown', context: {
-      'achievementId': achievementToShow.id,
-      'achievementTitle': achievementToShow.title,
-      'tier': achievementToShow.tier.name,
-      'pointsReward': achievementToShow.pointsReward,
-      'version': 'v2',
-    });
+      WasteAppLogger.aiEvent('achievement_celebration_shown', context: {
+        'achievementId': achievementToShow.id,
+        'achievementTitle': achievementToShow.title,
+        'tier': achievementToShow.tier.name,
+        'pointsReward': achievementToShow.pointsReward,
+        'version': 'v2',
+      });
+    } else {
+      // Bronze-only achievements: silent grant, no celebration
+      WasteAppLogger.info('Bronze achievements silently granted', context: {
+        'count': achievements.length,
+        'achievements': achievements.map((a) => a.id).join(', '),
+      });
+    }
   }
 }
 
@@ -166,6 +174,15 @@ mixin AchievementCelebrationMixin<T extends StatefulWidget> on State<T> {
     if (_hasShownCelebration || achievements.isEmpty) return;
 
     _hasShownCelebration = true;
+
+    // Skip bronze-only achievements (silent grant)
+    if (!achievements.any((a) => a.tier != AchievementTier.bronze || a.pointsReward >= 25)) {
+      WasteAppLogger.info('Bronze achievements silently granted (mixin)', context: {
+        'count': achievements.length,
+        'achievements': achievements.map((a) => a.id).join(', '),
+      });
+      return;
+    }
 
     final majorAchievement = achievements.firstWhere(
       (a) => a.tier != AchievementTier.bronze || a.pointsReward >= 25,

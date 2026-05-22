@@ -601,6 +601,168 @@ export const cleanupTrainingReviewImages = asiaSouth1.pubsub
     return null;
   });
 
+export const buildTrainingDatasetManifest = asiaSouth1.https.onCall(async (data, context) => {
+  requireAuth(context);
+  if (!isAdminContext(context)) {
+    throw new functions.https.HttpsError(
+      'permission-denied',
+      'Admin role is required to build dataset manifests.',
+    );
+  }
+
+  const datasetVersion = String(data?.datasetVersion ?? '');
+  if (!datasetVersion) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'datasetVersion is required (e.g. "v2026-05-22").',
+    );
+  }
+
+  const dryRun = data?.dryRun === true;
+  const db = admin.firestore();
+
+  const candidates = await db.collection('training_candidates')
+    .where('dataset.eligible', '==', true)
+    .where('deletion.deletedAt', '==', null)
+    .orderBy('createdAt', 'desc')
+    .get();
+
+  if (candidates.empty) {
+    return { datasetVersion, goldenCount: 0, trainingCount: 0, eligibleCount: 0, manifestRows: [] };
+  }
+
+  const labelSnapshots = await Promise.all(
+    candidates.docs.map((doc) => db.collection('training_labels').doc(doc.id).get()),
+  );
+
+  const labelMap = new Map<string, FirebaseFirestore.DocumentData>();
+  labelSnapshots.forEach((snap) => {
+    if (snap.exists) labelMap.set(snap.id, snap.data()!);
+  });
+
+  const rows: Record<string, unknown>[] = [];
+  let goldenCount = 0;
+
+  for (const doc of candidates.docs) {
+    const cand = doc.data();
+    const isGolden = cand?.review?.status === 'golden';
+    if (isGolden) goldenCount += 1;
+
+    const label = labelMap.get(doc.id);
+
+    const rawPrediction = label?.rawPrediction ?? cand?.modelPrediction ?? null;
+    const userCorrection = label?.userCorrection ?? cand?.userFeedback ?? null;
+    const reviewerVerified = label?.reviewerVerified ?? null;
+
+    const authoritativeGroundTruth = reviewerVerified?.groundTruth ?? null;
+
+    const category = authoritativeGroundTruth?.category
+      ?? userCorrection?.correctedCategory
+      ?? rawPrediction?.category
+      ?? null;
+    const itemName = authoritativeGroundTruth?.itemName
+      ?? userCorrection?.correctedItemName
+      ?? rawPrediction?.itemName
+      ?? null;
+    const material = authoritativeGroundTruth?.material
+      ?? userCorrection?.correctedMaterial
+      ?? rawPrediction?.material
+      ?? null;
+
+    let labelSource = cand?.review?.status ?? 'raw_prediction';
+    if (label?.labelState && ['golden', 'training_eligible', 'policy_verified', 'user_corrected'].includes(label.labelState)) {
+      labelSource = label.labelState;
+    }
+
+    rows.push({
+      candidateId: cand.candidateId ?? doc.id,
+      labelSource,
+      category,
+      subcategory: authoritativeGroundTruth?.subcategory
+        ?? userCorrection?.correctedSubcategory
+        ?? rawPrediction?.subcategory
+        ?? null,
+      itemName,
+      material,
+      confidence: authoritativeGroundTruth?.confidence ?? rawPrediction?.confidence ?? null,
+      imageHash: cand?.image?.contentHash ?? null,
+      imagePath: cand?.image?.storagePath ?? null,
+      provider: rawPrediction?.provider ?? null,
+      model: rawPrediction?.model ?? null,
+      datasetVersion,
+      provenance: {
+        classificationId: cand?.classificationId ?? null,
+        consentVersion: cand?.consent?.policyVersion ?? null,
+        reviewer: cand?.review?.reviewer ?? null,
+      },
+      createdAt: cand?.createdAt ?? null,
+    });
+  }
+
+  if (dryRun) {
+    return {
+      datasetVersion,
+      goldenCount,
+      trainingCount: rows.length,
+      eligibleCount: rows.length,
+      dryRun: true,
+      sampleRows: rows.slice(0, 5),
+    };
+  }
+
+  const jsonlContent = rows.map((r) => JSON.stringify(r)).join('\n');
+  const bucket = admin.storage().bucket();
+  const manifestPath = `training/manifests/${datasetVersion}.jsonl`;
+  await bucket.file(manifestPath).save(jsonlContent, {
+    contentType: 'application/jsonl',
+    resumable: false,
+    metadata: {
+      metadata: {
+        datasetVersion,
+        generatedAt: new Date().toISOString(),
+        generatorVersion: 'manifest-builder-v1',
+        goldenCount,
+        trainingCount: rows.length,
+      },
+    },
+  });
+
+  await db.collection('training_dataset_versions').doc(datasetVersion).set({
+    datasetVersion,
+    manifestStoragePath: manifestPath,
+    goldenCount,
+    trainingCount: rows.length,
+    candidateCount: rows.length,
+    exclusions: {
+      revokedConsent: [],
+      deletedCount: 0,
+      redactedCount: 0,
+    },
+    createdAt: FieldValue.serverTimestamp(),
+    createdBy: context.auth?.uid ?? 'unknown_admin',
+    generatorVersion: 'manifest-builder-v1',
+  });
+
+  await db.collection('training_review_audit').add({
+    action: 'build_training_dataset_manifest',
+    actorUid: context.auth?.uid ?? 'unknown_admin',
+    actorRole: context.auth?.token?.admin === true ? 'admin' : 'unknown',
+    datasetVersion,
+    goldenCount,
+    trainingCount: rows.length,
+    manifestPath,
+    createdAt: FieldValue.serverTimestamp(),
+  });
+
+  return {
+    datasetVersion,
+    goldenCount,
+    trainingCount: rows.length,
+    eligibleCount: rows.length,
+    manifestPath,
+  };
+});
+
 export const __testables = {
   detectSensitiveTextInNotes,
   isAdminContext,

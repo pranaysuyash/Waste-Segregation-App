@@ -59,6 +59,7 @@ class EnhancedAiApiService {
   // ---------------------------------------------------------------------------
 
   bool? _backendRoutingOverride;
+  bool? _backendFailClosedOverride;
 
   /// Override backend routing for unit tests without needing dart-defines.
   ///
@@ -70,6 +71,17 @@ class EnhancedAiApiService {
     _backendRoutingOverride = value;
   }
 
+  /// Override fail-closed behavior for tests.
+  ///
+  /// - true: backend proxy errors are terminal (release-equivalent safety)
+  /// - false: non-terminal backend errors may fall through to direct providers
+  /// - null: restore production behavior
+  @visibleForTesting
+  // ignore: use_setters_to_change_properties
+  void overrideBackendFailClosedForTest(bool? value) {
+    _backendFailClosedOverride = value;
+  }
+
   bool get _backendRoutingEnabled {
     if (_backendRoutingOverride != null) return _backendRoutingOverride!;
     return kReleaseMode ||
@@ -78,6 +90,7 @@ class EnhancedAiApiService {
   }
 
   bool get _backendRoutingFailClosed {
+    if (_backendFailClosedOverride != null) return _backendFailClosedOverride!;
     return kReleaseMode || ProductionSafetyConfig.useBackendAiInRelease;
   }
 
@@ -515,7 +528,8 @@ class EnhancedAiApiService {
     bool enableSegmentation = false,
   }) async {
     final compressedBytes = await _compressImage(imageBytes);
-    final proxy = _backendProxy ??
+    // ignore: omit_local_variable_types
+    final ClassificationProvider proxy = _backendProxy ??
         BackendProxyProvider(
           functions: FirebaseFunctions.instance,
         );

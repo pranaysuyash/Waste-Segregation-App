@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
+import '../utils/waste_theme.dart';
 import '../models/gamification.dart';
 import '../utils/animation_helpers.dart';
 import '../utils/waste_app_logger.dart';
@@ -422,22 +423,8 @@ class _ClassificationFeedbackState extends State<ClassificationFeedback>
     );
   }
 
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-        return AppTheme.wetWasteColor;
-      case 'dry waste':
-        return AppTheme.dryWasteColor;
-      case 'hazardous waste':
-        return AppTheme.hazardousWasteColor;
-      case 'medical waste':
-        return AppTheme.medicalWasteColor;
-      case 'non-waste':
-        return AppTheme.nonWasteColor;
-      default:
-        return AppTheme.primaryColor; // Fallback to primary color
-    }
-  }
+  Color _getCategoryColor(String category) =>
+      WasteTheme.categoryColor(category);
 }
 
 /// A popup that displays when a user earns points.

@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/constants.dart';
+import '../utils/waste_theme.dart';
 import '../services/enhanced_image_service.dart';
 import '../utils/safe_file_path.dart';
 import '../widgets/correction_dialog.dart';
@@ -427,35 +428,11 @@ class HistoryListItem extends StatelessWidget {
     );
   }
 
-  Color _getCategoryColor() {
-    switch (classification.category.toLowerCase()) {
-      case 'wet waste':
-        return AppTheme.wetWasteColor;
-      case 'dry waste':
-        return AppTheme.dryWasteColor;
-      case 'hazardous waste':
-        return AppTheme.hazardousWasteColor;
-      case 'medical waste':
-        return AppTheme.medicalWasteColor;
-      case 'non-waste':
-        return AppTheme.nonWasteColor;
-      case 'requires manual review':
-        return AppTheme.manualReviewColor;
-      default:
-        return AppTheme.secondaryColor;
-    }
-  }
+  Color _getCategoryColor() =>
+      WasteTheme.categoryColor(classification.category);
 
-  Color _getConfidenceColor() {
-    final confidence = classification.confidence ?? 0.0;
-    if (confidence >= 0.8) {
-      return Colors.green;
-    } else if (confidence >= 0.6) {
-      return Colors.orange;
-    } else {
-      return Colors.red;
-    }
-  }
+  Color _getConfidenceColor() =>
+      WasteTheme.confidenceColorFromFraction(classification.confidence ?? 0);
 
   String _formatDateForDisplay(DateTime date) {
     final now = DateTime.now();
@@ -640,24 +617,8 @@ class HistoryListItem extends StatelessWidget {
     );
   }
 
-  IconData _getCategoryIcon() {
-    switch (classification.category.toLowerCase()) {
-      case 'wet waste':
-        return Icons.eco;
-      case 'dry waste':
-        return Icons.recycling;
-      case 'hazardous waste':
-        return Icons.warning;
-      case 'medical waste':
-        return Icons.medical_services;
-      case 'non-waste':
-        return Icons.check_circle;
-      case 'requires manual review':
-        return Icons.help_outline;
-      default:
-        return Icons.category;
-    }
-  }
+  IconData _getCategoryIcon() =>
+      WasteTheme.categoryIcon(classification.category);
 
   Future<String> _getFullImagePath(String relativePath) async {
     final dir = await getApplicationDocumentsDirectory();

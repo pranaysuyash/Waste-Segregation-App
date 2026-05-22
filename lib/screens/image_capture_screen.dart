@@ -6,6 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/detected_waste_region.dart';
+import 'package:waste_segregation_app/models/multi_item_classification_result.dart';
+import 'package:waste_segregation_app/services/segmentation_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/constants.dart';
 import '../utils/design_system.dart';
@@ -17,10 +20,9 @@ import '../models/token_wallet.dart';
 import '../models/classification_state.dart';
 import '../providers/ai_job_providers.dart';
 import '../providers/app_providers.dart';
+import '../providers/classification_pipeline_providers.dart';
 import '../providers/classification_state_provider.dart';
 import '../providers/token_providers.dart';
-import '../providers/layer0_providers.dart';
-import '../services/layer0_router.dart';
 import '../services/image_quality_gate.dart';
 import '../services/offline_queue_service.dart';
 import 'result_screen_wrapper.dart';
@@ -80,6 +82,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
   bool _isSelectingRegions = false;
   List<SelectedRegion> _selectedRegions = [];
+  List<DetectedWasteRegion>? _suggestedRegions;
+  bool _hasShownSuggestion = false;
 
   final RestorableStringN _imagePath = RestorableStringN(null);
   final RestorableBool _useSegmentationRestorable = RestorableBool(false);
@@ -157,6 +161,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           context: {'service': 'screen', 'file': 'image_capture_screen'},
         );
         _analyzeImage();
+      } else if (!widget.autoAnalyze &&
+          (_imageFile != null || _webImageBytes != null)) {
+        _autoDetectMultiItemRegions();
       }
     });
     if (_imageFile == null && _xFile == null && _webImageBytes == null) {
@@ -475,17 +482,52 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     }
   }
 
-  void _enterRegionSelectionMode() {
+  Future<void> _autoDetectMultiItemRegions() async {
+    if (_suggestedRegions != null || _hasShownSuggestion) return;
+    try {
+      final segService = SegmentationService();
+      await segService.initialize();
+      Uint8List? bytes;
+      if (_webImageBytes != null) {
+        bytes = _webImageBytes;
+      } else if (_imageFile != null) {
+        bytes = await _imageFile!.readAsBytes();
+      }
+      if (bytes == null || !mounted) return;
+
+      final regions = await segService.detectRegions(bytes);
+      if (regions.length > 1 && mounted) {
+        setState(() {
+          _suggestedRegions = regions;
+          _hasShownSuggestion = true;
+        });
+      }
+    } catch (_) {}
+  }
+
+  void _enterRegionSelectionMode({List<DetectedWasteRegion>? preDetected}) {
     if (!mounted || _isAnalyzing || _isSelectingRegions || widget.autoAnalyze) {
       return;
     }
     if (_imageFile == null && _xFile == null && _webImageBytes == null) {
       return;
     }
-    _stateMachineNotifier.reset();
     setState(() {
       _isSelectingRegions = true;
-      _selectedRegions = [_defaultRegionSeed()];
+      _hasShownSuggestion = false;
+      if (preDetected != null && preDetected.isNotEmpty) {
+        _selectedRegions = preDetected.map((r) {
+          return SelectedRegion(
+            id: int.tryParse(r.id.replaceAll(RegExp(r'\D'), '')) ?? 1,
+            left: r.boundingBox.left,
+            top: r.boundingBox.top,
+            width: r.boundingBox.width,
+            height: r.boundingBox.height,
+          );
+        }).toList();
+      } else {
+        _selectedRegions = [_defaultRegionSeed()];
+      }
     });
   }
 
@@ -653,6 +695,28 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     });
   }
 
+  /// Try local classification (Layer 0 deterministic + Layer 1 on-device ML).
+  ///
+  /// Returns true when a local layer produced an accepted classification
+  /// and the result screen was shown. Returns false when all local layers
+  /// escalated or failed — caller should proceed to cloud.
+  Future<bool> _tryLocalClassification(Uint8List imageBytes) async {
+    _setClassificationState(ClassificationState.localClassifying);
+
+    final pipeline = ref.read(classificationPipelineProvider);
+    final localResult = await pipeline.tryLocalOnly(
+      imageBytes: imageBytes,
+      region: 'Bangalore, IN',
+    );
+
+    if (localResult != null && mounted && !_isCancelled) {
+      await _showResultOrFallback(localResult);
+      return true;
+    }
+
+    return false;
+  }
+
   Future<void> _analyzeImage() async {
     if (_isAnalyzing || _isCancelled) return;
 
@@ -764,56 +828,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       }
     }
 
-    // Layer 0: Deterministic pre-processing classifier (zero AI cost).
-    // Runs before the quota re-check because a Layer 0 accept costs zero tokens.
+    // Layers 0 & 1: Deterministic + on-device ML — zero-cost local classification.
+    // Runs before the quota re-check because local accepts cost zero tokens.
     if (imageBytes != null && imageBytes.isNotEmpty) {
-      try {
-        final layer0Enabled = await ref.read(layer0EnabledProvider.future);
-        if (layer0Enabled) {
-          _setClassificationState(ClassificationState.localClassifying);
-          final router = ref.read(layer0RouterProvider);
-          final layer0Result = await router.classify(
-            imageBytes: imageBytes,
-            region: 'Bangalore, IN',
-          );
-
-          if (layer0Result.decision == Layer0Decision.accept &&
-              layer0Result.wasteClassification != null) {
-            WasteAppLogger.aiEvent(
-              'Layer 0 accepted classification',
-              model: 'layer0_deterministic',
-              context: {
-                'category': layer0Result.wasteClassification!.category,
-                'route_reason': layer0Result.routeReason,
-                'processing_time_ms': layer0Result.totalProcessingTimeMs,
-              },
-            );
-            if (mounted && !_isCancelled) {
-              await _showResultOrFallback(
-                layer0Result.wasteClassification!,
-              );
-            }
-            return;
-          }
-          // Layer 0 did not accept — fall through to cloud classification.
-          // Log the decision for analytics.
-          WasteAppLogger.aiEvent(
-            'Layer 0 ${layer0Result.decision.name}',
-            model: 'layer0_deterministic',
-            context: {
-              'route_reason': layer0Result.routeReason,
-              'processing_time_ms': layer0Result.totalProcessingTimeMs,
-            },
-          );
-        }
-      } catch (e, s) {
-        WasteAppLogger.warning(
-          'Layer 0 error, falling back to AI',
-          error: e,
-          stackTrace: s,
-        );
-        // Fall through to cloud classification.
-      }
+      final pipelineAccepted = await _tryLocalClassification(imageBytes);
+      if (pipelineAccepted) return;
     }
 
     // Quota preflight re-check immediately before network analysis.
@@ -1448,6 +1467,77 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                 : _buildImagePreview(),
           ),
 
+          // Multi-item suggestion banner
+          if (_suggestedRegions != null && _suggestedRegions!.length > 1)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.paddingRegular,
+                vertical: AppTheme.paddingSmall,
+              ),
+              child: Material(
+                color: Colors.teal.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => _enterRegionSelectionMode(
+                    preDetected: _suggestedRegions,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(AppTheme.paddingRegular),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.teal.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.crop_square,
+                            color: Colors.teal,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'I see ${_suggestedRegions!.length} possible items',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Tap each one to confirm',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: Colors.teal,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
           // Instructions
           const ModernCard(
             margin: EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
@@ -1798,11 +1888,43 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       }
 
       _stateMachineNotifier.reset();
+
+      final pairedCount = regions.length < results.length
+          ? regions.length
+          : results.length;
+      final detectedRegions = List<DetectedWasteRegion>.generate(
+        pairedCount,
+        (index) {
+          final selectedRegion = regions[index];
+          final classification = results[index];
+          return DetectedWasteRegion(
+            boundingBox: NormalizedBoundingBox(
+              left: selectedRegion.left,
+              top: selectedRegion.top,
+              width: selectedRegion.width,
+              height: selectedRegion.height,
+            ),
+            classification: classification,
+            confidence: classification.confidence,
+            userConfirmed: true,
+            label: classification.displayItemLabel,
+          );
+        },
+      );
+      final multiItemResult = MultiItemClassificationResult(
+        sourceImagePath: imageName,
+        regions: detectedRegions,
+        aggregateWarnings: detectedRegions.length > 1
+            ? const ['Review each item before disposal.']
+            : const [],
+      );
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => CombinedResultScreen(
             classifications: results,
+            multiItemResult: multiItemResult,
             imageName: imageName,
           ),
         ),

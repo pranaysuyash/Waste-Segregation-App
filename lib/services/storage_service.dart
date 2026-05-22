@@ -246,6 +246,14 @@ class StorageService {
     WasteClassification classification,
     DateTime timestamp,
   ) {
+    // Prefer image content hash for stronger dedup (image-based, not AI-output-based).
+    // This prevents the same image from being classified multiple times even if
+    // the AI produces slightly different output each time (e.g. "Plastic Bottle" vs "Plastic bottle").
+    if (classification.imageHash != null && classification.imageHash!.isNotEmpty) {
+      return 'img_${classification.imageHash}_${classification.userId}';
+    }
+    // Fallback to legacy AI-output-based hash (weaker — two different images
+    // that the AI classifies identically get the same hash).
     return '${classification.itemName.toLowerCase().trim()}_${classification.category}_${classification.subcategory}_${classification.userId}_${timestamp.year}${timestamp.month}${timestamp.day}${timestamp.hour}';
   }
 

@@ -48,20 +48,21 @@ class GamificationService extends ChangeNotifier {
   static const String _weeklyStatsKey = 'weeklyStats';
 
   // Points earned for various actions
+  // Values are tuned to reward quality over quantity (see GAMIFICATION_HABIT_LOOP_REDESIGN)
   static const Map<String, int> _pointValues = {
     'classification': 10, // Points for identifying an item
-    'daily_streak': 5, // Points for maintaining streak
-    'challenge_complete': 25, // Points for completing a challenge
-    'badge_earned': 20, // Points for earning a badge/achievement
+    'daily_streak': 3, // Points for maintaining streak (reduced: noise)
+    'challenge_complete': 30, // Points for completing a challenge (increased: goal value)
+    'badge_earned': 25, // Points for earning a badge/achievement (increased: milestone)
     'achievement_claim':
         0, // Points for claiming achievement rewards (customPoints used)
     'quiz_completed': 15, // Points for completing a quiz
-    'educational_content': 5, // Points for viewing educational content
-    'perfect_week': 50, // Points for using app every day in a week
+    'educational_content': 10, // Points for viewing educational content (doubled: learning parity)
+    'perfect_week': 75, // Points for using app every day in a week (increased: significant effort)
     'community_challenge':
         30, // Points for participating in community challenge
-    'feedback_provided': 5, // Points for confirming AI classification
-    'correction_provided': 10, // Points for correcting AI classification
+    'feedback_provided': 3, // Points for confirming AI classification (reduced: low effort)
+    'correction_provided': 15, // Points for correcting AI classification (increased: high value)
   };
 
   /// Public read-only access to the points map for consumers like ResultPipeline.
@@ -473,7 +474,7 @@ class GamificationService extends ChangeNotifier {
 
       // Award points for streak (only if streak increased)
       if (newCurrent > currentStreak.currentCount) {
-        await addPoints('daily_streak');
+            await addPoints('daily_streak');
 
         // Record streak activity in community feed
         try {
@@ -749,7 +750,18 @@ class GamificationService extends ChangeNotifier {
       // This is a new category! Update categories achievement
       await updateAchievementProgress(
           AchievementType.categoriesIdentified, categoriesAfterCount);
-    } else {
+    }
+
+    // Category-specific achievements: hazardous waste
+    if (classification.category == 'Hazardous Waste') {
+      await updateAchievementProgress(AchievementType.hazardousWasteExpert, 1);
+    }
+
+    // Category-specific achievements: e-waste (via subcategory)
+    if (classification.normalizedSubcategory == 'Electronic Waste' ||
+        classification.normalizedSubcategory == 'E-Waste' ||
+        classification.normalizedSubcategory == 'Electronics') {
+      await updateAchievementProgress(AchievementType.eWasteCollector, 1);
     }
 
     // NEW: Check for newly earned achievements and emit them
@@ -1508,6 +1520,133 @@ class GamificationService extends ChangeNotifier {
         },
       ),
 
+      // Hazardous Waste Expert - TIERED FAMILY (new)
+      const Achievement(
+        id: 'hazardous_novice',
+        title: 'Hazardous Spotter',
+        description: 'Identify 3 hazardous waste items',
+        type: AchievementType.hazardousWasteExpert,
+        threshold: 3,
+        iconName: 'warning',
+        color: AppTheme.hazardousWasteColor,
+        achievementFamilyId: 'Hazardous Waste Expert',
+      ),
+      const Achievement(
+        id: 'hazardous_identifier',
+        title: 'Hazardous Identifier',
+        description: 'Identify 15 hazardous waste items',
+        type: AchievementType.hazardousWasteExpert,
+        threshold: 15,
+        iconName: 'warning',
+        color: AppTheme.hazardousWasteColor,
+        tier: AchievementTier.silver,
+        achievementFamilyId: 'Hazardous Waste Expert',
+        pointsReward: 100,
+        unlocksAtLevel: 2,
+      ),
+      const Achievement(
+        id: 'hazardous_expert',
+        title: 'Hazardous Expert',
+        description: 'Identify 50 hazardous waste items',
+        type: AchievementType.hazardousWasteExpert,
+        threshold: 50,
+        iconName: 'warning',
+        color: AppTheme.hazardousWasteColor,
+        tier: AchievementTier.gold,
+        achievementFamilyId: 'Hazardous Waste Expert',
+        pointsReward: 250,
+        unlocksAtLevel: 5,
+      ),
+      const Achievement(
+        id: 'hazardous_master',
+        title: 'Hazardous Master',
+        description: 'Identify 200 hazardous waste items',
+        type: AchievementType.hazardousWasteExpert,
+        threshold: 200,
+        iconName: 'warning',
+        color: AppTheme.hazardousWasteColor,
+        tier: AchievementTier.platinum,
+        achievementFamilyId: 'Hazardous Waste Expert',
+        pointsReward: 500,
+        unlocksAtLevel: 10,
+      ),
+
+      // E-Waste Collector - TIERED FAMILY (new)
+      const Achievement(
+        id: 'ewaste_spotter',
+        title: 'E-Waste Spotter',
+        description: 'Identify 3 e-waste items',
+        type: AchievementType.eWasteCollector,
+        threshold: 3,
+        iconName: 'devices',
+        color: Colors.deepPurple,
+        achievementFamilyId: 'E-Waste Collector',
+      ),
+      const Achievement(
+        id: 'ewaste_hunter',
+        title: 'E-Waste Hunter',
+        description: 'Identify 15 e-waste items',
+        type: AchievementType.eWasteCollector,
+        threshold: 15,
+        iconName: 'devices',
+        color: Colors.deepPurple,
+        tier: AchievementTier.silver,
+        achievementFamilyId: 'E-Waste Collector',
+        pointsReward: 100,
+        unlocksAtLevel: 2,
+      ),
+      const Achievement(
+        id: 'ewaste_expert',
+        title: 'E-Waste Expert',
+        description: 'Identify 50 e-waste items',
+        type: AchievementType.eWasteCollector,
+        threshold: 50,
+        iconName: 'devices',
+        color: Colors.deepPurple,
+        tier: AchievementTier.gold,
+        achievementFamilyId: 'E-Waste Collector',
+        pointsReward: 250,
+        unlocksAtLevel: 5,
+      ),
+
+      // Accuracy Champion - TIERED FAMILY (new)
+      const Achievement(
+        id: 'accuracy_beginner',
+        title: 'Accuracy Beginner',
+        description: 'Correct AI 3 times with detailed feedback',
+        type: AchievementType.accuracyChampion,
+        threshold: 3,
+        iconName: 'fact_check',
+        color: Colors.teal,
+        achievementFamilyId: 'Accuracy Champion',
+      ),
+      const Achievement(
+        id: 'accuracy_adept',
+        title: 'Accuracy Adept',
+        description: 'Correct AI 25 times with detailed feedback',
+        type: AchievementType.accuracyChampion,
+        threshold: 25,
+        iconName: 'fact_check',
+        color: Colors.teal,
+        tier: AchievementTier.silver,
+        achievementFamilyId: 'Accuracy Champion',
+        pointsReward: 150,
+        unlocksAtLevel: 3,
+      ),
+      const Achievement(
+        id: 'accuracy_master',
+        title: 'Accuracy Master',
+        description: 'Correct AI 100 times with detailed feedback',
+        type: AchievementType.accuracyChampion,
+        threshold: 100,
+        iconName: 'verified',
+        color: Colors.teal,
+        tier: AchievementTier.gold,
+        achievementFamilyId: 'Accuracy Champion',
+        pointsReward: 500,
+        unlocksAtLevel: 7,
+      ),
+
       // Meta-achievement
       const Achievement(
         id: 'achievement_hunter',
@@ -1661,6 +1800,42 @@ class GamificationService extends ChangeNotifier {
         'requirements': {
           'any_item': true,
           'count': 10,
+        },
+      },
+      // NEW: Hazardous/Medical high-stakes challenge
+      {
+        'title': 'High Hazard Week',
+        'description': 'Identify 5 hazardous or medical waste items',
+        'pointsReward': 50,
+        'iconName': 'warning',
+        'color': AppTheme.hazardousWasteColor.toARGB32(),
+        'requirements': {
+          'category': 'Hazardous Waste',
+          'count': 5,
+        },
+      },
+      // NEW: E-Waste focused challenge
+      {
+        'title': 'E-Waste Roundup',
+        'description': 'Identify 3 electronic waste items',
+        'pointsReward': 35,
+        'iconName': 'devices',
+        'color': Colors.deepPurple.toARGB32(),
+        'requirements': {
+          'subcategory': 'Electronic Waste',
+          'count': 3,
+        },
+      },
+      // NEW: Quality challenge (high confidence)
+      {
+        'title': 'Quality Eye',
+        'description': 'Identify 8 items with 90%+ confidence',
+        'pointsReward': 45,
+        'iconName': 'visibility',
+        'color': Colors.teal.toARGB32(),
+        'requirements': {
+          'any_item': true,
+          'count': 8,
         },
       },
     ];

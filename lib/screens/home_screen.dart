@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -20,13 +19,48 @@ import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
+import '../screens/waste_dashboard_screen.dart';
 import '../utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../models/gamification_result.dart';
 import '../widgets/modern_ui/modern_buttons.dart';
 import '../widgets/enhanced_gamification_widgets.dart' as widgets;
 import '../widgets/advanced_ui/achievement_celebration.dart';
+import '../widgets/community_impact_card.dart';
+import '../widgets/platform_camera.dart';
+import '../utils/permission_handler.dart';
 
+@visibleForTesting
+int homeStreakCount(GamificationProfile? profile) {
+  return profile
+          ?.streaks[StreakType.dailyClassification.toString()]?.currentCount ??
+      0;
+}
+
+@visibleForTesting
+Challenge? selectHomeChallenge(
+  List<Challenge> challenges,
+  DateTime now,
+) {
+  final active = challenges.where((challenge) {
+    return challenge.isActive && !challenge.isCompleted;
+  }).toList();
+  if (active.isEmpty) return null;
+  return active[now.day % active.length];
+}
+
+@visibleForTesting
+String? dailyTipPreferredCategory(List<WasteClassification> classifications) {
+  if (classifications.isEmpty) return null;
+  final sorted = List<WasteClassification>.from(classifications)
+    ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  final latest = sorted.first;
+  final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+  if (latest.timestamp.isAfter(sevenDaysAgo)) {
+    return latest.category;
+  }
+  return null;
+}
 
 /// Canonical app home screen entrypoint.
 ///
@@ -196,8 +230,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         ),
                         const SizedBox(height: 20),
 
+                        // Daily progress habit loop
+                        _buildDailyProgressCard(
+                          context,
+                          profileAsync,
+                        ),
+                        const SizedBox(height: 20),
+
                         // Horizontal scrolling action chips
                         _buildActionChips(context),
+                        const SizedBox(height: 20),
+
+                        // Near milestone nudge
+                        _buildNudgeSection(context),
+                        const SizedBox(height: 20),
+
+                        // Community impact
+                        _buildCommunityImpactCard(
+                          context,
+                          classificationsAsync,
+                        ),
                         const SizedBox(height: 20),
 
                         // Content with padding
@@ -257,8 +309,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final topPadding = MediaQuery.of(context).padding.top;
 
     return SliverAppBar(
-      expandedHeight: topPadding + 160,
-      toolbarHeight: 48,
+      expandedHeight: topPadding + 220,
+      toolbarHeight: 52,
       pinned: true,
       backgroundColor: gradientColors.first,
       automaticallyImplyLeading: false,
@@ -266,6 +318,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         Padding(
           padding: const EdgeInsets.only(right: 8),
           child: IconButton(
+            key: const Key('home_settings_button'),
+            tooltip: 'Open settings',
             icon: const Icon(Icons.settings_outlined, color: Colors.white),
             onPressed: () => Navigator.pushNamed(context, Routes.settings),
           ),
@@ -361,7 +415,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     Expanded(
                       child: profileAsync.when(
                         data: (profile) => _buildStatChip(
-                          '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0}',
+                          '${homeStreakCount(profile)}',
                           AppStrings.streak,
                           Icons.local_fire_department,
                         ),
@@ -405,9 +459,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     return walletAsync.when(
       data: (wallet) =>
-          _buildStatChip('${wallet?.balance ?? 0}', 'Token', Icons.bolt),
-      loading: () => _buildStatChip('...', 'Token', Icons.bolt),
-      error: (_, __) => _buildStatChip('0', 'Token', Icons.bolt),
+          _buildStatChip('${wallet?.balance ?? 0}', 'Tokens', Icons.bolt),
+      loading: () => _buildStatChip('...', 'Tokens', Icons.bolt),
+      error: (_, __) => _buildStatChip('0', 'Tokens', Icons.bolt),
     );
   }
 
@@ -597,6 +651,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   children: [
                     Expanded(
                       child: ModernButton(
+                        key: const Key('home_mission_scan_button'),
                         text: 'Scan',
                         icon: Icons.camera_alt,
                         onPressed: _takePhoto,
@@ -608,6 +663,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     const SizedBox(width: 12),
                     Expanded(
                       child: ModernButton(
+                        key: const Key('home_mission_learn_button'),
                         text: 'Learn',
                         icon: Icons.school_outlined,
                         onPressed: () {
@@ -646,7 +702,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         data: (profile) => _buildMissionMetric(
                           context,
                           'Streak',
-                          '${profile?.streaks[StreakType.dailyClassification.toString()]?.currentCount ?? 0} days',
+                          '${homeStreakCount(profile)} days',
                           Icons.local_fire_department,
                         ),
                         loading: () => _buildMissionMetric(
@@ -747,7 +803,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   Widget _buildActionChips(BuildContext context) {
     return SizedBox(
-      height: 120,
+      height: 148,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -764,6 +820,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   List<ActionItem> _getActionItems() {
     return [
       ActionItem(
+        key: const Key('home_action_take_photo'),
         title: AppStrings.takePhoto,
         subtitle: AppStrings.reviewAnalyze,
         icon: Icons.camera_alt,
@@ -771,6 +828,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         onTap: () => _takePhoto(),
       ),
       ActionItem(
+        key: const Key('home_action_upload_image'),
         title: AppStrings.uploadImage,
         subtitle: AppStrings.fromGallery,
         icon: Icons.photo_library,
@@ -778,6 +836,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         onTap: () => _pickImage(),
       ),
       ActionItem(
+        key: const Key('home_action_instant_camera'),
         title: AppStrings.instantCamera,
         subtitle: AppStrings.autoAnalyze,
         icon: Icons.flash_on,
@@ -785,6 +844,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         onTap: () => _takePhotoInstant(),
       ),
       ActionItem(
+        key: const Key('home_action_instant_upload'),
         title: AppStrings.instantUpload,
         subtitle: AppStrings.autoAnalyze,
         icon: Icons.bolt,
@@ -795,18 +855,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   Widget _buildActionCard(ActionItem action) {
-    return AnimatedScale(
-      scale: 1.0,
-      duration: const Duration(milliseconds: 150),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() {}),
-        onTapUp: (_) => setState(() {}),
-        onTapCancel: () => setState(() {}),
+    return Material(
+      key: action.key,
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
         onTap: action.onTap,
+        borderRadius: BorderRadius.circular(16),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.32,
+          constraints: const BoxConstraints(minHeight: 96, minWidth: 96),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -820,35 +879,261 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: action.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(action.icon, color: action.color, size: 24),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 action.title,
                 style: GoogleFonts.inter(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               Text(
                 action.subtitle,
                 style: GoogleFonts.inter(
-                  fontSize: 10,
+                  fontSize: 9,
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  // ==========================================================================
+  // Daily progress / nudge / community
+  // ==========================================================================
+
+  Widget _buildDailyProgressCard(
+    BuildContext context,
+    AsyncValue<GamificationProfile?> profileAsync,
+  ) {
+    final todayGoalAsync = ref.watch(todayGoalProvider);
+    return todayGoalAsync.when(
+      data: (goalData) {
+        final scansToday = goalData.$1;
+        final dailyGoal = goalData.$2 <= 0 ? 1 : goalData.$2;
+        final progress = (scansToday / dailyGoal).clamp(0.0, 1.0);
+
+        return profileAsync.when(
+          data: (profile) {
+            final streakDays = homeStreakCount(profile);
+            final totalPoints = profile?.points.total ?? 0;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                key: const Key('home_daily_progress_card'),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primaryContainer
+                      .withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppStrings.dailyProgress,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '$scansToday/$dailyGoal scans today',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '$streakDays day streak · $totalPoints pts',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    LinearProgressIndicator(
+                      value: progress,
+                      borderRadius: BorderRadius.circular(6),
+                      minHeight: 8,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildNudgeSection(BuildContext context) {
+    final gamificationService = ref.watch(gamificationServiceProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return FutureBuilder<NearMilestoneNudge?>(
+      future: gamificationService.getNearMilestoneNudge(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const SizedBox.shrink();
+        }
+
+        final nudge = snapshot.data!;
+        final nudgeColor = _nudgeColor(nudge.type, colorScheme);
+        final progressValue = nudge.target > 0
+            ? (nudge.progress / nudge.target).clamp(0.0, 1.0)
+            : 0.0;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: GestureDetector(
+            key: const Key('home_near_milestone_card'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AchievementsScreen(),
+              ),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    nudgeColor.withValues(alpha: 0.12),
+                    nudgeColor.withValues(alpha: 0.04),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: nudgeColor.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(_nudgeIcon(nudge.iconName), color: nudgeColor),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          nudge.title,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          nudge.message,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        LinearProgressIndicator(
+                          value: progressValue,
+                          backgroundColor: nudgeColor.withValues(alpha: 0.15),
+                          valueColor: AlwaysStoppedAnimation<Color>(nudgeColor),
+                          minHeight: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  IconData _nudgeIcon(String? iconName) {
+    switch (iconName) {
+      case 'flag':
+        return Icons.flag;
+      case 'local_fire_department':
+        return Icons.local_fire_department;
+      case 'stars':
+        return Icons.stars;
+      case 'category':
+        return Icons.category;
+      default:
+        return Icons.near_me;
+    }
+  }
+
+  Color _nudgeColor(NudgeType type, ColorScheme colorScheme) {
+    switch (type) {
+      case NudgeType.dailyGoal:
+        return const Color(0xFF2196F3);
+      case NudgeType.challengeNearComplete:
+        return const Color(0xFFFF9800);
+      case NudgeType.categoryAchievement:
+        return const Color(0xFF4CAF50);
+      case NudgeType.streakMilestone:
+        return const Color(0xFFFF5722);
+    }
+  }
+
+  Widget _buildCommunityImpactCard(
+    BuildContext context,
+    AsyncValue<List<WasteClassification>> classificationsAsync,
+  ) {
+    return classificationsAsync.when(
+      data: (classifications) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: CommunityImpactCard(
+          key: const Key('home_community_impact_card'),
+          classifications: classifications,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const WasteDashboardScreen(),
+            ),
+          ),
+        ),
+      ),
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -867,27 +1152,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           return const SizedBox.shrink();
         }
 
-        // Find active challenges with progress > 0
-        final activeChallenges = profile.activeChallenges.where((challenge) {
-          return challenge.isActive &&
-              !challenge.isCompleted &&
-              challenge.progress > 0;
-        }).toList();
-
-        if (activeChallenges.isEmpty) {
+        final selected =
+            selectHomeChallenge(profile.activeChallenges, DateTime.now());
+        if (selected == null) {
           return const SizedBox.shrink();
         }
 
-        // Pick a random active challenge based on day
-        final randomChallenge =
-            activeChallenges[DateTime.now().day % activeChallenges.length];
-        final progressPercentage = (randomChallenge.progress * 100).round();
-        final currentCount = (randomChallenge.progress *
-                (randomChallenge.requirements['count'] ?? 1))
-            .round();
-        final targetCount = randomChallenge.requirements['count'] ?? 1;
+        final targetCount =
+            int.tryParse('${selected.requirements['count'] ?? 1}') ?? 1;
+        final safeTargetCount = targetCount <= 0 ? 1 : targetCount;
+        final normalizedProgress = selected.progress.clamp(0.0, 1.0);
+        final progressPercentage = (normalizedProgress * 100).round();
+        final currentCount = (normalizedProgress * safeTargetCount).round();
 
         return GestureDetector(
+          key: const Key('home_active_challenge_card'),
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
@@ -901,13 +1180,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  randomChallenge.color.withValues(alpha: 0.1),
-                  randomChallenge.color.withValues(alpha: 0.05),
+                  selected.color.withValues(alpha: 0.1),
+                  selected.color.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: randomChallenge.color.withValues(alpha: 0.3),
+                color: selected.color.withValues(alpha: 0.3),
               ),
             ),
             child: Column(
@@ -918,12 +1197,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: randomChallenge.color.withValues(alpha: 0.2),
+                        color: selected.color.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
-                        _getChallengeIcon(randomChallenge.iconName),
-                        color: randomChallenge.color,
+                        _getChallengeIcon(selected.iconName),
+                        color: selected.color,
                         size: 24,
                       ),
                     ),
@@ -933,7 +1212,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            randomChallenge.title,
+                            selected.title,
                             style: GoogleFonts.inter(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -941,7 +1220,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             ),
                           ),
                           Text(
-                            randomChallenge.description,
+                            selected.description,
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               color: Theme.of(
@@ -957,7 +1236,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       style: GoogleFonts.inter(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: randomChallenge.color,
+                        color: selected.color,
                       ),
                     ),
                   ],
@@ -967,19 +1246,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   children: [
                     Expanded(
                       child: LinearProgressIndicator(
-                        value: randomChallenge.progress,
-                        backgroundColor: randomChallenge.color.withValues(
+                        value: normalizedProgress,
+                        backgroundColor: selected.color.withValues(
                           alpha: 0.2,
                         ),
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          randomChallenge.color,
+                          selected.color,
                         ),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      '$currentCount/$targetCount',
+                      '$currentCount/$safeTargetCount',
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -1035,21 +1314,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       data: (classifications) {
         final educationalService = ref.read(educationalContentServiceProvider);
 
-        // Prefer the category of the most recent scan from the last 7 days.
-        String? preferredCategory;
-        if (classifications.isNotEmpty) {
-          final latest = classifications.first;
-          final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
-          if (latest.timestamp.isAfter(sevenDaysAgo)) {
-            preferredCategory = latest.category;
-          }
-        }
+        final preferredCategory = dailyTipPreferredCategory(classifications);
 
         final tip = educationalService.getDailyTipForHome(
           preferredCategory: preferredCategory,
         );
 
         return GestureDetector(
+          key: const Key('home_daily_tip_card'),
           onTap: () => _openDailyTip(context, tip),
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -1071,31 +1343,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       color: theme.colorScheme.primary,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      "Today's sorting tip",
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurfaceVariant,
+                    Expanded(
+                      child: Text(
+                        "Today's sorting tip",
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getCategoryColor(tip.category)
-                            .withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        tip.category,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: _getCategoryColor(tip.category),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getCategoryColor(tip.category)
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          tip.category,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: _getCategoryColor(tip.category),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
@@ -1114,32 +1394,84 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      tip.actionText ?? AppStrings.learnMore,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Wrap(
+                    spacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        tip.actionText ?? AppStrings.learnMore,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward,
+                        size: 14,
                         color: theme.colorScheme.primary,
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward,
-                      size: 14,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         );
       },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      loading: () => _buildTipFallbackCard(context, isLoading: true),
+      error: (_, __) => _buildTipFallbackCard(context),
+    );
+  }
+
+  Widget _buildTipFallbackCard(
+    BuildContext context, {
+    bool isLoading = false,
+  }) {
+    final tip = DailyTip(
+      id: 'fallback',
+      title: 'Quick tip',
+      content: isLoading
+          ? 'Loading today\'s tip...'
+          : 'Sort clean, dry items to improve recycling quality.',
+      category: 'General',
+      date: DateTime.now(),
+      actionText: AppStrings.learnMore,
+    );
+
+    return GestureDetector(
+      key: const Key('home_daily_tip_card'),
+      onTap: () => _openDailyTip(context, tip),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context)
+              .colorScheme
+              .primaryContainer
+              .withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isLoading ? Icons.hourglass_bottom : Icons.lightbulb_outline,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                tip.content,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1178,8 +1510,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           return _buildEmptyState(context);
         }
 
-        final recent = classifications.take(3).toList();
+        final sorted = List<WasteClassification>.from(classifications)
+          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        final recent = sorted.take(3).toList();
         return Column(
+          key: const Key('home_recent_section'),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -1195,6 +1530,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ),
                 TextButton(
+                  key: const Key('home_recent_view_all'),
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1213,81 +1549,123 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => _buildEmptyState(context),
+      error: (_, __) => _buildRecentErrorState(context),
     );
   }
 
   Widget _buildClassificationCard(WasteClassification classification) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+    return GestureDetector(
+      key: Key('home_classification_card_${classification.id}'),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HistoryScreen(),
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: _getCategoryColor(
-                classification.category,
-              ).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              _getCategoryIcon(classification.category),
-              color: _getCategoryColor(classification.category),
-            ),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  classification.itemName,
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: _getCategoryColor(
                   classification.category,
-                  style: GoogleFonts.inter(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              '${((classification.confidence ?? 0.0) * 100).round()}%',
-              style: GoogleFonts.inter(
-                color: Colors.green,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+                ).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                _getCategoryIcon(classification.category),
+                color: _getCategoryColor(classification.category),
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    classification.itemName,
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    classification.category,
+                    style: GoogleFonts.inter(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${((classification.confidence ?? 0.0) * 100).round()}%',
+                style: GoogleFonts.inter(
+                  color: Colors.green,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentErrorState(BuildContext context) {
+    return GestureDetector(
+      key: const Key('home_recent_error_state'),
+      onTap: () => ref.invalidate(classificationsProvider),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.errorContainer,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.error_outline,
+              color: Theme.of(context).colorScheme.onErrorContainer,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                AppStrings.tapToRetry,
+                style: GoogleFonts.inter(
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
     return Container(
+      key: const Key('home_empty_state'),
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -1319,6 +1697,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: _takePhoto,
+            icon: const Icon(Icons.camera_alt),
+            label: const Text('Take first photo'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _pickImage,
+            icon: const Icon(Icons.photo_library),
+            label: const Text('Upload image'),
           ),
         ],
       ),
@@ -1357,8 +1747,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       case 'dry waste':
       case 'recyclable':
         return Icons.recycling;
+      case 'hazardous waste':
       case 'hazardous':
         return Icons.warning;
+      case 'medical waste':
+        return Icons.local_hospital;
       default:
         return Icons.delete;
     }
@@ -1369,106 +1762,67 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // ==========================================================================
 
   Future<void> _takePhoto() async {
-    if (_isNavigating) return;
-    _isNavigating = true;
-
-    try {
-      final image = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 85,
-        maxWidth: 1920,
-        maxHeight: 1080,
-      );
-
-      if (image != null && mounted) {
-        await _navigateToImageCapture(image);
-      }
-    } catch (e) {
-      WasteAppLogger.severe('${AppStrings.errorTakingPhoto}: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.errorTakingPhoto}: $e')),
-        );
-      }
-    } finally {
-      _isNavigating = false;
-    }
+    await _pickAndRouteImage(source: ImageSource.camera, instant: false);
   }
 
   Future<void> _pickImage() async {
-    if (_isNavigating) return;
-    _isNavigating = true;
-
-    try {
-      final image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 85,
-        maxWidth: 1920,
-        maxHeight: 1080,
-      );
-
-      if (image != null && mounted) {
-        await _navigateToImageCapture(image);
-      }
-    } catch (e) {
-      WasteAppLogger.severe('${AppStrings.errorPickingImage}: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.errorPickingImage}: $e')),
-        );
-      }
-    } finally {
-      _isNavigating = false;
-    }
+    await _pickAndRouteImage(source: ImageSource.gallery, instant: false);
   }
 
   Future<void> _takePhotoInstant() async {
-    if (_isNavigating) return;
-    _isNavigating = true;
-
-    try {
-      final image = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 85,
-        maxWidth: 1920,
-        maxHeight: 1080,
-      );
-
-      if (image != null && mounted) {
-        await _navigateToInstantAnalysis(image);
-      }
-    } catch (e) {
-      WasteAppLogger.severe('${AppStrings.errorTakingPhoto}: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.errorTakingPhoto}: $e')),
-        );
-      }
-    } finally {
-      _isNavigating = false;
-    }
+    await _pickAndRouteImage(source: ImageSource.camera, instant: true);
   }
 
   Future<void> _pickImageInstant() async {
+    await _pickAndRouteImage(source: ImageSource.gallery, instant: true);
+  }
+
+  Future<void> _pickAndRouteImage({
+    required ImageSource source,
+    required bool instant,
+  }) async {
     if (_isNavigating) return;
     _isNavigating = true;
 
     try {
-      final image = await _picker.pickImage(
-        source: ImageSource.gallery,
+      XFile? image;
+      if (source == ImageSource.camera && !kIsWeb) {
+        final hasPermission = await PermissionHandler.checkCameraPermission();
+        if (!hasPermission && mounted) {
+          PermissionHandler.showPermissionDeniedDialog(context, 'Camera');
+          return;
+        }
+      }
+
+      if (source == ImageSource.camera && !kIsWeb) {
+        final setupSuccess = await PlatformCamera.setup();
+        if (setupSuccess) {
+          image = await PlatformCamera.takePicture();
+        }
+      }
+
+      image ??= await _picker.pickImage(
+        source: source,
         imageQuality: 85,
         maxWidth: 1920,
         maxHeight: 1080,
       );
 
       if (image != null && mounted) {
-        await _navigateToInstantAnalysis(image);
+        if (instant) {
+          await _navigateToInstantAnalysis(image);
+        } else {
+          await _navigateToImageCapture(image);
+        }
       }
     } catch (e) {
-      WasteAppLogger.severe('${AppStrings.errorPickingImage}: $e');
+      final message = source == ImageSource.camera
+          ? AppStrings.errorTakingPhoto
+          : AppStrings.errorPickingImage;
+      WasteAppLogger.severe('$message: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.errorPickingImage}: $e')),
+          SnackBar(content: Text('$message: $e')),
         );
       }
     } finally {
@@ -1495,7 +1849,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       }
     } else {
       final file = File(image.path);
-      if (file.existsSync() && mounted) {
+      if (await file.exists() && mounted) {
         final result = await Navigator.push<GamificationResult>(
           context,
           MaterialPageRoute(
@@ -1507,21 +1861,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         if (result != null && result.hasRewards && mounted) {
           _showPointsPopup(result);
         }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Selected image file was not found.')),
+        );
       }
     }
   }
 
   Future<void> _navigateToInstantAnalysis(XFile image) async {
-    if (mounted) {
-      unawaited(
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => InstantAnalysisScreen(image: image),
-          ),
-        ),
-      );
-    }
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InstantAnalysisScreen(image: image),
+      ),
+    );
   }
 
   // ==========================================================================
@@ -1580,12 +1935,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
 class ActionItem {
   ActionItem({
+    required this.key,
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.color,
     required this.onTap,
   });
+  final Key key;
   final String title;
   final String subtitle;
   final IconData icon;

@@ -92,7 +92,7 @@ class PointsEngine extends ChangeNotifier {
       await initialize();
 
       final profile = _cachedProfile!;
-      final pointsToAdd = customPoints ?? _getPointsForAction(action);
+      var pointsToAdd = customPoints ?? _getPointsForAction(action);
 
       if (pointsToAdd <= 0) {
         WasteAppLogger.warning('No points to add for action', context: {
@@ -101,6 +101,25 @@ class PointsEngine extends ChangeNotifier {
           'points_to_add': pointsToAdd
         });
         return profile.points;
+      }
+
+      // Apply category multiplier for standard classifications
+      // When customPoints is set (AI dynamic calc), the multiplier is already
+      // factored in by the AI's complexity assessment, so we skip it here.
+      if (action == 'classification' && category != null && customPoints == null) {
+        final multiplier = _getCategoryMultiplier(category);
+        if (multiplier != 1.0) {
+          final originalPoints = pointsToAdd;
+          pointsToAdd = (pointsToAdd * multiplier).round();
+          WasteAppLogger.gamificationEvent('category_multiplier_applied',
+            pointsEarned: pointsToAdd - originalPoints,
+            context: {
+              'category': category,
+              'multiplier': multiplier,
+              'base_points': originalPoints,
+              'final_points': pointsToAdd,
+            });
+        }
       }
 
       // Calculate new points with validation
@@ -395,20 +414,38 @@ class PointsEngine extends ChangeNotifier {
   }
 
   /// Get points for action - Enhanced AI Analysis v2.0 with dynamic calculation
+  /// Values tuned for quality-over-quantity incentive structure
   int _getPointsForAction(String action) {
     const pointValues = {
       'classification': 10, // Base value - can be overridden by customPoints
-      'daily_streak': 5,
-      'challenge_complete': 25,
-      'badge_earned': 20,
+      'daily_streak': 3, // Reduced: daily maintenance is low-effort
+      'challenge_complete': 30, // Increased: completing goals is high-value
+      'badge_earned': 25, // Increased: milestones deserve more
       'quiz_completed': 15,
-      'educational_content': 5,
-      'perfect_week': 50,
+      'educational_content': 10, // Doubled: learning parity with classification
+      'perfect_week': 75, // Increased: 7-day commitment is significant
       'community_challenge': 30,
-      'classification_sync': 10, // For retroactive sync operations
+      'classification_sync': 10,
+      'feedback_provided': 3, // Reduced: confirming correct is low-effort
+      'correction_provided': 15, // Increased: fixing AI errors is high-value
     };
 
     return pointValues[action] ?? 0;
+  }
+
+  /// Category-based point multipliers to reward high-stakes classifications
+  /// - Hazardous Waste: 1.5x (safety-critical knowledge)
+  /// - Medical Waste: 1.3x (health-critical knowledge)
+  /// - Default: 1.0x
+  double _getCategoryMultiplier(String category) {
+    switch (category) {
+      case 'Hazardous Waste':
+        return 1.5;
+      case 'Medical Waste':
+        return 1.3;
+      default:
+        return 1.0;
+    }
   }
 
   /// Calculate enhanced points for classification based on AI analysis richness

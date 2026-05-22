@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/waste_app_logger.dart';
 import '../utils/constants.dart';
+import '../utils/waste_theme.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
 
@@ -784,41 +785,9 @@ class TagFactory {
     );
   }
 
-  static Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-        return AppTheme.wetWasteColor;
-      case 'dry waste':
-        return AppTheme.dryWasteColor;
-      case 'hazardous waste':
-        return AppTheme.hazardousWasteColor;
-      case 'medical waste':
-        return AppTheme.medicalWasteColor;
-      case 'non-waste':
-        return AppTheme.nonWasteColor;
-      case 'requires manual review':
-        return AppTheme.manualReviewColor;
-      default:
-        return AppTheme.secondaryColor;
-    }
-  }
+  static Color _getCategoryColor(String category) =>
+      WasteTheme.categoryColor(category);
 
-  static IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-        return Icons.eco;
-      case 'dry waste':
-        return Icons.recycling;
-      case 'hazardous waste':
-        return Icons.warning;
-      case 'medical waste':
-        return Icons.medical_services;
-      case 'non-waste':
-        return Icons.refresh;
-      case 'requires manual review':
-        return Icons.help_outline;
-      default:
-        return Icons.category;
-    }
-  }
+  static IconData _getCategoryIcon(String category) =>
+      WasteTheme.categoryIcon(category);
 }

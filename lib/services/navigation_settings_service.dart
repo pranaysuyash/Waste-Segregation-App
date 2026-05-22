@@ -10,26 +10,36 @@ class NavigationSettingsService extends ChangeNotifier {
   static const String _fabEnabledKey = 'fab_enabled';
   static const String _navigationStyleKey = 'navigation_style';
 
+  static const List<String> validStyles = [
+    'glassmorphism',
+    'material3',
+    'floating',
+  ];
+  static const String _defaultStyle = 'glassmorphism';
+
   bool _bottomNavEnabled = true;
   bool _fabEnabled = false;
-  String _navigationStyle =
-      'glassmorphism'; // glassmorphism, material3, floating
+  String _navigationStyle = _defaultStyle;
 
   bool get bottomNavEnabled => _bottomNavEnabled;
   bool get fabEnabled => _fabEnabled;
   String get navigationStyle => _navigationStyle;
+
+  static bool isValidStyle(String style) => validStyles.contains(style);
 
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       _bottomNavEnabled = prefs.getBool(_bottomNavEnabledKey) ?? true;
       _fabEnabled = prefs.getBool(_fabEnabledKey) ?? false;
-      _navigationStyle =
-          prefs.getString(_navigationStyleKey) ?? 'glassmorphism';
+      final rawStyle = prefs.getString(_navigationStyleKey) ?? _defaultStyle;
+      _navigationStyle = isValidStyle(rawStyle) ? rawStyle : _defaultStyle;
       notifyListeners();
     } catch (e) {
       WasteAppLogger.severe('Error loading navigation settings',
           error: e, context: {'action': 'use_default_settings'});
+      _navigationStyle = _defaultStyle;
+      notifyListeners();
     }
   }
 
@@ -59,6 +69,11 @@ class NavigationSettingsService extends ChangeNotifier {
   }
 
   Future<void> setNavigationStyle(String style) async {
+    if (!isValidStyle(style)) {
+      WasteAppLogger.warning('Invalid navigation style rejected',
+          context: {'invalid_style': style, 'valid_styles': validStyles});
+      return;
+    }
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_navigationStyleKey, style);
@@ -79,7 +94,7 @@ class NavigationSettingsService extends ChangeNotifier {
 
       _bottomNavEnabled = true;
       _fabEnabled = false;
-      _navigationStyle = 'glassmorphism';
+      _navigationStyle = _defaultStyle;
       notifyListeners();
     } catch (e) {
       WasteAppLogger.severe('Error resetting navigation settings',

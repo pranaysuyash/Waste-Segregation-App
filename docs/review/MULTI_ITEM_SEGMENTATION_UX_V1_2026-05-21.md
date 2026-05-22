@@ -1023,24 +1023,16 @@ User captures image
 
 ## 10. Unclosed Gaps (Explicit)
 
-1. **Automatic detection trigger**: Should the app auto-suggest regions when the model detects >1 object, or always wait for manual input?
-2. **Crop-and-classify pipeline**: Once regions are confirmed, cropped regions need to be sent to AI individually. Should this be parallel or sequential?
-3. **Confidence aggregation**: How to report overall confidence when one region is high-confidence and another is low?
-4. **Undo/redo for regions**: Should region selection support undo stack?
-5. **Segmentation overlay colors**: Should regions use category-colored overlays (green=wet, blue=dry, red=hazardous)?
-
----
-
-## 10. Unclosed Gaps (Explicit)
-
 Per motto_v2 §0.1, these are known gaps that remain after V1:
 
 | Gap | Severity | Affected Path | Closure Path |
 |---|---|---|---|
-| **Segmentation backend stubs** return empty results. Manual-only mode works. | P2 (future) | `segmentation_service.dart:96-153` | Wire YOLO11n-seg TFLite → `OnDeviceSegmentationBackend.detectRegions()` and/or MobileSAM ONNX → TFLite |
-| **No auto-detection trigger** — user must always manually enter region selection mode. The app does not auto-suggest "I see N items" yet. | P2 (future) | `image_capture_screen.dart:469-488` | After a segmentation backend is live, auto-call `detectRegions()` after capture and show the count prompt if >1 region found |
-| **Crop-and-classify pipeline** uses existing `analyzeImageRegions()` method — works but processes crops independently in series. No parallel classification of regions. | P3 (optimization) | `ai_service.dart` → `analyzeImageRegions()` | Add parallel classification using `Future.wait()` for N regions |
-| **No widget/integration test** for `MultiItemRegionReview` or `CombinedResultScreen` with mixed categories. Unit tests cover data models only. | P2 | `test/` | Add `widget_test.dart` for `MultiItemRegionReview`, add `CombinedResultScreen` test with mixed-category fixture |
+| **Segmentation backend stubs** return empty results. Manual-only mode works. `YoloSegmentationBackend` scaffolded with model download path. | P2 (future) | `segmentation_service.dart` | Download YOLO11n-seg TFLite weights via `YoloModelManager` and wire into `YoloSegmentationBackend.detectRegions()` |
+| **Auto-detection trigger** — implemented in `_autoDetectMultiItemRegions()` (line ~482). Runs after image loads, calls `SegmentationService.detectRegions()`, shows "I see N possible items" banner if >1 region found. Works with any backend that returns regions. | ✅ Done | `image_capture_screen.dart:482-501` | Backend must return regions — currently only `GridSegmentationBackend` does (others return empty until model weights are integrated) |
+| **Crop-and-classify pipeline** — parallelized using `Future.wait()` in `ai_service.dart:1049-1078`. | ✅ Done | `ai_service.dart` | — |
+| **Widget tests** for `MultiItemRegionReview` (9 tests) and `PerItemResultCard` (8 tests) added. | ✅ Done | `test/widgets/multi_item_region_review_test.dart`, `test/widgets/per_item_result_card_test.dart` | — |
+| **End-to-end region→result flow** — `_analyzeSelectedRegions()` now constructs `DetectedWasteRegion` + `MultiItemClassificationResult` and passes both to `CombinedResultScreen`. | ✅ Done | `image_capture_screen.dart:1878-1950` | — |
+| **Model download scaffold** — `YoloModelManager` with download/verify/cache for YOLO11n-seg, YOLO26n-seg, custom waste models. | ✅ Done | `lib/services/yolo_model_manager.dart` | Need actual model URLs for download |
 | **`NormalizedBoundingBox.intersectionOverUnion`** not NaN-safe | P3 | `detected_waste_region.dart:122-134` | Add guard for NaN/Infinity inputs |
 | **`MultiItemClassificationResult.fromJson`** loses crop bytes (intentional — not serializable) | P3 (documented) | `multi_item_classification_result.dart` | If persistence needed: store crop file paths instead of bytes |
 

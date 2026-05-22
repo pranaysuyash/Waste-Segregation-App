@@ -11,3 +11,6 @@ export 'legal_support_section.dart';
 export 'developer_section.dart';
 export 'settings_section_header.dart';
 export 'settings_section_spacer.dart';
+export 'privacy_section.dart';
+export 'sync_section.dart';
+export 'feedback_settings_section.dart';

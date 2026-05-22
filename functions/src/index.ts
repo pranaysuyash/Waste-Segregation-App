@@ -194,6 +194,37 @@ const enforceRateLimit = async ({
   });
 };
 
+const bumpOpsMetric = async (
+  metricName: string,
+  tags: Record<string, unknown> = {},
+): Promise<void> => {
+  try {
+    const db = admin.firestore();
+    const day = new Date().toISOString().slice(0, 10);
+    const docRef = db.collection('ops_metrics').doc(day);
+    const sanitizedTags = Object.fromEntries(
+      Object.entries(tags).filter(([, value]) =>
+        ['string', 'number', 'boolean'].includes(typeof value) || value === null,
+      ),
+    );
+
+    await docRef.set(
+      {
+        date: day,
+        updatedAt: FieldValue.serverTimestamp(),
+        [`counters.${metricName}`]: FieldValue.increment(1),
+        [`lastEvent.${metricName}`]: {
+          atIso: new Date().toISOString(),
+          ...sanitizedTags,
+        },
+      },
+      { merge: true },
+    );
+  } catch (error) {
+    functions.logger.warn('Failed to bump ops metric', { metricName, error });
+  }
+};
+
 const verifyHttpAppCheck = async (req: functions.Request): Promise<boolean> => {
   const tokenHeader = req.headers['x-firebase-appcheck'];
   const token = Array.isArray(tokenHeader) ? tokenHeader[0] : tokenHeader;
@@ -485,10 +516,17 @@ export const testOpenAI = asiaSouth1.https.onRequest((req, res) => {
 
 export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => {
   if (!context.auth?.uid) {
+    await bumpOpsMetric('spendUserTokens_unauthenticated', {
+      route: 'spendUserTokens',
+    });
     throw new functions.https.HttpsError('unauthenticated', 'Authentication required.');
   }
 
   if (shouldEnforceCallableAppCheck() && !context.app) {
+    await bumpOpsMetric('spendUserTokens_appcheck_missing', {
+      route: 'spendUserTokens',
+      uid: context.auth.uid,
+    });
     throw new functions.https.HttpsError(
       'failed-precondition',
       'App Check token required for spendUserTokens.'
@@ -503,6 +541,11 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
     windowSeconds: Math.max(1, rateLimitConfig.windowSeconds),
   });
   if (rateLimitState.retryAfterSeconds > 0) {
+    await bumpOpsMetric('spendUserTokens_rate_limited', {
+      route: 'spendUserTokens',
+      uid: context.auth.uid,
+      retryAfterSeconds: rateLimitState.retryAfterSeconds,
+    });
     throw new functions.https.HttpsError(
       'resource-exhausted',
       'Rate limit exceeded for spendUserTokens.',
@@ -586,6 +629,9 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
       claimEntitlements.pro_subscription === true;
 
     const hasPremiumEntitlement = hasBillingPremium || hasClaimsPremium;
+    const spendAuthoritySource: 'billing_entitlement' | 'claims_fallback' | 'none' = hasBillingPremium
+      ? 'billing_entitlement'
+      : (hasClaimsPremium ? 'claims_fallback' : 'none');
 
     const rawTierValue = String(
       userData.subscriptionTier ?? userData.tier ?? 'free'
@@ -600,6 +646,11 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
 
     if (!hasBillingPremium && hasClaimsPremium) {
       functions.logger.warn('spendUserTokens: premium derived from claims fallback', {
+        uid,
+        normalizedTier,
+      });
+      await bumpOpsMetric('spendUserTokens_claims_fallback', {
+        route: 'spendUserTokens',
         uid,
         normalizedTier,
       });
@@ -630,11 +681,13 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
     const BATCH_COST = 1;
 
     let authorizedAmount = clientAmount; // default: trust client if no opType known
+    let serverComputedMinimum: number | null = null;
 
     if (operationType !== null) {
       const serverMin: number = (operationType === 'batch')
         ? BATCH_COST
         : (tier === 'free' ? INSTANT_COST_FREE : INSTANT_COST_PREMIUM);
+      serverComputedMinimum = serverMin;
 
       if (clientAmount < serverMin) {
         // Client is claiming a spend lower than what the server authorises for
@@ -665,6 +718,16 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
     // -------------------------------------------------------------------------
 
     const amount = authorizedAmount;
+    const spendObservabilityMetadata = {
+      ...metadata,
+      operationType,
+      spendAuthoritySource,
+      serverTier: tier,
+      requestedClientAmount: clientAmount,
+      authorizedAmount: amount,
+      serverComputedMinimum,
+      spendComputationMode: operationType === null ? 'client_declared' : 'server_computed',
+    };
 
     if (!Number.isFinite(currentBalance) || currentBalance < amount) {
       throw new functions.https.HttpsError(
@@ -692,7 +755,7 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
       timestamp: nowIso,
       description,
       reference,
-      metadata,
+      metadata: spendObservabilityMetadata,
     };
 
     const currentTransactions = Array.isArray(userData.tokenTransactions)
@@ -712,7 +775,7 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
       amount,
       description,
       reference,
-      metadata,
+      metadata: spendObservabilityMetadata,
       subscriptionTier: tier,
       createdAtIso: nowIso,
       createdAt: FieldValue.serverTimestamp(),
@@ -949,10 +1012,17 @@ async function createOpenAIBatchSubmission(jobId: string, imageUrl: string): Pro
 
 export const createBatchAiJob = asiaSouth1.https.onCall(async (data, context) => {
   if (!context.auth?.uid) {
+    await bumpOpsMetric('createBatchAiJob_unauthenticated', {
+      route: 'createBatchAiJob',
+    });
     throw new functions.https.HttpsError('unauthenticated', 'Authentication required.');
   }
 
   if (shouldEnforceCallableAppCheck() && !context.app) {
+    await bumpOpsMetric('createBatchAiJob_appcheck_missing', {
+      route: 'createBatchAiJob',
+      uid: context.auth.uid,
+    });
     throw new functions.https.HttpsError(
       'failed-precondition',
       'App Check token required for createBatchAiJob.'
@@ -971,6 +1041,10 @@ export const createBatchAiJob = asiaSouth1.https.onCall(async (data, context) =>
   }
 
   if (!isUserOwnedBatchImageUrl(imageUrl, uid)) {
+    await bumpOpsMetric('createBatchAiJob_owner_path_denied', {
+      route: 'createBatchAiJob',
+      uid,
+    });
     throw new functions.https.HttpsError(
       'permission-denied',
       'imageUrl must reference an authenticated user-owned batch_images path.'
@@ -986,6 +1060,11 @@ export const createBatchAiJob = asiaSouth1.https.onCall(async (data, context) =>
   });
 
   if (rateLimitState.retryAfterSeconds > 0) {
+    await bumpOpsMetric('createBatchAiJob_rate_limited', {
+      route: 'createBatchAiJob',
+      uid,
+      retryAfterSeconds: rateLimitState.retryAfterSeconds,
+    });
     throw new functions.https.HttpsError(
       'resource-exhausted',
       'Rate limit exceeded for createBatchAiJob.',
@@ -1046,6 +1125,9 @@ export const createBatchAiJob = asiaSouth1.https.onCall(async (data, context) =>
       metadata: {
         operationType: 'batch',
         source: 'createBatchAiJob',
+        spendAuthoritySource: 'fixed_batch_cost',
+        requestedClientAmount: tokenCost,
+        authorizedAmount: tokenCost,
         jobId,
       },
     };
@@ -1070,6 +1152,9 @@ export const createBatchAiJob = asiaSouth1.https.onCall(async (data, context) =>
       metadata: {
         operationType: 'batch',
         source: 'createBatchAiJob',
+        spendAuthoritySource: 'fixed_batch_cost',
+        requestedClientAmount: tokenCost,
+        authorizedAmount: tokenCost,
         jobId,
       },
       subscriptionTier: 'batch',
@@ -1095,6 +1180,11 @@ export const createBatchAiJob = asiaSouth1.https.onCall(async (data, context) =>
       uid,
       jobId,
       error,
+    });
+    await bumpOpsMetric('createBatchAiJob_refund_openai_submission_failed', {
+      route: 'createBatchAiJob',
+      uid,
+      jobId,
     });
 
     const refundIso = new Date().toISOString();
@@ -1134,6 +1224,9 @@ export const createBatchAiJob = asiaSouth1.https.onCall(async (data, context) =>
         metadata: {
           operationType: 'batch',
           source: 'createBatchAiJob',
+          spendAuthoritySource: 'fixed_batch_cost',
+          refundReason: 'openai_submission_failed',
+          originalLedgerId: spendResult.ledgerId,
           jobId,
         },
       };
@@ -1497,6 +1590,7 @@ export {
 } from './ops_hardening';
 export {
   attachTrainingLabelFeedback,
+  buildTrainingDatasetManifest,
   cleanupTrainingReviewImages,
   enqueueTrainingCandidate,
   getTrainingReviewQueue,

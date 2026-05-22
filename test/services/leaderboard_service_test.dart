@@ -4,7 +4,24 @@ import 'package:mockito/mockito.dart';
 import 'package:waste_segregation_app/services/firestore_schema_registry.dart';
 import 'package:waste_segregation_app/services/leaderboard_service.dart';
 
-import 'leaderboard_service_test.mocks.dart';
+class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+
+class MockCollectionReference<T extends Object?> extends Mock
+    implements CollectionReference<T> {}
+
+class MockQuery<T extends Object?> extends Mock implements Query<T> {}
+
+class MockQuerySnapshot<T extends Object?> extends Mock
+    implements QuerySnapshot<T> {}
+
+class MockQueryDocumentSnapshot<T extends Object?> extends Mock
+    implements QueryDocumentSnapshot<T> {}
+
+class MockDocumentReference<T extends Object?> extends Mock
+    implements DocumentReference<T> {}
+
+class MockDocumentSnapshot<T extends Object?> extends Mock
+    implements DocumentSnapshot<T> {}
 
 class FakeAggregateQuerySnapshot implements AggregateQuerySnapshot {
   FakeAggregateQuerySnapshot(this._count, this.query);

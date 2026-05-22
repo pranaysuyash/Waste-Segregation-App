@@ -211,6 +211,19 @@ test('spendUserTokens applies claims-based premium fallback when Firestore billi
   assert.equal(payload.success, true);
   assert.equal(payload.wallet.balance, 7);
   assert.equal(payload.transaction.delta, -3);
+  assert.equal(payload.transaction.metadata.spendAuthoritySource, 'claims_fallback');
+  assert.equal(payload.transaction.metadata.serverTier, 'premium');
+  assert.equal(payload.transaction.metadata.authorizedAmount, 3);
+
+  const ledgerSnap = await admin
+    .firestore()
+    .collection('token_spend_ledger')
+    .doc(payload.ledgerId)
+    .get();
+  assert.equal(ledgerSnap.exists, true);
+  const ledger = ledgerSnap.data() ?? {};
+  assert.equal(ledger.metadata?.spendAuthoritySource, 'claims_fallback');
+  assert.equal(ledger.metadata?.serverTier, 'premium');
 });
 
 test('createBatchAiJob callable enforces auth and user-owned batch image path', async () => {

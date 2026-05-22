@@ -1,5 +1,10 @@
 # Comprehensive Home Screen Fixes & Improvements
 
+> **Historical note (not current runtime truth):**
+> This archived document references `UltraModernHomeScreen` as the runtime home.
+> The canonical runtime flow is now `MainNavigationWrapper -> HomeScreen`
+> (`lib/screens/home_screen.dart`).
+
 ## Overview
 
 This document outlines all the fixes and improvements made to address user concerns about navigation, font consistency, days active calculation, and community feed integration.

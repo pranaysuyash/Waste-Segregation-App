@@ -284,6 +284,29 @@ void main() {
       fail('Expected an exception from the direct provider path');
     });
 
+    test('non-terminal backend failure is terminal when fail-closed is forced',
+        () async {
+      final networkFailure =
+          AiFailure(AiFailureKind.network, 'simulated timeout');
+      final fake = _FakeBackendProxy(exception: networkFailure);
+      final service = _makeService(backendProxy: fake)
+        ..overrideBackendRoutingForTest(true)
+        ..overrideBackendFailClosedForTest(true);
+
+      await expectLater(
+        service.analyzeWasteImage(
+          imageBytes: _tinyJpeg,
+          imageName: 'fail-closed-network.jpg',
+        ),
+        throwsA(isA<AiFailure>().having(
+          (e) => e.kind,
+          'kind',
+          AiFailureKind.network,
+        )),
+      );
+      expect(fake.callCount, equals(1));
+    });
+
     test('terminal backend failure (auth) is rethrown immediately', () async {
       final authFailure = AiFailure(AiFailureKind.auth, 'unauthenticated');
       final fake = _FakeBackendProxy(exception: authFailure);

@@ -8,3 +8,5 @@ export 'waste_image_preview_card.dart';
 export 'classification_summary_card.dart';
 export 'offline_queue_status_card.dart';
 export 'local_rule_chip.dart';
+export 'correction_prompt.dart';
+export 'waste_tip_card.dart';

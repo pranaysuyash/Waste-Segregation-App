@@ -22,6 +22,11 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
   int _lowConfidenceClassifications = 0;
   double _averageConfidence = 0;
 
+  // Accuracy Metrics (correction vs confirmation tracking)
+  int _totalConfirmations = 0;
+  int _totalCorrections = 0;
+  double _accuracyRate = 0; // confirmations / (confirmations + corrections)
+
   // Offline Queue Metrics
   int _totalQueuedImages = 0;
   int _processedQueuedImages = 0;
@@ -51,6 +56,27 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
       // Load all classifications to calculate quality metrics
       final classifications = await storageService.getAllClassifications();
       _totalClassifications = classifications.length;
+
+      // Load feedback data to calculate accuracy (confirmation vs correction ratio)
+      // A feedback is a correction if the user suggested a different category/item name
+      // than the AI originally provided. Otherwise it's a confirmation.
+      final feedbacks = await storageService.getAllClassificationFeedback();
+      _totalConfirmations = feedbacks
+          .where((f) =>
+              f.userSuggestedCategory == f.originalAICategory &&
+              (f.userSuggestedItemName == null ||
+                  f.userSuggestedItemName == f.originalAIItemName))
+          .length;
+      _totalCorrections = feedbacks
+          .where((f) =>
+              f.userSuggestedCategory != f.originalAICategory ||
+              (f.userSuggestedItemName != null &&
+                  f.userSuggestedItemName != f.originalAIItemName))
+          .length;
+      final totalFeedback = _totalConfirmations + _totalCorrections;
+      _accuracyRate = totalFeedback > 0
+          ? _totalConfirmations / totalFeedback
+          : 0;
 
       // Calculate quality stats from confidence scores
       double totalConfidence = 0;
@@ -150,6 +176,51 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
                             valueColor: _averageConfidence >= 0.7
                                 ? Colors.green
                                 : Colors.orange),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Accuracy Score Section (correction vs confirmation tracking)
+                    _buildSectionCard(
+                      context,
+                      title: '🎯 Accuracy Score',
+                      icon: Icons.fact_check_outlined,
+                      color: _accuracyColor,
+                      children: [
+                        _buildStatRow('Confirmations',
+                            _totalConfirmations.toString(),
+                            valueColor: Colors.green),
+                        _buildStatRow('Corrections',
+                            _totalCorrections.toString(),
+                            valueColor: _totalCorrections > 0
+                                ? Colors.orange
+                                : Colors.grey),
+                        const Divider(height: 24),
+                        _buildStatRow(
+                            'Accuracy Rate',
+                            _totalConfirmations + _totalCorrections > 0
+                                ? '${(_accuracyRate * 100).toStringAsFixed(1)}%'
+                                : 'N/A',
+                            valueColor: _accuracyColor),
+                        const SizedBox(height: 12),
+                        LinearProgressIndicator(
+                          value: _totalConfirmations + _totalCorrections > 0
+                              ? _accuracyRate
+                              : 0,
+                          backgroundColor: Colors.grey[300],
+                          color: _accuracyColor,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _totalConfirmations + _totalCorrections > 0
+                              ? _accuracyRate >= 0.9
+                                  ? 'Excellent! You rarely need to correct the AI.'
+                                  : _accuracyRate >= 0.7
+                                      ? 'Good accuracy. Keep providing feedback to improve AI.'
+                                      : 'Your corrections help train the AI. Thank you!'
+                              : 'Confirm or correct classifications to build your accuracy score.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -295,6 +366,15 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
     );
   }
 
+  Color get _accuracyColor {
+    final total = _totalConfirmations + _totalCorrections;
+    if (total == 0) return Colors.grey;
+    if (_accuracyRate >= 0.9) return Colors.green;
+    if (_accuracyRate >= 0.7) return Colors.blue;
+    if (_accuracyRate >= 0.5) return Colors.orange;
+    return Colors.red;
+  }
+
   Widget _buildInsightCard(BuildContext context) {
     final highConfidenceRate = _totalClassifications > 0
         ? (_highConfidenceClassifications / _totalClassifications * 100)
@@ -352,6 +432,16 @@ class _ImpactDashboardScreenState extends State<ImpactDashboardScreen> {
                       color: insightColor,
                     ),
                   ),
+                  const SizedBox(height: 2),
+                  if (_totalConfirmations + _totalCorrections > 0)
+                    Text(
+                      'Accuracy: ${(_accuracyRate * 100).toStringAsFixed(1)}% confirmations',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: _accuracyColor,
+                      ),
+                    ),
                 ],
               ),
             ),

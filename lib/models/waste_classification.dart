@@ -44,6 +44,7 @@ class WasteClassification extends HiveObject {
     this.modelVersion,
     this.processingTimeMs,
     this.modelSource,
+    this.classificationLayer,
     this.analysisSessionId,
     required this.alternatives,
     this.suggestedAction,
@@ -229,6 +230,7 @@ class WasteClassification extends HiveObject {
       modelVersion: json['modelVersion'],
       processingTimeMs: json['processingTimeMs'],
       modelSource: json['modelSource'],
+      classificationLayer: json['classificationLayer'],
       analysisSessionId: json['analysisSessionId'],
       alternatives: json['alternatives'] != null
           ? (json['alternatives'] as List)
@@ -421,6 +423,20 @@ class WasteClassification extends HiveObject {
   final int? processingTimeMs;
   @HiveField(36)
   final String? modelSource;
+
+  /// Classification layer that handled this result.
+  ///
+  /// Values follow the convention:
+  ///   - 'layer0_deterministic'  — barcode or color histogram
+  ///   - 'layer1_on_device'      — on-device ML (TFLite / CoreML)
+  ///   - 'layer2_cloud_cheap'    — cloud cheap model (gpt-4.1-nano, gemini-flash)
+  ///   - 'layer3_cloud_strong'   — cloud strong model (gpt-4o, gemini-pro)
+  ///   - null                    — unknown / legacy
+  ///
+  /// This is a runtime-only field (not persisted in Hive) because it can be
+  /// derived from [modelSource] and [modelVersion] for historical records.
+  final String? classificationLayer;
+
   @HiveField(37)
   final String? analysisSessionId;
 
@@ -937,6 +953,7 @@ class WasteClassification extends HiveObject {
       'modelVersion': modelVersion,
       'processingTimeMs': processingTimeMs,
       'modelSource': modelSource,
+      'classificationLayer': classificationLayer,
       'analysisSessionId': analysisSessionId,
       'alternatives': alternatives.map((alt) => alt.toJson()).toList(),
       'suggestedAction': suggestedAction,
@@ -1034,6 +1051,7 @@ class WasteClassification extends HiveObject {
     String? modelVersion,
     int? processingTimeMs,
     String? modelSource,
+    String? classificationLayer,
     String? analysisSessionId,
     List<AlternativeClassification>? alternatives,
     String? suggestedAction,
@@ -1130,6 +1148,7 @@ class WasteClassification extends HiveObject {
       modelVersion: modelVersion ?? this.modelVersion,
       processingTimeMs: processingTimeMs ?? this.processingTimeMs,
       modelSource: modelSource ?? this.modelSource,
+      classificationLayer: classificationLayer ?? this.classificationLayer,
       analysisSessionId: analysisSessionId ?? this.analysisSessionId,
       alternatives: alternatives ?? this.alternatives,
       suggestedAction: suggestedAction ?? this.suggestedAction,

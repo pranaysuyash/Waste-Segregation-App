@@ -2,7 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/services/user_consent_service.dart';
-import 'user_consent_service_test.mocks.dart';
+
+class MockSharedPreferences extends Mock implements SharedPreferences {}
 
 void main() {
   group('UserConsentService Tests', () {

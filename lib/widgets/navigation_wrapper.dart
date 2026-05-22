@@ -70,7 +70,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
       // Listen for points earned events
       _pointsEarnedSub = pointsEngine.earnedStream.listen((delta) {
-        if (delta > 0 && mounted) {
+        // Home screen handles result popups itself; avoid duplicate overlays.
+        if (delta > 0 && mounted && _currentIndex != 0) {
           _showPointsPopup(delta);
         }
       });
@@ -78,7 +79,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       // Listen for achievement earned events
       _achievementEarnedSub =
           pointsEngine.achievementStream.listen((achievement) {
-        if (mounted) {
+        // Home screen handles in-flow achievement celebrations.
+        if (mounted && _currentIndex != 0) {
           _showAchievementCelebration(achievement);
         }
       });

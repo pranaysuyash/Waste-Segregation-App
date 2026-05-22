@@ -84,6 +84,9 @@ class _CommunityScreenState extends State<CommunityScreen>
       final userProfile = await storageService.getCurrentUserProfile();
 
       if (userProfile != null) {
+        // Capture stats before sync for delta calculation
+        final statsBefore = _stats;
+
         // Force sync all historical data
         final userClassifications =
             await storageService.getAllClassifications();
@@ -104,12 +107,30 @@ class _CommunityScreenState extends State<CommunityScreen>
             _isLoading = false;
           });
 
-          // Show success message
+          // Calculate delta for feedback
+          final userDelta = (stats.totalUsers) - (statsBefore?.totalUsers ?? 0);
+          final classDelta =
+              (stats.totalClassifications) -
+                  (statsBefore?.totalClassifications ?? 0);
+          final pointsDelta = (stats.totalPoints) - (statsBefore?.totalPoints ?? 0);
+
+          // Show detailed success message with delta
+          String deltaMessage = '✅ Sync Complete!';
+          if (classDelta > 0 || pointsDelta > 0 || userDelta > 0) {
+            final parts = <String>[];
+            if (classDelta > 0) parts.add('+$classDelta classifications');
+            if (pointsDelta > 0) parts.add('+$pointsDelta points');
+            if (userDelta > 0) parts.add('+$userDelta users');
+            deltaMessage = '✅ Synced: ${parts.join(', ')}';
+          } else if (feedItems.isNotEmpty) {
+            deltaMessage = '✅ Synced ${feedItems.length} community activities';
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('✅ Synced ${feedItems.length} community activities'),
+              content: Text(deltaMessage),
               backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
             ),
           );
         }
@@ -329,6 +350,47 @@ class _CommunityScreenState extends State<CommunityScreen>
       return const Center(child: Text('No stats available'));
     }
 
+    // Empty state: when no community activity exists (source: real Firestore data)
+    if (_stats!.totalUsers == 0 && _stats!.totalClassifications == 0) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.groups_outlined,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No community activity yet',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                'Start classifying items or sync your data to see community stats.',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _forceSyncCommunityData,
+              icon: const Icon(Icons.sync),
+              label: const Text('Sync Data Now'),
+            ),
+          ],
+        ),
+      );
+    }
+
     const bottomPadding = AppTheme.paddingRegular + 56.0;
 
     return SingleChildScrollView(
@@ -486,7 +548,7 @@ class _CommunityScreenState extends State<CommunityScreen>
           ),
           const SizedBox(height: AppTheme.paddingLarge),
 
-          // Community overview
+          // Community overview - with source of truth annotation
           ModernCard(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -496,7 +558,26 @@ class _CommunityScreenState extends State<CommunityScreen>
                   'Community Stats',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 4),
+                Text(
+                  'Real-time aggregation from Firestore feed items',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (_stats!.lastUpdated != null) ...[
+                  Text(
+                    'Last updated: ${_formatDateTime(_stats!.lastUpdated!)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 _buildStatRow('Total Users', '${_stats!.totalUsers}'),
                 _buildStatRow(
                     'Total Classifications', '${_stats!.totalClassifications}'),
@@ -570,6 +651,37 @@ class _CommunityScreenState extends State<CommunityScreen>
       WasteAppLogger.severe('Error getting expected activity count: $e');
       return 0;
     }
+  }
+
+  /// Format DateTime for display (e.g., "2 hours ago", "Today at 3:30 PM")
+  String _formatDateTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays == 0) {
+      return 'Today at ${_timeOfDay(dateTime)}';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday at ${_timeOfDay(dateTime)}';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${(difference.inDays / 7).floor()}w ago';
+    }
+  }
+
+  /// Format time of day (e.g., "3:30 PM")
+  String _timeOfDay(DateTime dateTime) {
+    final hours = dateTime.hour;
+    final minutes = dateTime.minute.toString().padLeft(2, '0');
+    final period = hours >= 12 ? 'PM' : 'AM';
+    final displayHours = hours > 12 ? hours - 12 : (hours == 0 ? 12 : hours);
+    return '$displayHours:$minutes $period';
   }
 
   Widget _buildMembersTab() {

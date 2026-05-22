@@ -189,3 +189,79 @@ Push result:
 
 Current repo note:
 - Working tree currently has additional unrelated local changes/untracked files from parallel work (settings/home/navigation files and docs). Those were intentionally not staged in this commit slice.
+
+## Phase D addendum — observability + fail-closed regression strengthening (2026-05-22)
+
+### Implemented
+
+1) Backend observability counters for callable risk paths
+- `functions/src/index.ts`
+- Added `bumpOpsMetric(metricName, tags)` helper writing to:
+  - `ops_metrics/{yyyy-mm-dd}`
+  - `counters.<metricName>` (increment)
+  - `lastEvent.<metricName>` (latest tagged sample)
+- Instrumented counters:
+  - `spendUserTokens_unauthenticated`
+  - `spendUserTokens_appcheck_missing`
+  - `spendUserTokens_rate_limited`
+  - `spendUserTokens_claims_fallback`
+  - `createBatchAiJob_unauthenticated`
+  - `createBatchAiJob_appcheck_missing`
+  - `createBatchAiJob_owner_path_denied`
+  - `createBatchAiJob_rate_limited`
+  - `createBatchAiJob_refund_openai_submission_failed`
+
+2) Spend-path metadata enrichment in token ledger and transaction history
+- `functions/src/index.ts` (`spendUserTokens`, `createBatchAiJob`)
+- Added spend authority and computation visibility fields:
+  - `spendAuthoritySource` (`billing_entitlement` | `claims_fallback` | `none` / `fixed_batch_cost`)
+  - `serverTier`
+  - `requestedClientAmount`
+  - `authorizedAmount`
+  - `serverComputedMinimum`
+  - `spendComputationMode` (`server_computed` | `client_declared`)
+- Added refund metadata fields for batch submission failure:
+  - `refundReason: openai_submission_failed`
+  - `originalLedgerId`
+
+3) Regression test expansion for ledger observability correctness
+- `functions/test/http_guards.emulator.test.js`
+- Extended claims-fallback test to assert:
+  - callable response transaction metadata carries `spendAuthoritySource=claims_fallback`
+  - ledger document metadata has matching authority + premium tier indicators
+
+4) Release fail-closed behavior made explicitly testable
+- `lib/services/enhanced_ai_api_service.dart`
+- Added test-only override:
+  - `overrideBackendFailClosedForTest(bool?)`
+- Added new test:
+  - `non-terminal backend failure is terminal when fail-closed is forced`
+- File: `test/services/enhanced_ai_api_service_safety_test.dart`
+
+### Verification evidence (Phase D)
+
+1) Functions build
+- `npm --prefix functions run build`
+- Result: PASS
+
+2) Functions emulator auth/callable regression suite
+- `npm --prefix functions run test:http-guards:emulator`
+- Result: PASS (8/8)
+- Includes updated claims-fallback + ledger metadata assertions.
+
+3) Firestore + Storage rules full suite
+- `npm --prefix firestore-rules-test run test:all:emulator`
+- Result: PASS (Firestore 83, Storage 5)
+
+4) Targeted Flutter static analysis for modified release-safety service + tests
+- `flutter analyze lib/services/enhanced_ai_api_service.dart test/services/enhanced_ai_api_service_safety_test.dart`
+- Result: PASS
+
+5) Additional targeted Flutter test
+- `flutter test test/services/batching_service_test.dart`
+- Result: PASS
+
+### Known verification blocker outside this scope
+
+- `flutter test test/services/enhanced_ai_api_service_safety_test.dart` currently fails to compile due pre-existing breakage in `lib/services/ai_service.dart` (syntax and missing symbol errors unrelated to this Phase D slice).
+- This blocker predates/exists outside the files changed for this addendum and should be handled as a dedicated stabilization task before full Flutter suite sign-off.

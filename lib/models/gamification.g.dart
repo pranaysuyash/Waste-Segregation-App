@@ -417,6 +417,12 @@ class AchievementTypeAdapter extends TypeAdapter<AchievementType> {
         return AchievementType.helpfulMember;
       case 21:
         return AchievementType.educationalContent;
+      case 22:
+        return AchievementType.hazardousWasteExpert;
+      case 23:
+        return AchievementType.eWasteCollector;
+      case 24:
+        return AchievementType.accuracyChampion;
       default:
         return AchievementType.wasteIdentified;
     }
@@ -490,6 +496,15 @@ class AchievementTypeAdapter extends TypeAdapter<AchievementType> {
         break;
       case AchievementType.educationalContent:
         writer.writeByte(21);
+        break;
+      case AchievementType.hazardousWasteExpert:
+        writer.writeByte(22);
+        break;
+      case AchievementType.eWasteCollector:
+        writer.writeByte(23);
+        break;
+      case AchievementType.accuracyChampion:
+        writer.writeByte(24);
         break;
     }
   }
