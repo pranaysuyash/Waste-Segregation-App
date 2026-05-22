@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -48,6 +50,7 @@ class _SyncSectionState extends State<SyncSection> {
   }
 
   Future<void> _toggleGoogleSync(bool value) async {
+    final t = AppLocalizations.of(context)!;
     try {
       final storageService =
           Provider.of<StorageService>(context, listen: false);
@@ -55,21 +58,22 @@ class _SyncSectionState extends State<SyncSection> {
           Provider.of<CloudStorageService>(context, listen: false);
 
       final currentSettings = await storageService.getSettings();
+      if (!context.mounted) return;
       await storageService.saveSettings(
         isDarkMode: currentSettings['isDarkMode'] ?? false,
         isGoogleSyncEnabled: value,
       );
+      if (!context.mounted) return;
 
       setState(() => _isGoogleSyncEnabled = value);
 
       if (value) {
         _showSyncEnableDialog(cloudStorageService);
       } else {
-        final t = AppLocalizations.of(context)!;
         SettingsTheme.showInfoSnackBar(context, t.googleSyncDisabled);
       }
     } catch (e) {
-      final t = AppLocalizations.of(context)!;
+      if (!context.mounted) return;
       SettingsTheme.showErrorSnackBar(
           context, t.failedToToggleGoogleSync(e.toString()));
     }
@@ -113,7 +117,7 @@ class _SyncSectionState extends State<SyncSection> {
 
   Future<void> _syncLocalDataToCloud() async {
     try {
-      showDialog(
+      unawaited(showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => const AlertDialog(
@@ -126,7 +130,7 @@ class _SyncSectionState extends State<SyncSection> {
             ],
           ),
         ),
-      );
+      ));
 
       final cloudStorageService =
           Provider.of<CloudStorageService>(context, listen: false);
@@ -166,7 +170,7 @@ class _SyncSectionState extends State<SyncSection> {
 
   Future<void> _forceDownloadFromCloud() async {
     try {
-      showDialog(
+      unawaited(showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => const AlertDialog(
@@ -179,7 +183,7 @@ class _SyncSectionState extends State<SyncSection> {
             ],
           ),
         ),
-      );
+      ));
 
       final cloudStorageService =
           Provider.of<CloudStorageService>(context, listen: false);

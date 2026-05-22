@@ -1,41 +1,81 @@
-# WasteWise Tools
+# Reusable Tools
 
-## Training Dataset Export
+This folder contains reusable flywheel verification and workflow tools.
 
-`training_dataset_export.py` builds a frozen, reproducible dataset bundle from
-offline JSONL exports of `training_candidates` and `training_labels`.
+## 1) `verify_ai_flywheel_foundation.sh`
+One-shot verification script for the AI learning flywheel foundation.
 
-Dry run:
+Runs:
+- flywheel tests
+- offline eval
+- recorded provider evals (backend/openai/gemini/local)
+- recorded merge
+- router comparison report
+- dataset export
+- annotation workflow export/apply/report
 
+Usage:
 ```bash
-python3 tools/training_dataset_export.py \
-  --candidates-jsonl exports/training_candidates.jsonl \
-  --labels-jsonl exports/training_labels.jsonl \
-  --dataset-version waste-v0.1 \
-  --out datasets/waste-v0.1 \
-  --dry-run
-```
-
-Write bundle:
-
-```bash
-python3 tools/training_dataset_export.py \
-  --candidates-jsonl exports/training_candidates.jsonl \
-  --labels-jsonl exports/training_labels.jsonl \
-  --dataset-version waste-v0.1 \
-  --out datasets/waste-v0.1
+./tools/verify_ai_flywheel_foundation.sh
 ```
 
 Outputs:
+- `build/reports/ai_eval/*`
+- `build/reports/ai_dataset/latest/*`
+- `build/reports/ai_review/*`
 
-- `manifest.jsonl`
-- `labels.jsonl`
-- `datasheet.md`
+## 2) `../tool/ai_eval_runner.dart`
+Runs eval harness in `offline|recorded|live` mode.
 
-Default exclusions:
+Usage:
+```bash
+dart run tool/ai_eval_runner.dart --mode offline
+dart run tool/ai_eval_runner.dart --mode recorded --recorded-file test/fixtures/ai_eval/recorded_outputs/recorded_backend.jsonl --provider-label backend/classifyImage
+```
 
-- no explicit training consent
-- revoked/deleted candidates
-- rejected or PII-flagged candidates
-- redaction not passed
-- unreviewed candidates unless `--allow-unreviewed` is set
+## 3) `../tool/ai_dataset_exporter.dart`
+Exports reviewed and eligible candidates into dataset artifacts.
+
+Usage:
+```bash
+dart run tool/ai_dataset_exporter.dart --input=test/fixtures/ai_eval/recorded_outputs/training_candidates_sample.jsonl --out=build/reports/ai_dataset/latest --version=waste-v0.1
+```
+
+## 4) `../tool/ai_review_workflow.dart`
+JSONL-first review/annotation workflow helper.
+
+Modes:
+- `export`
+- `apply`
+- `report`
+
+Usage:
+```bash
+dart run tool/ai_review_workflow.dart --mode export
+dart run tool/ai_review_workflow.dart --mode apply --decisions tool/templates/review_decisions_template.jsonl
+dart run tool/ai_review_workflow.dart --mode report --out build/reports/ai_review/updated_candidates.jsonl
+```
+
+## 5) `../tool/router_compare_report.dart`
+Builds provider-level comparison report from eval outcomes.
+
+Usage:
+```bash
+dart run tool/router_compare_report.dart --input build/reports/ai_eval/latest.json --out build/reports/ai_eval/router_compare.json
+```
+
+## 6) `../tool/ai_eval_merge_records.dart`
+Merges multiple provider recorded JSONL files into one deterministic output.
+
+Usage:
+```bash
+dart run tool/ai_eval_merge_records.dart --inputs test/fixtures/ai_eval/recorded_outputs/recorded_backend.jsonl,test/fixtures/ai_eval/recorded_outputs/recorded_openai.jsonl,test/fixtures/ai_eval/recorded_outputs/recorded_gemini.jsonl,test/fixtures/ai_eval/recorded_outputs/recorded_local.jsonl --out build/reports/ai_eval/merged_records.jsonl
+```
+
+## 7) `../tool/ai_flywheel_acceptance_report.dart`
+Generates criterion-by-criterion acceptance report using generated artifacts.
+
+Usage:
+```bash
+dart run tool/ai_flywheel_acceptance_report.dart --out build/reports/ai_flywheel/acceptance_report.json
+```

@@ -192,15 +192,27 @@ service cloud.firestore {
     // Functions create/update candidates after verifying explicit
     // trainingConsent and write server-side HMAC user hashes.
     match /training_candidates/{candidateId} {
-      allow read, write: if false;
+      // Candidate lifecycle is managed by Cloud Functions and reviewer tooling.
+      // Keep this collection admin-only from client SDK to avoid policy leaks.
+      allow read: if request.auth != null && isAdmin();
+      allow create, update, delete: if false;
     }
 
     match /training_labels/{candidateId} {
-      allow read, write: if false;
+      // Labels include reviewer annotations and must never be user-writable.
+      allow read: if request.auth != null && isAdmin();
+      allow create, update, delete: if false;
     }
 
     match /training_dataset_versions/{datasetVersion} {
-      allow read, write: if false;
+      // Dataset manifests/versions are reviewer artifacts.
+      allow read: if request.auth != null && isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /training_review_audit/{auditId} {
+      allow read: if request.auth != null && isAdmin();
+      allow create, update, delete: if false;
     }
 
     // ============================================================
@@ -653,6 +665,11 @@ service cloud.firestore {
           'adminReviewerId', 'adminReviewTimestamp', 'adminNotes',
           'appVersion', 'deviceInfo'
         ]);
+    }
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.admin == true;
     }
 
   }

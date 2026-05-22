@@ -16,6 +16,7 @@ import '../screens/image_capture_screen.dart';
 import '../widgets/bottom_navigation/modern_bottom_nav.dart';
 import '../widgets/animated_fab.dart';
 import '../widgets/platform_camera.dart';
+import '../utils/capture_image_options.dart';
 import '../utils/constants.dart';
 import '../utils/permission_handler.dart';
 import '../models/user_profile.dart';
@@ -317,11 +318,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       XFile? image;
 
       if (kIsWeb) {
-        image = await _imagePicker.pickImage(
+        image = await CaptureImageOptions.pick(
+          _imagePicker,
           source: ImageSource.camera,
-          maxWidth: 1200,
-          maxHeight: 1200,
-          imageQuality: 85,
         );
       } else {
         // Use platform camera for mobile
@@ -330,11 +329,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           image = await PlatformCamera.takePicture();
         } else {
           // Fallback to regular image picker
-          image = await _imagePicker.pickImage(
+          image = await CaptureImageOptions.pick(
+            _imagePicker,
             source: ImageSource.camera,
-            maxWidth: 1200,
-            maxHeight: 1200,
-            imageQuality: 85,
           );
         }
       }
@@ -376,11 +373,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         }
       }
 
-      final image = await _imagePicker.pickImage(
+      final image = await CaptureImageOptions.pick(
+        _imagePicker,
         source: ImageSource.gallery,
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 85,
       );
 
       if (image != null && mounted) {
@@ -444,17 +439,71 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   // Handle classification result
   void _handleClassificationResult(dynamic result) {
     if (result != null && result is WasteClassification) {
-      // Handle gamification and ads
       final adService = Provider.of<AdService>(context, listen: false);
       adService.trackClassificationCompleted();
 
       if (adService.shouldShowInterstitial()) {
         adService.showInterstitialAd();
       }
-
-      // Success message removed to avoid overlapping with points popup
-      // The points popup will show automatically via the global listener
     }
+  }
+
+  Widget _buildBottomNav(NavigationSettingsService navSettings) {
+    final style = navSettings.navigationStyle;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (style == 'glassmorphism') {
+      return ModernBottomNavigation(
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+        items: _getNavItems(),
+        style: ModernBottomNavStyle.glassmorphism(
+          primaryColor: AppTheme.primaryColor,
+          isDark: isDark,
+        ),
+      );
+    }
+    if (style == 'floating') {
+      return ModernBottomNavigation(
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+        items: _getNavItems(),
+        style: ModernBottomNavStyle.floating(
+          primaryColor: AppTheme.primaryColor,
+          isDark: isDark,
+        ),
+      );
+    }
+    return NavigationBar(
+      selectedIndex: _currentIndex,
+      onDestinationSelected: _onTabTapped,
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.history_outlined),
+          selectedIcon: Icon(Icons.history),
+          label: 'History',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.school_outlined),
+          selectedIcon: Icon(Icons.school),
+          label: 'Learn',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.people_outlined),
+          selectedIcon: Icon(Icons.people),
+          label: 'Social',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.emoji_events_outlined),
+          selectedIcon: Icon(Icons.emoji_events),
+          label: 'Rewards',
+        ),
+      ],
+    );
   }
 
   @override
@@ -514,7 +563,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           );
         }
 
-        // Small screens - Material 3 NavigationBar with FAB
+        // Small screens - responsive bottom nav based on saved style
         return Scaffold(
           body: PageView(
             controller: _pageController,
@@ -528,37 +577,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                     if (!Provider.of<PremiumService>(context)
                         .isPremiumFeature('remove_ads'))
                       Provider.of<AdService>(context).getBannerAd(),
-                    NavigationBar(
-                      selectedIndex: _currentIndex,
-                      onDestinationSelected: _onTabTapped,
-                      destinations: const [
-                        NavigationDestination(
-                          icon: Icon(Icons.home_outlined),
-                          selectedIcon: Icon(Icons.home),
-                          label: 'Home',
-                        ),
-                        NavigationDestination(
-                          icon: Icon(Icons.history_outlined),
-                          selectedIcon: Icon(Icons.history),
-                          label: 'History',
-                        ),
-                        NavigationDestination(
-                          icon: Icon(Icons.school_outlined),
-                          selectedIcon: Icon(Icons.school),
-                          label: 'Learn',
-                        ),
-                        NavigationDestination(
-                          icon: Icon(Icons.people_outlined),
-                          selectedIcon: Icon(Icons.people),
-                          label: 'Social',
-                        ),
-                        NavigationDestination(
-                          icon: Icon(Icons.emoji_events_outlined),
-                          selectedIcon: Icon(Icons.emoji_events),
-                          label: 'Rewards',
-                        ),
-                      ],
-                    ),
+                    _buildBottomNav(navSettings),
                   ],
                 )
               : null,

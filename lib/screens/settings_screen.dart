@@ -25,6 +25,7 @@ import '../services/firebase_cleanup_service.dart';
 import '../services/training_data_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
+@Deprecated('Use EnhancedSettingsScreen instead')
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 

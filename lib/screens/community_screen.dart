@@ -599,7 +599,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Canonical aggregate from community_stats (reconciled from feed)',
+                  'Community activity summary from all users',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],

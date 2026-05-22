@@ -59,6 +59,15 @@ class FakePremiumService extends ChangeNotifier implements PremiumService {
     _enabled.clear();
     notifyListeners();
   }
+
+  @override
+  PremiumTier getCurrentTier() => PremiumTier.free;
+
+  @override
+  int getDailyScanLimit() => 10;
+
+  @override
+  bool canPerformScan(int dailyScanCount) => true;
 }
 
 Widget buildTestApp(FakePremiumService premiumService) {
@@ -89,13 +98,14 @@ void main() {
       expect(find.text('Upgrade to Premium'), findsOneWidget);
     });
 
-    testWidgets('purchase button is disabled showing Coming Soon',
+    testWidgets('shows web checkout CTA when no IAP service is provided',
         (tester) async {
       await tester.pumpWidget(buildTestApp(FakePremiumService()));
       await tester.pumpAndSettle();
 
-      await scrollToText(tester, 'Coming Soon');
-      expect(find.text('Coming Soon'), findsOneWidget);
+      // No PurchaseService provided → IAP section hidden; DodoPayments button shown.
+      await scrollToText(tester, 'Pay with Card / UPI');
+      expect(find.text('Pay with Card / UPI'), findsOneWidget);
     });
 
     testWidgets('shows all features as locked when no premium features active',
@@ -131,39 +141,36 @@ void main() {
       }
     });
 
-    testWidgets('purchase button shows hint text below it', (tester) async {
+    testWidgets('web checkout CTA shows payment method hint text', (tester) async {
       await tester.pumpWidget(buildTestApp(FakePremiumService()));
       await tester.pumpAndSettle();
 
       await scrollToText(
         tester,
-        'In-app purchase is not yet available. Use developer mode to test premium features.',
+        'Pay online with credit/debit card, UPI, or net banking. No app store required.',
       );
       expect(
         find.text(
-          'In-app purchase is not yet available. Use developer mode to test premium features.',
+          'Pay online with credit/debit card, UPI, or net banking. No app store required.',
           findRichText: true,
         ),
         findsOneWidget,
       );
     });
 
-    testWidgets('no dead upgrade CTA - button has no onPressed',
+    testWidgets('web checkout CTA button is tappable when not processing',
         (tester) async {
       await tester.pumpWidget(buildTestApp(FakePremiumService()));
       await tester.pumpAndSettle();
 
-      await scrollToText(tester, 'Coming Soon');
-      expect(find.text('Coming Soon'), findsOneWidget);
-      await tester.tap(find.text('Coming Soon'), warnIfMissed: false);
-      await tester.pumpAndSettle();
-      expect(
-        find.text(
-          'In-app purchase is not yet available. Use developer mode to test premium features.',
-          findRichText: true,
-        ),
-        findsOneWidget,
+      await scrollToText(tester, 'Pay with Card / UPI');
+      // When not processing, the label reads 'Pay with Card / UPI' (not 'Creating checkout...').
+      // Verify it is visible and backed by an enabled ButtonStyleButton.
+      expect(find.text('Pay with Card / UPI'), findsOneWidget);
+      final btnFinder = find.byWidgetPredicate(
+        (w) => w is ButtonStyleButton && w.onPressed != null,
       );
+      expect(btnFinder, findsWidgets);
     });
   });
 }

@@ -67,6 +67,26 @@ class _FakePremiumService extends ChangeNotifier implements PremiumService {
   bool hasActivePremiumPlan() => _features.values.any((v) => v);
 
   @override
+  PremiumTier getCurrentTier() =>
+      hasActivePremiumPlan() ? PremiumTier.premium : PremiumTier.free;
+
+  @override
+  int getDailyScanLimit() {
+    switch (getCurrentTier()) {
+      case PremiumTier.free:
+        return 10;
+      case PremiumTier.premium:
+        return 100;
+      case PremiumTier.family:
+        return 500;
+    }
+  }
+
+  @override
+  bool canPerformScan(int dailyScanCount) =>
+      dailyScanCount < getDailyScanLimit();
+
+  @override
   List<PremiumFeature> getPremiumFeatures() => const [];
 
   @override

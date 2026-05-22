@@ -40,6 +40,15 @@ class FakePremiumService extends ChangeNotifier implements PremiumService {
 
   @override
   bool hasActivePremiumPlan() => false;
+
+  @override
+  PremiumTier getCurrentTier() => PremiumTier.free;
+
+  @override
+  int getDailyScanLimit() => 10;
+
+  @override
+  bool canPerformScan(int dailyScanCount) => true;
 }
 
 Widget _wrapForTest(Widget child) {

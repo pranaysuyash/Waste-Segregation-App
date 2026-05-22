@@ -474,6 +474,16 @@ export const reviewTrainingCandidate = asiaSouth1.https.onCall(async (data, cont
   const now = FieldValue.serverTimestamp();
   const isEligible = status === 'training_eligible' || status === 'golden';
   const isDeleted = status === 'deleted';
+  const groundTruthInput = asObject(data?.groundTruth);
+  const groundTruth = {
+    category: groundTruthInput.category ?? null,
+    subcategory: groundTruthInput.subcategory ?? null,
+    itemName: groundTruthInput.itemName ?? null,
+    material: groundTruthInput.material ?? null,
+    confidence: typeof groundTruthInput.confidence === 'number'
+      ? groundTruthInput.confidence
+      : null,
+  };
   const db = admin.firestore();
   const candidateRef = db.collection('training_candidates').doc(candidateId);
   const labelRef = db.collection('training_labels').doc(candidateId);
@@ -515,6 +525,9 @@ export const reviewTrainingCandidate = asiaSouth1.https.onCall(async (data, cont
         reviewedAt: now,
         status,
         notes,
+        groundTruth: (status === 'golden' || status === 'training_eligible')
+          ? groundTruth
+          : null,
       },
       updatedAt: now,
     }, { merge: true });

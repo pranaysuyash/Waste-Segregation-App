@@ -96,6 +96,16 @@ class _FakePremiumService extends ChangeNotifier implements PremiumService {
   bool hasActivePremiumPlan() => false;
 
   @override
+  PremiumTier getCurrentTier() => PremiumTier.free;
+
+  @override
+  int getDailyScanLimit() => 10;
+
+  @override
+  bool canPerformScan(int dailyScanCount) =>
+      dailyScanCount < getDailyScanLimit();
+
+  @override
   List<PremiumFeature> getPremiumFeatures() => const [];
 
   @override
@@ -282,24 +292,28 @@ void main() {
       expect(find.text('premium-route'), findsOneWidget);
     });
 
-    testWidgets('NavigationSection routes navigation styles to the demo',
+    testWidgets('NavigationSection updates style via dropdown',
         (tester) async {
+      final navSettingsService = _FakeNavigationSettingsService();
+
       await tester.pumpWidget(
         _buildApp(
-          navigationSettingsService: _FakeNavigationSettingsService(),
+          navigationSettingsService: navSettingsService,
           child: const NavigationSection(),
-          routes: {
-            Routes.navigationDemo: (_) =>
-                const _RouteTarget('navigation-demo-route'),
-          },
+          routes: const {},
         ),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Navigation Styles'));
+      await tester.tap(find.text('Navigation Settings'));
       await tester.pumpAndSettle();
 
-      expect(find.text('navigation-demo-route'), findsOneWidget);
+      await tester.tap(find.byType(DropdownButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Floating').last);
+      await tester.pumpAndSettle();
+
+      expect(navSettingsService.navigationStyle, 'floating');
     });
 
     testWidgets('FeaturesSection routes premium offline mode to settings',

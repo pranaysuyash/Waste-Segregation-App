@@ -15,7 +15,7 @@ class NavigationSettingsService extends ChangeNotifier {
     'material3',
     'floating',
   ];
-  static const String _defaultStyle = 'glassmorphism';
+  static const String _defaultStyle = 'material3';
 
   bool _bottomNavEnabled = true;
   bool _fabEnabled = false;

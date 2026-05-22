@@ -1274,6 +1274,7 @@ The current app does not distinguish these states. An offline user who opens the
 
 
 ## Flywheel Foundation Link (2026-05-22)
+- Added workflow docs: `docs/guides/ai_flywheel/annotation_review_workflow.md`, `docs/guides/ai_flywheel/router_comparison_workflow.md`
 
 - Added foundation scaffold doc: [review/AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md](review/AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md)
 - Includes eval harness, golden cases, consent-aware candidate gating, dataset exporter, and router metrics baseline.

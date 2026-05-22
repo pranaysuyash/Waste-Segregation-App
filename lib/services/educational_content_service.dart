@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/educational_content.dart';
 import 'educational_content_analytics_service.dart' as analytics_service;
 
@@ -8,6 +10,47 @@ class EducationalContentService {
   EducationalContentService([this.analytics]) {
     _initializeDailyTips();
     _initializeContent();
+    _loadBookmarks();
+  }
+
+  static const _bookmarksKey = 'educational_bookmarked_ids';
+
+  Set<String> _bookmarkedIds = {};
+
+  Future<void> _loadBookmarks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getStringList(_bookmarksKey);
+      if (raw != null) {
+        _bookmarkedIds = raw.toSet();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveBookmarks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_bookmarksKey, _bookmarkedIds.toList());
+    } catch (_) {}
+  }
+
+  bool isBookmarked(String contentId) => _bookmarkedIds.contains(contentId);
+
+  Set<String> get bookmarkedIds => Set.from(_bookmarkedIds);
+
+  Future<void> toggleBookmark(String contentId) async {
+    if (_bookmarkedIds.contains(contentId)) {
+      _bookmarkedIds.remove(contentId);
+    } else {
+      _bookmarkedIds.add(contentId);
+    }
+    await _saveBookmarks();
+  }
+
+  List<EducationalContent> getBookmarkedContent() {
+    return _allContent
+        .where((c) => _bookmarkedIds.contains(c.id))
+        .toList();
   }
 
   /// List of all available educational content

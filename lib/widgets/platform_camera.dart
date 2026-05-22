@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../utils/capture_image_options.dart';
 import '../utils/waste_app_logger.dart';
 
 /// A platform-agnostic camera interface that provides consistent camera
@@ -62,11 +63,9 @@ class PlatformCamera {
           context: {'platform': kIsWeb ? 'web' : Platform.operatingSystem});
 
       // Use image_picker for consistent camera interface
-      final image = await _picker.pickImage(
+      final image = await CaptureImageOptions.pick(
+        _picker,
         source: ImageSource.camera,
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 85,
       );
 
       if (image != null) {

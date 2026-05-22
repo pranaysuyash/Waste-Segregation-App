@@ -456,5 +456,195 @@
   "toggleFloatingCameraButton": "Toggle floating camera button",
   "@toggleFloatingCameraButton": {
     "description": "Semantic label for floating camera button toggle"
+  },
+
+  "privacySection": "ಗೌಪ್ಯತೆ ಮತ್ತು ಸಮ್ಮತಿ",
+  "@privacySection": {
+    "description": "Header for the privacy and consent section"
+  },
+
+  "leaderboardOptOut": "ಲೀಡರ್ಬೋರ್ಡ್‌ನಿಂದ ಮರೆಮಾಡಿ",
+  "@leaderboardOptOut": {
+    "description": "Leaderboard opt-out toggle label"
+  },
+
+  "leaderboardOptOutHide": "ಲೀಡರ್ಬೋರ್ಡ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಫೋಟೋ ಮರೆಮಾಡಲಾಗಿದೆ",
+  "@leaderboardOptOutHide": {
+    "description": "Subtitle when leaderboard opt-out is enabled"
+  },
+
+  "leaderboardOptOutVisible": "ಲೀಡರ್ಬೋರ್ಡ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಫೋಟೋ ಗೋಚರಿಸುತ್ತದೆ",
+  "@leaderboardOptOutVisible": {
+    "description": "Subtitle when leaderboard opt-out is disabled"
+  },
+
+  "leaderboardHidden": "ನೀವು ಈಗ ಲೀಡರ್ಬೋರ್ಡ್‌ನಿಂದ ಮರೆಮಾಡಲ್ಪಟ್ಟಿದ್ದೀರಿ",
+  "@leaderboardHidden": {
+    "description": "Snackbar message when user opts out of leaderboard"
+  },
+
+  "leaderboardVisible": "ನೀವು ಈಗ ಲೀಡರ್ಬೋರ್ಡ್‌ನಲ್ಲಿ ಗೋಚರಿಸುತ್ತಿದ್ದೀರಿ",
+  "@leaderboardVisible": {
+    "description": "Snackbar message when user opts into leaderboard"
+  },
+
+  "failedToUpdateLeaderboard": "ಲೀಡರ್ಬೋರ್ಡ್ ಗೌಪ್ಯತೆಯನ್ನು ನವೀಕರಿಸಲು ವಿಫಲವಾಗಿದೆ: {error}",
+  "@failedToUpdateLeaderboard": {
+    "description": "Error message when leaderboard privacy update fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "noUserProfileFound": "ಯಾವುದೇ ಬಳಕೆದಾರ ಪ್ರೊಫೈಲ್ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಮೊದಲು ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+  "@noUserProfileFound": {
+    "description": "Message when no user profile is found"
+  },
+
+  "trainingConsent": "ನನ್ನ ಚಿತ್ರಗಳೊಂದಿಗೆ ಮಾದರಿಯನ್ನು ಸುಧಾರಿಸಿ",
+  "@trainingConsent": {
+    "description": "Training consent toggle label"
+  },
+
+  "trainingConsentEnabled": "ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ನೀವು ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ರದ್ದುಮಾಡಬಹುದು ಮತ್ತು ಕೊಡುಗೆ ನೀಡಿದ ತರಬೇತಿ ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಅಳಿಸಲು ವಿನಂತಿಸಬಹುದು.",
+  "@trainingConsentEnabled": {
+    "description": "Subtitle when training consent is enabled"
+  },
+
+  "trainingConsentDisabled": "ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ಯಾವುದೇ ಹೊಸ ಚಿತ್ರ/ತಿದ್ದುಪಡಿ ತರಬೇತಿ ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಪ್ರವೇಶಿಸುವುದಿಲ್ಲ.",
+  "@trainingConsentDisabled": {
+    "description": "Subtitle when training consent is disabled"
+  },
+
+  "trainingConsentGranted": "ತರಬೇತಿ ಸಮ್ಮತಿಯನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ.",
+  "@trainingConsentGranted": {
+    "description": "Snackbar when training consent is granted"
+  },
+
+  "trainingConsentRevoked": "ತರಬೇತಿ ಸಮ್ಮತಿಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ ಮತ್ತು ಅಳಿಸಲು ವಿನಂತಿಸಲಾಗಿದೆ.",
+  "@trainingConsentRevoked": {
+    "description": "Snackbar when training consent is revoked"
+  },
+
+  "couldNotUpdateTrainingConsent": "ತರಬೇತಿ ಸಮ್ಮತಿಯನ್ನು ನವೀಕರಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ: {error}",
+  "@couldNotUpdateTrainingConsent": {
+    "description": "Error message when training consent update fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "syncEnabledUploadPrompt": "ನಿಮ್ಮ ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ಸ್ಥಳೀಯ ವರ್ಗೀಕರಣಗಳನ್ನು ಕ್ಲೌಡ್‌ಗೆ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ನೀವು ಬಯಸುವಿರಾ?",
+  "@syncEnabledUploadPrompt": {
+    "description": "Prompt when enabling sync to upload existing data"
+  },
+
+  "syncAvailableAcrossDevices": "ಇದು ನಿಮ್ಮ ಎಲ್ಲಾ ಸಾಧನಗಳಲ್ಲಿ ಅವುಗಳನ್ನು ಲಭ್ಯವಾಗುವಂತೆ ಮಾಡುತ್ತದೆ.",
+  "@syncAvailableAcrossDevices": {
+    "description": "Info text about cloud sync availability"
+  },
+
+  "skip": "ಬಿಟ್ಟುಬಿಡಿ",
+  "@skip": {
+    "description": "Skip button text"
+  },
+
+  "uploadNow": "ಈಗ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+  "@uploadNow": {
+    "description": "Upload now button text"
+  },
+
+  "syncingDataToCloud": "ಕ್ಲೌಡ್‌ಗೆ ಡೇಟಾ ಸಿಂಕ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+  "@syncingDataToCloud": {
+    "description": "Loading message while syncing data to cloud"
+  },
+
+  "syncedToCloud": "{count} ವರ್ಗೀಕರಣಗಳನ್ನು ಕ್ಲೌಡ್‌ಗೆ ಯಶಸ್ವಿಯಾಗಿ ಸಿಂಕ್ ಮಾಡಲಾಗಿದೆ!",
+  "@syncedToCloud": {
+    "description": "Message when classifications are synced to cloud",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noClassificationsSynced": "ಯಾವುದೇ ವರ್ಗೀಕರಣಗಳನ್ನು ಸಿಂಕ್ ಮಾಡಲಾಗಿಲ್ಲ.",
+  "@noClassificationsSynced": {
+    "description": "Message when no classifications were synced"
+  },
+
+  "syncFailed": "ಸಿಂಕ್ ವಿಫಲವಾಗಿದೆ: {error}",
+  "@syncFailed": {
+    "description": "Error message when sync fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadingFromCloud": "ಕ್ಲೌಡ್‌ನಿಂದ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+  "@downloadingFromCloud": {
+    "description": "Loading message while downloading from cloud"
+  },
+
+  "downloadedFromCloud": "ಕ್ಲೌಡ್‌ನಿಂದ {count} ವರ್ಗೀಕರಣಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ!",
+  "@downloadedFromCloud": {
+    "description": "Message when classifications are downloaded from cloud",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noClassificationsDownloaded": "ಯಾವುದೇ ವರ್ಗೀಕರಣಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿಲ್ಲ.",
+  "@noClassificationsDownloaded": {
+    "description": "Message when no classifications were downloaded"
+  },
+
+  "downloadFailed": "ಡೌನ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ: {error}",
+  "@downloadFailed": {
+    "description": "Error message when download fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "feedbackOnHistoryEnabled": "ಇತಿಹಾಸದಿಂದ ಇತ್ತೀಚಿನ ವರ್ಗೀಕರಣಗಳ ಬಗ್ಗೆ ಪ್ರತಿಕ್ರಿಯೆ ನೀಡಬಹುದು",
+  "@feedbackOnHistoryEnabled": {
+    "description": "Subtitle when feedback on history is enabled"
+  },
+
+  "feedbackOnHistoryDisabled": "ಹೊಸ ವರ್ಗೀಕರಣಗಳ ಬಗ್ಗೆ ಮಾತ್ರ ಪ್ರತಿಕ್ರಿಯೆ ನೀಡಬಹುದು",
+  "@feedbackOnHistoryDisabled": {
+    "description": "Subtitle when feedback on history is disabled"
+  },
+
+  "feedbackExplanationEnabled": "ಅನೇಕ ವಸ್ತುಗಳನ್ನು ತ್ವರಿತವಾಗಿ ಸ್ಕ್ಯಾನ್ ಮಾಡಲು ಮತ್ತು ನಂತರ ಪ್ರತಿಕ್ರಿಯೆ ನೀಡಲು ಸೂಕ್ತವಾಗಿದೆ!",
+  "@feedbackExplanationEnabled": {
+    "description": "Explanation when feedback on history is enabled"
+  },
+
+  "feedbackExplanationDisabled": "ಪ್ರತಿಕ್ರಿಯೆಯು ವರ್ಗೀಕರಣದ ನಂತರ ತಕ್ಷಣವೇ ಮಾತ್ರ ಲಭ್ಯವಿರುತ್ತದೆ.",
+  "@feedbackExplanationDisabled": {
+    "description": "Explanation when feedback on history is disabled"
+  },
+
+  "syncClassificationsLocally": "ವರ್ಗೀಕರಣಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಕ್ಲೌಡ್‌ಗೆ ಸಿಂಕ್ ಆಗುತ್ತವೆ",
+  "@syncClassificationsLocally": {
+    "description": "Subtitle when Google Cloud Sync is enabled"
+  },
+
+  "syncClassificationsLocalOnly": "ವರ್ಗೀಕರಣಗಳು ಸ್ಥಳೀಯವಾಗಿ ಮಾತ್ರ ಉಳಿಸಲ್ಪಡುತ್ತವೆ",
+  "@syncClassificationsLocalOnly": {
+    "description": "Subtitle when Google Cloud Sync is disabled"
   }
-} 
+}

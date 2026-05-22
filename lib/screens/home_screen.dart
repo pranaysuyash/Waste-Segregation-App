@@ -21,6 +21,7 @@ import '../screens/history_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
 import '../screens/waste_dashboard_screen.dart';
+import '../utils/capture_image_options.dart';
 import '../utils/constants.dart';
 import '../utils/waste_theme.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
@@ -976,12 +977,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             ),
                           ),
                         ),
-                        Text(
-                          '$streakDays day streak · $totalPoints pts',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+                        Flexible(
+                          child: Text(
+                            '$streakDays day streak · $totalPoints pts',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color:
+                                  Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -1834,11 +1839,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         }
       }
 
-      image ??= await _picker.pickImage(
+      image ??= await CaptureImageOptions.pick(
+        _picker,
         source: source,
-        imageQuality: 85,
-        maxWidth: 1200,
-        maxHeight: 1200,
       );
 
       if (image != null && mounted) {

@@ -5,6 +5,8 @@ part 'token_wallet.g.dart';
 /// Token wallet model for AI micro-economy
 @HiveType(typeId: 20)
 class TokenWallet {
+  static const int currentSchemaVersion = 1;
+
   const TokenWallet({
     required this.balance,
     required this.totalEarned,
@@ -12,6 +14,7 @@ class TokenWallet {
     required this.lastUpdated,
     this.dailyConversionsUsed = 0,
     this.lastConversionDate,
+    this.schemaVersion = currentSchemaVersion,
   });
 
   factory TokenWallet.fromJson(Map<String, dynamic> json) {
@@ -24,6 +27,7 @@ class TokenWallet {
       lastConversionDate: json['lastConversionDate'] != null
           ? DateTime.parse(json['lastConversionDate'])
           : null,
+      schemaVersion: json['schemaVersion'] ?? currentSchemaVersion,
     );
   }
 
@@ -34,6 +38,7 @@ class TokenWallet {
       totalEarned: 50,
       totalSpent: 0,
       lastUpdated: DateTime.now(),
+      schemaVersion: currentSchemaVersion,
     );
   }
 
@@ -54,6 +59,9 @@ class TokenWallet {
 
   @HiveField(5)
   final DateTime? lastConversionDate; // Last conversion date
+
+  @HiveField(6)
+  final int schemaVersion; // Schema version for migration support
 
   /// Check if user can afford a purchase
   bool canAfford(int cost) => balance >= cost;
@@ -100,6 +108,7 @@ class TokenWallet {
     DateTime? lastUpdated,
     int? dailyConversionsUsed,
     DateTime? lastConversionDate,
+    int? schemaVersion,
   }) {
     return TokenWallet(
       balance: balance ?? this.balance,
@@ -108,6 +117,7 @@ class TokenWallet {
       lastUpdated: lastUpdated ?? this.lastUpdated,
       dailyConversionsUsed: dailyConversionsUsed ?? this.dailyConversionsUsed,
       lastConversionDate: lastConversionDate ?? this.lastConversionDate,
+      schemaVersion: schemaVersion ?? this.schemaVersion,
     );
   }
 
@@ -119,6 +129,7 @@ class TokenWallet {
       'lastUpdated': lastUpdated.toIso8601String(),
       'dailyConversionsUsed': dailyConversionsUsed,
       'lastConversionDate': lastConversionDate?.toIso8601String(),
+      'schemaVersion': schemaVersion,
     };
   }
 

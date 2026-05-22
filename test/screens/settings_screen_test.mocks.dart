@@ -155,6 +155,36 @@ class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
       ) as bool);
 
   @override
+  _i7.PremiumTier getCurrentTier() => (super.noSuchMethod(
+        Invocation.method(
+          #getCurrentTier,
+          [],
+        ),
+        returnValue: _i7.PremiumTier.free,
+        returnValueForMissingStub: _i7.PremiumTier.free,
+      ) as _i7.PremiumTier);
+
+  @override
+  int getDailyScanLimit() => (super.noSuchMethod(
+        Invocation.method(
+          #getDailyScanLimit,
+          [],
+        ),
+        returnValue: 0,
+        returnValueForMissingStub: 0,
+      ) as int);
+
+  @override
+  bool canPerformScan(int? dailyScanCount) => (super.noSuchMethod(
+        Invocation.method(
+          #canPerformScan,
+          [dailyScanCount],
+        ),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
   _i8.Future<void> setPremiumFeature(
     String? featureId,
     bool? isPremium,

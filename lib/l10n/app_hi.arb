@@ -456,5 +456,195 @@
   "toggleFloatingCameraButton": "Toggle floating camera button",
   "@toggleFloatingCameraButton": {
     "description": "Semantic label for floating camera button toggle"
+  },
+
+  "privacySection": "गोपनीयता और सहमति",
+  "@privacySection": {
+    "description": "Header for the privacy and consent section"
+  },
+
+  "leaderboardOptOut": "लीडरबोर्ड से छुपाएं",
+  "@leaderboardOptOut": {
+    "description": "Leaderboard opt-out toggle label"
+  },
+
+  "leaderboardOptOutHide": "आपका नाम और फोटो लीडरबोर्ड पर छिपा दिया गया है",
+  "@leaderboardOptOutHide": {
+    "description": "Subtitle when leaderboard opt-out is enabled"
+  },
+
+  "leaderboardOptOutVisible": "आपका नाम और फोटो लीडरबोर्ड पर दिखाई देता है",
+  "@leaderboardOptOutVisible": {
+    "description": "Subtitle when leaderboard opt-out is disabled"
+  },
+
+  "leaderboardHidden": "आप अब लीडरबोर्ड से छिपा दिए गए हैं",
+  "@leaderboardHidden": {
+    "description": "Snackbar message when user opts out of leaderboard"
+  },
+
+  "leaderboardVisible": "आप अब लीडरबोर्ड पर दिखाई दे रहे हैं",
+  "@leaderboardVisible": {
+    "description": "Snackbar message when user opts into leaderboard"
+  },
+
+  "failedToUpdateLeaderboard": "लीडरबोर्ड गोपनीयता अपडेट करने में विफल: {error}",
+  "@failedToUpdateLeaderboard": {
+    "description": "Error message when leaderboard privacy update fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "noUserProfileFound": "कोई उपयोगकर्ता प्रोफ़ाइल नहीं मिली। कृपया पहले साइन इन करें।",
+  "@noUserProfileFound": {
+    "description": "Message when no user profile is found"
+  },
+
+  "trainingConsent": "मेरी छवियों से मॉडल में सुधार करें",
+  "@trainingConsent": {
+    "description": "Training consent toggle label"
+  },
+
+  "trainingConsentEnabled": "सक्षम। आप कभी भी रद्द कर सकते हैं और योगदान किए गए प्रशिक्षण उम्मीदवारों को हटाने का अनुरोध कर सकते हैं।",
+  "@trainingConsentEnabled": {
+    "description": "Subtitle when training consent is enabled"
+  },
+
+  "trainingConsentDisabled": "अक्षम। कोई नई छवि/सुधार प्रशिक्षण उम्मीदवारों में प्रवेश नहीं करता।",
+  "@trainingConsentDisabled": {
+    "description": "Subtitle when training consent is disabled"
+  },
+
+  "trainingConsentGranted": "प्रशिक्षण सहमति सक्षम।",
+  "@trainingConsentGranted": {
+    "description": "Snackbar when training consent is granted"
+  },
+
+  "trainingConsentRevoked": "प्रशिक्षण सहमति रद्द और हटाने का अनुरोध किया गया।",
+  "@trainingConsentRevoked": {
+    "description": "Snackbar when training consent is revoked"
+  },
+
+  "couldNotUpdateTrainingConsent": "प्रशिक्षण सहमति अपडेट नहीं कर सका: {error}",
+  "@couldNotUpdateTrainingConsent": {
+    "description": "Error message when training consent update fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "syncEnabledUploadPrompt": "क्या आप अपने मौजूदा स्थानीय वर्गीकरण को क्लाउड पर अपलोड करना चाहेंगे?",
+  "@syncEnabledUploadPrompt": {
+    "description": "Prompt when enabling sync to upload existing data"
+  },
+
+  "syncAvailableAcrossDevices": "इससे वे आपके सभी उपकरणों पर उपलब्ध होंगे।",
+  "@syncAvailableAcrossDevices": {
+    "description": "Info text about cloud sync availability"
+  },
+
+  "skip": "छोड़ें",
+  "@skip": {
+    "description": "Skip button text"
+  },
+
+  "uploadNow": "अभी अपलोड करें",
+  "@uploadNow": {
+    "description": "Upload now button text"
+  },
+
+  "syncingDataToCloud": "क्लाउड पर डेटा सिंक हो रहा है...",
+  "@syncingDataToCloud": {
+    "description": "Loading message while syncing data to cloud"
+  },
+
+  "syncedToCloud": "{count} वर्गीकरण सफलतापूर्वक क्लाउड पर सिंक हुए!",
+  "@syncedToCloud": {
+    "description": "Message when classifications are synced to cloud",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noClassificationsSynced": "कोई वर्गीकरण सिंक नहीं हुआ।",
+  "@noClassificationsSynced": {
+    "description": "Message when no classifications were synced"
+  },
+
+  "syncFailed": "सिंक विफल: {error}",
+  "@syncFailed": {
+    "description": "Error message when sync fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadingFromCloud": "क्लाउड से डाउनलोड हो रहा है...",
+  "@downloadingFromCloud": {
+    "description": "Loading message while downloading from cloud"
+  },
+
+  "downloadedFromCloud": "क्लाउड से {count} वर्गीकरण डाउनलोड हुए!",
+  "@downloadedFromCloud": {
+    "description": "Message when classifications are downloaded from cloud",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noClassificationsDownloaded": "कोई वर्गीकरण डाउनलोड नहीं हुआ।",
+  "@noClassificationsDownloaded": {
+    "description": "Message when no classifications were downloaded"
+  },
+
+  "downloadFailed": "डाउनलोड विफल: {error}",
+  "@downloadFailed": {
+    "description": "Error message when download fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "feedbackOnHistoryEnabled": "इतिहास से हाल के वर्गीकरण पर प्रतिक्रिया दे सकते हैं",
+  "@feedbackOnHistoryEnabled": {
+    "description": "Subtitle when feedback on history is enabled"
+  },
+
+  "feedbackOnHistoryDisabled": "केवल नए वर्गीकरण पर प्रतिक्रिया दे सकते हैं",
+  "@feedbackOnHistoryDisabled": {
+    "description": "Subtitle when feedback on history is disabled"
+  },
+
+  "feedbackExplanationEnabled": "एक साथ कई आइटम स्कैन करने और बाद में प्रतिक्रिया देने के लिए उपयुक्त",
+  "@feedbackExplanationEnabled": {
+    "description": "Explanation when feedback on history is enabled"
+  },
+
+  "feedbackExplanationDisabled": "प्रतिक्रिया केवल वर्गीकरण के तुरंत बाद उपलब्ध है",
+  "@feedbackExplanationDisabled": {
+    "description": "Explanation when feedback on history is disabled"
+  },
+
+  "syncClassificationsLocally": "वर्गीकरण स्वचालित रूप से क्लाउड पर सिंक होते हैं",
+  "@syncClassificationsLocally": {
+    "description": "Subtitle when Google Cloud Sync is enabled"
+  },
+
+  "syncClassificationsLocalOnly": "वर्गीकरण केवल स्थानीय रूप से सहेजे जाते हैं",
+  "@syncClassificationsLocalOnly": {
+    "description": "Subtitle when Google Cloud Sync is disabled"
   }
-} 
+}

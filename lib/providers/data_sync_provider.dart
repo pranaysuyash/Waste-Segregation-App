@@ -322,7 +322,7 @@ class DataSyncProvider extends ChangeNotifier {
       _cachedCommunityFeed = await _communityService.getFeedItems();
 
       await _communityService.reconcileCommunityStats(
-        
+        runDriftCheck: true,
       );
       notifyListeners();
 

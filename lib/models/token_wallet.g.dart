@@ -23,13 +23,14 @@ class TokenWalletAdapter extends TypeAdapter<TokenWallet> {
       lastUpdated: fields[3] as DateTime,
       dailyConversionsUsed: fields[4] as int,
       lastConversionDate: fields[5] as DateTime?,
+      schemaVersion: fields[6] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, TokenWallet obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.balance)
       ..writeByte(1)
@@ -41,7 +42,9 @@ class TokenWalletAdapter extends TypeAdapter<TokenWallet> {
       ..writeByte(4)
       ..write(obj.dailyConversionsUsed)
       ..writeByte(5)
-      ..write(obj.lastConversionDate);
+      ..write(obj.lastConversionDate)
+      ..writeByte(6)
+      ..write(obj.schemaVersion);
   }
 
   @override

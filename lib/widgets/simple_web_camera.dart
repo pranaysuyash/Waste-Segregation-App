@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../utils/capture_image_options.dart';
 import '../utils/constants.dart';
 
 /// A simplified camera widget for Flutter web
@@ -35,11 +36,9 @@ class _SimpleWebCameraState extends State<SimpleWebCamera> {
       // Use standard image_picker with camera source
       // On web, this will prompt the browser's file picker,
       // but most browsers will allow direct camera access
-      final image = await _picker.pickImage(
+      final image = await CaptureImageOptions.pick(
+        _picker,
         source: ImageSource.camera,
-        maxWidth: 1280,
-        maxHeight: 720,
-        imageQuality: 90,
       );
 
       if (mounted) {

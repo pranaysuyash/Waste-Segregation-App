@@ -10,6 +10,7 @@ import 'package:waste_segregation_app/models/detected_waste_region.dart';
 import 'package:waste_segregation_app/models/multi_item_classification_result.dart';
 import 'package:waste_segregation_app/services/segmentation_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import '../utils/capture_image_options.dart';
 import '../utils/constants.dart';
 import '../utils/design_system.dart';
 import '../widgets/analysis_progress_view.dart';
@@ -250,11 +251,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
   Future<void> _captureImage() async {
     final imagePicker = ImagePicker();
-    final image = await imagePicker.pickImage(
+    final image = await CaptureImageOptions.pick(
+      imagePicker,
       source: ImageSource.camera,
-      maxWidth: 1200,
-      maxHeight: 1200,
-      imageQuality: 85,
     );
     if (image != null) {
       if (mounted) {
@@ -507,8 +506,19 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           _suggestedRegions = regions;
           _hasShownSuggestion = true;
         });
+        WasteAppLogger.info(
+          'Auto-detected ${regions.length} regions from segmentation service '
+          '(model: ${segService.modelName})',
+          context: {'service': 'screen', 'file': 'image_capture_screen'},
+        );
       }
-    } catch (_) {}
+    } catch (e) {
+      WasteAppLogger.warning(
+        'Auto-detection failed (non-blocking)',
+        error: e,
+        context: {'service': 'screen', 'file': 'image_capture_screen'},
+      );
+    }
   }
 
   void _enterRegionSelectionMode({List<DetectedWasteRegion>? preDetected}) {

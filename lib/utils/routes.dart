@@ -29,6 +29,7 @@ class Routes {
   static const String camera = '/camera';
   static const String classification = '/classification';
   static const String result = '/result';
+  static const String modelRouting = '/model_routing';
 
   // Utility method to check if a route exists
   static bool isValidRoute(String route) {
@@ -59,5 +60,6 @@ class Routes {
     camera,
     classification,
     result,
+    modelRouting,
   ];
 }

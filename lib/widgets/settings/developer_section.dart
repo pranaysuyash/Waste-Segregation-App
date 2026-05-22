@@ -35,25 +35,6 @@ class DeveloperSection extends StatelessWidget {
         const SizedBox(height: 16),
         _buildFeatureToggles(context),
         const SizedBox(height: 16),
-        SettingTile(
-          icon: Icons.bug_report,
-          title: t.debugMode,
-          subtitle: t.debugModeSubtitle,
-          onTap: () {},
-        ),
-        SettingTile(
-          icon: Icons.analytics,
-          title: t.performanceMonitor,
-          subtitle: t.performanceMonitorSubtitle,
-          onTap: () {},
-        ),
-        SettingTile(
-          icon: Icons.refresh,
-          title: t.resetAppData,
-          subtitle: t.resetAppDataSubtitle,
-          onTap: () {},
-        ),
-        const SizedBox(height: 16),
         _buildDangerousActions(context),
       ],
     );

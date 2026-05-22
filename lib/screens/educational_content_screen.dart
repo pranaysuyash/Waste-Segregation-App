@@ -31,6 +31,7 @@ class _EducationalContentScreenState
   final TextEditingController _searchController = TextEditingController();
   String? _selectedCategory;
   List<String> _allCategories = [];
+  bool _showBookmarkedOnly = false;
 
   @override
   void initState() {
@@ -101,6 +102,11 @@ class _EducationalContentScreenState
               content.tags.any((tag) => tag.toLowerCase().contains(query)) ||
               content.categories
                   .any((category) => category.toLowerCase().contains(query)))
+          .toList();
+    }
+    if (_showBookmarkedOnly) {
+      filteredContent = filteredContent
+          .where((content) => educationalService.isBookmarked(content.id))
           .toList();
     }
     return filteredContent;
@@ -180,7 +186,7 @@ class _EducationalContentScreenState
                         ),
                       ),
                     ),
-                    const SizedBox(width: AppTheme.paddingRegular),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
@@ -212,6 +218,31 @@ class _EducationalContentScreenState
                         }).toList(),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    Semantics(
+                      label: _showBookmarkedOnly
+                          ? 'Show all content'
+                          : 'Show bookmarked only',
+                      button: true,
+                      child: IconButton(
+                        icon: Icon(
+                          _showBookmarkedOnly
+                              ? Icons.bookmark
+                              : Icons.bookmark_border,
+                          color: _showBookmarkedOnly
+                              ? Colors.amber
+                              : Colors.grey,
+                        ),
+                        tooltip: _showBookmarkedOnly
+                            ? 'Show all content'
+                            : 'Bookmarked content',
+                        onPressed: () {
+                          setState(() {
+                            _showBookmarkedOnly = !_showBookmarkedOnly;
+                          });
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -221,9 +252,13 @@ class _EducationalContentScreenState
                   children: ContentType.values.map((contentType) {
                     final filteredContent = _getFilteredContent(context);
                     if (filteredContent.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: ContentDiscoveryWidget(
-                          child: Text(AppStrings.noContentFound),
+                          child: Text(
+                            _showBookmarkedOnly
+                                ? 'No bookmarked content'
+                                : AppStrings.noContentFound,
+                          ),
                         ),
                       );
                     }
@@ -431,6 +466,37 @@ class _EducationalContentScreenState
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Semantics(
+                        label: ref
+                                .read(educationalContentServiceProvider)
+                                .isBookmarked(content.id)
+                            ? 'Remove bookmark'
+                            : 'Bookmark this content',
+                        button: true,
+                        child: IconButton(
+                          icon: Icon(
+                            ref
+                                    .read(educationalContentServiceProvider)
+                                    .isBookmarked(content.id)
+                                ? Icons.bookmark
+                                : Icons.bookmark_border,
+                            size: 20,
+                          ),
+                          color: ref
+                                  .read(educationalContentServiceProvider)
+                                  .isBookmarked(content.id)
+                              ? Colors.amber
+                              : Colors.grey,
+                          onPressed: () async {
+                            await ref
+                                .read(educationalContentServiceProvider)
+                                .toggleBookmark(content.id);
+                            setState(() {});
+                          },
+                          visualDensity: VisualDensity.compact,
                         ),
                       ),
                     ],

@@ -10,8 +10,20 @@ class EvalRunner {
   final String fixtureRoot;
 
   Future<EvalSummary> run({required String mode}) async {
+    return runWithConfig(mode: mode);
+  }
+
+  Future<EvalSummary> runWithConfig({
+    required String mode,
+    String? recordedFilePath,
+    String providerLabel = 'backend/classifyImage recorded',
+  }) async {
     final cases = await _loadCases();
-    final predictions = await _loadPredictions(mode: mode, cases: cases);
+    final predictions = await _loadPredictions(
+      mode: mode,
+      cases: cases,
+      recordedFilePath: recordedFilePath,
+    );
 
     final outcomes = <EvalCaseOutcome>[];
     for (final c in cases) {
@@ -21,7 +33,7 @@ class EvalRunner {
 
     return EvalScoring.summarize(
       mode: mode,
-      providerLabel: 'backend/classifyImage recorded',
+      providerLabel: providerLabel,
       outcomes: outcomes,
     );
   }
@@ -49,6 +61,7 @@ class EvalRunner {
   Future<Map<String, EvalPrediction>> _loadPredictions({
     required String mode,
     required List<EvalCase> cases,
+    String? recordedFilePath,
   }) async {
     if (mode == 'live') {
       final liveEnabled = Platform.environment['AI_EVAL_ENABLE_LIVE'] == 'true';
@@ -57,7 +70,9 @@ class EvalRunner {
       }
     }
 
-    final recordedFile = File('$fixtureRoot/recorded_outputs/$mode.jsonl');
+    final recordedFile = recordedFilePath != null && recordedFilePath.isNotEmpty
+        ? File(recordedFilePath)
+        : File('$fixtureRoot/recorded_outputs/$mode.jsonl');
     if (!recordedFile.existsSync()) {
       return <String, EvalPrediction>{};
     }

@@ -18,6 +18,7 @@ import '../screens/instant_analysis_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/content_detail_screen.dart';
 import '../screens/waste_dashboard_screen.dart';
+import '../utils/capture_image_options.dart';
 import '../utils/constants.dart';
 import '../utils/waste_theme.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
@@ -651,10 +652,12 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isNarrow = constraints.maxWidth < 280;
+                          if (isNarrow) {
+                            // Stack vertically on narrow screens
+                            return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
@@ -666,7 +669,6 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                                         .colorScheme
                                         .onPrimaryContainer,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
                                   AppStrings.scansToday,
@@ -677,44 +679,32 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                                         .onPrimaryContainer
                                         .withValues(alpha: 0.7),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ],
-                            ),
-                          ),
-                          Flexible(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
+                                const SizedBox(height: 8),
                                 Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     const Icon(Icons.local_fire_department,
-                                        size: 20, color: Colors.orange),
+                                        size: 18, color: Colors.orange),
                                     const SizedBox(width: 4),
                                     Text(
                                       '$streakDays',
                                       style: GoogleFonts.inter(
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.bold,
                                         color: Theme.of(context)
                                             .colorScheme
                                             .onPrimaryContainer,
                                       ),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
+                                    const SizedBox(width: 16),
                                     const Icon(Icons.emoji_events,
-                                        size: 20, color: Colors.amber),
+                                        size: 18, color: Colors.amber),
                                     const SizedBox(width: 4),
                                     Text(
                                       '$totalPoints',
                                       style: GoogleFonts.inter(
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.bold,
                                         color: Theme.of(context)
                                             .colorScheme
@@ -724,9 +714,89 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                                   ],
                                 ),
                               ],
-                            ),
-                          ),
-                        ],
+                            );
+                          } else {
+                            // Side by side on wider screens
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '$scansToday / $dailyGoal',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimaryContainer,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        AppStrings.scansToday,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimaryContainer
+                                              .withValues(alpha: 0.7),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Flexible(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.local_fire_department,
+                                              size: 20, color: Colors.orange),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '$streakDays',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimaryContainer,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.emoji_events,
+                                              size: 20, color: Colors.amber),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '$totalPoints',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimaryContainer,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                        },
                       ),
                       const SizedBox(height: 12),
                       LinearProgressIndicator(
@@ -1068,6 +1138,8 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.5,
                             ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -1634,11 +1706,9 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     _isNavigating = true;
 
     try {
-      final image = await _picker.pickImage(
+      final image = await CaptureImageOptions.pick(
+        _picker,
         source: ImageSource.camera,
-        imageQuality: 85,
-        maxWidth: 1920,
-        maxHeight: 1080,
       );
 
       if (image != null && mounted) {
@@ -1661,11 +1731,9 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     _isNavigating = true;
 
     try {
-      final image = await _picker.pickImage(
+      final image = await CaptureImageOptions.pick(
+        _picker,
         source: ImageSource.gallery,
-        imageQuality: 85,
-        maxWidth: 1920,
-        maxHeight: 1080,
       );
 
       if (image != null && mounted) {
@@ -1688,11 +1756,9 @@ class _UltraModernHomeScreenState extends ConsumerState<UltraModernHomeScreen>
     _isNavigating = true;
 
     try {
-      final image = await _picker.pickImage(
+      final image = await CaptureImageOptions.pick(
+        _picker,
         source: ImageSource.camera,
-        imageQuality: 85,
-        maxWidth: 1920,
-        maxHeight: 1080,
       );
 
       if (image != null && mounted) {

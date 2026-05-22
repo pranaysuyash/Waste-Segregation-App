@@ -1033,8 +1033,11 @@ Per motto_v2 §0.1, these are known gaps that remain after V1:
 | **Widget tests** for `MultiItemRegionReview` (9 tests) and `PerItemResultCard` (8 tests) added. | ✅ Done | `test/widgets/multi_item_region_review_test.dart`, `test/widgets/per_item_result_card_test.dart` | — |
 | **End-to-end region→result flow** — `_analyzeSelectedRegions()` now constructs `DetectedWasteRegion` + `MultiItemClassificationResult` and passes both to `CombinedResultScreen`. | ✅ Done | `image_capture_screen.dart:1878-1950` | — |
 | **Model download scaffold** — `YoloModelManager` with download/verify/cache for YOLO11n-seg, YOLO26n-seg, custom waste models. | ✅ Done | `lib/services/yolo_model_manager.dart` | Need actual model URLs for download |
-| **`NormalizedBoundingBox.intersectionOverUnion`** not NaN-safe | P3 | `detected_waste_region.dart:122-134` | Add guard for NaN/Infinity inputs |
+| **`NormalizedBoundingBox.intersectionOverUnion`** NaN/Infinity guard added — checks `_isFinite()` on self and other, clamps result to [0.0, 1.0], returns 0.0 for invalid inputs. | ✅ Done | `detected_waste_region.dart:114-131` | — |
 | **`MultiItemClassificationResult.fromJson`** loses crop bytes (intentional — not serializable) | P3 (documented) | `multi_item_classification_result.dart` | If persistence needed: store crop file paths instead of bytes |
+| **MiniCPM-V 4.6 API service** created with free-tier API key support, structured JSON prompt, fallback to local inference scaffold, and full `WasteClassification` parsing. | ✅ Done | `lib/services/minicpm_service.dart` | — |
+| **MobileSAM TFLite pipeline** — `MobileSamBackend` and `GroundedMobileSamBackend` with full conversion instructions (ONNX export, onnx2tf, CoreML, MLX paths) and detailed TODO for inference integration. | ✅ Done | `lib/services/mobile_sam_service.dart` | — |
+| **YoloModelManager → YoloSegmentationBackend** wired with model download/verify/cache, TFLite preprocessing scaffold, YOLO output decode TODO. | ✅ Done | `segmentation_service.dart:130-190`, `yolo_model_manager.dart` | — |
 
 ## 11. Files Created/Modified
 

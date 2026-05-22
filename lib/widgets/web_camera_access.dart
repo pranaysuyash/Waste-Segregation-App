@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../utils/capture_image_options.dart';
 
 class WebCameraAccess {
   // Setup camera access - returns true if camera is available (always true on web with image_picker_for_web)
@@ -15,5 +16,8 @@ class WebCameraAccess {
 // Helper method for getting images from the camera (works on web and mobile)
 Future<XFile?> getImageFromWebCamera(BuildContext context) async {
   // Use image_picker for both web and mobile
-  return ImagePicker().pickImage(source: ImageSource.camera);
+  return CaptureImageOptions.pick(
+    ImagePicker(),
+    source: ImageSource.camera,
+  );
 }

@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/navigation_settings_service.dart';
 import '../../widgets/animations/settings_animations.dart';
-import '../../utils/routes.dart';
-import 'setting_tile.dart';
 import 'settings_theme.dart';
 
 /// Navigation settings section for settings screen
@@ -148,9 +146,5 @@ class NavigationSection extends StatelessWidget {
         );
       }
     }
-  }
-
-  void _navigateToNavigationDemo(BuildContext context) {
-    Navigator.pushNamed(context, Routes.navigationDemo);
   }
 }

@@ -334,7 +334,7 @@ class StreakDetailsAdapter extends TypeAdapter<StreakDetails> {
       lastActivityDate: fields[3] as DateTime,
       lastMaintenanceAwardedDate: fields[4] as DateTime?,
       lastMilestoneAwardedLevel: fields[5] as int,
-      streakFreezesAvailable: fields[6] as int? ?? 0,
+      streakFreezesAvailable: fields[6] as int,
     );
   }
 

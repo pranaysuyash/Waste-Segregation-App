@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/training_data_service.dart';
@@ -19,6 +23,7 @@ class _PrivacySectionState extends State<PrivacySection> {
   bool _isLeaderboardOptOut = false;
   bool _isTrainingConsentEnabled = false;
   bool _isTrainingConsentLoading = true;
+  bool _isExporting = false;
 
   @override
   void initState() {
@@ -126,6 +131,31 @@ class _PrivacySectionState extends State<PrivacySection> {
     final storage = Provider.of<StorageService>(context, listen: false);
     final service = TrainingDataService(storageService: storage);
 
+    if (!enabled && mounted) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Revoke consent and delete data?'),
+          content: const Text(
+            'This will stop future training contributions and request deletion '
+            'of your previously contributed training candidates. This action '
+            'cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Revoke & Delete'),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
+
     setState(() => _isTrainingConsentLoading = true);
     try {
       if (enabled) {
@@ -187,7 +217,55 @@ class _PrivacySectionState extends State<PrivacySection> {
           onChanged: _toggleTrainingConsent,
           enabled: !_isTrainingConsentLoading,
         ),
+        SettingTile(
+          icon: Icons.download,
+          iconColor: Colors.blue,
+          title: 'Export my data',
+          subtitle: 'Download your classifications, settings, and profile data',
+          trailing: _isExporting
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : null,
+          onTap: _isExporting ? null : _exportMyData,
+        ),
       ],
     );
+  }
+
+  Future<void> _exportMyData() async {
+    setState(() => _isExporting = true);
+    try {
+      final storage = Provider.of<StorageService>(context, listen: false);
+      final jsonData = await storage.exportUserData();
+      final dir = await getTemporaryDirectory();
+      final file = File(
+        '${dir.path}/waste_app_export_${DateTime.now().millisecondsSinceEpoch}.json',
+      );
+      await file.writeAsString(jsonData);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        subject: 'Waste App Data Export',
+        text: 'Export date: ${DateTime.now().toIso8601String()}\n'
+            'App version: 1.0.0\n'
+            'Schema version: 1',
+      );
+
+      if (mounted) {
+        SettingsTheme.showSuccessSnackBar(
+          context,
+          'Data exported successfully.',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        SettingsTheme.showErrorSnackBar(context, 'Export failed: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
   }
 }
