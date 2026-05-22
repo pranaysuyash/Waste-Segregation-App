@@ -32,6 +32,7 @@ class _EducationalContentScreenState
   String? _selectedCategory;
   List<String> _allCategories = [];
   bool _showBookmarkedOnly = false;
+  ContentLevel? _selectedLevel;
 
   @override
   void initState() {
@@ -107,6 +108,11 @@ class _EducationalContentScreenState
     if (_showBookmarkedOnly) {
       filteredContent = filteredContent
           .where((content) => educationalService.isBookmarked(content.id))
+          .toList();
+    }
+    if (_selectedLevel != null) {
+      filteredContent = filteredContent
+          .where((content) => content.level == _selectedLevel)
           .toList();
     }
     return filteredContent;
@@ -216,6 +222,47 @@ class _EducationalContentScreenState
                             child: Text(value),
                           );
                         }).toList(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadiusRegular),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                        ),
+                      ),
+                      child: DropdownButton<ContentLevel?>(
+                        value: _selectedLevel,
+                        icon: const Icon(Icons.school),
+                        underline: const SizedBox.shrink(),
+                        hint: const Text('Level'),
+                        onChanged: (ContentLevel? newValue) {
+                          setState(() {
+                            _selectedLevel = newValue;
+                          });
+                        },
+                        items: const [
+                          DropdownMenuItem<ContentLevel?>(
+                            value: null,
+                            child: Text('All Levels'),
+                          ),
+                          DropdownMenuItem<ContentLevel?>(
+                            value: ContentLevel.beginner,
+                            child: Text('Beginner'),
+                          ),
+                          DropdownMenuItem<ContentLevel?>(
+                            value: ContentLevel.intermediate,
+                            child: Text('Intermediate'),
+                          ),
+                          DropdownMenuItem<ContentLevel?>(
+                            value: ContentLevel.advanced,
+                            child: Text('Advanced'),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 8),

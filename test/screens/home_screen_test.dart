@@ -8,17 +8,42 @@ import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/providers/app_providers.dart'
     as app_providers;
+import 'package:waste_segregation_app/screens/achievements_screen.dart';
+import 'package:waste_segregation_app/screens/content_detail_screen.dart';
 import 'package:waste_segregation_app/screens/educational_content_screen.dart';
 import 'package:waste_segregation_app/screens/home_screen.dart' as home;
+import 'package:waste_segregation_app/screens/waste_dashboard_screen.dart';
 import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/analytics_service.dart';
+import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/services/educational_content_service.dart';
+import 'package:waste_segregation_app/services/gamification_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/utils/routes.dart';
 
 // Minimal fake StorageService for test purposes
 class FakeStorageService extends StorageService {
   // StorageService has no required constructor parameters, just needs to exist
+}
+
+class _StubGamificationService extends GamificationService {
+  _StubGamificationService({
+    required GamificationProfile profile,
+    this.nearMilestoneNudge,
+  }) : _profile = profile, super(
+    FakeStorageService(),
+    CloudStorageService(FakeStorageService()),
+  );
+
+  final GamificationProfile _profile;
+  final NearMilestoneNudge? nearMilestoneNudge;
+
+  @override
+  GamificationProfile? get currentProfile => _profile;
+
+  @override
+  Future<NearMilestoneNudge?> getNearMilestoneNudge() async =>
+      nearMilestoneNudge;
 }
 
 class _TestNavigatorObserver extends NavigatorObserver {
@@ -84,10 +109,16 @@ void main() {
     required EducationalContentService educationalService,
     List<WasteClassification> classifications = const [],
     GamificationProfile? profile,
+    NearMilestoneNudge? nearMilestoneNudge,
     UserProfile? userProfile,
     bool classificationsError = false,
     List<NavigatorObserver> navigatorObservers = const [],
   }) {
+    final gamificationService = _StubGamificationService(
+      profile: profile ?? mockProfile,
+      nearMilestoneNudge: nearMilestoneNudge,
+    );
+
     return provider_pkg.MultiProvider(
       providers: [
         provider_pkg.ChangeNotifierProvider<AdService>(
@@ -114,6 +145,8 @@ void main() {
           }),
           app_providers.educationalContentServiceProvider
               .overrideWith((ref) => educationalService),
+          app_providers.gamificationServiceProvider
+              .overrideWithValue(gamificationService),
         ],
         child: MaterialApp(
           navigatorObservers: navigatorObservers,

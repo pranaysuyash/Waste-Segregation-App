@@ -568,110 +568,260 @@ class AppLocalizationsHi extends AppLocalizations {
   String get googleSyncEnabledMessage => 'Google sync is now enabled!';
 
   @override
-  String get privacySection => 'Privacy & Consent';
+  String get privacySection => 'गोपनीयता और सहमति';
 
   @override
-  String get leaderboardOptOut => 'Hide from Leaderboard';
+  String get leaderboardOptOut => 'लीडरबोर्ड से छुपाएं';
 
   @override
-  String get leaderboardOptOutHide => 'Your name and photo are hidden on the leaderboard';
+  String get leaderboardOptOutHide => 'आपका नाम और फोटो लीडरबोर्ड पर छिपा दिया गया है';
 
   @override
-  String get leaderboardOptOutVisible => 'Your name and photo are visible on the leaderboard';
+  String get leaderboardOptOutVisible => 'आपका नाम और फोटो लीडरबोर्ड पर दिखाई देता है';
 
   @override
-  String get leaderboardHidden => 'You are now hidden from the leaderboard';
+  String get leaderboardHidden => 'आप अब लीडरबोर्ड से छिपा दिए गए हैं';
 
   @override
-  String get leaderboardVisible => 'You are now visible on the leaderboard';
+  String get leaderboardVisible => 'आप अब लीडरबोर्ड पर दिखाई दे रहे हैं';
 
   @override
   String failedToUpdateLeaderboard(String error) {
-    return 'Failed to update leaderboard privacy: $error';
+    return 'लीडरबोर्ड गोपनीयता अपडेट करने में विफल: $error';
   }
 
   @override
-  String get noUserProfileFound => 'No user profile found. Please sign in first.';
+  String get noUserProfileFound => 'कोई उपयोगकर्ता प्रोफ़ाइल नहीं मिली। कृपया पहले साइन इन करें।';
 
   @override
-  String get trainingConsent => 'Improve model with my images';
+  String get trainingConsent => 'मेरी छवियों से मॉडल में सुधार करें';
 
   @override
-  String get trainingConsentEnabled => 'Enabled. You can revoke anytime and request deletion of contributed training candidates.';
+  String get trainingConsentEnabled => 'सक्षम। आप कभी भी रद्द कर सकते हैं और योगदान किए गए प्रशिक्षण उम्मीदवारों को हटाने का अनुरोध कर सकते हैं।';
 
   @override
-  String get trainingConsentDisabled => 'Disabled. No new image/correction enters training candidates.';
+  String get trainingConsentDisabled => 'अक्षम। कोई नई छवि/सुधार प्रशिक्षण उम्मीदवारों में प्रवेश नहीं करता।';
 
   @override
-  String get trainingConsentGranted => 'Training consent enabled.';
+  String get trainingConsentGranted => 'प्रशिक्षण सहमति सक्षम।';
 
   @override
-  String get trainingConsentRevoked => 'Training consent revoked and deletion requested.';
+  String get trainingConsentRevoked => 'प्रशिक्षण सहमति रद्द और हटाने का अनुरोध किया गया।';
 
   @override
   String couldNotUpdateTrainingConsent(String error) {
-    return 'Could not update training consent: $error';
+    return 'प्रशिक्षण सहमति अपडेट नहीं कर सका: $error';
   }
 
   @override
-  String get syncEnabledUploadPrompt => 'Would you like to upload your existing local classifications to the cloud?';
+  String get syncEnabledUploadPrompt => 'क्या आप अपने मौजूदा स्थानीय वर्गीकरण को क्लाउड पर अपलोड करना चाहेंगे?';
 
   @override
-  String get syncAvailableAcrossDevices => 'This will make them available across all your devices.';
+  String get syncAvailableAcrossDevices => 'इससे वे आपके सभी उपकरणों पर उपलब्ध होंगे।';
 
   @override
-  String get skip => 'Skip';
+  String get skip => 'छोड़ें';
 
   @override
-  String get uploadNow => 'Upload Now';
+  String get uploadNow => 'अभी अपलोड करें';
 
   @override
-  String get syncingDataToCloud => 'Syncing data to cloud...';
+  String get syncingDataToCloud => 'क्लाउड पर डेटा सिंक हो रहा है...';
 
   @override
   String syncedToCloud(int count) {
-    return 'Successfully synced $count classifications to cloud!';
+    return '$count वर्गीकरण सफलतापूर्वक क्लाउड पर सिंक हुए!';
   }
 
   @override
-  String get noClassificationsSynced => 'No classifications were synced.';
+  String get noClassificationsSynced => 'कोई वर्गीकरण सिंक नहीं हुआ।';
 
   @override
   String syncFailed(String error) {
-    return 'Sync failed: $error';
+    return 'सिंक विफल: $error';
   }
 
   @override
-  String get downloadingFromCloud => 'Downloading from cloud...';
+  String get downloadingFromCloud => 'क्लाउड से डाउनलोड हो रहा है...';
 
   @override
   String downloadedFromCloud(int count) {
-    return 'Downloaded $count classifications from cloud!';
+    return 'क्लाउड से $count वर्गीकरण डाउनलोड हुए!';
   }
 
   @override
-  String get noClassificationsDownloaded => 'No classifications were downloaded.';
+  String get noClassificationsDownloaded => 'कोई वर्गीकरण डाउनलोड नहीं हुआ।';
 
   @override
   String downloadFailed(String error) {
-    return 'Download failed: $error';
+    return 'डाउनलोड विफल: $error';
   }
 
   @override
-  String get feedbackOnHistoryEnabled => 'Can provide feedback on recent classifications from history';
+  String get feedbackOnHistoryEnabled => 'इतिहास से हाल के वर्गीकरण पर प्रतिक्रिया दे सकते हैं';
 
   @override
-  String get feedbackOnHistoryDisabled => 'Can only provide feedback on new classifications';
+  String get feedbackOnHistoryDisabled => 'केवल नए वर्गीकरण पर प्रतिक्रिया दे सकते हैं';
 
   @override
-  String get feedbackExplanationEnabled => 'Perfect for scanning multiple items quickly and providing feedback later when you have more time!';
+  String get feedbackExplanationEnabled => 'एक साथ कई आइटम स्कैन करने और बाद में प्रतिक्रिया देने के लिए उपयुक्त';
 
   @override
-  String get feedbackExplanationDisabled => 'Feedback is only available immediately after classification.';
+  String get feedbackExplanationDisabled => 'प्रतिक्रिया केवल वर्गीकरण के तुरंत बाद उपलब्ध है';
 
   @override
-  String get syncClassificationsLocally => 'Classifications sync to cloud automatically';
+  String get syncClassificationsLocally => 'वर्गीकरण स्वचालित रूप से क्लाउड पर सिंक होते हैं';
 
   @override
-  String get syncClassificationsLocalOnly => 'Classifications saved locally only';
+  String get syncClassificationsLocalOnly => 'वर्गीकरण केवल स्थानीय रूप से सहेजे जाते हैं';
+
+  @override
+  String get enableNotifications => 'सूचनाएं सक्षम करें';
+
+  @override
+  String get educationalContent => 'शैक्षिक सामग्री';
+
+  @override
+  String get gamification => 'गेमिफिकेशन';
+
+  @override
+  String get reminders => 'अनुस्मारक';
+
+  @override
+  String get notificationSettingsSaved => 'सूचना सेटिंग्स सहेजी गईं';
+
+  @override
+  String get systemDefault => 'सिस्टम डिफ़ॉल्ट';
+
+  @override
+  String get followSystemTheme => 'सिस्टम थीम सेटिंग्स का पालन करें';
+
+  @override
+  String get lightTheme => 'लाइट थीम';
+
+  @override
+  String get alwaysUseLight => 'हमेशा लाइट थीम का उपयोग करें';
+
+  @override
+  String get darkTheme => 'डार्क थीम';
+
+  @override
+  String get alwaysUseDark => 'हमेशा डार्क थीम का उपयोग करें';
+
+  @override
+  String get offlineSaved => 'ऑफ़लाइन सेटिंग्स सहेजी गईं';
+
+  @override
+  String get enableOfflineMode => 'ऑफ़लाइन मोड सक्षम करें';
+
+  @override
+  String downloadModel(String model) {
+    return '$model डाउनलोड करें';
+  }
+
+  @override
+  String removeModel(String model) {
+    return '$model हटाएं';
+  }
+
+  @override
+  String modelRemoved(String model) {
+    return '$model हटा दिया गया';
+  }
+
+  @override
+  String downloadingModel(String model) {
+    return '$model डाउनलोड हो रहा है...';
+  }
+
+  @override
+  String downloadingModelSize(String size) {
+    return '$size डाउनलोड हो रहा है...';
+  }
+
+  @override
+  String modelDownloaded(String model) {
+    return '$model सफलतापूर्वक डाउनलोड हुआ';
+  }
+
+  @override
+  String get downloadedModels => 'डाउनलोड किए गए मॉडल';
+
+  @override
+  String get advancedSettings => 'उन्नत सेटिंग्स';
+
+  @override
+  String get autoDownloadUpdates => 'मॉडल अपडेट स्वचालित रूप से डाउनलोड करें';
+
+  @override
+  String get autoDownloadSubtitle => 'नए मॉडल संस्करण स्वचालित रूप से डाउनलोड करें';
+
+  @override
+  String get compressImages => 'इमेज कंप्रेस करें';
+
+  @override
+  String get compressSubtitle => 'तेज़ प्रोसेसिंग के लिए इमेज का आकार कम करें';
+
+  @override
+  String get storageOptimization => 'स्टोरेज ऑप्टिमाइज़ेशन';
+
+  @override
+  String get storageSubtitle => 'पुरानी कैश फ़ाइलों को स्वचालित रूप से साफ़ करें';
+
+  @override
+  String get storageUsage => 'स्टोरेज उपयोग';
+
+  @override
+  String get modelsDownloaded => 'डाउनलोड किए गए मॉडल:';
+
+  @override
+  String get totalStorageUsed => 'कुल स्टोरेज उपयोग:';
+
+  @override
+  String get available => 'उपलब्ध:';
+
+  @override
+  String get enableOfflineClassification => 'ऑफ़लाइन वर्गीकरण सक्षम करें';
+
+  @override
+  String get offlineEnabled => 'ऑफ़लाइन मोड सक्षम है';
+
+  @override
+  String get offlineDisabled => 'ऑफ़लाइन मोड अक्षम है';
+
+  @override
+  String get offlineDescription => 'इंटरनेट कनेक्शन के बिना अपशिष्ट वस्तुओं का वर्गीकरण करें। ऑफ़लाइन मॉडल आपके डिवाइस पर डाउनलोड हो जाएंगे।';
+
+  @override
+  String get loadingOfflineSettings => 'ऑफ़लाइन सेटिंग्स लोड हो रही हैं...';
+
+  @override
+  String get save => 'सहेजें';
+
+  @override
+  String get ok => 'ठीक है';
+
+  @override
+  String get remove => 'हटाएं';
+
+  @override
+  String get downloadFailedTitle => 'डाउनलोड विफल';
+
+  @override
+  String modelDownloadFailed(String model) {
+    return '$model डाउनलोड करने में विफल';
+  }
+
+  @override
+  String modelRemoveFailed(String model) {
+    return '$model हटाने में विफल';
+  }
+
+  @override
+  String removeModelConfirm(String model) {
+    return 'क्या आप वाकई $model को हटाना चाहते हैं? आप इसे बाद में फिर से डाउनलोड कर सकते हैं।';
+  }
+
+  @override
+  String get premiumCustomThemesBody => 'कस्टम थीम प्रीमियम सब्सक्रिप्शन के साथ उपलब्ध हैं। इस सुविधा को अनलॉक करने के लिए अपग्रेड करें!';
 }

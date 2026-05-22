@@ -103,6 +103,7 @@ class WasteClassification extends HiveObject {
     this.analysisFallbackReason,
     this.routeLatencyMs,
     this.routeCostUsd,
+    this.modelSelectionStrategy,
     this.isOfflineHint = false,
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
@@ -327,6 +328,7 @@ class WasteClassification extends HiveObject {
           ? (json['routeLatencyMs'] as num).toInt()
           : json['routeLatencyMs'],
       routeCostUsd: json['routeCostUsd']?.toDouble(),
+      modelSelectionStrategy: json['modelSelectionStrategy'] as String?,
       isOfflineHint: json['isOfflineHint'] as bool? ?? false,
     );
   }
@@ -622,6 +624,8 @@ class WasteClassification extends HiveObject {
   final int? routeLatencyMs;
   @HiveField(100)
   final double? routeCostUsd;
+  @HiveField(103)
+  final String? modelSelectionStrategy;
 
   /// Whether this classification was produced as an offline hint from Layer 0.
   /// Transient display flag — not persisted to Hive or cloud.
@@ -1097,6 +1101,7 @@ class WasteClassification extends HiveObject {
       'modelRoute': modelRoute,
       'routeLatencyMs': routeLatencyMs,
       'routeCostUsd': routeCostUsd,
+      'modelSelectionStrategy': modelSelectionStrategy,
       'isOfflineHint': isOfflineHint,
     };
   }
@@ -1198,6 +1203,7 @@ class WasteClassification extends HiveObject {
     String? modelRoute,
     int? routeLatencyMs,
     double? routeCostUsd,
+    String? modelSelectionStrategy,
     bool? isOfflineHint,
   }) {
     return WasteClassification(
@@ -1309,6 +1315,8 @@ class WasteClassification extends HiveObject {
       modelRoute: modelRoute ?? this.modelRoute,
       routeLatencyMs: routeLatencyMs ?? this.routeLatencyMs,
       routeCostUsd: routeCostUsd ?? this.routeCostUsd,
+      modelSelectionStrategy:
+          modelSelectionStrategy ?? this.modelSelectionStrategy,
       isOfflineHint: isOfflineHint ?? this.isOfflineHint,
     );
   }

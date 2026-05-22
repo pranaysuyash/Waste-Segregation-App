@@ -58,7 +58,7 @@ class ModelSelectionService {
   final AiService aiService;
   final OnDeviceVisionService? _onDeviceService;
   final BatchingService? _batchingService;
-  final ModelSelectionStrategy strategy;
+  ModelSelectionStrategy strategy;
   final VisionModelConfig _config;
 
   // Performance tracking
@@ -260,6 +260,7 @@ class ModelSelectionService {
     return result.copyWith(
       analysisSource: WasteClassification.analysisSourceCloudPrimary,
       analysisFallbackReason: null,
+      modelSelectionStrategy: strategy.name,
     );
   }
 
@@ -267,6 +268,7 @@ class ModelSelectionService {
     return result.copyWith(
       analysisSource: WasteClassification.analysisSourceLocalExperimental,
       analysisFallbackReason: null,
+      modelSelectionStrategy: strategy.name,
     );
   }
 
@@ -277,6 +279,7 @@ class ModelSelectionService {
     return result.copyWith(
       analysisSource: WasteClassification.analysisSourceLocalFailedFallbackCloud,
       analysisFallbackReason: fallbackReason,
+      modelSelectionStrategy: strategy.name,
     );
   }
 
@@ -340,6 +343,15 @@ class ModelSelectionService {
     }
 
     return strategy; // Keep current strategy
+  }
+
+  /// Change strategy at runtime.
+  void setStrategy(ModelSelectionStrategy newStrategy) {
+    if (newStrategy == strategy) return;
+    WasteAppLogger.info(
+      'ModelSelectionStrategy changed: ${strategy.name} → ${newStrategy.name}',
+    );
+    strategy = newStrategy;
   }
 
   /// Initialize all services

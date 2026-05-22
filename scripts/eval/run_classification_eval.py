@@ -520,6 +520,103 @@ def summarize_provider(results: List[Dict[str, Any]], provider_key: str, model: 
     }
 
 
+def _per_category_accuracy(
+    eval_rows: List[Dict[str, Any]],
+) -> Dict[str, Dict[str, Any]]:
+    groups: Dict[str, List[Dict[str, Any]]] = {}
+    for r in eval_rows:
+        cat = r["expected_category"]
+        groups.setdefault(cat, []).append(r)
+    out: Dict[str, Dict[str, Any]] = {}
+    for cat in sorted(groups):
+        rows = groups[cat]
+        total = len(rows)
+        strict = sum(1 for r in rows if r["strict_pass"])
+        safety_fail = sum(1 for r in rows if r.get("safety_failure"))
+        out[cat] = {
+            "total": total,
+            "strict_pass": strict,
+            "strict_pass_rate": round(strict / total, 4) if total else 0,
+            "safety_failures": safety_fail,
+        }
+    return out
+
+
+def _comparison_matrix(
+    ranked: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Side-by-side comparison across providers for key metrics."""
+    if not ranked:
+        return []
+    keys = [
+        "strict_pass_rate", "acceptable_pass_rate", "safety_failures",
+        "must_not_violations", "high_confidence_wrong", "composite_score",
+    ]
+    matrix: List[Dict[str, Any]] = []
+    for row in ranked:
+        entry = {
+            "provider_key": row["provider_key"],
+            "model": row["model"],
+        }
+        for k in keys:
+            entry[k] = row.get(k)
+        entry["latency_avg_ms"] = row.get("latency_ms", {}).get("avg")
+        entry["cost_total_usd"] = row.get("cost_usd", {}).get("total")
+        entry["confidence_mean"] = row.get("confidence_mean")
+        entry["per_category"] = _per_category_accuracy(row.get("case_results", []))
+        matrix.append(entry)
+    return matrix
+
+
+def _routing_recommendation(
+    ranked: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Generate routing recommendations based on eval results."""
+    if not ranked:
+        return {"recommendation": "no_data", "notes": "No providers evaluated"}
+
+    best = ranked[0]
+
+    if best["safety_failures"] > 0:
+        return {
+            "recommendation": "review_required",
+            "notes": (
+                f"Top-ranked provider {best['provider_key']} has "
+                f"{best['safety_failures']} safety failure(s). "
+                "Safety-critical items must not be routed locally until resolved."
+            ),
+        }
+
+    if best["strict_pass_rate"] >= 0.9:
+        return {
+            "recommendation": "local_first_candidate",
+            "notes": (
+                f"Provider {best['provider_key']} achieves "
+                f"{best['strict_pass_rate']:.0%} strict accuracy with zero safety "
+                "failures. Consider for local-first routing on non-safety-critical items."
+            ),
+        }
+
+    if best["strict_pass_rate"] >= 0.7:
+        return {
+            "recommendation": "cloud_required",
+            "notes": (
+                f"Best provider {best['provider_key']} at "
+                f"{best['strict_pass_rate']:.0%} — cloud verification recommended "
+                "for all items. Local-only insufficient."
+            ),
+        }
+
+    return {
+        "recommendation": "cloud_only",
+        "notes": (
+            f"Best provider {best['provider_key']} at only "
+            f"{best['strict_pass_rate']:.0%} strict accuracy. "
+            "All items must go to cloud for classification."
+        ),
+    }
+
+
 def run_offline(golden: Dict[str, GoldenCase], fixture_predictions: List[Prediction]) -> Dict[str, Any]:
     provider_groups: Dict[Tuple[str, str], List[Prediction]] = {}
     for p in fixture_predictions:
@@ -549,6 +646,7 @@ def run_offline(golden: Dict[str, GoldenCase], fixture_predictions: List[Predict
             )
 
         summary = summarize_provider(eval_rows, provider_key, model)
+        summary["per_category"] = _per_category_accuracy(eval_rows)
         summary["case_results"] = eval_rows
         per_provider.append(summary)
 
@@ -571,6 +669,8 @@ def run_offline(golden: Dict[str, GoldenCase], fixture_predictions: List[Predict
             }
             for idx, row in enumerate(ranked)
         ],
+        "comparison_matrix": _comparison_matrix(ranked),
+        "routing_recommendation": _routing_recommendation(ranked),
         "provider_results": ranked,
         "errors": errors,
     }

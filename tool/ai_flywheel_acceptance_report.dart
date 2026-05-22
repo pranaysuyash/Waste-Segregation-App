@@ -34,10 +34,15 @@ void main(List<String> args) {
   final datasetVersionJson = _readJsonFile('build/reports/ai_dataset/latest/version.json');
   final routerJson = _readJsonFile('build/reports/ai_eval/router_compare.json')
       ?? _readJsonFile('build/reports/ai_eval/router_compare_backend.json');
+  final seedCoverageJson = _readJsonFile('build/reports/ai_eval/seed_coverage_report.json');
 
   final criteria = <Criterion>[
     Criterion(1, 'Golden eval schema exists', () => _exists('test/fixtures/ai_eval/schema.md')),
-    Criterion(2, '>=30 seed eval cases exist', () => _jsonlLineCount('test/fixtures/ai_eval/golden_cases.jsonl') >= 30),
+    Criterion(2, '>=30 seed eval cases exist and semantic coverage report passes',
+        () =>
+            _jsonlLineCount('test/fixtures/ai_eval/golden_cases.jsonl') >= 30
+            && seedCoverageJson != null
+            && seedCoverageJson['allRulesPassed'] == true),
     Criterion(3, 'Offline eval report exists', () => evalJson != null),
     Criterion(4, 'Safety + must-not scored separately',
         () => _exists('lib/ai_flywheel/eval_scoring.dart')),
@@ -54,8 +59,10 @@ void main(List<String> args) {
     Criterion(10, 'Router comparison metrics output exists', () => routerJson != null),
     Criterion(11, 'Tests for schema/scoring/consent/export exist',
         () => _exists('test/ai_flywheel/flywheel_foundation_test.dart')),
-    Criterion(12, 'Documentation explains unlock path',
-        () => _exists('docs/review/AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md')),
+    Criterion(12, 'Documentation explains unlock path and final evidence summary exists',
+        () =>
+            _exists('docs/review/AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md')
+            && _exists('build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md')),
   ];
 
   final rows = <Map<String, dynamic>>[];
@@ -76,7 +83,8 @@ void main(List<String> args) {
     'criteria': rows,
     'notes': <String>[
       'Criteria that depend on runtime artifacts remain false until verification commands are executed.',
-      'This report checks presence/shape of evidence artifacts, not semantic correctness of model outputs.',
+      'This report checks presence/shape of evidence artifacts plus seed semantic coverage pass signal.',
+      'Model-output quality still requires human review of generated evidence summary.',
     ],
   };
 

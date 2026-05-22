@@ -732,106 +732,38 @@ class AiService {
         }
       }
 
-      // Backend proxy route — mandatory in release (fail-closed), optional opt-in
-      // in debug/profile via --dart-define=USE_BACKEND_AI_IN_RELEASE=true.
-      if (_backendRoutingEnabled) {
-        try {
-          return await _analyzeWithBackend(
-            await permanentFile.readAsBytes(),
-            permanentFile.path,
-            analysisRegion,
-            analysisLang,
-            imageHash,
-            currentClassificationId,
-            contentHash: contentHash,
-            thumbnailPath: thumbnailPath,
-          );
-        } on AiFailure catch (e) {
-          if (_backendRoutingFailClosed ||
-              e.kind == AiFailureKind.cancelled ||
-              e.kind == AiFailureKind.auth ||
-              e.kind == AiFailureKind.budgetExceeded) {
-            rethrow;
-          }
-          WasteAppLogger.warning(
-            '[BackendProxy] Failed (${e.kind.name}), falling back to direct provider (non-release only).',
-          );
-        }
-      }
-
-      // Try OpenAI first with compression
-      try {
-        final result = await _analyzeWithOpenAI(
-          await permanentFile.readAsBytes(), // Read bytes here
-          permanentFile.path, // Use permanent path
-          analysisRegion,
-          analysisLang,
-          imageHash,
-          currentClassificationId, // Pass the new ID
-          contentHash: contentHash, // Pass content hash for caching
-          thumbnailPath: thumbnailPath, // Pass thumbnail path
-        );
-        return result;
-      } on Exception catch (openAiError, s) {
-        // Short-circuit on production safety — no retry or Gemini fallback.
-        if (openAiError is ProductionSafetyException) {
-          WasteAppLogger.warning(
-              '[AI SAFETY] Client-side AI blocked in release build.');
-          rethrow;
-        }
-
-        WasteAppLogger.severe('OpenAI analysis failed',
-            error: openAiError, stackTrace: s);
-
-        final failureKind =
-            openAiError is AiFailure ? openAiError.kind : AiFailureKind.unknown;
-
-        if (failureKind == AiFailureKind.cancelled ||
-            failureKind == AiFailureKind.unsafeClientAiBlocked ||
-            failureKind == AiFailureKind.auth ||
-            failureKind == AiFailureKind.budgetExceeded) {
-          rethrow;
-        }
-
-        if (_shouldFallbackToGemini(failureKind, retryCount, maxRetries)) {
-          WasteAppLogger.info('Falling back to Gemini analysis.');
-          final result = await _analyzeWithGemini(
-            await permanentFile.readAsBytes(), // Read bytes here
-            permanentFile.path, // Use permanent path
-            analysisRegion,
-            analysisLang,
-            imageHash,
-            currentClassificationId, // Pass the new ID
-            contentHash: contentHash, // Pass content hash for caching
-            thumbnailPath: thumbnailPath, // Pass thumbnail path
-          );
-          return result;
-        }
-
-        // For other errors, retry with OpenAI
-        if (retryCount < maxRetries) {
-          final waitTime =
-              Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-          await Future.delayed(waitTime);
-          return analyzeImage(
-            permanentFile,
-            retryCount: retryCount + 1,
-            maxRetries: maxRetries,
-            region: region,
-            instructionsLang: instructionsLang,
-            classificationId:
-                currentClassificationId, // Pass the same ID on retry
-          );
-        }
-
-        rethrow;
-      }
+      return await _orchestrateAnalysis(
+        imageBytes: await permanentFile.readAsBytes(),
+        imagePath: permanentFile.path,
+        analysisRegion: analysisRegion,
+        analysisLang: analysisLang,
+        imageHash: imageHash,
+        classificationId: currentClassificationId,
+        contentHash: contentHash,
+        thumbnailPath: thumbnailPath,
+        retryCount: retryCount,
+        maxRetries: maxRetries,
+      );
     } catch (e, s) {
       if (e is ProductionSafetyException) rethrow;
       if (e is AiFailure && _isTerminalFailureKind(e.kind)) rethrow;
+
+      if (retryCount < maxRetries) {
+        final waitTime =
+            Duration(milliseconds: 500 * pow(2, retryCount).toInt());
+        await Future.delayed(waitTime);
+        return analyzeImage(
+          permanentFile,
+          retryCount: retryCount + 1,
+          maxRetries: maxRetries,
+          region: region,
+          instructionsLang: instructionsLang,
+          classificationId: currentClassificationId,
+        );
+      }
+
       WasteAppLogger.severe('Top-level analysis failed',
           error: e, stackTrace: s);
-      // Ensure fallback also uses the consistent ID
       return WasteClassification.fallback(
         permanentFile.path,
         id: currentClassificationId,
@@ -932,103 +864,38 @@ class AiService {
         }
       }
 
-      // Backend proxy route (web path) — mandatory in release (fail-closed),
-      // optional opt-in in debug/profile via --dart-define=USE_BACKEND_AI_IN_RELEASE=true.
-      if (_backendRoutingEnabled) {
-        try {
-          return await _analyzeWithBackend(
-            imageBytes,
-            savedImagePath,
-            analysisRegion,
-            analysisLang,
-            imageHash,
-            currentClassificationId,
-            contentHash: contentHash,
-          );
-        } on AiFailure catch (e) {
-          if (_backendRoutingFailClosed ||
-              e.kind == AiFailureKind.cancelled ||
-              e.kind == AiFailureKind.auth ||
-              e.kind == AiFailureKind.budgetExceeded) {
-            rethrow;
-          }
-          WasteAppLogger.warning(
-            '[BackendProxy] Web failed (${e.kind.name}), falling back to direct provider (non-release only).',
-          );
-        }
-      }
-
-      // Try OpenAI first with compression
-      try {
-        final result = await _analyzeWithOpenAI(
-          imageBytes,
-          savedImagePath,
-          analysisRegion,
-          analysisLang,
-          imageHash,
-          currentClassificationId,
-          contentHash: contentHash,
-        );
-        return result;
-      } on Exception catch (openAiError, s) {
-        // Short-circuit on production safety — no retry or Gemini fallback.
-        if (openAiError is ProductionSafetyException) {
-          WasteAppLogger.warning(
-              '[AI SAFETY] Client-side AI blocked in release build (web).');
-          rethrow;
-        }
-
-        WasteAppLogger.severe('OpenAI analysis failed for web image',
-            error: openAiError, stackTrace: s);
-
-        final failureKind =
-            openAiError is AiFailure ? openAiError.kind : AiFailureKind.unknown;
-
-        if (failureKind == AiFailureKind.cancelled ||
-            failureKind == AiFailureKind.unsafeClientAiBlocked ||
-            failureKind == AiFailureKind.auth ||
-            failureKind == AiFailureKind.budgetExceeded) {
-          rethrow;
-        }
-
-        if (_shouldFallbackToGemini(failureKind, retryCount, maxRetries)) {
-          WasteAppLogger.info('Falling back to Gemini analysis for web image.');
-          final result = await _analyzeWithGemini(
-            imageBytes,
-            savedImagePath,
-            analysisRegion,
-            analysisLang,
-            imageHash,
-            currentClassificationId,
-            contentHash: contentHash,
-          );
-          return result;
-        }
-
-        // For other errors, retry with OpenAI
-        if (retryCount < maxRetries) {
-          final waitTime =
-              Duration(milliseconds: 500 * pow(2, retryCount).toInt());
-          await Future.delayed(waitTime);
-          return analyzeWebImage(
-            imageBytes,
-            imageName,
-            retryCount: retryCount + 1,
-            maxRetries: maxRetries,
-            region: region,
-            instructionsLang: instructionsLang,
-            classificationId: currentClassificationId,
-          );
-        }
-
-        rethrow;
-      }
+      return await _orchestrateAnalysis(
+        imageBytes: imageBytes,
+        imagePath: savedImagePath,
+        analysisRegion: analysisRegion,
+        analysisLang: analysisLang,
+        imageHash: imageHash,
+        classificationId: currentClassificationId,
+        contentHash: contentHash,
+        retryCount: retryCount,
+        maxRetries: maxRetries,
+      );
     } catch (e, s) {
       if (e is ProductionSafetyException) rethrow;
       if (e is AiFailure && _isTerminalFailureKind(e.kind)) rethrow;
+
+      if (retryCount < maxRetries) {
+        final waitTime =
+            Duration(milliseconds: 500 * pow(2, retryCount).toInt());
+        await Future.delayed(waitTime);
+        return analyzeWebImage(
+          imageBytes,
+          imageName,
+          retryCount: retryCount + 1,
+          maxRetries: maxRetries,
+          region: region,
+          instructionsLang: instructionsLang,
+          classificationId: currentClassificationId,
+        );
+      }
+
       WasteAppLogger.severe('Top-level web analysis failed',
           error: e, stackTrace: s);
-      // Ensure fallback also uses the consistent ID
       return WasteClassification.fallback(
         imageName,
         id: currentClassificationId,
@@ -1163,6 +1030,96 @@ class AiService {
       null,
       const Uuid().v4(),
     );
+  }
+
+  Future<WasteClassification> _orchestrateAnalysis({
+    required Uint8List imageBytes,
+    required String imagePath,
+    required String analysisRegion,
+    required String analysisLang,
+    String? imageHash,
+    required String classificationId,
+    String? contentHash,
+    String? thumbnailPath,
+    int retryCount = 0,
+    int maxRetries = 3,
+  }) async {
+    if (_backendRoutingEnabled) {
+      try {
+        return await _analyzeWithBackend(
+          imageBytes,
+          imagePath,
+          analysisRegion,
+          analysisLang,
+          imageHash,
+          classificationId,
+          contentHash: contentHash,
+          thumbnailPath: thumbnailPath,
+        );
+      } on AiFailure catch (e) {
+        if (_backendRoutingFailClosed ||
+            e.kind == AiFailureKind.cancelled ||
+            e.kind == AiFailureKind.auth ||
+            e.kind == AiFailureKind.budgetExceeded) {
+          rethrow;
+        }
+        WasteAppLogger.warning(
+          '[BackendProxy] Failed (${e.kind.name}), falling back to direct provider (non-release only).',
+        );
+      }
+    }
+
+    try {
+      return await _analyzeWithOpenAI(
+        imageBytes,
+        imagePath,
+        analysisRegion,
+        analysisLang,
+        imageHash,
+        classificationId,
+        contentHash: contentHash,
+        thumbnailPath: thumbnailPath,
+      );
+    } on Exception catch (openAiError, s) {
+      if (openAiError is ProductionSafetyException) {
+        rethrow;
+      }
+
+      WasteAppLogger.severe('OpenAI analysis failed',
+          error: openAiError, stackTrace: s);
+
+      final failureKind =
+          openAiError is AiFailure ? openAiError.kind : AiFailureKind.unknown;
+
+      if (failureKind == AiFailureKind.cancelled ||
+          failureKind == AiFailureKind.unsafeClientAiBlocked ||
+          failureKind == AiFailureKind.auth ||
+          failureKind == AiFailureKind.budgetExceeded) {
+        rethrow;
+      }
+
+      if (_shouldFallbackToGemini(failureKind, retryCount, maxRetries)) {
+        WasteAppLogger.info('Falling back to Gemini analysis.');
+        try {
+          return await _analyzeWithGemini(
+            imageBytes,
+            imagePath,
+            analysisRegion,
+            analysisLang,
+            imageHash,
+            classificationId,
+            contentHash: contentHash,
+            thumbnailPath: thumbnailPath,
+          );
+        } on Exception catch (geminiError) {
+          WasteAppLogger.severe('Gemini fallback also failed',
+              error: geminiError);
+          rethrow;
+        }
+      }
+
+      rethrow;
+    }
   }
 
   /// Analyzes an image using the OpenAI API.

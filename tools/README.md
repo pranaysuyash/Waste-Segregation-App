@@ -87,3 +87,11 @@ Usage:
 ```bash
 dart run tool/ai_eval_seed_coverage_report.dart --input test/fixtures/ai_eval/golden_cases.jsonl --out build/reports/ai_eval/seed_coverage_report.json
 ```
+
+## 9) `../tool/ai_flywheel_evidence_summary.dart`
+Builds a single markdown summary from generated verification artifacts.
+
+Usage:
+```bash
+dart run tool/ai_flywheel_evidence_summary.dart --out build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md
+```

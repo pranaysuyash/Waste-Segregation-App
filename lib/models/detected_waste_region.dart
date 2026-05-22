@@ -137,11 +137,19 @@ class NormalizedBoundingBox {
       height >= 0;
 
   Map<String, dynamic> toJson() => {
-        'left': left,
-        'top': top,
-        'width': width,
-        'height': height,
-      };
+    'left': left,
+    'top': top,
+    'width': width,
+    'height': height,
+  };
+
+  /// Compat: legacy API expected scaled [0, 100] integer coordinates.
+  Map<String, dynamic> toBoundsMap() => <String, dynamic>{
+    'x': left * 100,
+    'y': top * 100,
+    'width': width * 100,
+    'height': height * 100,
+  };
 }
 
 enum RegionDetectionSource {

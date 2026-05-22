@@ -674,4 +674,154 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncClassificationsLocalOnly => 'Classifications saved locally only';
+
+  @override
+  String get enableNotifications => 'Enable Notifications';
+
+  @override
+  String get educationalContent => 'Educational Content';
+
+  @override
+  String get gamification => 'Gamification';
+
+  @override
+  String get reminders => 'Reminders';
+
+  @override
+  String get notificationSettingsSaved => 'Notification settings saved';
+
+  @override
+  String get systemDefault => 'System Default';
+
+  @override
+  String get followSystemTheme => 'Follow system theme settings';
+
+  @override
+  String get lightTheme => 'Light Theme';
+
+  @override
+  String get alwaysUseLight => 'Always use light theme';
+
+  @override
+  String get darkTheme => 'Dark Theme';
+
+  @override
+  String get alwaysUseDark => 'Always use dark theme';
+
+  @override
+  String get offlineSaved => 'Offline settings saved';
+
+  @override
+  String get enableOfflineMode => 'Enable Offline Mode';
+
+  @override
+  String downloadModel(String model) {
+    return 'Download $model';
+  }
+
+  @override
+  String removeModel(String model) {
+    return 'Remove $model';
+  }
+
+  @override
+  String modelRemoved(String model) {
+    return '$model removed';
+  }
+
+  @override
+  String downloadingModel(String model) {
+    return 'Downloading $model...';
+  }
+
+  @override
+  String downloadingModelSize(String size) {
+    return 'Downloading $size...';
+  }
+
+  @override
+  String modelDownloaded(String model) {
+    return '$model downloaded successfully';
+  }
+
+  @override
+  String get downloadedModels => 'Downloaded Models';
+
+  @override
+  String get advancedSettings => 'Advanced Settings';
+
+  @override
+  String get autoDownloadUpdates => 'Auto-download Model Updates';
+
+  @override
+  String get autoDownloadSubtitle => 'Automatically download new model versions';
+
+  @override
+  String get compressImages => 'Compress Images';
+
+  @override
+  String get compressSubtitle => 'Reduce image size for faster processing';
+
+  @override
+  String get storageOptimization => 'Storage Optimization';
+
+  @override
+  String get storageSubtitle => 'Automatically clean up old cache files';
+
+  @override
+  String get storageUsage => 'Storage Usage';
+
+  @override
+  String get modelsDownloaded => 'Models Downloaded:';
+
+  @override
+  String get totalStorageUsed => 'Total Storage Used:';
+
+  @override
+  String get available => 'Available:';
+
+  @override
+  String get enableOfflineClassification => 'Enable Offline Classification';
+
+  @override
+  String get offlineEnabled => 'Offline mode is enabled';
+
+  @override
+  String get offlineDisabled => 'Offline mode is disabled';
+
+  @override
+  String get offlineDescription => 'Classify waste items without an internet connection. Offline models will be downloaded to your device.';
+
+  @override
+  String get loadingOfflineSettings => 'Loading offline settings...';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get downloadFailedTitle => 'Download Failed';
+
+  @override
+  String modelDownloadFailed(String model) {
+    return 'Failed to download $model';
+  }
+
+  @override
+  String modelRemoveFailed(String model) {
+    return 'Failed to remove $model';
+  }
+
+  @override
+  String removeModelConfirm(String model) {
+    return 'Are you sure you want to remove $model? You can download it again later.';
+  }
+
+  @override
+  String get premiumCustomThemesBody => 'Custom themes are available with a premium subscription. Upgrade to unlock this feature!';
 }

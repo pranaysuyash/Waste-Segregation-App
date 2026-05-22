@@ -110,13 +110,14 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       analysisFallbackReason: fields[102] as String?,
       routeLatencyMs: fields[99] as int?,
       routeCostUsd: fields[100] as double?,
+      modelSelectionStrategy: fields[103] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WasteClassification obj) {
     writer
-      ..writeByte(93)
+      ..writeByte(94)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -302,7 +303,9 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       ..writeByte(99)
       ..write(obj.routeLatencyMs)
       ..writeByte(100)
-      ..write(obj.routeCostUsd);
+      ..write(obj.routeCostUsd)
+      ..writeByte(103)
+      ..write(obj.modelSelectionStrategy);
   }
 
   @override

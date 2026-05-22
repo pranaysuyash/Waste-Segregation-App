@@ -1,43 +1,16 @@
-import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
+import 'dart:io' show File;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../models/detected_waste_region.dart';
 
-/// Data class representing a manually selected rectangular region.
-/// Coordinates are normalized to [0.0, 1.0] relative to the image dimensions.
-class SelectedRegion {
-  SelectedRegion({
-    required this.id,
-    required this.left,
-    required this.top,
-    required this.width,
-    required this.height,
-  });
-
+class _BoxData {
+  _BoxData({required this.id, required this.box});
   final int id;
-  final double left; // 0.0 - 1.0
-  final double top; // 0.0 - 1.0
-  final double width; // 0.0 - 1.0
-  final double height; // 0.0 - 1.0
-
-  double get right => (left + width).clamp(0.0, 1.0);
-  double get bottom => (top + height).clamp(0.0, 1.0);
-
-  Map<String, dynamic> toBoundsMap() => <String, dynamic>{
-        'x': left * 100,
-        'y': top * 100,
-        'width': width * 100,
-        'height': height * 100,
-      };
+  final NormalizedBoundingBox box;
 }
 
-/// Widget that lets a user draw rectangular regions on an image.
-///
-/// MVP constraints:
-/// - Rectangular crop only.
-/// - Max 3 regions.
-/// - No automatic segmentation.
-/// - No fake confidence/object labels.
 class ManualRegionSelector extends StatefulWidget {
   const ManualRegionSelector({
     super.key,
@@ -51,9 +24,9 @@ class ManualRegionSelector extends StatefulWidget {
 
   final File? imageFile;
   final Uint8List? webImageBytes;
-  final List<SelectedRegion> initialRegions;
+  final List<NormalizedBoundingBox> initialRegions;
   final int maxRegions;
-  final ValueChanged<List<SelectedRegion>> onRegionsChanged;
+  final ValueChanged<List<NormalizedBoundingBox>> onRegionsChanged;
   final VoidCallback? onConfirm;
 
   @override
@@ -61,15 +34,13 @@ class ManualRegionSelector extends StatefulWidget {
 }
 
 class _ManualRegionSelectorState extends State<ManualRegionSelector> {
-  final List<SelectedRegion> _regions = [];
+  final List<_BoxData> _regions = [];
   int _nextId = 1;
 
-  // Drag state
   Offset? _dragStart;
   Offset? _dragCurrent;
   bool _isDragging = false;
 
-  // Image aspect ratio and loading state
   double _imageAspectRatio = 16 / 9;
   bool _dimensionsLoaded = false;
   bool _initialRegionsApplied = false;
@@ -135,7 +106,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _imageAspectRatio = 16 / 9; // safe fallback
+          _imageAspectRatio = 16 / 9;
           _dimensionsLoaded = true;
         });
         _applyInitialRegions();
@@ -144,35 +115,25 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
   }
 
   void _applyInitialRegions() {
-    if (_initialRegionsApplied || widget.initialRegions.isEmpty) {
-      return;
-    }
+    if (_initialRegionsApplied || widget.initialRegions.isEmpty) return;
     _initialRegionsApplied = true;
     final regions = widget.initialRegions
-        .map(
-          (region) => SelectedRegion(
-            id: region.id,
-            left: region.left,
-            top: region.top,
-            width: region.width,
-            height: region.height,
-          ),
-        )
+        .map((box) => _BoxData(id: _nextId++, box: box))
         .toList();
     _regions
       ..clear()
       ..addAll(regions);
-    _nextId = regions.isEmpty
-        ? 1
-        : regions.map((region) => region.id).reduce(max) + 1;
-    widget.onRegionsChanged(List.unmodifiable(_regions));
+    widget.onRegionsChanged(List.unmodifiable(regionBoxes));
   }
+
+  List<NormalizedBoundingBox> get regionBoxes =>
+      _regions.map((d) => d.box).toList();
 
   void _removeRegion(int id) {
     setState(() {
       _regions.removeWhere((r) => r.id == id);
     });
-    widget.onRegionsChanged(List.unmodifiable(_regions));
+    widget.onRegionsChanged(List.unmodifiable(regionBoxes));
   }
 
   void _onPanStart(DragStartDetails details, Size imageSize) {
@@ -204,7 +165,6 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
     final dx = _dragCurrent!.dx - _dragStart!.dx;
     final dy = _dragCurrent!.dy - _dragStart!.dy;
 
-    // Ignore tiny accidental taps
     if (dx.abs() < 12 && dy.abs() < 12) {
       setState(() {
         _isDragging = false;
@@ -224,7 +184,6 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
     final clampedWidth = width.clamp(0.0, 1.0 - clampedLeft);
     final clampedHeight = height.clamp(0.0, 1.0 - clampedTop);
 
-    // Ignore tiny regions
     if (clampedWidth * clampedHeight < 0.005) {
       setState(() {
         _isDragging = false;
@@ -234,8 +193,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       return;
     }
 
-    final newRegion = SelectedRegion(
-      id: _nextId++,
+    final newBox = NormalizedBoundingBox(
       left: clampedLeft,
       top: clampedTop,
       width: clampedWidth,
@@ -246,9 +204,9 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       _isDragging = false;
       _dragStart = null;
       _dragCurrent = null;
-      _regions.add(newRegion);
+      _regions.add(_BoxData(id: _nextId++, box: newBox));
     });
-    widget.onRegionsChanged(List.unmodifiable(_regions));
+    widget.onRegionsChanged(List.unmodifiable(regionBoxes));
   }
 
   @override
@@ -261,7 +219,6 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       builder: (context, constraints) {
         return Stack(
           children: [
-            // Centered Image + Interactive Board locked to the image aspect ratio
             Center(
               child: AspectRatio(
                 aspectRatio: _imageAspectRatio,
@@ -279,9 +236,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
                 ),
               ),
             ),
-            // Instruction / controls overlay (fixed to screen, not scaling with image)
             if (_regions.isEmpty && !_isDragging) _buildInstructionOverlay(),
-            // Region count chip (fixed to screen, not scaling with image)
             if (_regions.isNotEmpty) _buildRegionCountChip(),
           ],
         );
@@ -326,9 +281,7 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Existing regions
-            ..._regions.map((region) => _buildRegionBox(region, imageSize)),
-            // Active drag preview
+            ..._regions.map((r) => _buildRegionBox(r, imageSize)),
             if (_isDragging && _dragStart != null && _dragCurrent != null)
               _buildDragPreview(imageSize),
           ],
@@ -337,11 +290,12 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
     );
   }
 
-  Widget _buildRegionBox(SelectedRegion region, Size imageSize) {
-    final left = region.left * imageSize.width;
-    final top = region.top * imageSize.height;
-    final width = region.width * imageSize.width;
-    final height = region.height * imageSize.height;
+  Widget _buildRegionBox(_BoxData data, Size imageSize) {
+    final box = data.box;
+    final left = box.left * imageSize.width;
+    final top = box.top * imageSize.height;
+    final width = box.width * imageSize.width;
+    final height = box.height * imageSize.height;
 
     return Positioned(
       left: left,
@@ -357,12 +311,11 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          // Delete button
           Positioned(
             top: 4,
             right: 4,
             child: GestureDetector(
-              onTap: () => _removeRegion(region.id),
+              onTap: () => _removeRegion(data.id),
               child: Container(
                 decoration: const BoxDecoration(
                   color: Colors.red,
@@ -373,7 +326,6 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
               ),
             ),
           ),
-          // Region number badge
           Positioned(
             top: 4,
             left: 4,
@@ -382,9 +334,10 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
                 color: Colors.teal,
                 borderRadius: BorderRadius.circular(8),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Text(
-                'Item ${_regions.indexOf(region) + 1}',
+                'Item ${_regions.indexOf(data) + 1}',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -412,7 +365,8 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.teal.withValues(alpha: 0.12),
-          border: Border.all(color: Colors.teal.withValues(alpha: 0.8), width: 2),
+          border:
+              Border.all(color: Colors.teal.withValues(alpha: 0.8), width: 2),
           borderRadius: BorderRadius.circular(4),
         ),
       ),
@@ -425,7 +379,8 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       left: 16,
       right: 16,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.72),
           borderRadius: BorderRadius.circular(12),
@@ -455,7 +410,8 @@ class _ManualRegionSelectorState extends State<ManualRegionSelector> {
       top: 16,
       right: 16,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.72),
           borderRadius: BorderRadius.circular(20),

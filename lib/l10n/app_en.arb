@@ -1173,5 +1173,270 @@
   "syncClassificationsLocalOnly": "Classifications saved locally only",
   "@syncClassificationsLocalOnly": {
     "description": "Subtitle when Google Cloud Sync is disabled"
+  },
+
+  "enableNotifications": "Enable Notifications",
+  "@enableNotifications": {
+    "description": "Toggle to enable notifications"
+  },
+
+  "educationalContent": "Educational Content",
+  "@educationalContent": {
+    "description": "Educational content notifications toggle"
+  },
+
+  "gamification": "Gamification",
+  "@gamification": {
+    "description": "Gamification notifications toggle"
+  },
+
+  "reminders": "Reminders",
+  "@reminders": {
+    "description": "Reminder notifications toggle"
+  },
+
+  "notificationSettingsSaved": "Notification settings saved",
+  "@notificationSettingsSaved": {
+    "description": "Snackbar message when notification settings are saved"
+  },
+
+  "systemDefault": "System Default",
+  "@systemDefault": {
+    "description": "System default theme option"
+  },
+
+  "followSystemTheme": "Follow system theme settings",
+  "@followSystemTheme": {
+    "description": "Subtitle for system default theme"
+  },
+
+  "lightTheme": "Light Theme",
+  "@lightTheme": {
+    "description": "Light theme option"
+  },
+
+  "alwaysUseLight": "Always use light theme",
+  "@alwaysUseLight": {
+    "description": "Subtitle for light theme"
+  },
+
+  "darkTheme": "Dark Theme",
+  "@darkTheme": {
+    "description": "Dark theme option"
+  },
+
+  "alwaysUseDark": "Always use dark theme",
+  "@alwaysUseDark": {
+    "description": "Subtitle for dark theme"
+  },
+
+  "offlineSaved": "Offline settings saved",
+  "@offlineSaved": {
+    "description": "Snackbar message when offline settings are saved"
+  },
+
+  "enableOfflineMode": "Enable Offline Mode",
+  "@enableOfflineMode": {
+    "description": "Title for enable offline mode section"
+  },
+
+  "downloadModel": "Download {model}",
+  "@downloadModel": {
+    "description": "Download button for a model",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "removeModel": "Remove {model}",
+  "@removeModel": {
+    "description": "Remove button or title for a model",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "modelRemoved": "{model} removed",
+  "@modelRemoved": {
+    "description": "Snackbar message when a model is removed",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadingModel": "Downloading {model}...",
+  "@downloadingModel": {
+    "description": "Download progress dialog title",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadingModelSize": "Downloading {size}...",
+  "@downloadingModelSize": {
+    "description": "Download progress status",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+
+  "modelDownloaded": "{model} downloaded successfully",
+  "@modelDownloaded": {
+    "description": "Snackbar message when model download succeeds",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadedModels": "Downloaded Models",
+  "@downloadedModels": {
+    "description": "Section header for downloaded models list"
+  },
+
+  "advancedSettings": "Advanced Settings",
+  "@advancedSettings": {
+    "description": "Section header for advanced settings"
+  },
+
+  "autoDownloadUpdates": "Auto-download Model Updates",
+  "@autoDownloadUpdates": {
+    "description": "Auto-download model updates toggle"
+  },
+
+  "autoDownloadSubtitle": "Automatically download new model versions",
+  "@autoDownloadSubtitle": {
+    "description": "Subtitle for auto-download updates toggle"
+  },
+
+  "compressImages": "Compress Images",
+  "@compressImages": {
+    "description": "Compress images toggle"
+  },
+
+  "compressSubtitle": "Reduce image size for faster processing",
+  "@compressSubtitle": {
+    "description": "Subtitle for compress images toggle"
+  },
+
+  "storageOptimization": "Storage Optimization",
+  "@storageOptimization": {
+    "description": "Storage optimization toggle"
+  },
+
+  "storageSubtitle": "Automatically clean up old cache files",
+  "@storageSubtitle": {
+    "description": "Subtitle for storage optimization toggle"
+  },
+
+  "storageUsage": "Storage Usage",
+  "@storageUsage": {
+    "description": "Storage usage section header"
+  },
+
+  "modelsDownloaded": "Models Downloaded:",
+  "@modelsDownloaded": {
+    "description": "Label for model download count"
+  },
+
+  "totalStorageUsed": "Total Storage Used:",
+  "@totalStorageUsed": {
+    "description": "Label for total storage used"
+  },
+
+  "available": "Available:",
+  "@available": {
+    "description": "Label for available storage"
+  },
+
+  "enableOfflineClassification": "Enable Offline Classification",
+  "@enableOfflineClassification": {
+    "description": "Toggle for enabling offline classification"
+  },
+
+  "offlineEnabled": "Offline mode is enabled",
+  "@offlineEnabled": {
+    "description": "Status when offline mode is enabled"
+  },
+
+  "offlineDisabled": "Offline mode is disabled",
+  "@offlineDisabled": {
+    "description": "Status when offline mode is disabled"
+  },
+
+  "offlineDescription": "Classify waste items without an internet connection. Offline models will be downloaded to your device.",
+  "@offlineDescription": {
+    "description": "Description text for offline mode"
+  },
+
+  "loadingOfflineSettings": "Loading offline settings...",
+  "@loadingOfflineSettings": {
+    "description": "Loading message for offline settings screen"
+  },
+
+  "save": "Save",
+  "@save": {
+    "description": "Save button text"
+  },
+
+  "ok": "OK",
+  "@ok": {
+    "description": "OK button text"
+  },
+
+  "remove": "Remove",
+  "@remove": {
+    "description": "Remove button text"
+  },
+
+  "downloadFailedTitle": "Download Failed",
+  "@downloadFailedTitle": {
+    "description": "Download failed dialog title"
+  },
+
+  "modelDownloadFailed": "Failed to download {model}",
+  "@modelDownloadFailed": {
+    "description": "Snackbar message when model download fails",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "modelRemoveFailed": "Failed to remove {model}",
+  "@modelRemoveFailed": {
+    "description": "Snackbar message when model removal fails",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "removeModelConfirm": "Are you sure you want to remove {model}? You can download it again later.",
+  "@removeModelConfirm": {
+    "description": "Confirmation dialog body for model removal",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "premiumCustomThemesBody": "Custom themes are available with a premium subscription. Upgrade to unlock this feature!",
+  "@premiumCustomThemesBody": {
+    "description": "Premium prompt body for custom themes"
   }
 }

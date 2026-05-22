@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../l10n/app_localizations.dart';
 import '../providers.dart';
 import '../utils/routes.dart';
 
@@ -8,21 +9,21 @@ class ThemeSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final theme = ref.watch(themeProvider);
     final premium = ref.read(premiumServiceProvider);
     final isPremium = premium.isPremiumFeature('theme_customization');
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Theme Settings'),
+        title: Text(t.themeSettings),
       ),
       body: ListView(
         children: [
-          // Theme Mode Selection
           ListTile(
             leading: const Icon(Icons.brightness_auto),
-            title: const Text('System Default'),
-            subtitle: const Text('Follow system theme settings'),
+            title: Text(t.systemDefault),
+            subtitle: Text(t.followSystemTheme),
             trailing: Radio<ThemeMode>(
               value: ThemeMode.system,
               groupValue: theme.themeMode,
@@ -35,8 +36,8 @@ class ThemeSettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.light_mode),
-            title: const Text('Light Theme'),
-            subtitle: const Text('Always use light theme'),
+            title: Text(t.lightTheme),
+            subtitle: Text(t.alwaysUseLight),
             trailing: Radio<ThemeMode>(
               value: ThemeMode.light,
               groupValue: theme.themeMode,
@@ -49,8 +50,8 @@ class ThemeSettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.dark_mode),
-            title: const Text('Dark Theme'),
-            subtitle: const Text('Always use dark theme'),
+            title: Text(t.darkTheme),
+            subtitle: Text(t.alwaysUseDark),
             trailing: Radio<ThemeMode>(
               value: ThemeMode.dark,
               groupValue: theme.themeMode,
@@ -62,20 +63,16 @@ class ThemeSettingsScreen extends ConsumerWidget {
             ),
           ),
           const Divider(),
-
-          // Premium Features Navigation
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
-              'Premium Features',
-              style: TextStyle(
+              t.premiumFeatures,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-
-          // Premium Features Row - Always visible for easy access
           Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: ListTile(
@@ -87,20 +84,17 @@ class ThemeSettingsScreen extends ConsumerWidget {
                 ),
                 child: const Icon(Icons.workspace_premium, color: Colors.amber),
               ),
-              title: const Text(
-                'Premium Features',
-                style: TextStyle(fontWeight: FontWeight.w500),
+              title: Text(
+                t.premiumFeatures,
+                style: const TextStyle(fontWeight: FontWeight.w500),
               ),
-              subtitle:
-                  const Text('Unlock advanced theme customization and more'),
+              subtitle: Text(t.premiumFeaturesSubtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.pushNamed(context, Routes.premium);
               },
             ),
           ),
-
-          // Custom Themes Section (only for non-premium users)
           if (!isPremium) ...[
             const SizedBox(height: 8),
             Card(
@@ -112,7 +106,7 @@ class ThemeSettingsScreen extends ConsumerWidget {
                 trailing:
                     const Icon(Icons.workspace_premium, color: Colors.amber),
                 onTap: () {
-                  _showPremiumFeaturePrompt(context, ref);
+                  _showPremiumFeaturePrompt(context, ref, t);
                 },
               ),
             ),
@@ -126,26 +120,24 @@ class ThemeSettingsScreen extends ConsumerWidget {
     ref.read(themeProvider.notifier).setThemeMode(mode);
   }
 
-  void _showPremiumFeaturePrompt(BuildContext context, WidgetRef ref) {
+  void _showPremiumFeaturePrompt(
+      BuildContext context, WidgetRef ref, AppLocalizations t) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Premium Feature'),
-        content: const Text(
-          'Custom themes are available with a premium subscription. Upgrade to unlock this feature!',
-        ),
+        title: Text(t.premiumFeatureTitle('Custom Themes')),
+        content: Text(t.premiumCustomThemesBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Maybe Later'),
+            child: Text(t.notNow),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // Navigate to premium features screen using named route
               Navigator.pushNamed(context, Routes.premium);
             },
-            child: const Text('Upgrade Now'),
+            child: Text(t.upgrade),
           ),
         ],
       ),

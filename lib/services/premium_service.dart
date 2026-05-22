@@ -5,9 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
+import '../config/monetization_ai_config_contract.dart';
 import '../models/premium_feature.dart';
 import '../utils/waste_app_logger.dart';
 import 'firestore_schema_registry.dart';
+import 'remote_config_service.dart';
 
 enum PremiumTier {
   free,
@@ -125,9 +127,16 @@ class PremiumService extends ChangeNotifier {
   }
 
   int getDailyScanLimit() {
+    final remoteLimit = MonetizationAiConfigKeys.readInt(
+      RemoteConfigService(),
+      MonetizationAiConfigKeys.freeDailyScanLimit,
+      MonetizationAiConfigKeys.freeDailyScanLimitLegacy,
+      defaultValue: 5,
+    );
+
     switch (getCurrentTier()) {
       case PremiumTier.free:
-        return 10;
+        return remoteLimit;
       case PremiumTier.premium:
         return 100;
       case PremiumTier.family:

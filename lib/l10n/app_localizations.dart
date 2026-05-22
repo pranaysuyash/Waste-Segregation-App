@@ -1326,6 +1326,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Classifications saved locally only'**
   String get syncClassificationsLocalOnly;
+
+  /// Toggle to enable notifications
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Notifications'**
+  String get enableNotifications;
+
+  /// Educational content notifications toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Educational Content'**
+  String get educationalContent;
+
+  /// Gamification notifications toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Gamification'**
+  String get gamification;
+
+  /// Reminder notifications toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get reminders;
+
+  /// Snackbar message when notification settings are saved
+  ///
+  /// In en, this message translates to:
+  /// **'Notification settings saved'**
+  String get notificationSettingsSaved;
+
+  /// System default theme option
+  ///
+  /// In en, this message translates to:
+  /// **'System Default'**
+  String get systemDefault;
+
+  /// Subtitle for system default theme
+  ///
+  /// In en, this message translates to:
+  /// **'Follow system theme settings'**
+  String get followSystemTheme;
+
+  /// Light theme option
+  ///
+  /// In en, this message translates to:
+  /// **'Light Theme'**
+  String get lightTheme;
+
+  /// Subtitle for light theme
+  ///
+  /// In en, this message translates to:
+  /// **'Always use light theme'**
+  String get alwaysUseLight;
+
+  /// Dark theme option
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Theme'**
+  String get darkTheme;
+
+  /// Subtitle for dark theme
+  ///
+  /// In en, this message translates to:
+  /// **'Always use dark theme'**
+  String get alwaysUseDark;
+
+  /// Snackbar message when offline settings are saved
+  ///
+  /// In en, this message translates to:
+  /// **'Offline settings saved'**
+  String get offlineSaved;
+
+  /// Title for enable offline mode section
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Offline Mode'**
+  String get enableOfflineMode;
+
+  /// Download button for a model
+  ///
+  /// In en, this message translates to:
+  /// **'Download {model}'**
+  String downloadModel(String model);
+
+  /// Remove button or title for a model
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {model}'**
+  String removeModel(String model);
+
+  /// Snackbar message when a model is removed
+  ///
+  /// In en, this message translates to:
+  /// **'{model} removed'**
+  String modelRemoved(String model);
+
+  /// Download progress dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading {model}...'**
+  String downloadingModel(String model);
+
+  /// Download progress status
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading {size}...'**
+  String downloadingModelSize(String size);
+
+  /// Snackbar message when model download succeeds
+  ///
+  /// In en, this message translates to:
+  /// **'{model} downloaded successfully'**
+  String modelDownloaded(String model);
+
+  /// Section header for downloaded models list
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded Models'**
+  String get downloadedModels;
+
+  /// Section header for advanced settings
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced Settings'**
+  String get advancedSettings;
+
+  /// Auto-download model updates toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-download Model Updates'**
+  String get autoDownloadUpdates;
+
+  /// Subtitle for auto-download updates toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically download new model versions'**
+  String get autoDownloadSubtitle;
+
+  /// Compress images toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Compress Images'**
+  String get compressImages;
+
+  /// Subtitle for compress images toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce image size for faster processing'**
+  String get compressSubtitle;
+
+  /// Storage optimization toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Storage Optimization'**
+  String get storageOptimization;
+
+  /// Subtitle for storage optimization toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically clean up old cache files'**
+  String get storageSubtitle;
+
+  /// Storage usage section header
+  ///
+  /// In en, this message translates to:
+  /// **'Storage Usage'**
+  String get storageUsage;
+
+  /// Label for model download count
+  ///
+  /// In en, this message translates to:
+  /// **'Models Downloaded:'**
+  String get modelsDownloaded;
+
+  /// Label for total storage used
+  ///
+  /// In en, this message translates to:
+  /// **'Total Storage Used:'**
+  String get totalStorageUsed;
+
+  /// Label for available storage
+  ///
+  /// In en, this message translates to:
+  /// **'Available:'**
+  String get available;
+
+  /// Toggle for enabling offline classification
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Offline Classification'**
+  String get enableOfflineClassification;
+
+  /// Status when offline mode is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Offline mode is enabled'**
+  String get offlineEnabled;
+
+  /// Status when offline mode is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Offline mode is disabled'**
+  String get offlineDisabled;
+
+  /// Description text for offline mode
+  ///
+  /// In en, this message translates to:
+  /// **'Classify waste items without an internet connection. Offline models will be downloaded to your device.'**
+  String get offlineDescription;
+
+  /// Loading message for offline settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Loading offline settings...'**
+  String get loadingOfflineSettings;
+
+  /// Save button text
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// OK button text
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// Remove button text
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// Download failed dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Download Failed'**
+  String get downloadFailedTitle;
+
+  /// Snackbar message when model download fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to download {model}'**
+  String modelDownloadFailed(String model);
+
+  /// Snackbar message when model removal fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove {model}'**
+  String modelRemoveFailed(String model);
+
+  /// Confirmation dialog body for model removal
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove {model}? You can download it again later.'**
+  String removeModelConfirm(String model);
+
+  /// Premium prompt body for custom themes
+  ///
+  /// In en, this message translates to:
+  /// **'Custom themes are available with a premium subscription. Upgrade to unlock this feature!'**
+  String get premiumCustomThemesBody;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

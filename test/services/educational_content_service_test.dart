@@ -821,5 +821,47 @@ void main() {
         // Ensure no overlap with basic content (example check)
       });
     });
+
+    group('Bookmark Tests', () {
+      test('toggleBookmark adds and removes bookmark', () async {
+        final service = EducationalContentService();
+        await Future.delayed(Duration.zero);
+        expect(service.isBookmarked('non_existent'), false);
+        await service.toggleBookmark('article1');
+        expect(service.isBookmarked('article1'), true);
+        await service.toggleBookmark('article1');
+        expect(service.isBookmarked('article1'), false);
+      });
+
+      test('bookmarkedIds returns all bookmarked content IDs', () async {
+        final service = EducationalContentService();
+        await Future.delayed(Duration.zero);
+        await service.toggleBookmark('article1');
+        await service.toggleBookmark('video1');
+        final ids = service.bookmarkedIds;
+        expect(ids.length, 2);
+        expect(ids.contains('article1'), true);
+        expect(ids.contains('video1'), true);
+      });
+
+      test('getBookmarkedContent returns only bookmarked items', () async {
+        final service = EducationalContentService();
+        await Future.delayed(Duration.zero);
+        await service.toggleBookmark('article1');
+        await service.toggleBookmark('video1');
+        final bookmarked = service.getBookmarkedContent();
+        expect(bookmarked.length, 2);
+        expect(bookmarked.every((c) => c.id == 'article1' || c.id == 'video1'), true);
+      });
+
+      test('toggleBookmark removes from bookmark list', () async {
+        final service = EducationalContentService();
+        await Future.delayed(Duration.zero);
+        await service.toggleBookmark('article1');
+        expect(service.bookmarkedIds.length, 1);
+        await service.toggleBookmark('article1');
+        expect(service.bookmarkedIds.length, 0);
+      });
+    });
   });
 }

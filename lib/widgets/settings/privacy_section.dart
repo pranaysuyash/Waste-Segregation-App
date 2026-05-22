@@ -1,12 +1,15 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/training_data_service.dart';
+import 'package:waste_segregation_app/services/user_consent_service.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/widgets/settings/setting_tile.dart';
@@ -161,6 +164,8 @@ class _PrivacySectionState extends State<PrivacySection> {
       if (enabled) {
         await storage.grantTrainingConsent(source: 'settings');
       } else {
+        final consentService = UserConsentService(await SharedPreferences.getInstance());
+        await consentService.recordDataDeletionRequest(DateTime.now());
         await service.revokeConsentAndRequestDeletion();
       }
       if (mounted) {
@@ -240,11 +245,19 @@ class _PrivacySectionState extends State<PrivacySection> {
     try {
       final storage = Provider.of<StorageService>(context, listen: false);
       final jsonData = await storage.exportUserData();
+      final parsed = jsonDecode(jsonData);
+      final wrapped = {
+        'appVersion': '1.0.0',
+        'schemaVersion': 1,
+        'exportDate': DateTime.now().toIso8601String(),
+        'data': parsed,
+      };
+      final wrappedJson = jsonEncode(wrapped);
       final dir = await getTemporaryDirectory();
       final file = File(
         '${dir.path}/waste_app_export_${DateTime.now().millisecondsSinceEpoch}.json',
       );
-      await file.writeAsString(jsonData);
+      await file.writeAsString(wrappedJson);
 
       await Share.shareXFiles(
         [XFile(file.path)],
@@ -253,6 +266,9 @@ class _PrivacySectionState extends State<PrivacySection> {
             'App version: 1.0.0\n'
             'Schema version: 1',
       );
+
+      final consentService = UserConsentService(await SharedPreferences.getInstance());
+      await consentService.recordDataExportRequest(DateTime.now());
 
       if (mounted) {
         SettingsTheme.showSuccessSnackBar(

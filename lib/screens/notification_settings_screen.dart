@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:waste_segregation_app/l10n/app_localizations.dart';
 
 import '../services/storage_service.dart';
 
@@ -26,39 +27,57 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _loadSettings() async {
-    final storage = Provider.of<StorageService>(context, listen: false);
-    final settings = await storage.getSettings();
-    setState(() {
-      _notificationsEnabled = settings['notifications'] ?? true;
-      _educationalEnabled = settings['eduNotifications'] ?? true;
-      _gamificationEnabled = settings['gamificationNotifications'] ?? true;
-      _reminderEnabled = settings['reminderNotifications'] ?? true;
-      _loading = false;
-    });
+    try {
+      final storage = Provider.of<StorageService>(context, listen: false);
+      final settings = await storage.getSettings();
+      if (mounted) {
+        setState(() {
+          _notificationsEnabled = settings['notifications'] ?? true;
+          _educationalEnabled = settings['eduNotifications'] ?? true;
+          _gamificationEnabled = settings['gamificationNotifications'] ?? true;
+          _reminderEnabled = settings['reminderNotifications'] ?? true;
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
   }
 
   Future<void> _saveSettings() async {
-    final storage = Provider.of<StorageService>(context, listen: false);
-    final settings = await storage.getSettings();
-    await storage.saveSettings(
-      isDarkMode: settings['isDarkMode'] ?? false,
-      isGoogleSyncEnabled: settings['isGoogleSyncEnabled'] ?? false,
-      allowHistoryFeedback: settings['allowHistoryFeedback'] ?? true,
-      feedbackTimeframeDays: settings['feedbackTimeframeDays'] ?? 7,
-      notifications: _notificationsEnabled,
-      eduNotifications: _educationalEnabled,
-      gamificationNotifications: _gamificationEnabled,
-      reminderNotifications: _reminderEnabled,
-    );
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Notification settings saved')),
+    try {
+      final storage = Provider.of<StorageService>(context, listen: false);
+      final settings = await storage.getSettings();
+      await storage.saveSettings(
+        isDarkMode: settings['isDarkMode'] ?? false,
+        isGoogleSyncEnabled: settings['isGoogleSyncEnabled'] ?? false,
+        allowHistoryFeedback: settings['allowHistoryFeedback'] ?? true,
+        feedbackTimeframeDays: settings['feedbackTimeframeDays'] ?? 7,
+        notifications: _notificationsEnabled,
+        eduNotifications: _educationalEnabled,
+        gamificationNotifications: _gamificationEnabled,
+        reminderNotifications: _reminderEnabled,
       );
+      if (mounted) {
+        final t = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t.notificationSettingsSaved)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save: $e')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     if (_loading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -66,7 +85,7 @@ class _NotificationSettingsScreenState
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notification Settings'),
+        title: Text(t.notificationSettings),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
@@ -77,7 +96,7 @@ class _NotificationSettingsScreenState
       body: ListView(
         children: [
           SwitchListTile(
-            title: const Text('Enable Notifications'),
+            title: Text(t.enableNotifications),
             value: _notificationsEnabled,
             onChanged: (value) {
               setState(() {
@@ -87,7 +106,7 @@ class _NotificationSettingsScreenState
           ),
           const Divider(),
           SwitchListTile(
-            title: const Text('Educational Content'),
+            title: Text(t.educationalContent),
             value: _educationalEnabled,
             onChanged: _notificationsEnabled
                 ? (value) {
@@ -98,7 +117,7 @@ class _NotificationSettingsScreenState
                 : null,
           ),
           SwitchListTile(
-            title: const Text('Gamification'),
+            title: Text(t.gamification),
             value: _gamificationEnabled,
             onChanged: _notificationsEnabled
                 ? (value) {
@@ -109,7 +128,7 @@ class _NotificationSettingsScreenState
                 : null,
           ),
           SwitchListTile(
-            title: const Text('Reminders'),
+            title: Text(t.reminders),
             value: _reminderEnabled,
             onChanged: _notificationsEnabled
                 ? (value) {

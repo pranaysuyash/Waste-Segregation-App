@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
@@ -85,7 +86,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   bool _guardrailForcesBatch = false;
 
   bool _isSelectingRegions = false;
-  List<SelectedRegion> _selectedRegions = [];
+  List<NormalizedBoundingBox> _selectedRegions = [];
   List<DetectedWasteRegion>? _suggestedRegions;
   bool _hasShownSuggestion = false;
 
@@ -532,24 +533,23 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       _isSelectingRegions = true;
       _hasShownSuggestion = false;
       if (preDetected != null && preDetected.isNotEmpty) {
-        _selectedRegions = preDetected.map((r) {
-          return SelectedRegion(
-            id: int.tryParse(r.id.replaceAll(RegExp(r'\D'), '')) ?? 1,
-            left: r.boundingBox.left,
-            top: r.boundingBox.top,
-            width: r.boundingBox.width,
-            height: r.boundingBox.height,
-          );
-        }).toList();
+        _selectedRegions = preDetected
+            .map((r) => r.boundingBox)
+            .toList();
       } else {
         _selectedRegions = [_defaultRegionSeed()];
       }
     });
   }
 
-  SelectedRegion _defaultRegionSeed() {
-    return SelectedRegion(
-      id: 1,
+  void _dismissSuggestion() {
+    setState(() {
+      _suggestedRegions = null;
+    });
+  }
+
+  NormalizedBoundingBox _defaultRegionSeed() {
+    return NormalizedBoundingBox(
       left: 0.04,
       top: 0.04,
       width: 0.92,
@@ -818,6 +818,19 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         );
       }
       return;
+    }
+
+    // Daily scan limit check for free-tier users
+    if (!isPremiumUser) {
+      final dailyScanCount = _readDailyScanCount();
+      if (!premiumService.canPerformScan(dailyScanCount)) {
+        if (mounted) {
+          _stateMachineNotifier.reset();
+          setState(() {});
+          _showDailyLimitDialog(context, premiumService.getDailyScanLimit());
+        }
+        return;
+      }
     }
 
     // Track 1 & 2: Quality gate check and offline queue handling
@@ -1105,6 +1118,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           'Analysis cancelled after completion, error: not navigating.',
         );
         return;
+      }
+
+      if (!isPremiumUser) {
+        _incrementDailyScanCount();
       }
 
       if (_selectedSpeed == AnalysisSpeed.instant) {
@@ -1911,7 +1928,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
     try {
       final aiService = ref.read(aiServiceProvider);
-      final regions = List<SelectedRegion>.from(_selectedRegions);
+      final regions = List<NormalizedBoundingBox>.from(_selectedRegions);
 
       Uint8List imageBytes;
       String imageName;
@@ -1937,6 +1954,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
       if (!mounted) return;
 
+      if (!mounted) return;
+
       if (results.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1954,27 +1973,15 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
       _stateMachineNotifier.reset();
 
-      final pairedCount = regions.length < results.length
-          ? regions.length
-          : results.length;
       final detectedRegions = List<DetectedWasteRegion>.generate(
-        pairedCount,
-        (index) {
-          final selectedRegion = regions[index];
-          final classification = results[index];
-          return DetectedWasteRegion(
-            boundingBox: NormalizedBoundingBox(
-              left: selectedRegion.left,
-              top: selectedRegion.top,
-              width: selectedRegion.width,
-              height: selectedRegion.height,
-            ),
-            classification: classification,
-            confidence: classification.confidence,
-            userConfirmed: true,
-            label: classification.displayItemLabel,
-          );
-        },
+        regions.length < results.length ? regions.length : results.length,
+        (index) => DetectedWasteRegion(
+          boundingBox: regions[index],
+          classification: results[index],
+          confidence: results[index].confidence,
+          userConfirmed: true,
+          label: results[index].displayItemLabel,
+        ),
       );
       final multiItemResult = MultiItemClassificationResult(
         sourceImagePath: imageName,

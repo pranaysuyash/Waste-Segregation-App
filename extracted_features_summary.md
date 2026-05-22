@@ -1,0 +1,539 @@
+# Extracted Feature Mentions
+
+- If a secret is found in source, replace with placeholder and document migration.
+- return []; // Placeholder for fetch logic
+- Re-check for unclosed gaps: TODOs, stubs, disabled paths, placeholder logic, silent fallback behavior.
+- The current repo state still centers on cloud AI plus a placeholder on-device path:
+- `lib/services/on_device_vision_service.dart` exists, but the implementation is still placeholder-only and does not perform real local inference.
+- The repo is currently not yet at that architecture. The on-device path remains placeholder-only, and the cloud path is still the functional production route.
+- analysisSource: WasteClassification.analysisSourceLocalExperimental,
+- analysisFallbackReason: 'placeholder_local_model',
+- expect(find.text('Analysis Source: Local experimental'), findsOneWidget);
+- test('placeholder - mockito setup needs build_runner fixes', () {
+- For now, this placeholder test allows the file to compile and pass.
+- test('queues requests, exposes status, and flushes a placeholder result', () async {
+- expect(result.modelSource, 'batch-api-placeholder');
+- test('analyzeImage returns placeholder on-device classification', () async {
+- test('analyzeWebImage returns placeholder on-device classification', () async {
+- 'analysis_source': 'local_experimental',
+- 'fallback_reason': 'placeholder_local_model',
+- Simple mock image data (placeholder)
+- This is a placeholder for when that's implemented
+- test('should keep placeholders when values missing', () {
+- test('should extract placeholders correctly', () {
+- final placeholders = TemplateInterpolator.extractPlaceholders(template);
+- expect(placeholders, hasLength(3));
+- expect(placeholders, contains('material'));
+- expect(placeholders, contains('category'));
+- expect(placeholders, contains('era'));
+- test('should get required placeholders', () {
+- templateId: 'placeholder_test',
+- final placeholders = template.getRequiredPlaceholders();
+- expect(placeholders, hasLength(4));
+- expect(placeholders, contains('property'));
+- test('stubbedShouldEscalate forces escalation flag', () async {
+- fake.stubbedShouldEscalate = true;
+- test('marks local results as experimental', () async {
+- WasteClassification.analysisSourceLocalExperimental,
+- test('hasPlaceholderKey detects placeholder values', () {
+- expect(ProductionSafetyConfig.hasPlaceholderKey(''), isTrue);
+- ProductionSafetyConfig.hasPlaceholderKey('your-openai-api-key-here'),
+- expect(ProductionSafetyConfig.hasPlaceholderKey('your-anything'), isTrue);
+- expect(ProductionSafetyConfig.hasPlaceholderKey('sk-real-key-abc123'),
+- WasteClassification.analysisSourceLocalExperimental);
+- expect(roundTrip.analysisSourceLabel, 'Local experimental');
+- expect(roundTrip.analysisFallbackReason, 'placeholder_local_model');
+- <input id="manifestVersion" value="v2026-05-22" placeholder="vYYYY-MM-DD">
+- <input class="search" id="searchInput" placeholder="Search candidate ID..." />
+- <textarea class="notes-field" id="reviewNotes" placeholder="Add notes for this review action...">${esc(cand.review?.reviewNotes || '')}</textarea>
+- layer0Router.stubbedWasteClassification = WasteClassification(
+- Stub implementation of [Layer0Router] for testing.
+- this.stubbedWasteClassification,
+- WasteClassification? stubbedWasteClassification;
+- throw Exception('Stub Layer0Router error');
+- wasteClassification: stubbedWasteClassification,
+- Stub for [BarcodeLookupService] required by [Layer0Router] constructor.
+- isTrue); // Placeholder; drift detection is via registry completeness
+- test('should have API key placeholders', () {
+- Should have placeholder text (not actual keys in tests)
+- testWidgets('displays placeholder when no image URL', (tester) async {
+- Should find the placeholder icon
+- This is a placeholder file.
+- When making architecture decisions or implementing new features, always refer to this unified documentation to ensure consistency with the overall design vision.
+- **Extensibility**: Easy addition of new features and integrations
+- All new features use Riverpod only
+- 1. **Before Adding New Features**
+- [ ] Hidden Debug UI: Document and implement the /debug panel behind ENABLE_DEBUG_UI flag—list the routes and stub out buttons
+- [ ] Update API documentation for new features
+- [ ] Feature-Flag System: Use flutter_dotenv + remote_config for experimental features
+- ❌ Apple App Store submission (not started)
+- Uses default placeholder API keys (will show "incorrect API key" errors)
+- `web/index.html` must not initialize Firebase with static/placeholder keys.
+- 0.1.5+99 (new features)
+- ./assets/images/placeholder.txt
+- **Current premium screen exists but is placeholder.** Define concrete tiers:
+- **Feature Complexity**: A/B test new features before full rollout
+- Enables rapid prototyping of new features
+- > **Status:** ⬜ Not Started | 🟡 In Progress | ✅ Complete | ⚠️ N/A
+- ├── _ChallengesTab (Placeholder)
+- └── _StatsTab (Placeholder)
+- | Initial | Skeleton/placeholder | < 100ms |
+- Loading placeholder for history data.
+- this.placeholder,
+- final Widget? placeholder;
+- return _buildPlaceholder(context);
+- Widget _buildPlaceholder(BuildContext context) {
+- if (placeholder != null) return placeholder!;
+- This is a placeholder for base href that will be replaced by the value of
+- Do not initialize a web app instance here with placeholder/static keys. -->
+- _buildPlaceholderImage(),
+- : _buildPlaceholderImage();
+- Widget _buildPlaceholderImage() {
+- * Missing fields are omitted gracefully — no placeholders or crashes.
+- Simple stub implementation for cross-platform compatibility
+- Simple stub class for cross-platform compatibility
+- For now, return a placeholder - in real implementation, this would handle
+- 'We\'re working hard to bring you this exciting new feature. Stay tuned!',
+- return _buildImagePlaceholder();
+- if (!snap.hasData) return _buildImagePlaceholder();
+- Widget _buildImagePlaceholder() {
+- Provides a smooth animated placeholder without requiring external dependencies.
+- A shimmer placeholder for card-like content
+- **Details**: UI placeholders exist without real functionality, and some integrations (like Facebook SAM and multi-object detection) are incomplete.
+- **Performance Tests**: ❌ Not started
+- **Security Tests**: ❌ Not started
+- **Technology Adoption Rate**: % of users engaging with new features
+- *   **Iconography:** Review placeholder icons (gallery, quiz question mark) for better branding.
+- *   **Default Avatars:** Improve basic "Y" placeholder in Community Feed.
+- Initialize feature flags from remote config (placeholder).
+- if (ProductionSafetyConfig.hasPlaceholderKey(ApiConfig.openAiApiKey)) {
+- 'OpenAI client blocked: OPENAI_API_KEY is placeholder/missing. Route through backend gateway or provide a real key in non-release test builds.',
+- if (ProductionSafetyConfig.hasPlaceholderKey(ApiConfig.apiKey)) {
+- 'Gemini client blocked: GEMINI_API_KEY is placeholder/missing. Route through backend gateway or provide a real key in non-release test builds.',
+- This is a placeholder for the actual implementation
+- This is a placeholder - actual implementation would depend on service
+- 'local_experimental',
+- Early access to new features
+- [ ] **Feature Flags**: All new features behind toggles for A/B testing
+- "newFeature": "New Feature",
+- "description": "Title for new feature setting"
+- Placeholder for image segmentation.
+- !ProductionSafetyConfig.hasPlaceholderKey(openAiApiKey);
+- !ProductionSafetyConfig.hasPlaceholderKey(geminiApiKey);
+- if (ProductionSafetyConfig.hasPlaceholderKey(openAiApiKey)) {
+- 'OpenAI analysis blocked: placeholder/missing API key.',
+- if (ProductionSafetyConfig.hasPlaceholderKey(geminiApiKey)) {
+- 'Gemini analysis blocked: placeholder/missing API key.',
+- 'Gemini correction blocked: placeholder/missing API key.',
+- 'OpenAI correction blocked: placeholder/missing API key.',
+- return _buildPlaceholderAd();
+- Build a performant placeholder for the ad
+- Widget _buildPlaceholderAd() {
+- usedMemoryMB = 50.0; // Placeholder
+- totalMemoryMB = 100.0; // Placeholder
+- For now, return 0 as placeholder
+- For now, return placeholder values
+- this.stubbedShouldEscalate = false,
+- bool stubbedShouldEscalate;
+- shouldEscalateToCloud: stubbedShouldEscalate,
+- <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+- <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+- **Main failures:** AI service tests fail due to invalid/placeholder API key in test environment. All other core logic and UI tests pass.
+- placeholder: const AssetImage('assets/images/placeholder.png'),
+- **Current Status:** UI placeholders exist but functionality incomplete
+- Update user guide with new features
+- This sync API must never return placeholder batch results.
+- return _markLocalExperimental(result);
+- WasteClassification _markLocalExperimental(WasteClassification result) {
+- Placeholder for future on-device VLM (e.g. MobileVLM, moondream2, SmolVLM).
+- if (ProductionSafetyConfig.hasPlaceholderKey(_apiKey)) {
+- 'OpenAI provider client blocked: placeholder/missing API key.',
+- `LocalVlmProvider`      — on-device VLM stub (UnimplementedError until bundled)
+- 1. **Skeleton Loading:** Replace spinners with content-shaped placeholders
+- *   LLMs can also assist in generating placeholder visual descriptions for badge design inspiration (e.g., "a shield with a recycling symbol and three stars for a mastery badge"). The actual visual design will likely be a separate process.
+- *   **Curiosity & Exploration:** Discovering new features, hidden badges, or interesting educational content.
+- *   **Feature Adoption:** Track if challenges/badges successfully guide users to try new features.
+- *   **AI for Dynamic Difficulty Adjustment (DDA - 3.3 - Experimental):** Begin experimenting with simple DDA for certain challenge types if data supports it.
+- **Level Progression**: Unlocks new features, challenges, and rewards
+- For now, this is a placeholder
+- WasteAppLogger.info('Object detection model loaded (placeholder)');
+- For now, return placeholder results
+- return _detectObjectsPlaceholder();
+- Placeholder for object detection
+- List<DetectedObject> _detectObjectsPlaceholder() {
+- WasteAppLogger.info('Running object detection (placeholder mode)');
+- modelVersion: '1.0.0-placeholder',
+- For now, process individually (placeholder)
+- await _processBatchPlaceholder(batchToProcess);
+- Placeholder for batch processing
+- Future<void> _processBatchPlaceholder(
+- WasteAppLogger.info('Processing batch (placeholder mode)');
+- Process each request with placeholder result
+- 'This is a placeholder result. Full batch processing requires OpenAI Batch API integration. '
+- confidence: 0.0, // Indicates placeholder result
+- modelSource: 'batch-api-placeholder',
+- Assertions verify counts match feed items exactly (no placeholder numbers)
+- For now, we'll create a placeholder
+- This is a placeholder implementation that demonstrates the architecture.
+- For now, return a placeholder result indicating on-device analysis
+- Perform actual inference (placeholder)
+- This is a placeholder implementation
+- WasteAppLogger.info('Performing on-device inference (placeholder mode)');
+- Return a placeholder classification indicating on-device mode
+- 'This is an experimental local placeholder result. Full on-device inference requires model integration. '
+- [ ] Documentation updated for new features
+- **New Feature**: Tutorial coach marks using `tutorial_coach_mark` package
+- **New Feature**: Floating action button with speed dial for quick access
+- **New Feature**: Connectivity monitoring with user feedback
+- **New Feature**: Comprehensive semantic labels
+- Implemented all new features
+- *   **Current Status:** Placeholder. Basic communication happens via app store text and planned notifications.
+- *   Strategy for communicating updates, new features, and potential issues.
+- docs/planning/PRIORITY_TODOS.md:**Status**: TODO (Integrate with new feature designs)
+- c.isExperimentalAnalysisSource
+- _IndividualResultPlaceholder(classification: classification),
+- class _IndividualResultPlaceholder extends StatelessWidget {
+- const _IndividualResultPlaceholder({required this.classification});
+- This document provides a comprehensive analysis of the current User Experience (UX) and User Interface (UI) of the Waste Segregation App. It aims to identify existing user flows, evaluate current screen designs, and propose improvements, new features, and enhanced user flows. The goal is to create a more intuitive, engaging, and effective application.
+- |   | [Profile Picture Placeholder/Avatar]            | |
+- *   **Onboarding Tour for New Features:**
+- *   **Flow:** When significant new features are released, provide a brief, dismissible in-app tour highlighting what's new and how to use it.
+- This initial UX/UI analysis has reviewed key screens and user flows within the Waste Segregation App, identifying numerous opportunities for improvement and potential new features. The "Before" and "After" wireframes provide a conceptual basis for redesign, guided by the "Global UX/UI Themes" identified.
+- 7.  **Plan Phased Implementation:** Break down the desired changes and new features into manageable development phases or sprints.
+- If no image is available yet and we are not analyzing, show a loader or placeholder
+- **✨ NEW FEATURE - User Feedback System**
+- ├── New features tour
+- User has selected or captured an image but not started analysis.
+- static const String analysisSourceLocalExperimental =
+- 'local_experimental';
+- normalized == analysisSourceLocalExperimental ||
+- return analysisSourceLocalExperimental;
+- case analysisSourceLocalExperimental:
+- return 'Local experimental';
+- bool get isExperimentalAnalysisSource =>
+- effectiveAnalysisSource == analysisSourceLocalExperimental;
+- static final RegExp _placeholderRegex = RegExp(r'\{([^}]+)\}');
+- Replaces all placeholders in the format {key} with corresponding values.
+- If a placeholder has no corresponding value, it remains unchanged.
+- return template.replaceAllMapped(_placeholderRegex, (match) {
+- return values[key] ?? '{$key}'; // Keep placeholder if no value provided
+- Extract all placeholder keys from a template
+- Returns a Set of all unique placeholder keys found in the template.
+- static Set<String> extractPlaceholders(String template) {
+- return _placeholderRegex
+- Validate that all placeholders in template have corresponding values
+- Returns true if all placeholders can be filled with the provided values.
+- final placeholders = extractPlaceholders(template);
+- return placeholders.every((placeholder) => values.containsKey(placeholder));
+- Uses the TemplateInterpolator to replace placeholders in the title template.
+- Uses the TemplateInterpolator to replace placeholders in the description template.
+- Get all placeholders used in title and description templates
+- Returns a Set of all unique placeholder keys required to fully
+- Set<String> getRequiredPlaceholders() {
+- final titlePlaceholders =
+- TemplateInterpolator.extractPlaceholders(titleTemplate);
+- final descriptionPlaceholders =
+- TemplateInterpolator.extractPlaceholders(descriptionTemplate);
+- return {...titlePlaceholders, ...descriptionPlaceholders};
+- Validate that the provided values can fill all template placeholders
+- Returns true if all placeholders in both title and description templates
+- Detects placeholder / example API key values so they don't accidentally
+- static bool hasPlaceholderKey(String key) {
+- final configured = key.isNotEmpty && !hasPlaceholderKey(key);
+- Experimental User Flows (Long-term)
+- User placeholders
+- This is a simplified stub file for non-web platforms
+- **New Features Implemented**: 2 major systems
+- **Loading and Empty States**: Meaningful placeholder visualizations
+- This is the stub implementation for web-specific utilities.
+- **Functional Family Joining**: You can now actually join families using invitation codes (previously was a placeholder)
+- **Scalable Architecture**: Improved foundation for adding new features
+- 7. Placeholder vs. Implementation
+- Placeholders in `ContentDetailScreen` / `EducationalContentScreen` for media rendering.
+- Option 4: Plain flutter run (uses placeholder keys)
+- ==================== PLACEHOLDER SCREENS ====================
+- Placeholder for dedicated account settings screen
+- Placeholder for app preferences screen
+- Placeholder for privacy settings screen
+- Placeholder for help and support screen
+- Placeholder bottom sheets
+- if (value.contains('placeholder/missing api key') ||
+- Replace ALL placeholder keys below with new keys from Google Cloud Console
+- Get default achievements (placeholder - should come from service)
+- **Status**: **COMPLETED** - New feature added
+- **Status**: Not started
+- **Status**: **IMPLEMENTED** - Major new feature added
+- String get newFeatureBadge => 'New feature';
+- "placeholders": {
+- "newFeatureBadge": "New feature",
+- "description": "Semantic label for new feature badge"
+- Semantic label for new feature badge
+- **'New feature'**
+- ✨ NEW FEATURES:
+- • Join Family feature now actually works (was placeholder)
+- .env.example should only have placeholders
+- **Effort**: Replace placeholder IDs, test integration
+- 4. ✅ **AdMob Configuration** - Replace placeholder IDs *(By Thu 5/29)*
+- Status: planned, not started
+- Status: not started
+- title: 'New Feature',
+- A/B test new features
+- [ ] **Real Ad Unit IDs:** Replace all placeholder AdMob IDs.
+- [ ] ❌ **Placeholder ad unit IDs** (ca-app-pub-XXXXXXXXXXXXXXXX)
+- [ ] 🔄 Replace placeholder ad unit IDs with real AdMob console IDs
+- **Status**: ❌ **UI PLACEHOLDERS EXIST** → **FUNCTIONALITY INCOMPLETE**
+- 6. **Fix AdMob Configuration** - Replace placeholder IDs, test ad loading
+- *   **Navigating Local Rules:** Importance of checking local guidelines, links to resources (if a generic guide, otherwise placeholder for future local integration).
+- *   **Accessibility (A11y):** Ensure all new features and content adhere to accessibility standards.
+- **Current State:** Placeholder flag in README
+- **Description:** Use flutter_dotenv + remote_config to gate experimental camera features and new leaderboard
+- [ ] Analytics tracking for new features
+- Monitor performance metrics for new features
+- | **Empty States** | Basic placeholders | Engaging illustrations | Freepik Pro |
+- Phase 1: New features use Riverpod only
+- **Extensible Architecture**: New features can leverage existing components
+- 1. **Test the modernized app** - Run and explore all new features
+- *   **Placeholder for Phase 2+ AI integration.**
+- Create PR to see all new features in action:
+- New Features:
+- **Minor version** (1.X.0): New features or substantial improvements
+- | TC-11 | **Missing** | No in_app_purchase package; `lib/screens/premium_features_screen.dart:290-295` has stub comment | No real purchase flow | Zero ability for users to buy tokens or premium | Implement IAP or token purchase flow |
+- placeholder,  // Immediate placeholder
+- Immediate visual feedback (placeholder)
+- This document summarizes the latest trends in waste management technology, with a focus on mobile applications, gamification, and community engagement. It serves as a reference for identifying new feature opportunities for the Waste Segregation App.
+- """Placeholder for on-device local_small classifier.
+- Returns a stub until LocalClassifier is wired into the eval harness.
+- Create PR to see all new features
+- **Status**: VERIFIED - Placeholder IDs exist but marked as TEST IDs
+- UI placeholders exist but no functionality
+- Replace placeholder ad unit IDs
+- 🔴 Segmentation Implementation: UI placeholders exist but functionality needs completion
+- 🚧 User Feedback Loop: UI placeholder present but not fully implemented
+- **Status**: TODO (Integrate with new feature designs)
+- [ ] 🔄 Update API documentation for new features
+- Updated user_doc.md with new feature descriptions
+- Proposed New Features for Waste Segregation App
+- **Task**: Template interpolation library – add to utils/ with unit tests for placeholder validation.
+- **QUICK_START.md** - Quick implementation guide for new features
+- 1. **ENGINEERING_BACKLOG_CONSOLIDATED.md** - 📋 **12-week roadmap** (START HERE for new features)
+- Placeholder statistics (0 items, 0 points, 0 days streak)
+- Phase 3: Widget & Integration Tests (Not Started)
+- Widget Tests: 🔴 **NOT STARTED**
+- Integration Tests: 🔴 **NOT STARTED**
+- 3. ❌ **Widget tests working** - Not started
+- 4. ❌ **Integration tests working** - Not started
+- *   Manage feature flags (e.g., enabling/disabling experimental features for a subset of users).
+- *   Interface to manually send broadcast notifications to all users or specific segments (e.g., announcing new features or critical updates).
+- *   **Firebase Crashlytics (Likely):** Given the use of Firebase, it's highly probable that Firebase Crashlytics is integrated (or planned) for automatic crash reporting for native crashes and unhandled Dart exceptions.
+- **Cross-reference UX/UI Analysis:** `docs/design/user_experience/app_ux_ui_analysis.md` (Mentions in Home Screen for new users (4.1), and as a general global UX theme for proactive guidance. Section 5, Undocumented User Flow Opportunities, also lists "Onboarding Tour for New Features").
+- *   **Onboarding for New Features (as per UX analysis):** When significant new features are released, provide a brief in-app tour for existing users.
+- *   **Triggering Onboarding Logic:** Correctly identifying first-time users or users who haven't seen onboarding for new features.
+- *   **Maintaining Accessibility:** Accessibility can regress if not continuously tested and considered during development of new features or UI changes.
+- *   Track impact of new features or changes.
+- **Feature Adoption**: Usage metrics for new features
+- *   `icon_url`: "gs://your-bucket/badges/rookie_classifier.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/plastic_novice.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/paper_novice.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/sorting_star.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/diversity_detective.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/curious_mind.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/quiz_whiz_kid.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/page_turner.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/knowledge_seeker.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/steady_sorter.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/consistent_learner.png" (Placeholder)
+- *   `icon_url`: "gs://your-bucket/badges/challenger_approaching.png" (Placeholder)
+- test('all placeholder variables are consistent', () {
+- For each string with placeholders, verify same placeholders exist in all languages
+- final basePlaceholders = extractPlaceholders(baseString);
+- if (basePlaceholders.isNotEmpty) {
+- final translatedPlaceholders = extractPlaceholders(translatedString);
+- Check placeholders match
+- translatedPlaceholders,
+- unorderedEquals(basePlaceholders),
+- reason: 'Placeholders in ${locale.languageCode} for key ${entry.key} do not match base language',
+- Helper to extract placeholders like {variable}
+- Set<String> extractPlaceholders(String input) {
+- Develop structured usability test scripts for key user journeys (e.g., first-time classification, exploring educational content, using a new feature).
+- **Exploratory Testing**: Dedicate a short time block (e.g., 1-2 hours) for exploratory testing of new features or high-risk areas.
+- Remember that testing is an ongoing process that should evolve with the application. Regularly review and update your testing approach based on user feedback, new features, and evolving platform requirements.
+- Do not add new features here
+- Waste reduction attributable to new features
+- Revenue generation from new features
+- UI: Add tab/dropdown for switching between All-Time and (placeholder) other types
+- `image_picker` ^1.0.4 → ^1.1.x (verify new features)
+- Performance degradation from new features
+- 👥 **Members Tab**: Member directory (coming soon placeholder)
+- ✅ **Members Tab** - Coming soon placeholder for member directory
+- 5. **Test Members tab** - Should show "Coming soon" placeholder
+- 5. Test image placeholder display
+- Placeholder shows when image is missing
+- Updated test stub + expectation:
+- added mock stub for `setPremiumPlanEntitlement(any())`
+- 3) On-device placeholder classification now explicitly marks review-needed
+- Added `needsReview: true` in placeholder classification path.
+- create_issue_safe "[TODO] Update API Documentation" "Update API documentation for new features" "documentation" "LOW"
+- create_issue_safe "[TODO] Feature-Flag System" "Use flutter_dotenv + remote_config for experimental features" "feature-flags" "LOW"
+- create_issue_safe "[CODE] AdMob Configuration Required" "Replace placeholder ad unit IDs with actual AdMob console IDs" "ads,code-todo" "HIGH"
+- **Testing:** All new features must have >90% test coverage
+- `test/ui_consistency/comprehensive_overflow_test.dart` is currently skipped and should be treated as a stale coverage stub until migrated.
+- Address performance issues before new features
+- 📱 New Feature Alert! [Feature name] now helps you [benefit]. Update your Waste Segregation App today to access this game-changing capability. #AppUpdate #NewFeature
+- **New Feature Announcement**
+- We're excited to announce a powerful new feature that makes waste sorting even easier!
+- [ ] **AdMob placeholder IDs replaced** with real ad unit IDs
+- grep -r "ca-app-pub-XXXXXXXXXXXXXXXX" lib/ android/ ios/ && exit 1 || echo "No placeholder ad IDs"
+- placeholder_ids: 0
+- **Objective**: Replace any dummy/placeholder stats with real aggregation from Firestore/storage source, with proper loading/error/empty states.
+- No dummy/placeholder stats are shown in production
+- Beta access to new features
+- On-device ML scaffolding, but object detection is still placeholder-heavy.
+- | On-device ML / model download | Download and preprocessing scaffolding exists, but inference remains partially placeholder-based | `lib/services/model_download_service.dart`, `lib/services/object_detection_service.dart`, `lib/services/tflite_preprocessing_helper.dart` | On-device ML stack | Medium | Medium | Latency/cost fallback is not fully real yet | High | No | Yes |
+- `object_detection_service.dart` still contains placeholder inference behavior, so it should not be treated as the primary launch trust path.
+- Root cause: manual Mockito mocks for non-nullable Firestore interfaces returned `null` on unstubbed paths under NNBD, causing type errors / nested stubbing failures.
+- create_simple_issue "[TODO] Hidden Debug UI" "Document and implement /debug panel behind ENABLE_DEBUG_UI flag with route listings and button stubs" "MEDIUM"
+- create_simple_issue "[CODE] AdMob Configuration Required" "Replace placeholder ad unit IDs in ad_service.dart with actual AdMob console IDs and complete setup" "HIGH"
+- | **Classification Inactivity** | 7 days without classification | Push, Email | New feature highlight | "Scan anything" reminder |
+- | Experimental | 5-10% | Learning Value, Potential Scale | 1.0+ | Channel exploration, Creative testing |
+- Has a UI placeholder for segmentation but needs functional implementation
+- Minor: New features or significant improvements
+- [ ] New features listed
+- [ ] Key new features highlighted
+- [ ] Support team briefed on new features
+- | 0.9.1+91 | 2025-05-20 | Internal Testing | Points popup fix, UI improvements, new features |
+- Added placeholder/missing API key hard-fail in:
+- Initial result: FAIL (expected after new placeholder hardening)
+- Fix applied: updated test fixture to inject non-placeholder openAiApiKey + geminiApiKey
+- **UI Placeholder Implemented**:
+- `image_picker` ^1.1.x (verify new features)
+- | Provider adapters | **Scaffolded** — LiveAdapterNotImplemented stub | In `run_classification_eval.py` |
+- | Live adapter for `classifyImage` callable | **Wired** — `OpenAIViaClassifyImageAdapter` + `GeminiViaClassifyImageAdapter` | Requires golden cases with `expected.image_source` and Firebase service account credentials. `_call_classify_image` stubbed — needs image retrieval from Storage. |
+- Replace placeholders with new regenerated keys:
+- Replace actual keys with `AIzaSy-your-key-here` placeholders
+- [Placeholder] Test Write File
+- `_performInference()` is a placeholder (line 219) — returns synthetic result with `confidence: 0.0`
+- `modelVersion: '1.0.0-placeholder'` (line 264)
+- | On-device inference (Layer 1) | PLACEHOLDER ONLY |
+- **Current codebase state**: `tflite_preprocessing_helper.dart` exists but `tflite_flutter` is not in `pubspec.yaml`. The `on_device_vision_service.dart` has placeholder inference (line 160: `// TODO: Implement actual TFLite inference here`).
+- | NPU acceleration available | Yes (most devices) | Partial (depends on quantization) | Experimental |
+- Implement real TFLite inference in `OnDeviceVisionService._performInference()` (currently placeholder, line 160)
+- `lib/services/on_device_vision_service.dart` — placeholder on-device service
+- *Last updated: 2026-05-21. Owner: Pranay. Status: Roadmap draft — architectural direction confirmed, implementation not started.*
+- 3. Prepare user documentation for the new features
+- [ ] Add local quality model stub contract (even if initially rules-based).
+- [ ] Add duplicate detector stub with hash + threshold config.
+- Secret-path posture is mostly correct (env/dart-define based, placeholder defaults).
+- F1) Client keys are compile-time env with placeholder defaults
+- `lib/utils/constants.dart:14-15` OPENAI key from `String.fromEnvironment` with placeholder default.
+- `lib/utils/constants.dart:37-38` GEMINI key from `String.fromEnvironment` with placeholder default.
+- F3) Placeholder key hard-fail exists
+- Local-model readiness assessed: local inference still placeholder-grade.
+- local model placeholder implementation (acceptable if cloud-first launch is explicit)
+- 2. **User Feedback**: Gather user feedback on new features
+- Smooth animated placeholder without external dependencies
+- Inference pipeline (on-device placeholder + cloud services)
+- 1. OnDeviceVisionService (placeholder, needs TFLite)
+- Known gaps (on-device is placeholder, no models present)
+- Explicitly documents placeholders (on-device inference)
+- Added placeholder/missing key hard-fail behavior for OpenAI/Gemini paths.
+- F) Constants placeholder hardening
+- Gemini default key set to placeholder-safe value.
+- Added non-placeholder test keys in fixture to satisfy new guard conditions.
+- Action: Updated fixture with non-placeholder OpenAI/Gemini keys
+- Changes preserve behavior where valid, only reject unsafe/placeholder credential paths.
+- **Testing Guidance**: Know exactly how to test new features
+- **Inference modes (declared):** On-device TFLite (placeholder only), cloud via OpenAI/Gemini APIs; hybrid/batch configs via `VisionModelConfig`.
+- **Reality check:** No model binaries checked in (no `.tflite`/`.onnx`/`.mlmodel` files). On-device path returns a placeholder classification. Cloud path depends on API keys in `.env` (not committed).
+- **On-Device Path (Placeholder Only):**
+- 5. **Actual inference:** `_performInference()` is a 100ms delay + placeholder `WasteClassification` with `confidence: 0.0` and message "On-Device Analysis Required."
+- **Reality:** On-device always returns placeholder, so effectively always uses cloud.
+- `onDevice`: Local inference only (zero cost, placeholder today).
+- `confidence` (double?): Model confidence (0.0-1.0); 0.0 = placeholder result.
+- `WasteClassification.fallback()`: Returns placeholder when AI fails (category: "Requires Manual Review," confidence: 0.0).
+- 1. `OnDeviceVisionService` (Placeholder Inference)
+- **Current State:** **Placeholder only.** Returns dummy classification with `confidence: 0.0`.
+- `_performInference(Uint8List imageBytes, String? region)`: **STUB.** Delays 100ms, returns placeholder.
+- 1. Flutter app with rich UX/gamification/Firebase; CV core is stubbed on-device and cloud-dependent.
+- **On-device inference returns placeholder:** Expected until TFLite models + inference are wired. Add assets and integrate `tflite_flutter`.
+- **Be honest:** Document gaps, placeholders, and TODOs clearly
+- **FALLBACKS**: Robust error states and placeholder handling
+- **PARAMETERIZATION**: Dynamic messages with placeholder support for status updates and error messages
+- **BUILT**: Template interpolation engine with `{placeholder}` replacement and validation
+- **Test Compatibility**: Updated AI service tests to work with both placeholder and real API keys
+- | `OnDeviceSegmentationBackend` | Stub | Placeholder for TFLite / ONNX MobileSAM |
+- | `CloudSegmentationBackend` | Stub | Placeholder for cloud SAM API or Gemini |
+- | YOLOv8 Nano | 3.2M | ✅ TFLite | BBox only | Via crop+VLM | Low (stub exists) | 2024 |
+- ✅ No placeholder values in production flow
+- ✅ Zero stats on empty feed (not placeholder values)
+- Unlock new features and content
+- **On-device inference is still scaffolded, not real.** `OnDeviceVisionService` remains a placeholder and does not run actual TFLite inference.
+- | 9 | `OnDeviceVisionService.analyzeImage()` | `lib/services/on_device_vision_service.dart` | 143 | None - placeholder stub | all modes | no AI call; purely local |
+- | On-device TFLite inference | `lib/services/on_device_vision_service.dart` | Still a placeholder stub |
+- The current multi-item flow is still manual-region driven. The segmentation service remains a stub/back-end placeholder and can be wired into the same result payload later without changing the result screen contract.
+- Current practical split is cloud-primary, local-placeholder.
+- Placeholder markers and TODOs:
+- line 141: placeholder implementation note
+- lines 237-239: explicit placeholder result message
+- line 264: `modelVersion: '1.0.0-placeholder'`
+- line 171: placeholder mode log
+- line 245: `modelVersion: '1.0.0-placeholder'`
+- | Local inference runtime | NOT READY | Placeholder inference paths return synthetic results.
+- | Local object detection runtime | NOT READY | Placeholder YOLO path.
+- 2. Keep local path behind explicit experimental flag until real model quality and performance are proven.
+- `local_experimental`
+- Client-side AI call guards and placeholder-key blocking are enforced in:
+- 3. `flutter test test/services/ai_service_test.dart` -> PASS (after fixture update for new placeholder-block behavior)
+- 1. Guard behavior: direct provider calls should fail with placeholder keys in release-protected paths.
+- 2. **Phase 2**: Create providers for new features
+- label: 'New Feature',
+- 4. **Add new features** to existing navigation screens
+- [ ]  = Not started     [✓] = Completed     [KILLED] = Dropped with rationale
+- **Status**: Not formalised. The app transmits every classification image to OpenAI or Gemini (cloud providers) today. On-device capability exists as a placeholder (`on_device_vision_service.dart`) but is not production-ready. No explicit user-facing privacy policy exists for "which layers transmit your image."
+- * **Scalability**: Architecture should support adding new features without complexity explosion
+- * **Scalability**: New features can be added without affecting existing code
+- 1. **README**: Updated with new features
+- local/on-device inference is placeholder-grade,
+- **AI Lead:** The app uses cloud AI paths today, with OpenAI/Gemini-style provider support and fallback routing. It also has local model/on-device architecture, but local inference is not production-ready. The current local model readiness doc explicitly says cloud is the practical authoritative classifier and local is placeholder-grade.
+- Cost: token consumption increase (if any) remains acceptable at experimental percentage. If costs spike, lower the percentage.
+- 2. On-device inference is still a placeholder and does not run real TFLite inference.
+- The local browser control surface can load the Flutter web app and capture screenshots, but it cannot reliably click the Flutter canvas UI in this session because the page does not expose actionable semantic elements for the consent buttons. The visible Flutter page is rendered correctly in screenshots, but the control surface only exposes an `Enable accessibility` placeholder instead of the in-app buttons.
+- 4. Replace the placeholder Firebase web config with a valid test config or gate Firebase init cleanly for local runtime tests.
+- └─ LocalVlmProvider       — on-device stub (UnimplementedError)
+- `lib/services/providers/local_vlm_provider.dart` — on-device VLM stub
+- ✅ **3. Interactive Tags System (New Feature)**
+- 🚀 **New Features Added**
+- `web/index.html` contained manual Firebase JS SDK and static placeholder config init.
+- | `TOKEN_ECONOMY_TODO.md` | Token economy phases; Phases 5-6 not started |
+- RV-002,Placeholder key blocking,"Placeholder provider keys must hard-fail","lib/services/ai_service.dart:1230,1404,1645,1678; lib/services/providers/openai_provider_client.dart:53-54",VERIFIED,Direct provider call path checks placeholder keys.
+- This is not replacing the existing `OnDeviceVisionService` placeholder.
+- | `lib/services/on_device_vision_service.dart` | Placeholder on-device service — `_performInference()` returns synthetic `confidence: 0.0` |
+- The existing `OnDeviceVisionService._performInference()` (line 219 of `on_device_vision_service.dart`) is a placeholder that returns confidence `0.0`. The `LocalVlmProvider` throws `UnimplementedError`.
+- | `lib/services/on_device_vision_service.dart` | Placeholder on-device service (to be refactored into LocalClassifier impl) |
+- | `lib/services/providers/local_vlm_provider.dart` | VLM stub that throws UnimplementedError |
+- Add tests for new features
+- Testing the New Features
+- (Placeholder for Classification success animation screenshot)
+- (Placeholder for Points popup and card screenshot)
+- (Placeholder for Achievement notification screenshot)
+- (Placeholder for Challenge completion notification screenshot)
+- (Placeholder for Enhanced streak counter screenshot)
+- (Placeholder for Enhanced challenge card screenshot)
+- (Placeholder for Enhanced points indicator screenshot)
+- (Placeholder for Dashboard button on home screen screenshot)
+- (Placeholder for Dashboard button on results screen screenshot)
+- (Placeholder for Dashboard icon in app bar screenshot)
+- (Placeholder for Overview tab screenshot)
+- (Placeholder for Trends tab screenshot)
+- (Placeholder for Insights tab screenshot)
+- (Placeholder for Time filter options screenshot)
+- (Placeholder for Annotated pie chart screenshot)
+- (Placeholder for Annotated bar chart screenshot)
+- (Placeholder for Annotated line chart screenshot)
+- We're constantly improving the app and would love to hear your thoughts on these new features. Use the feedback option in Settings to share your experience!
+- ./scripts/pr_workflow.sh "feat: Add new feature" "Problem: X. Solution: Y. Testing: E2E tests pass."
+- Update test data for new features
+- 2. Add comprehensive tests for new features
+- 0.1.7+103 - Internal (New features for next cycle)
+- placeholders/
+- [Placeholder images]
+- ├── New Features Tour: "Check out what's new since last use"

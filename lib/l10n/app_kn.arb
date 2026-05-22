@@ -646,5 +646,270 @@
   "syncClassificationsLocalOnly": "ವರ್ಗೀಕರಣಗಳು ಸ್ಥಳೀಯವಾಗಿ ಮಾತ್ರ ಉಳಿಸಲ್ಪಡುತ್ತವೆ",
   "@syncClassificationsLocalOnly": {
     "description": "Subtitle when Google Cloud Sync is disabled"
+  },
+
+  "enableNotifications": "ಅಧಿಸೂಚನೆಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
+  "@enableNotifications": {
+    "description": "Toggle to enable notifications"
+  },
+
+  "educationalContent": "ಶೈಕ್ಷಣಿಕ ವಿಷಯ",
+  "@educationalContent": {
+    "description": "Educational content notifications toggle"
+  },
+
+  "gamification": "ಗೇಮಿಫಿಕೇಶನ್",
+  "@gamification": {
+    "description": "Gamification notifications toggle"
+  },
+
+  "reminders": "ಜ್ಞಾಪನೆಗಳು",
+  "@reminders": {
+    "description": "Reminder notifications toggle"
+  },
+
+  "notificationSettingsSaved": "ಅಧಿಸೂಚನೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ",
+  "@notificationSettingsSaved": {
+    "description": "Snackbar message when notification settings are saved"
+  },
+
+  "systemDefault": "ಸಿಸ್ಟಮ್ ಡೀಫಾಲ್ಟ್",
+  "@systemDefault": {
+    "description": "System default theme option"
+  },
+
+  "followSystemTheme": "ಸಿಸ್ಟಮ್ ಥೀಮ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಅನುಸರಿಸಿ",
+  "@followSystemTheme": {
+    "description": "Subtitle for system default theme"
+  },
+
+  "lightTheme": "ಲೈಟ್ ಥೀಮ್",
+  "@lightTheme": {
+    "description": "Light theme option"
+  },
+
+  "alwaysUseLight": "ಯಾವಾಗಲೂ ಲೈಟ್ ಥೀಮ್ ಬಳಸಿ",
+  "@alwaysUseLight": {
+    "description": "Subtitle for light theme"
+  },
+
+  "darkTheme": "ಡಾರ್ಕ್ ಥೀಮ್",
+  "@darkTheme": {
+    "description": "Dark theme option"
+  },
+
+  "alwaysUseDark": "ಯಾವಾಗಲೂ ಡಾರ್ಕ್ ಥೀಮ್ ಬಳಸಿ",
+  "@alwaysUseDark": {
+    "description": "Subtitle for dark theme"
+  },
+
+  "offlineSaved": "ಆಫ್‌ಲೈನ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ",
+  "@offlineSaved": {
+    "description": "Snackbar message when offline settings are saved"
+  },
+
+  "enableOfflineMode": "ಆಫ್‌ಲೈನ್ ಮೋಡ್ ಸಕ್ರಿಯಗೊಳಿಸಿ",
+  "@enableOfflineMode": {
+    "description": "Title for enable offline mode section"
+  },
+
+  "downloadModel": "{model} ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+  "@downloadModel": {
+    "description": "Download button for a model",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "removeModel": "{model} ತೆಗೆದುಹಾಕಿ",
+  "@removeModel": {
+    "description": "Remove button or title for a model",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "modelRemoved": "{model} ತೆಗೆದುಹಾಕಲಾಗಿದೆ",
+  "@modelRemoved": {
+    "description": "Snackbar message when a model is removed",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadingModel": "{model} ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+  "@downloadingModel": {
+    "description": "Download progress dialog title",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadingModelSize": "{size} ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+  "@downloadingModelSize": {
+    "description": "Download progress status",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+
+  "modelDownloaded": "{model} ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ",
+  "@modelDownloaded": {
+    "description": "Snackbar message when model download succeeds",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadedModels": "ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಮಾಡೆಲ್‌ಗಳು",
+  "@downloadedModels": {
+    "description": "Section header for downloaded models list"
+  },
+
+  "advancedSettings": "ಸುಧಾರಿತ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+  "@advancedSettings": {
+    "description": "Section header for advanced settings"
+  },
+
+  "autoDownloadUpdates": "ಮಾಡೆಲ್ ಅಪ್‌ಡೇಟ್‌ಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+  "@autoDownloadUpdates": {
+    "description": "Auto-download model updates toggle"
+  },
+
+  "autoDownloadSubtitle": "ಹೊಸ ಮಾಡೆಲ್ ಆವೃತ್ತಿಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+  "@autoDownloadSubtitle": {
+    "description": "Subtitle for auto-download updates toggle"
+  },
+
+  "compressImages": "ಚಿತ್ರಗಳನ್ನು ಸಂಕುಚಿತಗೊಳಿಸಿ",
+  "@compressImages": {
+    "description": "Compress images toggle"
+  },
+
+  "compressSubtitle": "ವೇಗದ ಸಂಸ್ಕರಣೆಗಾಗಿ ಚಿತ್ರದ ಗಾತ್ರ ಕಡಿಮೆ ಮಾಡಿ",
+  "@compressSubtitle": {
+    "description": "Subtitle for compress images toggle"
+  },
+
+  "storageOptimization": "ಸಂಗ್ರಹಣೆ ಆಪ್ಟಿಮೈಜೇಶನ್",
+  "@storageOptimization": {
+    "description": "Storage optimization toggle"
+  },
+
+  "storageSubtitle": "ಹಳೆಯ ಕ್ಯಾಶ್ ಫೈಲ್‌ಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸ್ವಚ್ಛಗೊಳಿಸಿ",
+  "@storageSubtitle": {
+    "description": "Subtitle for storage optimization toggle"
+  },
+
+  "storageUsage": "ಸಂಗ್ರಹಣೆ ಬಳಕೆ",
+  "@storageUsage": {
+    "description": "Storage usage section header"
+  },
+
+  "modelsDownloaded": "ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಮಾಡೆಲ್‌ಗಳು:",
+  "@modelsDownloaded": {
+    "description": "Label for model download count"
+  },
+
+  "totalStorageUsed": "ಒಟ್ಟು ಸಂಗ್ರಹಣೆ ಬಳಕೆ:",
+  "@totalStorageUsed": {
+    "description": "Label for total storage used"
+  },
+
+  "available": "ಲಭ್ಯವಿದೆ:",
+  "@available": {
+    "description": "Label for available storage"
+  },
+
+  "enableOfflineClassification": "ಆಫ್‌ಲೈನ್ ವರ್ಗೀಕರಣವನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
+  "@enableOfflineClassification": {
+    "description": "Toggle for enabling offline classification"
+  },
+
+  "offlineEnabled": "ಆಫ್‌ಲೈನ್ ಮೋಡ್ ಸಕ್ರಿಯಗೊಂಡಿದೆ",
+  "@offlineEnabled": {
+    "description": "Status when offline mode is enabled"
+  },
+
+  "offlineDisabled": "ಆಫ್‌ಲೈನ್ ಮೋಡ್ ನಿಷ್ಕ್ರಿಯಗೊಂಡಿದೆ",
+  "@offlineDisabled": {
+    "description": "Status when offline mode is disabled"
+  },
+
+  "offlineDescription": "ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕವಿಲ್ಲದೆಯೇ ತ್ಯಾಜ್ಯ ವಸ್ತುಗಳನ್ನು ವರ್ಗೀಕರಿಸಿ. ಆಫ್‌ಲೈನ್ ಮಾಡೆಲ್‌ಗಳನ್ನು ನಿಮ್ಮ ಸಾಧನಕ್ಕೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತದೆ.",
+  "@offlineDescription": {
+    "description": "Description text for offline mode"
+  },
+
+  "loadingOfflineSettings": "ಆಫ್‌ಲೈನ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+  "@loadingOfflineSettings": {
+    "description": "Loading message for offline settings screen"
+  },
+
+  "save": "ಉಳಿಸಿ",
+  "@save": {
+    "description": "Save button text"
+  },
+
+  "ok": "ಸರಿ",
+  "@ok": {
+    "description": "OK button text"
+  },
+
+  "remove": "ತೆಗೆದುಹಾಕಿ",
+  "@remove": {
+    "description": "Remove button text"
+  },
+
+  "downloadFailedTitle": "ಡೌನ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ",
+  "@downloadFailedTitle": {
+    "description": "Download failed dialog title"
+  },
+
+  "modelDownloadFailed": "{model} ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ",
+  "@modelDownloadFailed": {
+    "description": "Snackbar message when model download fails",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "modelRemoveFailed": "{model} ತೆಗೆದುಹಾಕಲು ವಿಫಲವಾಗಿದೆ",
+  "@modelRemoveFailed": {
+    "description": "Snackbar message when model removal fails",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "removeModelConfirm": "ನೀವು ಖಚಿತವಾಗಿ {model} ಅನ್ನು ತೆಗೆದುಹಾಕಲು ಬಯಸುವಿರಾ? ನೀವು ನಂತರ ಮತ್ತೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದು.",
+  "@removeModelConfirm": {
+    "description": "Confirmation dialog body for model removal",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+
+  "premiumCustomThemesBody": "ಕಸ್ಟಮ್ ಥೀಮ್‌ಗಳು ಪ್ರೀಮಿಯಂ ಚಂದಾದಾರಿಕೆಯೊಂದಿಗೆ ಲಭ್ಯವಿದೆ. ಈ ವೈಶಿಷ್ಟ್ಯವನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ!",
+  "@premiumCustomThemesBody": {
+    "description": "Premium prompt body for custom themes"
   }
 }

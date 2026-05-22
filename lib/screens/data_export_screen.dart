@@ -92,7 +92,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Export Data'),
+        title: const Text('Premium Analytics Export'),
         actions: [
           if (!_isExporting)
             TextButton(
@@ -348,12 +348,16 @@ class _DataExportScreenState extends State<DataExportScreen> {
       final row = <String>[
         _escapeCsvField(item.itemName),
         _escapeCsvField(item.category),
-        _escapeCsvField(DateFormat('yyyy-MM-dd HH:mm:ss').format(item.timestamp)),
+        _escapeCsvField(
+            DateFormat('yyyy-MM-dd HH:mm:ss').format(item.timestamp)),
       ];
 
       if (_includeAnalytics) {
         row.addAll([
-          _escapeCsvField(item.confidence != null ? (item.confidence! * 100).toStringAsFixed(1) : 'N/A') + '%',
+          _escapeCsvField(item.confidence != null
+                  ? (item.confidence! * 100).toStringAsFixed(1)
+                  : 'N/A') +
+              '%',
           _escapeCsvField(item.subcategory ?? 'N/A'),
           _escapeCsvField(item.materialType ?? 'N/A'),
           _escapeCsvField(item.modelVersion ?? 'N/A'),

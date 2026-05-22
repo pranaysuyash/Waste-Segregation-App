@@ -90,3 +90,6 @@ This command runs tests, evals, dataset export, annotation workflow steps, and e
 
 ## Seed coverage validator
 - `tool/ai_eval_seed_coverage_report.dart` verifies semantic seed coverage for required case families (not only case count).
+
+## Evidence synthesis tool
+- `tool/ai_flywheel_evidence_summary.dart` synthesizes final audit artifacts into one markdown evidence summary for handoff.
