@@ -128,9 +128,8 @@ class PremiumService extends ChangeNotifier {
 
   int getDailyScanLimit() {
     final remoteLimit = MonetizationAiConfigKeys.readInt(
-      RemoteConfigService(),
+      RemoteConfigService().getAllValues(),
       MonetizationAiConfigKeys.freeDailyScanLimit,
-      MonetizationAiConfigKeys.freeDailyScanLimitLegacy,
       defaultValue: 5,
     );
 

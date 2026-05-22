@@ -78,11 +78,16 @@ class AppSettingsSection extends StatelessWidget {
               semanticsHint: hasRemoveAds
                   ? t.adsCurrentlyDisabled
                   : t.upgradeToUse(t.removeAds),
-              onTap: () => _showPremiumFeaturePrompt(
-                context,
-                featureName: t.removeAds,
-                benefit: t.manageAdPreferences,
-              ),
+              onTap: () => hasRemoveAds
+                  ? SettingsTheme.showInfoSnackBar(
+                      context,
+                      t.adsCurrentlyDisabled,
+                    )
+                  : _showPremiumFeaturePrompt(
+                      context,
+                      featureName: t.removeAds,
+                      benefit: t.manageAdPreferences,
+                    ),
             ),
             SettingTile(
               icon: Icons.cloud_off,

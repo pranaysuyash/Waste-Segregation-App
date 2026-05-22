@@ -124,6 +124,17 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
             Routes.trainingReviewQueue,
           ),
         ),
+        const SettingsSectionSpacer(),
+        SettingTile(
+          icon: Icons.router,
+          iconColor: Colors.teal,
+          title: 'Model Routing Dashboard',
+          subtitle: 'View strategy, source distribution, and cost evidence',
+          onTap: () => Navigator.pushNamed(
+            context,
+            Routes.modelRouting,
+          ),
+        ),
       ],
     ];
   }

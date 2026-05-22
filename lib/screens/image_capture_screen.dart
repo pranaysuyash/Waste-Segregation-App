@@ -14,6 +14,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/capture_image_options.dart';
 import '../utils/constants.dart';
 import '../utils/design_system.dart';
+import '../utils/routes.dart';
 import '../widgets/analysis_progress_view.dart';
 import '../widgets/premium_segmentation_toggle.dart';
 import '../widgets/analysis_speed_selector.dart';
@@ -2602,6 +2603,59 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     // Track 2: Cleanup offline queue listener
     _queueCountSubscription.cancel();
     super.dispose();
+  }
+
+  static const _dailyScanKey = 'dailyScanDate';
+  static const _dailyScanCountKey = 'dailyScanCount';
+
+  int _readDailyScanCount() {
+    try {
+      final box = Hive.box(StorageKeys.settingsBox);
+      final lastDate = box.get(_dailyScanKey) as String?;
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      if (lastDate != today) {
+        box.put(_dailyScanKey, today);
+        box.put(_dailyScanCountKey, 0);
+        return 0;
+      }
+      return box.get(_dailyScanCountKey, defaultValue: 0) as int;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  void _incrementDailyScanCount() {
+    try {
+      final box = Hive.box(StorageKeys.settingsBox);
+      final current = box.get(_dailyScanCountKey, defaultValue: 0) as int;
+      box.put(_dailyScanCountKey, current + 1);
+    } catch (_) {}
+  }
+
+  void _showDailyLimitDialog(BuildContext context, int dailyLimit) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Daily scan limit reached'),
+        content: Text(
+          'You have used all $dailyLimit free scans today. '
+          'Upgrade to premium for unlimited scans, or come back tomorrow.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.pushNamed(context, Routes.premium);
+            },
+            child: const Text('Upgrade'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -22,6 +22,10 @@ import 'package:waste_segregation_app/services/local_policy_engine.dart';
 import 'package:waste_segregation_app/utils/production_safety_config.dart';
 import 'package:waste_segregation_app/services/providers/backend_proxy_provider.dart';
 import 'package:waste_segregation_app/services/providers/classification_provider.dart';
+import 'package:waste_segregation_app/services/providers/openai_provider_client.dart';
+import 'package:waste_segregation_app/services/providers/gemini_provider_client.dart';
+import 'package:waste_segregation_app/services/providers/ai_provider_response.dart';
+import 'package:waste_segregation_app/services/providers/ai_provider_response_adapter.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import 'package:waste_segregation_app/services/parsers/ai_response_parser.dart';
@@ -78,7 +82,11 @@ class AiService {
     /// [BackendProxyProvider] bound to [FirebaseFunctions.instance]. Pass a
     /// test double here to intercept backend calls in unit tests without Firebase.
     ClassificationProvider? backendProxy,
-  })  : openAiBaseUrl = openAiBaseUrl ?? ApiConfig.openAiBaseUrl,
+    OpenAiProviderClient? openAiProvider,
+    GeminiProviderClient? geminiProvider,
+  })  : _openAiProvider = openAiProvider,
+        _geminiProvider = geminiProvider,
+        openAiBaseUrl = openAiBaseUrl ?? ApiConfig.openAiBaseUrl,
         openAiApiKey = openAiApiKey ?? ApiConfig.openAiApiKey,
         geminiBaseUrl = geminiBaseUrl ?? ApiConfig.geminiBaseUrl,
         geminiApiKey = geminiApiKey ?? ApiConfig.apiKey,
@@ -121,6 +129,13 @@ class AiService {
   /// Any [ClassificationProvider] can be injected — typically a hand-rolled
   /// fake that extends [BackendProxyProvider] or satisfies the interface.
   final ClassificationProvider? _backendProxy;
+
+  /// Injected OpenAI provider for testing, or null to auto-construct at call time.
+  final OpenAiProviderClient? _openAiProvider;
+
+  /// Injected Gemini provider for testing, or null to auto-construct at call time.
+  final GeminiProviderClient? _geminiProvider;
+
   CancelToken? _cancelToken;
   int _providerCallCount = 0;
   int _webSaveCallCount = 0;
@@ -1138,7 +1153,6 @@ class AiService {
     String? thumbnailPath,
   }) async {
     _providerCallCount++;
-    ProductionSafetyConfig.guardClientAiCall('OpenAI');
     const providerName = 'openai';
     const modelName = ApiConfig.primaryModel;
     final modelKey =
@@ -1159,73 +1173,31 @@ class AiService {
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
     final mimeType = _detectImageMimeType(compressedBytes);
 
-    if (ProductionSafetyConfig.hasPlaceholderKey(openAiApiKey)) {
-      throw AiFailure(
-        AiFailureKind.auth,
-        'OpenAI analysis blocked: placeholder/missing API key.',
-        provider: providerName,
-        model: modelName,
-      );
-    }
+    final openAiProvider = _openAiProvider ??
+        OpenAiProviderClient(
+          dio: _dio,
+          baseUrl: openAiBaseUrl,
+          apiKey: openAiApiKey,
+          model: modelName,
+        );
 
-    final openAiBody = <String, dynamic>{
-      'model': modelName,
-      'messages': [
-        {'role': 'system', 'content': _systemPrompt},
-        {
-          'role': 'user',
-          'content': [
-            {
-              'type': 'text',
-              'text':
-                  '$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: web upload',
-            },
-            {
-              'type': 'image_url',
-              'image_url': {
-                'url':
-                    'data:$mimeType;base64,${_bytesToBase64(compressedBytes)}'
-              }
-            }
-          ]
-        }
-      ],
-      'max_tokens': 1500,
-      'temperature': 0.1,
-    };
+    final userPrompt =
+        '$_mainClassificationPrompt\n\nAdditional context:\n'
+        '- Region: $region\n'
+        '- Instructions language: $language\n'
+        '- Image source: web upload';
 
-    late final Response providerResponse;
-    try {
-      providerResponse = await _dio.post(
-        '$openAiBaseUrl/chat/completions',
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $openAiApiKey',
-          },
-        ),
-        data: openAiBody,
-        cancelToken: _cancelToken,
-      );
-    } on DioException catch (e) {
-      _handleDioException(e, provider: providerName, model: modelName);
-      rethrow;
-    }
-
-    if (providerResponse.statusCode != 200) {
-      throw AiFailure(
-        AiFailureKind.provider,
-        'OpenAI response failed with status ${providerResponse.statusCode}',
-        provider: providerName,
-        model: modelName,
-      );
-    }
+    final response = await openAiProvider.analyzeWithSplitPrompts(
+      imageBytes: compressedBytes,
+      mimeType: mimeType,
+      systemPrompt: _systemPrompt,
+      userPrompt: userPrompt,
+      cancelToken: _cancelToken,
+    );
 
     final processingTime = DateTime.now().difference(startTime);
-    final responseData = providerResponse.data as Map<String, dynamic>;
-    final usage = responseData['usage'] as Map<String, dynamic>?;
-    final inputTokens = usage?['prompt_tokens'] as int? ?? 1500;
-    final outputTokens = usage?['completion_tokens'] as int? ?? 800;
+    final inputTokens = response.inputTokens ?? 1500;
+    final outputTokens = response.outputTokens ?? 800;
 
     final cost = pricingService.calculateCost(
       model: modelKey,
@@ -1250,7 +1222,7 @@ class AiService {
     });
 
     var classification = _processAiResponseData(
-      responseData,
+      response.rawResponseMap,
       imageName,
       region,
       language,
@@ -1337,18 +1309,8 @@ class AiService {
       requestId: classificationId,
     );
 
-    // textContent is already a JSON-encoded WasteClassification string.
-    // Wrap in OpenAI choices format so _processAiResponseData parses it unchanged.
-    final wrappedResponse = <String, dynamic>{
-      'choices': [
-        {
-          'message': {'content': response.textContent ?? '{}'}
-        }
-      ],
-    };
-
     var classification = _processAiResponseData(
-      wrappedResponse,
+      AiProviderResponseAdapter.toParserMap(response),
       imagePath,
       region,
       language,
@@ -1412,7 +1374,6 @@ class AiService {
     String? thumbnailPath,
   }) async {
     _providerCallCount++;
-    ProductionSafetyConfig.guardClientAiCall('Gemini');
     const providerName = 'gemini';
     const modelName = ApiConfig.tertiaryModel;
     final startTime = DateTime.now();
@@ -1428,177 +1389,114 @@ class AiService {
       processedBytes = await _compressImageForGemini(imageBytes);
     }
 
-    final base64Image = _bytesToBase64(processedBytes);
     final mimeType = _detectImageMimeType(processedBytes);
-
-    if (ProductionSafetyConfig.hasPlaceholderKey(geminiApiKey)) {
-      throw AiFailure(
-        AiFailureKind.auth,
-        'Gemini analysis blocked: placeholder/missing API key.',
-        provider: providerName,
-        model: modelName,
-      );
-    }
 
     WasteAppLogger.info(
         'Sending image to Gemini. Size: ${(processedBytes.length / 1024).toStringAsFixed(2)} KB');
 
-    final requestBody = <String, dynamic>{
-      'contents': [
-        {
-          'parts': [
-            {
-              'text':
-                  '$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n- Region: $region\n- Instructions language: $language\n- Image source: Gemini analysis (OpenAI fallback)'
-            },
-            {
-              'inline_data': {'mime_type': mimeType, 'data': base64Image}
-            }
-          ]
-        }
-      ],
-      'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 1500}
-    };
-
-    late final Response response;
-    try {
-      response = await _dio.post(
-        '$geminiBaseUrl/models/${ApiConfig.tertiaryModel}:generateContent',
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': geminiApiKey,
-          },
-        ),
-        data: requestBody,
-        cancelToken: _cancelToken,
-      );
-    } on DioException catch (e) {
-      _handleDioException(e, provider: providerName, model: modelName);
-      rethrow;
-    }
-
-    if (response.statusCode == 200) {
-      final endTime = DateTime.now();
-      final processingTime = endTime.difference(startTime);
-
-      WasteAppLogger.info('Received successful response from Gemini.');
-      final Map<String, dynamic> responseData = response.data;
-
-      // Extract content from Gemini response format
-      if (responseData['candidates'] != null &&
-          responseData['candidates'].isNotEmpty &&
-          responseData['candidates'][0]['content'] != null &&
-          responseData['candidates'][0]['content']['parts'] != null &&
-          responseData['candidates'][0]['content']['parts'].isNotEmpty) {
-        final String content =
-            responseData['candidates'][0]['content']['parts'][0]['text'];
-
-        // Extract token usage from Gemini response (if available)
-        final usage = responseData['usageMetadata'] as Map<String, dynamic>?;
-        final inputTokens =
-            usage?['promptTokenCount'] ?? 1500; // Fallback estimate
-        final outputTokens =
-            usage?['candidatesTokenCount'] ?? 800; // Fallback estimate
-
-        // Calculate and record cost for Gemini
-        const modelKey = 'gemini_2_0_flash';
-        final cost = pricingService.calculateCost(
-          model: modelKey,
-          inputTokens: inputTokens,
-          outputTokens: outputTokens,
-        );
-
-        // Record spending in guardrail service
-        await guardrailService.recordApiSpending(
-          model: modelKey,
-          cost: cost,
-          inputTokens: inputTokens,
-          outputTokens: outputTokens,
-        );
-
-        WasteAppLogger.info('Gemini API cost recorded', context: {
-          'service': 'ai_service',
-          'model': modelKey,
-          'cost': cost,
-          'input_tokens': inputTokens,
-          'output_tokens': outputTokens,
-          'processing_time_ms': processingTime.inMilliseconds,
-        });
-
-        // Convert Gemini response to OpenAI format for processing
-        final openAiFormat = <String, dynamic>{
-          'choices': [
-            {
-              'message': {'content': content}
-            }
-          ]
-        };
-
-        var classification = _processAiResponseData(
-          openAiFormat,
-          imageName,
-          region,
-          language,
-          null,
-          classificationId,
-          provider: providerName,
-          model: modelName,
-          thumbnailPath: thumbnailPath,
-        );
-
-        // Apply Enhanced AI Analysis v2.0 - Local Guidelines
-        final policyDecision = await localPolicyEngine.applyPolicy(
-          classification: classification,
-          region: region,
-        );
-        classification = _attachPolicyDecisionMetadata(
-          policyDecision.classification,
-          policyDecision,
-        );
-
-        // Cache the result if we have a valid hash
-        if (cachingEnabled && imageHash != null) {
-          final contextAwareContentHash = _buildContextAwareContentHash(
-            contentHash,
-            region: region,
-            language: language,
-            provider: providerName,
-            model: modelName,
-          );
-          final contextAwareCacheKey = buildContextualCacheKey(
-            imageHash: imageHash,
-            region: region,
-            language: language,
-            provider: providerName,
-            model: modelName,
-          );
-          await cacheService.cacheClassification(
-            contextAwareCacheKey,
-            classification,
-            contentHash: contextAwareContentHash,
-            imageSize: imageBytes.length,
-            entryImageHash: imageHash,
-          );
-        }
-
-        return classification;
-      } else {
-        throw AiFailure(
-          AiFailureKind.malformedProviderResponse,
-          'Invalid Gemini response format',
-          provider: providerName,
+    final geminiProvider = _geminiProvider ??
+        GeminiProviderClient(
+          dio: _dio,
+          baseUrl: geminiBaseUrl,
+          apiKey: geminiApiKey,
           model: modelName,
         );
-      }
-    } else {
+
+    final combinedPrompt =
+        '$_systemPrompt\n\n$_mainClassificationPrompt\n\nAdditional context:\n'
+        '- Region: $region\n'
+        '- Instructions language: $language\n'
+        '- Image source: Gemini analysis (OpenAI fallback)';
+
+    final response = await geminiProvider.analyze(
+      imageBytes: processedBytes,
+      mimeType: mimeType,
+      prompt: combinedPrompt,
+      cancelToken: _cancelToken,
+    );
+
+    if (response.textContent == null || response.textContent!.isEmpty) {
       throw AiFailure(
-        _failureKindFromStatus(response.statusCode ?? 0),
-        'Gemini API Error ${response.statusCode}: ${response.data}',
+        AiFailureKind.malformedProviderResponse,
+        'Invalid Gemini response format',
         provider: providerName,
         model: modelName,
       );
     }
+
+    final processingTime = DateTime.now().difference(startTime);
+    final inputTokens = response.inputTokens ?? 1500;
+    final outputTokens = response.outputTokens ?? 800;
+
+    const modelKey = 'gemini_2_0_flash';
+    final cost = pricingService.calculateCost(
+      model: modelKey,
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+    );
+
+    await guardrailService.recordApiSpending(
+      model: modelKey,
+      cost: cost,
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+    );
+
+    WasteAppLogger.info('Gemini API cost recorded', context: {
+      'service': 'ai_service',
+      'model': modelKey,
+      'cost': cost,
+      'input_tokens': inputTokens,
+      'output_tokens': outputTokens,
+      'processing_time_ms': processingTime.inMilliseconds,
+    });
+
+    var classification = _processAiResponseData(
+      AiProviderResponseAdapter.toParserMap(response),
+      imageName,
+      region,
+      language,
+      null,
+      classificationId,
+      provider: providerName,
+      model: modelName,
+      thumbnailPath: thumbnailPath,
+    );
+
+    final policyDecision = await localPolicyEngine.applyPolicy(
+      classification: classification,
+      region: region,
+    );
+    classification = _attachPolicyDecisionMetadata(
+      policyDecision.classification,
+      policyDecision,
+    );
+
+    if (cachingEnabled && imageHash != null) {
+      final contextAwareContentHash = _buildContextAwareContentHash(
+        contentHash,
+        region: region,
+        language: language,
+        provider: providerName,
+        model: modelName,
+      );
+      final contextAwareCacheKey = buildContextualCacheKey(
+        imageHash: imageHash,
+        region: region,
+        language: language,
+        provider: providerName,
+        model: modelName,
+      );
+      await cacheService.cacheClassification(
+        contextAwareCacheKey,
+        classification,
+        contentHash: contextAwareContentHash,
+        imageSize: imageBytes.length,
+        entryImageHash: imageHash,
+      );
+    }
+
+    return classification;
   }
 
   /// Handles user corrections/disagreements by re-analyzing the item.
@@ -1616,7 +1514,6 @@ class AiService {
   }) async {
     ProductionSafetyConfig.guardClientAiCall('AI correction');
 
-    // Determine which model to use for re-analysis
     final sourceValue = (originalClassification.source ?? '').toLowerCase();
     final modelSourceValue =
         (originalClassification.modelSource ?? '').toLowerCase();
@@ -1629,22 +1526,17 @@ class AiService {
       final imageUrl = originalClassification.imageUrl;
       Uint8List? imageBytes;
 
-      // If imageUrl is a file path (mobile), read bytes
       if (imageUrl != null && !kIsWeb) {
         final safeLocalPath =
             await _imageService.resolveTrustedLocalPath(imageUrl);
         if (safeLocalPath != null && File(safeLocalPath).existsSync()) {
           imageBytes = await File(safeLocalPath).readAsBytes();
         }
-      }
-      // If imageUrl is a data URL (web), parse bytes
-      else if (imageUrl != null &&
+      } else if (imageUrl != null &&
           kIsWeb &&
           imageUrl.startsWith('data:image')) {
         imageBytes = ImageUtils.dataUrlToBytes(imageUrl);
-      }
-      // If no image bytes, try to fetch from web if it's a standard URL
-      else if (imageUrl != null && (imageUrl.startsWith('http'))) {
+      } else if (imageUrl != null && (imageUrl.startsWith('http'))) {
         final response = await http.get(Uri.parse(imageUrl));
         if (response.statusCode == 200) {
           imageBytes = response.bodyBytes;
@@ -1657,147 +1549,59 @@ class AiService {
         throw ArgumentError('No trusted image source available for correction');
       }
 
-      final base64Image = _bytesToBase64(imageBytes);
       final mimeType = _detectImageMimeType(imageBytes);
-
       final correctionPrompt = _getCorrectionPrompt(
           originalClassification.toJson(), userCorrection, userReason);
 
-      late final Response response;
-      try {
-        if (useGeminiProvider) {
-          if (ProductionSafetyConfig.hasPlaceholderKey(geminiApiKey)) {
-            throw AiFailure(
-              AiFailureKind.auth,
-              'Gemini correction blocked: placeholder/missing API key.',
-              provider: 'gemini',
+      final AiProviderResponse providerResponse;
+      if (useGeminiProvider) {
+        final geminiProvider = _geminiProvider ??
+            GeminiProviderClient(
+              dio: _dio,
+              baseUrl: geminiBaseUrl,
+              apiKey: geminiApiKey,
               model: modelToUse,
             );
-          }
-          final geminiBody = <String, dynamic>{
-            'contents': [
-              {
-                'parts': [
-                  {'text': '$_systemPrompt\n\n$correctionPrompt'},
-                  {
-                    'inline_data': {'mime_type': mimeType, 'data': base64Image}
-                  }
-                ]
-              }
-            ],
-            'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 1500}
-          };
-          response = await _dio.post(
-            '$geminiBaseUrl/models/$modelToUse:generateContent',
-            options: Options(
-              headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': geminiApiKey,
-              },
-            ),
-            data: geminiBody,
-            cancelToken: _cancelToken,
-          );
-        } else {
-          if (ProductionSafetyConfig.hasPlaceholderKey(openAiApiKey)) {
-            throw AiFailure(
-              AiFailureKind.auth,
-              'OpenAI correction blocked: placeholder/missing API key.',
-              provider: 'openai',
-              model: modelToUse,
-            );
-          }
-          final openAiBody = <String, dynamic>{
-            'model': modelToUse,
-            'messages': [
-              {'role': 'system', 'content': _systemPrompt},
-              {
-                'role': 'user',
-                'content': [
-                  {'type': 'text', 'text': correctionPrompt},
-                  {
-                    'type': 'image_url',
-                    'image_url': {'url': 'data:$mimeType;base64,$base64Image'}
-                  }
-                ]
-              }
-            ],
-            'max_tokens': 1500,
-            'temperature': 0.1
-          };
-          response = await _dio.post(
-            '$openAiBaseUrl/chat/completions',
-            options: Options(
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $openAiApiKey',
-              },
-            ),
-            data: openAiBody,
-            cancelToken: _cancelToken,
-          );
-        }
-      } on DioException catch (e) {
-        _handleDioException(
-          e,
-          provider: useGeminiProvider ? 'gemini' : 'openai',
-          model: modelToUse,
-        );
-      }
-
-      if (response.statusCode == 200) {
-        Map<String, dynamic> responseData = response.data;
-        if (useGeminiProvider) {
-          final candidates = responseData['candidates'] as List<dynamic>?;
-          final content = candidates != null &&
-                  candidates.isNotEmpty &&
-                  candidates.first['content'] != null &&
-                  candidates.first['content']['parts'] != null &&
-                  (candidates.first['content']['parts'] as List).isNotEmpty
-              ? candidates.first['content']['parts'][0]['text'] as String?
-              : null;
-          if (content == null || content.isEmpty) {
-            throw AiFailure(
-              AiFailureKind.malformedProviderResponse,
-              'Gemini correction response missing content',
-              provider: 'gemini',
-              model: modelToUse,
-            );
-          }
-          responseData = {
-            'choices': [
-              {
-                'message': {'content': content}
-              }
-            ]
-          };
-        }
-        final correctedClassification = _processAiResponseData(
-          responseData,
-          originalClassification.imageUrl ?? 'correction_update',
-          originalClassification.region,
-          originalClassification.instructionsLang,
-          reanalysisModelsTried,
-          originalClassification.id,
-          provider: useGeminiProvider ? 'gemini' : 'openai',
-          model: modelToUse,
-        );
-
-        return applyCorrectionProvenance(
-          corrected: correctedClassification,
-          original: originalClassification,
-          provider: useGeminiProvider ? 'gemini' : 'openai',
-          model: modelToUse,
-          userCorrection: userCorrection,
+        providerResponse = await geminiProvider.analyze(
+          imageBytes: imageBytes,
+          mimeType: mimeType,
+          prompt: '$_systemPrompt\n\n$correctionPrompt',
+          cancelToken: _cancelToken,
         );
       } else {
-        throw AiFailure(
-          _failureKindFromStatus(response.statusCode ?? 0),
-          'Failed to process correction: ${response.statusCode}',
-          provider: useGeminiProvider ? 'gemini' : 'openai',
-          model: modelToUse,
+        final openAiProvider = _openAiProvider ??
+            OpenAiProviderClient(
+              dio: _dio,
+              baseUrl: openAiBaseUrl,
+              apiKey: openAiApiKey,
+              model: modelToUse,
+            );
+        providerResponse = await openAiProvider.analyze(
+          imageBytes: imageBytes,
+          mimeType: mimeType,
+          prompt: '$_systemPrompt\n\n$correctionPrompt',
+          cancelToken: _cancelToken,
         );
       }
+
+      final correctedClassification = _processAiResponseData(
+        AiProviderResponseAdapter.toParserMap(providerResponse),
+        originalClassification.imageUrl ?? 'correction_update',
+        originalClassification.region,
+        originalClassification.instructionsLang,
+        reanalysisModelsTried,
+        originalClassification.id,
+        provider: useGeminiProvider ? 'gemini' : 'openai',
+        model: modelToUse,
+      );
+
+      return applyCorrectionProvenance(
+        corrected: correctedClassification,
+        original: originalClassification,
+        provider: useGeminiProvider ? 'gemini' : 'openai',
+        model: modelToUse,
+        userCorrection: userCorrection,
+      );
     } catch (e, s) {
       if (e is ProductionSafetyException) rethrow;
       if (e is AiFailure && _isTerminalFailureKind(e.kind)) rethrow;
@@ -1809,7 +1613,6 @@ class AiService {
             'provider': useGeminiProvider ? 'gemini' : 'openai',
             'classification_id': originalClassification.id,
           });
-      // Return original classification with user correction noted
       return originalClassification.copyWith(
         userCorrection: userCorrection,
         disagreementReason: 'Failed to process correction.',

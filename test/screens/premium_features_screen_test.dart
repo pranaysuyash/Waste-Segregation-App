@@ -114,7 +114,8 @@ void main() {
       await tester.pumpAndSettle();
 
       for (final feature in PremiumFeature.features) {
-        expect(find.text(feature.title), findsOneWidget);
+        // Title appears in card AND in PremiumLockWrapper's amber overlay badge.
+        expect(find.text(feature.title), findsWidgets);
         expect(find.text(feature.description), findsOneWidget);
       }
 
@@ -136,7 +137,9 @@ void main() {
       expect(find.text('Available Premium Features'), findsOneWidget);
 
       for (final feature in PremiumFeature.features) {
-        expect(find.text(feature.title), findsOneWidget);
+        // Locked features render title twice (card + PremiumLockWrapper overlay).
+        // Unlocked features render title once. Either way at least one is present.
+        expect(find.text(feature.title), findsWidgets);
         expect(find.text(feature.description), findsOneWidget);
       }
     });

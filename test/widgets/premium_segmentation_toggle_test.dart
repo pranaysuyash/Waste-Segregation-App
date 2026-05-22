@@ -170,5 +170,40 @@ void main() {
 
       expect(toggleValue, isTrue);
     });
+
+    testWidgets('announces locked and unlocked accessibility states',
+        (tester) async {
+      await tester.pumpWidget(
+        _buildApp(
+          premiumService: _FakePremiumService(),
+          child: const PremiumSegmentationToggle(value: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final lockedSemantics = find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == 'Advanced Segmentation' &&
+            widget.properties.value == 'Premium feature, disabled',
+      );
+      expect(lockedSemantics, findsOneWidget);
+
+      await tester.pumpWidget(
+        _buildApp(
+          premiumService: _FakePremiumService(advancedSegmentation: true),
+          child: const PremiumSegmentationToggle(value: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final unlockedSemantics = find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label == 'Advanced Segmentation' &&
+            widget.properties.value == 'enabled',
+      );
+      expect(unlockedSemantics, findsOneWidget);
+    });
   });
 }

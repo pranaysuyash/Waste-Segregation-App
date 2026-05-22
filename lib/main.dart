@@ -60,6 +60,7 @@ import 'screens/educational_content_screen.dart';
 import 'screens/waste_dashboard_screen.dart';
 import 'screens/smart_suggestions_screen.dart';
 import 'screens/token_wallet_screen.dart';
+import 'screens/model_routing_screen.dart';
 import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart';
 import 'utils/routes.dart';
@@ -766,6 +767,8 @@ class WasteSegregationApp extends StatelessWidget {
                         const ModernUIShowcaseScreen(),
                     Routes.trainingReviewQueue: (context) =>
                         const TrainingReviewQueueScreen(),
+                    Routes.modelRouting: (context) =>
+                        const ModelRoutingScreen(),
                     '/disposal-facilities': (context) =>
                         const DisposalFacilitiesScreen(),
                     '/impact-dashboard': (context) =>

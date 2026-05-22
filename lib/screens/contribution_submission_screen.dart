@@ -11,6 +11,7 @@ import '../utils/error_handler.dart';
 import '../utils/firebase_gate.dart';
 import '../utils/waste_app_logger.dart';
 import '../services/firestore_schema_registry.dart';
+import '../utils/capture_image_options.dart';
 
 class ContributionSubmissionScreen extends StatefulWidget {
   const ContributionSubmissionScreen({

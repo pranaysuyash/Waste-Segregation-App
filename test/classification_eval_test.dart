@@ -23,7 +23,6 @@ void main() {
   final goldenFile = File('${goldenDir.path}/golden_cases_v1.jsonl');
 
   setUpAll(() {
-    // Verify golden directory exists
     if (!goldenDir.existsSync()) {
       throw StateError(
         'Golden eval directory not found at ${goldenDir.path}. '
@@ -35,6 +34,9 @@ void main() {
   group('Golden classification eval harness', () {
     late List<Map<String, dynamic>> goldenCases;
     late int totalCases;
+
+    String caseId(Map<String, dynamic> case_) =>
+        (case_['case_id'] ?? case_['id'] ?? 'unknown') as String;
 
     setUp(() {
       goldenCases = [];
@@ -62,45 +64,55 @@ void main() {
 
     test('each golden case has required fields', () {
       for (final (i, case_) in goldenCases.indexed) {
-        expect(case_['id'], isNotNull,
-            reason: 'Case $i missing required field "id"');
+        final id = caseId(case_);
+        expect(case_['case_id'] ?? case_['id'], isNotNull,
+            reason: 'Case $i missing required field "case_id" or "id"');
         expect(case_['expected'], isNotNull,
-            reason: 'Case ${case_['id']} missing required field "expected"');
+            reason: 'Case $id missing required field "expected"');
 
         final expected = case_['expected'] as Map<String, dynamic>;
         expect(expected['category'], isNotNull,
-            reason: 'Case ${case_['id']} missing expected.category');
-        expect(expected['material'], isNotNull,
-            reason: 'Case ${case_['id']} missing expected.material');
+            reason: 'Case $id missing expected.category');
+        expect(expected['sub_category'] ?? expected['material'], isNotNull,
+            reason: 'Case $id missing expected.sub_category or expected.material');
       }
     });
 
     test('schema validation: each golden case matches schema', () {
       for (final (i, case_) in goldenCases.indexed) {
-        // Validate required top-level fields
-        expect(case_['id'], isA<String>(),
-            reason: 'Case $i: "id" must be a string');
-        expect(case_['description'], isA<String>(),
-            reason: 'Case $i: "description" must be a string');
+        final id = caseId(case_);
+        expect(caseId(case_), isA<String>(),
+            reason: 'Case $i: "case_id"/"id" must be a string');
+
+        final description = case_['input'] is Map
+            ? (case_['input'] as Map)['description']
+            : case_['description'];
+        expect(description, isA<String>(),
+            reason: 'Case $id: description must be a string');
 
         final expected = case_['expected'] as Map<String, dynamic>;
         expect(expected['category'], isA<String>(),
-            reason: 'Case ${case_['id']}: expected.category must be string');
-        expect(expected['material'], isA<String>(),
-            reason: 'Case ${case_['id']}: expected.material must be string');
+            reason: 'Case $id: expected.category must be string');
+        final material =
+            expected['sub_category'] ?? expected['material'];
+        expect(material, isA<String>(),
+            reason: 'Case $id: expected.sub_category/material must be string');
 
-        // Validate acceptance criteria
-        final criteria = case_['acceptance_criteria'];
-        if (criteria != null) {
-          expect(criteria['min_confidence'], isA<num>(),
-              reason:
-                  'Case ${case_['id']}: acceptance_criteria.min_confidence must be num');
+        final acceptance = case_['acceptance'] ?? case_['acceptance_criteria'];
+        if (acceptance != null) {
+          final acc = acceptance as Map;
+          expect(
+            acc['acceptable_categories'] ?? acc['min_confidence'],
+            isNotNull,
+            reason:
+                'Case $id: acceptance must have acceptable_categories or min_confidence',
+          );
         }
       }
     });
 
     test('all golden cases have unique IDs', () {
-      final ids = goldenCases.map((c) => c['id'] as String).toList();
+      final ids = goldenCases.map((c) => caseId(c)).toList();
       final uniqueIds = ids.toSet();
       final duplicateIds = <String>{};
       final seen = <String>{};
@@ -112,7 +124,6 @@ void main() {
     });
 
     test('report: golden case summary', () {
-      // Print structured report
       final output = StringBuffer();
       output.writeln('=== Classification Eval Report ===');
       output.writeln('Total golden cases: $totalCases');
@@ -134,11 +145,13 @@ void main() {
       output.writeln('');
       output.writeln('Case IDs:');
       for (final case_ in goldenCases) {
-        final desc = case_['description'] as String? ?? '';
-        output.writeln('  [${case_['id']}] $desc');
+        final input = case_['input'] as Map<String, dynamic>?;
+        final desc = input?['description'] as String? ??
+            case_['description'] as String? ??
+            '';
+        output.writeln('  [${caseId(case_)}] $desc');
       }
 
-      // Print to stdout so CI can capture it
       // ignore: avoid_print
       print(output.toString());
     });

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/services/educational_content_service.dart';
 import 'package:waste_segregation_app/models/educational_content.dart';
 import '../test_helper.dart';
@@ -823,6 +824,10 @@ void main() {
     });
 
     group('Bookmark Tests', () {
+      setUp(() {
+        SharedPreferences.setMockInitialValues({});
+      });
+
       test('toggleBookmark adds and removes bookmark', () async {
         final service = EducationalContentService();
         await Future.delayed(Duration.zero);

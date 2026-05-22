@@ -1067,19 +1067,40 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
       if (!mounted) return;
 
+      final oldCategory = _classification.category;
+      final oldItemName = _classification.itemName;
+
       setState(() {
         _classification = reanalyzed;
         _isReanalyzing = false;
         _wasCorrected = true;
       });
 
-      // Log successful re-analysis
+      // Auto-save the corrected classification
+      unawaited(_handleSave());
+
+      // Track analytics for correction → reanalysis conversion
+      unawaited(_analyticsService.trackUserAction(
+        'correction_reanalyzed',
+        parameters: {
+          'classificationId': reanalyzed.id,
+          'originalCategory': oldCategory,
+          'newCategory': reanalyzed.category,
+          'originalItem': oldItemName,
+          'newItem': reanalyzed.itemName,
+          'confidence': '${reanalyzed.confidence}',
+          'source': 'correction_loop',
+        },
+      ));
+
       WasteAppLogger.aiEvent(
         'correction_reanalyzed',
         context: {
-          'originalId': _classification.id,
+          'originalId': reanalyzed.id,
+          'oldCategory': oldCategory,
           'newCategory': reanalyzed.category,
-          'newItemName': reanalyzed.itemName,
+          'oldItem': oldItemName,
+          'newItem': reanalyzed.itemName,
         },
       );
 

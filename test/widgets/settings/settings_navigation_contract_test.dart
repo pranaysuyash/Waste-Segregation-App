@@ -266,6 +266,30 @@ void main() {
       );
     });
 
+    testWidgets('AppSettingsSection remove ads shows active state when unlocked',
+        (tester) async {
+      final premiumService = _FakePremiumService();
+      await premiumService.setPremiumFeature('remove_ads', true);
+
+      await tester.pumpWidget(
+        _buildApp(
+          hapticSettingsService: _FakeHapticSettingsService(),
+          premiumService: premiumService,
+          child: const AppSettingsSection(),
+          routes: {
+            Routes.premiumFeatures: (_) => const _RouteTarget('premium-route'),
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Remove Ads'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.text('Upgrade to Use Remove Ads'), findsNothing);
+    });
+
     testWidgets('AppSettingsSection locked premium feature opens upgrade flow',
         (tester) async {
       await tester.pumpWidget(
