@@ -170,3 +170,22 @@ Executed:
 Result:
 - Pushed commit: `59d6cb0` to `main`
 - Post-push status: clean (`main...origin/main`)
+
+## Phase C addendum — regression/CI commit after verification (2026-05-22)
+
+Additional commit created after completing emulator + Flutter verification and CI wiring:
+- Commit: `da9b945`
+- Message: `test: add callable/rules regressions and wire storage rules lane into CI`
+- Includes:
+  - `.github/workflows/ci.yml`
+  - `firestore-rules-test/package.json`
+  - `functions/test/http_guards.emulator.test.js`
+  - `lib/models/ai_job.dart`
+  - `lib/services/ai_job_service.dart`
+  - `docs/review/FIREBASE_TASK_EXECUTION_2026-05-22_PHASEA.md`
+
+Push result:
+- `da9b945` pushed to `main` successfully.
+
+Current repo note:
+- Working tree currently has additional unrelated local changes/untracked files from parallel work (settings/home/navigation files and docs). Those were intentionally not staged in this commit slice.
