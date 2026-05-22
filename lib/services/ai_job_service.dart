@@ -202,10 +202,10 @@ class AiJobService {
       var averageProcessingTime = const Duration(seconds: 30); // Default
       if (completedJobsWithTimes.isNotEmpty) {
         final totalProcessingTime =
-            completedJobsWithTimes.fold<int>(0, (sum, job) {
+            completedJobsWithTimes.fold<int>(0, (accumulatedMs, job) {
           final createdAt = (job['createdAt'] as Timestamp).toDate();
           final completedAt = (job['completedAt'] as Timestamp).toDate();
-          return sum + completedAt.difference(createdAt).inMilliseconds;
+          return accumulatedMs + completedAt.difference(createdAt).inMilliseconds;
         });
         averageProcessingTime = Duration(
             milliseconds: totalProcessingTime ~/ completedJobsWithTimes.length);
@@ -226,10 +226,10 @@ class AiJobService {
       // Calculate average wait time from recently completed jobs
       var averageWaitTime = Duration.zero;
       if (completedJobsWithTimes.isNotEmpty) {
-        final totalWaitTime = completedJobsWithTimes.fold<int>(0, (sum, job) {
+        final totalWaitTime = completedJobsWithTimes.fold<int>(0, (accumulatedMs, job) {
           final createdAt = (job['createdAt'] as Timestamp).toDate();
           final completedAt = (job['completedAt'] as Timestamp).toDate();
-          return sum + completedAt.difference(createdAt).inMilliseconds;
+          return accumulatedMs + completedAt.difference(createdAt).inMilliseconds;
         });
         averageWaitTime = Duration(
             milliseconds: totalWaitTime ~/ completedJobsWithTimes.length);

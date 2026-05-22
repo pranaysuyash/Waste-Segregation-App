@@ -82,3 +82,91 @@ Scope: Implement concrete launch-critical improvements from `firebase_task.md` a
    - claims fallback path behavior
 3) Add CI gate for `test:storage:emulator` so storage policy drift cannot merge silently.
 4) Add explicit observability fields for spend path decisions (billing vs claims source) in spend ledger metadata.
+
+## Phase B addendum — backend-authoritative batch flow + CI integration (2026-05-22)
+
+This addendum closes the remaining execution tasks (`t1..t5`) under `motto_v2`.
+
+### Implemented
+
+1) Backend-authoritative batch callable path completed
+- `functions/src/index.ts`
+  - `createBatchAiJob` callable enforces:
+    - auth required
+    - App Check gate (`shouldEnforceCallableAppCheck`)
+    - owner-only `batch_images/{uid}/` URL validation
+    - per-user rate limit bucket
+    - server-side token debit ledger
+    - refund on OpenAI submission failure
+    - canonical Firestore `ai_jobs` write
+
+2) Client batch service refactor completed
+- `lib/services/ai_job_service.dart`
+  - removed direct client OpenAI batch submission path
+  - `createBatchJob` now calls backend callable (`createBatchAiJob`)
+  - client-side token debit/refund path removed from this flow
+
+3) Mixed status compatibility retained across old/new records
+- `lib/models/ai_job.dart`
+- `lib/providers/token_providers.dart`
+- `functions/src/index.ts` poller query + status mapping
+
+4) New emulator regression tests for callable + entitlement fallback
+- `functions/test/http_guards.emulator.test.js`
+  - added claims-fallback premium spend test
+  - added `createBatchAiJob` auth + owner-path validation test
+
+5) Storage rules lane integrated into main CI
+- `.github/workflows/ci.yml`
+  - added `firebase_rules` job
+  - runs Firestore + Storage rules tests in emulators
+  - added gate to `automerge` dependencies
+- `firestore-rules-test/package.json`
+  - added `test:all`
+  - added `test:all:emulator`
+
+6) Artifact safety update before commit/push
+- `.gitignore`
+  - added Hive lock artifact patterns:
+    - `/*box.lock`
+    - `/classification_queue.lock`
+
+### Verification evidence (Phase B)
+
+1) Functions build
+- `npm --prefix functions run build`
+- Result: PASS
+
+2) Functions callable/auth regression suite (updated)
+- `npm --prefix functions run test:http-guards:emulator`
+- Result: PASS (8/8)
+- Includes the new tests:
+  - `spendUserTokens applies claims-based premium fallback ...`
+  - `createBatchAiJob callable enforces auth and user-owned batch image path`
+
+3) Firestore + Storage rules full emulator suite
+- `npm --prefix firestore-rules-test run test:all:emulator`
+- Result: PASS
+  - Firestore rules: 83 passing
+  - Storage rules: 5 passing
+
+4) Targeted Flutter static analysis for touched Dart paths
+- `flutter analyze lib/services/ai_job_service.dart lib/models/ai_job.dart lib/providers/token_providers.dart`
+- Result: PASS (No issues found)
+
+5) Targeted Flutter tests for touched service behavior
+- `flutter test test/services/batching_service_test.dart test/services/enhanced_ai_api_service_safety_test.dart`
+- Result: PASS (All tests passed)
+
+### Git execution performed per explicit user instruction
+
+User explicitly requested `git add -A`, commit, and push before continuing work.
+
+Executed:
+- `git add -A`
+- `git commit -m "feat: enforce motto_v2 hardening and backend-authoritative AI batch flow"`
+- `git push`
+
+Result:
+- Pushed commit: `59d6cb0` to `main`
+- Post-push status: clean (`main...origin/main`)

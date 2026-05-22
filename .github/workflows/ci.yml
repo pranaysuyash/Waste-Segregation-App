@@ -24,7 +24,27 @@ jobs:
           # Skip overflow check for now as it's causing false positives
           # dart tool/check_overflows.dart lib/widgets/modern_ui/modern_cards.dart
 
-  # 2. Unit & widget tests (including Firebase init)
+  # 2. Firestore + Storage security rules tests
+  firebase_rules:
+    needs: analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            firestore-rules-test/package-lock.json
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+      - name: Install rules-test dependencies
+        run: npm --prefix firestore-rules-test ci
+      - name: Run Firestore + Storage rules emulator tests
+        run: npm --prefix firestore-rules-test run test:all:emulator
+
+  # 3. Unit & widget tests (including Firebase init)
   test:
     needs: analyze
     runs-on: ubuntu-latest
@@ -81,7 +101,7 @@ jobs:
 
   # 5. Auto-merge on success
   automerge:
-    needs: [ analyze, test, golden, storybook ]
+    needs: [ analyze, firebase_rules, test, golden, storybook ]
     if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:

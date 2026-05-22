@@ -32,7 +32,7 @@ async function signInWithPassword(email, password) {
   return data.idToken;
 }
 
-async function createOrResetUser({ uid, email, password, adminClaim }) {
+async function createOrResetUser({ uid, email, password, adminClaim, customClaims }) {
   try {
     await admin.auth().deleteUser(uid);
   } catch {
@@ -40,8 +40,14 @@ async function createOrResetUser({ uid, email, password, adminClaim }) {
   }
 
   await admin.auth().createUser({ uid, email, password });
-  if (adminClaim) {
-    await admin.auth().setCustomUserClaims(uid, { admin: true });
+
+  const mergedClaims = {
+    ...(customClaims && typeof customClaims === 'object' ? customClaims : {}),
+    ...(adminClaim ? { admin: true } : {}),
+  };
+
+  if (Object.keys(mergedClaims).length > 0) {
+    await admin.auth().setCustomUserClaims(uid, mergedClaims);
   }
 
   return signInWithPassword(email, password);
@@ -171,6 +177,78 @@ test('spendUserTokens callable enforces auth and deducts from wallet server-side
   assert.equal(payload.success, true);
   assert.equal(payload.wallet.balance, 47);
   assert.equal(payload.transaction.delta, -3);
+});
+
+test('spendUserTokens applies claims-based premium fallback when Firestore billing entitlement is absent', async () => {
+  const token = await createOrResetUser({
+    uid: 'it-premium-claims-fallback',
+    email: 'it-premium-claims-fallback@example.com',
+    password: 'Test1!',
+    adminClaim: false,
+    customClaims: { pro_subscription: true },
+  });
+  await upsertUserProfile('it-premium-claims-fallback', 10);
+
+  const spendRes = await fetch(`${FUNCTIONS_BASE}/spendUserTokens`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      data: {
+        amount: 4,
+        description: 'Instant AI analysis',
+        operationType: 'instant',
+      },
+    }),
+  });
+
+  const spendBody = await spendRes.json();
+  assert.equal(spendRes.status, 200);
+
+  const payload = spendBody.result ?? spendBody;
+  assert.equal(payload.success, true);
+  assert.equal(payload.wallet.balance, 7);
+  assert.equal(payload.transaction.delta, -3);
+});
+
+test('createBatchAiJob callable enforces auth and user-owned batch image path', async () => {
+  const unauthorizedRes = await fetch(`${FUNCTIONS_BASE}/createBatchAiJob`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      data: {
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/demo/o/batch_images%2Fit-batch-user%2Fx.jpg?alt=media',
+      },
+    }),
+  });
+  assert.equal(unauthorizedRes.status, 401);
+
+  const token = await createOrResetUser({
+    uid: 'it-batch-user',
+    email: 'it-batch-user@example.com',
+    password: 'Test1!',
+    adminClaim: false,
+  });
+
+  const forbiddenRes = await fetch(`${FUNCTIONS_BASE}/createBatchAiJob`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      data: {
+        imageUrl: 'https://firebasestorage.googleapis.com/v0/b/demo/o/batch_images%2Fsomeone-else%2Fx.jpg?alt=media',
+      },
+    }),
+  });
+
+  const forbiddenBody = await forbiddenRes.json();
+  assert.equal(forbiddenRes.status, 403);
+  const message = forbiddenBody?.error?.message ?? '';
+  assert.match(message, /imageUrl must reference an authenticated user-owned batch_images path/i);
 });
 
 test('classifyImage denies execution when token wallet is insufficient', async () => {

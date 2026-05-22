@@ -48,6 +48,27 @@ class AiJob {
     );
   }
 
+  /// Create a new job for the queue
+  factory AiJob.create({
+    required String userId,
+    required String imagePath,
+    required AnalysisSpeed speed,
+    bool priority = false,
+    Map<String, dynamic>? metadata,
+  }) {
+    return AiJob(
+      id: 'job_${DateTime.now().millisecondsSinceEpoch}_${userId.substring(0, 8)}',
+      userId: userId,
+      imagePath: imagePath,
+      speed: speed,
+      status: AiJobStatus.queued,
+      createdAt: DateTime.now(),
+      priority: priority,
+      tokensSpent: speed.cost,
+      metadata: metadata,
+    );
+  }
+
   static AnalysisSpeed _parseAnalysisSpeed(dynamic rawValue) {
     final raw = (rawValue ?? '').toString();
     for (final speed in AnalysisSpeed.values) {
@@ -83,27 +104,6 @@ class AiJob {
     }
 
     return null;
-  }
-
-  /// Create a new job for the queue
-  factory AiJob.create({
-    required String userId,
-    required String imagePath,
-    required AnalysisSpeed speed,
-    bool priority = false,
-    Map<String, dynamic>? metadata,
-  }) {
-    return AiJob(
-      id: 'job_${DateTime.now().millisecondsSinceEpoch}_${userId.substring(0, 8)}',
-      userId: userId,
-      imagePath: imagePath,
-      speed: speed,
-      status: AiJobStatus.queued,
-      createdAt: DateTime.now(),
-      priority: priority,
-      tokensSpent: speed.cost,
-      metadata: metadata,
-    );
   }
 
   final String id;
