@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
+import '../../utils/waste_theme.dart';
 
 /// Modern badge with various styles and animations
 class ModernBadge extends StatelessWidget {
@@ -336,43 +337,11 @@ class WasteCategoryBadge extends StatelessWidget {
     );
   }
 
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-        return AppTheme.wetWasteColor;
-      case 'dry waste':
-        return AppTheme.dryWasteColor;
-      case 'hazardous waste':
-        return AppTheme.hazardousWasteColor;
-      case 'medical waste':
-        return AppTheme.medicalWasteColor;
-      case 'non-waste':
-        return AppTheme.nonWasteColor;
-      case 'requires manual review':
-        return AppTheme.manualReviewColor;
-      default:
-        return AppTheme.neutralColor;
-    }
-  }
+  Color _getCategoryColor(String category) =>
+      WasteTheme.categoryColor(category);
 
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-        return Icons.eco;
-      case 'dry waste':
-        return Icons.recycling;
-      case 'hazardous waste':
-        return Icons.warning;
-      case 'medical waste':
-        return Icons.medical_services;
-      case 'non-waste':
-        return Icons.check_circle;
-      case 'requires manual review':
-        return Icons.help_outline;
-      default:
-        return Icons.category;
-    }
-  }
+  IconData _getCategoryIcon(String category) =>
+      WasteTheme.categoryIcon(category);
 }
 
 /// Status badge with predefined colors and states

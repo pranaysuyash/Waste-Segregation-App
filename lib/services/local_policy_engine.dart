@@ -15,6 +15,10 @@ class LocalPolicyRulePack {
     required this.owningTeam,
     required this.categories,
     required this.rules,
+    this.sourceUrl,
+    this.helpline,
+    this.lastVerified,
+    this.nextReviewDue,
   });
 
   final String rulePackId;
@@ -26,6 +30,10 @@ class LocalPolicyRulePack {
   final String owningTeam;
   final List<String> categories;
   final List<LocalPolicyRule> rules;
+  final String? sourceUrl;
+  final String? helpline;
+  final String? lastVerified;
+  final String? nextReviewDue;
 }
 
 /// Canonical compliance result produced before policy mutations are applied.
@@ -51,6 +59,7 @@ enum LocalPolicyRuleCheckType {
   isCompostableTrue,
   isRecyclableTrue,
   visualFeatureMustNotContain,
+  safetyOverrideAlways,
 }
 
 /// Structured rule definition that can be versioned and extended per city.
@@ -81,9 +90,19 @@ class LocalPolicyComplianceEvaluator {
     required WasteClassification classification,
     required LocalPolicyRulePack rulePack,
   }) {
-    final result = plugin.validateCompliance(classification);
-    final violations = <String>[...result.violations];
-    final warnings = <String>[...result.warnings];
+    final pluginResult = plugin.validateCompliance(classification);
+    final confidence = classification.confidence ?? 1.0;
+    final violations = <String>[];
+    final warnings = <String>[...pluginResult.warnings];
+
+    for (final v in pluginResult.violations) {
+      final severity = _resolvePluginViolationSeverity(v, confidence);
+      if (severity == LocalPolicyRuleSeverity.violation) {
+        violations.add(v);
+      } else {
+        warnings.add('[confidence_gated] $v');
+      }
+    }
 
     final categoryKey = _toCategoryKey(classification.category);
     final categoryRules =
@@ -91,8 +110,12 @@ class LocalPolicyComplianceEvaluator {
 
     for (final rule in categoryRules) {
       final passed = _evaluateRule(rule, classification);
+
       if (passed) continue;
-      if (rule.severity == LocalPolicyRuleSeverity.violation) {
+
+      final severity = _resolveRuleSeverity(rule, confidence);
+
+      if (severity == LocalPolicyRuleSeverity.violation) {
         violations.add('[${rule.ruleId}] ${rule.message}');
       } else {
         warnings.add('[${rule.ruleId}] ${rule.message}');
@@ -110,8 +133,60 @@ class LocalPolicyComplianceEvaluator {
       status: status,
       violations: violations,
       warnings: warnings,
-      recommendations: result.recommendations,
+      recommendations: pluginResult.recommendations,
     );
+  }
+
+  /// Resolves the effective severity of a plugin-level violation, applying
+  /// confidence gating.
+  ///
+  /// Plugin violations come from [LocalGuidelinesPlugin.validateCompliance]
+  /// and are based on the plugin's deterministic rules applied to ML-sourced
+  /// fields. When confidence is low, those ML-sourced fields may be wrong,
+  /// so violations are demoted to warnings.
+  ///
+  ///   ≥ 0.70  — full enforcement
+  ///   0.50–0.69 — demoted to warning
+  ///   < 0.50  — demoted to warning
+  LocalPolicyRuleSeverity _resolvePluginViolationSeverity(
+    String violation,
+    double confidence,
+  ) {
+    if (confidence >= 0.70) return LocalPolicyRuleSeverity.violation;
+    return LocalPolicyRuleSeverity.warning;
+  }
+
+  /// Resolves the effective severity of a rule-pack rule, applying confidence
+  /// gating.
+  ///
+  /// Rules with check type [safetyOverrideAlways] are held to a higher
+  /// standard — they remain violations at ≥0.70 but demote below that.
+  ///
+  ///   ≥ 0.90  — full enforcement per rule
+  ///   0.70–0.89 — safetyOverrideAlways stays violation; others stay as-is
+  ///   0.50–0.69 — all violations demoted to warning
+  ///   < 0.50  — all violations demoted to warning
+  LocalPolicyRuleSeverity _resolveRuleSeverity(
+    LocalPolicyRule rule,
+    double confidence,
+  ) {
+    if (confidence >= 0.90) return rule.severity;
+
+    if (confidence >= 0.70) {
+      if (rule.checkType == LocalPolicyRuleCheckType.safetyOverrideAlways) {
+        return rule.severity;
+      }
+      return rule.severity;
+    }
+
+    if (confidence >= 0.50) {
+      if (rule.checkType == LocalPolicyRuleCheckType.safetyOverrideAlways) {
+        return LocalPolicyRuleSeverity.warning;
+      }
+      return LocalPolicyRuleSeverity.warning;
+    }
+
+    return LocalPolicyRuleSeverity.warning;
   }
 
   bool _evaluateRule(LocalPolicyRule rule, WasteClassification classification) {
@@ -130,6 +205,8 @@ class LocalPolicyComplianceEvaluator {
         return !classification.visualFeatures
             .map((feature) => feature.toLowerCase())
             .any((feature) => feature.contains(token));
+      case LocalPolicyRuleCheckType.safetyOverrideAlways:
+        return false;
     }
   }
 
@@ -152,6 +229,11 @@ class LocalPolicyDecision {
     this.violations = const <String>[],
     this.warnings = const <String>[],
     this.recommendations = const <String>[],
+    this.sourceUrl,
+    this.helpline,
+    this.lastVerified,
+    this.confidenceGated = false,
+    this.originalSeverity,
   });
 
   final WasteClassification classification;
@@ -166,6 +248,13 @@ class LocalPolicyDecision {
   final List<String> violations;
   final List<String> warnings;
   final List<String> recommendations;
+
+  // Provenance card fields
+  final String? sourceUrl;
+  final String? helpline;
+  final String? lastVerified;
+  final bool confidenceGated;
+  final String? originalSeverity;
 }
 
 /// Canonical policy engine that routes classification outputs through
@@ -205,6 +294,9 @@ class LocalPolicyEngine {
     );
     final updated = await plugin.applyLocalGuidelines(classification);
 
+    final confidence = classification.confidence ?? 1.0;
+    final isConfidenceGated = confidence < 0.70;
+
     return LocalPolicyDecision(
       classification: updated,
       policyApplied: true,
@@ -218,6 +310,10 @@ class LocalPolicyEngine {
       violations: compliance.violations,
       warnings: compliance.warnings,
       recommendations: compliance.recommendations,
+      sourceUrl: rulePack.sourceUrl,
+      helpline: rulePack.helpline,
+      lastVerified: rulePack.lastVerified,
+      confidenceGated: isConfidenceGated,
     );
   }
 

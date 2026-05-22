@@ -22,6 +22,8 @@ import 'package:waste_segregation_app/services/local_policy_engine.dart';
 import 'package:waste_segregation_app/utils/production_safety_config.dart';
 import 'package:waste_segregation_app/services/providers/backend_proxy_provider.dart';
 import 'package:waste_segregation_app/services/providers/classification_provider.dart';
+import 'package:waste_segregation_app/services/providers/openai_provider_client.dart';
+import 'package:waste_segregation_app/services/providers/gemini_provider_client.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import 'package:waste_segregation_app/services/parsers/ai_response_parser.dart';
@@ -90,7 +92,21 @@ class AiService {
         localPolicyEngine = localPolicyEngine ?? const LocalPolicyEngine(),
         _dio = dioClient ?? Dio(),
         _saveWebImageOverride = saveWebImageOverride,
-        _backendProxy = backendProxy;
+        _backendProxy = backendProxy {
+    _openAiProvider = OpenAiProviderClient(
+      dio: _dio,
+      baseUrl: this.openAiBaseUrl,
+      apiKey: this.openAiApiKey,
+      model: ApiConfig.primaryModel,
+    );
+    _geminiProvider = GeminiProviderClient(
+      dio: _dio,
+      baseUrl: this.geminiBaseUrl,
+      apiKey: this.geminiApiKey,
+      model: ApiConfig.tertiaryModel,
+    );
+  }
+
   static const String promptVersion = 'waste-classification-v2';
   static const String schemaVersion = 'waste-classification-schema-v2';
   static const String localGuidelinesVersion = 'bbmp-2024';
@@ -120,6 +136,8 @@ class AiService {
   /// Any [ClassificationProvider] can be injected — typically a hand-rolled
   /// fake that extends [BackendProxyProvider] or satisfies the interface.
   final ClassificationProvider? _backendProxy;
+  late final OpenAiProviderClient _openAiProvider;
+  late final GeminiProviderClient _geminiProvider;
 
   CancelToken? _cancelToken;
   int _providerCallCount = 0;

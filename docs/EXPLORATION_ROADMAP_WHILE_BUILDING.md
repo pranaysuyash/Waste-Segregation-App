@@ -204,7 +204,7 @@ These exploration practices apply regardless of phase. Treat them as guardrails.
 | NEXT | X3 | Region-Aware Rulesets | 🔴 Implicit in prompts today |
 | NEXT | X4 | Gamification + Habit Loop | 🟡 v1 lives in code; needs critical rework |
 | NEXT | X5 | Firestore + History Schema | 🟡 Implicit |
-| LATER | L1 | On-Device Inference | 🔴 (frontier-paced) |
+| LATER | L1 | On-Device Inference | 🟡 Interface + pipeline in place (Phase A+B). Real model (Phase C) deferred. |
 | LATER | L2 | Smart-Bin / QR Layer | 🟢 |
 | LATER | L3 | B2B / School Wedge | 🟢 |
 | LATER | L4 | Continuous Learning Loop | 🟢 |

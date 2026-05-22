@@ -601,6 +601,128 @@ export const cleanupTrainingReviewImages = asiaSouth1.pubsub
     return null;
   });
 
+export interface ManifestRowInput {
+  candidateId: string | null;
+  reviewStatus: string | null;
+  labelState: string | null;
+  modelPrediction: Record<string, unknown> | null;
+  userFeedback: Record<string, unknown> | null;
+  reviewerVerified: Record<string, unknown> | null;
+  imageContentHash: string | null;
+  imageStoragePath: string | null;
+  classificationId: string | null;
+  consentPolicyVersion: string | null;
+  reviewer: string | null;
+  createdAt: unknown;
+}
+
+export function resolveAuthoritativeLabel(input: ManifestRowInput): {
+  category: string | null;
+  subcategory: string | null;
+  itemName: string | null;
+  material: string | null;
+  confidence: number | null;
+  labelSource: string;
+  provider: string | null;
+  model: string | null;
+  imageHash: string | null;
+  imagePath: string | null;
+  provenance: Record<string, unknown>;
+} {
+  const rawPrediction = input.modelPrediction ?? null;
+  const userCorrection = input.userFeedback ?? null;
+  const reviewerVerified = input.reviewerVerified ?? null;
+  const gt = (reviewerVerified?.groundTruth ?? null) as Record<string, unknown> | null;
+
+  const category = (gt?.category as string | null)
+    ?? (userCorrection?.correctedCategory as string | null)
+    ?? (rawPrediction?.category as string | null)
+    ?? null;
+
+  const itemName = (gt?.itemName as string | null)
+    ?? (userCorrection?.correctedItemName as string | null)
+    ?? (rawPrediction?.itemName as string | null)
+    ?? null;
+
+  const material = (gt?.material as string | null)
+    ?? (userCorrection?.correctedMaterial as string | null)
+    ?? (rawPrediction?.material as string | null)
+    ?? null;
+
+  const subcategory = (gt?.subcategory as string | null)
+    ?? (userCorrection?.correctedSubcategory as string | null)
+    ?? (rawPrediction?.subcategory as string | null)
+    ?? null;
+
+  const confidence = (gt?.confidence as number | null)
+    ?? (rawPrediction?.confidence as number | null)
+    ?? null;
+
+  let labelSource = input.reviewStatus ?? 'raw_prediction';
+  if (input.labelState && ['golden', 'training_eligible', 'policy_verified', 'user_corrected'].includes(input.labelState)) {
+    labelSource = input.labelState;
+  }
+
+  return {
+    category, subcategory, itemName, material, confidence,
+    labelSource,
+    provider: (rawPrediction?.provider as string | null) ?? null,
+    model: (rawPrediction?.model as string | null) ?? null,
+    imageHash: input.imageContentHash,
+    imagePath: input.imageStoragePath,
+    provenance: {
+      classificationId: input.classificationId ?? null,
+      consentVersion: input.consentPolicyVersion ?? null,
+      reviewer: input.reviewer ?? null,
+    },
+  };
+}
+
+export function buildManifestRow(
+  cand: Record<string, unknown>,
+  rawPrediction: Record<string, unknown> | null,
+  userCorrection: Record<string, unknown> | null,
+  reviewerVerified: Record<string, unknown> | null,
+  datasetVersion: string,
+): Record<string, unknown> | null {
+  const candId = (cand.candidateId as string | null) ?? null;
+  if (!candId) return null;
+
+  const input: ManifestRowInput = {
+    candidateId: candId,
+    reviewStatus: ((cand.review as Record<string, unknown> | null)?.status as string | null) ?? null,
+    labelState: null,
+    modelPrediction: rawPrediction,
+    userFeedback: userCorrection,
+    reviewerVerified,
+    imageContentHash: ((cand.image as Record<string, unknown> | null)?.contentHash as string | null) ?? null,
+    imageStoragePath: ((cand.image as Record<string, unknown> | null)?.storagePath as string | null) ?? null,
+    classificationId: (cand.classificationId as string | null) ?? null,
+    consentPolicyVersion: ((cand.consent as Record<string, unknown> | null)?.policyVersion as string | null) ?? null,
+    reviewer: ((cand.review as Record<string, unknown> | null)?.reviewer as string | null) ?? null,
+    createdAt: cand.createdAt ?? null,
+  };
+
+  const resolved = resolveAuthoritativeLabel(input);
+
+  return {
+    candidateId: candId,
+    labelSource: resolved.labelSource,
+    category: resolved.category,
+    subcategory: resolved.subcategory,
+    itemName: resolved.itemName,
+    material: resolved.material,
+    confidence: resolved.confidence,
+    imageHash: resolved.imageHash,
+    imagePath: resolved.imagePath,
+    provider: resolved.provider,
+    model: resolved.model,
+    datasetVersion,
+    provenance: resolved.provenance,
+    createdAt: input.createdAt,
+  };
+}
+
 export const buildTrainingDatasetManifest = asiaSouth1.https.onCall(async (data, context) => {
   requireAuth(context);
   if (!isAdminContext(context)) {
@@ -645,58 +767,20 @@ export const buildTrainingDatasetManifest = asiaSouth1.https.onCall(async (data,
 
   for (const doc of candidates.docs) {
     const cand = doc.data();
-    const isGolden = cand?.review?.status === 'golden';
+    const isGolden = (cand.review as Record<string, unknown> | null)?.status === 'golden';
     if (isGolden) goldenCount += 1;
 
-    const label = labelMap.get(doc.id);
+    const label = labelMap.get(doc.id) ?? null;
 
-    const rawPrediction = label?.rawPrediction ?? cand?.modelPrediction ?? null;
-    const userCorrection = label?.userCorrection ?? cand?.userFeedback ?? null;
-    const reviewerVerified = label?.reviewerVerified ?? null;
-
-    const authoritativeGroundTruth = reviewerVerified?.groundTruth ?? null;
-
-    const category = authoritativeGroundTruth?.category
-      ?? userCorrection?.correctedCategory
-      ?? rawPrediction?.category
-      ?? null;
-    const itemName = authoritativeGroundTruth?.itemName
-      ?? userCorrection?.correctedItemName
-      ?? rawPrediction?.itemName
-      ?? null;
-    const material = authoritativeGroundTruth?.material
-      ?? userCorrection?.correctedMaterial
-      ?? rawPrediction?.material
-      ?? null;
-
-    let labelSource = cand?.review?.status ?? 'raw_prediction';
-    if (label?.labelState && ['golden', 'training_eligible', 'policy_verified', 'user_corrected'].includes(label.labelState)) {
-      labelSource = label.labelState;
-    }
-
-    rows.push({
-      candidateId: cand.candidateId ?? doc.id,
-      labelSource,
-      category,
-      subcategory: authoritativeGroundTruth?.subcategory
-        ?? userCorrection?.correctedSubcategory
-        ?? rawPrediction?.subcategory
-        ?? null,
-      itemName,
-      material,
-      confidence: authoritativeGroundTruth?.confidence ?? rawPrediction?.confidence ?? null,
-      imageHash: cand?.image?.contentHash ?? null,
-      imagePath: cand?.image?.storagePath ?? null,
-      provider: rawPrediction?.provider ?? null,
-      model: rawPrediction?.model ?? null,
+    const row = buildManifestRow(
+      cand,
+      (label?.rawPrediction as Record<string, unknown> | null) ?? (cand.modelPrediction as Record<string, unknown> | null),
+      (label?.userCorrection as Record<string, unknown> | null) ?? (cand.userFeedback as Record<string, unknown> | null),
+      (label?.reviewerVerified as Record<string, unknown> | null) ?? null,
       datasetVersion,
-      provenance: {
-        classificationId: cand?.classificationId ?? null,
-        consentVersion: cand?.consent?.policyVersion ?? null,
-        reviewer: cand?.review?.reviewer ?? null,
-      },
-      createdAt: cand?.createdAt ?? null,
-    });
+    );
+
+    if (row) rows.push(row);
   }
 
   if (dryRun) {
@@ -767,6 +851,8 @@ export const __testables = {
   detectSensitiveTextInNotes,
   isAdminContext,
   likelySensitiveFromSignals,
+  resolveAuthoritativeLabel,
+  buildManifestRow,
   shouldCleanupCandidate,
   runTrainingReviewCleanup,
 };

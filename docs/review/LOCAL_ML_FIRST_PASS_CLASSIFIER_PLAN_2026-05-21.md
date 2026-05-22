@@ -476,12 +476,15 @@ class FakeLocalClassifier implements LocalClassifier {
 - [x] `FakeLocalClassifier` for tests
 - [x] Plan document
 
-### Phase B — Wiring
+### Phase B — Wiring (implemented 2026-05-21)
 
-- [ ] `ClassificationRouter` that calls LocalClassifier → AiService
-- [ ] Wire router into capture flow (replace direct `AiService` call)
-- [ ] Wire offline queue to check local result before enqueuing
-- [ ] Add `classificationLayer` field to `WasteClassification` (reference: `LOCAL_FIRST_VLM_AI_ROADMAP.md`)
+- [x] `ClassificationPipeline` service (`lib/services/classification_pipeline.dart`) — orchestrates L0 → L1 → Cloud via `tryLocalOnly()` + `classify()`
+- [x] Riverpod providers (`lib/providers/classification_pipeline_providers.dart`) — `localClassifierProvider`, `classificationPipelineProvider`, `layer1EnabledProvider`
+- [x] Wire pipeline into capture screen (`_tryLocalClassification` in `image_capture_screen.dart`, replacing ad-hoc Layer 0 check)
+- [x] Offline queue reordered: local layers run first before queuing
+- [x] `classificationLayer` field on `WasteClassification` (runtime-only, non-Hive)
+- [x] `FakeLocalClassifier` updated with `shouldThrowOnClassify`, `shouldThrowOnLoad`
+- [x] Tests: 23 local classifier service tests + 13 pipeline tests = 36 total
 
 ### Phase C — Real Inference Engine
 
@@ -514,8 +517,13 @@ class FakeLocalClassifier implements LocalClassifier {
 | `lib/services/providers/classification_provider.dart` | Abstract interface for cloud providers |
 | `lib/services/providers/local_vlm_provider.dart` | VLM stub that throws UnimplementedError |
 | `lib/services/model_download_service.dart` | Model download and version management |
+| `lib/services/classification_pipeline.dart` | Phase B: Pipeline orchestrating L0 → L1 → Cloud |
+| `lib/providers/classification_pipeline_providers.dart` | Phase B: Riverpod providers for pipeline + local classifier |
+| `lib/services/local_classifier_service.dart` | Phase A: LocalClassifier interface + FakeLocalClassifier |
+| `test/services/local_classifier_service_test.dart` | Phase A: 23 tests for classifier interface |
+| `test/services/classification_pipeline_test.dart` | Phase B: 13 tests for pipeline |
 | `lib/models/vision_model_config.dart` | VisionModelType and AnalysisMode enums |
 
 ---
 
-*Last updated: 2026-05-21. Owner: Pranay. Status: SEED → IMPLEMENTED.*
+*Last updated: 2026-05-21. Owner: Pranay. Status: Phase A + B IMPLEMENTED. Phase C/D deferred.*

@@ -38,10 +38,44 @@ void main() {
       expect(pluginB!.pluginId, equals('mcd_delhi'));
     });
 
+    test('routes Pune to PMC plugin', () {
+      final plugin =
+          LocalGuidelinesManager.getPluginForRegion('Pune, IN');
+      expect(plugin, isNotNull);
+      expect(plugin!.pluginId, equals('pmc_pune'));
+    });
+
+    test('routes Hyderabad to GHMC plugin', () {
+      final plugin =
+          LocalGuidelinesManager.getPluginForRegion('Hyderabad, IN');
+      expect(plugin, isNotNull);
+      expect(plugin!.pluginId, equals('ghmc_hyderabad'));
+    });
+
+    test('routes Chennai to GCC plugin', () {
+      final plugin =
+          LocalGuidelinesManager.getPluginForRegion('Chennai, IN');
+      expect(plugin, isNotNull);
+      expect(plugin!.pluginId, equals('gcc_chennai'));
+    });
+
+    test('routes Kolkata to KMC plugin', () {
+      final plugin =
+          LocalGuidelinesManager.getPluginForRegion('Kolkata, IN');
+      expect(plugin, isNotNull);
+      expect(plugin!.pluginId, equals('kmc_kolkata'));
+    });
+
     test('supports direct plugin-id lookup fallback', () {
       final plugin = LocalGuidelinesManager.getPluginForRegion('mcd_delhi');
       expect(plugin, isNotNull);
       expect(plugin!.pluginId, equals('mcd_delhi'));
+    });
+
+    test('returns null for unknown region', () {
+      final plugin =
+          LocalGuidelinesManager.getPluginForRegion('Unknown City');
+      expect(plugin, isNull);
     });
   });
 }

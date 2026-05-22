@@ -376,7 +376,6 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
 
     await FirebaseAppCheck.instance
         .activate(
-          androidProvider: AndroidProvider.playIntegrity,
           appleProvider: AppleProvider.appAttest,
         )
         .timeout(const Duration(seconds: 10));

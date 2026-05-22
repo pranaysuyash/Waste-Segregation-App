@@ -141,6 +141,8 @@ delegates to `AppTheme.*` constants which match `WasteTheme` colours.
 | `lib/widgets/waste_components/classification_summary_card.dart` | Classification summary card |
 | `lib/widgets/waste_components/offline_queue_status_card.dart` | Offline queue card |
 | `lib/widgets/waste_components/local_rule_chip.dart` | Local rule chip |
+| `lib/widgets/waste_components/correction_prompt.dart` | Correction prompt |
+| `lib/widgets/waste_components/waste_tip_card.dart` | Waste tip card |
 
 ### Modified files
 
@@ -154,6 +156,13 @@ delegates to `AppTheme.*` constants which match `WasteTheme` colours.
 | `lib/widgets/history_list_item.dart` | `_getCategoryColor` / `_getConfidenceColor` / `_getCategoryIcon` → `WasteTheme` |
 | `lib/widgets/interactive_tag.dart` | `TagFactory._getCategoryColor` / `_getCategoryIcon` → `WasteTheme` |
 | `lib/widgets/enhanced_gamification_widgets.dart` | `_getCategoryColor` → `WasteTheme.categoryColor` |
+| `lib/widgets/modern_ui/modern_badges.dart` | `_getCategoryColor` / `_getCategoryIcon` → `WasteTheme` |
+| `lib/screens/home_screen.dart` | `_getCategoryColor` / `_getCategoryIcon` → `WasteTheme` |
+| `lib/screens/ultra_modern_home_screen.dart` | `_getCategoryColor` / `_getCategoryIcon` → `WasteTheme` |
+| `lib/screens/history_screen.dart` | `_getCategoryColor` → `WasteTheme.categoryColor` |
+| `lib/widgets/result_screen/result_header.dart` | `_getCategoryColor` / `_getCategoryIcon` / `_getConfidenceColor` → `WasteTheme` |
+| `lib/screens/content_detail_screen.dart` | `_getCategoryColor` → `WasteTheme.categoryColor` |
+| `lib/utils/design_system.dart` | `getCategoryColor` → `WasteTheme.categoryColor` |
 
 ---
 

@@ -34,5 +34,5 @@ final classificationPipelineProvider = Provider<ClassificationPipeline>((ref) {
 final layer1EnabledProvider = FutureProvider<bool>((ref) async {
   final remoteConfig = ref.read(remoteConfigServiceProvider);
   await remoteConfig.initialize();
-  return remoteConfig.getBool('layer1_enabled', defaultValue: false);
+  return remoteConfig.getBool('layer1_enabled');
 });

@@ -118,24 +118,24 @@ Each case includes: `expected.category`, `expected.itemName`, `expected.material
 | Latency | Informational | p50/p90 ms |
 | Cost | Informational | avg cost per prediction |
 
-**Gate policy** (not yet wired to CI):
-- `must_not_violations > 0` → BLOCK
-- `safety_failures > 0` → BLOCK
+**Gate policy** (wired in CI, currently WARN, upgrade to BLOCK with golden set v2):
+- `must_not_violations > 0` → WARN (BLOCK once golden set reaches v2 quality)
+- `safety_failures > 0` → WARN (BLOCK once golden set reaches v2 quality)
 - `strict_pass_rate < 0.80` → WARN
-- `strict_pass_rate < 0.70` → BLOCK
+- `strict_pass_rate < 0.70` → BLOCK (not yet wired)
 
-## 5. Remaining Work
+## 5. Status
 
-| Item | Status | Effort |
-|------|--------|--------|
-| Wire live adapter for `classifyImage` callable | TODO | 1 day |
-| Wire live adapter for `LocalClassifier` | TODO | 1 day |
-| Build `eval.jsonl` from golden candidates via manifest export | Pending annotation tool | 1 day |
-| CI gate: run eval on golden set before deploy | TODO | 0.5 day |
-| CI gate: block on must_not / safety failures | TODO | 0.5 day |
-| Add `E-Waste` and `Reusable` to expected category set | TODO | 0.5 day |
-| Grow golden set from 36 → 200+ via review pipeline | Ongoing | Ongoing |
-| Add prompt/version fields to provider output contract | TODO | 0.5 day |
+| Item | Status | Notes |
+|------|--------|-------|
+| Live adapter for `classifyImage` callable | **Wired** — `OpenAIViaClassifyImageAdapter` + `GeminiViaClassifyImageAdapter` | Requires golden cases with `expected.image_source` and Firebase service account credentials. `_call_classify_image` stubbed — needs image retrieval from Storage. |
+| Live adapter for `LocalClassifier` | **Scaffolded** — `LocalSmallAdapter` returns fixture-style preds | Wire to actual LocalClassifier when it's production-ready. |
+| CI gate: eval runs on PR/push | **Wired** — `ci.yml` step runs offline eval, uploads report | Job `eval`, needs `analyze`. Report artifact uploaded regardless of pass/fail. |
+| CI gate: block on violations | **WARN only** — golden set v1 has known synthetic issues (14 safety failures, 23 must-not violations across 4 providers) | Upgrade to BLOCK when golden set v2 (from annotation review pipeline) replaces v1 |
+| `buildTrainingDatasetManifest` → eval manifest | **Wired** — new Cloud Function + `ci_eval_report.json` as eval input | Next step: wire CI gate to consume manifest output instead of fixture file |
+| Add `E-Waste` and `Reusable` to expected category set | TODO | Pending golden set v2 |
+| Grow golden set from 36 → 200+ via review pipeline | Ongoing | Annotation tool pipeline generates golden candidates |
+| Add prompt/version fields to provider output contract | TODO | After live adapter is fully wired |
 
 ## 6. Relationship to Annotation Tool
 

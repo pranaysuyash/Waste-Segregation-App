@@ -114,12 +114,17 @@ class MultiItemRegionReview extends StatelessWidget {
   }
 
   Widget _buildRegionList(ThemeData theme) {
-    return Column(
-      children: regions.asMap().entries.map((entry) {
-        final index = entry.key;
-        final region = entry.value;
-        return _buildRegionItem(region, index, theme);
-      }).toList(),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 320),
+      child: SingleChildScrollView(
+        child: Column(
+          children: regions.asMap().entries.map((entry) {
+            final index = entry.key;
+            final region = entry.value;
+            return _buildRegionItem(region, index, theme);
+          }).toList(),
+        ),
+      ),
     );
   }
 

@@ -1,55 +1,90 @@
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'city_policy_data.dart';
 import '../utils/waste_app_logger.dart';
 
-/// Abstract base class for local guidelines plugins
-/// Allows extensible support for different cities and waste management authorities
+/// Abstract base class for local guidelines plugins.
+///
+/// New cities should use [CityPolicyData] to power most methods without
+/// writing custom logic. Only override [validateCompliance] when the city
+/// has genuinely unique multi-field validation (e.g. BBMP).
 abstract class LocalGuidelinesPlugin {
-  /// Get the plugin identifier (e.g., 'bbmp_bangalore', 'bmc_mumbai')
   String get pluginId;
-
-  /// Get the authority name (e.g., 'BBMP', 'BMC')
   String get authorityName;
-
-  /// Get the current guidelines version
   String get guidelinesVersion;
-
-  /// Get the region/city this plugin covers
   String get region;
 
-  /// Apply local guidelines to a classification
   Future<WasteClassification> applyLocalGuidelines(
       WasteClassification classification);
-
-  /// Validate compliance with local regulations
   LocalComplianceResult validateCompliance(WasteClassification classification);
-
-  /// Get local disposal instructions override
   Map<String, dynamic>? getLocalDisposalInstructions(
       String category, String? subcategory);
-
-  /// Get local color coding requirements
   Map<String, String> getColorCoding();
-
-  /// Get collection schedule information
   Map<String, dynamic> getCollectionSchedule();
-
-  /// Get local regulations specific to this authority
   Map<String, String> getLocalRegulations(String category);
 }
 
-/// BBMP (Bruhat Bengaluru Mahanagara Palike) Guidelines Plugin for Bangalore
+/// Helper mixin-like base that delegates most methods to a [CityPolicyData].
+///
+/// Subclasses only need to provide [cityData] and optionally override
+/// [validateCompliance] for city-specific logic. Everything else delegates.
+mixin CityDataPluginMixin on LocalGuidelinesPlugin {
+  CityPolicyData get cityData;
+
+  @override
+  String get pluginId => cityData.pluginId;
+  @override
+  String get authorityName => cityData.authorityName;
+  @override
+  String get guidelinesVersion => cityData.guidelinesVersion;
+  @override
+  String get region => cityData.region;
+
+  @override
+  Future<WasteClassification> applyLocalGuidelines(
+      WasteClassification classification) async {
+    return cityData.applyDefaults(this as LocalGuidelinesPlugin, classification);
+  }
+
+  @override
+  LocalComplianceResult validateCompliance(
+      WasteClassification classification) {
+    return cityData.defaultValidateCompliance(
+        this as LocalGuidelinesPlugin, classification);
+  }
+
+  @override
+  Map<String, dynamic>? getLocalDisposalInstructions(
+      String category, String? subcategory) {
+    return cityData.getDisposalFor(category, subcategory);
+  }
+
+  @override
+  Map<String, String> getColorCoding() => cityData.getColorCodingMap();
+
+  @override
+  Map<String, dynamic> getCollectionSchedule() =>
+      cityData.getCollectionScheduleMap();
+
+  @override
+  Map<String, String> getLocalRegulations(String category) =>
+      cityData.getLocalRegulations(category);
+}
+
+/// BBMP (Bruhat Bengaluru Mahanagara Palike) — Bangalore.
+///
+/// Keeps custom compliance validation (richer multi-field checks). Uses
+/// [CityPolicyData] for data tables.
 class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
   @override
-  String get pluginId => 'bbmp_bangalore';
-
+  String get pluginId => cityData.pluginId;
   @override
-  String get authorityName => 'BBMP';
-
+  String get authorityName => cityData.authorityName;
   @override
-  String get guidelinesVersion => 'BBMP-2024.1';
-
+  String get guidelinesVersion => cityData.guidelinesVersion;
   @override
-  String get region => 'Bangalore, IN';
+  String get region => cityData.region;
+
+  static const CityPolicyData cityData = CityPolicyData.bbmp;
 
   @override
   Future<WasteClassification> applyLocalGuidelines(
@@ -62,19 +97,13 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
             'category': classification.category,
           });
 
-      // Get BBMP-specific regulations
       final localRegulations = getLocalRegulations(classification.category);
-
-      // Validate BBMP compliance
       final complianceResult = validateCompliance(classification);
-
-      // Get local disposal instructions
       final localInstructions = getLocalDisposalInstructions(
         classification.category,
         classification.subcategory,
       );
 
-      // Apply BBMP-specific modifications
       var updatedClassification = classification.copyWith(
         localRegulations: localRegulations,
         bbmpComplianceStatus: complianceResult.status,
@@ -82,7 +111,6 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
         localGuidelinesReference: _generateGuidelinesReference(classification),
       );
 
-      // Apply local disposal method overrides if needed
       if (localInstructions != null) {
         updatedClassification = _applyLocalDisposalOverrides(
           updatedClassification,
@@ -90,9 +118,8 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
         );
       }
 
-      // Apply BBMP-specific point modifiers
       final pointsModifier =
-          _calculateBBMPPointsModifier(classification, complianceResult);
+          _calculatePointsModifier(classification, complianceResult);
       if (pointsModifier != 0) {
         final newPoints = (classification.pointsAwarded ?? 10) + pointsModifier;
         updatedClassification = updatedClassification.copyWith(
@@ -114,16 +141,16 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
             'plugin': pluginId,
             'item': classification.itemName,
           });
-      return classification; // Return original on error
+      return classification;
     }
   }
 
   @override
-  LocalComplianceResult validateCompliance(WasteClassification classification) {
+  LocalComplianceResult validateCompliance(
+      WasteClassification classification) {
     final violations = <String>[];
     final warnings = <String>[];
 
-    // Check category-specific BBMP compliance
     switch (classification.category.toLowerCase()) {
       case 'wet waste':
         _validateWetWasteCompliance(classification, violations, warnings);
@@ -139,7 +166,6 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
         break;
     }
 
-    // Determine overall compliance status
     String status;
     if (violations.isNotEmpty) {
       status = 'violation';
@@ -160,185 +186,106 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
   @override
   Map<String, dynamic>? getLocalDisposalInstructions(
       String category, String? subcategory) {
-    final categoryKey = category.toLowerCase().replaceAll(' ', '_');
-    final subcategoryKey = subcategory?.toLowerCase().replaceAll(' ', '_');
-
-    final baseInstructions = _bbmpDisposalInstructions[categoryKey];
-    if (baseInstructions == null) return null;
-
-    // Check for subcategory-specific overrides
-    if (subcategoryKey != null) {
-      final subcategoryInstructions = _bbmpSubcategoryOverrides[subcategoryKey];
-      if (subcategoryInstructions != null) {
-        return {
-          ...baseInstructions,
-          ...subcategoryInstructions,
-        };
-      }
-    }
-
-    return baseInstructions;
+    return cityData.getDisposalFor(category, subcategory);
   }
 
   @override
-  Map<String, String> getColorCoding() {
-    return {
-      'wet_waste': 'Green Bin/Bag',
-      'dry_waste': 'Blue Bin/Bag',
-      'hazardous_waste': 'Red Bin/Bag',
-      'medical_waste': 'Yellow Bin/Bag',
-      'non_waste': 'No specific bin (donate/reuse)',
-    };
-  }
+  Map<String, String> getColorCoding() => cityData.getColorCodingMap();
 
   @override
-  Map<String, dynamic> getCollectionSchedule() {
-    return {
-      'wet_waste': {
-        'frequency': 'daily',
-        'time': '6:00 AM - 9:00 AM',
-        'notes': 'Collect daily to prevent pest infestation',
-      },
-      'dry_waste': {
-        'frequency': 'alternate_days',
-        'time': '6:00 AM - 9:00 AM',
-        'notes': 'Clean and dry before disposal',
-      },
-      'hazardous_waste': {
-        'frequency': 'monthly',
-        'time': 'Contact BBMP for pickup',
-        'notes': 'Special collection required',
-      },
-      'medical_waste': {
-        'frequency': 'immediate',
-        'time': 'Contact authorized dealer',
-        'notes': 'Never mix with regular waste',
-      },
-    };
-  }
+  Map<String, dynamic> getCollectionSchedule() =>
+      cityData.getCollectionScheduleMap();
 
   @override
-  Map<String, String> getLocalRegulations(String category) {
-    final categoryKey = category.toLowerCase().replaceAll(' ', '_');
-    return _bbmpRegulations[categoryKey] ?? {};
-  }
+  Map<String, String> getLocalRegulations(String category) =>
+      cityData.getLocalRegulations(category);
 
-  // Private helper methods
+  // -- BBMP-specific compliance logic --
 
-  void _validateWetWasteCompliance(
-    WasteClassification classification,
-    List<String> violations,
-    List<String> warnings,
-  ) {
-    // BBMP Wet Waste Rules
-    if (classification.disposalMethod?.toLowerCase().contains('landfill') ==
-        true) {
+  void _validateWetWasteCompliance(WasteClassification c,
+      List<String> violations, List<String> warnings) {
+    if (c.disposalMethod?.toLowerCase().contains('landfill') == true) {
       violations.add('Wet waste should not go to landfill - must be composted');
     }
-
-    if (classification.isCompostable != true) {
+    if (c.isCompostable != true) {
       warnings.add('Item should be marked as compostable if it\'s organic');
     }
-
-    if (classification.visualFeatures
-        .any((f) => f.toLowerCase().contains('plastic'))) {
+    if (c.visualFeatures.any((f) => f.toLowerCase().contains('plastic'))) {
       violations.add('Remove plastic packaging before wet waste disposal');
     }
   }
 
-  void _validateDryWasteCompliance(
-    WasteClassification classification,
-    List<String> violations,
-    List<String> warnings,
-  ) {
-    // BBMP Dry Waste Rules
-    if (classification.isRecyclable != true &&
-        classification.subcategory?.toLowerCase().contains('plastic') == true) {
+  void _validateDryWasteCompliance(WasteClassification c,
+      List<String> violations, List<String> warnings) {
+    if (c.isRecyclable != true &&
+        c.subcategory?.toLowerCase().contains('plastic') == true) {
       warnings.add('Most plastics are recyclable - verify recycling code');
     }
-
-    if (classification.visualFeatures
-        .any((f) => f.toLowerCase().contains('dirty'))) {
-      warnings
-          .add('Clean items before dry waste disposal for better recycling');
+    if (c.visualFeatures.any((f) => f.toLowerCase().contains('dirty'))) {
+      warnings.add('Clean items before dry waste disposal for better recycling');
     }
   }
 
-  void _validateHazardousWasteCompliance(
-    WasteClassification classification,
-    List<String> violations,
-    List<String> warnings,
-  ) {
-    // BBMP Hazardous Waste Rules
-    if (classification.requiresSpecialDisposal != true) {
-      violations
-          .add('Hazardous waste must be marked as requiring special disposal');
+  void _validateHazardousWasteCompliance(WasteClassification c,
+      List<String> violations, List<String> warnings) {
+    if (c.requiresSpecialDisposal != true) {
+      violations.add('Hazardous waste must be marked as requiring special disposal');
     }
-
-    if (classification.riskLevel == 'safe') {
+    if (c.riskLevel == 'safe') {
       warnings.add('Risk level may be underestimated for hazardous category');
     }
   }
 
-  void _validateMedicalWasteCompliance(
-    WasteClassification classification,
-    List<String> violations,
-    List<String> warnings,
-  ) {
-    // BBMP Medical Waste Rules
-    if (classification.hasUrgentTimeframe != true) {
+  void _validateMedicalWasteCompliance(WasteClassification c,
+      List<String> violations, List<String> warnings) {
+    if (c.hasUrgentTimeframe != true) {
       violations.add('Medical waste requires immediate disposal');
     }
-
-    if (classification.requiredPPE?.isEmpty ?? true) {
+    if (c.requiredPPE?.isEmpty ?? true) {
       warnings.add('Medical waste handling typically requires PPE');
     }
   }
 
-  List<String> _getComplianceRecommendations(
-      WasteClassification classification) {
-    final recommendations = <String>[];
-
-    // General BBMP recommendations
-    recommendations.add(
-        'Follow BBMP color-coding: ${getColorCoding()[classification.category.toLowerCase().replaceAll(' ', '_')]}');
+  List<String> _getComplianceRecommendations(WasteClassification c) {
+    final recs = <String>[];
+    recs.add(
+        'Follow BBMP color-coding: ${getColorCoding()[c.category.toLowerCase().replaceAll(' ', '_')]}');
 
     final schedule = getCollectionSchedule()[
-        classification.category.toLowerCase().replaceAll(' ', '_')];
+        c.category.toLowerCase().replaceAll(' ', '_')];
     if (schedule != null) {
-      recommendations
-          .add('Collection: ${schedule['frequency']} at ${schedule['time']}');
+      recs.add('Collection: ${schedule['frequency']} at ${schedule['time']}');
     }
 
-    // Category-specific recommendations
-    switch (classification.category.toLowerCase()) {
+    switch (c.category.toLowerCase()) {
       case 'wet waste':
-        recommendations.add('Drain excess water before disposal');
-        recommendations.add('Remove non-biodegradable packaging');
+        recs.add('Drain excess water before disposal');
+        recs.add('Remove non-biodegradable packaging');
         break;
       case 'dry waste':
-        recommendations.add('Clean and dry items for better recycling');
-        recommendations.add('Sort by material type when possible');
+        recs.add('Clean and dry items for better recycling');
+        recs.add('Sort by material type when possible');
         break;
       case 'hazardous waste':
-        recommendations.add('Contact BBMP for special collection');
-        recommendations.add('Store safely until disposal');
+        recs.add('Contact BBMP for special collection');
+        recs.add('Store safely until disposal');
         break;
     }
-
-    return recommendations;
+    if (cityData.helpline.isNotEmpty) {
+      recs.add('Helpline: ${cityData.helpline}');
+    }
+    return recs;
   }
 
-  String _generateGuidelinesReference(WasteClassification classification) {
-    final category = classification.category.toLowerCase().replaceAll(' ', '_');
-    return 'BBMP-2024-$category-guidelines';
+  String _generateGuidelinesReference(WasteClassification c) {
+    final cat = c.category.toLowerCase().replaceAll(' ', '_');
+    return 'BBMP-2024-$cat-guidelines';
   }
 
   WasteClassification _applyLocalDisposalOverrides(
     WasteClassification classification,
     Map<String, dynamic> localInstructions,
   ) {
-    // Apply BBMP-specific disposal method overrides
     final newMethod =
         localInstructions['primaryMethod'] ?? classification.disposalMethod;
     final locationOverride = localInstructions['location'];
@@ -347,278 +294,123 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
       final updatedInstructions = classification.disposalInstructions.copyWith(
         location: locationOverride,
       );
-
       return classification.copyWith(
         disposalMethod: newMethod,
         disposalInstructions: updatedInstructions,
       );
     }
-
     return classification.copyWith(disposalMethod: newMethod);
   }
 
-  int _calculateBBMPPointsModifier(
+  int _calculatePointsModifier(
     WasteClassification classification,
     LocalComplianceResult compliance,
   ) {
     var modifier = 0;
-
-    // Compliance bonus/penalty
     switch (compliance.status) {
       case 'compliant':
-        modifier += 3; // Bonus for full compliance
+        modifier += 3;
         break;
       case 'requires_attention':
-        modifier += 1; // Small bonus for mostly compliant
+        modifier += 1;
         break;
       case 'violation':
-        modifier -= 2; // Penalty for violations
+        modifier -= 2;
         break;
     }
-
-    // Local guidelines bonus
     if (classification.localGuidelinesReference?.isNotEmpty == true) {
       modifier += 2;
     }
-
     return modifier;
   }
-
-  // BBMP-specific data
-
-  static final Map<String, Map<String, String>> _bbmpRegulations = {
-    'wet_waste': {
-      'color_coding': 'Green bin/bag only',
-      'collection_frequency': 'Daily',
-      'composting_requirement': 'Mandatory for apartments with 10+ units',
-      'penalty_non_compliance': 'Rs. 100-500',
-    },
-    'dry_waste': {
-      'color_coding': 'Blue bin/bag only',
-      'collection_frequency': 'Alternate days',
-      'cleaning_requirement': 'Must be clean and dry',
-      'segregation_requirement': 'Sort by material type when possible',
-    },
-    'hazardous_waste': {
-      'color_coding': 'Red bin/bag only',
-      'collection_frequency': 'Monthly special collection',
-      'contact_required': 'Contact BBMP helpline',
-      'storage_requirement': 'Store in safe, dry place',
-    },
-    'medical_waste': {
-      'color_coding': 'Yellow bin/bag only',
-      'collection_frequency': 'Immediate disposal required',
-      'authorized_dealer_only': 'Contact authorized medical waste dealer',
-      'never_mix': 'Never mix with regular waste',
-    },
-  };
-
-  static final Map<String, Map<String, dynamic>> _bbmpDisposalInstructions = {
-    'wet_waste': {
-      'primaryMethod': 'Compost or wet waste bin',
-      'location': 'Green bin - daily collection',
-      'timeframe': 'Daily disposal recommended',
-      'bbmp_specific': 'Follow BBMP composting guidelines',
-    },
-    'dry_waste': {
-      'primaryMethod': 'Clean and recycle',
-      'location': 'Blue bin - alternate day collection',
-      'timeframe': 'Clean before disposal',
-      'bbmp_specific': 'BBMP recycling partner network',
-    },
-    'hazardous_waste': {
-      'primaryMethod': 'Special BBMP collection',
-      'location': 'Red bin - monthly collection',
-      'timeframe': 'Contact BBMP for pickup',
-      'bbmp_specific': 'Helpline: 1800-425-1442',
-    },
-  };
-
-  static final Map<String, Map<String, dynamic>> _bbmpSubcategoryOverrides = {
-    'e_waste': {
-      'location': 'Authorized e-waste collection center',
-      'bbmp_specific': 'BBMP e-waste exchange program',
-    },
-    'battery': {
-      'location': 'Battery collection box at retail stores',
-      'bbmp_specific': 'Return to manufacturer program',
-    },
-  };
 }
 
-/// BMC (Brihanmumbai Municipal Corporation) plugin scaffold.
-///
-/// This starts as a minimal standards-compliant implementation and can evolve
-/// with city-specific compliance rules and disposal overrides.
-class BMCMumbaiPlugin extends LocalGuidelinesPlugin {
+/// BMC (Brihanmumbai Municipal Corporation) — Mumbai.
+class BMCMumbaiPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
   @override
-  String get pluginId => 'bmc_mumbai';
+  CityPolicyData get cityData => CityPolicyData.bmc;
+}
+
+/// MCD (Municipal Corporation of Delhi) — Delhi.
+class MCDDelhiPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.mcd;
 
   @override
-  String get authorityName => 'BMC';
-
-  @override
-  String get guidelinesVersion => 'BMC-2026.1';
-
-  @override
-  String get region => 'Mumbai, IN';
-
-  @override
-  Future<WasteClassification> applyLocalGuidelines(
-      WasteClassification classification) async {
-    final compliance = validateCompliance(classification);
-    return classification.copyWith(
-      localRegulations: getLocalRegulations(classification.category),
-      localGuidelinesVersion: guidelinesVersion,
-      bbmpComplianceStatus: compliance.status,
-      localGuidelinesReference:
-          'BMC-2026-${classification.category.toLowerCase().replaceAll(' ', '_')}',
-    );
-  }
-
-  @override
-  LocalComplianceResult validateCompliance(WasteClassification classification) {
-    final warnings = <String>[];
-    if (classification.category.toLowerCase() == 'hazardous waste' &&
-        classification.requiresSpecialDisposal != true) {
-      warnings.add('Hazardous category should be marked special-disposal.');
+  LocalComplianceResult validateCompliance(
+      WasteClassification classification) {
+    final result = cityData.defaultValidateCompliance(this, classification);
+    if (classification.category.toLowerCase() == 'sanitary waste' &&
+        (classification.requiresSpecialDisposal != true)) {
+      result.warnings.add(
+          'Sanitary waste should be wrapped securely before blue bin disposal.');
     }
-    return LocalComplianceResult(
-      status: warnings.isEmpty ? 'compliant' : 'requires_attention',
-      violations: const <String>[],
-      warnings: warnings,
-      recommendations: const <String>[
-        'Follow BMC color coding and handover schedule.',
-      ],
-    );
-  }
-
-  @override
-  Map<String, dynamic>? getLocalDisposalInstructions(
-      String category, String? subcategory) {
-    return null;
-  }
-
-  @override
-  Map<String, String> getColorCoding() {
-    return const <String, String>{
-      'wet_waste': 'Green Bin/Bag',
-      'dry_waste': 'Blue Bin/Bag',
-      'hazardous_waste': 'Red Bin/Bag',
-      'medical_waste': 'Yellow Bin/Bag',
-    };
-  }
-
-  @override
-  Map<String, dynamic> getCollectionSchedule() {
-    return const <String, dynamic>{
-      'wet_waste': {'frequency': 'daily'},
-      'dry_waste': {'frequency': 'alternate_days'},
-    };
-  }
-
-  @override
-  Map<String, String> getLocalRegulations(String category) {
-    return const <String, String>{
-      'authority': 'BMC',
-      'city': 'Mumbai',
-    };
+    return result;
   }
 }
 
-/// MCD (Municipal Corporation of Delhi) plugin scaffold.
-class MCDDelhiPlugin extends LocalGuidelinesPlugin {
+/// PMC (Pune Municipal Corporation) — Pune.
+class PunePMCPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
   @override
-  String get pluginId => 'mcd_delhi';
+  CityPolicyData get cityData => CityPolicyData.pmc;
 
   @override
-  String get authorityName => 'MCD';
-
-  @override
-  String get guidelinesVersion => 'MCD-2026.1';
-
-  @override
-  String get region => 'Delhi, IN';
-
-  @override
-  Future<WasteClassification> applyLocalGuidelines(
-      WasteClassification classification) async {
-    final compliance = validateCompliance(classification);
-    return classification.copyWith(
-      localRegulations: getLocalRegulations(classification.category),
-      localGuidelinesVersion: guidelinesVersion,
-      bbmpComplianceStatus: compliance.status,
-      localGuidelinesReference:
-          'MCD-2026-${classification.category.toLowerCase().replaceAll(' ', '_')}',
-    );
-  }
-
-  @override
-  LocalComplianceResult validateCompliance(WasteClassification classification) {
-    final warnings = <String>[];
-    if (classification.category.toLowerCase() == 'medical waste' &&
-        classification.hasUrgentTimeframe != true) {
-      warnings.add('Medical waste should be marked urgent.');
+  LocalComplianceResult validateCompliance(
+      WasteClassification classification) {
+    final result = cityData.defaultValidateCompliance(this, classification);
+    if (classification.category.toLowerCase() == 'wet waste' &&
+        classification.isCompostable != true) {
+      result.warnings.add(
+          'PMC encourages composting; wet waste should be compostable.');
     }
-    return LocalComplianceResult(
-      status: warnings.isEmpty ? 'compliant' : 'requires_attention',
-      violations: const <String>[],
-      warnings: warnings,
-      recommendations: const <String>[
-        'Use authorized MCD channels for special categories.',
-      ],
-    );
-  }
-
-  @override
-  Map<String, dynamic>? getLocalDisposalInstructions(
-      String category, String? subcategory) {
-    return null;
-  }
-
-  @override
-  Map<String, String> getColorCoding() {
-    return const <String, String>{
-      'wet_waste': 'Green Bin/Bag',
-      'dry_waste': 'Blue Bin/Bag',
-      'hazardous_waste': 'Red Bin/Bag',
-      'medical_waste': 'Yellow Bin/Bag',
-    };
-  }
-
-  @override
-  Map<String, dynamic> getCollectionSchedule() {
-    return const <String, dynamic>{
-      'wet_waste': {'frequency': 'daily'},
-      'dry_waste': {'frequency': 'alternate_days'},
-    };
-  }
-
-  @override
-  Map<String, String> getLocalRegulations(String category) {
-    return const <String, String>{
-      'authority': 'MCD',
-      'city': 'Delhi',
-    };
+    return result;
   }
 }
 
-/// Result of local compliance validation
+/// GHMC (Greater Hyderabad Municipal Corporation) — Hyderabad.
+class GHMCHyderabadPlugin extends LocalGuidelinesPlugin
+    with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.ghmc;
+}
+
+/// GCC (Greater Chennai Corporation) — Chennai.
+class GCCChennaiPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.gcc;
+}
+
+/// KMC (Kolkata Municipal Corporation) — Kolkata.
+class KMKKolkataPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+  @override
+  CityPolicyData get cityData => CityPolicyData.kmc;
+
+  @override
+  LocalComplianceResult validateCompliance(
+      WasteClassification classification) {
+    final result = cityData.defaultValidateCompliance(this, classification);
+    result.recommendations.add(
+        'Consider selling recyclable dry waste to your local kabadiwala for better recycling rates.');
+    return result;
+  }
+}
+
+/// Result of local compliance validation.
 class LocalComplianceResult {
-  const LocalComplianceResult({
+  LocalComplianceResult({
     required this.status,
     required this.violations,
     required this.warnings,
     required this.recommendations,
   });
 
-  final String status; // 'compliant', 'requires_attention', 'violation'
+  String status;
   final List<String> violations;
   final List<String> warnings;
   final List<String> recommendations;
 }
 
-/// Extension for DisposalInstructions to support copyWith
+/// Extension for DisposalInstructions to support copyWith.
 extension DisposalInstructionsExtension on DisposalInstructions {
   DisposalInstructions copyWith({
     String? primaryMethod,
@@ -645,7 +437,7 @@ extension DisposalInstructionsExtension on DisposalInstructions {
   }
 }
 
-/// Local Guidelines Manager to handle multiple plugins
+/// Local Guidelines Manager to handle multiple plugins.
 class LocalGuidelinesManager {
   static final Map<String, LocalGuidelinesPlugin> _plugins = {};
   static final Map<String, String> _regionAliases = {
@@ -655,9 +447,15 @@ class LocalGuidelinesManager {
     'bombay': 'bmc_mumbai',
     'delhi': 'mcd_delhi',
     'new delhi': 'mcd_delhi',
+    'pune': 'pmc_pune',
+    'hyderabad': 'ghmc_hyderabad',
+    'secunderabad': 'ghmc_hyderabad',
+    'chennai': 'gcc_chennai',
+    'madras': 'gcc_chennai',
+    'kolkata': 'kmc_kolkata',
+    'calcutta': 'kmc_kolkata',
   };
 
-  /// Register a local guidelines plugin
   static void registerPlugin(LocalGuidelinesPlugin plugin) {
     _plugins[plugin.pluginId] = plugin;
     WasteAppLogger.info('Local guidelines plugin registered', context: {
@@ -667,7 +465,6 @@ class LocalGuidelinesManager {
     });
   }
 
-  /// Get plugin for a specific region
   static LocalGuidelinesPlugin? getPluginForRegion(String region) {
     final normalized = region.trim().toLowerCase();
     if (normalized.isEmpty) return null;
@@ -678,14 +475,12 @@ class LocalGuidelinesManager {
       }
     }
 
-    // Fallback: direct plugin id lookup support (useful for internal tooling)
     if (_plugins.containsKey(normalized)) {
       return _plugins[normalized];
     }
     return null;
   }
 
-  /// Apply local guidelines using appropriate plugin
   static Future<WasteClassification> applyLocalGuidelines(
     WasteClassification classification,
     String region,
@@ -701,14 +496,17 @@ class LocalGuidelinesManager {
           'available_plugins': _plugins.keys.toList(),
         });
 
-    return classification; // Return unchanged if no plugin
+    return classification;
   }
 
-  /// Initialize default plugins
   static void initializeDefaultPlugins() {
     if (_plugins.isNotEmpty) return;
     registerPlugin(BBMPBangalorePlugin());
     registerPlugin(BMCMumbaiPlugin());
     registerPlugin(MCDDelhiPlugin());
+    registerPlugin(PunePMCPlugin());
+    registerPlugin(GHMCHyderabadPlugin());
+    registerPlugin(GCCChennaiPlugin());
+    registerPlugin(KMKKolkataPlugin());
   }
 }

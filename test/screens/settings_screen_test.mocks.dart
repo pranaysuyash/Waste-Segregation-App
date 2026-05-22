@@ -110,20 +110,18 @@ class _FakeStorageService_4 extends _i1.SmartFake
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
-  MockPremiumService() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   bool get isInitialized => (super.noSuchMethod(
         Invocation.getter(#isInitialized),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
@@ -143,6 +141,7 @@ class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
           [featureId],
         ),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
@@ -152,6 +151,7 @@ class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
           [],
         ),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
@@ -189,6 +189,7 @@ class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
           [],
         ),
         returnValue: <_i9.PremiumFeature>[],
+        returnValueForMissingStub: <_i9.PremiumFeature>[],
       ) as List<_i9.PremiumFeature>);
 
   @override
@@ -198,6 +199,7 @@ class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
           [],
         ),
         returnValue: <_i9.PremiumFeature>[],
+        returnValueForMissingStub: <_i9.PremiumFeature>[],
       ) as List<_i9.PremiumFeature>);
 
   @override
@@ -261,15 +263,15 @@ class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockStorageService extends _i1.Mock implements _i4.StorageService {
-  MockStorageService() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   _i2.ClassificationStorageService get classificationStorage =>
       (super.noSuchMethod(
         Invocation.getter(#classificationStorage),
         returnValue: _FakeClassificationStorageService_0(
+          this,
+          Invocation.getter(#classificationStorage),
+        ),
+        returnValueForMissingStub: _FakeClassificationStorageService_0(
           this,
           Invocation.getter(#classificationStorage),
         ),
@@ -279,6 +281,10 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
   _i3.UserProfileStorageService get profileStorage => (super.noSuchMethod(
         Invocation.getter(#profileStorage),
         returnValue: _FakeUserProfileStorageService_1(
+          this,
+          Invocation.getter(#profileStorage),
+        ),
+        returnValueForMissingStub: _FakeUserProfileStorageService_1(
           this,
           Invocation.getter(#profileStorage),
         ),
@@ -338,6 +344,7 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [],
         ),
         returnValue: _i8.Future<_i11.UserProfile?>.value(),
+        returnValueForMissingStub: _i8.Future<_i11.UserProfile?>.value(),
       ) as _i8.Future<_i11.UserProfile?>);
 
   @override
@@ -357,6 +364,7 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [],
         ),
         returnValue: _i8.Future<bool>.value(false),
+        returnValueForMissingStub: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
   @override
@@ -394,6 +402,16 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
             {#force: force},
           ),
         )),
+        returnValueForMissingStub:
+            _i8.Future<_i4.ClassificationSaveResult>.value(
+                _FakeClassificationSaveResult_2(
+          this,
+          Invocation.method(
+            #saveClassificationWithResult,
+            [classification],
+            {#force: force},
+          ),
+        )),
       ) as _i8.Future<_i4.ClassificationSaveResult>);
 
   @override
@@ -405,6 +423,7 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [classification],
         ),
         returnValue: _i8.Future<String?>.value(),
+        returnValueForMissingStub: _i8.Future<String?>.value(),
       ) as _i8.Future<String?>);
 
   @override
@@ -418,6 +437,9 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
         ),
         returnValue: _i8.Future<List<_i12.WasteClassification>>.value(
             <_i12.WasteClassification>[]),
+        returnValueForMissingStub:
+            _i8.Future<List<_i12.WasteClassification>>.value(
+                <_i12.WasteClassification>[]),
       ) as _i8.Future<List<_i12.WasteClassification>>);
 
   @override
@@ -438,6 +460,9 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
         ),
         returnValue: _i8.Future<List<_i12.WasteClassification>>.value(
             <_i12.WasteClassification>[]),
+        returnValueForMissingStub:
+            _i8.Future<List<_i12.WasteClassification>>.value(
+                <_i12.WasteClassification>[]),
       ) as _i8.Future<List<_i12.WasteClassification>>);
 
   @override
@@ -450,6 +475,7 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           {#filterOptions: filterOptions},
         ),
         returnValue: _i8.Future<int>.value(0),
+        returnValueForMissingStub: _i8.Future<int>.value(0),
       ) as _i8.Future<int>);
 
   @override
@@ -462,6 +488,15 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           {#filterOptions: filterOptions},
         ),
         returnValue: _i8.Future<String>.value(_i14.dummyValue<String>(
+          this,
+          Invocation.method(
+            #exportClassificationsToCSV,
+            [],
+            {#filterOptions: filterOptions},
+          ),
+        )),
+        returnValueForMissingStub:
+            _i8.Future<String>.value(_i14.dummyValue<String>(
           this,
           Invocation.method(
             #exportClassificationsToCSV,
@@ -541,6 +576,7 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [],
         ),
         returnValue: _i8.Future<DateTime?>.value(),
+        returnValueForMissingStub: _i8.Future<DateTime?>.value(),
       ) as _i8.Future<DateTime?>);
 
   @override
@@ -550,6 +586,8 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [],
         ),
         returnValue:
+            _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValueForMissingStub:
             _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i8.Future<Map<String, dynamic>>);
 
@@ -561,6 +599,8 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [hash],
         ),
         returnValue: _i8.Future<_i12.WasteClassification?>.value(),
+        returnValueForMissingStub:
+            _i8.Future<_i12.WasteClassification?>.value(),
       ) as _i8.Future<_i12.WasteClassification?>);
 
   @override
@@ -587,6 +627,14 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [],
         ),
         returnValue: _i8.Future<String>.value(_i14.dummyValue<String>(
+          this,
+          Invocation.method(
+            #exportUserData,
+            [],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i8.Future<String>.value(_i14.dummyValue<String>(
           this,
           Invocation.method(
             #exportUserData,
@@ -645,6 +693,8 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
         ),
         returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
             <Map<String, dynamic>>[]),
+        returnValueForMissingStub: _i8.Future<List<Map<String, dynamic>>>.value(
+            <Map<String, dynamic>>[]),
       ) as _i8.Future<List<Map<String, dynamic>>>);
 
   @override
@@ -654,6 +704,7 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [],
         ),
         returnValue: _i8.Future<int>.value(0),
+        returnValueForMissingStub: _i8.Future<int>.value(0),
       ) as _i8.Future<int>);
 
   @override
@@ -663,6 +714,7 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [],
         ),
         returnValue: _i8.Future<int>.value(0),
+        returnValueForMissingStub: _i8.Future<int>.value(0),
       ) as _i8.Future<int>);
 
   @override
@@ -679,6 +731,7 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           ],
         ),
         returnValue: <_i12.WasteClassification>[],
+        returnValueForMissingStub: <_i12.WasteClassification>[],
       ) as List<_i12.WasteClassification>);
 
   @override
@@ -688,6 +741,7 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [],
         ),
         returnValue: _i8.Future<int>.value(0),
+        returnValueForMissingStub: _i8.Future<int>.value(0),
       ) as _i8.Future<int>);
 
   @override
@@ -711,6 +765,8 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
           [dedupKey],
         ),
         returnValue: _i8.Future<_i15.ClassificationFeedback?>.value(),
+        returnValueForMissingStub:
+            _i8.Future<_i15.ClassificationFeedback?>.value(),
       ) as _i8.Future<_i15.ClassificationFeedback?>);
 
   @override
@@ -722,6 +778,9 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
             ),
             returnValue: _i8.Future<List<_i15.ClassificationFeedback>>.value(
                 <_i15.ClassificationFeedback>[]),
+            returnValueForMissingStub:
+                _i8.Future<List<_i15.ClassificationFeedback>>.value(
+                    <_i15.ClassificationFeedback>[]),
           ) as _i8.Future<List<_i15.ClassificationFeedback>>);
 
   @override
@@ -769,38 +828,39 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockAdService extends _i1.Mock implements _i16.AdService {
-  MockAdService() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   bool get isInitialized => (super.noSuchMethod(
         Invocation.getter(#isInitialized),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
   bool get shouldShowAds => (super.noSuchMethod(
         Invocation.getter(#shouldShowAds),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
   bool get canShowInterstitialAd => (super.noSuchMethod(
         Invocation.getter(#canShowInterstitialAd),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
   bool get mounted => (super.noSuchMethod(
         Invocation.getter(#mounted),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
@@ -844,6 +904,13 @@ class MockAdService extends _i1.Mock implements _i16.AdService {
             [],
           ),
         ),
+        returnValueForMissingStub: _FakeWidget_3(
+          this,
+          Invocation.method(
+            #getBannerAd,
+            [],
+          ),
+        ),
       ) as _i5.Widget);
 
   @override
@@ -853,6 +920,7 @@ class MockAdService extends _i1.Mock implements _i16.AdService {
           [],
         ),
         returnValue: _i8.Future<bool>.value(false),
+        returnValueForMissingStub: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
   @override
@@ -871,6 +939,7 @@ class MockAdService extends _i1.Mock implements _i16.AdService {
           [],
         ),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
@@ -950,26 +1019,25 @@ class MockAdService extends _i1.Mock implements _i16.AdService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
-  MockAnalyticsService() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   bool get isFirestoreConnected => (super.noSuchMethod(
         Invocation.getter(#isFirestoreConnected),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
   int get pendingEventsCount => (super.noSuchMethod(
         Invocation.getter(#pendingEventsCount),
         returnValue: 0,
+        returnValueForMissingStub: 0,
       ) as int);
 
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
@@ -1456,6 +1524,8 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
         ),
         returnValue:
             _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValueForMissingStub:
+            _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i8.Future<Map<String, dynamic>>);
 
   @override
@@ -1473,6 +1543,8 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
         ),
         returnValue:
             _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValueForMissingStub:
+            _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i8.Future<Map<String, dynamic>>);
 
   @override
@@ -1483,6 +1555,8 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
           [limit],
         ),
         returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
+            <Map<String, dynamic>>[]),
+        returnValueForMissingStub: _i8.Future<List<Map<String, dynamic>>>.value(
             <Map<String, dynamic>>[]),
       ) as _i8.Future<List<Map<String, dynamic>>>);
 
@@ -1503,6 +1577,8 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
           },
         ),
         returnValue:
+            _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValueForMissingStub:
             _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
       ) as _i8.Future<Map<String, dynamic>>);
 
@@ -1660,10 +1736,6 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
 /// See the documentation for Mockito's code generation for more information.
 class MockGoogleDriveService extends _i1.Mock
     implements _i18.GoogleDriveService {
-  MockGoogleDriveService() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   _i8.Future<_i19.GoogleSignInAccount?> signIn() => (super.noSuchMethod(
         Invocation.method(
@@ -1671,6 +1743,8 @@ class MockGoogleDriveService extends _i1.Mock
           [],
         ),
         returnValue: _i8.Future<_i19.GoogleSignInAccount?>.value(),
+        returnValueForMissingStub:
+            _i8.Future<_i19.GoogleSignInAccount?>.value(),
       ) as _i8.Future<_i19.GoogleSignInAccount?>);
 
   @override
@@ -1690,6 +1764,7 @@ class MockGoogleDriveService extends _i1.Mock
           [],
         ),
         returnValue: _i8.Future<bool>.value(false),
+        returnValueForMissingStub: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
   @override
@@ -1723,6 +1798,20 @@ class MockGoogleDriveService extends _i1.Mock
             },
           ),
         )),
+        returnValueForMissingStub:
+            _i8.Future<String>.value(_i14.dummyValue<String>(
+          this,
+          Invocation.method(
+            #uploadToDrive,
+            [],
+            {
+              #fileName: fileName,
+              #mimeType: mimeType,
+              #content: content,
+              #folderId: folderId,
+            },
+          ),
+        )),
       ) as _i8.Future<String>);
 
   @override
@@ -1732,6 +1821,14 @@ class MockGoogleDriveService extends _i1.Mock
           [fileId],
         ),
         returnValue: _i8.Future<String>.value(_i14.dummyValue<String>(
+          this,
+          Invocation.method(
+            #downloadFromDrive,
+            [fileId],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i8.Future<String>.value(_i14.dummyValue<String>(
           this,
           Invocation.method(
             #downloadFromDrive,
@@ -1753,6 +1850,14 @@ class MockGoogleDriveService extends _i1.Mock
             [folderName],
           ),
         )),
+        returnValueForMissingStub:
+            _i8.Future<String>.value(_i14.dummyValue<String>(
+          this,
+          Invocation.method(
+            #createFolder,
+            [folderName],
+          ),
+        )),
       ) as _i8.Future<String>);
 
   @override
@@ -1767,6 +1872,7 @@ class MockGoogleDriveService extends _i1.Mock
           {#isFolder: isFolder},
         ),
         returnValue: _i8.Future<String?>.value(),
+        returnValueForMissingStub: _i8.Future<String?>.value(),
       ) as _i8.Future<String?>);
 
   @override
@@ -1776,6 +1882,14 @@ class MockGoogleDriveService extends _i1.Mock
           [],
         ),
         returnValue: _i8.Future<String>.value(_i14.dummyValue<String>(
+          this,
+          Invocation.method(
+            #backupUserData,
+            [],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i8.Future<String>.value(_i14.dummyValue<String>(
           this,
           Invocation.method(
             #backupUserData,
@@ -1803,6 +1917,8 @@ class MockGoogleDriveService extends _i1.Mock
         ),
         returnValue: _i8.Future<List<Map<String, String>>>.value(
             <Map<String, String>>[]),
+        returnValueForMissingStub: _i8.Future<List<Map<String, String>>>.value(
+            <Map<String, String>>[]),
       ) as _i8.Future<List<Map<String, String>>>);
 }
 
@@ -1811,14 +1927,14 @@ class MockGoogleDriveService extends _i1.Mock
 /// See the documentation for Mockito's code generation for more information.
 class MockCloudStorageService extends _i1.Mock
     implements _i20.CloudStorageService {
-  MockCloudStorageService() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   _i4.StorageService get localStorageService => (super.noSuchMethod(
         Invocation.getter(#localStorageService),
         returnValue: _FakeStorageService_4(
+          this,
+          Invocation.getter(#localStorageService),
+        ),
+        returnValueForMissingStub: _FakeStorageService_4(
           this,
           Invocation.getter(#localStorageService),
         ),
@@ -1879,6 +1995,7 @@ class MockCloudStorageService extends _i1.Mock
           [classifications],
         ),
         returnValue: _i8.Future<int>.value(0),
+        returnValueForMissingStub: _i8.Future<int>.value(0),
       ) as _i8.Future<int>);
 
   @override
@@ -1891,6 +2008,9 @@ class MockCloudStorageService extends _i1.Mock
         ),
         returnValue: _i8.Future<List<_i12.WasteClassification>>.value(
             <_i12.WasteClassification>[]),
+        returnValueForMissingStub:
+            _i8.Future<List<_i12.WasteClassification>>.value(
+                <_i12.WasteClassification>[]),
       ) as _i8.Future<List<_i12.WasteClassification>>);
 
   @override
@@ -1900,6 +2020,7 @@ class MockCloudStorageService extends _i1.Mock
           [],
         ),
         returnValue: _i8.Future<int>.value(0),
+        returnValueForMissingStub: _i8.Future<int>.value(0),
       ) as _i8.Future<int>);
 
   @override
@@ -1909,6 +2030,7 @@ class MockCloudStorageService extends _i1.Mock
           [],
         ),
         returnValue: _i8.Future<int>.value(0),
+        returnValueForMissingStub: _i8.Future<int>.value(0),
       ) as _i8.Future<int>);
 
   @override
@@ -1952,6 +2074,7 @@ class MockCloudStorageService extends _i1.Mock
           [feedbackId],
         ),
         returnValue: _i8.Future<bool>.value(false),
+        returnValueForMissingStub: _i8.Future<bool>.value(false),
       ) as _i8.Future<bool>);
 
   @override
@@ -1968,6 +2091,17 @@ class MockCloudStorageService extends _i1.Mock
           ],
         ),
         returnValue: _i8.Future<String>.value(_i14.dummyValue<String>(
+          this,
+          Invocation.method(
+            #uploadImageForBatchProcessing,
+            [
+              imageFile,
+              userId,
+            ],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i8.Future<String>.value(_i14.dummyValue<String>(
           this,
           Invocation.method(
             #uploadImageForBatchProcessing,
@@ -1997,20 +2131,18 @@ class MockCloudStorageService extends _i1.Mock
 /// See the documentation for Mockito's code generation for more information.
 class MockNavigationSettingsService extends _i1.Mock
     implements _i22.NavigationSettingsService {
-  MockNavigationSettingsService() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   bool get bottomNavEnabled => (super.noSuchMethod(
         Invocation.getter(#bottomNavEnabled),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
   bool get fabEnabled => (super.noSuchMethod(
         Invocation.getter(#fabEnabled),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
@@ -2020,12 +2152,17 @@ class MockNavigationSettingsService extends _i1.Mock
           this,
           Invocation.getter(#navigationStyle),
         ),
+        returnValueForMissingStub: _i14.dummyValue<String>(
+          this,
+          Invocation.getter(#navigationStyle),
+        ),
       ) as String);
 
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
@@ -2110,20 +2247,18 @@ class MockNavigationSettingsService extends _i1.Mock
 /// See the documentation for Mockito's code generation for more information.
 class MockHapticSettingsService extends _i1.Mock
     implements _i23.HapticSettingsService {
-  MockHapticSettingsService() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   bool get enabled => (super.noSuchMethod(
         Invocation.getter(#enabled),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override
   bool get hasListeners => (super.noSuchMethod(
         Invocation.getter(#hasListeners),
         returnValue: false,
+        returnValueForMissingStub: false,
       ) as bool);
 
   @override

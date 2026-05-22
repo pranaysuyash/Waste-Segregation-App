@@ -27,6 +27,19 @@ const List<WasteEducationCard> allSeedEducationCards = [
     triggerCategories: ['hazardous', 'hazardous waste'],
     triggerSubcategories: ['battery'],
     priority: 5,
+    extendedBody:
+        'Batteries are the most common cause of fires in garbage trucks and '
+        'recycling facilities worldwide. When crushed, the lithium inside '
+        'reacts with air and ignites.\n\n'
+        'Common battery types that need special disposal:\n'
+        '- Lithium-ion (phones, laptops, power banks)\n'
+        '- Alkaline (remote controls, toys)\n'
+        '- Button cell (watches, hearing aids)\n'
+        '- Lead-acid (cars, UPS backups)\n\n'
+        'Collection points are available at most large electronics retailers, '
+        'municipal waste facilities, and some supermarkets. Many cities also '
+        'run quarterly household hazardous waste collection drives.',
+    relatedCardIds: ['edu_ewhat_is_ewaste', 'mistake_containers_with_food'],
   ),
   WasteEducationCard(
     id: 'edu_medicine_strips',
@@ -53,6 +66,18 @@ const List<WasteEducationCard> allSeedEducationCards = [
     triggerCategories: ['dry waste'],
     triggerSubcategories: ['plastic'],
     priority: 20,
+    extendedBody:
+        'Contamination is the single biggest problem in recycling. When food '
+        'residue, grease, or liquid is left in containers, it can spoil entire '
+        'batches of otherwise clean recyclables.\n\n'
+        'Quick rinsing rules:\n'
+        '- A splash of water is enough. No need for soap.\n'
+        '- Use leftover dishwater to save water.\n'
+        '- Crush bottles and containers after rinsing to save space.\n'
+        '- Let them air dry before putting them in the bin.\n\n'
+        'Items that always need rinsing: yogurt cups, jam jars, sauce bottles, '
+        'canned food tins, drink cartons, takeaway containers.',
+    relatedCardIds: ['mistake_containers_with_food', 'impact_plastic_savings'],
   ),
   WasteEducationCard(
     id: 'edu_ewhat_is_ewaste',

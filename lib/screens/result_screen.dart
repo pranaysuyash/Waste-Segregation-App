@@ -33,6 +33,7 @@ import '../utils/waste_app_logger.dart';
 import '../utils/education_card_engine.dart';
 import '../models/education_card.dart';
 import '../widgets/education_card_widget.dart';
+import '../screens/mini_lesson_screen.dart';
 import '../config/debug_config.dart';
 import '../utils/design_system.dart';
 import '../widgets/analysis_progress_view.dart';
@@ -222,6 +223,25 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     EducationCardEngine.persistDismissedIds(_dismissedCardIds);
   }
 
+  void _openMiniLesson() {
+    if (_educationCard == null) return;
+    final relatedIds = _educationCard!.relatedCardIds ?? [];
+    final relatedCards = relatedIds
+        .map((id) => _educationEngine.cardById(id))
+        .whereType<WasteEducationCard>()
+        .toList();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MiniLessonScreen(
+          card: _educationCard!,
+          relatedCards: relatedCards,
+          onDismissParent: _dismissEducationCard,
+        ),
+      ),
+    );
+  }
+
   void _trackScreenView() {
     // Use Legacy event name for parity
     _analyticsService.trackScreenView(
@@ -385,6 +405,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                               EducationCardWidget(
                                 card: _educationCard!,
                                 onDismiss: _dismissEducationCard,
+                                onLearnMore: _educationCard!.extendedBody != null
+                                    ? _openMiniLesson
+                                    : null,
                               ),
                             ],
 
@@ -1165,7 +1188,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
         onRetry: state == ClassificationState.failedRetryable
             ? _retryClassificationProcessing
             : null,
-        onCancel: null,
       ),
     );
   }

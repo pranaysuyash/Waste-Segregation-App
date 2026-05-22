@@ -756,7 +756,6 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       policyPackId: classification.localGuidelinesVersion ?? 'policy-unknown',
       modelRoute: classification.modelSource ?? 'unknown',
       routeLatencyMs: classification.processingTimeMs,
-      routeCostUsd: null,
     );
   }
 

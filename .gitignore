@@ -63,7 +63,11 @@ app.*.map.json
 
 # Agent session / scratch files (machine-local, regenerated per session)
 **/.agent/
+.agents/
 **/context/agent-start/
+
+# Hermes/local skill lock artifact
+skills-lock.json
 
 # Browser/simulator automation artifacts (machine-local)
 .playwright-mcp/

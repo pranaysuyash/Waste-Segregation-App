@@ -973,5 +973,195 @@
   "googleSyncEnabledMessage": "Google sync is now enabled!",
   "@googleSyncEnabledMessage": {
     "description": "Google sync enabled message"
+  },
+
+  "privacySection": "Privacy & Consent",
+  "@privacySection": {
+    "description": "Header for the privacy and consent section"
+  },
+
+  "leaderboardOptOut": "Hide from Leaderboard",
+  "@leaderboardOptOut": {
+    "description": "Leaderboard opt-out toggle label"
+  },
+
+  "leaderboardOptOutHide": "Your name and photo are hidden on the leaderboard",
+  "@leaderboardOptOutHide": {
+    "description": "Subtitle when leaderboard opt-out is enabled"
+  },
+
+  "leaderboardOptOutVisible": "Your name and photo are visible on the leaderboard",
+  "@leaderboardOptOutVisible": {
+    "description": "Subtitle when leaderboard opt-out is disabled"
+  },
+
+  "leaderboardHidden": "You are now hidden from the leaderboard",
+  "@leaderboardHidden": {
+    "description": "Snackbar message when user opts out of leaderboard"
+  },
+
+  "leaderboardVisible": "You are now visible on the leaderboard",
+  "@leaderboardVisible": {
+    "description": "Snackbar message when user opts into leaderboard"
+  },
+
+  "failedToUpdateLeaderboard": "Failed to update leaderboard privacy: {error}",
+  "@failedToUpdateLeaderboard": {
+    "description": "Error message when leaderboard privacy update fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "noUserProfileFound": "No user profile found. Please sign in first.",
+  "@noUserProfileFound": {
+    "description": "Message when no user profile is found"
+  },
+
+  "trainingConsent": "Improve model with my images",
+  "@trainingConsent": {
+    "description": "Training consent toggle label"
+  },
+
+  "trainingConsentEnabled": "Enabled. You can revoke anytime and request deletion of contributed training candidates.",
+  "@trainingConsentEnabled": {
+    "description": "Subtitle when training consent is enabled"
+  },
+
+  "trainingConsentDisabled": "Disabled. No new image/correction enters training candidates.",
+  "@trainingConsentDisabled": {
+    "description": "Subtitle when training consent is disabled"
+  },
+
+  "trainingConsentGranted": "Training consent enabled.",
+  "@trainingConsentGranted": {
+    "description": "Snackbar when training consent is granted"
+  },
+
+  "trainingConsentRevoked": "Training consent revoked and deletion requested.",
+  "@trainingConsentRevoked": {
+    "description": "Snackbar when training consent is revoked"
+  },
+
+  "couldNotUpdateTrainingConsent": "Could not update training consent: {error}",
+  "@couldNotUpdateTrainingConsent": {
+    "description": "Error message when training consent update fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "syncEnabledUploadPrompt": "Would you like to upload your existing local classifications to the cloud?",
+  "@syncEnabledUploadPrompt": {
+    "description": "Prompt when enabling sync to upload existing data"
+  },
+
+  "syncAvailableAcrossDevices": "This will make them available across all your devices.",
+  "@syncAvailableAcrossDevices": {
+    "description": "Info text about cloud sync availability"
+  },
+
+  "skip": "Skip",
+  "@skip": {
+    "description": "Skip button text"
+  },
+
+  "uploadNow": "Upload Now",
+  "@uploadNow": {
+    "description": "Upload now button text"
+  },
+
+  "syncingDataToCloud": "Syncing data to cloud...",
+  "@syncingDataToCloud": {
+    "description": "Loading message while syncing data to cloud"
+  },
+
+  "syncedToCloud": "Successfully synced {count} classifications to cloud!",
+  "@syncedToCloud": {
+    "description": "Message when classifications are synced to cloud",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noClassificationsSynced": "No classifications were synced.",
+  "@noClassificationsSynced": {
+    "description": "Message when no classifications were synced"
+  },
+
+  "syncFailed": "Sync failed: {error}",
+  "@syncFailed": {
+    "description": "Error message when sync fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "downloadingFromCloud": "Downloading from cloud...",
+  "@downloadingFromCloud": {
+    "description": "Loading message while downloading from cloud"
+  },
+
+  "downloadedFromCloud": "Downloaded {count} classifications from cloud!",
+  "@downloadedFromCloud": {
+    "description": "Message when classifications are downloaded from cloud",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noClassificationsDownloaded": "No classifications were downloaded.",
+  "@noClassificationsDownloaded": {
+    "description": "Message when no classifications were downloaded"
+  },
+
+  "downloadFailed": "Download failed: {error}",
+  "@downloadFailed": {
+    "description": "Error message when download fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "feedbackOnHistoryEnabled": "Can provide feedback on recent classifications from history",
+  "@feedbackOnHistoryEnabled": {
+    "description": "Subtitle when feedback on history is enabled"
+  },
+
+  "feedbackOnHistoryDisabled": "Can only provide feedback on new classifications",
+  "@feedbackOnHistoryDisabled": {
+    "description": "Subtitle when feedback on history is disabled"
+  },
+
+  "feedbackExplanationEnabled": "Perfect for scanning multiple items quickly and providing feedback later when you have more time!",
+  "@feedbackExplanationEnabled": {
+    "description": "Explanation when feedback on history is enabled"
+  },
+
+  "feedbackExplanationDisabled": "Feedback is only available immediately after classification.",
+  "@feedbackExplanationDisabled": {
+    "description": "Explanation when feedback on history is disabled"
+  },
+
+  "syncClassificationsLocally": "Classifications sync to cloud automatically",
+  "@syncClassificationsLocally": {
+    "description": "Subtitle when Google Cloud Sync is enabled"
+  },
+
+  "syncClassificationsLocalOnly": "Classifications saved locally only",
+  "@syncClassificationsLocalOnly": {
+    "description": "Subtitle when Google Cloud Sync is disabled"
   }
 }

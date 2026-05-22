@@ -20,6 +20,7 @@ class WasteEducationCard {
     this.priority = 100,
     this.requiresExplicitDismiss = false,
     this.extendedBody,
+    this.relatedCardIds,
   });
 
   final String id;
@@ -34,6 +35,7 @@ class WasteEducationCard {
   final int priority;
   final bool requiresExplicitDismiss;
   final String? extendedBody;
+  final List<String>? relatedCardIds;
 }
 
 class SeenEducationCard {

@@ -7,8 +7,8 @@ import '../utils/waste_app_logger.dart';
 enum ModelDownloadState { notDownloaded, downloading, ready, error }
 
 enum YoloModelVariant {
-  yolo11n_seg('yolo11n-seg'),
-  yolo26n_seg('yolo26n-seg'),
+  yolo11nSeg('yolo11n-seg'),
+  yolo26nSeg('yolo26n-seg'),
   customWaste('waste-custom');
 
   final String label;
@@ -17,7 +17,7 @@ enum YoloModelVariant {
 
 class YoloModelManager {
   YoloModelManager({YoloModelVariant? variant})
-      : _variant = variant ?? YoloModelVariant.yolo11n_seg;
+      : _variant = variant ?? YoloModelVariant.yolo11nSeg;
 
   final YoloModelVariant _variant;
   ModelDownloadState _state = ModelDownloadState.notDownloaded;
@@ -31,9 +31,9 @@ class YoloModelManager {
 
   String get _modelFileName {
     switch (_variant) {
-      case YoloModelVariant.yolo11n_seg:
+      case YoloModelVariant.yolo11nSeg:
         return 'yolo11n_seg_640.tflite';
-      case YoloModelVariant.yolo26n_seg:
+      case YoloModelVariant.yolo26nSeg:
         return 'yolo26n_seg_640.tflite';
       case YoloModelVariant.customWaste:
         return 'waste_seg_model.tflite';
@@ -42,9 +42,9 @@ class YoloModelManager {
 
   String? get _modelUrl {
     switch (_variant) {
-      case YoloModelVariant.yolo11n_seg:
+      case YoloModelVariant.yolo11nSeg:
         return 'https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n-seg.tflite';
-      case YoloModelVariant.yolo26n_seg:
+      case YoloModelVariant.yolo26nSeg:
         return null; // Not yet published — build from Ultralytics export
       case YoloModelVariant.customWaste:
         return null; // Custom model URL TBD
@@ -111,9 +111,9 @@ class YoloModelManager {
 
   String get sizeDisplay {
     switch (_variant) {
-      case YoloModelVariant.yolo11n_seg:
+      case YoloModelVariant.yolo11nSeg:
         return '6.2 MB';
-      case YoloModelVariant.yolo26n_seg:
+      case YoloModelVariant.yolo26nSeg:
         return '6.7 MB';
       case YoloModelVariant.customWaste:
         return '~10 MB';

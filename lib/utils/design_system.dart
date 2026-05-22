@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'constants.dart';
+import 'waste_theme.dart';
 
 /// Enhanced Design System for Waste Segregation App
 /// Provides comprehensive theming, colors, typography, and component styles
@@ -423,22 +424,8 @@ class WasteAppDesignSystem {
       );
 
   // Utility Methods for Category Colors
-  static Color getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-        return wetWasteColor;
-      case 'dry waste':
-        return dryWasteColor;
-      case 'hazardous waste':
-        return hazardousWasteColor;
-      case 'medical waste':
-        return medicalWasteColor;
-      case 'non-waste':
-        return nonWasteColor;
-      default:
-        return primaryGreen;
-    }
-  }
+  static Color getCategoryColor(String category) =>
+      WasteTheme.categoryColor(category);
 
   // Shadow Styles
   static List<BoxShadow> getShadow(double elevation) {

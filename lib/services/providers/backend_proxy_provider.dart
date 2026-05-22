@@ -200,10 +200,6 @@ class BackendProxyProvider implements ClassificationProvider {
       model: usedModel,
       rawResponseMap: classificationMap,
       textContent: textContent,
-      // Token counts are not surfaced to the client from the backend;
-      // cost tracking is handled server-side in ai_cost_events.
-      inputTokens: null,
-      outputTokens: null,
     );
   }
 

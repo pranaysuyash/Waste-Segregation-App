@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../../utils/waste_theme.dart';
 
 /// ResultHeader displays the hero image, classification info, and key metrics
 /// This is the above-the-fold content (≈60% viewport) as per the design spec
@@ -344,83 +345,14 @@ class ResultHeader extends ConsumerWidget {
   }
 
   // Helper methods for semantic colors and icons
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'dry waste':
-        return Colors.blue;
-      case 'wet waste':
-        return Colors.green;
-      case 'e-waste':
-        return Colors.amber;
-      case 'hazardous waste':
-        return Colors.red;
-      case 'biomedical waste':
-        return Colors.red;
-      case 'requires manual review':
-        return Colors.orange;
-      case 'recyclable':
-        return Colors.green;
-      case 'organic':
-      case 'compostable':
-        return Colors.brown;
-      case 'hazardous':
-        return Colors.red;
-      case 'electronic':
-        return Colors.blue;
-      case 'plastic':
-        return Colors.orange;
-      case 'paper':
-        return Colors.lightBlue;
-      case 'glass':
-        return Colors.cyan;
-      case 'metal':
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
-  }
+  Color _getCategoryColor(String category) =>
+      WasteTheme.categoryColor(category);
 
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'dry waste':
-        return Icons.recycling_rounded;
-      case 'wet waste':
-        return Icons.eco_rounded;
-      case 'e-waste':
-        return Icons.devices_rounded;
-      case 'hazardous waste':
-        return Icons.warning_rounded;
-      case 'biomedical waste':
-        return Icons.medical_services_rounded;
-      case 'requires manual review':
-        return Icons.help_outline_rounded;
-      case 'recyclable':
-        return Icons.recycling_rounded;
-      case 'organic':
-      case 'compostable':
-        return Icons.eco_rounded;
-      case 'hazardous':
-        return Icons.warning_rounded;
-      case 'electronic':
-        return Icons.devices_rounded;
-      case 'plastic':
-        return Icons.local_drink_rounded;
-      case 'paper':
-        return Icons.description_rounded;
-      case 'glass':
-        return Icons.wine_bar_rounded;
-      case 'metal':
-        return Icons.build_rounded;
-      default:
-        return Icons.category_rounded;
-    }
-  }
+  IconData _getCategoryIcon(String category) =>
+      WasteTheme.categoryIcon(category);
 
-  Color _getConfidenceColor(double confidence) {
-    if (confidence >= 0.8) return Colors.green;
-    if (confidence >= 0.6) return Colors.orange;
-    return Colors.red;
-  }
+  Color _getConfidenceColor(double confidence) =>
+      WasteTheme.confidenceColorFromFraction(confidence);
 
   String _getEnvironmentalImpact() {
     // Calculate environmental impact based on category

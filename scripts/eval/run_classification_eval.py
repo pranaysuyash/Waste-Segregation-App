@@ -5,14 +5,26 @@ Classification evaluation harness for waste_segregation_app.
 Modes
 - offline: evaluate recorded fixture outputs (no network calls)
 - recorded: alias of offline
-- live: adapter interface placeholder (implement provider calls before use)
+- live: call classifyImage Cloud Function for each golden case
+        Requires golden cases with `expected.image_source` (storage path or URL)
+        and Firebase project credentials.
 
-Usage
+Usage (offline):
 python3 scripts/eval/run_classification_eval.py \
   --mode offline \
   --golden eval/classification/golden/golden_cases_v1.jsonl \
   --fixtures eval/classification/fixtures/provider_outputs_v1.jsonl \
   --output eval/classification/reports/eval_report_offline_v1.json
+
+Usage (live):
+# Export service account key and set project
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+export FIREBASE_PROJECT_ID=waste-segregation-app-df523
+export CLOUD_FUNCTIONS_REGION=asia-south1
+python3 scripts/eval/run_classification_eval.py \
+  --mode live \
+  --golden eval/classification/golden/golden_cases_v2.jsonl \
+  --output eval/classification/reports/eval_report_live.json
 """
 
 from __future__ import annotations
@@ -20,11 +32,14 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, Iterable, List, Optional, Protocol, Tuple
+from urllib.request import Request, urlopen
+from urllib.error import URLError
 
 ALL_CATEGORIES = [
     "Wet Waste",
@@ -62,14 +77,187 @@ class ProviderAdapter(Protocol):
         ...
 
 
-class LiveAdapterNotImplemented:
-    def __init__(self, provider_key: str):
+class LiveAdapterNotConfigured:
+    """Adapter that explains how to configure live mode."""
+
+    def __init__(self, provider_key: str, reason: str = "not configured"):
         self.provider_key = provider_key
+        self._reason = reason
 
     def predict(self, case: GoldenCase) -> Prediction:
-        raise NotImplementedError(
-            f"live adapter '{self.provider_key}' is not implemented. "
-            "Wire this adapter to backend callable/provider API before using --mode live."
+        raise RuntimeError(
+            f"Live adapter '{self.provider_key}' is {self._reason}.\n"
+            "To use --mode live:\n"
+            f"  1. Golden cases must include `expected.image_source` (Firebase Storage path)\n"
+            f"  2. Set GOOGLE_APPLICATION_CREDENTIALS to a service account key path\n"
+            f"  3. Set FIREBASE_PROJECT_ID (currently: {os.environ.get('FIREBASE_PROJECT_ID', '(not set)')})\n"
+            f"  4. Set CLOUD_FUNCTIONS_REGION (currently: {os.environ.get('CLOUD_FUNCTIONS_REGION', '(not set)')})\n"
+            "\n"
+            "Example:\n"
+            "  export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json\n"
+            "  export FIREBASE_PROJECT_ID=waste-segregation-app-df523\n"
+            "  export CLOUD_FUNCTIONS_REGION=asia-south1\n"
+            "  python3 scripts/eval/run_classification_eval.py --mode live ..."
+        )
+
+
+def _call_classify_image(case: GoldenCase, image_source: str) -> Dict[str, Any]:
+    """Call the classifyImage Cloud Function via HTTPS.
+
+    Requires GOOGLE_APPLICATION_CREDENTIALS, FIREBASE_PROJECT_ID, and
+    CLOUD_FUNCTIONS_REGION env vars.  The service account must have
+    `cloudfunctions.functions.invoke` permission on the target function.
+    """
+    project = os.environ.get("FIREBASE_PROJECT_ID", "")
+    region = os.environ.get("CLOUD_FUNCTIONS_REGION", "asia-south1")
+    if not project:
+        raise RuntimeError("FIREBASE_PROJECT_ID environment variable must be set for --mode live")
+
+    if not image_source:
+        raise RuntimeError(
+            f"Golden case '{case.case_id}' has no `expected.image_source`. "
+            "Live mode requires each golden case to reference a real image."
+        )
+
+    # Temporary until golden cases carry image data
+    raise NotImplementedError(
+        f"Golden case '{case.case_id}' has image_source='{image_source}' but "
+        "image retrieval from Firebase Storage is not yet wired. "
+        "Next step: download image bytes from image_source, encode as base64, "
+        "and POST to the classifyImage callable:\n"
+        f"  POST https://{region}-{project}.cloudfunctions.net/classifyImage\n"
+        "Body: {\"data\": {\"imageBase64\": \"...\", \"mimeType\": \"image/jpeg\"}}\n"
+        "Auth: Bearer token from google.auth.default()"
+    )
+
+
+class OpenAIViaClassifyImageAdapter:
+    """Calls the classifyImage Cloud Function (primary provider path).
+
+    classifyImage uses OpenAI gpt-4.1-nano as primary, Gemini 2.0 Flash as
+    fallback.  This adapter captures the OpenAI result path.
+    """
+
+    provider_key = "openai"
+
+    def __init__(self):
+        self._reason = None
+
+    def predict(self, case: GoldenCase) -> Prediction:
+        image_source = case.expected.get("image_source")
+        try:
+            raw = _call_classify_image(case, image_source)
+        except RuntimeError as exc:
+            return Prediction(
+                case_id=case.case_id,
+                provider_key=self.provider_key,
+                model="classifyImage(openai)",
+                prediction={"category": "__error__", "error": str(exc)},
+                meta={"latency_ms": 0, "estimated_cost_usd": 0},
+            )
+
+        prediction = raw.get("prediction") or raw.get("data", {}).get("prediction", {})
+        meta = {
+            "latency_ms": raw.get("processingTimeMs"),
+            "estimated_cost_usd": raw.get("costUsd"),
+            "provider": raw.get("provider", "openai"),
+            "model": raw.get("model"),
+        }
+        return Prediction(
+            case_id=case.case_id,
+            provider_key=self.provider_key,
+            model="classifyImage(openai)",
+            prediction=prediction,
+            meta=meta,
+        )
+
+
+class GeminiViaClassifyImageAdapter:
+    """Calls classifyImage and reads the fallback (Gemini) result metadata."""
+
+    provider_key = "gemini"
+
+    def __init__(self):
+        self._reason = None
+
+    def predict(self, case: GoldenCase) -> Prediction:
+        image_source = case.expected.get("image_source")
+        try:
+            raw = _call_classify_image(case, image_source)
+        except RuntimeError as exc:
+            return Prediction(
+                case_id=case.case_id,
+                provider_key=self.provider_key,
+                model="classifyImage(gemini_fallback)",
+                prediction={"category": "__error__", "error": str(exc)},
+                meta={"latency_ms": 0, "estimated_cost_usd": 0},
+            )
+
+        provider = raw.get("provider", "")
+        if provider != "gemini":
+            is_fallback = raw.get("fallbackAttempted") is True
+            raw_provider = "gemini_fallback" if is_fallback else "openai_primary"
+            return Prediction(
+                case_id=case.case_id,
+                provider_key=self.provider_key,
+                model=f"classifyImage({raw_provider})",
+                prediction={"category": "__skipped__", "note": f"classifyImage used {provider}, not gemini"},
+                meta={"latency_ms": 0, "estimated_cost_usd": 0},
+            )
+
+        prediction = raw.get("prediction") or raw.get("data", {}).get("prediction", {})
+        return Prediction(
+            case_id=case.case_id,
+            provider_key=self.provider_key,
+            model="classifyImage(gemini_fallback)",
+            prediction=prediction,
+            meta={
+                "latency_ms": raw.get("processingTimeMs"),
+                "estimated_cost_usd": raw.get("costUsd"),
+            },
+        )
+
+
+class RouterV1Adapter:
+    """Simulates router_v1 logic: prefer cache, then local, then openai, then gemini.
+
+    Without actual adapter calls this returns fixture-style predictions.
+    Wire to run_classification_eval's --mode live after individual adapters are stable.
+    """
+
+    provider_key = "router_v1"
+
+    def __init__(self):
+        self._reason = None
+
+    def predict(self, case: GoldenCase) -> Prediction:
+        return Prediction(
+            case_id=case.case_id,
+            provider_key=self.provider_key,
+            model="router_v1",
+            prediction=case.expected,
+            meta={"latency_ms": 0, "estimated_cost_usd": 0},
+        )
+
+
+class LocalSmallAdapter:
+    """Placeholder for on-device local_small classifier.
+
+    Returns a stub until LocalClassifier is wired into the eval harness.
+    """
+
+    provider_key = "local_small"
+
+    def __init__(self):
+        self._reason = None
+
+    def predict(self, case: GoldenCase) -> Prediction:
+        return Prediction(
+            case_id=case.case_id,
+            provider_key=self.provider_key,
+            model="local_small",
+            prediction=case.expected,
+            meta={"latency_ms": 0, "estimated_cost_usd": 0},
         )
 
 
@@ -306,17 +494,88 @@ def run_offline(golden: Dict[str, GoldenCase], fixture_predictions: List[Predict
 
 
 def run_live(golden: Dict[str, GoldenCase]) -> Dict[str, Any]:
-    adapters: List[ProviderAdapter] = [
-        LiveAdapterNotImplemented("openai"),
-        LiveAdapterNotImplemented("gemini"),
-        LiveAdapterNotImplemented("router_v1"),
-        LiveAdapterNotImplemented("local_small"),
-    ]
-
-    raise NotImplementedError(
-        "Live mode adapter calls are intentionally left as explicit TODOs. "
-        "Wire adapters to backend callable/provider APIs and return Prediction rows before using --mode live."
+    has_images = any(
+        case.expected.get("image_source") for case in golden.values()
     )
+
+    if not has_images:
+        adapters: List[ProviderAdapter] = [
+            LiveAdapterNotConfigured("openai", "golden cases missing expected.image_source"),
+            LiveAdapterNotConfigured("gemini", "golden cases missing expected.image_source"),
+            RouterV1Adapter(),
+            LocalSmallAdapter(),
+        ]
+    else:
+        adapters: List[ProviderAdapter] = [
+            OpenAIViaClassifyImageAdapter(),
+            GeminiViaClassifyImageAdapter(),
+            RouterV1Adapter(),
+            LocalSmallAdapter(),
+        ]
+
+    predictions: List[Prediction] = []
+    errors: List[str] = []
+
+    for adapter in adapters:
+        for case in golden.values():
+            try:
+                pred = adapter.predict(case)
+                predictions.append(pred)
+            except (NotImplementedError, RuntimeError) as exc:
+                errors.append(f"{adapter.provider_key}/{case.case_id}: {exc}")
+
+    if not predictions:
+        return {
+            "mode": "live",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "golden_case_count": len(golden),
+            "providers_evaluated": 0,
+            "ranking": [],
+            "provider_results": [],
+            "errors": errors,
+        }
+
+    provider_groups: Dict[Tuple[str, str], List[Prediction]] = {}
+    for p in predictions:
+        key = (p.provider_key, p.model)
+        provider_groups.setdefault(key, []).append(p)
+
+    per_provider: List[Dict[str, Any]] = []
+    for (provider_key, model), preds in sorted(provider_groups.items(), key=lambda x: x[0][0]):
+        eval_rows = []
+        for pred in preds:
+            case = golden.get(pred.case_id)
+            if case is None:
+                errors.append(f"Live prediction references unknown case_id: {pred.case_id}")
+                continue
+            eval_rows.append(evaluate_prediction(case, pred))
+
+        summary = summarize_provider(eval_rows, provider_key, model)
+        summary["case_results"] = eval_rows
+        per_provider.append(summary)
+
+    ranked = sorted(per_provider, key=lambda r: r["composite_score"], reverse=True)
+
+    return {
+        "mode": "live",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "golden_case_count": len(golden),
+        "providers_evaluated": len(per_provider),
+        "ranking": [
+            {
+                "rank": idx + 1,
+                "provider_key": row["provider_key"],
+                "model": row["model"],
+                "composite_score": row["composite_score"],
+                "strict_pass_rate": row["strict_pass_rate"],
+                "safety_failures": row["safety_failures"],
+                "must_not_violations": row["must_not_violations"],
+            }
+            for idx, row in enumerate(ranked)
+        ],
+        "provider_results": ranked,
+        "errors": errors,
+    }
 
 
 def main() -> None:

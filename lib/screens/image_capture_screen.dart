@@ -815,10 +815,16 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       // Fail-open: continue with analysis even if quality check fails
     }
 
-    // Track 2: Check if we're offline
+    // Layers 0 & 1: Deterministic + on-device ML — zero-cost local classification.
+    // Runs before the quota re-check and before queuing for offline.
+    if (imageBytes != null && imageBytes.isNotEmpty) {
+      final pipelineAccepted = await _tryLocalClassification(imageBytes);
+      if (pipelineAccepted) return;
+    }
+
+    // Track 2: Check if we're offline — only queue if local layers failed.
     if (!_isOnline && !kIsWeb) {
       if (imageBytes != null && imageBytes.isNotEmpty) {
-        // Queue the classification for later processing
         if (mounted) {
           await _queueAnalysisOffline(imageBytes);
         } else {
@@ -826,13 +832,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         }
         return;
       }
-    }
-
-    // Layers 0 & 1: Deterministic + on-device ML — zero-cost local classification.
-    // Runs before the quota re-check because local accepts cost zero tokens.
-    if (imageBytes != null && imageBytes.isNotEmpty) {
-      final pipelineAccepted = await _tryLocalClassification(imageBytes);
-      if (pipelineAccepted) return;
     }
 
     // Quota preflight re-check immediately before network analysis.

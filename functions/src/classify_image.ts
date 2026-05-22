@@ -140,6 +140,16 @@ interface ClassifyImageRequest {
    * If present, repeated requests with the same key will not be double-charged.
    */
   requestId?: string;
+  /**
+   * Client-computed perceptual hash for near-duplicate image detection.
+   * Unlike the byte-exact SHA-256 (serverHash), the perceptual hash is robust
+   * against re-encoding, compression changes, and minor edits. This allows
+   * the server to detect when the same image is re-classified at different JPEG
+   * quality levels.
+   *
+   * Format: "phash_<64-bit hex>" — computed client-side in image_utils.dart.
+   */
+  perceptualHash?: string;
 }
 
 /**
@@ -1043,6 +1053,66 @@ export const classifyImage = functions
   }
 
   // ------------------------------------------------------------------
+  // 5b. Near-duplicate detection via perceptual hash
+  //     If the client provided a perceptual hash, check if the same image
+  //     (or a near-duplicate) was classified by this user within 24h.
+  //     This catches re-encoding attacks where the same image is re-saved
+  //     at a different JPEG quality level, which would produce a different
+  //     SHA-256 but the same perceptual hash.
+  // ------------------------------------------------------------------
+  const rawPerceptualHash = data.perceptualHash;
+  if (rawPerceptualHash && typeof rawPerceptualHash === 'string') {
+    const phashKey = rawPerceptualHash.replace(/[^a-f0-9]/g, '');
+    if (phashKey.length >= 8) {
+      const phashDocId = phashKey.slice(0, 16);
+      const phashRef = db
+        .collection('users')
+        .doc(uid)
+        .collection('classification_hashes')
+        .doc(phashDocId);
+      const phashSnap = await phashRef.get();
+      if (phashSnap.exists) {
+        const phashData = phashSnap.data() ?? {};
+        const phashTimestamp: admin.firestore.Timestamp | undefined = phashData.timestamp;
+        const phashAgeSec = phashTimestamp
+          ? nowEpoch - phashTimestamp.toMillis() / 1000
+          : Infinity;
+        const PHASH_TTL_SEC = 86_400; // 24 hours
+        if (phashAgeSec < PHASH_TTL_SEC) {
+          functions.logger.info('classifyImage: perceptual hash hit', {
+            uid,
+            phashPrefix: phashKey.slice(0, 8) + '…',
+            originalClassificationId: phashData.classificationId,
+            ageSec: Math.round(phashAgeSec),
+          });
+          // Return cached result if available
+          const origCacheDocId: string | undefined = phashData.cacheDocId;
+          if (origCacheDocId) {
+            const origCacheSnap = await db.collection('classifications').doc(origCacheDocId).get();
+            if (origCacheSnap.exists) {
+              const origCached = origCacheSnap.data() ?? {};
+              const { cachedAtEpoch: _1, provider: _2, model: _3, ...resultPayload } = origCached;
+              return { classification: resultPayload };
+            }
+          }
+          // Fallback: minimal duplicate response (cache doc may have been evicted)
+          return {
+            classification: {
+              itemName: phashData.originalItemName ?? 'Unknown',
+              category: phashData.originalCategory ?? 'Dry Waste',
+              subcategory: phashData.originalSubcategory ?? '',
+              materialType: phashData.originalMaterialType ?? '',
+              confidence: phashData.originalConfidence ?? 0.5,
+              explanation: 'This image was already classified previously (near-duplicate detected).',
+              imageHash: serverHash,
+            },
+          };
+        }
+      }
+    }
+  }
+
+  // ------------------------------------------------------------------
   // 6. Rate limit — per UID, 10 req/min (configurable)
   // ------------------------------------------------------------------
   const rateLimitConfig = getClassifyRateLimitConfig();
@@ -1223,6 +1293,39 @@ export const classifyImage = functions
     functions.logger.warn('classifyImage: failed to write cache', {
       error: String(cacheErr),
     });
+  }
+
+  // ------------------------------------------------------------------
+  // 10b. Store perceptual hash mapping for near-duplicate detection
+  // ------------------------------------------------------------------
+  if (rawPerceptualHash && classificationResult) {
+    const phashKey = rawPerceptualHash.replace(/[^a-f0-9]/g, '');
+    if (phashKey.length >= 8) {
+      const phashDocId = phashKey.slice(0, 16);
+      try {
+        await db
+          .collection('users')
+          .doc(uid)
+          .collection('classification_hashes')
+          .doc(phashDocId)
+          .set({
+            perceptualHash: rawPerceptualHash,
+            classificationId: serverHash.slice(0, 12),
+            cacheDocId,
+            originalItemName: classificationResult.itemName,
+            originalCategory: classificationResult.category,
+            originalSubcategory: classificationResult.subcategory ?? '',
+            originalMaterialType: classificationResult.materialType ?? '',
+            originalConfidence: classificationResult.confidence ?? null,
+            timestamp: FieldValue.serverTimestamp(),
+          }, { merge: true });
+      } catch (phashErr) {
+        // Non-fatal — duplicate detection degraded but classification succeeded
+        functions.logger.warn('classifyImage: failed to store perceptual hash', {
+          error: String(phashErr),
+        });
+      }
+    }
   }
 
   // ------------------------------------------------------------------

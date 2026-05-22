@@ -108,4 +108,11 @@ class EducationCardEngine {
     );
     return matches.isNotEmpty ? matches.first : null;
   }
+
+  WasteEducationCard? cardById(String id) {
+    for (final card in _seedCards) {
+      if (card.id == id) return card;
+    }
+    return null;
+  }
 }

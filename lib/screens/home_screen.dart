@@ -21,6 +21,7 @@ import '../screens/image_capture_screen.dart';
 import '../screens/instant_analysis_screen.dart';
 import '../screens/waste_dashboard_screen.dart';
 import '../utils/constants.dart';
+import '../utils/waste_theme.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../models/gamification_result.dart';
 import '../widgets/modern_ui/modern_buttons.dart';
@@ -1719,43 +1720,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // Helpers
   // ==========================================================================
 
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-      case 'organic':
-        return const Color(0xFF4CAF50);
-      case 'dry waste':
-      case 'recyclable':
-        return const Color(0xFF2196F3);
-      case 'hazardous waste':
-      case 'hazardous':
-        return const Color(0xFFF44336);
-      case 'medical waste':
-        return const Color(0xFF845EC2);
-      case 'general':
-        return const Color(0xFF9E9E9E);
-      default:
-        return const Color(0xFF9E9E9E);
-    }
-  }
+  Color _getCategoryColor(String category) =>
+      WasteTheme.categoryColor(category);
 
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-      case 'organic':
-        return Icons.compost;
-      case 'dry waste':
-      case 'recyclable':
-        return Icons.recycling;
-      case 'hazardous waste':
-      case 'hazardous':
-        return Icons.warning;
-      case 'medical waste':
-        return Icons.local_hospital;
-      default:
-        return Icons.delete;
-    }
-  }
+  IconData _getCategoryIcon(String category) =>
+      WasteTheme.categoryIcon(category);
 
   // ==========================================================================
   // Photo capture methods

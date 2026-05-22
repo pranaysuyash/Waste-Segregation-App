@@ -336,19 +336,20 @@ This explicitly decouples "understanding the image" from "telling the user what 
 
 ### 4. Region-Aware Rulesets 🔴
 
-**Status**: Active research landmark delivered 2026-05-22. City expansion framework, plugin contract, 15-city expansion map, conflict resolution model, policy-ML interaction gating, and society overlay layer documented.
+**Status**: Implementation delivered 2026-05-22. 7 city plugins live, `CityPolicyData` helper, `safetyOverride` check type, confidence gating, society override model, and city research playbook all built.
 
-**Overview**: India-first (BBMP), with global ambitions. The "right answer" depends on city/municipality/building rules. The app has three city plugins (BBMP production, BMC/MCD pilot) and a canonical policy engine. The expansion map covers how to reach 15+ Indian cities without app branching.
+**Overview**: India-first (BBMP), with global ambitions. The "right answer" depends on city/municipality/building rules. The app now has seven city plugins (BBMP production, BMC/MCD/PMC/GHMC/GCC/KMC pilot), a data-driven `CityPolicyData` helper that reduces new-city cost to data + tests, a `safetyOverrideAlways` check type for safety-critical rules, confidence gating that demotes enforcement when ML confidence is low, and a `SocietyPolicyOverride` model for apartment-society-level rule deltas.
+
+**Code anchors**:
+- `lib/services/city_policy_data.dart` — data-driven city config with pre-built instances for 7 cities
+- `lib/services/local_policy_engine.dart` — `safetyOverrideAlways` check type, confidence gating, provenance fields
+- `lib/services/local_guidelines_plugin.dart` — refactored BBMP retains custom compliance; all other cities use `CityDataPluginMixin`
+- `lib/services/local_policy_rule_packs.dart` — 7 city rule packs with safety override rules
+- `lib/models/society_policy_override.dart` — society-level override model with Firestore-ready serialization
 
 **Key questions**:
-
-- Schema for a ruleset: jurisdiction, material taxonomy, bin colours, exceptions, sources.
-- Sourcing strategy: curated, crowdsourced, scraped, partner-supplied?
-- Trust model: how do we mark a ruleset as "verified vs community-submitted"?
-- Update cadence and override path when local reality differs from official rules.
-- What is the minimum data contract a new city must provide before shipping to pilot?
-- How do society-level overrides interact with municipal rules?
-- How does ML confidence gate the severity of policy enforcement?
+- All answered; focus shifted to execution.
+- Answered: minimum data contract, society interaction, ML confidence gating.
 
 **Deliverable**: `docs/exploration/REGION_RULES_AND_CITY_EXPANSION_MAP.md` (2026-05-22).
 
@@ -358,27 +359,30 @@ This explicitly decouples "understanding the image" from "telling the user what 
 
 ### 4a. Global Municipal Policy Engine 🔴
 
-**Status**: Active build track (2026-05-20 onward). No longer local-only.
+**Status**: Active build track (2026-05-20 onward). 7 cities live, data-driven plugin architecture shipped.
 
-**Overview**: Policy correctness must scale beyond one city. We now have a canonical policy engine + rule-pack registry surface in code (`local_policy_engine.dart`, `local_policy_rule_packs.dart`), and this should be treated as a global municipal platform lane rather than BBMP-only feature work.
+**Overview**: Policy correctness must scale beyond one city. The canonical policy engine + rule-pack registry surface is now augmented with a `CityPolicyData` helper that makes adding a new city a data-entry-plus-tests exercise. Seven cities are live (BBMP production, BMC/MCD/PMC/GHMC/GCC/KMC pilot). `safetyOverrideAlways` check type ensures deterministic safety-critical rules. Confidence gating prevents strong enforcement when ML confidence is low.
 
 **Key questions**:
 
-- How do we represent policy packs per authority/jurisdiction with strict versioning and provenance?
-- What is the plugin + rule-pack contract for adding a new city without app-level branching?
-- Which fields are mandatory in every policy decision for auditability (`rule_pack_id`, `policy_plugin_id`, compliance status, evaluated timestamp)?
-- How do we validate and promote policy packs (draft -> reviewed -> production)?
-- What is the global rollout strategy (India metro tier first, then international jurisdictions)?
+- Answered: plugin contract, minimum fields, promotion gates, rollout strategy.
+- Open: source freshness monitoring (design concept documented in `docs/exploration/SOURCE_FRESHNESS_MONITORING.md`).
+- Open: GPS region selection UX (design concept in `docs/exploration/GPS_REGION_SELECTION_UX.md`).
 
 **Current code anchors**:
 
-- `lib/services/local_policy_engine.dart` — canonical policy evaluation/apply entrypoint
-- `lib/services/local_policy_rule_packs.dart` — data-driven rule-pack registry
-- `lib/services/local_guidelines_plugin.dart` — multi-city plugin routing scaffolds (BBMP, BMC, MCD)
+- `lib/services/local_policy_engine.dart` — policy evaluation with `safetyOverrideAlways`, confidence gating, provenance fields
+- `lib/services/local_policy_rule_packs.dart` — 7 city rule packs (BBMP production, 6 pilot)
+- `lib/services/local_guidelines_plugin.dart` — 7 city plugins via `CityDataPluginMixin`
+- `lib/services/city_policy_data.dart` — data-driven city config helper with 7 pre-built instances
+- `lib/models/society_policy_override.dart` — society-level override delta layer
 
 **Deliverables**:
-- `docs/exploration/GLOBAL_MUNICIPAL_POLICY_ENGINE.md` (2026-05-21) — policy pack governance lifecycle, promotion gates, global rollout strategy.
-- `docs/exploration/REGION_RULES_AND_CITY_EXPANSION_MAP.md` (2026-05-22) — city plugin contract, 15-city expansion map, conflict resolution, society overlay layer, ML-policy interaction gating.
+- `docs/exploration/GLOBAL_MUNICIPAL_POLICY_ENGINE.md` (2026-05-21)
+- `docs/exploration/REGION_RULES_AND_CITY_EXPANSION_MAP.md` (2026-05-22)
+- `docs/playbooks/CITY_RULES_RESEARCH.md` (2026-05-22) — playbook for researching new cities
+- `docs/exploration/SOURCE_FRESHNESS_MONITORING.md` (2026-05-22) — design concept
+- `docs/exploration/GPS_REGION_SELECTION_UX.md` (2026-05-22) — design concept
 
 **Related**: Region-Aware Rulesets (#4), Municipal APIs (#25), Regional Regulations (#33), Audit / Telemetry (#35), B2B / Enterprise Wedge (#29).
 
@@ -405,9 +409,9 @@ This explicitly decouples "understanding the image" from "telling the user what 
 
 ## ON-DEVICE & EDGE
 
-### 6. On-Device Inference 🔴
+### 6. On-Device Inference 🟡
 
-**Status**: Not implemented. Today every classification is a cloud call.
+**Status**: Phase A+B implemented. `LocalClassifier` interface, `ClassificationPipeline` orchestrating L0→L1→Cloud, `classificationLayer` field on `WasteClassification`, 36 tests. Real on-device ML model (Phase C) deferred — no TFLite model trained yet.
 
 **Overview**: On-device inference unlocks offline use, privacy, faster perceived latency, and lower per-classification cost. Critical for emerging markets and as a competitive moat.
 
@@ -418,15 +422,15 @@ This explicitly decouples "understanding the image" from "telling the user what 
 - How do we ship model weights — bundled, lazy-downloaded, gated by device tier?
 - What's the iOS/Android parity story given Apple Silicon vs Snapdragon NPU differences?
 
-**Deliverable**: `docs/exploration/ON_DEVICE_INFERENCE.md`.
+**Deliverable**: `docs/review/LOCAL_ML_FIRST_PASS_CLASSIFIER_PLAN_2026-05-21.md` (Phase A+B complete). `lib/services/local_classifier_service.dart`, `lib/services/classification_pipeline.dart`, `lib/providers/classification_pipeline_providers.dart`.
 
 **Related**: Multi-Model AI Routing, Model Cascades, Battery / Thermal.
 
 ---
 
-### 7. Model Cascades 🟡
+### 7. Model Cascades 🟢
 
-**Status**: Conceptual. Cost-tier ladder discussed in `dynamic_pricing_service.dart` and `ai_cost_tracker.dart`, but no on-device tier exists yet.
+**Status**: Implemented. `ClassificationPipeline` (L0 deterministic → L1 on-device ML → Cloud) is the cascade. Escalation policy defined in `LocalClassificationResult.requiresEscalation`: 5 conditions (infra failure, model-flagged, always-escalate categories, safety-sensitive below 0.90, non-safety below 0.75).
 
 **Overview**: A small on-device classifier handles "easy" cases; ambiguous results escalate to cloud. Should be deterministic and observable, not magic.
 
@@ -436,628 +440,7 @@ This explicitly decouples "understanding the image" from "telling the user what 
 - How do we audit each escalation so we can tune the threshold?
 - Does the cascade also include "ask the user a question" as a tier (active clarification)?
 
-**Deliverable**: Folded into `docs/exploration/MULTI_MODEL_AI_ROUTING.md` and `docs/exploration/ON_DEVICE_INFERENCE.md`.
-
----
-
-### 8. Battery, Thermal & Memory Budget 🟢
-
-**Status**: Not measured systematically.
-
-**Overview**: On-device inference is only viable if it doesn't tank battery, overheat the phone, or get the app killed for memory pressure. Especially relevant for the lower-end Android devices common in target markets.
-
-**Key questions**:
-
-- Per-classification energy cost on representative devices?
-- Memory ceiling that keeps the app eligible for background work?
-- How do we degrade gracefully on low-end devices (skip on-device, force cloud, force throttle)?
-
-**Deliverable**: `docs/exploration/DEVICE_BUDGET.md`.
-
----
-
-### 9. Offline-First Flow 🟡
-
-**Status**: Partial — see `lib/services/cache_service.dart`, `offline_queue_*`, `QUALITY_GATE_OFFLINE_QUEUE_INTEGRATION.md`.
-
-**Overview**: Offline classification capture + delayed sync is a strong wedge for fieldwork, schools, rural use. Today the queue exists but the end-to-end offline experience isn't a first-class promise.
-
-**Key questions**:
-
-- What's the canonical user contract when offline (capture only? cached classify? best-effort local?)?
-- How do we reconcile when the user corrects a classification that was already shared to family/community?
-- What happens to in-flight gamification rewards earned offline?
-
-**Deliverable**: `docs/exploration/OFFLINE_FIRST_FLOW.md`.
-
-**Related**: On-Device Inference, Classification History Schema.
-
----
-
-## DATA, COST & RELIABILITY
-
-### 10. AI Cost Telemetry & Guardrails 🔴
-
-**Status**: In progress — `lib/services/ai_cost_tracker.dart`, `cost_guardrail_service.dart`, `cost_tracking_interceptor.dart` exist. Need an explicit policy doc.
-
-**Overview**: AI cost is the single biggest scaling risk. Without per-user, per-feature, per-tier budgets and observable spend, the unit economics break before they're noticed.
-
-**Key questions**:
-
-- Per-user daily / monthly budgets — soft vs hard caps.
-- Free-tier abuse mitigations (anonymous users, throwaway accounts, automation).
-- Provider-level fallback when budget exhausted: smaller model? On-device only? Queue for tomorrow?
-- Telemetry: dashboards we still need vs ones already wired in Firebase.
-
-**Deliverable**: `docs/exploration/AI_COST_TELEMETRY_AND_GUARDRAILS.md`.
-
-**Related**: Monetization & Pricing Tiers, On-Device Inference, Audit / Telemetry.
-
----
-
-### 11. Offline Queue & Sync 🔴
-
-**Status**: Implementation exists; semantics and conflict resolution under-specified.
-
-**Overview**: When a classification is captured offline, what happens at sync? What about gamification points awarded against stale state? What about classifications corrected on another device?
-
-**Key questions** (also see `QUALITY_GATE_OFFLINE_QUEUE_INTEGRATION.md`):
-
-- Conflict-resolution policy per record type (classification, feedback, gamification, social).
-- Idempotency keys for resubmission after network failure.
-- Visible UI for "pending sync" with retry / cancel.
-- Telemetry for stuck queues.
-
-**Deliverable**: `docs/exploration/OFFLINE_QUEUE_AND_SYNC.md`.
-
----
-
-### 12. Classification History Schema — *The Dataset Is the Moat* 🟡
-
-**Status**: Stored via `classification_storage_service.dart`, `classification_migration_service.dart`. Schema evolution path under-documented. **Currently mis-framed as a data-engineering cost; should be framed as the project's primary defensible asset.**
-
-**Reframing (from brainstorm pressure test, 2026-05-19)**: Every cloud-AI competitor will get to the same model quality we get to. The thing they can't replicate is a labelled, regionally-grounded waste-classification dataset built from real user corrections over years. That dataset lives in this schema. **Treat schema choices as moat choices, not migration choices.**
-
-**Overview**: Classification history is the single most valuable user-owned artefact *and* the project's strongest long-term competitive position. Today the schema is implicit. We need an explicit contract for migrations, exports, downstream analytics, **and training-readiness**.
-
-**Key questions**:
-
-- Versioned schema with explicit migration steps.
-- User-export contract (CSV / JSON / open formats) — relevant to GDPR-style asks.
-- **Training-readiness fields**: what provenance, labels, corrections, region, model-version, prompt-version metadata must each record carry so it's directly usable for fine-tuning or eval-set growth without expensive re-derivation later?
-- Anonymisation strategy if records feed model training.
-- Consent posture that allows this asset to compound (opt-in defaults vs explicit-consent gates).
-
-**Asset framing — what we're building, not just what we're storing**:
-
-- The labelled dataset (image × label × correction × region × disposal-outcome) is the input to F3 (Continuous Learning Loop) and F8 (Brand / Manufacturer Closed-Loop Data).
-- Schema decisions today (do we keep the original image? at what resolution? do we record the *correction chain*, not just the latest label?) determine whether the asset compounds or has to be rebuilt.
-- This is upstream of On-Device Inference (training data for distilled models) and Continuous Learning (label source).
-
-**Deliverable**: `docs/exploration/CLASSIFICATION_HISTORY_SCHEMA.md` — explicitly framed as a dataset/moat doc, not just a migration doc.
-
-**Related**: Data Retention & PII (consent posture), Offline Queue & Sync, Eval Harness (downstream consumer), Continuous Learning (downstream consumer), F8 Brand / Manufacturer Data (downstream consumer).
-
----
-
-### 13. Firestore Cost & Indexing 🟡
-
-**Status**: Implicit. `firestore_batch_service.dart`, `firestore_schema_registry.dart` exist, but no formal cost model.
-
-**Overview**: Reads, writes, and index storage on Firestore can become the dominant infra cost once user counts grow. Indexing decisions made early are expensive to undo.
-
-**Key questions**:
-
-- Current read/write hot paths and per-user cost projection.
-- Aggregation patterns (materialised counters, scheduled functions) vs live queries.
-- Index audit — which composite indexes are load-bearing, which are dead?
-
-**Deliverable**: `docs/exploration/FIRESTORE_COST_AND_INDEXING.md`.
-
----
-
-### 14. Data Retention & PII Strategy 🔴
-
-**Status**: Partially captured in `docs/security/`, `docs/legal/`. No single retention policy document.
-
-**Overview**: User-submitted photos are PII-adjacent and sometimes contain people, license plates, addresses. Retention, deletion, and training-use must be explicit before any monetisation or data-sharing move.
-
-**Key questions**:
-
-- Default retention windows per data class.
-- "Delete my account" semantics — soft vs hard, latency, cascade.
-- Photo redaction / blurring before any training reuse.
-- Region-specific obligations (DPDP Act in India, GDPR in EU, COPPA for kids).
-
-**Deliverable**: `docs/exploration/DATA_RETENTION_AND_PII_STRATEGY.md`.
-
-**Related**: Privacy / Photo PII, Regional Regulations.
-
----
-
-## USER EXPERIENCE & ENGAGEMENT
-
-### 15. Persona Journeys 🟡
-
-**Status**: Partial coverage across `docs/design/user_experience/user_flows/` and `docs/planning/ideas_to_explore.md`.
-
-**Overview**: The app's value differs sharply across personas — household user, parent/family, school/teacher, RWA/society admin, municipal partner, sustainability officer. Without explicit per-persona journeys, the UX optimises for the median and serves no one well.
-
-**Key questions**:
-
-- Which personas justify dedicated flows now vs later?
-- Where do journeys converge (shared classify flow) vs diverge (admin dashboards, classroom features)?
-- What's the minimum persona-specific surface that earns retention?
-
-**Deliverable**: `docs/exploration/PERSONA_JOURNEYS.md` — index pointing at per-persona sub-docs.
-
----
-
-### 16. Gamification Depth 🟡
-
-**Status**: Implemented at v1 — `gamification_service.dart`, achievements, streaks. Needs critical review.
-
-**Overview**: Gamification is currently feature-rich but mechanically shallow — points, streaks, achievements. Question: does it actually drive correct disposal behaviour, or just classification volume?
-
-**Key questions**:
-
-- Are we rewarding the right behaviour (correct disposal vs more scans)?
-- Long-term retention — what happens after novelty wears off (week 3 cliff)?
-- Family/group mechanics — cooperative vs competitive vs both?
-- Anti-cheating — what stops users farming points with photos of the same item?
-
-**Deliverable**: `docs/exploration/GAMIFICATION_DEPTH.md`.
-
-**Related**: Habit Formation Loop, Family / Group Mechanics.
-
----
-
-### 17. Habit Formation Loop 🟡
-
-**Status**: Not formalised. Implicit in gamification and notifications.
-
-**Overview**: The app's environmental impact depends on **sustained behaviour change**, not one-time scans. This is a behavioural-science problem, not just a UX problem.
-
-**Key questions**:
-
-- What's the cue → routine → reward loop we're actually building?
-- Which notifications drive return vs annoy?
-- How does the loop adapt as the user's competence grows (educational scaffolding)?
-
-**Deliverable**: `docs/exploration/HABIT_FORMATION_LOOP.md`.
-
----
-
-### 18. Accessibility & Internationalisation 🟡
-
-**Status**: l10n scaffolding present (`lib/l10n/`). Accessibility audit incomplete.
-
-**Overview**: Target users include kids, elderly, low-literacy populations, and non-English speakers. Visual-first design helps but isn't enough.
-
-**Key questions**:
-
-- Screen-reader coverage for the classification flow.
-- Voice-first capture as an accessibility path, not just a feature.
-- Low-literacy iconography and audio guidance.
-- Language priority order beyond English / Hindi.
-
-**Deliverable**: `docs/exploration/ACCESSIBILITY_AND_I18N.md`.
-
----
-
-### 19. Onboarding & Activation 🔴
-
-**Status**: Onboarding flow exists; activation funnel not instrumented as a first-class concern.
-
-**Overview**: First scan in first session is the hinge. If a user uninstalls before successfully classifying something they care about, nothing else matters.
-
-**Key questions**:
-
-- Time-to-first-successful-scan benchmark.
-- Skip-onboarding-and-recover path.
-- What's the "aha" moment we're optimising for? (correct classification? disposal advice? rewards?)
-
-**Deliverable**: `docs/exploration/ONBOARDING_AND_ACTIVATION.md`.
-
----
-
-### 19a. Waste-Specific UI Component System 🟢
-
-**Status**: Implemented 2026-05-21. Canonical waste-domain helpers and 8 reusable
-UI components now live at `lib/utils/waste_theme.dart` and
-`lib/widgets/waste_components/`. Four screens already migrated.
-
-**Overview**: Before the component system, category→colour mappings were
-duplicated across 5 files, confidence→colour logic across 3, and every screen
-built its own inline badges/chips. The consolidation provides a single source of
-truth for waste-domain colour semantics and reusable, accessible components.
-
-**Key components delivered**:
-- `WasteTheme` — canonical colour/icon/label helpers (category, confidence, bin, disposal)
-- `ConfidenceIndicator` — confidence % pill with semantic colours
-- `BinRecommendationChip` — bin colour recommendation chip
-- `PointsRewardChip` — points/reward display chip
-- `DisposalWarningCard` — warning card with severity levels
-- `WasteImagePreviewCard` — thumbnail with category-coloured border
-- `ClassificationSummaryCard` — full classification summary card
-- `OfflineQueueStatusCard` — offline queue status card
-- `LocalRuleChip` — local regulation applied indicator
-
-**Frontier bets enabled**: F2 (Region-Aware Disposal Reasoning), F4 (Neighbourhood
-Reuse Marketplace), F5 (Smart-Bin QR Layer) — all need consistent waste-domain UI
-primitives for category, bin, confidence, and disposal display.
-
-**Deliverable**: `docs/review/WASTE_UI_COMPONENT_SYSTEM_2026-05-21.md`.
-
----
-
-## COMMUNITY & SOCIAL
-
-### 20. Community Feed Trust Layer 🟡
-
-**Status**: Community feed exists (`community_service.dart`). No formal trust or anti-abuse layer.
-
-**Overview**: User-generated content (classifications shared, comments, reactions) is a vector for misinformation and abuse. Trust needs to be designed in, not retrofitted.
-
-**Key questions**:
-
-- Verification levels — anonymous, email-verified, identity-verified.
-- Reporting and takedown flow.
-- Misinformation handling when a community-shared "correct" answer is wrong.
-
-**Deliverable**: `docs/exploration/COMMUNITY_TRUST_LAYER.md`.
-
-**Related**: Moderation & Safety, Content Provenance.
-
----
-
-### 21. Family / Group Mechanics 🟡
-
-**Status**: Family features implemented at v1 — `firebase_family_service.dart`.
-
-**Overview**: Family / household / classroom / society groups are a strong retention surface. Mechanics need to be deliberate, not just "groups exist".
-
-**Key questions**:
-
-- Role model (parent / kid / admin / member / observer).
-- Privacy boundaries within a group.
-- Cross-group movement (kid graduates from family to school group).
-
-**Deliverable**: `docs/exploration/FAMILY_GROUP_MECHANICS.md`.
-
----
-
-### 22. Local Reuse Marketplace 🟢
-
-**Status**: Frontier idea — captured in `planning/ideas_to_explore.md`.
-
-**Overview**: Items become waste only when no one wants them. A neighbourhood-scoped reuse marketplace (give-away, swap, sell) reduces input volume to the waste stream.
-
-**Key questions**:
-
-- Is this a feature, a separate surface, or a separate product?
-- Trust, safety, and logistics at neighbourhood scale.
-- Interaction with existing local platforms (OLX, WhatsApp groups, society apps).
-
-**Deliverable**: `docs/exploration/LOCAL_REUSE_MARKETPLACE.md`.
-
----
-
-### 23. Moderation & Safety 🔴
-
-**Status**: Light moderation hooks exist; no comprehensive safety policy.
-
-**Overview**: Photos, comments, family members, kid users — the surface area for safety problems is wide. Required before any meaningful community growth.
-
-**Key questions**:
-
-- Child-safety surfaces (COPPA, India DPDP, age gating).
-- Image moderation pipeline (NSFW, PII, faces).
-- Escalation paths for abuse reports.
-
-**Deliverable**: `docs/exploration/MODERATION_AND_SAFETY.md`.
-
----
-
-## IoT, SMART CITY & PARTNERS
-
-### 24. Smart-Bin Integration 🟢 [FRONTIER]
-
-**Status**: Frontier — discussed in `STRATEGIC_ROADMAP_COMPREHENSIVE.md`.
-
-**Overview**: IoT-enabled bins that log disposals, fill-levels, and feed municipal collection routing. High narrative value but high integration cost.
-
-**Key questions**:
-
-- Hardware partner vs reference design vs aggregation layer.
-- What's the smallest useful integration (QR code on a bin) before any real IoT?
-- Who pays — municipality, RWA, app, brand sponsor?
-
-**Deliverable**: `docs/exploration/SMART_BIN_INTEGRATION.md`.
-
----
-
-### 25. Municipal APIs (BBMP, etc.) 🟡
-
-**Status**: Aspirational. No concrete integration today.
-
-**Overview**: City-level partnerships unlock authoritative rulesets, official drop-off locations, collection schedules, and credibility. They are slow but defensible.
-
-**Key questions**:
-
-- Which cities are reachable and have data worth integrating?
-- What's the lightest-touch integration that earns the badge (link out, scheduled scrape, API)?
-- How do we keep the rulesets fresh if the city's data is stale?
-
-**Deliverable**: `docs/exploration/MUNICIPAL_PARTNER_INTEGRATION.md`.
-
-**Related**: Region-Aware Rulesets, Smart-Bin Integration.
-
----
-
-### 26. Informal Collector Network 🟢
-
-**Status**: Frontier. Particularly relevant in Indian and emerging-market contexts.
-
-**Overview**: Informal waste collectors (kabadiwalas, ragpickers) are the actual end-state for most recyclable material. Connecting users directly to them could short-circuit a lot of friction.
-
-**Key questions**:
-
-- Onboarding model for collectors (literacy, devices, payments).
-- Trust and verification.
-- Interaction with formal municipal flows — complement or conflict?
-
-**Deliverable**: `docs/exploration/INFORMAL_COLLECTOR_NETWORK.md`.
-
----
-
-### 27. Hardware Partners 🟢
-
-**Status**: Frontier. None engaged.
-
-**Overview**: Smart bins, weighing scales, embedded cameras at apartment chutes — partnerships that put the app where waste actually happens.
-
-**Deliverable**: Folded into `SMART_BIN_INTEGRATION.md` until a real partner conversation justifies a standalone doc.
-
----
-
-## BUSINESS & GROWTH
-
-### 27a. Token Economy & Pricing Coherence 🔴 [IN FLIGHT — 2026-05-19]
-
-**Status**: **Active research and execution today.** Multi-role brainstorm produced 9 perspective docs (`brainstorm_*_2026-05-19.md`) plus a [synthesis](brainstorm_synthesis_2026-05-19.md). Execution surface in [../TOKEN_ECONOMY_TODO.md](../TOKEN_ECONOMY_TODO.md). This topic was added to the exploration index on 2026-05-19 after a pressure test showed the map omitting the work actually in flight.
-
-**Overview** (updated 2026-05-21): The May 19 contradiction ("instant shows 5 tokens but charges 0") has been addressed in code. The current risk frontier has shifted to **economic integrity and anti-tamper consistency** across all write paths: users profile updates, server-authoritative spend enforcement, offline queue semantics, and premium-token contract coherence.
-
-**Current state delta (2026-05-21)**:
-
-- Instant flow now checks affordability and spends tokens in-app.
-- Server callable spend path exists (`spendUserTokens`) and is wired from `TokenService`.
-- Token service tests exist and cover core spend/earn/conversion flows.
-- Remaining risks are no longer "missing token wiring"; they are **ledger trust boundaries** and **policy coherence**.
-
-**Execution order (wide-open-brainstorm + audit reconciliation)**:
-
-1. **Phase 1: Economic Integrity Layer**
-   - Anti-tamper rules for `users/{userId}.tokenWallet`.
-   - Server-authoritative spend mode (no silent local fallback in enforced mode).
-   - Offline queue + retry charge semantics parity.
-2. **Phase 2: Cost-Control Plane**
-   - Make guardrail-enforced mode (instant vs batch) authoritative in UX.
-   - Collapse parallel/placeholder batch paths to one canonical execution path.
-3. **Phase 3: Moat Layer**
-   - Token P&L observability from ledger truth.
-   - Dynamic pricing / incentive policy loop.
-   - Global rollout framing in exploration map.
-
-**Key questions** (drawn from the 2026-05-19 brainstorm set):
-
-- **Coherence**: what does a token *mean*, end-to-end, across capture → classify → result → history → premium → settings? One unit, one meaning, one visible balance, one consistent ledger.
-- **Pricing reality vs labelling**: where do labels lie about cost? Where does the receipt match? The "5 tokens, charge 0" contradiction is the canonical bug.
-- **Premium ↔ token economy bridge**: is premium "more tokens", "no tokens", "different tokens", or a separate axis entirely? Today it's a separate universe.
-- **Balance visibility**: when should a user see their token balance, before vs after action?
-- **Abuse / fairness**: anonymous-user economics, free-tier sustainability, what stops a single user from draining the AI cost budget.
-- **Cross-link to AI Cost Telemetry**: the token model is the user-facing layer over real provider cost — see entry 10.
-
-**Asset framing**: token economy clarity is upstream of monetization decisions (entry 28), brand trust, and the credibility of every "premium" surface. It is also the user-visible expression of [AI Cost Telemetry & Guardrails](#10-ai-cost-telemetry--guardrails-) — these two topics must agree on the same conceptual ledger.
-
-**Deliverable**: a coherent token-economy decision doc that resolves the three-territory contradiction. Likely path:
-
-1. Synthesis already exists at [brainstorm_synthesis_2026-05-19.md](brainstorm_synthesis_2026-05-19.md) — promote relevant conclusions into a permanent `docs/exploration/TOKEN_ECONOMY_AND_PRICING_COHERENCE.md`.
-2. That doc must reference [../TOKEN_ECONOMY_TODO.md](../TOKEN_ECONOMY_TODO.md) as the live execution checklist, and update it as decisions land.
-
-**Related**: Monetization & Pricing Tiers (entry 28, downstream), AI Cost Telemetry & Guardrails (entry 10, sibling layer), Onboarding & Activation (entry 19 — first-token UX is part of activation), Audit / Telemetry (entry 35 — token ledger is part of the audit surface).
-
-**Source artefacts (must not be forked)**:
-
-- [brainstorm_strategist_2026-05-19.md](brainstorm_strategist_2026-05-19.md)
-- [brainstorm_champion_2026-05-19.md](brainstorm_champion_2026-05-19.md)
-- [brainstorm_operator_2026-05-19.md](brainstorm_operator_2026-05-19.md)
-- [brainstorm_cartographer_2026-05-19.md](brainstorm_cartographer_2026-05-19.md)
-- [brainstorm_skeptic_2026-05-19.md](brainstorm_skeptic_2026-05-19.md)
-- [brainstorm_trickster_2026-05-19.md](brainstorm_trickster_2026-05-19.md)
-- [brainstorm_executioner_2026-05-19.md](brainstorm_executioner_2026-05-19.md)
-- [brainstorm_future_self_2026-05-19.md](brainstorm_future_self_2026-05-19.md)
-- [brainstorm_synthesis_2026-05-19.md](brainstorm_synthesis_2026-05-19.md)
-- [../TOKEN_ECONOMY_TODO.md](../TOKEN_ECONOMY_TODO.md)
-- [ai_service_refactor_motto_v2_2026-05-19.md](ai_service_refactor_motto_v2_2026-05-19.md) (related refactor of the cost-bearing AI surface)
-
----
-
-### 28. Monetization & Pricing Tiers 🟡
-
-**Status**: Premium model exists (`premium_features.hive`, `dynamic_pricing_service.dart`). Pricing logic not justified from first principles.
-
-**Overview**: Premium-vs-free split determines unit economics. Today the split is intuitive, not data-driven.
-
-**Key questions**:
-
-- What's the **value** in the premium tier (cloud quality? family seats? offline pack? educational content?)?
-- Anchor pricing across regions (India vs US purchasing power).
-- Family / group plans vs per-seat.
-- Free-tier limits that drive conversion without breaking the core promise.
-
-**Deliverable**: `docs/exploration/MONETIZATION_AND_PRICING_TIERS.md`.
-
-**Related**: AI Cost Telemetry, B2B / Enterprise Wedge.
-
----
-
-### 29. B2B / Enterprise Wedge 🟢
-
-**Status**: Frontier.
-
-**Overview**: Corporates, schools, RWAs, hotels all have sustainability mandates. The same core tech with reporting, admin, and bulk seats is a different product.
-
-**Key questions**:
-
-- Which segment has the cleanest wedge (schools? corporate ESG? hospitality?).
-- What admin surfaces are table-stakes (dashboard, exports, SSO)?
-- White-label vs first-party — when does each make sense?
-
-**Deliverable**: `docs/exploration/B2B_ENTERPRISE_WEDGE.md`.
-
----
-
-### 30. Carbon / Impact Accounting 🟡
-
-**Status**: Surface-level — points and stats, but no defensible methodology.
-
-**Overview**: The app's headline narrative is environmental impact. Claims about CO₂ saved, plastic diverted, etc. need methodology backing or they become a liability.
-
-**Key questions**:
-
-- Which impact framework (EPA, IPCC, regional)?
-- How do we attribute impact to user action vs ambient behaviour?
-- How do we expose uncertainty in impact numbers without killing motivation?
-
-**Deliverable**: `docs/exploration/CARBON_AND_IMPACT_ACCOUNTING.md`.
-
----
-
-### 31. Distribution & Partnerships 🟢
-
-**Status**: Frontier.
-
-**Overview**: Organic install is slow. Channels — schools, RWAs, brand partners, municipal pilots, sustainability NGOs — are how this product gets reach. Each channel changes the product.
-
-**Deliverable**: `docs/exploration/DISTRIBUTION_AND_PARTNERSHIPS.md`.
-
----
-
-## COMPLIANCE & TRUST
-
-### 32. Privacy / Photo PII 🔴
-
-**Status**: Implicit. No formal photo-PII policy.
-
-**Overview**: User photos can contain faces, license plates, addresses, medical info. Required as a foundation before any model training, data sharing, or partner integration.
-
-**Key questions**:
-
-- On-device face/PII redaction before any upload.
-- Explicit consent UI for any photo use beyond classification.
-- Cross-border data flow constraints.
-
-**Deliverable**: `docs/exploration/PRIVACY_PHOTO_PII.md`.
-
-**Related**: Data Retention & PII, Moderation & Safety.
-
----
-
-### 33. Regional Regulations 🟡
-
-**Status**: Partial. `docs/legal/`, `docs/security/` exist.
-
-**Overview**: India DPDP, EU GDPR, COPPA in the US, regional waste-rule jurisdictions all apply. Tracking obligations explicitly avoids retrofitting compliance.
-
-**Deliverable**: `docs/exploration/REGIONAL_REGULATIONS.md`.
-
----
-
-### 34. Content Provenance 🟢
-
-**Status**: Frontier.
-
-**Overview**: As classifications, disposal advice, and educational content are increasingly model-generated, provenance (model, prompt, version, sources) becomes important for trust and for handling drift.
-
-**Deliverable**: Folded into `EVAL_HARNESS_AND_GOLDEN_SETS.md` for now.
-
----
-
-### 35. Audit / Telemetry 🟡
-
-**Status**: Partial — analytics services exist, no single audit policy.
-
-**Overview**: For trust, debugging, and compliance, we need a single answer to "what did the app do for this user, when, and why?" This crosses analytics, logs, and ML decisions.
-
-**Deliverable**: `docs/exploration/AUDIT_AND_TELEMETRY.md`.
-
----
-
-## PIPELINE EVOLUTION
-
-The end-to-end user pipeline today:
-
-```diagram
-╭──────────╮   ╭───────────╮   ╭──────────╮   ╭──────────╮   ╭────────╮
-│ Capture  │──▶│ Classify  │──▶│ Educate  │──▶│ Dispose  │──▶│ Reward │
-│ (camera) │   │ (AI/cloud)│   │ (content)│   │ (advice) │   │ (game) │
-╰──────────╯   ╰─────┬─────╯   ╰──────────╯   ╰──────────╯   ╰────────╯
-                     │
-                     ▼
-              ╭─────────────╮
-              │  Feedback / │
-              │  Corrections│──▶ active learning, golden-set growth
-              ╰─────────────╯
-```
-
-Open questions across the pipeline:
-
-- **Capture**: voice/audio capture, batch capture, video, third-party share intents.
-- **Classify**: see AI & Vision and On-Device sections above.
-- **Educate**: how educational content scales without becoming generic; see `educational_content_service.dart`.
-- **Dispose**: see Region-Aware Rulesets, Smart-Bin Integration.
-- **Reward**: see Gamification Depth, Habit Formation Loop.
-- **Feedback**: continuous learning loop — see Eval Harness, Classification History Schema.
-
----
-
-## Maintenance
-
-- **Owner**: project lead (Pranay) until delegated.
-- **Cadence**: review monthly; refresh priority bands; archive completed/killed topics with rationale.
-- **Drift check**: before opening a new exploration doc, re-read this index and `exploration/backlog.md` to avoid duplicate work.
-- **Cross-references**: any new doc under `docs/exploration/` MUST link back to this index and update the relevant entry status.
-
----
-
-# Additional Topics Surfaced 2026-05-19 (Code + Industry Scan)
-
-**Provenance**: this section was added after a directed scan of `lib/services/` (73 services), `lib/screens/` (42 screens), `lib/models/` (33 models), `lib/providers/` (14 providers), the `docs/` subfolders (admin/, analytics/, security/, technical/, launch/, etc.), and a 2025–2026 industry literature pass (EU ESPR / Digital Product Passport timelines, VLM-for-waste-classification papers, AMP Robotics / Greyparrot / Recycleye MRF-side competitors, EU Battery Regulation). The first pass of the map (entries 1–35 + 27a) missed the 25+ topics below — they are real, in code, in docs, or in active regulation and should be on the index.
-
-New entries are numbered `A1–A25` and grouped into (a) additions to existing categories, (b) new categories that didn't exist in the first pass, and (c) industry / external signals that aren't a code surface but should be tracked as research inputs.
-
----
-
-## A — Additions to Existing Categories
-
-### A1. Image Capture & Quality Gate 🔴
-
-**Category**: AI & Vision (upstream of every classification call)
-
-**Status**: Code lives in `lib/services/image_quality_gate.dart`, `enhanced_image_processing_service.dart`, `enhanced_image_service.dart`, `tflite_preprocessing_helper.dart`, `thumbnail_migration_service.dart`. Integration described in [QUALITY_GATE_OFFLINE_QUEUE_INTEGRATION.md](QUALITY_GATE_OFFLINE_QUEUE_INTEGRATION.md). Not yet on the exploration index.
-
-**Why this is a topic, not just code**: Image quality is the single biggest predictor of classification accuracy. "Bad photo → model unsure" is currently indistinguishable from "good photo → model unsure" in the user's experience. The gate is the place where this gets disentangled.
-
-**Key questions**:
-
-- What's the minimum gate (blur / framing / lighting / single-object / object-presence) that catches the bottom 20% of inputs without frustrating users?
-- Does the gate run before or after capture (predict-then-shoot vs. shoot-then-check)?
-- How does the gate signal feed Multi-Model Routing — bad gate score → escalate, skip on-device, or refuse?
-- What does an "improve your photo" coaching UX look like that doesn't read as scolding?
-
-**Deliverable**: `docs/exploration/IMAGE_CAPTURE_AND_QUALITY_GATE.md`.
+**Deliverable**: `lib/services/classification_pipeline.dart`, `lib/services/local_classifier_service.dart` (escalation logic in `LocalClassificationResult.requiresEscalation`).
 
 **Related**: Multi-Model AI Routing (#1), Classification Confidence (#2), On-Device Inference (#6), Onboarding & Activation (#19).
 

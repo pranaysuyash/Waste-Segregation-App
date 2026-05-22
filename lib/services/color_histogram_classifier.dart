@@ -177,7 +177,6 @@ _HistogramResult _computeHistogramInIsolate(Uint8List imageBytes) {
 
   if (matchedCategory == null) {
     return _HistogramResult(
-      confidence: 0.0,
       processingTimeMs: sw.elapsedMilliseconds,
       dominantHue: avgH,
       dominantSat: avgS,

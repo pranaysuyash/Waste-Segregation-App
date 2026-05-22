@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/educational_content.dart';
 import '../services/educational_content_service.dart';
 import '../utils/constants.dart';
+import '../utils/waste_theme.dart';
 import 'quiz_screen.dart';
 import 'package:video_player/video_player.dart';
 
@@ -657,22 +658,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
     );
   }
 
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'recycling':
-        return Colors.green;
-      case 'composting':
-        return Colors.brown;
-      case 'waste reduction':
-        return Colors.blue;
-      case 'hazardous waste':
-        return Colors.red;
-      case 'e-waste':
-        return Colors.purple;
-      default:
-        return Colors.grey.shade400;
-    }
-  }
+  Color _getCategoryColor(String category) =>
+      WasteTheme.categoryColor(category);
 }
 
 class _VideoPlayerWidget extends StatefulWidget {

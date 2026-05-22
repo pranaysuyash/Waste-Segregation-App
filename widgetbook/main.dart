@@ -177,7 +177,6 @@ WidgetbookCategory _componentCategory() {
                   );
                   final surfaceColor = context.knobs.color(
                     label: 'Surface',
-                    initialValue: Colors.white,
                   );
                   final accentColor = context.knobs.color(
                     label: 'Accent',
@@ -186,14 +185,12 @@ WidgetbookCategory _componentCategory() {
                   final radius = context.knobs.double.slider(
                     label: 'Radius',
                     initialValue: 16,
-                    min: 0,
                     max: 32,
                     divisions: 16,
                   );
                   final elevation = context.knobs.double.slider(
                     label: 'Elevation',
                     initialValue: 2,
-                    min: 0,
                     max: 16,
                     divisions: 16,
                   );
@@ -204,7 +201,6 @@ WidgetbookCategory _componentCategory() {
                   );
                   final darkMode = context.knobs.boolean(
                     label: 'Dark mode',
-                    initialValue: false,
                   );
 
                   final brightness =
@@ -257,7 +253,6 @@ WidgetbookCategory _componentCategory() {
                   );
                   final isLoading = context.knobs.boolean(
                     label: 'Loading',
-                    initialValue: false,
                   );
                   final style = context.knobs.list<ModernButtonStyle>(
                     label: 'Style',
@@ -329,14 +324,12 @@ WidgetbookCategory _componentCategory() {
                   final radius = context.knobs.double.slider(
                     label: 'Radius',
                     initialValue: 16,
-                    min: 0,
                     max: 28,
                     divisions: 14,
                   );
                   final elevation = context.knobs.double.slider(
                     label: 'Elevation',
                     initialValue: 2,
-                    min: 0,
                     max: 12,
                     divisions: 12,
                   );
@@ -500,7 +493,6 @@ WidgetbookCategory _componentCategory() {
                   );
                   final darkMode = context.knobs.boolean(
                     label: 'Dark mode',
-                    initialValue: false,
                   );
 
                   final scheme = _buildExplorationScheme(
@@ -538,7 +530,6 @@ WidgetbookCategory _componentCategory() {
                   );
                   final darkMode = context.knobs.boolean(
                     label: 'Dark mode',
-                    initialValue: false,
                   );
                   final buttonStyle = context.knobs.list<ModernButtonStyle>(
                     label: 'Button style',
@@ -604,23 +595,18 @@ WidgetbookCategory _componentCategory() {
                   );
                   final textFieldReadOnly = context.knobs.boolean(
                     label: 'Field read-only',
-                    initialValue: false,
                   );
                   final textFieldObscure = context.knobs.boolean(
                     label: 'Field obscure',
-                    initialValue: false,
                   );
                   final textFieldError = context.knobs.string(
                     label: 'Field error',
-                    initialValue: '',
                   );
                   final buttonLoading = context.knobs.boolean(
                     label: 'Button loading',
-                    initialValue: false,
                   );
                   final buttonExpanded = context.knobs.boolean(
                     label: 'Button expanded',
-                    initialValue: false,
                   );
                   final buttonTooltip = context.knobs.string(
                     label: 'Button tooltip',
@@ -857,7 +843,6 @@ WidgetbookCategory _componentCategory() {
                   );
                   final errorText = context.knobs.string(
                     label: 'Error',
-                    initialValue: '',
                   );
                   final badgeText = context.knobs.string(
                     label: 'Badge',
@@ -1120,7 +1105,6 @@ WidgetbookCategory _componentCategory() {
                     value: '128 pts',
                     subtitle: 'from 14 scans',
                     trend: Trend.up,
-                    isPositiveTrend: true,
                   ),
                 ),
               ),
@@ -1195,7 +1179,6 @@ WidgetbookCategory _componentCategory() {
                 builder: (context) => _surface(
                   const ModernChip(
                     label: 'Hazardous',
-                    isSelected: false,
                     icon: Icons.warning_amber,
                   ),
                 ),
@@ -2594,7 +2577,6 @@ WidgetbookCategory _componentCategory() {
                 builder: (context) => _surface(
                   const TodaysImpactGoal(
                     currentClassifications: 7,
-                    dailyGoal: 10,
                   ),
                 ),
               ),

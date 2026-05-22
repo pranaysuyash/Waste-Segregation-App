@@ -11,6 +11,7 @@ import '../screens/result_screen_wrapper.dart';
 import '../services/storage_service.dart';
 import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
+import '../utils/waste_theme.dart';
 import '../utils/error_handler.dart';
 import '../widgets/history_list_item.dart';
 import '../widgets/animations/enhanced_loading_states.dart';
@@ -661,24 +662,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  Color _getCategoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'wet waste':
-        return AppTheme.wetWasteColor;
-      case 'dry waste':
-        return AppTheme.dryWasteColor;
-      case 'hazardous waste':
-        return AppTheme.hazardousWasteColor;
-      case 'medical waste':
-        return AppTheme.medicalWasteColor;
-      case 'non-waste':
-        return AppTheme.nonWasteColor;
-      case 'requires manual review':
-        return AppTheme.manualReviewColor;
-      default:
-        return AppTheme.secondaryColor;
-    }
-  }
+  Color _getCategoryColor(String category) =>
+      WasteTheme.categoryColor(category);
 
   List<String> get _allCategoryNames => [
         'Wet Waste',

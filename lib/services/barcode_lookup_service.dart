@@ -175,7 +175,6 @@ class BarcodeLookupService {
         categoryTags: categoryTags,
         found: true,
         processingTimeMs: sw.elapsedMilliseconds,
-        source: 'network',
       );
 
       // Store in cache.

@@ -53,7 +53,6 @@ class EducationCardWidget extends StatelessWidget {
                 color: cs.onSurface.withValues(alpha: 0.8),
                 height: 1.4,
               ),
-              trimLines: 3,
             ),
             const SizedBox(height: 12),
             Row(

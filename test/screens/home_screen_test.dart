@@ -12,8 +12,15 @@ import 'package:waste_segregation_app/screens/educational_content_screen.dart';
 import 'package:waste_segregation_app/screens/history_screen.dart';
 import 'package:waste_segregation_app/screens/home_screen.dart' as home;
 import 'package:waste_segregation_app/services/ad_service.dart';
+import 'package:waste_segregation_app/services/analytics_service.dart';
 import 'package:waste_segregation_app/services/educational_content_service.dart';
+import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/utils/routes.dart';
+
+// Minimal fake StorageService for test purposes
+class FakeStorageService extends StorageService {
+  // StorageService has no required constructor parameters, just needs to exist
+}
 
 void main() {
   final now = DateTime.now();
@@ -76,6 +83,12 @@ void main() {
         provider_pkg.ChangeNotifierProvider<AdService>(
           create: (_) => AdService(),
         ),
+        provider_pkg.Provider<AnalyticsService>(
+          create: (_) => AnalyticsService(
+            FakeStorageService(),
+            enableFirestore: false,
+          ),
+        ),
       ],
       child: ProviderScope(
         overrides: [
@@ -115,14 +128,10 @@ void main() {
       expect(find.byKey(const Key('home_mission_scan_button')), findsOneWidget);
       expect(
           find.byKey(const Key('home_mission_learn_button')), findsOneWidget);
-      expect(find.byKey(const Key('home_action_take_photo')), findsOneWidget);
-      expect(find.byKey(const Key('home_action_upload_image')), findsOneWidget);
-      expect(
-          find.byKey(const Key('home_action_instant_camera')), findsOneWidget);
-      await tester.drag(find.byType(ListView).first, const Offset(-220, 0));
-      await tester.pumpAndSettle();
-      expect(
-          find.byKey(const Key('home_action_instant_upload')), findsOneWidget);
+      // New primary CTA and secondary actions replaced old horizontal chips
+      expect(find.text('Scan Waste'), findsOneWidget);
+      expect(find.text('Gallery'), findsOneWidget);
+      expect(find.text('Instant Mode'), findsOneWidget);
       expect(find.byKey(const Key('home_daily_tip_card')), findsOneWidget);
     });
 
@@ -202,7 +211,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // Scroll down to make the "View All" button visible
       await tester.ensureVisible(find.byKey(const Key('home_recent_view_all')));
+      await tester.pumpAndSettle();
+
       await tester.tap(find.byKey(const Key('home_recent_view_all')));
       await tester.pumpAndSettle();
       expect(find.byType(HistoryScreen), findsOneWidget);

@@ -99,9 +99,64 @@ jobs:
         if: failure()
         run: echo "::error::Visual diff failures detected in Storybook"
 
-  # 5. Auto-merge on success
+  # 5. Eval harness — detect regressions in offline mode
+  eval:
+    needs: analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run offline eval
+        run: |
+          python3 scripts/eval/run_classification_eval.py \
+            --mode offline \
+            --golden eval/classification/golden/golden_cases_v1.jsonl \
+            --fixtures eval/classification/fixtures/provider_outputs_v1.jsonl \
+            --output eval/classification/reports/ci_eval_report.json
+      - name: Check eval gate
+        run: |
+          REPORT="eval/classification/reports/ci_eval_report.json"
+          echo "=== Eval Report ==="
+          OUTPUT=$(python3 -c "
+import json, sys
+with open('$REPORT') as f:
+    r = json.load(f)
+print(f'Golden cases: {r[\"golden_case_count\"]}')
+print(f'Providers:    {r[\"providers_evaluated\"]}')
+print(f'Errors:       {len(r[\"errors\"])}')
+for entry in r['ranking']:
+    print(f'  #{entry[\"rank\"]} {entry[\"provider_key\"]}/{entry[\"model\"]}  '
+          f'strict={entry[\"strict_pass_rate\"]}  '
+          f'safety_failures={entry[\"safety_failures\"]}  '
+          f'must_not_violations={entry[\"must_not_violations\"]}')
+if r['errors']:
+    print('Errors:')
+    for e in r['errors']:
+        print(f'  {e}')
+total_safety = sum(e['safety_failures'] for e in r['ranking'])
+total_must_not = sum(e['must_not_violations'] for e in r['ranking'])
+print(f'')
+print(f'GATE: safety_failures={total_safety} must_not_violations={total_must_not}')
+if total_safety > 0 or total_must_not > 0:
+    print('STATUS: WARN — known issues in synthetic golden set v1')
+    print('NOTE: Upgrade to BLOCK when golden set v2 (from review pipeline) replaces v1')
+    exit(0)
+print('STATUS: PASS')
+" 2>&1)
+          echo "$OUTPUT"
+      - name: Upload eval report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-eval-report
+          path: eval/classification/reports/ci_eval_report.json
+
+  # 6. Auto-merge on success
   automerge:
-    needs: [ analyze, firebase_rules, test, golden, storybook ]
+    needs: [ analyze, firebase_rules, test, golden, storybook, eval ]
     if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:

@@ -163,9 +163,7 @@ class StorageService {
     await updateTrainingConsent(
       TrainingConsent(
         enabled: true,
-        policyVersion: trainingDataPolicyVersionV1,
         grantedAt: DateTime.now(),
-        revokedAt: null,
         source: source,
       ),
     );
