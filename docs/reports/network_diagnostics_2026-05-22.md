@@ -96,6 +96,7 @@ Commands run:
 - `ipconfig getsummary en0`
 - `route get default`
 - `ifconfig | rg -n '^(utun|llw|awdl|en0|en1)' -A 6`
+- `system_profiler SPAirPortDataType`
 
 Result:
 
@@ -110,6 +111,10 @@ Interpretation:
 
 - Wi-Fi is up and connected normally.
 - There is no direct sign of a broken link.
+- The radio is on `802.11ac` over `5 GHz` on channel `52`.
+- Signal/noise was about `-51 dBm / -95 dBm`.
+- Transmit rate was `650`.
+- That is a healthy link, so the problem is unlikely to be poor radio range.
 
 ### 5) Local network usage sample
 
@@ -161,4 +166,3 @@ If the user later wants me to actually improve the connection, the highest-value
    - move closer to the access point
    - switch to 5 GHz or Ethernet
    - restart the router
-

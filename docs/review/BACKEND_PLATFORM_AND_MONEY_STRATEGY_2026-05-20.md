@@ -1,354 +1,494 @@
-# Backend Platform and Money Strategy Review (Refreshed 2026-05-22)
+# Backend Platform and Money Strategy Review
 
+Date: 2026-05-22
 Repo: /Users/pranay/Projects/LLM/image/waste_seg/waste_segregation_app
-Scope driver: firebase_task.md (motto_v2 execution discipline)
-Status: complete for analysis/reporting scope; implementation sequencing included.
+Primary objective: fastest path to launch and revenue without locking the app into bad architecture.
 
-## 0) Instruction and evidence notes
+## 1. Executive summary
 
-Applied instruction hierarchy:
-1. /Users/pranay/AGENTS.md
-2. /Users/pranay/Projects/AGENTS.md
-3. repo AGENTS.md
-4. motto_v2.md
-5. firebase_task.md
+Decision:
+- Keep Firebase as core backend for launch.
+- Harden current Firebase + Functions stack immediately (security, spend enforcement, storage policy, entitlement authority).
+- Add Cloudflare now only for public web/content/acquisition edge.
+- Keep Cloud Run as targeted follow-up for heavy AI/image/batch workloads after telemetry.
+- Run InsForge as a short spike, not migration.
+- Do not migrate to Supabase/VPS/Cloudflare-only now.
 
-Evidence collection method:
-- Repository-grounded file inspection (read_file/search_files/execute_code)
-- No mutating git commands used
-- External live HTTP re-fetch was blocked in this session environment, so platform citations are provided as official source links plus previously documented known facts from prior in-repo review artifacts.
+Why:
+- Revenue speed and operational certainty are currently more valuable than platform novelty.
+- The app already depends on Firebase Auth, Firestore, Storage, App Check, Functions, Analytics, Crashlytics, and Remote Config.
+- Launch blockers are hardening gaps, not missing platform capability.
 
----
+Confidence:
+- High confidence in launch-path recommendation (repo-grounded).
+- Medium confidence in exact cross-platform cost deltas at scale because live pricing re-fetch was blocked in this session; official links included for verification at execution time.
 
-## 1) Phase 0 mandatory file/context audit
+## 2. Repo/backend context
 
-Required set audited from firebase_task.md and current repo state.
+Instruction order applied:
+1) /Users/pranay/AGENTS.md
+2) /Users/pranay/Projects/AGENTS.md
+3) repo AGENTS.md
+4) motto_v2.md
+5) firebase_task.md
 
-Audit summary:
-- Total required checked: 34
-- Present: 32
-- Missing: 2
+Current backend reality:
+- Firebase-first mobile backend.
+- Server-authoritative classify token reservation/refund controls already added in Functions.
+- Release fail-closed backend AI routing already implemented in Flutter AI service.
+- Remaining launch-critical work is policy hardening and operational consistency.
 
-Missing files:
-1) storage.rules
-2) CLAUDE.md (repo root)
-
-Notes:
-- `AGENTS.md` exists in repo root and is active.
-- `docs/config/environment_variables.md` now exists and has production toggles, App Check, classify token spend controls.
-- Missing `storage.rules` is material because app uses `firebase_storage` and cloud storage services.
-
----
-
-## 2) Current backend/platform capability map (money-first)
+## 3. Current backend capability map
 
 Legend:
-- Importance: High / Medium / Low
-- Money impact: High / Medium / Low
-- Failure blast radius: High / Medium / Low
-
-| Capability | Current state | Evidence | Importance | Money impact | Failure blast radius |
-|---|---|---|---|---|---|
-| Firebase Auth core | Active and integrated | `pubspec.yaml`, `lib/main.dart`, `firestore.rules` user scoping | High | High | High |
-| Firestore as system-of-record | Active across user/profile/history/community/gamification | `firestore.rules`, `lib/services/*`, `functions/src/*` | High | High | High |
-| Storage sync | App-side storage sync exists, but no repo `storage.rules` | `pubspec.yaml`, `lib/services/cloud_storage_service.dart`, missing `storage.rules` | High | Medium | High |
-| AI classify backend gateway | Server callable with auth/app-check/rate-limit/cache/token reservation/refund | `functions/src/classify_image.ts`, `lib/services/providers/backend_proxy_provider.dart` | High | High | High |
-| Release fail-closed backend routing | Release path enforces backend route; non-release can fallback | `lib/services/ai_service.dart` (`_backendRoutingEnabled`, `_backendRoutingFailClosed`) | High | High | High |
-| Client-direct AI paths still present | OpenAI/Gemini direct headers still in code; gated by production safety | `lib/services/ai_service.dart`, `api_client_factory.dart`, `providers/*` | Medium | High | Medium |
-| Token spend enforcement | Server-side classify token reservation and wallet deduction | `functions/src/classify_image.ts` | High | High | High |
-| Premium entitlement sync | Client purchase/premium sync writes tier to Firestore; server reads billing entitlement/claims | `lib/services/purchase_service.dart`, `premium_service.dart`, `functions/src/classify_image.ts`, `functions/src/ops_hardening.ts` | High | High | High |
-| Claims sync and stale reservation ops | Added trigger, reconciliation scheduler, dashboard endpoint | `functions/src/ops_hardening.ts` | Medium | High | Medium |
-| Spend callable (non-classify) | Callable exists with App Check gating | `functions/src/index.ts` (`spendUserTokens`) | High | High | High |
-| Batch AI lane | Scheduled batch processing exists, still legacy-pattern code | `functions/src/index.ts` (`processBatchJobs`), `functions/batch_processor.js` | Medium | Medium | Medium |
-| App Check (client bootstrap) | Web release key required; native debug/prod providers configured | `lib/main.dart` `_initializeAppCheck` | High | High (abuse control) | High |
-| Functions app-check enforcement | Callable and HTTP gating helpers present, env controlled | `functions/src/index.ts`, `functions/src/classify_image.ts` | High | High | High |
-| Remote config flags | Dependency present; kill-switch posture available | `pubspec.yaml`, `firebase_remote_config` usage in app services | Medium | High | Medium |
-| Crash/ops telemetry | Crashlytics + backend logs + monitoring docs | `pubspec.yaml`, `lib/main.dart`, `functions/src/*` | Medium | Medium | Medium |
-| CI/CD | Multiple workflows with build/test/golden/security/release | `.github/workflows/*.yml` | High | High | High |
-
-Bottom-line architecture truth:
-- This is a Firebase-first product backend with server-authoritative AI spend controls now partially hardened.
-- It is not currently a Cloudflare/Supabase/InsForge runtime backend.
-- Replatform now is optionality work, not launch-critical work.
-
----
-
-## 3) Risk inventory (P0-P3, root-cause based)
-
-### P0 (launch/money blockers)
-
-1) Storage rules gap
-- Root cause: `firebase_storage` is used but no repo `storage.rules` source-of-truth file.
-- Impact: unclear access boundaries and deployment consistency risk for user media.
-- Evidence: missing file in phase-0 audit + storage dependencies/services.
-
-2) Secret-surface residuals in client code
-- Root cause: direct provider code paths and authorization header construction still exist in app codebase.
-- Impact: accidental release misconfiguration can re-open key exposure/spend abuse.
-- Evidence: `lib/services/ai_service.dart`, `api_client_factory.dart`, `providers/openai_provider_client.dart`, `providers/gemini_provider_client.dart`.
-
-3) Purchase entitlement authority split
-- Root cause: purchase completion writes local + Firestore tier, while server discount path references billing entitlements and claim fallback.
-- Impact: entitlement drift edge-cases can misprice classify requests or cause user-visible inconsistency.
-- Evidence: `purchase_service.dart`, `premium_service.dart`, `functions/src/classify_image.ts`, `functions/src/ops_hardening.ts`.
-
-### P1 (serious production risk)
-
-4) Legacy Functions config debt in batch lane
-- Root cause: `functions.config()` still present in `functions/batch_processor.js` fallback path.
-- Impact: 2nd gen migration friction and configuration inconsistency.
-- Evidence: `functions/batch_processor.js` lines with `functions.config().openai`.
-
-5) Docs-reality drift in top-level README
-- Root cause: README contains stale/contradictory architecture statements across years.
-- Impact: onboarding errors, wrong operational assumptions, deployment mistakes.
-- Evidence: `README.md` long-form mixed historical claims (provider/state-management/env flow mismatches).
+- MVP needed: Yes/No
+- Defer: Yes/No
+
+| Capability | Current implementation | Key files | Service | Business importance | Revenue importance | User risk if broken | Migration difficulty | MVP needed | Defer |
+|---|---|---|---|---|---|---|---|---|---|
+| Authentication | Firebase Auth with guest-aware flows | lib/main.dart, firestore.rules | Firebase Auth | High | High | High | High | Yes | No |
+| User profile | Firestore user documents | firestore.rules, lib/services/firebase_family_service.dart | Firestore | High | Medium | Medium | High | Yes | No |
+| Guest mode | App supports non-auth paths | lib/main.dart, services | App + Firebase optional | High | Medium | Medium | Medium | Yes | No |
+| Classification history | Persisted in Firestore/local | services/storage and result pipeline | Firestore + Hive | High | High | High | High | Yes | No |
+| Classification feedback/corrections | Feedback export/report pipelines present | eval/classification/*, functions/training hooks | Firestore + Functions | Medium | Medium | Medium | Medium | No | Yes |
+| AI classification | Callable backend classify path | functions/src/classify_image.ts, lib/services/ai_service.dart | Functions 2nd gen | High | High | High | High | Yes | No |
+| Disposal instruction generation | AI + fallback guidance paths | lib/services/ai_service.dart, prompts/disposal.txt (if present) | Functions + client fallback | High | High | Medium | Medium | Yes | No |
+| API key hiding | Backend proxy available; direct client paths still exist behind release safeguards | lib/services/providers/backend_proxy_provider.dart, lib/services/ai_service.dart | Functions | High | High | High | Medium | Yes | No |
+| Model gateway (OpenAI/Gemini) | Multi-provider with server routing; residual direct clients in repo | lib/services/providers/*, functions/src/classify_image.ts | Functions + provider APIs | High | High | High | Medium | Yes | No |
+| Cost guardrails | Token spend enforcement and wallet checks present | functions/src/classify_image.ts, lib/services/cost_guardrail_service.dart | Functions + app services | High | High | High | Medium | Yes | No |
+| Daily quota/free limits | Config and token policy paths exist | token_service, remote config, functions | Functions + Firestore | High | High | Medium | Medium | Yes | No |
+| Token wallet | Wallet + transaction logic in app and backend spend callable | lib/services/token_service.dart, functions/src/index.ts | Firestore + Functions | High | High | High | Medium | Yes | No |
+| Payments/premium | Purchase + entitlement sync flow exists | lib/services/purchase_service.dart, premium_service.dart | Store + Firestore + claims | High | High | High | High | Yes | No |
+| Ads | Ad service integrated | lib/services/ad_service.dart | Ad SDK + Remote Config | Medium | High | Medium | Medium | Yes | No |
+| Remote config/feature flags | Remote Config service and dependencies present | lib/services/remote_config_service.dart, pubspec.yaml | Firebase Remote Config | High | High | Medium | Medium | Yes | No |
+| Crash/error reporting | Crashlytics integration | lib/main.dart, deps | Firebase Crashlytics | High | Medium | Medium | Medium | Yes | No |
+| Analytics | Analytics service present | lib/services/analytics_service.dart | Firebase Analytics | High | High | Medium | Medium | Yes | No |
+| Push notifications | Firebase messaging path | deps/services | FCM | Medium | Medium | Medium | High | No | Yes |
+| Image upload/storage | Cloud storage services in app; rules gap exists | cloud_storage_service.dart, storage_service.dart | Firebase Storage | High | High | High | High | Yes | No |
+| Local Hive storage | Local persistence present | enhanced_storage_service.dart, Hive files | Local | High | Medium | Low | Low | Yes | No |
+| Offline mode | Local/cache fallback behaviors | storage + result pipeline | Local + app logic | Medium | Medium | Low | Medium | Yes | No |
+| On-device ML/model download | Model download and object detection services | model_download_service.dart, object_detection_service.dart | On-device + cloud assets | Medium | Medium | Medium | Medium | No | Yes |
+| Gamification | Points/rewards logic present | gamification_service.dart | Firestore + local | Medium | Medium | Low | Medium | No | Yes |
+| Achievements | Achievement logic present | gamification-related services | Firestore | Low | Medium | Low | Medium | No | Yes |
+| Leaderboards | Community/gamification scaffolds | community/family services | Firestore | Low | Medium | Low | Medium | No | Yes |
+| Family features | Family/group services exist | firebase_family_service.dart | Firestore | Medium | Medium | Medium | High | No | Yes |
+| Community feed | Community service present | community_service.dart | Firestore | Low | Medium | Low | High | No | Yes |
+| Sharing/deep links | Dynamic link service present | dynamic_link_service.dart | Firebase Dynamic Links | Medium | Medium | Low | High | No | Yes |
+| Data export/delete/privacy | Not fully evidenced end-to-end as a unified flow | docs + services | Mixed | High | Medium | High | High | Yes | No |
+| Admin/diagnostic endpoints | Ops hardening dashboard endpoints exist | functions/src/ops_hardening.ts | Functions + Firestore | Medium | Medium | Low | Medium | No | Yes |
+| Batch/scheduled jobs | Scheduler and batch processor exist | functions/src/index.ts, functions/batch_processor.js | Functions | Medium | Medium | Medium | Medium | No | Yes |
+| CI/CD | Multiple workflows present | .github/workflows/*.yml | GitHub Actions | High | High | Medium | Medium | Yes | No |
+| Play Store readiness | Not fully validated in this pass; build/release workflows exist | workflows + docs | CI + app config | High | High | High | Medium | Yes | No |
+| Landing page/marketing site | No first-class production lane in repo | docs/workflows | N/A yet | High | High | Low | Medium | Yes | No |
+| SEO/public content | Not operationalized in deployment stack yet | docs only | N/A yet | Medium | High | Low | Medium | No | Yes |
+| Open-source contributor setup | Repo includes docs/workflows; drift exists | README/docs | GitHub | Medium | Medium | Low | Low | Yes | No |
+
+## 4. Current risk inventory
+
+P0 (blocks launch/money)
+1) Missing storage.rules while storage is active.
+2) Residual direct client AI provider code paths in repository (misconfiguration risk).
+3) Entitlement authority split risk between claims and Firestore billing entitlement state.
+
+P1 (serious production risk)
+4) functions.config() legacy usage remains in batch processor.
+5) Firestore rules/model drift potential across rapidly evolving features.
+6) Incomplete deterministic environment split enforcement (dev/staging/prod consistency risk).
+
+P2 (long-term architecture risk)
+7) Monolithic function surfaces increase operational coupling.
+8) Weak explicit migration contracts for future relational workloads.
+9) Cloud Run selective offload path not yet codified as deployment contract.
+
+P3 (cleanup)
+10) Documentation supersession drift.
+11) Test/lint exclusions and noise in some lanes.
+
+## 5. Firebase assessment
+
+Strengths now:
+- Already integrated across core app surfaces.
+- Fastest path to revenue with lowest migration tax.
+- Good managed primitives for auth, document data, messaging, crash, analytics.
+
+Weaknesses now:
+- Cost unpredictability if reads/writes and storage access are not tightly controlled.
+- Security correctness depends on rigorous rules and callable boundary discipline.
+- Document model can become awkward for relational/report-heavy B2B analytics.
+
+Decision:
+- Keep Firebase as launch core and harden immediately.
+
+## 6. Firebase Functions 2nd gen / Cloud Run assessment
+
+Current state:
+- Functions 2nd gen style callable/runtime already present.
+- classify route has spend reservation/refund and auth enforcement.
+- Legacy functions.config remains in batch lane.
+
+Decision:
+- Short term: keep on Functions and close config debt.
+- Near term: move only clearly heavy workloads to Cloud Run after telemetry (latency/cost/error evidence).
+- Avoid broad migration now.
+
+## 7. Cloudflare assessment
+
+Best immediate use:
+- Landing page and public waste-guide content.
+- Edge caching/CDN for public assets.
+- Turnstile/WAF/rate-limiting for public endpoints and lead funnels.
+
+What not to move now:
+- Core authenticated mobile backend state (auth/user data/token wallet).
+
+Decision:
+- Additive Cloudflare usage now for acquisition/public edge only.
 
-6) Mixed function styles and operational complexity
-- Root cause: broad `index.ts` + separate hardening modules + batch/training flows with varied maturity.
-- Impact: incident triage complexity and slower safe change velocity.
-- Evidence: `functions/src/index.ts`, `classify_image.ts`, `ops_hardening.ts`, `training_data.ts`.
+## 8. InsForge assessment
 
-### P2 (medium-term architecture risk)
+First-principles view:
+- Attractive for agent-oriented workflows and relational data flexibility.
+- Current app has zero runtime InsForge integration; migration would be significant.
+- Unknown maturity and mobile SDK fit must be tested in a constrained spike.
+
+Decision:
+- Run 2-day spike only.
+- Do not migrate production backend now.
 
-7) Limited explicit Cloud Run utilization despite heavy AI lane intent
-- Root cause: no active Cloud Run deployment artifacts in repo, only strategy references.
-- Impact: scaling/cold-start/cost tuning optionality not yet operationalized.
-- Evidence: no Cloud Run runtime config files; Cloud Run appears in docs/plans only.
+## 9. Supabase/VPS sanity check
 
-8) Platform strategy not codified as executable deployment contracts
-- Root cause: strategy exists in docs, but not paired with infra-as-code per target lane (Cloudflare/Supabase/InsForge/VPS).
-- Impact: future migration/experiments become ad hoc.
-- Evidence: repo lacks those platform deployment manifests.
+Supabase:
+- Strong relational SQL and developer ergonomics.
+- Migration cost from Firebase-first product is high right now.
+- Not fastest to first revenue.
+
+VPS/custom backend:
+- Maximum control, maximum ops burden.
+- High distraction risk before monetization proof.
 
-### P3 (cleanup/quality debt)
-
-9) Documentation duplication and stale supersession chain
-- Root cause: many parallel review docs with overlapping decisions.
-- Impact: decision latency and confusion during execution.
-- Evidence: multiple backend strategy review files and large historical narratives.
-
----
-
-## 4) Platform assessment (money-first)
-
-Important: live external pricing fetch was blocked in this session. Official source URLs are listed; factual posture below is based on repository-grounded prior review + platform fundamentals.
-
-### 4.1 Firebase (current core)
-
-Assessment:
-- Best immediate fit for shipping because core auth/data/functions are already integrated.
-- Highest short-term revenue speed due zero migration tax.
-- Main risk is cost/security hygiene, not functional absence.
-
-Official source links:
-- https://firebase.google.com/pricing
-- https://firebase.google.com/docs/functions/config-env
-- https://firebase.google.com/docs/functions/2nd-gen-upgrade
-
-Verdict:
-- Keep as launch core now.
-
-### 4.2 Firebase Functions 2nd gen / Cloud Run
-
-Assessment:
-- Current runtime uses `firebase-functions` style exports with scheduled jobs and callables.
-- Remaining `functions.config()` in batch processor is a migration debt item.
-- Cloud Run is the right targeted lane for heavy/long AI workloads after launch telemetry confirms need.
-
-Official source links:
-- https://firebase.google.com/docs/functions/2nd-gen-upgrade
-- https://cloud.google.com/run/pricing
-
-Verdict:
-- Do not broad-migrate now; isolate heavy endpoints later.
-
-### 4.3 Cloudflare (edge/content/acquisition)
-
-Assessment:
-- No runtime Cloudflare backend integration currently in code.
-- Strong candidate for landing pages, public guides, caching, WAF/Turnstile, and bandwidth economics.
-- Not a good immediate replacement for transactional mobile backend already on Firebase.
-
-Official source links:
-- https://www.cloudflare.com/plans/
-- https://developers.cloudflare.com/workers/platform/pricing/
-- https://developers.cloudflare.com/r2/
-- https://developers.cloudflare.com/turnstile/
-
-Verdict:
-- Use now for public web/acquisition layer, not core app backend.
-
-### 4.4 Supabase
-
-Assessment:
-- Strong Postgres-centric option for relational analytics and SQL-heavy workloads.
-- Current repo has no Supabase integration; migration would be substantial with auth/storage/rules/domain rewiring.
-- Not the fastest path to immediate paid conversion.
-
-Official source link:
-- https://supabase.com/pricing
-
-Verdict:
-- Defer full migration; consider later when relational complexity justifies cost.
-
-### 4.5 InsForge
-
-Assessment:
-- Prior review indicates promising AI-native integrated posture, but repo has no implementation.
-- Maturity/operational certainty must be validated by spike, not assumptions.
-- High migration tax from current Firebase-first architecture.
-
-Official source links:
-- https://insforge.dev/pricing
-- https://docs.insforge.dev/
-
-Verdict:
-- Run narrow spike only; no production cutover now.
-
-### 4.6 VPS (self-hosted baseline option)
-
-Assessment:
-- Maximum control, but highest ops burden and slower shipping for this team context.
-- Requires building/replacing managed equivalents now provided by Firebase (auth, push, storage security, operations, incident tooling).
-
-Verdict:
-- Not aligned with immediate money-first speed for this app stage.
-
----
-
-## 5) Recommendation (direct)
-
-Default path:
-1) Keep Firebase as core runtime for next revenue window.
-2) Close P0 security/money gaps (storage rules, client secret-surface lockdown, entitlement authority consistency).
-3) Use Cloudflare for public web/acquisition only.
-4) Evaluate Cloud Run for specific heavy AI endpoints only after launch telemetry.
-5) Defer Supabase/InsForge/VPS migration until revenue and product signal justify migration risk.
-
-Why this is not patchwork:
-- It keeps bounded contexts explicit:
-  - Firebase: transactional app backend
-  - Cloudflare: public acquisition edge
-  - Cloud Run: optional compute specialization
-- It prioritizes cash and risk reduction over architecture theater.
-
----
-
-## 6) Phased execution plan
-
-Phase A (now, launch hardening)
-- Add and enforce `storage.rules` + deployment validation.
-- Remove release-path possibility of client provider-key usage beyond explicit internal test toggles.
-- Standardize entitlement authority contract:
-  - single canonical server field (`billing.entitlements.pro_subscription`)
-  - claims sync as propagation layer only
-- Keep `REQUIRE_APPCHECK_CALLABLE=true` in production.
-
-Phase B (post-launch, telemetry-driven)
-- Profile classify latency/cost/error rates.
-- Move only heavy AI operations to Cloud Run if measurable gain.
-- Keep client API contract unchanged.
-
-Phase C (growth/acquisition)
-- Stand up Cloudflare Pages + cache + Turnstile/WAF for public content and lead capture.
-- Wire attribution to in-app activation and conversion.
-
-Phase D (strategic optionality)
-- Run constrained Supabase/InsForge spike with explicit pass/fail criteria.
-- Decide only with measured migration ROI.
-
----
-
-## 7) Weighted decision matrix
-
-Weights:
-- Revenue speed: 30
-- Migration risk: 20
-- Cost/security control: 20
-- Product velocity: 15
-- Long-term flexibility: 15
-
-Score scale: 1-5
-
-| Option | Revenue speed | Migration risk | Cost/security control | Product velocity | Flexibility | Weighted total |
-|---|---:|---:|---:|---:|---:|---:|
-| Firebase harden now | 5 | 5 | 4 | 5 | 3 | 4.50 |
-| Firebase + targeted Cloud Run + Cloudflare web | 5 | 4 | 5 | 4 | 4 | 4.55 |
-| Full Supabase migration now | 2 | 1 | 4 | 2 | 5 | 2.70 |
-| Full InsForge migration now | 2 | 1 | 4 | 2 | 4 | 2.55 |
-| VPS-first backend now | 1 | 1 | 5 | 1 | 5 | 2.20 |
-
-Recommended default:
-- Firebase core + targeted Cloud Run later + Cloudflare acquisition layer.
-
----
-
-## 8) Multi-agent execution breakdown (implementation handoff)
-
-### Agent A: Security and secret-surface closure
-Scope:
-- Enforce no unintended release direct-provider calls.
-- Audit/patch residual Authorization key construction paths.
-Acceptance:
-- Release builds fail closed without backend route.
-- No accidental direct key path in production behavior.
-Verification:
-- Static search + release-mode tests + runtime smoke.
-
-### Agent B: Storage policy hardening
-Scope:
-- Introduce `storage.rules`, align with access model, add CI validation.
-Acceptance:
-- Explicit storage access policy exists and deploys.
-Verification:
-- Rules tests + emulator validation.
-
-### Agent C: Entitlement authority unification
-Scope:
-- Tighten server read path to canonical entitlement with observable sync lag handling.
-Acceptance:
-- Deterministic premium discount behavior.
-Verification:
-- Emulator tests around entitlement transitions.
-
-### Agent D: Functions config debt cleanup
-Scope:
-- Remove `functions.config()` fallback in batch lane.
-Acceptance:
-- `process.env`/params only.
-Verification:
-- Functions build/test suite green.
-
-### Agent E: Cloudflare acquisition lane
-Scope:
-- Deploy landing/guides edge stack and anti-bot controls.
-Acceptance:
-- Live pages with attribution and basic funnel instrumentation.
-Verification:
-- UTM to activation trace exists.
-
-### Agent F: Cloud Run selective migration (optional)
-Scope:
-- Move one heavy AI endpoint as pilot.
-Acceptance:
-- Better p95 latency or cost per request with no product regressions.
-Verification:
-- Before/after metrics and rollback plan.
-
----
-
-## 9) Completion status against firebase_task.md analysis scope
-
-Completed in this refreshed report:
-- Phase-0 file/context audit
-- Current backend/platform capability mapping
-- P0-P3 risk inventory with root causes
-- Platform assessment (Firebase, Functions/Cloud Run, Cloudflare, Supabase, InsForge, VPS)
-- Money-first recommendation and phased plan
-- Weighted decision matrix
-- Multi-agent executable breakdown
-
-Known unknowns explicitly retained:
-- Live external pricing values were not re-fetched in this session due outbound fetch block.
-- Exact current public pricing numbers must be verified at decision time from official URLs above.
+Decision:
+- Defer both as primary backend migration choices for now.
+
+## 10. Cost model rough scenarios
+
+Note: live pricing pull was blocked in this session; use official links in section 20 before final budget lock.
+
+Scenario assumptions (directional only):
+- 100 users: low request rate, mostly free tier, modest storage.
+- 1,000 users: meaningful daily classify volume, mixed ad/premium.
+- 10,000 users: high classify and media growth.
+
+Directional cost behavior:
+- Firebase-only: lowest migration overhead; can spike on read/write/storage if rules and access patterns are loose.
+- Firebase + Cloudflare edge: lower public bandwidth and better acquisition-site economics.
+- Firebase + selective Cloud Run: better control for heavy compute but adds deployment surface.
+- Full migration options: high one-time engineering cost and delay cost (lost revenue weeks).
+
+Money-first interpretation:
+- Near-term largest cost risk is not vendor unit price; it is abuse, weak quota enforcement, and misrouted paid AI calls.
+
+## 11. Monetization backend requirements
+
+Free tier must-have before launch:
+- Daily free classifications enforced server-side.
+- Ad-supported scan gating via backend flags.
+- Limited history and baseline disposal guidance.
+- Safe fallback behavior when paid AI unavailable.
+
+Paid tier must-have before launch:
+- Premium entitlement source of truth on server.
+- Ad-free premium gating.
+- Increased scan allowance and stronger features.
+
+Token wallet must-have before launch:
+- Server-side spend before paid classify execution.
+- Reservation -> consumed/refunded lifecycle.
+- Duplicate-spend/idempotency guard.
+- Clear relationship between quota and token balance.
+
+Abuse controls must-have before launch:
+- App Check enforced in production.
+- Per-UID rate limiting.
+- Request logging with non-sensitive telemetry.
+
+Can defer until after launch:
+- Complex B2B analytics/reporting packages.
+- Advanced relational city/compliance dashboards.
+- Full partner ecosystem workflows.
+
+## 12. Deployment strategy
+
+MVP deployment split:
+- Mobile backend APIs: Firebase Functions.
+- Core app state: Firestore + Firebase Auth + Storage.
+- Public content/landing: Cloudflare Pages (or equivalent edge-hosted static route).
+
+Environment discipline:
+- Explicit dev/staging/prod env variables.
+- Secrets in managed secret stores only.
+- No client-side production API secrets.
+
+CI/CD:
+- Keep GitHub Actions as central pipeline.
+- Gate deployments on test/analyze/rules checks.
+- Add storage rules validation lane and entitlement/monetization regression lane.
+
+Rollback:
+- Preserve callable backward compatibility.
+- Remote Config kill switches for risky lanes.
+
+## 13. Firestore vs Postgres future data model
+
+Firestore currently fits:
+- Mobile-first transactional paths.
+- Real-time app interactions with low schema friction.
+
+Postgres would improve later:
+- Complex joins for B2B reporting.
+- Strong relational integrity for multi-tenant org/apartment/school dashboards.
+- Analytical queries over classifications, tokens, compliance, and partner conversions.
+
+Migration view:
+- Do not migrate core transactional surfaces pre-revenue.
+- If/when B2B/reporting grows, consider phased relational sidecar or scoped migration by bounded context.
+
+## 14. Weighted decision matrix
+
+Weights (from firebase_task.md):
+- 30% time to launch/revenue
+- 20% operational simplicity
+- 15% cost predictability
+- 15% long-term architecture
+- 10% agent-friendliness
+- 10% migration risk/reversibility
+
+Scores (1-5):
+
+| Option | Launch/revenue | Ops simplicity | Cost predictability | Long-term architecture | Agent-friendliness | Migration risk/reversibility | Weighted score |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Firebase hardening | 5 | 5 | 4 | 3 | 4 | 5 | 4.50 |
+| Firebase + Functions 2nd gen hardening | 5 | 4 | 4 | 4 | 4 | 4 | 4.30 |
+| Firebase + Cloud Run selective | 4 | 3 | 4 | 4 | 4 | 4 | 3.90 |
+| Firebase + Cloudflare (additive) | 5 | 4 | 4 | 4 | 4 | 4 | 4.30 |
+| InsForge migration now | 2 | 2 | 3 | 4 | 4 | 2 | 2.65 |
+| InsForge spike only | 4 | 4 | 4 | 4 | 5 | 4 | 4.10 |
+| Supabase migration now | 2 | 2 | 3 | 4 | 4 | 2 | 2.65 |
+| Cloudflare-only backend | 1 | 2 | 3 | 3 | 3 | 2 | 2.00 |
+| VPS/custom now | 1 | 1 | 3 | 4 | 2 | 1 | 1.75 |
+
+## 15. Recommended path
+
+Recommended default stack for current stage:
+1) Firebase core + Functions hardening for launch.
+2) Cloudflare additive for public web/acquisition.
+3) Optional targeted Cloud Run move after launch telemetry.
+4) InsForge constrained spike in parallel only.
+
+## 16. What to do this week
+
+1) Create and enforce storage.rules with tests/emulator validation.
+2) Remove or hard-disable production direct AI provider paths in client code.
+3) Finalize entitlement authority contract (server canonical field + claims sync as propagation only).
+4) Remove remaining functions.config() dependency from batch path.
+5) Add explicit monetization regression tests (insufficient wallet, idempotent retry, premium discount).
+6) Add production App Check/rate-limit enforcement checklist to release gate.
+7) Stand up minimal Cloudflare landing/content lane for acquisition.
+
+## 17. What not to do this week
+
+1) Do not execute full backend migration to InsForge/Supabase/VPS.
+2) Do not split backend ownership across multiple databases without bounded context.
+3) Do not move all AI to Cloud Run before measuring current lane behavior.
+4) Do not add infra novelty that delays monetization proof.
+
+## 18. 2-day InsForge spike plan
+
+Day 1
+- Build minimal auth + user profile + one classify metadata write/read flow.
+- Validate Flutter/mobile SDK and session flow.
+- Map Firebase equivalents and identify hard gaps.
+
+Day 2
+- Implement token wallet reservation prototype and one entitlement check path.
+- Run load-smoke and developer-experience checks.
+- Produce go/no-go with explicit blockers and migration tax estimate.
+
+Pass criteria
+- Mobile auth/session is stable.
+- Server-side spend/entitlement controls are feasible without major workaround layers.
+- Operational ergonomics are acceptable for small team velocity.
+
+Fail criteria
+- Weak mobile/auth ergonomics.
+- Missing critical features that require custom replacement of too many Firebase primitives.
+- Setup and maintenance overhead exceeds expected near-term benefit.
+
+## 19. Agent task breakdown
+
+Global rules for all agents:
+- Follow motto_v2.
+- Read-only git unless explicitly authorized.
+- Preserve parallel work.
+- No “pre-existing” bypass.
+- Re-verify state before edits.
+
+Agent A: Backend production hardening (Firebase/Functions)
+- Scope: storage rules, App Check enforcement, functions.config cleanup.
+- Inspect: functions/src/index.ts, functions/src/classify_image.ts, functions/batch_processor.js, firebase.json, firestore.rules.
+- Likely touch: functions/src/*, storage.rules, docs/config/environment_variables.md, test harness.
+- Out-of-scope: platform migration.
+- Acceptance: secure callable boundaries, no legacy config path, rules validated.
+- Validation: npm --prefix functions run build; emulator/rules tests.
+- Risks: accidental behavior changes in batch lane.
+- Deliverable: hardening PR + test evidence doc.
+
+Agent B: InsForge spike design/prototype plan
+- Scope: 2-day spike implementation and findings.
+- Inspect: auth/profile/token flows and mobile integration.
+- Touch: docs/review spike report and optional prototype folder only.
+- Out-of-scope: production cutover.
+- Acceptance: pass/fail matrix with quantified migration tax.
+- Validation: prototype runbook + smoke tests.
+- Risks: over-scoping spike.
+- Deliverable: spike decision report.
+
+Agent C: Cloudflare landing/content/CDN lane
+- Scope: edge-hosted landing and public guide pages with basic analytics.
+- Inspect: docs/marketing/deployment plans, public content surfaces.
+- Touch: landing deployment configs, docs.
+- Out-of-scope: core mobile auth/data backend.
+- Acceptance: deployed landing with attribution and cache policy.
+- Validation: route checks, lighthouse baseline.
+- Risks: attribution disconnect to app conversion.
+- Deliverable: deployment package + funnel instrumentation notes.
+
+Agent D: Monetization backend model
+- Scope: quota, token, ads, premium policy contract unification.
+- Inspect: token_service, premium_service, purchase_service, classify_image.ts.
+- Touch: server policy code + tests + docs.
+- Out-of-scope: ad-network UI optimization.
+- Acceptance: policy matrix enforced server-side, tests cover abuse paths.
+- Validation: wallet/quota/premium emulator tests.
+- Risks: entitlement drift race conditions.
+- Deliverable: policy contract + test report.
+
+Agent E: AI cost-control/model gateway
+- Scope: enforce provider routing, fallback contract, cost telemetry.
+- Inspect: ai_service, backend_proxy_provider, classify function, remote config.
+- Touch: gateway/config/testing docs.
+- Out-of-scope: model migration project.
+- Acceptance: no production direct-key path, measurable per-request cost metrics.
+- Validation: release-mode smoke tests + telemetry assertions.
+- Risks: fallback behavior regressions.
+- Deliverable: gateway hardening and observability report.
+
+Agent F: Firestore vs Postgres future model
+- Scope: bounded-context migration map for future B2B/reporting scale.
+- Inspect: domain entities and current Firestore schemas.
+- Touch: architecture docs only unless approved.
+- Out-of-scope: actual migration execution.
+- Acceptance: entity-by-entity migration feasibility and sequence.
+- Validation: architecture review walkthrough.
+- Risks: premature migration pressure.
+- Deliverable: phased data-model roadmap.
+
+Agent G: CI/deployment/release pipeline hardening
+- Scope: enforce rules tests and monetization regression lanes in CI.
+- Inspect: .github/workflows/*.yml, firebase deploy scripts.
+- Touch: workflow files + docs.
+- Out-of-scope: business logic changes.
+- Acceptance: deterministic gates for launch-critical checks.
+- Validation: workflow dry-runs / CI pass evidence.
+- Risks: slower pipeline if over-bloated.
+- Deliverable: CI hardening summary.
+
+Agent H: Security/privacy/rules/App Check/rate-limit review
+- Scope: threat review over auth boundaries, callable guards, data exposure.
+- Inspect: firestore.rules, storage.rules, functions guards, analytics/privacy flows.
+- Touch: rules/docs/tests as needed.
+- Out-of-scope: full re-architecture.
+- Acceptance: no critical open boundary issues for launch.
+- Validation: security checklist + emulator tests.
+- Risks: hidden drift between rules and app expectations.
+- Deliverable: security audit memo with closure list.
+
+## 20. Open questions / unknowns
+
+Open questions:
+1) Exact live pricing deltas across Firebase/Cloud Run/Cloudflare/Supabase/InsForge at current date.
+2) Real p95 latency and cost profile for classify at production-like traffic.
+3) Current completeness of privacy export/delete workflows.
+4) Current gap between docs and actual release pipeline behavior.
+
+Unknowns handling:
+- Kept explicit; not hidden.
+- Should be resolved by targeted measurement and pricing validation before final budget commitments.
+
+Official documentation and pricing links:
+- Firebase pricing: https://firebase.google.com/pricing
+- Firebase Functions env/config: https://firebase.google.com/docs/functions/config-env
+- Firebase Functions 2nd gen upgrade: https://firebase.google.com/docs/functions/2nd-gen-upgrade
+- Cloud Run pricing: https://cloud.google.com/run/pricing
+- Cloudflare plans: https://www.cloudflare.com/plans/
+- Cloudflare Workers pricing: https://developers.cloudflare.com/workers/platform/pricing/
+- Cloudflare R2 docs/pricing: https://developers.cloudflare.com/r2/
+- Cloudflare Turnstile docs: https://developers.cloudflare.com/turnstile/
+- Supabase pricing: https://supabase.com/pricing
+- InsForge docs: https://docs.insforge.dev/
+- InsForge pricing: https://insforge.dev/pricing
+
+Inspected files (phase-0 and extended):
+- motto_v2.md
+- firebase_task.md
+- /Users/pranay/AGENTS.md
+- /Users/pranay/Projects/AGENTS.md
+- AGENTS.md
+- pubspec.yaml
+- pubspec.lock
+- package.json
+- analysis_options.yaml
+- firebase.json
+- firestore.rules
+- storage.rules (missing)
+- CLAUDE.md (missing at repo root)
+- .github/workflows/ci.yml
+- README.md
+- docs/README.md
+- docs/config/environment_variables.md
+- lib/main.dart
+- lib/services/ai_service.dart
+- lib/services/enhanced_ai_api_service.dart
+- lib/services/unified_api_client.dart
+- lib/services/api_client_factory.dart
+- lib/services/cost_guardrail_service.dart
+- lib/services/dynamic_pricing_service.dart
+- lib/services/model_selection_service.dart
+- lib/services/cloud_storage_service.dart
+- lib/services/storage_service.dart
+- lib/services/enhanced_storage_service.dart
+- lib/services/result_pipeline.dart
+- lib/services/gamification_service.dart
+- lib/services/firebase_family_service.dart
+- lib/services/community_service.dart
+- lib/services/analytics_service.dart
+- lib/services/ad_service.dart
+- lib/services/premium_service.dart
+- lib/services/token_service.dart
+- lib/services/dynamic_link_service.dart
+- lib/services/remote_config_service.dart
+- lib/services/model_download_service.dart
+- lib/services/object_detection_service.dart
+- lib/services/tflite_preprocessing_helper.dart
+- functions/package.json
+- functions/src/index.ts
+- functions/src/classify_image.ts
+- functions/src/ops_hardening.ts
+- functions/src/rate_limit_config.ts
+- functions/src/training_data.ts
+- functions/batch_processor.js
+- functions tests (http guards and emulator suites)
+
+Status of execution boundaries for this report:
+- No platform migration executed.
+- No broad backend replacement executed.
+- This deliverable is decision + roadmap + task decomposition.
