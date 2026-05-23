@@ -129,7 +129,10 @@ void main() {
         surfaceSize: const Size(360, 240),
       );
 
-      final titleText = tester.widget<Text>(find.text('Advanced Analytics'));
+      // Card title is 18px; PremiumLockWrapper overlay badge is 12px — target card title by size.
+      final titleText = tester.widget<Text>(find.byWidgetPredicate(
+        (w) => w is Text && w.data == 'Advanced Analytics' && w.style?.fontSize == 18,
+      ));
       final descriptionText = tester.widget<Text>(
         find.text('Detailed insights into waste management patterns.'),
       );

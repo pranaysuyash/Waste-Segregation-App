@@ -38,31 +38,27 @@ void main(List<String> args) {
 
   final criteria = <Criterion>[
     Criterion(1, 'Golden eval schema exists', () => _exists('test/fixtures/ai_eval/schema.md')),
-    Criterion(2, '>=30 seed eval cases exist and semantic coverage report passes',
-        () =>
-            _jsonlLineCount('test/fixtures/ai_eval/golden_cases.jsonl') >= 30
-            && seedCoverageJson != null
-            && seedCoverageJson['allRulesPassed'] == true),
+    Criterion(2, '>=100 seed eval cases exist and semantic coverage report passes',
+        () => _jsonlLineCount('test/fixtures/ai_eval/golden_cases.jsonl') >= 100 && seedCoverageJson != null && seedCoverageJson['allRulesPassed'] == true),
     Criterion(3, 'Offline eval report exists', () => evalJson != null),
-    Criterion(4, 'Safety + must-not scored separately',
+    Criterion(4, 'Safety + must-not + local-rule + multi-item scoring exists',
         () => _exists('lib/ai_flywheel/eval_scoring.dart')),
     Criterion(5, 'Consent-aware training candidate schema exists',
         () => _exists('functions/src/training_data.ts') && _exists('lib/models/user_profile.dart')),
     Criterion(6, 'Candidate creation gated by consent',
         () => _exists('lib/services/training_data_service.dart') && _exists('functions/src/training_data.ts')),
-    Criterion(7, 'Review states defined',
-        () => _exists('docs/guides/ai_flywheel/annotation_review_workflow.md')),
-    Criterion(8, 'Dataset export/versioning scaffold exists',
-        () => _exists('tool/ai_dataset_exporter.dart') && _exists('lib/ai_flywheel/dataset_exporter.dart')),
+    Criterion(7, 'Review workflow + states defined',
+        () => _exists('docs/guides/ai_flywheel/review_workflow.md')),
+    Criterion(8, 'Dataset export/versioning + excluded artifact exists',
+        () => _exists('tool/ai_dataset_exporter.dart') && _exists('build/reports/ai_dataset/latest/excluded.jsonl')),
     Criterion(9, 'Excluded-by-default rules reflected in dataset output',
         () => datasetVersionJson != null && datasetVersionJson['excludedCounts'] != null),
-    Criterion(10, 'Router comparison metrics output exists', () => routerJson != null),
-    Criterion(11, 'Tests for schema/scoring/consent/export exist',
-        () => _exists('test/ai_flywheel/flywheel_foundation_test.dart')),
+    Criterion(10, 'Router comparison metrics + recommendations output exists',
+        () => routerJson != null && _exists('build/reports/ai_eval/router_strategy_recommendations.md')),
+    Criterion(11, 'Tests for schema/scoring/consent/export/review/router exist',
+        () => _exists('test/ai_flywheel/flywheel_foundation_test.dart') && _exists('test/services/training_data_service_test.dart')),
     Criterion(12, 'Documentation explains unlock path and final evidence summary exists',
-        () =>
-            _exists('docs/review/AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md')
-            && _exists('build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md')),
+        () => _exists('docs/review/AI_LEARNING_FLYWHEEL_EXPANSION.md') && _exists('build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md')),
   ];
 
   final rows = <Map<String, dynamic>>[];
@@ -83,8 +79,8 @@ void main(List<String> args) {
     'criteria': rows,
     'notes': <String>[
       'Criteria that depend on runtime artifacts remain false until verification commands are executed.',
-      'This report checks presence/shape of evidence artifacts plus seed semantic coverage pass signal.',
-      'Model-output quality still requires human review of generated evidence summary.',
+      'This report checks evidence artifacts and semantic seed coverage status.',
+      'Human review of final evidence summary is still required for product sign-off.',
     ],
   };
 

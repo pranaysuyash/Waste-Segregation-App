@@ -10,11 +10,11 @@ Future<void> main(List<String> args) async {
     final arg = args[i];
     if (arg.startsWith('--mode=')) {
       mode = arg.split('=').last.trim();
-      break;
+      continue;
     }
     if (arg == '--mode' && i + 1 < args.length) {
       mode = args[i + 1].trim();
-      break;
+      continue;
     }
     if (arg.startsWith('--recorded-file=')) {
       recordedFile = arg.split('=').last.trim();
@@ -57,6 +57,9 @@ Future<void> main(List<String> args) async {
   stdout.writeln('Safety-critical failures: ${summary.safetyCriticalFailures}');
   stdout.writeln('Must-not violations: ${summary.mustNotViolations}');
   stdout.writeln('Local-rule failures: ${summary.localRuleFailures}');
+  stdout.writeln('Multi-item failures: ${summary.multiItemFailures}');
+  stdout.writeln('Overconfident wrong: ${summary.overconfidentWrong}');
+  stdout.writeln('Underconfident correct: ${summary.underconfidentCorrect}');
   stdout.writeln('Avg confidence on correct: ${summary.avgConfidenceOnCorrect.toStringAsFixed(2)}');
   stdout.writeln('Avg confidence on wrong: ${summary.avgConfidenceOnWrong.toStringAsFixed(2)}');
   stdout.writeln('Provider: ${summary.providerLabel}');

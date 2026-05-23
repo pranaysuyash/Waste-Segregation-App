@@ -212,18 +212,23 @@ void main() {
       });
 
       testWidgets('should style text based on enabled state', (tester) async {
+        // Card title is 18px; PremiumLockWrapper overlay badge is 12px — target by size.
+        final cardTitleFinder = find.byWidgetPredicate(
+          (w) => w is Text && w.data == 'Advanced Analytics' && w.style?.fontSize == 18,
+        );
+
         // Test enabled state
         await tester.pumpWidget(createTestWidget(isEnabled: true));
+        await tester.pumpAndSettle();
 
-        final enabledTitle =
-            tester.widget<Text>(find.text('Advanced Analytics'));
+        final enabledTitle = tester.widget<Text>(cardTitleFinder);
         expect(enabledTitle.style?.color, isNot(equals(Colors.grey)));
 
-        // Test disabled state
+        // Test disabled state — overlay badge also renders title at 12px, use card size
         await tester.pumpWidget(createTestWidget(isEnabled: false));
+        await tester.pumpAndSettle();
 
-        final disabledTitle =
-            tester.widget<Text>(find.text('Advanced Analytics'));
+        final disabledTitle = tester.widget<Text>(cardTitleFinder);
         expect(disabledTitle.style?.color, equals(Colors.grey));
       });
     });
@@ -328,9 +333,12 @@ void main() {
       testWidgets('should have sufficient contrast for disabled state',
           (tester) async {
         await tester.pumpWidget(createTestWidget(isEnabled: false));
+        await tester.pumpAndSettle();
 
-        final disabledTitle =
-            tester.widget<Text>(find.text('Advanced Analytics'));
+        // Card title is 18px; overlay badge is 12px — target card title by font size.
+        final disabledTitle = tester.widget<Text>(find.byWidgetPredicate(
+          (w) => w is Text && w.data == 'Advanced Analytics' && w.style?.fontSize == 18,
+        ));
         expect(disabledTitle.style?.color, equals(Colors.grey));
 
         // Grey should provide sufficient contrast for accessibility

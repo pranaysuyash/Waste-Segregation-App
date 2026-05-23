@@ -9,10 +9,10 @@
 | `/notification_settings` | `NotificationSettingsScreen` | Keep |
 | `/offline_mode_settings` | `OfflineModeSettingsScreen` | Keep (needs real model download) |
 | `/data_export` | `DataExportScreen` | Keep (harden CSV) |
-| `/navigation_demo` | `NavigationDemoScreen` | Developer/Demo only |
-| `/modern_ui_showcase` | `ModernUIShowcaseScreen` | Developer/Demo only |
+| `/navigation_demo` | `NavigationDemoScreen` | **Developer only** — gated behind DeveloperSection + runtime toggle |
+| `/modern_ui_showcase` | `ModernUIShowcaseScreen` | **Developer only** — gated behind DeveloperSection + runtime toggle |
 | `/premium_features` | `PremiumFeaturesScreen` | Keep |
-| `/training_review_queue` | `TrainingReviewQueueScreen` | Developer only |
+| `/training_review_queue` | `TrainingReviewQueueScreen` | **Developer only** — gated behind DeveloperSection + runtime toggle |
 | `/privacy_policy` | `LegalDocumentScreen` | Keep |
 | `/terms_of_service` | `LegalDocumentScreen` | Keep |
 | (legacy) `settings_screen.dart` | `SettingsScreen` | **Deprecated** - source for migration only |
@@ -27,10 +27,34 @@
 | Privacy & Consent | `PrivacySection` | `privacy_section.dart` | Leaderboard opt-out, training consent |
 | Sync & Backup | `SyncSection` | `sync_section.dart` | Google Cloud Sync, upload/download |
 | Feedback Settings | `FeedbackSettingsSection` | `feedback_settings_section.dart` | History feedback, timeframe |
-| Navigation | `NavigationSection` | `navigation_section.dart` | Bottom nav, FAB, style |
-| Features & Tools | `FeaturesSection` | `features_section.dart` | Offline, analytics, advanced analytics, UI showcase |
+| Navigation | `NavigationSection` | `navigation_section.dart` | Bottom nav, FAB, style dropdown |
+| Features & Tools | `FeaturesSection` | `features_section.dart` | Offline mode, analytics, advanced analytics |
 | Legal & Support | `LegalSupportSection` | `legal_support_section.dart` | Privacy, terms, support, bug report, rate, about |
-| Developer | `DeveloperSection` | `developer_section.dart` | Premium toggles, crash test, data clear, migration |
+| Developer | `DeveloperSection` | `developer_section.dart` | Premium toggles, dev tool tiles, crash test, data clear, migration |
+
+### Developer Section Contents
+
+The DeveloperSection is **double-gated**:
+1. **Compile-time**: `DeveloperConfig.canShowDeveloperOptions` (only `true` in debug builds)
+2. **Runtime toggle**: `_showDeveloperOptions` state in `EnhancedSettingsScreen`, toggled via developer icon in app bar
+
+When both gates are open, the DeveloperSection exposes:
+
+| Tile | Action |
+|---|---|
+| Premium Feature Toggles | `PremiumService.setPremiumFeature()` for `remove_ads`, `theme_customization`, `offline_mode`, `advanced_analytics`, `export_data` |
+| Modern UI Components | Opens `Routes.modernUIShowcase` — component gallery for visual regression testing |
+| Navigation Styles | Opens `Routes.navigationDemo` — interactive navigation style preview |
+| Force Crash Test | Crashes app via `FirebaseCrashlytics.instance.crash()` (additionally gated by `canShowCrashTest`) |
+| Clear Firebase Data | Full data cleanup via `FirebaseCleanupService` with confirmation dialog |
+| Migrate Old Classifications | Runs `ClassificationMigrationService.migrateOldClassifications()` |
+
+### Removed from Developer Section (cleanup)
+
+The following inert tiles (empty `onTap` callbacks) were removed:
+- Debug Mode
+- Performance Monitor
+- Reset App Data
 
 ## Services Used
 
@@ -67,8 +91,9 @@
 
 - Route target: `Routes.settings`
 - Composes all modular sections
-- Developer mode toggle via `DeveloperConfig.canShowDeveloperOptions`
-- Training review queue accessible in developer mode
+- Developer mode toggle via `DeveloperConfig.canShowDeveloperOptions` (app bar icon)
+- `TrainingReviewQueue`, `NavigationDemo`, `ModernUIShowcase` are **developer-only** — exposed only in `DeveloperSection` under double gate
+- No demo/component-gallery routes appear as normal user settings
 
 ## Legacy Screen: SettingsScreen
 
@@ -79,14 +104,30 @@
 - Do not add new features here
 - Tests should target EnhancedSettingsScreen
 
+## Gating: Production vs Developer Surfaces
+
+### Production (always visible to all users)
+- AccountSection, PremiumSection, AppSettingsSection, PrivacySection, SyncSection
+- FeedbackSettingsSection, RegionSelectionSection, NavigationSection, FeaturesSection
+- LegalSupportSection
+
+### Developer-only (double-gated: compile-time `kDebugMode` + runtime toggle)
+- `DeveloperSection` (premium toggles, dev tool tiles, crash test, data clear, migration)
+- `TrainingReviewQueue` tile (in `EnhancedSettingsScreen._buildSections`)
+- `NavigationDemoScreen` (via `DeveloperSection._buildDevToolTiles`)
+- `ModernUIShowcaseScreen` (via `DeveloperSection._buildDevToolTiles`)
+
 ## Test Plan
 
 ### Canonical Screen Tests
 - Smoke render with providers
 - Section header visibility by text
 - Developer section hidden by default
+- Developer section visible when toggle is active (debug builds only)
+- Modern UI and Navigation Demo tiles NOT visible in normal settings
+- Modern UI and Navigation Demo tiles visible in DeveloperSection when enabled
 
-### Existing Widget Tests (21 tests)
+### Existing Widget Tests
 - SettingTile, SettingToggleTile rendering
 - SettingsSectionHeader, SettingsSectionSpacer rendering
 - PremiumSection, AppSettingsSection, LegalSupportSection rendering
@@ -97,7 +138,7 @@
 - PrivacySection: leaderboard opt-out persistence, training consent grant/revoke
 - SyncSection: Google sync toggle, upload/download, timestamp display
 - FeedbackSettingsSection: allowHistoryFeedback persistence, timeframe persistence
-- DeveloperSection: premium toggles call PremiumService
+- DeveloperSection: premium toggles call PremiumService, dev tool tiles route correctly
 - LegalSupportSection: mailto attempted, fallback dialog, rate app
 
 ### Service tests (needed)
@@ -108,7 +149,12 @@
 
 - [ ] All sections render on /settings
 - [ ] Account sign-out works with confirmation
-- [ ] Developer mode shows/hides properly
+- [ ] Modern UI Components NOT visible in normal settings
+- [ ] Navigation Styles demo NOT visible in normal settings
+- [ ] Navigation Style dropdown in NavigationSection persists properly
+- [ ] Developer mode shows/hides properly (debug builds only)
+- [ ] Developer mode toggles Modern UI Showcase and Navigation Demo visibility
+- [ ] Developer section has no inert/no-op tiles
 - [ ] Privacy: leaderboard opt-out persists across app restart
 - [ ] Privacy: training consent grant shows confirmation
 - [ ] Privacy: training consent revocation requests deletion

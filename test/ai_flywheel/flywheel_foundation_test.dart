@@ -94,7 +94,8 @@ void main() {
     final raw = lines.map((l) => jsonDecode(l) as Map<String, dynamic>).toList();
     final outDir = Directory.systemTemp.createTempSync('dataset-export-test').path;
     final summary = await DatasetExporter().export(rawCandidates: raw, datasetVersion: 'waste-v0.1', outputDir: outDir);
-    expect(summary.caseCount, 1);
+    expect(summary.caseCount, 2);
+    expect(File('$outDir/excluded.jsonl').existsSync(), isTrue);
   });
 
   test('10. User correction does not automatically become golden truth', () {
@@ -107,6 +108,8 @@ void main() {
           policyVersion: 'training-data-v1',
           deletedAt: null,
           excludedFromTrainingAt: null,
+          privacyStatus: 'pii_passed',
+          hasVerifiedLabel: true,
         ),
       ),
       isFalse,
@@ -115,8 +118,8 @@ void main() {
 
   test('11. Dataset export produces deterministic manifest order', () async {
     final raw = <Map<String, dynamic>>[
-      <String, dynamic>{'candidateId': 'b', 'consent': <String, dynamic>{'enabledAtCapture': true}, 'review': <String, dynamic>{'status': 'training_eligible'}, 'image': <String, dynamic>{'redactionStatus': 'passed'}},
-      <String, dynamic>{'candidateId': 'a', 'consent': <String, dynamic>{'enabledAtCapture': true}, 'review': <String, dynamic>{'status': 'training_eligible'}, 'image': <String, dynamic>{'redactionStatus': 'passed'}},
+      <String, dynamic>{'candidateId': 'b', 'consent': <String, dynamic>{'enabledAtCapture': true,'policyVersion':'training-data-v1'}, 'review': <String, dynamic>{'status': 'training_eligible'}, 'reviewerVerified':<String,dynamic>{'groundTruth':<String,dynamic>{'category':'Dry Waste'}}, 'image': <String, dynamic>{'redactionStatus': 'pii_passed'}},
+      <String, dynamic>{'candidateId': 'a', 'consent': <String, dynamic>{'enabledAtCapture': true,'policyVersion':'training-data-v1'}, 'review': <String, dynamic>{'status': 'training_eligible'}, 'reviewerVerified':<String,dynamic>{'groundTruth':<String,dynamic>{'category':'Dry Waste'}}, 'image': <String, dynamic>{'redactionStatus': 'pii_passed'}},
     ];
     final outDir = Directory.systemTemp.createTempSync('dataset-order-test').path;
     await DatasetExporter().export(rawCandidates: raw, datasetVersion: 'waste-v0.1', outputDir: outDir);
@@ -126,10 +129,11 @@ void main() {
 
   test('12. Router comparison handles fake backend/local/provider outputs', () {
     final result = RouterMetrics.compare(provider: 'backend', outcomes: <Map<String, dynamic>>[
-      <String, dynamic>{'strictPass': true, 'acceptableAlternativePass': false, 'safetyCriticalFailure': false, 'mustNotViolation': false, 'localRuleFailure': false, 'latencyMs': 1000, 'estimatedCostUsd': 0.001, 'cacheHit': true, 'usedFallback': false, 'providerFailure': false},
-      <String, dynamic>{'strictPass': false, 'acceptableAlternativePass': false, 'safetyCriticalFailure': true, 'mustNotViolation': true, 'localRuleFailure': true, 'latencyMs': 1200, 'estimatedCostUsd': 0.002, 'cacheHit': false, 'usedFallback': true, 'providerFailure': false},
+      <String, dynamic>{'strictPass': true, 'acceptableAlternativePass': false, 'safetyCriticalFailure': false, 'mustNotViolation': false, 'localRuleFailure': false, 'multiItemFailure': false, 'overconfidentWrong': false, 'underconfidentCorrect': false, 'latencyMs': 1000, 'estimatedCostUsd': 0.001, 'cacheHit': true, 'fallbackUsed': false, 'providerFailure': false},
+      <String, dynamic>{'strictPass': false, 'acceptableAlternativePass': false, 'safetyCriticalFailure': true, 'mustNotViolation': true, 'localRuleFailure': true, 'multiItemFailure': true, 'overconfidentWrong': true, 'underconfidentCorrect': false, 'latencyMs': 1200, 'estimatedCostUsd': 0.002, 'cacheHit': false, 'fallbackUsed': true, 'providerFailure': false},
     ]);
     expect(result.total, 2);
     expect(result.safetyCriticalFailures, 1);
+    expect(result.multiItemFailures, 1);
   });
 }

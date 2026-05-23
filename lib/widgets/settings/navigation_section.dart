@@ -97,7 +97,7 @@ class NavigationSection extends StatelessWidget {
             },
           ),
         ),
-        ],
+      ],
     );
   }
 

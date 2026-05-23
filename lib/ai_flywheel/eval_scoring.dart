@@ -8,9 +8,24 @@ class EvalScoring {
         .any((alt) => alt['category'] == p.category);
     final mustNotViolation = c.mustNot.contains(p.category);
     final safetyCriticalFailure = c.safetyCritical && !strictPass && !acceptableAlternativePass;
-    final localRuleFailure = c.localRuleCritical && mustNotViolation;
-    final highConfidenceWrong = (p.confidence ?? 0) >= 0.8 && !strictPass && !acceptableAlternativePass;
-    final lowConfidenceCorrect = (p.confidence ?? 1) < 0.5 && (strictPass || acceptableAlternativePass);
+    final localRuleMismatch = (c.localRuleId != null && p.localRuleId != null && c.localRuleId != p.localRuleId);
+    final localRuleFailure = c.localRuleCritical && (mustNotViolation || localRuleMismatch);
+
+    var multiItemFailure = false;
+    if (c.multiItem) {
+      final expectedItems = c.expectedItems.length;
+      final predictedItems = p.predictedItems.length;
+      multiItemFailure = expectedItems > 0 && predictedItems != expectedItems;
+      if (!multiItemFailure && c.expectedItems.isNotEmpty && p.predictedItems.isNotEmpty) {
+        final expectedCats = c.expectedItems.map((e) => '${e['category'] ?? ''}'.toLowerCase()).toList()..sort();
+        final predictedCats = p.predictedItems.map((e) => '${e['category'] ?? ''}'.toLowerCase()).toList()..sort();
+        multiItemFailure = expectedCats.join('|') != predictedCats.join('|');
+      }
+    }
+
+    final overconfidentWrong = (p.confidence ?? 0) >= 0.8 && !strictPass && !acceptableAlternativePass;
+    final underconfidentCorrect = (p.confidence ?? 1) < 0.5 && (strictPass || acceptableAlternativePass);
+    final policyOverclaim = (c.region.toLowerCase().contains('unknown') && p.localRuleId != null);
 
     return EvalCaseOutcome(
       caseId: c.id,
@@ -21,8 +36,12 @@ class EvalScoring {
       mustNotViolation: mustNotViolation,
       safetyCriticalFailure: safetyCriticalFailure,
       localRuleFailure: localRuleFailure,
-      highConfidenceWrong: highConfidenceWrong,
-      lowConfidenceCorrect: lowConfidenceCorrect,
+      multiItemFailure: multiItemFailure,
+      overconfidentWrong: overconfidentWrong,
+      underconfidentCorrect: underconfidentCorrect,
+      providerFailure: p.providerFailure,
+      fallbackUsed: p.fallbackUsed,
+      policyOverclaim: policyOverclaim,
       confidence: p.confidence,
       provider: p.provider,
       model: p.model,
@@ -44,6 +63,9 @@ class EvalScoring {
     final safetyCriticalFailures = outcomes.where((o) => o.safetyCriticalFailure).length;
     final mustNotViolations = outcomes.where((o) => o.mustNotViolation).length;
     final localRuleFailures = outcomes.where((o) => o.localRuleFailure).length;
+    final multiItemFailures = outcomes.where((o) => o.multiItemFailure).length;
+    final overconfidentWrong = outcomes.where((o) => o.overconfidentWrong).length;
+    final underconfidentCorrect = outcomes.where((o) => o.underconfidentCorrect).length;
 
     final correctConfidence = outcomes
         .where((o) => o.strictPass || o.acceptableAlternativePass)
@@ -70,6 +92,9 @@ class EvalScoring {
       safetyCriticalFailures: safetyCriticalFailures,
       mustNotViolations: mustNotViolations,
       localRuleFailures: localRuleFailures,
+      multiItemFailures: multiItemFailures,
+      overconfidentWrong: overconfidentWrong,
+      underconfidentCorrect: underconfidentCorrect,
       avgConfidenceOnCorrect: avg(correctConfidence),
       avgConfidenceOnWrong: avg(wrongConfidence),
       outcomes: outcomes,

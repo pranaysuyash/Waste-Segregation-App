@@ -266,7 +266,8 @@ void main() {
       );
     });
 
-    testWidgets('AppSettingsSection remove ads shows active state when unlocked',
+    testWidgets(
+        'AppSettingsSection remove ads shows active state when unlocked',
         (tester) async {
       final premiumService = _FakePremiumService();
       await premiumService.setPremiumFeature('remove_ads', true);
@@ -316,8 +317,7 @@ void main() {
       expect(find.text('premium-route'), findsOneWidget);
     });
 
-    testWidgets('NavigationSection updates style via dropdown',
-        (tester) async {
+    testWidgets('NavigationSection updates style via dropdown', (tester) async {
       final navSettingsService = _FakeNavigationSettingsService();
 
       await tester.pumpWidget(
@@ -350,8 +350,6 @@ void main() {
           premiumService: premiumService,
           child: const FeaturesSection(),
           routes: {
-            Routes.modernUIShowcase: (_) =>
-                const _RouteTarget('modern-ui-route'),
             Routes.offlineModeSettings: (_) =>
                 const _RouteTarget('offline-settings-route'),
             Routes.wasteDashboard: (_) => const _RouteTarget('analytics-route'),

@@ -1278,6 +1278,15 @@ The current app does not distinguish these states. An offline user who opens the
 
 - Added foundation scaffold doc: [review/AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md](review/AI_LEARNING_FLYWHEEL_FOUNDATION_2026-05-21.md)
 - Includes eval harness, golden cases, consent-aware candidate gating, dataset exporter, and router metrics baseline.
+- Expansion doc: [review/AI_LEARNING_FLYWHEEL_EXPANSION.md](review/AI_LEARNING_FLYWHEEL_EXPANSION.md)
+- Runtime evidence: [review/AI_FLYWHEEL_RUNTIME_VERIFICATION.md](review/AI_FLYWHEEL_RUNTIME_VERIFICATION.md)
+- Completion audit: [review/AI_LEARNING_FLYWHEEL_COMPLETION_AUDIT_2026-05-23.md](review/AI_LEARNING_FLYWHEEL_COMPLETION_AUDIT_2026-05-23.md)
+- Goal handoff: `goal1.txt` superseded by `docs/planning/GOAL1_SUPERSEDED_BY_FLYWHEEL_DOCS.md`.
+
+**Flywheel status**
+- Implemented now: 110-case eval set with semantic family coverage checks, multi-provider recorded comparisons, router strategy recommendation generation, multi-item/local-rule scoring hooks, consent/privacy-gated dataset export with `excluded.jsonl`, and acceptance/evidence generation.
+- Scaffolded (explicitly not production-wired): segmentation model inference path and runtime enforcement of router thresholds.
+- Future: full admin dashboard UX for analytics/review operations (current operational path is CLI + JSONL + callable tools).
 
 ## Provenance & Sources
 

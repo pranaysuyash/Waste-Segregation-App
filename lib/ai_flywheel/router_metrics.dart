@@ -6,6 +6,9 @@ class RouterComparisonResult {
     required this.safetyCriticalFailures,
     required this.mustNotViolations,
     required this.localRuleFailures,
+    required this.multiItemFailures,
+    required this.overconfidentWrong,
+    required this.underconfidentCorrect,
     required this.avgLatencyMs,
     required this.avgEstimatedCostUsd,
     required this.cacheHitRate,
@@ -19,6 +22,9 @@ class RouterComparisonResult {
   final int safetyCriticalFailures;
   final int mustNotViolations;
   final int localRuleFailures;
+  final int multiItemFailures;
+  final int overconfidentWrong;
+  final int underconfidentCorrect;
   final double avgLatencyMs;
   final double avgEstimatedCostUsd;
   final double cacheHitRate;
@@ -47,10 +53,13 @@ class RouterMetrics {
       safetyCriticalFailures: countBool('safetyCriticalFailure'),
       mustNotViolations: countBool('mustNotViolation'),
       localRuleFailures: countBool('localRuleFailure'),
+      multiItemFailures: countBool('multiItemFailure'),
+      overconfidentWrong: countBool('overconfidentWrong'),
+      underconfidentCorrect: countBool('underconfidentCorrect'),
       avgLatencyMs: avgNum('latencyMs'),
       avgEstimatedCostUsd: avgNum('estimatedCostUsd'),
       cacheHitRate: total == 0 ? 0 : countBool('cacheHit') / total,
-      fallbackRate: total == 0 ? 0 : countBool('usedFallback') / total,
+      fallbackRate: total == 0 ? 0 : countBool('fallbackUsed') / total,
       providerFailureRate: total == 0 ? 0 : countBool('providerFailure') / total,
     );
   }

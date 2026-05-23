@@ -21,7 +21,6 @@ class EvalRunner {
     final cases = await _loadCases();
     final predictions = await _loadPredictions(
       mode: mode,
-      cases: cases,
       recordedFilePath: recordedFilePath,
     );
 
@@ -43,8 +42,7 @@ class EvalRunner {
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
     }
-    final latest = File('${dir.path}/latest.json');
-    latest.writeAsStringSync(
+    File('${dir.path}/latest.json').writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert(summary.toJson()),
     );
   }
@@ -60,7 +58,6 @@ class EvalRunner {
 
   Future<Map<String, EvalPrediction>> _loadPredictions({
     required String mode,
-    required List<EvalCase> cases,
     String? recordedFilePath,
   }) async {
     if (mode == 'live') {
@@ -93,6 +90,8 @@ class EvalRunner {
     return EvalPrediction(
       caseId: c.id,
       category: shouldBeWrong ? sampleWrong : strict,
+      subcategory: c.expected['subcategory'] as String?,
+      materialType: c.expected['materialType'] as String?,
       provider: mode == 'offline' ? 'offline_stub' : 'recorded_stub',
       model: mode,
       confidence: shouldBeWrong ? 0.82 : 0.74,
@@ -100,7 +99,12 @@ class EvalRunner {
       latencyMs: shouldBeWrong ? 1350 : 940,
       estimatedCostUsd: shouldBeWrong ? 0.0012 : 0.0009,
       cacheHit: false,
+      fallbackUsed: false,
+      providerFailure: false,
       askClarification: false,
+      localRuleId: c.localRuleId,
+      predictedItems: c.expectedItems,
+      aggregateWarnings: c.expectedAggregateWarnings,
     );
   }
 }

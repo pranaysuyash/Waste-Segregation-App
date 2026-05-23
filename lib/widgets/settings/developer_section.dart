@@ -11,6 +11,7 @@ import 'package:waste_segregation_app/utils/developer_config.dart';
 import 'package:waste_segregation_app/widgets/settings/settings_theme.dart';
 import 'package:waste_segregation_app/widgets/settings/setting_tile.dart';
 import 'package:waste_segregation_app/utils/dialog_helper.dart';
+import 'package:waste_segregation_app/utils/routes.dart';
 
 /// Developer options section for settings screen (debug builds only)
 class DeveloperSection extends StatelessWidget {
@@ -27,13 +28,13 @@ class DeveloperSection extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final t = AppLocalizations.of(context)!;
-
     return Column(
       children: [
         _buildDeveloperHeader(context),
         const SizedBox(height: 16),
         _buildFeatureToggles(context),
+        const SizedBox(height: 16),
+        _buildDevToolTiles(context),
         const SizedBox(height: 16),
         _buildDangerousActions(context),
       ],
@@ -122,6 +123,28 @@ class DeveloperSection extends StatelessWidget {
           );
         }
       },
+    );
+  }
+
+  Widget _buildDevToolTiles(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return Column(
+      children: [
+        SettingTile(
+          icon: Icons.design_services,
+          iconColor: Colors.purple,
+          title: t.modernUIComponents,
+          subtitle: t.modernUIComponentsSubtitle,
+          onTap: () => Navigator.pushNamed(context, Routes.modernUIShowcase),
+        ),
+        SettingTile(
+          icon: Icons.navigation,
+          iconColor: SettingsTheme.navigationColor,
+          title: t.navigationStyles,
+          subtitle: t.navigationStylesSubtitle,
+          onTap: () => Navigator.pushNamed(context, Routes.navigationDemo),
+        ),
+      ],
     );
   }
 

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 const _validStates = <String>{
-  'unreviewed',
   'approved',
   'rejected',
   'needs_redaction',
@@ -66,17 +65,16 @@ void _exportTemplate(String inputPath, String outputPath) {
     final prediction = (r['modelPrediction'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
     return <String, dynamic>{
       'candidateId': id,
-      'currentStatus': (r['review'] as Map?)?['status'] ?? 'unreviewed',
-      'predictedCategory': prediction['category'],
-      'reviewDecision': null,
-      'groundTruth': <String, dynamic>{
-        'category': null,
-        'subcategory': null,
-        'itemName': null,
-        'material': null,
-        'confidence': null,
-      },
-      'notes': null,
+      'reviewer': null,
+      'decision': null,
+      'verifiedCategory': prediction['category'],
+      'verifiedSubcategory': prediction['subcategory'],
+      'verifiedMaterialType': prediction['materialType'],
+      'localRuleId': null,
+      'safetyCritical': null,
+      'privacyFlags': <String>[],
+      'qualityFlags': <String>[],
+      'reviewNotes': null,
     };
   }).toList();
 
@@ -84,12 +82,7 @@ void _exportTemplate(String inputPath, String outputPath) {
   stdout.writeln('Exported review template: $outputPath (${template.length} rows)');
 }
 
-void _applyDecisions(
-  String inputPath,
-  String decisionsPath,
-  String outputPath,
-  String reviewer,
-) {
+void _applyDecisions(String inputPath, String decisionsPath, String outputPath, String reviewerFallback) {
   final candidates = _readJsonl(inputPath);
   final decisions = _readJsonl(decisionsPath);
   final decisionMap = <String, Map<String, dynamic>>{};
@@ -109,25 +102,44 @@ void _applyDecisions(
       continue;
     }
 
-    final decision = '${d['reviewDecision'] ?? ''}';
+    final decision = '${d['decision'] ?? ''}';
     if (!_validStates.contains(decision)) {
-      throw StateError('Invalid reviewDecision "$decision" for $id');
+      throw StateError('Invalid decision "$decision" for $id');
+    }
+
+    final reviewer = '${d['reviewer'] ?? reviewerFallback}';
+    final verifiedCategory = '${d['verifiedCategory'] ?? ''}'.trim();
+    final privacyFlags = ((d['privacyFlags'] as List?) ?? const <dynamic>[]).map((e) => '$e').toList();
+    final qualityFlags = ((d['qualityFlags'] as List?) ?? const <dynamic>[]).map((e) => '$e').toList();
+
+    if ((decision == 'golden' || decision == 'training_eligible') && verifiedCategory.isEmpty) {
+      throw StateError('$decision requires verifiedCategory for $id');
+    }
+    if (decision == 'training_eligible' && privacyFlags.contains('needs_redaction')) {
+      throw StateError('training_eligible blocked by privacy flags for $id');
     }
 
     final review = (c['review'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
     review['status'] = decision;
     review['reviewer'] = reviewer;
     review['reviewedAt'] = now;
-    review['reviewNotes'] = d['notes'];
+    review['reviewNotes'] = d['reviewNotes'];
+    review['qualityFlags'] = qualityFlags;
+    review['privacyFlags'] = privacyFlags;
     c['review'] = review;
 
-    final gt = (d['groundTruth'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
     c['reviewerVerified'] = <String, dynamic>{
       'reviewer': reviewer,
       'reviewedAt': now,
       'status': decision,
-      'groundTruth': gt,
-      'notes': d['notes'],
+      'groundTruth': <String, dynamic>{
+        'category': d['verifiedCategory'],
+        'subcategory': d['verifiedSubcategory'],
+        'material': d['verifiedMaterialType'],
+        'localRuleId': d['localRuleId'],
+        'safetyCritical': d['safetyCritical'],
+      },
+      'notes': d['reviewNotes'],
     };
 
     c['dataset'] = <String, dynamic>{
@@ -136,6 +148,19 @@ void _applyDecisions(
           ? (((c['dataset'] as Map)['includedInVersions'] as List?) ?? const <dynamic>[])
           : const <dynamic>[],
     };
+
+    if (decision == 'deleted') {
+      c['deletedAt'] = now;
+      c['excludedFromTrainingAt'] = now;
+    }
+
+    if (decision == 'needs_redaction') {
+      c['image'] = <String, dynamic>{
+        ...((c['image'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{}),
+        'redactionStatus': 'needs_redaction',
+      };
+      c['excludedFromTrainingAt'] = now;
+    }
 
     updated.add(c);
   }
