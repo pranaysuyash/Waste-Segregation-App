@@ -77,7 +77,7 @@ class WasteSegregationWebApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Waste Segregation App - Web',
+      title: 'ReLoop - Web',
       theme: ThemeData(
         primarySwatch: Colors.green,
         useMaterial3: true,
@@ -96,7 +96,7 @@ class WebHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const ResponsiveAppBarTitle(
-          title: 'WasteWise',
+          title: 'ReLoop',
         ),
         backgroundColor: Colors.green,
       ),
@@ -111,7 +111,7 @@ class WebHomePage extends StatelessWidget {
             ),
             SizedBox(height: 20),
             Text(
-              'Welcome to Waste Segregation App',
+              'Welcome to ReLoop',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -165,7 +165,7 @@ class HomeTab extends StatelessWidget {
 
           // App introduction
           const Text(
-            'Welcome to Waste Segregation App',
+            'Welcome to ReLoop',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -389,7 +389,7 @@ class AboutTab extends StatelessWidget {
           const SizedBox(height: 16),
 
           const Text(
-            'The Waste Segregation App is designed to help users properly classify and dispose of waste using AI technology.',
+            'The ReLoop is designed to help users properly classify and dispose of waste using AI technology.',
             style: TextStyle(fontSize: 16),
           ),
 
@@ -514,7 +514,7 @@ class AboutTab extends StatelessWidget {
           // Footer
           const Center(
             child: Text(
-              '© 2025 Waste Segregation App',
+              '© 2025 ReLoop',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey,
@@ -531,7 +531,7 @@ class AboutTab extends StatelessWidget {
     // for this standalone web version
     final controller = TextEditingController();
     controller.text =
-        'Check out the Waste Segregation App! It helps you properly sort your waste using AI: https://waste-segregation-app.web.app';
+        'Check out the ReLoop! It helps you properly sort your waste using AI: https://waste-segregation-app.web.app';
 
     // Copy to clipboard (normally you'd use Clipboard.setData)
     controller.selection = TextSelection(

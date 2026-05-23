@@ -1,6 +1,6 @@
 # Firebase Integration Summary - COMPLETED
 
-The Firebase SDK has been successfully integrated into the Waste Segregation App, and Google Sign-In authentication is now fully functional. This document summarizes the implemented changes.
+The Firebase SDK has been successfully integrated into the ReLoop, and Google Sign-In authentication is now fully functional. This document summarizes the implemented changes.
 
 ## Changes Implemented
 

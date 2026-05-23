@@ -1,6 +1,6 @@
 # Firebase Troubleshooting Guide - Enhanced
 
-This guide provides solutions to common Firebase integration issues encountered in the Waste Segregation App, with special focus on recent critical fixes.
+This guide provides solutions to common Firebase integration issues encountered in the ReLoop, with special focus on recent critical fixes.
 
 _Last updated: May 24, 2025_
 
@@ -138,7 +138,7 @@ class EnhancedGoogleSignInDiagnostics {
 **Required OAuth Consent Screen Settings**:
 1. **User Type**: External (or Internal for GSuite orgs)
 2. **App Information**:
-   - App name: "WasteWise" or "Waste Segregation"
+   - App name: "ReLoop" or "ReLoop"
    - **User support email**: ⚠️ **REQUIRED** - Must be set
    - App logo: Optional but recommended
 3. **Authorized Domains**: Auto-populated by Firebase
@@ -239,7 +239,7 @@ arch -x86_64 pod install
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>WasteWise</title>
+  <title>ReLoop</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>

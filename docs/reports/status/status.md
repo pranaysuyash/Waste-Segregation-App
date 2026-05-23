@@ -1,4 +1,4 @@
-# Project Status - Waste Segregation App
+# Project Status - ReLoop
 
 **Version:** 0.1.6+98 (Research Milestone & Play Store Release)
 **Previous Stable Version:** 0.1.4+96

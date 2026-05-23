@@ -332,4 +332,4 @@ This document lists all known issues, technical debt, and improvement areas iden
 
 ---
 
-*This document tracks the systematic resolution of code quality issues in the WasteWise application. All changes follow proper review and acceptance workflows.*
+*This document tracks the systematic resolution of code quality issues in the ReLoop application. All changes follow proper review and acceptance workflows.*

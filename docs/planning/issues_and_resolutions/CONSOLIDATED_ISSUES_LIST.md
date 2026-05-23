@@ -1,4 +1,4 @@
-# 📋 Consolidated Issues List - Waste Segregation App
+# 📋 Consolidated Issues List - ReLoop
 
 **Generated Date**: May 28, 2025  
 **App Version**: 0.1.4+96  

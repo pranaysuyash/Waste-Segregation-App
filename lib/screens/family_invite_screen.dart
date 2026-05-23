@@ -569,16 +569,16 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
 
   Future<void> _shareInvite({String? subject}) async {
     final familyCode = widget.family.id;
-    final inviteText = 'Join my family on WasteWise. Family code: $familyCode';
+    final inviteText = 'Join my family on ReLoop. Family code: $familyCode';
     final shareText = subject != null ? '$subject\n\n$inviteText' : inviteText;
-    await Share.share(shareText, subject: 'Join my family on WasteWise');
+    await Share.share(shareText, subject: 'Join my family on ReLoop');
   }
 
   void _shareViaMessages() =>
-      _shareInvite(subject: 'Join my family on WasteWise');
+      _shareInvite(subject: 'Join my family on ReLoop');
 
   void _shareViaEmail() =>
-      _shareInvite(subject: 'Invitation to join my family on WasteWise');
+      _shareInvite(subject: 'Invitation to join my family on ReLoop');
 
   void _shareViaOther() => _shareInvite();
 

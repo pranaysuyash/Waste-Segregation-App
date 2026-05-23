@@ -8,8 +8,8 @@ import '../widgets/interactive_tag.dart';
 List<TagData> buildClassificationTags(WasteClassification c) {
   final tags = <TagData>[];
   tags.add(TagFactory.category(c.category));
-  if (c.materialType != null) {
-    tags.add(TagFactory.material(c.materialType!));
+  if (c.normalizedMaterials.isNotEmpty) {
+    tags.add(TagFactory.material(c.normalizedMaterials.first));
   }
   _addEnvironmentalImpactTags(c, tags);
   _addLocalInformationTags(c, tags);
@@ -53,7 +53,9 @@ DifficultyLevel _recyclingDifficulty(WasteClassification c) {
   if (cat == 'hazardous waste' || cat == 'medical waste') {
     return DifficultyLevel.expert;
   }
-  final mat = c.materialType?.toLowerCase();
+  final mat = c.normalizedMaterials.isNotEmpty
+      ? c.normalizedMaterials.first.toLowerCase()
+      : null;
   if (mat == 'plastic') {
     final code = c.recyclingCode;
     if (code == 1 || code == 2) return DifficultyLevel.easy;
@@ -125,7 +127,7 @@ void _addUrgencyTags(WasteClassification c, List<TagData> tags) {
 // ---------------------------------------------------------------------------
 
 void _addEducationalTips(WasteClassification c, List<TagData> tags) {
-  final sub = c.subcategory?.toLowerCase();
+  final sub = c.normalizedSubcategory?.toLowerCase();
   final cat = c.category.toLowerCase();
   if (sub == 'plastic') {
     tags.add(
@@ -147,7 +149,7 @@ void _addEducationalTips(WasteClassification c, List<TagData> tags) {
 
 /// Educational fact text keyed on the classification.
 String educationalFact(WasteClassification c) {
-  final sub = c.subcategory?.toLowerCase();
+  final sub = c.normalizedSubcategory?.toLowerCase();
   final cat = c.category.toLowerCase();
   if (sub == 'plastic') {
     return 'Plastic bottles can be recycled into new bottles, clothing, carpets, and even park benches! '

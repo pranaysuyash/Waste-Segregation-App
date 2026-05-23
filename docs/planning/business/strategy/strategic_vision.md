@@ -1,6 +1,6 @@
-# Strategic Vision: Beyond Waste Segregation
+# Strategic Vision: Beyond ReLoop
 
-This document outlines the strategic vision for the Waste Segregation App, defining how it evolves from a simple classification tool into a comprehensive environmental impact platform. It integrates growth strategies, municipal partnerships, and ecosystem development to create sustainable value for users, communities, and the planet.
+This document outlines the strategic vision for the ReLoop, defining how it evolves from a simple classification tool into a comprehensive environmental impact platform. It integrates growth strategies, municipal partnerships, and ecosystem development to create sustainable value for users, communities, and the planet.
 
 ## 1. Impact Measurement Framework
 
@@ -491,7 +491,7 @@ The strategic vision outlined above is supported by detailed technical specifica
 
 ## 5. Final Vision: The Environmental Impact Platform
 
-By implementing these features strategically, our Waste Segregation App evolves from a simple classification tool into a comprehensive environmental impact platform that:
+By implementing these features strategically, our ReLoop evolves from a simple classification tool into a comprehensive environmental impact platform that:
 
 1. **Educates** users about proper waste management
 2. **Motivates** through gamification and impact visualization

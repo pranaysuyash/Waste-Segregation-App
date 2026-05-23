@@ -6,7 +6,7 @@
 
 ## 🚨 Critical Environment Requirements
 
-The WasteWise app **REQUIRES** environment variables to be loaded during development. Without proper environment setup:
+The ReLoop app **REQUIRES** environment variables to be loaded during development. Without proper environment setup:
 
 - ❌ All classifications will return "unknown item"
 - ❌ Images will not be saved properly

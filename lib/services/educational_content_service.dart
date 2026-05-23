@@ -241,7 +241,7 @@ class EducationalContentService {
     _allContent.add(
       EducationalContent.infographic(
         id: 'infographic1',
-        title: 'Waste Segregation Quick Guide',
+        title: 'ReLoop Quick Guide',
         description:
             'Visual guide showing how to properly segregate different types of waste.',
         thumbnailUrl: 'assets/images/education/segregation_guide.jpg',

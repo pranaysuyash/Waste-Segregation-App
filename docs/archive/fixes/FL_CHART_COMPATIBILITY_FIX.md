@@ -7,7 +7,7 @@
 
 ## Overview
 
-Successfully resolved compilation errors in the Waste Segregation App caused by breaking changes in fl_chart version 0.68.0. The `SideTitleWidget` constructor no longer accepts the `meta` parameter and now requires `axisSide` from the `TitleMeta` object.
+Successfully resolved compilation errors in the ReLoop caused by breaking changes in fl_chart version 0.68.0. The `SideTitleWidget` constructor no longer accepts the `meta` parameter and now requires `axisSide` from the `TitleMeta` object.
 
 ## Problem Description
 

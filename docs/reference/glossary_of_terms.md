@@ -1,6 +1,6 @@
 # Glossary of Terms
 
-This document provides definitions for key terms used in the Waste Segregation App documentation and user interface.
+This document provides definitions for key terms used in the ReLoop documentation and user interface.
 
 ## Waste Classification Terms
 

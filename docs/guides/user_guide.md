@@ -1,6 +1,6 @@
 # User Guide: Enhanced Gamification & Waste Dashboard
 
-This user guide explains how to get the most out of the new Enhanced Gamification System and Waste Analytics Dashboard features in the Waste Segregation App.
+This user guide explains how to get the most out of the new Enhanced Gamification System and Waste Analytics Dashboard features in the ReLoop.
 
 ## Enhanced Gamification System
 

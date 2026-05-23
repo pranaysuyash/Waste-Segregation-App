@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Waste Segregation App features a comprehensive API integration system that provides dynamic pricing, cost monitoring, budget guardrails, and enhanced error handling. This system ensures reliable API operations while controlling costs and providing fallback mechanisms.
+The ReLoop features a comprehensive API integration system that provides dynamic pricing, cost monitoring, budget guardrails, and enhanced error handling. This system ensures reliable API operations while controlling costs and providing fallback mechanisms.
 
 ## Architecture Components
 

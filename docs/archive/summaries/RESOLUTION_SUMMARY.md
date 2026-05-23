@@ -52,7 +52,7 @@ The blank screen was caused by **incorrect Flutter web initialization** in the `
 ### 3. **Improved PWA Configuration**
 ```json
 {
-  "name": "Waste Segregation App",
+  "name": "ReLoop",
   "short_name": "WasteApp", 
   "display": "standalone",
   "theme_color": "#2196F3"

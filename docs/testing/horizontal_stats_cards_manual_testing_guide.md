@@ -1,7 +1,7 @@
 # Horizontal Stat Cards Manual Testing Guide
 
 ## Overview
-This guide provides step-by-step instructions for manually testing the horizontal stat cards fixes in the Waste Segregation App, focusing on overflow prevention, color standardization, and responsive behavior across different data states.
+This guide provides step-by-step instructions for manually testing the horizontal stat cards fixes in the ReLoop, focusing on overflow prevention, color standardization, and responsive behavior across different data states.
 
 ## Test Environment Setup
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Git Hooks Setup Script for Waste Segregation App
+# Git Hooks Setup Script for ReLoop
 # This script sets up git hooks to prevent sensitive data commits
 
 echo "🔧 Setting up Git hooks for security..."

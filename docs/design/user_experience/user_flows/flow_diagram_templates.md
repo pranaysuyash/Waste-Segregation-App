@@ -131,7 +131,7 @@ graph TB
         C --> D[Cloud Platform]
     end
     
-    subgraph "WasteWise App"
+    subgraph "ReLoop App"
         E[App Dashboard] --> F[Bin Status Widget]
         F --> G{Bin Full?}
         G -->|Yes| H[Pickup Notification]

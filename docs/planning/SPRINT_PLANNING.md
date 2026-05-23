@@ -1,5 +1,5 @@
 # Sprint Planning & Acceptance Criteria
-## Waste Segregation App - Q1 2025 Product Roadmap
+## ReLoop - Q1 2025 Product Roadmap
 
 > **Following world-class product practices with clear acceptance criteria, performance budgets, and user feedback loops**
 

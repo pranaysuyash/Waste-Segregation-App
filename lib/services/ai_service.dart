@@ -30,6 +30,8 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 import 'package:waste_segregation_app/services/parsers/ai_response_parser.dart';
 import 'package:waste_segregation_app/services/prompts/classification_prompts.dart';
+import 'package:waste_segregation_app/services/classification_result_processor.dart';
+import 'package:waste_segregation_app/services/ai_usage_accounting_service.dart';
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
 /// This service handles image processing, API requests, response parsing,
@@ -98,7 +100,19 @@ class AiService {
         localPolicyEngine = localPolicyEngine ?? const LocalPolicyEngine(),
         _dio = dioClient ?? Dio(),
         _saveWebImageOverride = saveWebImageOverride,
-        _backendProxy = backendProxy;
+        _backendProxy = backendProxy,
+        _resultProcessor = ClassificationResultProcessor(
+          policyEngine: localPolicyEngine ?? const LocalPolicyEngine(),
+          cacheService: cacheService ?? ClassificationCacheService(),
+          cachingEnabled: cachingEnabled ?? true,
+          promptVersion: AiService.promptVersion,
+          schemaVersion: AiService.schemaVersion,
+          localGuidelinesVersion: AiService.localGuidelinesVersion,
+        ),
+        _usageAccounting = AiUsageAccountingService(
+          pricingService: pricingService ?? DynamicPricingService(),
+          guardrailService: guardrailService ?? CostGuardrailService(),
+        );
 
   static const String promptVersion = 'waste-classification-v2';
   static const String schemaVersion = 'waste-classification-schema-v2';
@@ -114,6 +128,8 @@ class AiService {
   final CostGuardrailService guardrailService;
   final EnhancedApiErrorHandler errorHandler;
   final LocalPolicyEngine localPolicyEngine;
+  final ClassificationResultProcessor _resultProcessor;
+  final AiUsageAccountingService _usageAccounting;
 
   // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
   final EnhancedImageService _imageService;
@@ -1196,75 +1212,24 @@ class AiService {
     );
 
     final processingTime = DateTime.now().difference(startTime);
-    final inputTokens = response.inputTokens ?? 1500;
-    final outputTokens = response.outputTokens ?? 800;
 
-    final cost = pricingService.calculateCost(
-      model: modelKey,
-      inputTokens: inputTokens,
-      outputTokens: outputTokens,
+    await _usageAccounting.recordUsage(
+      response: response,
+      modelKey: modelKey,
+      processingTime: processingTime,
     );
 
-    await guardrailService.recordApiSpending(
-      model: modelKey,
-      cost: cost,
-      inputTokens: inputTokens,
-      outputTokens: outputTokens,
-    );
-
-    WasteAppLogger.info('API cost recorded', context: {
-      'service': 'ai_service',
-      'model': modelKey,
-      'cost': cost,
-      'input_tokens': inputTokens,
-      'output_tokens': outputTokens,
-      'processing_time_ms': processingTime.inMilliseconds,
-    });
-
-    var classification = _processAiResponseData(
-      response.rawResponseMap,
-      imageName,
-      region,
-      language,
-      null,
-      classificationId,
-      provider: providerName,
-      model: modelName,
+    final classification = await _resultProcessor.process(
+      providerResponse: response,
+      imagePath: imageName,
+      region: region,
+      language: language,
+      imageSize: imageBytes.length,
+      classificationId: classificationId,
+      imageHash: imageHash,
+      contentHash: contentHash,
       thumbnailPath: thumbnailPath,
     );
-
-    final policyDecision = await localPolicyEngine.applyPolicy(
-      classification: classification,
-      region: region,
-    );
-    classification = _attachPolicyDecisionMetadata(
-      policyDecision.classification,
-      policyDecision,
-    );
-
-    if (cachingEnabled && imageHash != null) {
-      final contextAwareContentHash = _buildContextAwareContentHash(
-        contentHash,
-        region: region,
-        language: language,
-        provider: providerName,
-        model: modelName,
-      );
-      final contextAwareCacheKey = buildContextualCacheKey(
-        imageHash: imageHash,
-        region: region,
-        language: language,
-        provider: providerName,
-        model: modelName,
-      );
-      await cacheService.cacheClassification(
-        contextAwareCacheKey,
-        classification,
-        contentHash: contextAwareContentHash,
-        imageSize: imageBytes.length,
-        entryImageHash: imageHash,
-      );
-    }
 
     return classification;
   }
@@ -1286,8 +1251,6 @@ class AiService {
     String? thumbnailPath,
   }) async {
     _providerCallCount++;
-    const providerName = 'backend';
-    const modelName = 'classifyImage';
 
     // Compress to stay under the 4 MB gateway limit (same as OpenAI path).
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
@@ -1309,50 +1272,17 @@ class AiService {
       requestId: classificationId,
     );
 
-    var classification = _processAiResponseData(
-      AiProviderResponseAdapter.toParserMap(response),
-      imagePath,
-      region,
-      language,
-      null,
-      classificationId,
-      provider: providerName,
-      model: modelName,
+    final classification = await _resultProcessor.process(
+      providerResponse: response,
+      imagePath: imagePath,
+      region: region,
+      language: language,
+      imageSize: imageBytes.length,
+      classificationId: classificationId,
+      imageHash: imageHash,
+      contentHash: contentHash,
       thumbnailPath: thumbnailPath,
     );
-
-    final policyDecision = await localPolicyEngine.applyPolicy(
-      classification: classification,
-      region: region,
-    );
-    classification = _attachPolicyDecisionMetadata(
-      policyDecision.classification,
-      policyDecision,
-    );
-
-    if (cachingEnabled && imageHash != null) {
-      final contextAwareContentHash = _buildContextAwareContentHash(
-        contentHash,
-        region: region,
-        language: language,
-        provider: providerName,
-        model: modelName,
-      );
-      final contextAwareCacheKey = buildContextualCacheKey(
-        imageHash: imageHash,
-        region: region,
-        language: language,
-        provider: providerName,
-        model: modelName,
-      );
-      await cacheService.cacheClassification(
-        contextAwareCacheKey,
-        classification,
-        contentHash: contextAwareContentHash,
-        imageSize: imageBytes.length,
-        entryImageHash: imageHash,
-      );
-    }
 
     return classification;
   }
@@ -1425,76 +1355,25 @@ class AiService {
     }
 
     final processingTime = DateTime.now().difference(startTime);
-    final inputTokens = response.inputTokens ?? 1500;
-    final outputTokens = response.outputTokens ?? 800;
 
     const modelKey = 'gemini_2_0_flash';
-    final cost = pricingService.calculateCost(
-      model: modelKey,
-      inputTokens: inputTokens,
-      outputTokens: outputTokens,
+    await _usageAccounting.recordUsage(
+      response: response,
+      modelKey: modelKey,
+      processingTime: processingTime,
     );
 
-    await guardrailService.recordApiSpending(
-      model: modelKey,
-      cost: cost,
-      inputTokens: inputTokens,
-      outputTokens: outputTokens,
-    );
-
-    WasteAppLogger.info('Gemini API cost recorded', context: {
-      'service': 'ai_service',
-      'model': modelKey,
-      'cost': cost,
-      'input_tokens': inputTokens,
-      'output_tokens': outputTokens,
-      'processing_time_ms': processingTime.inMilliseconds,
-    });
-
-    var classification = _processAiResponseData(
-      AiProviderResponseAdapter.toParserMap(response),
-      imageName,
-      region,
-      language,
-      null,
-      classificationId,
-      provider: providerName,
-      model: modelName,
+    final classification = await _resultProcessor.process(
+      providerResponse: response,
+      imagePath: imageName,
+      region: region,
+      language: language,
+      imageSize: imageBytes.length,
+      classificationId: classificationId,
+      imageHash: imageHash,
+      contentHash: contentHash,
       thumbnailPath: thumbnailPath,
     );
-
-    final policyDecision = await localPolicyEngine.applyPolicy(
-      classification: classification,
-      region: region,
-    );
-    classification = _attachPolicyDecisionMetadata(
-      policyDecision.classification,
-      policyDecision,
-    );
-
-    if (cachingEnabled && imageHash != null) {
-      final contextAwareContentHash = _buildContextAwareContentHash(
-        contentHash,
-        region: region,
-        language: language,
-        provider: providerName,
-        model: modelName,
-      );
-      final contextAwareCacheKey = buildContextualCacheKey(
-        imageHash: imageHash,
-        region: region,
-        language: language,
-        provider: providerName,
-        model: modelName,
-      );
-      await cacheService.cacheClassification(
-        contextAwareCacheKey,
-        classification,
-        contentHash: contextAwareContentHash,
-        imageSize: imageBytes.length,
-        entryImageHash: imageHash,
-      );
-    }
 
     return classification;
   }
@@ -1654,50 +1533,6 @@ class AiService {
   @visibleForTesting
   String cleanJsonString(String rawContent) => AiResponseParser.cleanJsonString(rawContent);
 
-  WasteClassification _attachPolicyDecisionMetadata(
-    WasteClassification classification,
-    LocalPolicyDecision decision,
-  ) {
-    if (!decision.policyApplied) {
-      return classification;
-    }
-
-    final baseRegulations = Map<String, String>.from(
-      classification.localRegulations ?? const <String, String>{},
-    );
-
-    if (decision.rulePackId != null) {
-      baseRegulations['policy_rule_pack_id'] = decision.rulePackId!;
-    }
-    if (decision.pluginId != null) {
-      baseRegulations['policy_plugin_id'] = decision.pluginId!;
-    }
-    if (decision.complianceStatus != null) {
-      baseRegulations['policy_compliance_status'] = decision.complianceStatus!;
-    }
-    if (decision.warnings.isNotEmpty) {
-      baseRegulations['policy_warning_count'] =
-          decision.warnings.length.toString();
-    }
-    if (decision.violations.isNotEmpty) {
-      baseRegulations['policy_violation_count'] =
-          decision.violations.length.toString();
-    }
-    if (decision.recommendations.isNotEmpty) {
-      baseRegulations['policy_recommendations'] =
-          decision.recommendations.take(3).join(' | ');
-    }
-    baseRegulations['policy_evaluated_at'] =
-        decision.evaluatedAt.toIso8601String();
-
-    return classification.copyWith(
-      localRegulations: baseRegulations,
-      bbmpComplianceStatus:
-          decision.complianceStatus ?? classification.bbmpComplianceStatus,
-      localGuidelinesVersion:
-          decision.guidelinesVersion ?? classification.localGuidelinesVersion,
-    );
-  }
   Future<List<Map<String, dynamic>>> segmentImage(dynamic imageSource) async {
     if (!enableDebugGridSegmentation) {
       throw UnsupportedError(

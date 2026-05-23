@@ -1,12 +1,12 @@
 # Advertising and Growth Strategy
 
-This document outlines a comprehensive advertising and growth strategy for the Waste Segregation App, focusing on cost-effective user acquisition, sustainable revenue generation through advertising, and viral growth mechanics.
+This document outlines a comprehensive advertising and growth strategy for the ReLoop, focusing on cost-effective user acquisition, sustainable revenue generation through advertising, and viral growth mechanics.
 
 ## 1. Advertising-Based Revenue Strategy
 
 ### Ad Integration Philosophy
 
-The Waste Segregation App will implement a thoughtful, user-respectful advertising approach that:
+The ReLoop will implement a thoughtful, user-respectful advertising approach that:
 
 1. **Preserves Core Experience**: Ads never interrupt the classification workflow
 2. **Adds Value When Possible**: Educational and relevant ad content
@@ -474,7 +474,7 @@ class SharingService {
       );
       
       // Prepare sharing content
-      final title = 'I just unlocked ${achievement.title} on Waste Segregation App!';
+      final title = 'I just unlocked ${achievement.title} on ReLoop!';
       final message = '${achievement.description}\n\nJoin me in making better waste decisions and earn your own achievements!\n\n$dynamicLink';
       
       // Show share sheet
@@ -519,7 +519,7 @@ class SharingService {
       
       // Prepare sharing content
       final title = 'My Recycling Impact!';
-      final message = 'I\'ve properly classified $itemsCount items with the Waste Segregation App, saving an estimated ${co2Saved.toStringAsFixed(1)}kg of CO2 - equivalent to $treesEquivalent trees! 🌱\n\nStart tracking your impact too!\n\n$dynamicLink';
+      final message = 'I\'ve properly classified $itemsCount items with the ReLoop, saving an estimated ${co2Saved.toStringAsFixed(1)}kg of CO2 - equivalent to $treesEquivalent trees! 🌱\n\nStart tracking your impact too!\n\n$dynamicLink';
       
       // Show share sheet
       final result = await Share.shareFiles(
@@ -558,7 +558,7 @@ class SharingService {
       
       // Prepare sharing content
       final title = 'Join my ${challenge.title} Challenge!';
-      final message = 'I\'ve started a ${challenge.title} challenge on the Waste Segregation App and want you to join!\n\n${challenge.description}\n\nJoin now and let\'s make an impact together!\n\n$dynamicLink';
+      final message = 'I\'ve started a ${challenge.title} challenge on the ReLoop and want you to join!\n\n${challenge.description}\n\nJoin now and let\'s make an impact together!\n\n$dynamicLink';
       
       // Determine sharing method
       if (friendEmails.isNotEmpty) {
@@ -1614,7 +1614,7 @@ class MarketingBudgetAllocationTool {
 
 ## Conclusion
 
-This comprehensive advertising and growth strategy provides a roadmap for efficiently acquiring users, monetizing through advertising, and optimizing growth channels for the Waste Segregation App. By implementing these strategies in phases, a solo developer can effectively compete with larger teams while maintaining user experience quality.
+This comprehensive advertising and growth strategy provides a roadmap for efficiently acquiring users, monetizing through advertising, and optimizing growth channels for the ReLoop. By implementing these strategies in phases, a solo developer can effectively compete with larger teams while maintaining user experience quality.
 
 The dual focus on monetization through tasteful advertising and cost-effective user acquisition creates a sustainable growth model, while viral mechanics reduce dependency on paid channels. The systematic approach to measurement and optimization ensures continuous improvement of key metrics over time.
 

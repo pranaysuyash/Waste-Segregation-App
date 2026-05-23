@@ -298,7 +298,7 @@ class ClassificationPipeline {
     return WasteClassification(
       itemName: localResult.subcategory ?? localResult.category,
       category: localResult.category,
-      subcategory: localResult.subcategory,
+      subCategory: localResult.subcategory,
       explanation:
           'Classified by on-device model (${localResult.modelVersion}).',
       disposalInstructions: disposal ??

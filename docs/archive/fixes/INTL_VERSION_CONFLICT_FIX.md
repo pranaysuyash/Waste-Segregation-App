@@ -6,7 +6,7 @@
 
 ## Problem Statement
 
-The Waste Segregation App was experiencing CI/CD build failures due to a dependency version conflict between the explicit `intl` package constraint and the Flutter SDK's `flutter_localizations` package.
+The ReLoop was experiencing CI/CD build failures due to a dependency version conflict between the explicit `intl` package constraint and the Flutter SDK's `flutter_localizations` package.
 
 ### Error Message
 

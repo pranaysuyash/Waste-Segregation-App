@@ -1,7 +1,7 @@
 # Classification Caching - Technical Specification
 
 ## Overview
-This document provides detailed technical specifications for implementing image classification caching in the Waste Segregation application. It serves as a comprehensive guide for developers working on the feature implementation.
+This document provides detailed technical specifications for implementing image classification caching in the ReLoop application. It serves as a comprehensive guide for developers working on the feature implementation.
 
 ## Architecture
 

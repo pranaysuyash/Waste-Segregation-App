@@ -1,6 +1,6 @@
-# Waste Segregation App: Project Learnings & Technical Insights
+# ReLoop: Project Learnings & Technical Insights
 
-This document captures key technical learnings, issues, and solutions discovered during the development and release process of WasteWise. Updated continuously with the most critical insights for future development.
+This document captures key technical learnings, issues, and solutions discovered during the development and release process of ReLoop. Updated continuously with the most critical insights for future development.
 
 _Last updated: June 16, 2025_
 
@@ -140,7 +140,7 @@ _Last updated: June 16, 2025_
    - **Files**:
      ```xml
      <!-- android/app/src/main/res/values/strings.xml -->
-     <string name="app_name">WasteWise</string>
+     <string name="app_name">ReLoop</string>
      
      <!-- AndroidManifest.xml -->
      android:label="@string/app_name"
@@ -200,7 +200,7 @@ _Last updated: June 16, 2025_
 1. **Release Notes Psychology**
    - **Effective Template**:
      ```
-     Welcome to WasteWise! 🌱
+     Welcome to ReLoop! 🌱
      
      • AI-powered waste identification and sorting
      • Google Sign-In and guest mode

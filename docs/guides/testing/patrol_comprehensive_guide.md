@@ -589,7 +589,7 @@ import 'package:waste_segregation_app/services/haptic_settings_service.dart';
 import 'package:waste_segregation_app/services/community_service.dart';
 
 void main() {
-  group('Waste Segregation App - Real E2E Tests', () {
+  group('ReLoop - Real E2E Tests', () {
     
     patrolTest(
       'App Launch and Navigation Flow',
@@ -839,7 +839,7 @@ class ModernHomeScreen extends StatelessWidget {
       key: const Key('home-screen'), // Add this key
       appBar: AppBar(
         key: const Key('home-app-bar'), // Add this key
-        title: Text('Waste Segregation'),
+        title: Text('ReLoop'),
       ),
       body: Column(
         children: [

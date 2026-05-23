@@ -6,7 +6,7 @@
 - **UI and Media Rendering**: Improved text overflow handling and media (video/image) rendering in educational content screens (see `result_screen.dart`, `content_detail_screen.dart`).
 - **Centralized Error Handling**: Error handling is now standardized using `AppException` and `ErrorHandler` (see `constants.dart`).
 
-This directory contains documentation related to the AI and machine learning components of the Waste Segregation App.
+This directory contains documentation related to the AI and machine learning components of the ReLoop.
 
 ## Main Files
 

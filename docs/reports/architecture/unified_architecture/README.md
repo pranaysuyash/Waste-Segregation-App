@@ -1,6 +1,6 @@
 # Unified Architecture Documentation
 
-This directory contains a consolidated view of the Waste Segregation App's technical architecture, bringing together previously separate documentation about different aspects of the system architecture into a cohesive, comprehensive resource.
+This directory contains a consolidated view of the ReLoop's technical architecture, bringing together previously separate documentation about different aspects of the system architecture into a cohesive, comprehensive resource.
 
 ## Files in this Directory
 

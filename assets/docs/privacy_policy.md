@@ -2,7 +2,7 @@
 
 _Last updated: May 2025_
 
-Thank you for using the Waste Segregation App ("the App"). Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application.
+Thank you for using the ReLoop ("the App"). Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application.
 
 ## 1. Information We Collect
 

@@ -1,7 +1,7 @@
 # User Flows Documentation
 *Last Updated: December 2024*
 
-This directory contains comprehensive documentation for all user flows in the WasteWise application, from basic interactions to advanced features and future enhancements.
+This directory contains comprehensive documentation for all user flows in the ReLoop application, from basic interactions to advanced features and future enhancements.
 
 ## 📋 Documentation Overview
 
@@ -160,4 +160,4 @@ For questions, suggestions, or updates to these user flows:
 
 ---
 
-*This documentation is living and should be updated regularly to reflect the current state and future vision of the WasteWise application.*
+*This documentation is living and should be updated regularly to reflect the current state and future vision of the ReLoop application.*

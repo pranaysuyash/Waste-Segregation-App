@@ -1,6 +1,6 @@
 # Advanced Gamification System
 
-This document outlines the enhanced gamification framework for the Waste Segregation App, designed to drive user engagement, behavior change, and retention while promoting sustainable waste management practices.
+This document outlines the enhanced gamification framework for the ReLoop, designed to drive user engagement, behavior change, and retention while promoting sustainable waste management practices.
 
 ## 1. Overview
 

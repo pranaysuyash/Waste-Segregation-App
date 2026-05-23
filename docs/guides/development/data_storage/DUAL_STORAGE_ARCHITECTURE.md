@@ -9,7 +9,7 @@
 
 ## 📋 **OVERVIEW**
 
-The Waste Segregation App implements a sophisticated **dual storage architecture** that serves both user needs and business intelligence requirements. Every classification is strategically stored in multiple locations to ensure data security, enable machine learning improvements, and provide comprehensive user support.
+The ReLoop implements a sophisticated **dual storage architecture** that serves both user needs and business intelligence requirements. Every classification is strategically stored in multiple locations to ensure data security, enable machine learning improvements, and provide comprehensive user support.
 
 ---
 

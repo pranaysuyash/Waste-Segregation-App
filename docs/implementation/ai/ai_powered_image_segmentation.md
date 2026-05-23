@@ -1,10 +1,10 @@
 # AI-Powered Image Segmentation Enhancements
 
-This document outlines advanced AI-powered image segmentation strategies for the Waste Segregation App, focusing on improving accuracy, handling complex waste items, and enabling real-time segmentation for a more intuitive classification experience.
+This document outlines advanced AI-powered image segmentation strategies for the ReLoop, focusing on improving accuracy, handling complex waste items, and enabling real-time segmentation for a more intuitive classification experience.
 
 ## 1. Overview
 
-Image segmentation is a critical component of the Waste Segregation App, allowing users to identify individual waste items within images containing multiple objects. By enhancing the AI segmentation capabilities, the app can provide more precise classifications, handle complex mixed-waste scenarios, and create a more interactive user experience.
+Image segmentation is a critical component of the ReLoop, allowing users to identify individual waste items within images containing multiple objects. By enhancing the AI segmentation capabilities, the app can provide more precise classifications, handle complex mixed-waste scenarios, and create a more interactive user experience.
 
 ## 2. Current Implementation Status (Updated May 2025)
 
@@ -386,7 +386,7 @@ For user-guided segmentation:
 
 ## Conclusion
 
-The AI-powered image segmentation enhancements will significantly improve the Waste Segregation App's ability to handle complex waste scenarios, provide more accurate classifications, and create a more intuitive user experience. By implementing state-of-the-art models optimized for mobile devices, the app can offer advanced segmentation capabilities while maintaining privacy, performance, and battery efficiency.
+The AI-powered image segmentation enhancements will significantly improve the ReLoop's ability to handle complex waste scenarios, provide more accurate classifications, and create a more intuitive user experience. By implementing state-of-the-art models optimized for mobile devices, the app can offer advanced segmentation capabilities while maintaining privacy, performance, and battery efficiency.
 
 Based on the video demo review, implementing these segmentation improvements is a critical priority for addressing the inconsistency issues observed with complex scenes. The roadmap has been updated to focus first on connecting the existing UI elements to functional backend processing, then expanding to full multi-object detection and classification.
 

@@ -1,5 +1,5 @@
 # Analytics Implementation TODOs
-## Waste Segregation App
+## ReLoop
 
 **Date Created:** June 19, 2025  
 **Last Updated:** June 19, 2025  

@@ -192,4 +192,4 @@ This fix resolves the web compatibility issue while maintaining the existing Was
 - **Environment Variables**: No changes required
 - **Dependencies**: No updates needed
 
-This fix ensures the Waste Segregation App works correctly on web browsers while maintaining full functionality on mobile and desktop platforms. 
+This fix ensures the ReLoop works correctly on web browsers while maintaining full functionality on mobile and desktop platforms. 

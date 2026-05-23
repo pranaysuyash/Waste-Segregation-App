@@ -1,6 +1,6 @@
 # Future User Flows
 
-This document outlines planned future user flows for the Waste Segregation App, representing the roadmap for new functionality and enhanced user experiences.
+This document outlines planned future user flows for the ReLoop, representing the roadmap for new functionality and enhanced user experiences.
 
 ## Upcoming Enhanced User Flows
 

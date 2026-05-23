@@ -1,6 +1,6 @@
 # Data Storage and Management Strategy
 
-This document outlines a comprehensive strategy for efficiently managing data in the Waste Segregation App, with a focus on classification data, user-generated content, images, and app assets. The strategy emphasizes performance, efficiency, and data privacy while accounting for the resource constraints of solo development.
+This document outlines a comprehensive strategy for efficiently managing data in the ReLoop, with a focus on classification data, user-generated content, images, and app assets. The strategy emphasizes performance, efficiency, and data privacy while accounting for the resource constraints of solo development.
 
 ## 1. Data Requirements Overview
 
@@ -75,7 +75,7 @@ This is implemented via a `clearAllUserData()` method in the `StorageService`, w
 
 #### Database Selection
 
-For the Waste Segregation App, a combination of storage solutions will be used:
+For the ReLoop, a combination of storage solutions will be used:
 
 1. **Primary Structured Data**: Hive (NoSQL)
    - Advantages: Fast performance, type safety, encryption support
@@ -2328,7 +2328,7 @@ class SecureStorage {
 
 ## Conclusion
 
-This comprehensive data storage and management strategy provides a robust approach for efficiently handling the various data types and access patterns in the Waste Segregation App. By implementing a layered architecture with local-first storage, efficient caching, and thoughtful cloud integration, the app can provide excellent performance and offline capabilities while respecting user privacy.
+This comprehensive data storage and management strategy provides a robust approach for efficiently handling the various data types and access patterns in the ReLoop. By implementing a layered architecture with local-first storage, efficient caching, and thoughtful cloud integration, the app can provide excellent performance and offline capabilities while respecting user privacy.
 
 The implementation roadmap provides a structured approach for incrementally building the data management system, allowing a solo developer to make consistent progress while maintaining a functional application throughout development.
 
@@ -2340,4 +2340,4 @@ Key benefits of this strategy include:
 4. **Scalable Architecture**: Supporting growth from initial users to large-scale adoption
 5. **Resource Efficiency**: Optimized for solo development with phased implementation
 
-By following this strategy, the Waste Segregation App will have a solid data foundation that supports its core functionality while enabling future feature expansion.
+By following this strategy, the ReLoop will have a solid data foundation that supports its core functionality while enabling future feature expansion.

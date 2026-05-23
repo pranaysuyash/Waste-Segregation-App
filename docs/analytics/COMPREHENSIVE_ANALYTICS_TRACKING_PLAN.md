@@ -1,5 +1,5 @@
 # Comprehensive Analytics Tracking Plan
-## Waste Segregation App
+## ReLoop
 
 **Document Version:** 1.0  
 **Date:** June 19, 2025  

@@ -1,8 +1,8 @@
-# Waste Segregation App: Comprehensive Testing Strategy
+# ReLoop: Comprehensive Testing Strategy
 
 ## Overview
 
-This document outlines the comprehensive testing strategy for the Waste Segregation App, covering all aspects of quality assurance from unit tests to production monitoring.
+This document outlines the comprehensive testing strategy for the ReLoop, covering all aspects of quality assurance from unit tests to production monitoring.
 
 ## Table of Contents
 
@@ -102,7 +102,7 @@ testWidgets('should display main navigation elements', (tester) async {
   
   await tester.pumpAndSettle();
   
-  expect(find.text('Waste Segregation'), findsOneWidget);
+  expect(find.text('ReLoop'), findsOneWidget);
   expect(find.byIcon(Icons.camera_alt), findsOneWidget);
   expect(find.byIcon(Icons.history), findsOneWidget);
 });
@@ -250,7 +250,7 @@ class ExampleServiceTest {
 
 ## Conclusion
 
-This comprehensive testing strategy ensures the Waste Segregation App maintains:
+This comprehensive testing strategy ensures the ReLoop maintains:
 - **High Quality**: Comprehensive coverage across all application layers
 - **Fast Development**: Efficient testing processes
 - **Reliability**: Robust error handling and edge case coverage

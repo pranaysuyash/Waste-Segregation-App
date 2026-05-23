@@ -1,7 +1,7 @@
 # Worklog Addendum - SAST Remediation - 2026-03-12
 
 ## Objective
-Address the user-reported SAST findings for the Waste Segregation app in the actual repo under `LLM/image/waste_seg/waste_segregation_app`.
+Address the user-reported SAST findings for the ReLoop app in the actual repo under `LLM/image/waste_seg/waste_segregation_app`.
 
 ## Scope
 - Fix workflow shell/template injection in `.github/workflows/check-no-golden-failures.yml`.

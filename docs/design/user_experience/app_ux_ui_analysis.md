@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This document provides a comprehensive analysis of the current User Experience (UX) and User Interface (UI) of the Waste Segregation App. It aims to identify existing user flows, evaluate current screen designs, and propose improvements, new features, and enhanced user flows. The goal is to create a more intuitive, engaging, and effective application.
+This document provides a comprehensive analysis of the current User Experience (UX) and User Interface (UI) of the ReLoop. It aims to identify existing user flows, evaluate current screen designs, and propose improvements, new features, and enhanced user flows. The goal is to create a more intuitive, engaging, and effective application.
 
 ## 2. Methodology
 
@@ -118,7 +118,7 @@ The analysis involves:
 
 ```
 +-----------------------------------------------------+
-| AppBar: "WasteWise" (App Name) / Greeting           |
+| AppBar: "ReLoop" (App Name) / Greeting           |
 | Actions: [Profile Icon] [Settings Icon (optional)]  |
 +-----------------------------------------------------+
 | Optional: Quick Stats / Tip Banner                  |
@@ -420,7 +420,7 @@ This flow is central to the app's purpose and typically involves several steps: 
 *   **User Feedback Loop:**
     *   Make "Suggest an Edit" very prominent and easy to use.
     *   Option to flag "I'm not sure about this item" for community/expert review.
-*   **Shareable Results:** Allow users to share their findings (e.g., "I just learned how to recycle X! #WasteWiseApp").
+*   **Shareable Results:** Allow users to share their findings (e.g., "I just learned how to recycle X! #ReLoopApp").
 *   **Save to Collection/Log:** Automatically added to history, but perhaps an option to add to a specific user-curated collection (e.g., "Tricky Items I've Learned About").
 *   **One-Click Access to Related Challenges:** "This item counts towards the 'Plastic Purge' challenge! [View Challenge]"
 
@@ -1030,7 +1030,7 @@ This screen allows users to view and manage their personal information, applicat
 |     - Delete Account [Link, with confirmation]      |
 |   > Support & Info                                  |
 |     - Help Center / FAQ [Link]                      |
-|     - About WasteWise App [Link]                    |
+|     - About ReLoop App [Link]                    |
 |     - Privacy Policy / Terms [Link]                 |
 |                                                     |
 |   [Button: "Logout"] (Prominently, but safely placed)|
@@ -1183,8 +1183,8 @@ This screen provides users with options to configure various aspects of the appl
 |   +-----------------------------------------------+ |
 |   | [Icon] Help Center / FAQ                      | |
 |   | [Icon] Send Feedback / Report Issue           | |
-|   | [Icon] Rate WasteWise App                     | |
-|   | [Icon] About WasteWise (Version, Licenses)    | |
+|   | [Icon] Rate ReLoop App                     | |
+|   | [Icon] About ReLoop (Version, Licenses)    | |
 |   +-----------------------------------------------+ |
 |                                                     |
 |   [Button: Reset All Settings to Default] (subtle)  |
@@ -1216,7 +1216,7 @@ Based on the screen-by-screen analysis, several potential new user flows and fea
 *   **Community-Based Feedback on Unclear Items:**
     *   **Flow:** If AI is unsure, or user flags an item, allow (opt-in) submission to a moderated community or expert panel for clarification. User gets a notification when a consensus is reached.
 *   **Shareable Impact Cards/Summaries:**
-    *   **Flow:** Users can generate a shareable image/card summarizing their achievements or environmental impact (e.g., "I've diverted X items from landfill this month with WasteWise!").
+    *   **Flow:** Users can generate a shareable image/card summarizing their achievements or environmental impact (e.g., "I've diverted X items from landfill this month with ReLoop!").
 *   **Themed Content Collections / Learning Paths:**
     *   **Flow:** Curated collections of educational articles, videos, and quizzes forming a "learning path" (e.g., "Beginner's Guide to Recycling," "Mastering Composting"). Users can track their progress through a path.
 *   **Direct Feedback on AI Classification (Beyond "Correct/Incorrect"):**
@@ -1230,7 +1230,7 @@ Based on the screen-by-screen analysis, several potential new user flows and fea
 
 ## 6. Conclusion & Next Steps for Design Iteration
 
-This initial UX/UI analysis has reviewed key screens and user flows within the Waste Segregation App, identifying numerous opportunities for improvement and potential new features. The "Before" and "After" wireframes provide a conceptual basis for redesign, guided by the "Global UX/UI Themes" identified.
+This initial UX/UI analysis has reviewed key screens and user flows within the ReLoop, identifying numerous opportunities for improvement and potential new features. The "Before" and "After" wireframes provide a conceptual basis for redesign, guided by the "Global UX/UI Themes" identified.
 
 **Key Findings Summary:**
 

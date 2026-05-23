@@ -1,4 +1,4 @@
-# Exploration Backlog — Waste Segregation App
+# Exploration Backlog — ReLoop
 
 **Last Updated**: 2026-05-21
 

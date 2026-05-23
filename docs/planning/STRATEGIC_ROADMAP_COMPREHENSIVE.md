@@ -1,4 +1,4 @@
-# 🚀 Strategic Roadmap - Waste Segregation App
+# 🚀 Strategic Roadmap - ReLoop
 **Comprehensive Feature Development & Innovation Strategy**
 
 **Last Updated**: December 2024  

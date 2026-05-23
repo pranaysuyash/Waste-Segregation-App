@@ -1,10 +1,10 @@
 # Advanced Analytics Strategy
 
-This document outlines the analytics strategy for the Waste Segregation App, detailing how data will be collected, analyzed, and leveraged to improve user experience, drive environmental impact, and support business objectives.
+This document outlines the analytics strategy for the ReLoop, detailing how data will be collected, analyzed, and leveraged to improve user experience, drive environmental impact, and support business objectives.
 
 ## Analytics Vision
 
-The Waste Segregation App will implement a comprehensive analytics infrastructure that goes beyond basic usage metrics to deliver actionable insights across three key dimensions:
+The ReLoop will implement a comprehensive analytics infrastructure that goes beyond basic usage metrics to deliver actionable insights across three key dimensions:
 
 1. **User-Centered Analytics**: Understanding user behavior, preferences, and impact to enhance engagement and drive sustainable behaviors.
 
@@ -342,8 +342,8 @@ The effectiveness of the analytics strategy itself will be measured through:
 
 ## Conclusion
 
-The advanced analytics strategy outlined in this document provides a comprehensive approach to deriving value from data throughout the Waste Segregation App ecosystem. By implementing this strategy, the app can continuously improve user experience, maximize environmental impact, and drive business success through data-informed decision making.
+The advanced analytics strategy outlined in this document provides a comprehensive approach to deriving value from data throughout the ReLoop ecosystem. By implementing this strategy, the app can continuously improve user experience, maximize environmental impact, and drive business success through data-informed decision making.
 
 The phased implementation approach ensures that analytics capabilities grow alongside the app, providing immediate value while building toward a sophisticated data science infrastructure. With careful attention to privacy and ethics, the analytics system will generate insights that benefit users, partners, and the environment while respecting user rights and preferences.
 
-When fully realized, this analytics strategy will transform the Waste Segregation App from a useful tool into an intelligent platform that adapts to user needs, quantifies its environmental impact, and continuously optimizes for maximum effectiveness.
+When fully realized, this analytics strategy will transform the ReLoop from a useful tool into an intelligent platform that adapts to user needs, quantifies its environmental impact, and continuously optimizes for maximum effectiveness.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Multilingual Support & Voice Classification feature is designed to make the Waste Segregation App accessible to a wider audience across India's diverse linguistic landscape while also providing alternative input methods for users who prefer speaking or have literacy limitations. This feature aims to make proper waste management accessible to all Indians regardless of language preference or literacy level.
+The Multilingual Support & Voice Classification feature is designed to make the ReLoop accessible to a wider audience across India's diverse linguistic landscape while also providing alternative input methods for users who prefer speaking or have literacy limitations. This feature aims to make proper waste management accessible to all Indians regardless of language preference or literacy level.
 
 ## 1. Feature Description
 

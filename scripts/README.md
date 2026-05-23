@@ -1,5 +1,5 @@
 # Scripts Directory Index
-## Waste Segregation App - Development & Build Scripts
+## ReLoop - Development & Build Scripts
 
 *Last Updated: June 6, 2025*
 

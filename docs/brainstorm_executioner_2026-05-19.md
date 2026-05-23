@@ -1,4 +1,4 @@
-# EXECUTIONER REPORT: Token Economy for Waste Segregation App
+# EXECUTIONER REPORT: Token Economy for ReLoop
 
 Date: 2026-05-19
 Role: Executioner — kill-test the token enforcement proposal

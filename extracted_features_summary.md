@@ -194,11 +194,11 @@
 - _IndividualResultPlaceholder(classification: classification),
 - class _IndividualResultPlaceholder extends StatelessWidget {
 - const _IndividualResultPlaceholder({required this.classification});
-- This document provides a comprehensive analysis of the current User Experience (UX) and User Interface (UI) of the Waste Segregation App. It aims to identify existing user flows, evaluate current screen designs, and propose improvements, new features, and enhanced user flows. The goal is to create a more intuitive, engaging, and effective application.
+- This document provides a comprehensive analysis of the current User Experience (UX) and User Interface (UI) of the ReLoop. It aims to identify existing user flows, evaluate current screen designs, and propose improvements, new features, and enhanced user flows. The goal is to create a more intuitive, engaging, and effective application.
 - |   | [Profile Picture Placeholder/Avatar]            | |
 - *   **Onboarding Tour for New Features:**
 - *   **Flow:** When significant new features are released, provide a brief, dismissible in-app tour highlighting what's new and how to use it.
-- This initial UX/UI analysis has reviewed key screens and user flows within the Waste Segregation App, identifying numerous opportunities for improvement and potential new features. The "Before" and "After" wireframes provide a conceptual basis for redesign, guided by the "Global UX/UI Themes" identified.
+- This initial UX/UI analysis has reviewed key screens and user flows within the ReLoop, identifying numerous opportunities for improvement and potential new features. The "Before" and "After" wireframes provide a conceptual basis for redesign, guided by the "Global UX/UI Themes" identified.
 - 7.  **Plan Phased Implementation:** Break down the desired changes and new features into manageable development phases or sprints.
 - If no image is available yet and we are not analyzing, show a loader or placeholder
 - **✨ NEW FEATURE - User Feedback System**
@@ -300,7 +300,7 @@
 - | TC-11 | **Missing** | No in_app_purchase package; `lib/screens/premium_features_screen.dart:290-295` has stub comment | No real purchase flow | Zero ability for users to buy tokens or premium | Implement IAP or token purchase flow |
 - placeholder,  // Immediate placeholder
 - Immediate visual feedback (placeholder)
-- This document summarizes the latest trends in waste management technology, with a focus on mobile applications, gamification, and community engagement. It serves as a reference for identifying new feature opportunities for the Waste Segregation App.
+- This document summarizes the latest trends in waste management technology, with a focus on mobile applications, gamification, and community engagement. It serves as a reference for identifying new feature opportunities for the ReLoop.
 - """Placeholder for on-device local_small classifier.
 - Returns a stub until LocalClassifier is wired into the eval harness.
 - Create PR to see all new features
@@ -312,7 +312,7 @@
 - **Status**: TODO (Integrate with new feature designs)
 - [ ] 🔄 Update API documentation for new features
 - Updated user_doc.md with new feature descriptions
-- Proposed New Features for Waste Segregation App
+- Proposed New Features for ReLoop
 - **Task**: Template interpolation library – add to utils/ with unit tests for placeholder validation.
 - **QUICK_START.md** - Quick implementation guide for new features
 - 1. **ENGINEERING_BACKLOG_CONSOLIDATED.md** - 📋 **12-week roadmap** (START HERE for new features)
@@ -378,7 +378,7 @@
 - **Testing:** All new features must have >90% test coverage
 - `test/ui_consistency/comprehensive_overflow_test.dart` is currently skipped and should be treated as a stale coverage stub until migrated.
 - Address performance issues before new features
-- 📱 New Feature Alert! [Feature name] now helps you [benefit]. Update your Waste Segregation App today to access this game-changing capability. #AppUpdate #NewFeature
+- 📱 New Feature Alert! [Feature name] now helps you [benefit]. Update your ReLoop today to access this game-changing capability. #AppUpdate #NewFeature
 - **New Feature Announcement**
 - We're excited to announce a powerful new feature that makes waste sorting even easier!
 - [ ] **AdMob placeholder IDs replaced** with real ad unit IDs

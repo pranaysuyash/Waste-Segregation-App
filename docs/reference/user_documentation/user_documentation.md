@@ -1,6 +1,6 @@
-# Waste Segregation App - User Guide
+# ReLoop - User Guide
 
-## Welcome to the Waste Segregation App!
+## Welcome to the ReLoop!
 
 This educational app helps you learn how to properly segregate waste using AI-powered image recognition. Simply take a photo of an item, and the app will tell you how to dispose of it correctly.
 
@@ -238,4 +238,4 @@ The Leaderboard lets you see how your performance compares to other users!
 
 You'll be able to switch between leaderboard types using tabs or dropdowns. Each leaderboard will have its own set of badges and rewards for top performers. Stay tuned for these exciting updates!
 
-Thank you for using the Waste Segregation App and contributing to better waste management!
+Thank you for using the ReLoop and contributing to better waste management!

@@ -1,12 +1,12 @@
 # Data Privacy and Compliance Framework
 
-This document outlines the comprehensive privacy and compliance strategy for the Waste Segregation App, ensuring adherence to global privacy regulations while maintaining user trust and data security.
+This document outlines the comprehensive privacy and compliance strategy for the ReLoop, ensuring adherence to global privacy regulations while maintaining user trust and data security.
 
 ## 1. Privacy by Design Principles
 
 ### Core Privacy Principles
 
-The Waste Segregation App implements Privacy by Design through these foundational principles:
+The ReLoop implements Privacy by Design through these foundational principles:
 
 1. **Data Minimization**: Collect only data essential for app functionality
 2. **Purpose Limitation**: Use data solely for stated, legitimate purposes
@@ -123,7 +123,7 @@ class PrivacyRightsManager {
 
 ### Data Protection Impact Assessment (DPIA)
 
-A DPIA has been conducted for the Waste Segregation App with the following key findings:
+A DPIA has been conducted for the ReLoop with the following key findings:
 
 1. **Low Risk Areas**:
    - Account information (minimal data collected)
@@ -674,6 +674,6 @@ To maintain continuous compliance, the system includes:
 
 ## Conclusion
 
-This privacy and compliance framework provides a comprehensive approach to protecting user data while meeting global regulatory requirements. By implementing these measures, the Waste Segregation App will build user trust, reduce compliance risks, and demonstrate commitment to ethical data practices.
+This privacy and compliance framework provides a comprehensive approach to protecting user data while meeting global regulatory requirements. By implementing these measures, the ReLoop will build user trust, reduce compliance risks, and demonstrate commitment to ethical data practices.
 
 The design principles embedded in this framework not only address current compliance requirements but also establish a foundation for adapting to evolving privacy regulations and user expectations. Through transparent practices, granular controls, and robust security measures, the app respects user privacy while delivering valuable waste management functionality.

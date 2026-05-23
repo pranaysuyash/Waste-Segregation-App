@@ -6,7 +6,7 @@
 
 ## Problem Statement
 
-The instant analysis flow in the Waste Segregation App had a critical issue where classifications were never saved to Hive storage, leaving the history empty and bypassing all gamification hooks.
+The instant analysis flow in the ReLoop had a critical issue where classifications were never saved to Hive storage, leaving the history empty and bypassing all gamification hooks.
 
 ### Root Cause Analysis
 

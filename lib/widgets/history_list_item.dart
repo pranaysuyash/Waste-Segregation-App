@@ -294,7 +294,7 @@ class HistoryListItem extends StatelessWidget {
       ),
     );
 
-    if (classification.subcategory != null) {
+    if (classification.normalizedSubcategory != null) {
       tags.add(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -306,7 +306,7 @@ class HistoryListItem extends StatelessWidget {
             ),
           ),
           child: Text(
-            classification.subcategory!,
+            classification.normalizedSubcategory!,
             style: TextStyle(
               color: categoryColor,
               fontSize: AppTheme.fontSizeSmall,
@@ -317,7 +317,7 @@ class HistoryListItem extends StatelessWidget {
       );
     }
 
-    if (classification.materialType != null) {
+    if (classification.normalizedMaterials.isNotEmpty) {
       tags.add(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -329,7 +329,7 @@ class HistoryListItem extends StatelessWidget {
             ),
           ),
           child: Text(
-            classification.materialType!,
+            classification.normalizedMaterials.first,
             style: TextStyle(
               color: Colors.grey.shade700,
               fontSize: AppTheme.fontSizeSmall,

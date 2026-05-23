@@ -364,7 +364,7 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
 
       final link = DynamicLinkService.createResultLink(classification);
       final shareText =
-          'I identified ${classification.itemName} as ${classification.category} waste using the Waste Segregation app!\n$link';
+          'I identified ${classification.itemName} as ${classification.category} waste using the ReLoop app!\n$link';
 
       await ShareService.share(
         text: shareText,

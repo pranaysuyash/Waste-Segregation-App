@@ -248,4 +248,4 @@ ChangeNotifierProvider(
 - **`SettingsScreen`**: Provides user interface for configuration
 - **`NavigationWrapper`**: Orchestrates navigation component rendering
 
-This service is essential for providing a customizable and user-friendly navigation experience, allowing users to personalize their interaction with the Waste Segregation App while maintaining consistent functionality across different navigation styles. 
+This service is essential for providing a customizable and user-friendly navigation experience, allowing users to personalize their interaction with the ReLoop while maintaining consistent functionality across different navigation styles. 

@@ -6,7 +6,7 @@
 
 ## Overview
 
-Successfully implemented the comprehensive rollout package to fix critical P0 issues in the Waste Segregation App. All major synchronization and UI issues have been resolved.
+Successfully implemented the comprehensive rollout package to fix critical P0 issues in the ReLoop. All major synchronization and UI issues have been resolved.
 
 ## Issues Addressed
 

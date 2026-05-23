@@ -355,4 +355,4 @@ ImpactVisualizationRing(
 
 ---
 
-*This component is part of the Waste Segregation App's advanced UI system. For more information about the design system, see `utils/design_system.dart`.*
+*This component is part of the ReLoop's advanced UI system. For more information about the design system, see `utils/design_system.dart`.*

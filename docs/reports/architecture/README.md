@@ -1,6 +1,6 @@
 # Architecture Documentation
 
-This directory previously contained component-specific architecture documentation for the Waste Segregation App.
+This directory previously contained component-specific architecture documentation for the ReLoop.
 
 ## Main File
 

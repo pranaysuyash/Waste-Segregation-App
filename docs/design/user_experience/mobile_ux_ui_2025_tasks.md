@@ -1,6 +1,6 @@
 # Mobile UX/UI 2025 Best Practices - Task List
 
-This document distills key actions for the Waste Segregation App based on the "Mobile UX/UI Analysis for Environmental Apps: 2025 Best Practices" research. The goal is to integrate modern usability, accessibility, and behavioral design patterns throughout the app.
+This document distills key actions for the ReLoop based on the "Mobile UX/UI Analysis for Environmental Apps: 2025 Best Practices" research. The goal is to integrate modern usability, accessibility, and behavioral design patterns throughout the app.
 
 ## 1. Authentication & Onboarding
 
@@ -65,4 +65,4 @@ This document distills key actions for the Waste Segregation App based on the "M
 
 ---
 
-These tasks should be incorporated into future sprints and design reviews to ensure the Waste Segregation App provides an engaging, accessible, and high-converting experience in line with 2025 best practices.
+These tasks should be incorporated into future sprints and design reviews to ensure the ReLoop provides an engaging, accessible, and high-converting experience in line with 2025 best practices.

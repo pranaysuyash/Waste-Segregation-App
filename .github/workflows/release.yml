@@ -94,7 +94,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        release_name: "Waste Segregation App ${{ steps.version.outputs.VERSION }}"
+        release_name: "ReLoop ${{ steps.version.outputs.VERSION }}"
         body: |
           ## What's New in ${{ steps.version.outputs.VERSION }}
           

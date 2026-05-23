@@ -1,5 +1,5 @@
 # Design Decisions & Architecture Log
-## Waste Segregation App - Decision History & Rationale
+## ReLoop - Decision History & Rationale
 
 > **Documenting key design and architecture decisions for future reference, onboarding, and audit trails**
 

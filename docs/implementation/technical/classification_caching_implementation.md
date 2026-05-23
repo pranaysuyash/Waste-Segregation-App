@@ -1,6 +1,6 @@
 # Classification Caching Implementation
 
-This document provides an overview of the image classification caching system implementation in the Waste Segregation application.
+This document provides an overview of the image classification caching system implementation in the ReLoop application.
 
 ## Implementation Summary
 

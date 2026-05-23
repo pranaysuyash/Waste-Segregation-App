@@ -2,7 +2,7 @@
 
 ## 1. Introduction & Goals
 
-This document outlines the design and functional specifications for the Admin Panel of the Waste Segregation App. The Admin Panel will serve as the central hub for managing app content, users, gamification mechanics, configurations, and monitoring overall app health. Its primary goal is to provide an efficient and intuitive interface for the app administrator (initially the solo developer) to perform all necessary backend operations, especially those related to content generation (AI-assisted and manual) and gamification management.
+This document outlines the design and functional specifications for the Admin Panel of the ReLoop. The Admin Panel will serve as the central hub for managing app content, users, gamification mechanics, configurations, and monitoring overall app health. Its primary goal is to provide an efficient and intuitive interface for the app administrator (initially the solo developer) to perform all necessary backend operations, especially those related to content generation (AI-assisted and manual) and gamification management.
 
 **Key Goals:**
 

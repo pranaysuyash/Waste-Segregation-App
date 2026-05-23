@@ -1,6 +1,6 @@
 # Structured JSONL Logging
 
-The Waste Segregation App now includes a comprehensive structured logging system using JSONL (JSON Lines) format. This enables better debugging, analysis, and LLM-based error investigation.
+The ReLoop now includes a comprehensive structured logging system using JSONL (JSON Lines) format. This enables better debugging, analysis, and LLM-based error investigation.
 
 ## Overview
 

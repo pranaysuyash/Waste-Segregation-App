@@ -1,4 +1,4 @@
-# 🧪 Test Status Summary - Waste Segregation App
+# 🧪 Test Status Summary - ReLoop
 
 **Last Updated**: January 6, 2025  
 **Status**: 🟡 **IN PROGRESS - Model Tests Fixed**

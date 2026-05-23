@@ -144,14 +144,14 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       );
 
       // Count subcategories
-      if (classification.subcategory?.isNotEmpty == true) {
+      if (classification.subCategory?.isNotEmpty == true) {
         _wasteSubcategoryCounts.update(
-          classification.subcategory!,
+          classification.subCategory!,
           (value) => value + 1,
           ifAbsent: () => 1,
         );
         _subcategoryCategoryMap.putIfAbsent(
-          classification.subcategory!,
+          classification.subCategory!,
           () => classification.category,
         );
       }
@@ -1078,8 +1078,8 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
               ),
             const SizedBox(height: AppTheme.paddingRegular),
             _buildDetailRow('Category', classification.category),
-            if (classification.subcategory?.isNotEmpty == true)
-              _buildDetailRow('Subcategory', classification.subcategory!),
+            if (classification.subCategory?.isNotEmpty == true)
+              _buildDetailRow('Subcategory', classification.subCategory!),
             _buildDetailRow('Recyclable',
                 classification.isRecyclable == true ? 'Yes' : 'No'),
             _buildDetailRow('Date',

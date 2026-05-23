@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This document details the technical implementation plan for Phase 1 of the Gamification and Engagement System for the Waste Segregation App. It builds upon the strategies outlined in `docs/project/enhancements/gamification_engagement_strategy.md` and focuses on delivering the Core Mechanics & Foundational Engagement (MVP).
+This document details the technical implementation plan for Phase 1 of the Gamification and Engagement System for the ReLoop. It builds upon the strategies outlined in `docs/project/enhancements/gamification_engagement_strategy.md` and focuses on delivering the Core Mechanics & Foundational Engagement (MVP).
 
 **Phase 1 Goals:** Implement essential gamification elements to reward core app behaviors (classification, learning), encourage consistency (streaks), provide basic progress tracking (points, badges, leaderboard), and gather initial user feedback.
 

@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a detailed analysis of the Insurance App's UI/UX patterns and offers comprehensive recommendations for improving the Waste Segregation App based on these insights. The insurance app demonstrates excellent modern Flutter practices that can significantly enhance the waste app's user experience.
+This document provides a detailed analysis of the Insurance App's UI/UX patterns and offers comprehensive recommendations for improving the ReLoop based on these insights. The insurance app demonstrates excellent modern Flutter practices that can significantly enhance the waste app's user experience.
 
 ---
 

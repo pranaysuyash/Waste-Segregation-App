@@ -1,5 +1,5 @@
 /**
- * Firestore Rules Unit Tests for Waste Segregation App
+ * Firestore Rules Unit Tests for ReLoop
  *
  * Tests prove that real app write shapes are accepted
  * and stale/unsafe shapes are rejected.

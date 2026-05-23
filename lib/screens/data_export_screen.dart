@@ -358,8 +358,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
                   ? (item.confidence! * 100).toStringAsFixed(1)
                   : 'N/A') +
               '%',
-          _escapeCsvField(item.subcategory ?? 'N/A'),
-          _escapeCsvField(item.materialType ?? 'N/A'),
+          _escapeCsvField(item.subCategory ?? 'N/A'),
+          _escapeCsvField(item.materials?.join(', ') ?? 'N/A'),
           _escapeCsvField(item.modelVersion ?? 'N/A'),
         ]);
       }
@@ -394,8 +394,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
                   'confidence': item.confidence,
                   'modelVersion': item.modelVersion,
                   'processingTimeMs': item.processingTimeMs,
-                  'subcategory': item.subcategory,
-                  'materialType': item.materialType,
+                  'subCategory': item.subCategory,
+                  'materials': item.materials,
                   'isRecyclable': item.isRecyclable,
                   'isCompostable': item.isCompostable,
                   'requiresSpecialDisposal': item.requiresSpecialDisposal,
@@ -427,15 +427,15 @@ class _DataExportScreenState extends State<DataExportScreen> {
       buffer.writeln('Classification ${i + 1}:');
       buffer.writeln('  Item: ${item.itemName}');
       buffer.writeln('  Category: ${item.category}');
-      if (item.subcategory != null) {
-        buffer.writeln('  Subcategory: ${item.subcategory}');
+      if (item.subCategory != null) {
+        buffer.writeln('  Subcategory: ${item.subCategory}');
       }
       buffer.writeln(
           '  Date: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(item.timestamp)}');
 
       if (_includeAnalytics) {
-        if (item.materialType != null) {
-          buffer.writeln('  Material: ${item.materialType}');
+        if (item.materials != null && item.materials!.isNotEmpty) {
+          buffer.writeln('  Material: ${item.materials!.join(', ')}');
         }
         if (item.isRecyclable != null) {
           buffer.writeln('  Recyclable: ${item.isRecyclable! ? 'Yes' : 'No'}');

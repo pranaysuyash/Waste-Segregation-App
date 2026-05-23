@@ -119,7 +119,7 @@ void main() {
         region: 'Bangalore, IN',
       );
       expect(result.category, equals('Dry Waste'));
-      expect(result.subcategory, equals('Plastic Bottle'));
+      expect(result.subCategory, equals('Plastic Bottle'));
       expect(result.confidence, greaterThan(0.90));
       expect(result.shouldEscalateToCloud, isFalse);
       expect(result.modelVersion, equals('1.0.0-test'));

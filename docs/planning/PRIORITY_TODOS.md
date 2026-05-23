@@ -1,4 +1,4 @@
-# 🚀 Waste Segregation App - Priority TODOs & Enhancements
+# 🚀 ReLoop - Priority TODOs & Enhancements
 
 **Last Updated:** Jun 06, 2025
 **Version:** 0.1.6+99

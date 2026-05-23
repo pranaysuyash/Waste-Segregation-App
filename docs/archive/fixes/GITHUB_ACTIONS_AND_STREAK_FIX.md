@@ -6,7 +6,7 @@
 
 ## Problem Statement
 
-This PR addressed two critical issues affecting the Waste Segregation App:
+This PR addressed two critical issues affecting the ReLoop:
 
 ### 1. Deprecated GitHub Actions (actions/upload-artifact@v3)
 

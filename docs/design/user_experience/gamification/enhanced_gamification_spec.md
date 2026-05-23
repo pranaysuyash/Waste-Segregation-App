@@ -1,6 +1,6 @@
 # Enhanced Gamification Specification
 
-This document provides a detailed specification for expanding the gamification features of the Waste Segregation App, based on industry research and best practices in environmental behavior change.
+This document provides a detailed specification for expanding the gamification features of the ReLoop, based on industry research and best practices in environmental behavior change.
 
 ## Current Gamification Implementation (Updated May 2025)
 
@@ -780,7 +780,7 @@ The enhanced gamification system will be evaluated based on the following metric
 
 ## Conclusion
 
-This enhanced gamification specification provides a comprehensive framework for expanding the current gamification elements in the Waste Segregation App. By implementing these features, the app can significantly increase user engagement, drive sustainable waste management behaviors, and create a vibrant community of environmentally conscious users.
+This enhanced gamification specification provides a comprehensive framework for expanding the current gamification elements in the ReLoop. By implementing these features, the app can significantly increase user engagement, drive sustainable waste management behaviors, and create a vibrant community of environmentally conscious users.
 
 Based on the video demo review, the highest priority is strengthening the action-reward connection by implementing immediate visual feedback when users classify items. This will make the gamification system feel more responsive and rewarding, directly addressing the gap observed in the demo.
 

@@ -1,7 +1,7 @@
 # Comprehensive User Flows Catalog
 *Last Updated: December 2024*
 
-This document serves as a comprehensive catalogue of end-to-end user flows for the WasteWise app—both what exists today and key future flows to design and implement. Use this as the basis for detailed flow diagrams, wireframes, and automated-agent tasks.
+This document serves as a comprehensive catalogue of end-to-end user flows for the ReLoop app—both what exists today and key future flows to design and implement. Use this as the basis for detailed flow diagrams, wireframes, and automated-agent tasks.
 
 ## Core User Flows
 

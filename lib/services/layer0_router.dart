@@ -216,7 +216,7 @@ class Layer0Router {
     return WasteClassification(
       itemName: itemName,
       category: category,
-      subcategory: subcategory,
+      subCategory: subcategory,
       explanation: 'Classified by deterministic Layer 0 ($source). '
           'This item matches known patterns for $category'
           '${subcategory != null ? ' / $subcategory' : ''}.',

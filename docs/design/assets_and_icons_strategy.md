@@ -1,9 +1,9 @@
-# Asset & Icon Strategy for Waste Segregation App
+# Asset & Icon Strategy for ReLoop
 
 _Last updated: May 2025_
 
 ## Overview
-This document outlines the strategy for sourcing, organizing, and integrating visual assets (icons, badges, illustrations) into the Waste Segregation App, with a focus on leveraging the Freepik API and ensuring design consistency and license compliance.
+This document outlines the strategy for sourcing, organizing, and integrating visual assets (icons, badges, illustrations) into the ReLoop, with a focus on leveraging the Freepik API and ensuring design consistency and license compliance.
 
 ---
 

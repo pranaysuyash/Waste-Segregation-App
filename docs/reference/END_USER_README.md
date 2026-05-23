@@ -1,4 +1,4 @@
-# WasteWise - AI-Powered Waste Segregation App
+# ReLoop - AI-Powered ReLoop
 ## Complete End-User Documentation & Project Overview
 
 > **Version 2.0.1** | **Production Ready** | **Cross-Platform Flutter App**  
@@ -8,7 +8,7 @@
 
 ## 🌟 **Project Overview**
 
-**WasteWise** is a comprehensive Flutter application that revolutionizes waste management through AI-powered material recognition, educational content, and gamified user engagement. The app helps users properly identify, segregate, and dispose of waste while building sustainable habits through community features and environmental education.
+**ReLoop** is a comprehensive Flutter application that revolutionizes waste management through AI-powered material recognition, educational content, and gamified user engagement. The app helps users properly identify, segregate, and dispose of waste while building sustainable habits through community features and environmental education.
 
 ### **🎯 Mission Statement**
 Transform waste management behavior through intelligent technology, comprehensive education, and community engagement to create a more sustainable future.
@@ -362,7 +362,7 @@ flutter test
 
 ---
 
-*This document serves as a comprehensive guide for developers, stakeholders, and contributors to understand the WasteWise application's current state, capabilities, and future direction. For specific technical details, refer to the linked documentation in the `docs/` directory.*
+*This document serves as a comprehensive guide for developers, stakeholders, and contributors to understand the ReLoop application's current state, capabilities, and future direction. For specific technical details, refer to the linked documentation in the `docs/` directory.*
 
 **Last Updated**: May 20, 2026  
 **Document Version**: 2.0.1  

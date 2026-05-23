@@ -1,5 +1,5 @@
 # Future Self: Token Economy Brainstorm
-## Waste Segregation App — 2026-05-19
+## ReLoop — 2026-05-19
 ### Role: Forward-looking strategist (6 / 12 / 24-month horizons)
 
 ---

@@ -1,5 +1,5 @@
 # Trickster Brainstorm: The Token Economy as Everything Else
-## Waste Segregation App — Role: Trickster  
+## ReLoop — Role: Trickster  
 **Date:** 2026-05-19  
 **Mood:** Glitter in the compost bin
 

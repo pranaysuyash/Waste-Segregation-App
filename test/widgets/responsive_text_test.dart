@@ -206,7 +206,7 @@ void main() {
 
     testWidgets('ResponsiveAppBarTitle uses exact multi-word abbreviation on narrow screens',
         (WidgetTester tester) async {
-      const multiWordTitle = 'Waste Segregation Application';
+      const multiWordTitle = 'ReLoop Application';
 
       await tester.pumpWidget(
         MaterialApp(
@@ -221,7 +221,7 @@ void main() {
         ),
       );
 
-      expect(find.text('WSA'), findsOneWidget);
+      expect(find.text('RA'), findsOneWidget);
     });
 
     testWidgets('ResponsiveAppBarTitle handles single word titles',
@@ -266,7 +266,7 @@ void main() {
 
     testWidgets('ResponsiveAppBarTitle creates proper abbreviations',
         (WidgetTester tester) async {
-      const multiWordTitle = 'Waste Segregation Application';
+      const multiWordTitle = 'ReLoop Application';
 
       await tester.pumpWidget(
         MaterialApp(

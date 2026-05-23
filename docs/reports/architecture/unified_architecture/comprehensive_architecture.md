@@ -1,6 +1,6 @@
-# Waste Segregation App: Comprehensive Technical Architecture
+# ReLoop: Comprehensive Technical Architecture
 
-This document provides a consolidated overview of the technical architecture for the Waste Segregation App, covering system components, classification pipeline, AI/ML strategy, and implementation details.
+This document provides a consolidated overview of the technical architecture for the ReLoop, covering system components, classification pipeline, AI/ML strategy, and implementation details.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ This document provides a consolidated overview of the technical architecture for
 
 ## System Architecture Overview
 
-The Waste Segregation App follows a hybrid architecture combining mobile client, cloud services, and on-device processing to deliver responsive performance, offline capabilities, and advanced AI features while maintaining data privacy and efficiency. The architecture also supports web platform deployment with appropriate adaptations.
+The ReLoop follows a hybrid architecture combining mobile client, cloud services, and on-device processing to deliver responsive performance, offline capabilities, and advanced AI features while maintaining data privacy and efficiency. The architecture also supports web platform deployment with appropriate adaptations.
 
 ### UI Layer Architecture (New - 2025 Q1 Update)
 
@@ -232,7 +232,7 @@ The classification pipeline implements a tiered approach to features:
 
 ### Core Architecture Principles
 
-The Waste Segregation App implements a multi-model AI architecture based on these principles:
+The ReLoop implements a multi-model AI architecture based on these principles:
 
 1. **Resilience**: No single point of failure in AI capabilities
 2. **Performance Optimization**: Select the best model for each specific task
@@ -793,7 +793,7 @@ interface EducationalContentService {
 
 ## Web Platform Architecture
 
-The Waste Segregation App implements a web-optimized architecture to support browsers while maintaining core functionality with appropriate adaptations.
+The ReLoop implements a web-optimized architecture to support browsers while maintaining core functionality with appropriate adaptations.
 
 ### Web-Specific Components
 
@@ -842,4 +842,4 @@ The web implementation follows these key principles:
 - **Web Camera Access**: The app now uses `image_picker` and `image_picker_for_web` to enable camera capture in the browser, with graceful fallback for unsupported browsers. See `web_camera_access.dart` for details.
 - **Centralized Error Handling**: All major screens now use a centralized `ErrorHandler` and `AppException` pattern for consistent error logging and user feedback. See `constants.dart` for the error handling implementation.
 
-This web architecture enables the Waste Segregation App to provide a consistent experience across platforms while adapting to the specific capabilities and constraints of web browsers.
+This web architecture enables the ReLoop to provide a consistent experience across platforms while adapting to the specific capabilities and constraints of web browsers.

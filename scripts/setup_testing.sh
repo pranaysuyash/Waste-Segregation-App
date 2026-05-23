@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🚀 Setting up comprehensive testing infrastructure for Waste Segregation App"
+echo "🚀 Setting up comprehensive testing infrastructure for ReLoop"
 echo "============================================================================"
 
 # Colors for output

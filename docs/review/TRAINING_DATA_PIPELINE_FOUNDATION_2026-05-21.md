@@ -4,7 +4,7 @@ Date: 2026-05-21
 
 ## Decision
 
-WasteWise must not silently retain user images or corrections for model
+ReLoop must not silently retain user images or corrections for model
 training. Training use is a separate permission from app history, cloud sync,
 analytics, or a generic privacy-policy checkbox.
 

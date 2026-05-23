@@ -46,7 +46,7 @@ class TestHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Web Test - Waste Segregation App'),
+        title: const Text('Web Test - ReLoop'),
         backgroundColor: Colors.green,
       ),
       body: Center(

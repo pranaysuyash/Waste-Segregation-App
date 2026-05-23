@@ -1,8 +1,8 @@
-# Waste Segregation App: Complete System Architecture
+# ReLoop: Complete System Architecture
 
 ## Overview
 
-This document provides a comprehensive technical architecture overview of the Waste Segregation App, a Flutter-based mobile application that uses AI to help users classify waste items and learn proper disposal methods. The architecture follows modern mobile development practices with offline-first design, multi-model AI integration, and scalable cloud services.
+This document provides a comprehensive technical architecture overview of the ReLoop, a Flutter-based mobile application that uses AI to help users classify waste items and learn proper disposal methods. The architecture follows modern mobile development practices with offline-first design, multi-model AI integration, and scalable cloud services.
 
 ## System Architecture Diagram
 
@@ -446,7 +446,7 @@ test/
 
 ## Conclusion
 
-The Waste Segregation App architecture is designed for:
+The ReLoop architecture is designed for:
 
 - **Scalability**: Handle growing user base and feature complexity
 - **Reliability**: Robust error handling and fallback mechanisms

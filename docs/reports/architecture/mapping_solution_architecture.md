@@ -1,6 +1,6 @@
-# Flutter Waste Segregation App - Mapping Solution Architecture
+# Flutter ReLoop - Mapping Solution Architecture
 
-**This document outlines the recommended architecture for implementing a scalable, cost-effective, and feature-rich mapping solution within the Waste Segregation App, based on `flutter_map` and OpenStreetMap.**
+**This document outlines the recommended architecture for implementing a scalable, cost-effective, and feature-rich mapping solution within the ReLoop, based on `flutter_map` and OpenStreetMap.**
 
 > For a detailed overview of the product features, user stories, and multi-phase implementation plan that this architecture supports, please see the [Strategic Mapping Features Plan](docs/planning/strategic_mapping_features.md).
 

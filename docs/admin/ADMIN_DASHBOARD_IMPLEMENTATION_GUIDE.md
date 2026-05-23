@@ -850,7 +850,7 @@ function generateUserSummaryReport(
 
       <div class="section">
         <p>Generated on: ${new Date().toLocaleString()}</p>
-        <p>This report contains your personal data from the Waste Segregation App.</p>
+        <p>This report contains your personal data from the ReLoop.</p>
       </div>
     </body>
     </html>

@@ -1,4 +1,4 @@
-# Deprecation Audit: Waste Segregation App
+# Deprecation Audit: ReLoop
 **Date:** 2026-05-21  
 **Scope:** Dart/Flutter APIs, packages, dependencies, and documentation  
 **Status:** Comprehensive audit with remediation plan

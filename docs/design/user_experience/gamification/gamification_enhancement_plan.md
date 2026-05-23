@@ -1,6 +1,6 @@
 # Gamification Enhancement Plan
 
-This document outlines the technical architecture and implementation steps for enhancing the gamification features in the Waste Segregation App.
+This document outlines the technical architecture and implementation steps for enhancing the gamification features in the ReLoop.
 
 ## Technical Architecture
 

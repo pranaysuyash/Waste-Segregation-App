@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-19
 **Role:** Champion
-**Subject:** Token Economy in Waste Segregation App
+**Subject:** Token Economy in ReLoop
 **Stance:** DEFEND — the token economy should exist, but must be rebuilt, not deleted.
 
 ---

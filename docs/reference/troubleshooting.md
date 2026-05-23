@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-This guide covers common issues and their solutions for the Waste Segregation App.
+This guide covers common issues and their solutions for the ReLoop.
 
 ## 🚨 **Critical Issues Recently Fixed**
 

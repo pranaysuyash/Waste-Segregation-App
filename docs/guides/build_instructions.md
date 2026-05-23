@@ -1,6 +1,6 @@
-# How to Build the Waste Segregation App
+# How to Build the ReLoop
 
-This guide provides step-by-step instructions for building and running the Waste Segregation App, including the new Enhanced Gamification System and Waste Analytics Dashboard features.
+This guide provides step-by-step instructions for building and running the ReLoop, including the new Enhanced Gamification System and Waste Analytics Dashboard features.
 
 ## Prerequisites
 
@@ -300,7 +300,7 @@ For any additional issues, please refer to the developer documentation or create
 - [ ] Screenshots: At least 2 for each device type (phone, 7" tablet, 10" tablet)
 - [ ] Short Description: Up to 80 characters
 - [ ] Full Description: Up to 4000 characters
-- [ ] App Name: Up to 50 characters (choose your final name, e.g., WasteWise, RecycleMate, etc.)
+- [ ] App Name: Up to 50 characters (choose your final name, e.g., ReLoop, RecycleMate, etc.)
 - [ ] Promo Video: (Optional, YouTube link)
 
 ## 3. Compliance & Policy
@@ -333,7 +333,7 @@ For any additional issues, please refer to the developer documentation or create
 For your first release, you can use:
 
 ```
-Welcome to the first release of WasteWise!
+Welcome to the first release of ReLoop!
 
 • AI-powered waste identification and sorting
 • Google Sign-In and guest mode

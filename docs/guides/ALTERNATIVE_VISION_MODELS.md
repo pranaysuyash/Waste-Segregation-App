@@ -480,4 +480,4 @@ For issues or questions:
 
 ## License
 
-This implementation is part of the Waste Segregation App project.
+This implementation is part of the ReLoop project.

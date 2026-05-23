@@ -1,6 +1,6 @@
 # Premium Features and Ad Implementation
 
-This document provides technical details about the implementation of premium features and ad integration in the Waste Segregation App.
+This document provides technical details about the implementation of premium features and ad integration in the ReLoop.
 
 ## Premium Features System
 

@@ -95,7 +95,7 @@ class CityPolicyData {
   ) async {
     final compliance = plugin.validateCompliance(classification);
     final instructions = getDisposalFor(classification.category,
-        classification.subcategory);
+        classification.subCategory);
     final regs = regulations[classification.category
             .toLowerCase()
             .replaceAll(' ', '_')] ??

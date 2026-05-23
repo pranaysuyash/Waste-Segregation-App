@@ -1,6 +1,6 @@
 # Ideas to Explore
 
-This document outlines potential areas for further exploration and documentation based on analysis of the existing Waste Segregation App documentation. These ideas represent opportunities to enhance the project's technical capabilities, user experience, business model, and environmental impact.
+This document outlines potential areas for further exploration and documentation based on analysis of the existing ReLoop documentation. These ideas represent opportunities to enhance the project's technical capabilities, user experience, business model, and environmental impact.
 
 ## Technical Opportunities
 

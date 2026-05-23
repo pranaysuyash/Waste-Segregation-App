@@ -385,6 +385,6 @@ The existing waste analytics dashboard will be enhanced to support family/team d
 
 ## Conclusion
 
-Implementing these user management enhancements will transform the Waste Segregation App from a single-user experience to a collaborative family/team tool. This will increase engagement through social dynamics and broaden the app's impact by encouraging entire households to participate in waste management efforts.
+Implementing these user management enhancements will transform the ReLoop from a single-user experience to a collaborative family/team tool. This will increase engagement through social dynamics and broaden the app's impact by encouraging entire households to participate in waste management efforts.
 
 The proposed implementation plan provides a phased approach that will allow for gradual integration of family features while maintaining the app's core functionality and leveraging the already robust gamification and dashboard systems.

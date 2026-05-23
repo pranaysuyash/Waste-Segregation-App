@@ -1,6 +1,6 @@
 # Current Pressing Issues and Action Items
 
-This document tracks current issues, blockers, and action items for the Waste Segregation App (WasteWise). This is a living document meant to be updated as issues are resolved and new ones emerge.
+This document tracks current issues, blockers, and action items for the ReLoop (ReLoop). This is a living document meant to be updated as issues are resolved and new ones emerge.
 
 _Last updated: June 1, 2025_
 

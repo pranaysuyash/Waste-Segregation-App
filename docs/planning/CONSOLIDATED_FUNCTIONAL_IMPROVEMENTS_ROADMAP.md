@@ -117,7 +117,7 @@ These improvements stem from planned redesigns of core screens, enhancing functi
 
 ### 3. Enhanced Accessibility (Beyond Standard)
 - [ ] **Multilingual & Voice Control:**
-    - [ ] **Voice Input:** Support voice commands for classification (e.g., "Hey WasteWise, how to dispose of batteries?") and navigation.
+    - [ ] **Voice Input:** Support voice commands for classification (e.g., "Hey ReLoop, how to dispose of batteries?") and navigation.
     - [ ] **Multilingual Support:** Full app localization for key regional languages (e.g., Hindi, Kannada).
     - [ ] **Audio Feedback:** Provide comprehensive audio cues and descriptions for visually impaired users.
 - [ ] **Cognitive Accessibility:** Offer simplified workflows or UI modes.

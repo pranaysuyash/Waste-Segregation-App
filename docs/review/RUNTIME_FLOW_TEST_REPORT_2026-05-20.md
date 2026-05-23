@@ -33,7 +33,7 @@ Exercise the app end to end in a real runtime, using the available local simulat
 
 The web app launches and renders the consent screen. The first visible screen is:
 
-- Title: `Waste Segregation`
+- Title: `ReLoop`
 - Message: `Please review and accept our Privacy Policy and Terms of Service to continue`
 - Actions:
   - `Accept & Continue`

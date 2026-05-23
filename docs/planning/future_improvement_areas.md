@@ -1,6 +1,6 @@
 # Future Improvement Areas & Planning Roadmap
 
-This document outlines potential areas for significant improvement and future planning within the Waste Segregation App. These areas were identified after completing initial detailed planning for the Admin Panel and Phase 1 Gamification.
+This document outlines potential areas for significant improvement and future planning within the ReLoop. These areas were identified after completing initial detailed planning for the Admin Panel and Phase 1 Gamification.
 
 ## 1. Core Image Classification User Experience & Feedback Loop
 

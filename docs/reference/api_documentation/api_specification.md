@@ -1,4 +1,4 @@
-# Waste Segregation App: API Specification
+# ReLoop: API Specification
 
 Reference documentation for all API services, endpoints, data models, and integration patterns.
 

@@ -1,8 +1,8 @@
-# Waste Segregation App - Functional Requirements
+# ReLoop - Functional Requirements
 
 ## Executive Summary
 
-The Waste Segregation App is a mobile application designed to help users correctly identify and sort various types of waste using artificial intelligence. Through image classification, educational content, and gamification, the app aims to improve waste management practices, increase recycling rates, and promote environmental sustainability.
+The ReLoop is a mobile application designed to help users correctly identify and sort various types of waste using artificial intelligence. Through image classification, educational content, and gamification, the app aims to improve waste management practices, increase recycling rates, and promote environmental sustainability.
 
 This document outlines the core functional requirements of the application, detailing specific features, user workflows, and technical specifications necessary for successful implementation.
 
@@ -10,7 +10,7 @@ This document outlines the core functional requirements of the application, deta
 
 ### Purpose
 
-The Waste Segregation App serves to:
+The ReLoop serves to:
 - Aid users in properly classifying waste items through AI-powered image recognition
 - Educate users about waste management practices and environmental impact
 - Motivate sustainable behaviors through gamification and community engagement

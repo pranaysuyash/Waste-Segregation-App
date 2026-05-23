@@ -2,7 +2,7 @@
 
 ## Quick Start
 
-To add achievement celebrations to any screen in the WasteWise app, follow these simple steps:
+To add achievement celebrations to any screen in the ReLoop app, follow these simple steps:
 
 ### 1. Import the Widget
 

@@ -1,6 +1,6 @@
 # Documentation Index
 
-## Waste Segregation App Documentation Structure
+## ReLoop Documentation Structure
 
 _Last Updated: May 20, 2026_
 

@@ -16,7 +16,7 @@ import 'package:waste_segregation_app/services/firebase_family_service.dart';
 import 'package:waste_segregation_app/services/cache_service.dart';
 import 'package:mockito/mockito.dart';
 
-/// Comprehensive test utilities for the Waste Segregation App
+/// Comprehensive test utilities for the ReLoop
 /// Provides common test data, mock services, and helper functions
 class TestHelpers {
   // =============================================================================

@@ -1,6 +1,6 @@
 # Blockchain Waste Tracking System
 
-This document outlines the integration of blockchain technology into the Waste Segregation App to create transparent, verifiable tracking of waste materials from classification through processing and recycling.
+This document outlines the integration of blockchain technology into the ReLoop to create transparent, verifiable tracking of waste materials from classification through processing and recycling.
 
 ## 1. Overview
 

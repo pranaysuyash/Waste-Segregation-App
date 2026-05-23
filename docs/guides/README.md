@@ -1,6 +1,6 @@
 # User & Developer Guides
 
-This folder contains comprehensive guides for using and developing the Waste Segregation App.
+This folder contains comprehensive guides for using and developing the ReLoop.
 
 ## 📖 **Available Guides**
 

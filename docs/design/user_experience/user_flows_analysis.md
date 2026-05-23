@@ -1,4 +1,4 @@
-# 🔄 Complete User Flows Analysis: Waste Segregation App
+# 🔄 Complete User Flows Analysis: ReLoop
 
 ## 📋 Analysis Framework
 

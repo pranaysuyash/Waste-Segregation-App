@@ -1,7 +1,7 @@
 # Async Issues Status Report
 
 ## Overview
-This document tracks the resolution of async-related warnings in the WasteWise application.
+This document tracks the resolution of async-related warnings in the ReLoop application.
 
 ## Issues Identified
 

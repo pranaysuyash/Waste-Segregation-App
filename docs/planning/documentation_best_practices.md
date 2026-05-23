@@ -1,6 +1,6 @@
 # Documentation Best Practices
 
-This document outlines best practices for creating and maintaining documentation for the Waste Segregation App project. Following these guidelines will ensure consistency, quality, and usability of all project documentation.
+This document outlines best practices for creating and maintaining documentation for the ReLoop project. Following these guidelines will ensure consistency, quality, and usability of all project documentation.
 
 ## Documentation Principles
 
@@ -223,6 +223,6 @@ Documentation reviewers should evaluate:
 
 ## Conclusion
 
-Good documentation is essential for project success, team collaboration, and product adoption. By following these best practices, we can ensure that our documentation remains a valuable asset for the Waste Segregation App project. These guidelines should evolve over time based on team feedback and changing project needs.
+Good documentation is essential for project success, team collaboration, and product adoption. By following these best practices, we can ensure that our documentation remains a valuable asset for the ReLoop project. These guidelines should evolve over time based on team feedback and changing project needs.
 
 Remember: Documentation is a form of communication. The best documentation anticipates questions, provides clear answers, and guides the reader to successful outcomes.

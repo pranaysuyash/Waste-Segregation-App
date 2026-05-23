@@ -1,4 +1,4 @@
-uid=1_0 RootWebArea "Waste Segregation" url="http://127.0.0.1:3002/"
+uid=1_0 RootWebArea "ReLoop" url="http://127.0.0.1:3002/"
   uid=1_1 ignored
     uid=1_2 generic
       uid=1_3 button "Enable accessibility" live="polite" relevant="additions text"

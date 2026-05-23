@@ -1,7 +1,7 @@
 # 📋 Pull Request Status Summary
 
 **Last Updated**: June 5, 2025  
-**Repository**: Waste Segregation App
+**Repository**: ReLoop
 
 ---
 

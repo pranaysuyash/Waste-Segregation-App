@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Advanced Animation System for Waste Segregation App
+/// Advanced Animation System for ReLoop
 /// Provides consistent animations, transitions, and micro-interactions
 class WasteAppAnimations {
   // Animation Durations

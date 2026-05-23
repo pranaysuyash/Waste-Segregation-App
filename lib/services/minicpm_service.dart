@@ -151,8 +151,8 @@ Return JSON with these fields:
       return WasteClassification(
         itemName: json['itemName'] as String? ?? 'Unknown Item',
         category: json['category'] as String? ?? 'Dry Waste',
-        subcategory: json['subcategory'] as String?,
-        materialType: json['material'] as String?,
+        subCategory: json['subcategory'] as String?,
+        materials: json['material'] != null ? [json['material'] as String] : null,
         explanation: json['explanation'] as String? ?? '',
         disposalMethod: json['disposalMethod'] as String?,
         disposalInstructions: DisposalInstructions(

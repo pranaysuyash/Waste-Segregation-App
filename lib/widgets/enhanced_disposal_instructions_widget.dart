@@ -21,7 +21,7 @@ class EnhancedDisposalInstructionsWidget extends ConsumerWidget {
     final request = DisposalInstructionsRequest(
       material: _getMaterialDescription(),
       category: classification.category,
-      subcategory: classification.subcategory,
+      subcategory: classification.subCategory,
     );
 
     // Watch the disposal instructions provider
@@ -47,11 +47,11 @@ class EnhancedDisposalInstructionsWidget extends ConsumerWidget {
       parts.add(classification.itemName);
     }
 
-    // Add material type if available and different from item name
-    if (classification.materialType != null &&
-        classification.materialType!.isNotEmpty &&
-        classification.materialType != classification.itemName) {
-      parts.add(classification.materialType!);
+    // Add materials if available and different from item name
+    if (classification.materials != null &&
+        classification.materials!.isNotEmpty &&
+        classification.materials!.join(', ') != classification.itemName) {
+      parts.add(classification.materials!.join(', '));
     }
 
     // Add brand if available
@@ -209,7 +209,7 @@ class DebugDisposalInstructionsWidget extends ConsumerWidget {
     final request = DisposalInstructionsRequest(
       material: _getMaterialDescription(),
       category: classification.category,
-      subcategory: classification.subcategory,
+      subcategory: classification.subCategory,
     );
 
     final disposalInstructionsAsync =
@@ -301,10 +301,10 @@ class DebugDisposalInstructionsWidget extends ConsumerWidget {
       parts.add(classification.itemName);
     }
 
-    if (classification.materialType != null &&
-        classification.materialType!.isNotEmpty &&
-        classification.materialType != classification.itemName) {
-      parts.add(classification.materialType!);
+    if (classification.materials != null &&
+        classification.materials!.isNotEmpty &&
+        classification.materials!.join(', ') != classification.itemName) {
+      parts.add(classification.materials!.join(', '));
     }
 
     if (classification.brand != null && classification.brand!.isNotEmpty) {

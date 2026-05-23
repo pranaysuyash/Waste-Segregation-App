@@ -1,6 +1,6 @@
 # Community Waste Management Features
 
-This document outlines the features and implementation details for the Municipality Waste Collection Tracking system and related community-based waste management features of the Waste Segregation App.
+This document outlines the features and implementation details for the Municipality Waste Collection Tracking system and related community-based waste management features of the ReLoop.
 
 ## Municipality Waste Collection Tracking
 
@@ -471,4 +471,4 @@ The municipality waste tracking features offer several monetization opportunitie
 
 ## Conclusion
 
-The Municipality Waste Collection Tracking and Community Waste Management features represent a significant enhancement to the Waste Segregation App's utility and social impact. By empowering communities to collaborate on waste management, the app can drive meaningful improvements in municipal service quality and environmental outcomes. These features also create new opportunities for monetization through partnerships with local governments and waste management entities.
+The Municipality Waste Collection Tracking and Community Waste Management features represent a significant enhancement to the ReLoop's utility and social impact. By empowering communities to collaborate on waste management, the app can drive meaningful improvements in municipal service quality and environmental outcomes. These features also create new opportunities for monetization through partnerships with local governments and waste management entities.

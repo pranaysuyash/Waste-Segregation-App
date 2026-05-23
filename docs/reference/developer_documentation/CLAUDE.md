@@ -68,7 +68,7 @@ cd /Users/pranay/Projects
 
 <!-- PROJECTS_MEMORY_AGENT_ALIGNMENT_END -->
 
-This document outlines the integration of Claude AI (Anthropic) within the Waste Segregation App, specifically its role as a tertiary model in the multi-model AI strategy. It covers the rationale, API interaction, and considerations for its use.
+This document outlines the integration of Claude AI (Anthropic) within the ReLoop, specifically its role as a tertiary model in the multi-model AI strategy. It covers the rationale, API interaction, and considerations for its use.
 
 ## Role in Multi-Model AI Strategy
 
@@ -160,4 +160,4 @@ The `ModelOrchestrationLayer` (defined in `multi_model_ai_strategy.md` and imple
 -   **Conversational Interface**: If the app incorporates a chatbot for waste-related queries, Claude could be a strong candidate to power it.
 -   **Complex Scenario Analysis**: For users uploading images of mixed waste or asking complex disposal questions, Claude's reasoning could be beneficial.
 
-By integrating Claude as a tertiary option, the Waste Segregation App enhances its AI pipeline's resilience, accuracy for complex cases, and adaptability.
+By integrating Claude as a tertiary option, the ReLoop enhances its AI pipeline's resilience, accuracy for complex cases, and adaptability.

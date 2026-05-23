@@ -199,7 +199,7 @@ _Inspired by `docs/design/ui/core_screen_implementations.md`_
 
 - [ ] **Multilingual & Voice Control:**
   - [ ] **Voice Input:** Support voice commands for classification (e.g., "Hey
-        WasteWise, how to dispose of batteries?") and navigation.
+        ReLoop, how to dispose of batteries?") and navigation.
   - [ ] **Multilingual Support:** Full app localization for key regional
         languages (e.g., Hindi, Kannada).
   - [ ] **Audio Feedback:** Provide comprehensive audio cues and descriptions
@@ -281,7 +281,7 @@ goals.
 
 ---
 
-# 🚀 Master TODO - Waste Segregation App
+# 🚀 Master TODO - ReLoop
 
 **Comprehensive Development Roadmap & Task Management**
 
@@ -857,7 +857,7 @@ NEEDED**
   location/habits
 - **Predictive Classification**: Pre-classify items based on user patterns
 - **Personalized Tips**: AI-generated tips based on waste generation patterns
-- **Voice Assistant**: "Hey WasteWise, how do I dispose of this battery?"
+- **Voice Assistant**: "Hey ReLoop, how do I dispose of this battery?"
 
 ### 2. **Smart Integration & IoT** 🔌
 

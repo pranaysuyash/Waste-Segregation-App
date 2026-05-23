@@ -1,6 +1,6 @@
 # App Store Launch Strategy
 
-This document outlines the comprehensive strategy for successfully launching the Waste Segregation App on both the Apple App Store and Google Play Store. It covers preparation, submission, optimization, and post-launch activities tailored for a solo developer.
+This document outlines the comprehensive strategy for successfully launching the ReLoop on both the Apple App Store and Google Play Store. It covers preparation, submission, optimization, and post-launch activities tailored for a solo developer.
 
 ## Pre-Launch Preparation
 
@@ -526,7 +526,7 @@ This document outlines the comprehensive strategy for successfully launching the
 
 ## Conclusion
 
-This launch strategy provides a comprehensive roadmap for successfully bringing the Waste Segregation App to both the Apple App Store and Google Play Store. By following this systematic approach, a solo developer can effectively manage the launch process, optimize store presence, and set the foundation for sustained app growth.
+This launch strategy provides a comprehensive roadmap for successfully bringing the ReLoop to both the Apple App Store and Google Play Store. By following this systematic approach, a solo developer can effectively manage the launch process, optimize store presence, and set the foundation for sustained app growth.
 
 The key to a successful launch lies in thorough preparation, attention to platform-specific requirements, and a systematic testing approach. Post-launch activities are equally important for maintaining momentum and addressing user feedback promptly.
 

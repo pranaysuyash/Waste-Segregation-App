@@ -4,7 +4,7 @@
 
 ## Overview
 
-Successfully implemented comprehensive markdown linting for the Waste Segregation App project to ensure consistent documentation quality and formatting across all markdown files.
+Successfully implemented comprehensive markdown linting for the ReLoop project to ensure consistent documentation quality and formatting across all markdown files.
 
 ## What Was Implemented
 

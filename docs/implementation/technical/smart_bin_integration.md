@@ -1,6 +1,6 @@
 # Smart Bin Integration Specification
 
-This document outlines the requirements and implementation strategy for integrating IoT-enabled smart bins with the Waste Segregation App, creating a more comprehensive waste management ecosystem.
+This document outlines the requirements and implementation strategy for integrating IoT-enabled smart bins with the ReLoop, creating a more comprehensive waste management ecosystem.
 
 ## 1. Overview
 
@@ -210,7 +210,7 @@ Potential smart bin providers for partnership:
 2. **EcubeCloud**: Ultrasonic fill-level sensors for waste bins
 3. **SmartSol**: Smart waste management solutions with multiple sensor types
 4. **BinSense**: Low-cost IoT sensors for existing bins
-5. **WasteWise Systems**: Enterprise-level smart waste infrastructure
+5. **ReLoop Systems**: Enterprise-level smart waste infrastructure
 
 ## 6. Implementation Roadmap
 

@@ -1,4 +1,4 @@
-# Versioning Strategy - Waste Segregation App
+# Versioning Strategy - ReLoop
 
 ## Overview
 This document outlines the versioning strategy for managing internal development builds and Play Store releases.

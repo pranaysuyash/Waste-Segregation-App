@@ -1,4 +1,4 @@
-# Next Development Tasks for Waste Segregation App v0.9.1
+# Next Development Tasks for ReLoop v0.9.1
 
 This document outlines the specific development tasks to be addressed in the next version update (v0.9.1) based on the review of current codebase and issues identified in the Google Play Store submission.
 

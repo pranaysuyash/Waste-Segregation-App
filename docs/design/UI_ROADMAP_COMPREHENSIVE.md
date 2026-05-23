@@ -1,4 +1,4 @@
-# 🎨 UI Roadmap - Waste Segregation App
+# 🎨 UI Roadmap - ReLoop
 **Comprehensive User Interface Development Plan**
 
 **Last Updated**: December 2024  

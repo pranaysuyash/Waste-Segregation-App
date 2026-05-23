@@ -1,4 +1,4 @@
-# Waste Segregation App: Strategic Mapping Features
+# ReLoop: Strategic Mapping Features
 
 Building on your existing AI classification system and disposal facilities database, here are the key mapping features that would specifically enhance your waste segregation app's impact and user engagement.
 

@@ -1,7 +1,7 @@
 # Responsive Text Manual Testing Guide
 
 ## Overview
-This guide provides step-by-step instructions for manually testing the responsive text fixes for AppBar titles and greeting cards in the Waste Segregation App.
+This guide provides step-by-step instructions for manually testing the responsive text fixes for AppBar titles and greeting cards in the ReLoop.
 
 ## Source Of Truth
 
@@ -45,7 +45,7 @@ Behavior summary:
 3. Observe the AppBar title
 
 **Expected Result**:
-- "Waste Segregation" displays fully without truncation
+- "ReLoop" displays fully without truncation
 - Text is centered and readable
 - No visual overflow or clipping
 
@@ -57,7 +57,7 @@ Behavior summary:
 **Objective**: Test how the app handles extended app names
 
 **Steps**:
-1. Temporarily modify `AppStrings.appName` to "Waste Segregation Pro Edition with Advanced Features"
+1. Temporarily modify `AppStrings.appName` to "ReLoop Pro Edition with Advanced Features"
 2. Hot reload the app
 3. Check AppBar on different screen sizes
 
@@ -79,7 +79,7 @@ Behavior summary:
 3. Rotate device to landscape mode
 
 **Expected Result**:
-- Title abbreviates appropriately (e.g., "WS" for "Waste Segregation")
+- Title abbreviates appropriately (e.g., "WS" for "ReLoop")
 - Abbreviation is readable and makes sense
 - No layout breaking or crashes
 

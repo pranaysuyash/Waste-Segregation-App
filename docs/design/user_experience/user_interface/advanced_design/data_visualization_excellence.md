@@ -1,7 +1,7 @@
 # Data Visualization Excellence
 
 ## Overview
-This document outlines our approach to data visualization within the Waste Segregation App, establishing a comprehensive system for representing environmental impact, user progress, and educational content in visually compelling and informative ways. Effective data visualization is crucial for helping users understand the significance of their waste management choices and for building motivation through clear feedback.
+This document outlines our approach to data visualization within the ReLoop, establishing a comprehensive system for representing environmental impact, user progress, and educational content in visually compelling and informative ways. Effective data visualization is crucial for helping users understand the significance of their waste management choices and for building motivation through clear feedback.
 
 ## Impact Visualization Language
 

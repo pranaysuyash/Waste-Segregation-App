@@ -451,7 +451,7 @@
     "description": "Second line of the settings about dialog body"
   },
 
-  "appName": "Waste Segregation App",
+  "appName": "ReLoop",
   "@appName": {
     "description": "Application name used in About dialogs and settings surfaces"
   },
@@ -897,7 +897,7 @@
     }
   },
 
-  "unableToOpenAppStore": "Unable to open app store. Please search for \"Waste Segregation App\" in your app store.",
+  "unableToOpenAppStore": "Unable to open app store. Please search for \"ReLoop\" in your app store.",
   "@unableToOpenAppStore": {
     "description": "Unable to open app store message"
   },

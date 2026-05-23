@@ -101,7 +101,7 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
       final complianceResult = validateCompliance(classification);
       final localInstructions = getLocalDisposalInstructions(
         classification.category,
-        classification.subcategory,
+        classification.subCategory,
       );
 
       var updatedClassification = classification.copyWith(
@@ -218,7 +218,7 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
   void _validateDryWasteCompliance(WasteClassification c,
       List<String> violations, List<String> warnings) {
     if (c.isRecyclable != true &&
-        c.subcategory?.toLowerCase().contains('plastic') == true) {
+        c.subCategory?.toLowerCase().contains('plastic') == true) {
       warnings.add('Most plastics are recyclable - verify recycling code');
     }
     if (c.visualFeatures.any((f) => f.toLowerCase().contains('dirty'))) {

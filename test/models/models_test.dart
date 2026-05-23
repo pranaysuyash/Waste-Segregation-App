@@ -10,7 +10,7 @@ void main() {
       final classification = WasteClassification(
         itemName: 'Plastic Water Bottle',
         category: 'Dry Waste',
-        subcategory: 'Plastic',
+        subCategory: 'Plastic',
         explanation: 'Clear plastic bottle, recyclable with PET code 1',
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in blue bin',
@@ -38,7 +38,7 @@ void main() {
         isCompostable: false,
         requiresSpecialDisposal: false,
         recyclingCode: 1,
-        materialType: 'PET Plastic',
+        materials: ['PET Plastic'],
         colorCode: '#CLEAR',
         brand: 'Test Brand',
         product: 'Water Bottle 500ml',
@@ -49,13 +49,13 @@ void main() {
       // Verify all properties are correctly set
       expect(classification.itemName, equals('Plastic Water Bottle'));
       expect(classification.category, equals('Dry Waste'));
-      expect(classification.subcategory, equals('Plastic'));
+      expect(classification.subCategory, equals('Plastic'));
       expect(classification.confidence, equals(0.92));
       expect(classification.isRecyclable, isTrue);
       expect(classification.isCompostable, isFalse);
       expect(classification.requiresSpecialDisposal, isFalse);
       expect(classification.recyclingCode, equals(1));
-      expect(classification.materialType, equals('PET Plastic'));
+      expect(classification.materials, equals(['PET Plastic']));
       expect(classification.visualFeatures.length, equals(4));
       expect(classification.alternatives.length, equals(1));
       expect(classification.disposalInstructions.steps.length, equals(3));
@@ -94,7 +94,7 @@ void main() {
       final recreated = WasteClassification.fromJson(json);
       expect(recreated.itemName, equals(classification.itemName));
       expect(recreated.category, equals(classification.category));
-      expect(recreated.subcategory, equals(classification.subcategory));
+      expect(recreated.subCategory, equals(classification.subCategory));
       expect(recreated.visualFeatures, equals(classification.visualFeatures));
     });
 
@@ -467,8 +467,8 @@ void main() {
       expect(classification.disposalInstructions.steps, isEmpty);
       expect(classification.visualFeatures, isEmpty);
       expect(classification.alternatives, isEmpty);
-      expect(classification.subcategory, isNull);
-      expect(classification.materialType, isNull);
+      expect(classification.subCategory, isNull);
+      expect(classification.materials, isNull);
     });
 
     test('should handle very long strings without issues', () {

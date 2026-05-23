@@ -1,8 +1,8 @@
-# Comprehensive Testing Strategy for Waste Segregation App
+# Comprehensive Testing Strategy for ReLoop
 
 ## Overview
 
-This document outlines the comprehensive testing strategy implemented for the Waste Segregation App, providing Playwright/Puppeteer-style automated testing capabilities with visual regression detection.
+This document outlines the comprehensive testing strategy implemented for the ReLoop, providing Playwright/Puppeteer-style automated testing capabilities with visual regression detection.
 
 ## Testing Architecture
 

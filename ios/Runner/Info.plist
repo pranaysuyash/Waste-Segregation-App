@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Waste Segregation App</string>
+	<string>ReLoop</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -53,7 +53,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs photo library access to select pictures of waste items for classification</string>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>Allow tracking to enable personalized ads and analytics features in the Waste Segregation App.</string>
+	<string>Allow tracking to enable personalized ads and analytics features in the ReLoop.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

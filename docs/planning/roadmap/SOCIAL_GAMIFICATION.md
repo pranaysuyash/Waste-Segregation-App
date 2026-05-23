@@ -84,7 +84,7 @@ Staleness: Acceptable — leaderboard doesn't need real-time
 
 ```
 User taps share on achievement
-  → Construct share text: "I just earned {achievement} on Waste Segregation!"
+  → Construct share text: "I just earned {achievement} on ReLoop!"
   → share_plus.share(text)
   → Optionally track via analytics
 ```

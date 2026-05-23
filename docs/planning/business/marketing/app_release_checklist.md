@@ -1,6 +1,6 @@
 # App Release Checklist
 
-This document provides a comprehensive checklist for preparing and executing app releases for both Google Play Store and Apple App Store. Use this checklist for each new version release of the Waste Segregation App.
+This document provides a comprehensive checklist for preparing and executing app releases for both Google Play Store and Apple App Store. Use this checklist for each new version release of the ReLoop.
 
 ## Pre-Release Quality Assurance
 

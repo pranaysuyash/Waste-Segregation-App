@@ -610,7 +610,7 @@ abstract class AppLocalizations {
   /// Application name used in About dialogs and settings surfaces
   ///
   /// In en, this message translates to:
-  /// **'Waste Segregation App'**
+  /// **'ReLoop'**
   String get appName;
 
   /// Badge label for newly added settings items
@@ -1054,7 +1054,7 @@ abstract class AppLocalizations {
   /// Unable to open app store message
   ///
   /// In en, this message translates to:
-  /// **'Unable to open app store. Please search for \"Waste Segregation App\" in your app store.'**
+  /// **'Unable to open app store. Please search for \"ReLoop\" in your app store.'**
   String get unableToOpenAppStore;
 
   /// Error opening app store message

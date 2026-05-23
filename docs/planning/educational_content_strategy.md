@@ -2,7 +2,7 @@
 
 ## 1. Introduction & Goals
 
-The primary purpose of the Educational Content System within the Waste Segregation App is to empower users with the knowledge and practical skills necessary to make informed decisions about waste management and adopt more sustainable habits. This system aims to go beyond simple classification by providing context, fostering understanding, and motivating positive behavioral change.
+The primary purpose of the Educational Content System within the ReLoop is to empower users with the knowledge and practical skills necessary to make informed decisions about waste management and adopt more sustainable habits. This system aims to go beyond simple classification by providing context, fostering understanding, and motivating positive behavioral change.
 
 **Key Objectives:**
 
@@ -469,4 +469,4 @@ The development and launch of the educational content system will be approached 
 *   **Performance Monitoring & Optimization:** Keep the system running smoothly as it scales.
 *   **Collaboration with Experts:** Continue to seek input and validation from subject matter experts.
 
-This phased approach allows the educational content system to grow sustainably, adapt to user needs, and align with the overall evolution of the Waste Segregation App. 
+This phased approach allows the educational content system to grow sustainably, adapt to user needs, and align with the overall evolution of the ReLoop. 

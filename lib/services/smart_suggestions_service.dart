@@ -108,7 +108,7 @@ class SmartSuggestion {
   factory SmartSuggestion.welcomeSuggestion() {
     return const SmartSuggestion(
       id: 'welcome',
-      title: 'Welcome to Waste Segregation!',
+      title: 'Welcome to ReLoop!',
       description:
           'Start by taking a photo of waste to get your first classification.',
       icon: '🎉',

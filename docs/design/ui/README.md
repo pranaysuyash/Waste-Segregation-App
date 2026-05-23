@@ -1,6 +1,6 @@
 # UI Revamp Documentation 🎨
 
-This folder contains complete documentation for transforming the Waste Segregation App into a Gen Z-appealing, visually stunning experience.
+This folder contains complete documentation for transforming the ReLoop into a Gen Z-appealing, visually stunning experience.
 
 ## 📁 Documentation Files
 

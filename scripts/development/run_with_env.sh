@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Waste Segregation App - Run with Environment Variables
+# ReLoop - Run with Environment Variables
 # Defaults to Android phone when connected over adb.
 #
 # Usage:

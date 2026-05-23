@@ -10,8 +10,6 @@ class WasteClassification extends HiveObject {
     String? id,
     required this.itemName,
     required this.category,
-    this.subcategory,
-    this.materialType,
     this.recyclingCode,
     required this.explanation,
     this.disposalMethod,
@@ -115,7 +113,7 @@ class WasteClassification extends HiveObject {
       id: id ?? const Uuid().v4(),
       itemName: 'Unidentified Item - Fallback',
       category: 'Requires Manual Review',
-      subcategory: 'Classification Needed',
+      subCategory: 'Classification Needed',
       explanation:
           'Our AI was unable to automatically identify this item. This could be due to unclear image quality, unusual lighting, or an uncommon item type. Please help us improve by providing feedback on what this item actually is.',
       disposalInstructions: DisposalInstructions(
@@ -190,8 +188,10 @@ class WasteClassification extends HiveObject {
       id: json['id'],
       itemName: json['itemName'] ?? 'Unknown Item',
       category: json['category'] ?? 'Dry Waste',
-      subcategory: json['subcategory'],
-      materialType: json['materialType'],
+      subCategory: json['subCategory'] as String?,
+      materials: json['materials'] != null
+          ? List<String>.from(json['materials'])
+          : null,
       recyclingCode: json['recyclingCode'],
       explanation: json['explanation'] ?? '',
       disposalMethod: json['disposalMethod'],
@@ -279,10 +279,6 @@ class WasteClassification extends HiveObject {
       properEquipment: json['properEquipment'] != null
           ? List<String>.from(json['properEquipment'])
           : null,
-      materials: json['materials'] != null
-          ? List<String>.from(json['materials'])
-          : null,
-      subCategory: json['subCategory'],
       commonUses: json['commonUses'] != null
           ? List<String>.from(json['commonUses'])
           : null,
@@ -339,19 +335,6 @@ class WasteClassification extends HiveObject {
   @HiveField(2)
   final String category;
 
-  /// DEPRECATED: Use subCategory (HiveField 68) for consistency with AI v2.0
-  /// This field is maintained for backward compatibility only
-  @HiveField(3)
-  @Deprecated(
-      'Use subCategory field (HiveField 68) instead for AI model v2.0 compatibility')
-  final String? subcategory;
-
-  /// DEPRECATED: Use materials list (HiveField 67) for consistency with AI v2.0
-  /// This single string field is replaced by the more flexible materials list
-  @HiveField(4)
-  @Deprecated(
-      'Use materials field (HiveField 67) instead for AI model v2.0 compatibility')
-  final String? materialType;
   @HiveField(5)
   final int? recyclingCode;
   @HiveField(6)
@@ -669,8 +652,8 @@ class WasteClassification extends HiveObject {
   // OPTIMIZATION: Migration helpers for accessing normalized field values
   // These getters provide consistent access to data regardless of which field is populated
 
-  /// Gets the subcategory value, preferring the newer subCategory field
-  String? get normalizedSubcategory => subCategory ?? subcategory;
+  /// Gets the subcategory value from the canonical subCategory field.
+  String? get normalizedSubcategory => subCategory;
 
   static const String analysisSourceCloudPrimary = 'cloud_primary';
   static const String analysisSourceLocalExperimental =
@@ -737,9 +720,8 @@ class WasteClassification extends HiveObject {
   bool get isExperimentalAnalysisSource =>
       effectiveAnalysisSource == analysisSourceLocalExperimental;
 
-  /// Gets materials as a list, converting from legacy materialType if needed
-  List<String> get normalizedMaterials =>
-      materials ?? (materialType != null ? [materialType!] : []);
+  /// Gets materials as a list, converting from legacy materialType if needed.
+  List<String> get normalizedMaterials => materials ?? [];
 
   /// Canonical material label for display surfaces.
   String get displayMaterialLabel {
@@ -781,8 +763,8 @@ class WasteClassification extends HiveObject {
 
     // Data richness bonus (up to 15 points)
     var dataFields = 0;
-    if (subcategory != null && subcategory!.isNotEmpty) dataFields++;
-    if (materialType != null && materialType!.isNotEmpty) dataFields++;
+    if (subCategory != null && subCategory!.isNotEmpty) dataFields++;
+    if (materials != null && materials!.isNotEmpty) dataFields++;
     if (recyclingCode != null) dataFields++;
     if (brand != null && brand!.isNotEmpty) dataFields++;
     if (visualFeatures.isNotEmpty) dataFields++;
@@ -1014,8 +996,6 @@ class WasteClassification extends HiveObject {
       'id': id,
       'itemName': itemName,
       'category': category,
-      'subcategory': subcategory,
-      'materialType': materialType,
       'recyclingCode': recyclingCode,
       'explanation': explanation,
       'disposalMethod': disposalMethod,
@@ -1132,8 +1112,6 @@ class WasteClassification extends HiveObject {
     String? id,
     String? itemName,
     String? category,
-    String? subcategory,
-    String? materialType,
     int? recyclingCode,
     String? explanation,
     String? disposalMethod,
@@ -1231,8 +1209,6 @@ class WasteClassification extends HiveObject {
       id: id ?? this.id,
       itemName: itemName ?? this.itemName,
       category: category ?? this.category,
-      subcategory: subcategory ?? this.subcategory,
-      materialType: materialType ?? this.materialType,
       recyclingCode: recyclingCode ?? this.recyclingCode,
       explanation: explanation ?? this.explanation,
       disposalMethod: disposalMethod ?? this.disposalMethod,

@@ -1,7 +1,7 @@
 # Comprehensive Development TODO
 
 ## Overview
-This document tracks the current state and future development tasks for the Waste Segregation App, with focus on the newly implemented Firebase Firestore-based family system and analytics.
+This document tracks the current state and future development tasks for the ReLoop, with focus on the newly implemented Firebase Firestore-based family system and analytics.
 
 ---
 

@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'constants.dart';
 import 'waste_theme.dart';
 
-/// Enhanced Design System for Waste Segregation App
+/// Enhanced Design System for ReLoop
 /// Provides comprehensive theming, colors, typography, and component styles
 class WasteAppDesignSystem {
   // Color Palette with Environmental Semantics

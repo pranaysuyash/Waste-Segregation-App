@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Waste Segregation App Test Runner
+# ReLoop Test Runner
 # This script runs all tests and generates coverage reports
 
-echo "🧪 Starting Waste Segregation App Test Suite..."
+echo "🧪 Starting ReLoop Test Suite..."
 echo "=================================================="
 
 # Check if Flutter is installed

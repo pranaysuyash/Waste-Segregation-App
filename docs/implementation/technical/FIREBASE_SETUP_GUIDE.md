@@ -1,18 +1,18 @@
-# Firebase Setup Guide for Waste Segregation App
+# Firebase Setup Guide for ReLoop
 
-This guide outlines the steps to set up and configure Firebase for the Waste Segregation App. Follow these instructions carefully to ensure proper integration and functionality.
+This guide outlines the steps to set up and configure Firebase for the ReLoop. Follow these instructions carefully to ensure proper integration and functionality.
 
 ## Prerequisites
 
 - A Google Account
 - Flutter development environment set up
-- The Waste Segregation App codebase cloned locally
+- The ReLoop codebase cloned locally
 
 ## 1. Create a Firebase Project
 
 1.  **Go to the Firebase Console**: [https://console.firebase.google.com/](https://console.firebase.google.com/)
 2.  **Add a new project** (or select an existing one if applicable).
-3.  **Enter your project name** (e.g., "Waste Segregation App").
+3.  **Enter your project name** (e.g., "ReLoop").
 4.  **Configure Google Analytics** (recommended, but optional) or disable it for now.
 5.  **Create project**.
 

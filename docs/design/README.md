@@ -1,6 +1,6 @@
 # Design & UI Documentation
 
-This folder contains comprehensive design documentation for the Waste Segregation App's user interface and user experience.
+This folder contains comprehensive design documentation for the ReLoop's user interface and user experience.
 
 ## 📱 **Core UI Documentation**
 

@@ -6,7 +6,7 @@
 
 ## 1. Overview & Goals
 
-This document outlines the detailed implementation plan for the User-Contributed Disposal Information feature. The primary goal is to empower users to improve the accuracy and completeness of local disposal facility information within the Waste Segregation App. This feature will allow users to suggest edits to existing facilities, propose new facilities, and (in later phases) contribute to community verification of data.
+This document outlines the detailed implementation plan for the User-Contributed Disposal Information feature. The primary goal is to empower users to improve the accuracy and completeness of local disposal facility information within the ReLoop. This feature will allow users to suggest edits to existing facilities, propose new facilities, and (in later phases) contribute to community verification of data.
 
 **Key Objectives:**
 *   Enable users to submit corrections for facility details (hours, contact, accepted materials).

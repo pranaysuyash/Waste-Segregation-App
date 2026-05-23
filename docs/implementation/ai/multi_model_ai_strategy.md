@@ -9,13 +9,13 @@
 
 > **NOTE**: This document consolidates previous strategy documents to provide a single source of truth regarding our multi-model AI approach.
 
-This document outlines a robust, resilient AI strategy for the Waste Segregation App, moving beyond sole reliance on Google's Gemini API to create a multi-model approach with intelligent fallbacks, performance optimization, and cost management.
+This document outlines a robust, resilient AI strategy for the ReLoop, moving beyond sole reliance on Google's Gemini API to create a multi-model approach with intelligent fallbacks, performance optimization, and cost management.
 
 ## 1. Multi-Model Architecture
 
 ### Core Architecture Principles
 
-The Waste Segregation App will implement a multi-model AI architecture based on these principles:
+The ReLoop will implement a multi-model AI architecture based on these principles:
 
 1. **Resilience**: No single point of failure in AI capabilities
 2. **Performance Optimization**: Select the best model for each specific task
@@ -370,6 +370,6 @@ The app will implement an automatic fallback chain when the selected model fails
 
 ## Conclusion
 
-This comprehensive AI strategy moves the Waste Segregation App beyond reliance on a single model to create a robust, resilient system that leverages the strengths of multiple providers while optimizing for performance, cost, and reliability.
+This comprehensive AI strategy moves the ReLoop beyond reliance on a single model to create a robust, resilient system that leverages the strengths of multiple providers while optimizing for performance, cost, and reliability.
 
 By implementing this multi-model approach with intelligent routing, the app will maintain high availability and accuracy even during service disruptions, while providing cost-effective scaling and continuous improvement through benchmarking and optimization.

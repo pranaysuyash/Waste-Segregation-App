@@ -2,7 +2,7 @@
 
 ## 1. Introduction & Goals of Onboarding
 
-This document outlines the design for the user onboarding flow in the Waste Segregation App. The primary goals are:
+This document outlines the design for the user onboarding flow in the ReLoop. The primary goals are:
 
 *   Clearly communicate the app's core value proposition: helping users correctly segregate waste and learn about sustainability through easy-to-use AI-powered tools.
 *   Smoothly guide new users through initial setup, including necessary permissions, explaining the "why" behind each request.

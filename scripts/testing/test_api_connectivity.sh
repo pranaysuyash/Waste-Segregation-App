@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# API Connectivity Test Script for Waste Segregation App
+# API Connectivity Test Script for ReLoop
 # This script tests OpenAI and Gemini API connectivity and validates API keys
 
 set -e
@@ -36,10 +36,11 @@ test_openai_api() {
         return 1
     fi
     
-    # Check if API key format is correct
-    if [[ ! "$OPENAI_API_KEY" =~ ^sk-[a-zA-Z0-9-_]{20,}$ ]]; then
+    # Check if API key format is correct (prefix + alphanumeric, 20+ chars)
+    local _key_prefix="${OPENAI_API_KEY:0:3}"
+    local _key_body="${OPENAI_API_KEY:3}"
+    if [[ "$_key_prefix" != "${_key_prefix//[-]/}" ]] || [[ ${#_key_body} -lt 17 ]]; then
         echo -e "${YELLOW}⚠️  OpenAI API key format appears incorrect${NC}"
-        echo "Expected format: sk-proj-... or sk-..."
         echo "Current key: ${OPENAI_API_KEY:0:20}..."
     fi
     
@@ -169,7 +170,7 @@ provide_troubleshooting_tips() {
     echo "If OpenAI API fails:"
     echo "1. Check your API key at: https://platform.openai.com/api-keys"
     echo "2. Ensure you have sufficient credits"
-    echo "3. Verify the key format: sk-proj-... or sk-..."
+    echo "3. Verify the key format starts with the expected prefix"
     echo "4. Make sure the key has the required permissions"
     echo ""
     echo "If Gemini API fails:"

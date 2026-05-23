@@ -5,7 +5,7 @@ This document provides detailed procedures for handling data schema migrations f
 
 ## Current Data Architecture
 
-The Waste Segregation App currently uses the following data storage mechanisms:
+The ReLoop currently uses the following data storage mechanisms:
 
 - **Hive**: Primary local storage for user data, classifications, cached results, and app settings
 - **Firebase Firestore** (Planned): Cloud storage for user data synchronization, shared classifications, and community features

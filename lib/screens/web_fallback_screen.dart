@@ -12,7 +12,7 @@ class WebFallbackScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const ResponsiveAppBarTitle(
-          title: 'WasteWise',
+          title: 'ReLoop',
         ),
       ),
       body: Center(
@@ -26,7 +26,7 @@ class WebFallbackScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Waste Segregation App',
+              'ReLoop',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -45,7 +45,7 @@ class WebFallbackScreen extends StatelessWidget {
               onPressed: () {
                 // Clipboard sharing
                 _copyToClipboard(
-                  'Check out this Waste Segregation App! It helps you properly sort your waste using AI.',
+                  'Check out this ReLoop! It helps you properly sort your waste using AI.',
                   context,
                 );
               },

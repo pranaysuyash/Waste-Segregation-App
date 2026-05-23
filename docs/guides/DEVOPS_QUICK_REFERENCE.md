@@ -1,6 +1,6 @@
 # 🎯 DevOps Quick Reference Guide
 
-*Essential commands and procedures for your enhanced Waste Segregation App repository*
+*Essential commands and procedures for your enhanced ReLoop repository*
 
 ## 🚀 **Daily Development Workflow**
 

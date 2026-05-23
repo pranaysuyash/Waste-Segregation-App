@@ -1,6 +1,6 @@
-# Waste Segregation App Enhancement Documentation
+# ReLoop Enhancement Documentation
 
-This directory contains comprehensive documentation for proposed enhancements to the Waste Segregation App. These documents outline strategies, features, and implementation approaches designed to transform the app into a more powerful, engaging, and financially sustainable platform while advancing its environmental mission.
+This directory contains comprehensive documentation for proposed enhancements to the ReLoop. These documents outline strategies, features, and implementation approaches designed to transform the app into a more powerful, engaging, and financially sustainable platform while advancing its environmental mission.
 
 ## Strategic Overview Documents
 
@@ -42,4 +42,4 @@ This directory contains comprehensive documentation for proposed enhancements to
 
 ---
 
-*These enhancement documents were created in May 2025 to guide the strategic development of the Waste Segregation App and represent a comprehensive vision for the platform's future.*
+*These enhancement documents were created in May 2025 to guide the strategic development of the ReLoop and represent a comprehensive vision for the platform's future.*

@@ -82,7 +82,7 @@ Add to `.vscode/launch.json`:
 **Via Firebase CLI**:
 ```bash
 # Create new apps (generates new keys)
-firebase apps:create ANDROID 'WasteWise Android New' --package-name com.pranaysuyash.wastewise
+firebase apps:create ANDROID 'ReLoop Android New' --package-name com.pranaysuyash.wastewise
 firebase apps:create IOS 'WasteSegregation iOS New' --bundle-id com.example.wasteSegregationApp
 firebase apps:create WEB 'WasteSegregation Web New'
 

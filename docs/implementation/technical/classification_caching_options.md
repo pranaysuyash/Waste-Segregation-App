@@ -1,7 +1,7 @@
 # Classification Caching Implementation Options
 
 ## Overview
-This document outlines various approaches to implementing image classification caching in the Waste Segregation application. The goal is to reduce API calls, improve response times, and ensure consistent classification results for identical images.
+This document outlines various approaches to implementing image classification caching in the ReLoop application. The goal is to reduce API calls, improve response times, and ensure consistent classification results for identical images.
 
 ## Problem Statement
 Currently, the application sends every captured image to the AI classification API, even if identical images have been processed before. This leads to:

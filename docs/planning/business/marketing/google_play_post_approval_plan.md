@@ -1,6 +1,6 @@
 # Google Play Store Post-Approval Plan
 
-This document outlines the recommended next steps once the Waste Segregation App is approved by the Google Play Store. It focuses on ensuring a smooth launch, gathering initial user feedback, and preparing for future updates.
+This document outlines the recommended next steps once the ReLoop is approved by the Google Play Store. It focuses on ensuring a smooth launch, gathering initial user feedback, and preparing for future updates.
 
 ## Immediate Post-Approval Actions
 

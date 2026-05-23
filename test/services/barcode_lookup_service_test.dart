@@ -54,7 +54,7 @@ void main() {
 
       expect(result.found, isTrue);
       expect(result.category, equals('Dry Waste'));
-      expect(result.subcategory, equals('Plastic Bottle'));
+      expect(result.subCategory, equals('Plastic Bottle'));
       expect(result.confidence, greaterThanOrEqualTo(0.90));
       expect(result.productName, equals('Test Cola'));
       expect(result.brand, equals('TestBrand'));
@@ -102,7 +102,7 @@ void main() {
 
       expect(result.found, isTrue);
       expect(result.category, equals('Dry Waste'));
-      expect(result.subcategory, equals('Packaged Item'));
+      expect(result.subCategory, equals('Packaged Item'));
       expect(result.confidence, equals(0.60));
     });
 

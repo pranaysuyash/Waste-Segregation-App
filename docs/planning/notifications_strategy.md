@@ -2,7 +2,7 @@
 
 ## 1. Introduction & Goals
 
-*   **Purpose of this Document:** To define a clear and effective notification strategy for the Waste Segregation App.
+*   **Purpose of this Document:** To define a clear and effective notification strategy for the ReLoop.
 *   **Overall Goals of Notifications:**
     *   Enhance user engagement and encourage regular app usage.
     *   Provide timely and relevant information to users.

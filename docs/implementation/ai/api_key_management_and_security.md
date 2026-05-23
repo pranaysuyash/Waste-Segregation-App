@@ -14,7 +14,7 @@
 # API Key Management and Security
 
 ## Overview
-This document outlines the strategies and best practices for managing API keys and ensuring security when interacting with external services like Gemini, OpenAI, and other third-party APIs used in the Waste Segregation App.
+This document outlines the strategies and best practices for managing API keys and ensuring security when interacting with external services like Gemini, OpenAI, and other third-party APIs used in the ReLoop.
 
 ## Current Implementation Status (May 2025)
 
@@ -720,7 +720,7 @@ class AIService {
 
 ## Conclusion
 
-Proper API key management and security are critical for the Waste Segregation App, especially as it prepares for production deployment. By implementing a backend proxy approach using Firebase Cloud Functions, the app can keep API keys secure while still leveraging powerful AI services.
+Proper API key management and security are critical for the ReLoop, especially as it prepares for production deployment. By implementing a backend proxy approach using Firebase Cloud Functions, the app can keep API keys secure while still leveraging powerful AI services.
 
 The strategies outlined in this document ensure:
 

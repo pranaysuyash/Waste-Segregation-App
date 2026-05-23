@@ -1,6 +1,6 @@
 # Exploration Topics — Master Index
 
-**Purpose**: Living document tracking research areas for the Waste Segregation App
+**Purpose**: Living document tracking research areas for the ReLoop
 **Status**: Active — continuously updated as the project evolves
 **Last Updated**: 2026-05-21
 **Sibling docs**:
@@ -54,7 +54,7 @@ If you see drift between this index and any of the above, **the source artefact 
 **This is the master index**. It provides:
 
 - A categorized map of every active exploration area
-- Why each area matters for the Waste Segregation App specifically
+- Why each area matters for the ReLoop specifically
 - Current status and owner (where known)
 - Links to detailed research docs under `docs/exploration/`
 
@@ -1308,6 +1308,85 @@ All NOW-phase and NEXT-phase exploration docs completed:
 - Implemented now: 110-case eval set with semantic family coverage checks, multi-provider recorded comparisons, router strategy recommendation generation, multi-item/local-rule scoring hooks, consent/privacy-gated dataset export with `excluded.jsonl`, and acceptance/evidence generation.
 - Scaffolded (explicitly not production-wired): segmentation model inference path and runtime enforcement of router thresholds.
 - Future: full admin dashboard UX for analytics/review operations (current operational path is CLI + JSONL + callable tools).
+
+## Exploration Expansion Pass — Area List (2026-05-23)
+
+**Purpose**: first-pass expansion map only. This section lists the areas we should explore next based on current code/docs, the recovered gamification interview, the AI flywheel completion assessment, and industry/product judgement. Each item should later get a dedicated deep-dive doc or be merged into an existing one.
+
+### P0 — Truth, Safety, and Runtime Correctness
+
+1. **Truthful AI eval gates and report semantics** 🔴 — split harness-smoke pass from provider/model safety readiness. Current reports can pass acceptance while offline synthetic scoring shows safety/must-not failures; this must be impossible to misread. Source: `docs/review/AI_FLYWHEEL_COMPLETION_ASSESSMENT_AND_NEXT_P0S_2026-05-23.md`.
+2. **Canonical runtime router policy** 🔴 — one policy object shared by eval tooling and runtime routing, covering safety-critical escalation, local-rule freshness, local/on-device confidence gates, provider disagreement, and review enqueue. Extend the current routing path; do not create a parallel router.
+3. **Backend classification proxy hardening** 🔴 — close the remaining client/cloud classification trust boundary with App Check, auth, rate limits, server cost accounting, provider-key isolation, and a release-safe migration path.
+4. **Operator-grade annotation/review path** 🔴 — upgrade the developer/admin review scaffold into a reviewer-critical path: image/redaction state, model prediction, user correction, reviewer truth, approve/reject/delete, golden/training eligibility, audit trail, export preview.
+5. **Safety-critical autonomy rules** 🔴 — batteries, sharps, medical waste, chemicals, e-waste, aerosol/pressurized items, and local-rule-critical cases should not be resolved by weak local inference until measured fail rates justify it.
+
+### P1 — Adaptive Gamification and Behaviour Design
+
+6. **Adaptive motivation profile** 🔴 — learn whether a user is solo-achievement, social, learning, impact, streak, or utility-driven from interaction frequency, completion patterns, time-of-day, feature visits, challenge choices, and explicit check-ins. Start balanced, then adapt.
+7. **Dynamic challenge weighting / counterbalance loop** 🔴 — use challenges to rebalance behaviour: if a user over-indexes on social competition, introduce solo mastery; if they only scan easy volume, introduce hazardous/e-waste or education; if they avoid community, introduce low-risk contribution tasks.
+8. **Negative mechanics research** 🟡 — explore whether streak breaks, gentle decay, challenge failure, or recovery mechanics improve retention without anxiety. Default posture: points never decrease; any loss mechanic must be opt-in, explainable, recoverable, and tested.
+9. **Points sinks and economy separation** 🟡 — define which sinks belong to points, tokens, civic reputation, or premium cosmetics: streak freezes, themes, custom challenges, eco-impact donations, family perks. Keep paid AI tokens separate unless a server-authoritative anti-farming path exists.
+10. **Gamification moment quality** 🟡 — reduce noisy popups, reserve celebration for meaningful milestones, coalesce reward events, add flow-friendly banners, and make rewards feel earned rather than spammy.
+11. **Real-world impact personalization** 🟡 — learn which impact framing motivates each user: kg diverted, contamination prevented, local civic impact, family progress, carbon estimates, hazardous harm avoided, or learning mastery.
+
+### P1 — Scan-Centric Product Experience
+
+12. **Cold-launch-to-scan funnel** 🔴 — measure and minimize taps/time to first successful classification; evaluate persistent scan FAB vs tab, camera-first launch, and quick re-scan loops.
+13. **Result screen decision architecture** 🔴 — make the result answer the real job: what is it, where does it go, how confident are we, why, what local rule applies, what should I do next, and what can I correct?
+14. **Next-best-action orchestration** 🟡 — rank post-result actions across education, facility lookup, challenge, correction, share, batch mode, community contribution, and premium prompts without nagging.
+15. **Home screen role split** 🟡 — decide whether Home is dashboard, launch pad, learning feed, habit hub, or hybrid; avoid making points/tokens/streaks dominate if they do not help the immediate disposal job.
+16. **Offline/degraded result UX** 🟡 — distinguish local result, partial deterministic result, queued-for-cloud result, stale cached result, and failed result with clear copy and retry/cancel controls.
+
+### P1 — Data Flywheel, Privacy, and Consent
+
+17. **Unified consent ledger** 🔴 — consolidate analytics, ads, photo upload, training-data, crash, community, location, and notification consent into one versioned user-visible contract with revocation behaviour.
+18. **Photo privacy pipeline** 🔴 — on-device face/address/license/prescription redaction, EXIF stripping, public-vs-private coordinate fidelity, and per-use retention before any training/community/civic use.
+19. **Dataset versioning and provenance** 🟡 — every eval/training/export case should carry consent version, redaction version, model/prompt/ruleset versions, reviewer state, source lineage, and revocation/delete trace.
+20. **Hard-example mining loop** 🟡 — mine corrections, low-confidence cases, provider disagreements, local-rule failures, and user-abandoned scans into review queues and eval set candidates.
+21. **User data portability and deletion drills** 🟡 — prove export/delete/revoke flows for history, photos, feedback, training candidates, gamification, tokens, family, community, and analytics references.
+
+### P1 — Local Rules, Facilities, and Civic Intelligence
+
+22. **Facility data trust and freshness** 🔴 — disposal directory needs sourcing, verification, freshness badges, stale-report flows, offline cache, and partner/crowd contribution rules.
+23. **Society/apartment override lifecycle** 🟡 — create/update/verify/expire society-specific rules, conflict resolution against city rules, admin roles, and user trust UX.
+24. **GPS/manual region selection** 🟡 — resolve travel, boundary ambiguity, unsupported regions, privacy-sensitive location use, offline city selection, and rule-pack fallback.
+25. **Civic issue pilot design** 🟢 — if pursued, keep it pilot-scoped: missed pickup, overflow, illegal dumping, duplicate detection, Waze-style verification, takedown, moderation, and authority handoff.
+26. **Informal recycler / pickup network** 🟢 — kabadiwala/e-waste/bulk/compost pickup directory with trust, payments, language, SLA, and safety constraints.
+
+### P1 — Monetization, Growth, and Fairness
+
+27. **Free/paid/premium fairness model** 🔴 — define what premium can improve without making waste safety paywalled: quality tiers, batch/offline packs, family/admin, cosmetics, export, advanced impact, and ad removal.
+28. **Token-cost-value truth table** 🔴 — reconcile tokens, provider cost, failure refunds, race mode, batch mode, premium allowances, offline local classifications, and abuse caps.
+29. **Referral and viral loops** 🟡 — shared classification cards, impact cards, family invites, referral rewards, install attribution, and anti-spam. Existing `Referral` and dynamic links need product rules.
+30. **Ad strategy and kid/classroom safety** 🟡 — decide whether ads belong in a sustainability/education product, which surfaces are ad-free, and whether rewarded ads can ethically map to tokens.
+31. **B2B/B2G wedge ranking** 🟡 — compare schools, apartments/RWAs, corporate ESG, hospitality, recycling partners, municipalities, and NGOs by buyer urgency, data needs, sales cycle, and minimum admin surface.
+
+### P2 — Education, Knowledge, and Accessibility
+
+32. **Adaptive education graph** 🟡 — personalize lessons/quizzes from scans, corrections, local rules, hazardous mistakes, language, age/persona, and demonstrated knowledge gaps.
+33. **Quiz / knowledge verification loop** 🟡 — reward verified understanding more than passive reading; connect quizzes to safety-critical categories and school/classroom use.
+34. **AI-generated content governance** 🟡 — hybrid generated/curated education with provenance, moderation, caching, multilingual review, source citations, and kill switch.
+35. **Low-literacy and multilingual disposal UX** 🟡 — icon-first guidance, Kannada/Hindi/English parity, voice input/output, screen reader semantics, and clear hazardous instructions.
+36. **Accessibility for camera/result flows** 🟡 — TalkBack/VoiceOver labels, haptics, large text, color-independent bin guidance, one-hand operation, and non-visual confidence/local-rule explanation.
+
+### P2 — Platform, Release, and Observability
+
+37. **Experiment and feature-flag governance** 🟡 — sample-size discipline, guardrail metrics, flag naming/lifecycle, cleanup, remote defaults, and auto-halt on crash/cost/safety regressions.
+38. **Analytics schema governance** 🟡 — one event catalogue, consent-aware event firing, backward compatibility, activation/retention definitions, and auto-generated docs from code.
+39. **Release/store compliance map** 🟡 — App Store/Play privacy disclosures, ATT/ad tracking, child/classroom implications, in-app purchase boundaries, data safety, and launch smoke gates.
+40. **Cross-platform parity matrix** 🟡 — iOS/Android/Web feature availability for camera, on-device models, notifications, ads, purchases, App Check, offline queue, and local rules.
+41. **Crash/performance/cost observability** 🟡 — one operator dashboard for AI spend, failures, provider latency, Firestore read/write cost, stuck queues, model download health, and top user-facing errors.
+
+### P2 — Industry and Frontier Bets
+
+42. **Digital Product Passport / barcode resolver path** 🟢 — prepare for EU DPP/battery passports, QR/NFC/barcode input, product material passports, and region-rule resolver integration.
+43. **Segmentation and multi-object scenes** 🟢 — YOLO/SAM/MobileSAM/MiniCPM/Gemma-style path for cluttered kitchen/recycling photos; UX for reviewing N detected items before classification.
+44. **Local model lifecycle** 🟢 — model download, signature verification, device-tier selection, rollback, battery/thermal budgets, and privacy positioning for local-only mode.
+45. **Smart-bin / hardware partner layer** 🟢 — QR-bin first, then sensor/fullness/hardware integrations only if a pilot partner exists.
+46. **MRF/brand/manufacturer closed-loop data** 🟢 — long-term data product: anonymized consumer-side confusion/correction trends for brands, recyclers, and sorting facilities, with strict consent/privacy boundaries.
+
+**Recommended deep-dive order**: start with 1–5 (truth/router/operator safety), then 6–11 (adaptive gamification from the recovered interview), then 12–16 (scan/result UX). The frontier bets are attractive but should not outrank making the existing flywheel and habit loop truthful.
 
 ## Provenance & Sources
 

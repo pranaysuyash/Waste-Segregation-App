@@ -4,7 +4,7 @@ import 'package:patrol/patrol.dart';
 import 'package:waste_segregation_app/main.dart' as app;
 
 void main() {
-  group('Basic Waste Segregation App E2E Tests', () {
+  group('Basic ReLoop E2E Tests', () {
     patrolTest(
       'App Launch and Basic Navigation - Patrol E2E',
       ($) async {
@@ -168,7 +168,7 @@ Future<void> _verifyHomeScreen(PatrolIntegrationTester $) async {
 
   // Look for common home screen elements
   expect(
-      $(const Text('Waste Segregation')).exists ||
+      $(const Text('ReLoop')).exists ||
           $(FloatingActionButton).exists ||
           $(const Text('Scan')).exists ||
           $(const Text('Home')).exists ||

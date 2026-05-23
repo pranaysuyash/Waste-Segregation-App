@@ -1,7 +1,7 @@
 # Horizontal Stat Cards Fixes Summary
 
 ## Overview
-This document summarizes the fixes implemented for the horizontal stat cards in the Waste Segregation App, addressing overflow issues, color standardization, and responsive behavior across different data states.
+This document summarizes the fixes implemented for the horizontal stat cards in the ReLoop, addressing overflow issues, color standardization, and responsive behavior across different data states.
 
 ## Issues Addressed
 

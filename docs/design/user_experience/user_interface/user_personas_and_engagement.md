@@ -1,6 +1,6 @@
 # User Personas and Engagement Strategies
 
-This document outlines key user personas for the Waste Segregation App and targeted engagement strategies for each group. Understanding our diverse user base will help prioritize features and optimize user experiences.
+This document outlines key user personas for the ReLoop and targeted engagement strategies for each group. Understanding our diverse user base will help prioritize features and optimize user experiences.
 
 ## Core User Personas
 

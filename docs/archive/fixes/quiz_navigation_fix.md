@@ -168,13 +168,13 @@ After implementing all fixes, the educational content coverage is now excellent:
 ### **Wet Waste** (5/6 content types)
 - ✅ Articles: 1 item - Complete Guide to Home Composting
 - ✅ Videos: 1 item - Home Composting for Beginners  
-- ✅ Infographics: 1 item - Waste Segregation at a Glance
+- ✅ Infographics: 1 item - ReLoop at a Glance
 - ✅ Quizzes: 3 items - General, Composting, and Sorting quizzes
 - ✅ Tutorials: 1 item - Building Your First Compost Bin
 
 ### **Dry Waste** (4/6 content types)
 - ✅ Articles: 2 items - Plastic Recycling Codes, Maximizing Recycling Impact
-- ✅ Infographics: 1 item - Waste Segregation at a Glance
+- ✅ Infographics: 1 item - ReLoop at a Glance
 - ✅ Quizzes: 3 items - General, Recycling, and Sorting quizzes
 - ✅ Tutorials: 1 item - Setting Up a Home Recycling System
 
@@ -186,7 +186,7 @@ After implementing all fixes, the educational content coverage is now excellent:
 ### **Medical Waste** (3/6 content types)
 - ✅ Articles: 1 item - Safe Disposal of Home Medical Waste
 - ✅ Videos: 1 item - Safe Home Medical Waste Disposal
-- ✅ Infographics: 1 item - Waste Segregation at a Glance
+- ✅ Infographics: 1 item - ReLoop at a Glance
 
 ## ✅ **Conclusion**
 

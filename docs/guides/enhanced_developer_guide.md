@@ -1,8 +1,8 @@
-# Waste Segregation App: Complete Developer Guide
+# ReLoop: Complete Developer Guide
 
 ## Overview
 
-This comprehensive developer guide provides everything you need to understand, develop, and contribute to the Waste Segregation App. The app is built with Flutter and uses Firebase for backend services, multiple AI providers for waste classification, and follows modern mobile development practices.
+This comprehensive developer guide provides everything you need to understand, develop, and contribute to the ReLoop. The app is built with Flutter and uses Firebase for backend services, multiple AI providers for waste classification, and follows modern mobile development practices.
 
 ## Table of Contents
 
@@ -298,4 +298,4 @@ git push origin feature/your-feature-name
 - Ensure all tests pass
 - Run code analysis
 
-This developer guide provides the foundation for effective development on the Waste Segregation App, covering all essential aspects from setup to deployment and contribution guidelines.
+This developer guide provides the foundation for effective development on the ReLoop, covering all essential aspects from setup to deployment and contribution guidelines.

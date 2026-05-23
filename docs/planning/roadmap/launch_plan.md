@@ -1,7 +1,7 @@
 # Launch Plan
 
 ## Overview
-This document outlines the launch strategy for the Waste Segregation App, focusing on the free version with ads while maintaining existing functionality. The plan includes premium features marked as "Coming Soon" and a comprehensive ad implementation strategy.
+This document outlines the launch strategy for the ReLoop, focusing on the free version with ads while maintaining existing functionality. The plan includes premium features marked as "Coming Soon" and a comprehensive ad implementation strategy.
 
 ## Current Implementation Status
 

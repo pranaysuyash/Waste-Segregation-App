@@ -4,7 +4,7 @@
 
 ### Step 1: Get Play App Signing SHA-1
 - [ ] Go to [Google Play Console](https://play.google.com/console)
-- [ ] Select "Waste Segregation" app
+- [ ] Select "ReLoop" app
 - [ ] Navigate to **Release** → **Setup** → **App signing**
 - [ ] Copy the **SHA-1 certificate fingerprint** under "App signing key certificate"
 - [ ] It looks like: `AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD`

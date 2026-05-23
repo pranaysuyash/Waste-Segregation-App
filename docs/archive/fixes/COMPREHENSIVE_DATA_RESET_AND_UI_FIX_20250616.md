@@ -1,6 +1,6 @@
 # Comprehensive Data Reset and UI Fix - June 16, 2025
 
-This document details the successful resolution of critical issues related to data clearing and UI rendering in the Waste Segregation App.
+This document details the successful resolution of critical issues related to data clearing and UI rendering in the ReLoop.
 
 ## 1. Problem Summary
 

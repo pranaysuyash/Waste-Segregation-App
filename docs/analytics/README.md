@@ -1,5 +1,5 @@
 # Analytics Documentation Index
-## Waste Segregation App
+## ReLoop
 
 **Last Updated:** June 19, 2025  
 **Status:** Active Implementation  
@@ -7,7 +7,7 @@
 
 ## 📚 Documentation Overview
 
-This directory contains comprehensive documentation for the analytics tracking system implementation in the Waste Segregation App. The system transforms basic usage metrics into a 360° behavioral analytics platform with enterprise-grade capabilities.
+This directory contains comprehensive documentation for the analytics tracking system implementation in the ReLoop. The system transforms basic usage metrics into a 360° behavioral analytics platform with enterprise-grade capabilities.
 
 ## 📋 Core Documents
 

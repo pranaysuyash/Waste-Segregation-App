@@ -274,8 +274,8 @@ class ClassificationStorageService {
         classification.id,
         classification.itemName,
         classification.category,
-        classification.subcategory ?? '',
-        classification.materialType ?? '',
+        classification.subCategory ?? '',
+        classification.materials?.join(', ') ?? '',
         classification.confidence,
         classification.timestamp.toIso8601String(),
         classification.isRecyclable,
@@ -340,14 +340,13 @@ class ClassificationStorageService {
         final searchText = filterOptions.searchText!.toLowerCase();
         final matchesSearch =
             classification.itemName.toLowerCase().contains(searchText) ||
-                (classification.subcategory != null &&
-                    classification.subcategory!
+                (classification.subCategory != null &&
+                    classification.subCategory!
                         .toLowerCase()
                         .contains(searchText)) ||
-                (classification.materialType != null &&
-                    classification.materialType!
-                        .toLowerCase()
-                        .contains(searchText)) ||
+                (classification.materials != null &&
+                    classification.materials!
+                        .any((m) => m.toLowerCase().contains(searchText))) ||
                 classification.category.toLowerCase().contains(searchText);
         if (!matchesSearch) return false;
       }
@@ -363,22 +362,21 @@ class ClassificationStorageService {
       // Subcategory filter
       if (filterOptions.subcategories != null &&
           filterOptions.subcategories!.isNotEmpty) {
-        if (classification.subcategory == null) return false;
+        final subCategory = classification.subCategory;
+        if (subCategory == null) return false;
         final matchesSubcategory = filterOptions.subcategories!.any(
-            (subcategory) =>
-                classification.subcategory!.toLowerCase() ==
-                subcategory.toLowerCase());
+            (s) => subCategory.toLowerCase() == s.toLowerCase());
         if (!matchesSubcategory) return false;
       }
 
       // Material type filter
       if (filterOptions.materialTypes != null &&
           filterOptions.materialTypes!.isNotEmpty) {
-        if (classification.materialType == null) return false;
+        final materials = classification.materials;
+        if (materials == null || materials.isEmpty) return false;
         final matchesMaterial = filterOptions.materialTypes!.any(
             (materialType) =>
-                classification.materialType!.toLowerCase() ==
-                materialType.toLowerCase());
+                materials.any((m) => m.toLowerCase() == materialType.toLowerCase()));
         if (!matchesMaterial) return false;
       }
 

@@ -1,6 +1,6 @@
 # Marketing Copywriting Toolkit
 
-This document provides ready-to-use copywriting for marketing the Waste Segregation App across various channels. As a solo developer, you can adapt these templates for app store descriptions, website copy, social media posts, advertisements, email campaigns, and in-app messaging.
+This document provides ready-to-use copywriting for marketing the ReLoop across various channels. As a solo developer, you can adapt these templates for app store descriptions, website copy, social media posts, advertisements, email campaigns, and in-app messaging.
 
 ## Brand Voice Guidelines
 
@@ -37,18 +37,18 @@ Transform waste management confusion into confident environmental action.
 - **Alternative 3:** "Know where it goes, watch your impact grow."
 
 ### Value Proposition
-The Waste Segregation App uses AI-powered image recognition to instantly identify waste items and provide clear disposal instructions, turning confusion into confident action while building environmental awareness through engaging education and community features.
+The ReLoop uses AI-powered image recognition to instantly identify waste items and provide clear disposal instructions, turning confusion into confident action while building environmental awareness through engaging education and community features.
 
 ### Elevator Pitches
 
 **15-Second Pitch:**
-"The Waste Segregation App uses AI to identify waste items through your camera and tells you exactly how to dispose of them properly, tracking your environmental impact along the way."
+"The ReLoop uses AI to identify waste items through your camera and tells you exactly how to dispose of them properly, tracking your environmental impact along the way."
 
 **30-Second Pitch:**
-"Ever stood in front of multiple bins, unsure where your waste belongs? The Waste Segregation App solves this everyday dilemma with AI that instantly identifies items through your camera and provides clear disposal instructions specific to your location. Track your environmental impact, learn through gamified education, and join a community making waste management simpler and more effective."
+"Ever stood in front of multiple bins, unsure where your waste belongs? The ReLoop solves this everyday dilemma with AI that instantly identifies items through your camera and provides clear disposal instructions specific to your location. Track your environmental impact, learn through gamified education, and join a community making waste management simpler and more effective."
 
 **60-Second Pitch:**
-"Waste sorting confusion is a universal problem that leads to contaminated recycling, unnecessary landfill waste, and missed opportunities for environmental impact. The Waste Segregation App transforms this daily frustration into confident action using AI-powered image recognition that instantly identifies waste items through your camera and provides clear, location-specific disposal instructions. But we go beyond simple classification—our app tracks your environmental impact, provides engaging educational content, and builds a community of environmentally conscious users through gamification and challenges. With features for individuals, families, and institutions, we're creating a world where proper waste management is accessible, rewarding, and effective. Join thousands of users who've transformed their daily waste habits while making a measurable impact on our environment."
+"Waste sorting confusion is a universal problem that leads to contaminated recycling, unnecessary landfill waste, and missed opportunities for environmental impact. The ReLoop transforms this daily frustration into confident action using AI-powered image recognition that instantly identifies waste items through your camera and provides clear, location-specific disposal instructions. But we go beyond simple classification—our app tracks your environmental impact, provides engaging educational content, and builds a community of environmentally conscious users through gamification and challenges. With features for individuals, families, and institutions, we're creating a world where proper waste management is accessible, rewarding, and effective. Join thousands of users who've transformed their daily waste habits while making a measurable impact on our environment."
 
 ## App Store Descriptions
 
@@ -60,9 +60,9 @@ Eliminate waste sorting confusion with our AI-powered app that instantly identif
 
 ### Full Description (App Store/Google Play)
 
-**Waste Segregation App: Your AI-Powered Waste Sorting Assistant**
+**ReLoop: Your AI-Powered Waste Sorting Assistant**
 
-Ever stood in front of multiple bins, confused about where your waste belongs? The Waste Segregation App eliminates this daily frustration using powerful AI that instantly identifies waste items through your camera and provides clear disposal instructions specific to your location.
+Ever stood in front of multiple bins, confused about where your waste belongs? The ReLoop eliminates this daily frustration using powerful AI that instantly identifies waste items through your camera and provides clear disposal instructions specific to your location.
 
 **Classify Waste Items Instantly**
 • Simply take a photo of any item
@@ -100,7 +100,7 @@ Ever stood in front of multiple bins, confused about where your waste belongs? T
 • No unnecessary permissions
 • Clear, transparent privacy policy
 
-Download the Waste Segregation App today and transform confusion into confident environmental action!
+Download the ReLoop today and transform confusion into confident environmental action!
 
 ## Website Copy
 
@@ -170,13 +170,13 @@ Download Now | See How It Works
 *Headline:* Real People, Real Impact
 
 *Testimonial Framework:*
-"[Specific problem solved] was always a challenge for me. With the Waste Segregation App, I now [specific benefit] with confidence. The [favorite feature] has helped me [positive outcome], and I've [measurable impact] since I started using it."
+"[Specific problem solved] was always a challenge for me. With the ReLoop, I now [specific benefit] with confidence. The [favorite feature] has helped me [positive outcome], and I've [measurable impact] since I started using it."
 
 ### About Us Section
 
 *Headline:* Our Mission: Making Proper Waste Management Accessible to Everyone
 
-*Body Copy:* The Waste Segregation App was born from a simple observation: despite good intentions, most people struggle with proper waste sorting due to confusing rules, inconsistent systems, and lack of immediate feedback.
+*Body Copy:* The ReLoop was born from a simple observation: despite good intentions, most people struggle with proper waste sorting due to confusing rules, inconsistent systems, and lack of immediate feedback.
 
 We believe technology can bridge this gap between intention and action. By combining artificial intelligence, educational content, and community engagement, we're building a solution that transforms daily waste decisions from moments of confusion into opportunities for positive environmental impact.
 
@@ -227,7 +227,7 @@ Every properly sorted item adds up to real environmental impact. Join [First Nam
 Did you know? A single [waste item] can contaminate an entire batch of recycling. Our app ensures you never make this common mistake again. #RecyclingFacts #WasteManagement
 
 *Feature Announcement:*
-📱 New Feature Alert! [Feature name] now helps you [benefit]. Update your Waste Segregation App today to access this game-changing capability. #AppUpdate #NewFeature
+📱 New Feature Alert! [Feature name] now helps you [benefit]. Update your ReLoop today to access this game-changing capability. #AppUpdate #NewFeature
 
 *Impact Sharing:*
 Together, our users have diverted [impressive statistic] from landfills this month! Every scan, every correct disposal adds up. Join the movement. #CollectiveImpact #WasteReduction
@@ -235,7 +235,7 @@ Together, our users have diverted [impressive statistic] from landfills this mon
 **LinkedIn Templates**
 
 *Industry Insights:*
-The waste management industry faces significant challenges with contamination rates exceeding [statistic] in many municipalities. Technology-driven solutions like our Waste Segregation App address this by [solution approach], resulting in [positive outcome] for both consumers and recycling facilities. #WasteManagementInnovation #SustainabilityTech
+The waste management industry faces significant challenges with contamination rates exceeding [statistic] in many municipalities. Technology-driven solutions like our ReLoop address this by [solution approach], resulting in [positive outcome] for both consumers and recycling facilities. #WasteManagementInnovation #SustainabilityTech
 
 *Partnership Announcements:*
 We're excited to announce our collaboration with [Partner Organization] to [specific initiative]. This partnership will enhance our ability to [benefit] while supporting [Partner]'s mission to [their goal]. Together, we're building solutions for more effective waste management systems. #Partnership #Sustainability
@@ -293,12 +293,12 @@ Download the app today to start your family's waste journey!
 
 **Email 1: Welcome & Getting Started**
 
-*Subject:* Welcome to the Waste Segregation App! Let's get started
+*Subject:* Welcome to the ReLoop! Let's get started
 
 *Body:*
 Hi [Name],
 
-Thank you for joining the Waste Segregation App community! We're excited to help you transform waste sorting confusion into confident environmental action.
+Thank you for joining the ReLoop community! We're excited to help you transform waste sorting confusion into confident environmental action.
 
 **Here's how to get started in 3 simple steps:**
 
@@ -318,7 +318,7 @@ Ready to dive deeper? Explore the Learning Center for fascinating insights into 
 Have questions? Reply directly to this email - we're here to help!
 
 Happy sorting,
-The Waste Segregation App Team
+The ReLoop Team
 
 **Email 2: Discover Key Features (2 days later)**
 
@@ -354,7 +354,7 @@ Add family members to track collective impact and participate together.
 **Which feature are you most excited about?** Reply to this email and let us know, or share any questions you have!
 
 Making a difference, together,
-The Waste Segregation App Team
+The ReLoop Team
 
 **Email 3: Educational Content Introduction (5 days later)**
 
@@ -384,7 +384,7 @@ You've properly sorted [X] items so far, potentially diverting [Y] kg from landf
 What waste journey are you most curious about? Let us know!
 
 Learning together,
-The Waste Segregation App Team
+The ReLoop Team
 
 ### Engagement Series
 
@@ -411,7 +411,7 @@ While you've been away, our community has diverted over [X] kg of waste from lan
 **Ready to jump back in?** Try scanning that item you've been unsure about.
 
 We're here to support your environmental journey,
-The Waste Segregation App Team
+The ReLoop Team
 
 **Monthly Impact Summary**
 
@@ -443,7 +443,7 @@ Increase your [specific category] sorting by [X] to reach the next impact level!
 [Seasonal or pattern-based tip relevant to their sorting history]
 
 Keep up the fantastic work!
-The Waste Segregation App Team
+The ReLoop Team
 
 **New Feature Announcement**
 
@@ -480,7 +480,7 @@ This feature is available for all users as part of our commitment to making wast
 What complex sorting situation will you tackle first?
 
 Always innovating for you,
-The Waste Segregation App Team
+The ReLoop Team
 
 ## In-App Messaging
 
@@ -488,7 +488,7 @@ The Waste Segregation App Team
 
 **Welcome Screen**
 *Headline:* Welcome to simplified waste sorting!
-*Body:* The Waste Segregation App uses AI to instantly identify waste items and tell you exactly how to dispose of them properly. Let's set up your experience in just a few steps.
+*Body:* The ReLoop uses AI to instantly identify waste items and tell you exactly how to dispose of them properly. Let's set up your experience in just a few steps.
 
 **Location Setup Screen**
 *Headline:* Local guidance for maximum impact
@@ -559,7 +559,7 @@ The Waste Segregation App Team
 *Headline 1:* End Recycling Confusion
 *Headline 2:* AI Waste Sorting Assistant
 *Headline 3:* Scan Items, Get Clear Answers
-*Description:* The Waste Segregation App instantly tells you how to dispose of any item properly. Download now for confident waste sorting.
+*Description:* The ReLoop instantly tells you how to dispose of any item properly. Download now for confident waste sorting.
 
 **Search Ads - Sustainability Keywords**
 
@@ -573,14 +573,14 @@ The Waste Segregation App Team
 *Headline 1:* Learn As You Sort
 *Headline 2:* Waste Management Made Simple
 *Headline 3:* Build Sustainable Habits
-*Description:* The Waste Segregation App combines AI classification with engaging education to build knowledge and confidence.
+*Description:* The ReLoop combines AI classification with engaging education to build knowledge and confidence.
 
 ### Display Ad Copy
 
 **General Awareness Set**
 
 *Headline:* Scan. Sort. Make a Difference.
-*Body:* Never wonder where it goes again. The Waste Segregation App gives instant, accurate waste sorting guidance for any item.
+*Body:* Never wonder where it goes again. The ReLoop gives instant, accurate waste sorting guidance for any item.
 *CTA:* Download Free
 
 **Pain Point Set**
@@ -614,7 +614,7 @@ The Waste Segregation App Team
 *Visual:* Show person holding confusing item, looking at bins
 *Text/VO:* "Not sure where it goes?"
 *Visual:* Show app scanning item
-*Text/VO:* "The Waste Segregation App instantly identifies any item..."
+*Text/VO:* "The ReLoop instantly identifies any item..."
 *Visual:* Show classification result with clear instruction
 *Text/VO:* "...and tells you exactly how to dispose of it properly."
 *Visual:* Show impact dashboard
@@ -623,13 +623,13 @@ The Waste Segregation App Team
 
 ## Press Release Template
 
-**HEADLINE: New Waste Segregation App Uses AI to Eliminate Recycling Confusion**
+**HEADLINE: New ReLoop Uses AI to Eliminate Recycling Confusion**
 
 **SUBHEADLINE: Mobile application provides instant waste classification and local disposal guidance, tracking environmental impact with each use**
 
-**[CITY, DATE]** — Today marks the launch of the Waste Segregation App, an innovative mobile application that uses artificial intelligence to instantly identify waste items and provide clear, location-specific disposal instructions. Developed to address the growing confusion around proper waste sorting, the app transforms daily disposal decisions from moments of uncertainty into opportunities for positive environmental impact.
+**[CITY, DATE]** — Today marks the launch of the ReLoop, an innovative mobile application that uses artificial intelligence to instantly identify waste items and provide clear, location-specific disposal instructions. Developed to address the growing confusion around proper waste sorting, the app transforms daily disposal decisions from moments of uncertainty into opportunities for positive environmental impact.
 
-Studies show that recycling contamination rates exceed 25% in many municipalities, with confusion about proper sorting cited as the primary cause. The Waste Segregation App directly addresses this challenge through its core features:
+Studies show that recycling contamination rates exceed 25% in many municipalities, with confusion about proper sorting cited as the primary cause. The ReLoop directly addresses this challenge through its core features:
 
 - **AI-powered classification** that instantly identifies items through the device camera
 - **Location-specific guidance** tailored to local waste management systems
@@ -637,11 +637,11 @@ Studies show that recycling contamination rates exceed 25% in many municipalitie
 - **Impact tracking** showing the environmental benefit of proper sorting
 - **Community features** that gamify and socialize the waste management experience
 
-"Waste sorting confusion is a universal problem that significantly reduces the effectiveness of recycling systems," said [FOUNDER NAME], creator of the Waste Segregation App. "Our mission is to eliminate this confusion by putting expert guidance in everyone's pocket, making proper waste management accessible to all."
+"Waste sorting confusion is a universal problem that significantly reduces the effectiveness of recycling systems," said [FOUNDER NAME], creator of the ReLoop. "Our mission is to eliminate this confusion by putting expert guidance in everyone's pocket, making proper waste management accessible to all."
 
 The app has undergone extensive beta testing with [NUMBER] users across [NUMBER] regions, demonstrating a [PERCENTAGE]% improvement in sorting accuracy among participants. Beta tester [NAME] reported, "I've always wanted to recycle properly, but the rules seemed to change constantly. This app finally gives me confidence that I'm doing it right."
 
-The Waste Segregation App is available for free download on iOS and Android platforms, with premium features available for enhanced functionality. For more information, visit [WEBSITE].
+The ReLoop is available for free download on iOS and Android platforms, with premium features available for enhanced functionality. For more information, visit [WEBSITE].
 
 **About [COMPANY NAME]**
 [COMPANY BOILERPLATE - 2-3 sentences about the company, mission, and background]
@@ -656,7 +656,7 @@ The Waste Segregation App is available for free download on iOS and Android plat
 
 ### Campaign Concept
 
-The "Know Where It Goes" campaign highlights the everyday confusion around waste sorting and positions the Waste Segregation App as the simple solution that transforms uncertainty into confident action with measurable impact.
+The "Know Where It Goes" campaign highlights the everyday confusion around waste sorting and positions the ReLoop as the simple solution that transforms uncertainty into confident action with measurable impact.
 
 ### Campaign Tagline
 
@@ -674,13 +674,13 @@ Know Where It Goes: Waste Sorting Simplified
 
 *VO:* "This confusion leads to contaminated recycling, unnecessary landfill waste, and missed opportunities for environmental impact."
 
-*Shift:* [Person takes out phone, opens Waste Segregation App]
+*Shift:* [Person takes out phone, opens ReLoop]
 
 *VO:* "But what if you had an expert in your pocket? One that could instantly identify any item and tell you exactly how to dispose of it properly?"
 
 *Demonstration:* [Show app scanning various items, display classification results]
 
-*VO:* "The Waste Segregation App uses AI to recognize thousands of items and provide clear, location-specific disposal instructions in seconds."
+*VO:* "The ReLoop uses AI to recognize thousands of items and provide clear, location-specific disposal instructions in seconds."
 
 *Feature Highlight:* [Show impact dashboard, educational content, community features]
 
@@ -688,7 +688,7 @@ Know Where It Goes: Waste Sorting Simplified
 
 *Closing:* [Show diverse users confidently disposing items]
 
-*VO:* "Download the Waste Segregation App today and always know where it goes."
+*VO:* "Download the ReLoop today and always know where it goes."
 
 *Final Screen:* App logo, download information, website
 
@@ -697,7 +697,7 @@ Know Where It Goes: Waste Sorting Simplified
 *Headline:* Confused about where it goes?
 *Visual:* Split image: Person looking confused at bins / Person confidently using app
 *Tagline:* Know Where It Goes.
-*CTA:* Download the Waste Segregation App
+*CTA:* Download the ReLoop
 
 **Radio Script (30 seconds)**
 
@@ -705,13 +705,13 @@ Know Where It Goes: Waste Sorting Simplified
 
 *Voice 1 (confused):* "Does this go in recycling? Or maybe compost? I'm never sure..."
 
-*Voice 2 (confident):* "Just use the Waste Segregation App! It instantly tells you exactly where any item belongs."
+*Voice 2 (confident):* "Just use the ReLoop! It instantly tells you exactly where any item belongs."
 
 *Voice 1:* "Really? How does it work?"
 
 *Voice 2:* "Just scan the item with your camera, and the app identifies it and gives you disposal instructions specific to our local system. It even tracks your environmental impact!"
 
-*Announcer:* "The Waste Segregation App. Know where it goes, every single time. Download free today on the App Store or Google Play."
+*Announcer:* "The ReLoop. Know where it goes, every single time. Download free today on the App Store or Google Play."
 
 ### Influencer Collaboration Brief
 
@@ -772,7 +772,7 @@ Did you know? You can [feature description] by tapping here.
 
 ## Additional Document Sections
 
-This comprehensive copywriting toolkit provides ready-to-use content for marketing the Waste Segregation App across multiple channels. As you develop the app further, consider expanding this document with:
+This comprehensive copywriting toolkit provides ready-to-use content for marketing the ReLoop across multiple channels. As you develop the app further, consider expanding this document with:
 
 1. **Seasonal Campaign Templates** - Earth Day, Plastic Free July, Zero Waste Week
 2. **User Milestone Communications** - Special messaging for power users

@@ -6,7 +6,7 @@
 
 ## What the app does
 
-The Waste Segregation App now uses two distinct AI pipelines:
+The ReLoop now uses two distinct AI pipelines:
 
 1. **Classification** - backend proxy first in release. `AiService` routes through `BackendProxyProvider` to the `classifyImage` Firebase callable in release, and can opt into that backend path in debug/profile with `USE_BACKEND_AI_IN_RELEASE=true`. Direct OpenAI and Gemini clients still exist for non-release flows and direct-provider fallback paths.
 

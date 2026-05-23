@@ -1,7 +1,7 @@
 # Memory Leak Fixes
 
 ## Overview
-This document tracks memory leak fixes implemented in the WasteWise application to improve stability and performance.
+This document tracks memory leak fixes implemented in the ReLoop application to improve stability and performance.
 
 ## HistoryScreen Memory Leak Fix (June 3, 2025)
 

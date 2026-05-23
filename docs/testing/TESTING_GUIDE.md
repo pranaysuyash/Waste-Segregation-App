@@ -1,8 +1,8 @@
-# Waste Segregation App - Testing Guide
+# ReLoop - Testing Guide
 
 ## Overview
 
-This guide covers the comprehensive test suite for the Waste Segregation App, including unit tests, integration tests, widget tests, and golden tests.
+This guide covers the comprehensive test suite for the ReLoop, including unit tests, integration tests, widget tests, and golden tests.
 
 ## Test Categories
 
@@ -357,4 +357,4 @@ flutter test --watch
 - `test/flows/classification_flow_test.dart` - Integration workflows
 - `test_runner.sh` - Comprehensive test suite runner
 
-This testing guide ensures comprehensive coverage of the Waste Segregation App's functionality, from basic model validation to complex integration workflows. The tests provide confidence in app reliability and maintainability. 
+This testing guide ensures comprehensive coverage of the ReLoop's functionality, from basic model validation to complex integration workflows. The tests provide confidence in app reliability and maintainability. 

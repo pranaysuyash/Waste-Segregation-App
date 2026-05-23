@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document summarizes the critical fixes implemented in May 2025 to address user data privacy and UI styling issues in the WasteWise app.
+This document summarizes the critical fixes implemented in May 2025 to address user data privacy and UI styling issues in the ReLoop app.
 
 ## Issues Fixed
 

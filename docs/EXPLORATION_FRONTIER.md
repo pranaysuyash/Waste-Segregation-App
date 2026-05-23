@@ -1,4 +1,4 @@
-# Exploration Frontier — Waste Segregation App
+# Exploration Frontier — ReLoop
 
 **Purpose**: High-ambition / "boil the ocean" frontier bets that don't fit a quarter's roadmap but should never fall off the map.
 **Status**: Living

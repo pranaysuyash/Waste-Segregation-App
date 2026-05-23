@@ -229,8 +229,8 @@ void main() {
           result = result
               .where((c) =>
                   c.itemName.toLowerCase().contains(query) ||
-                  (c.subcategory?.toLowerCase().contains(query) ?? false) ||
-                  (c.materialType?.toLowerCase().contains(query) ?? false) ||
+                  (c.subCategory?.toLowerCase().contains(query) ?? false) ||
+                  (c.materials?.any((m) => m.toLowerCase().contains(query)) ?? false) ||
                   c.category.toLowerCase().contains(query))
               .toList();
         }

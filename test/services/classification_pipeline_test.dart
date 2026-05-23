@@ -293,7 +293,7 @@ void main() {
 
       expect(wc.itemName, equals('Plastic Bottle'));
       expect(wc.category, equals('Dry Waste'));
-      expect(wc.subcategory, equals('Plastic Bottle'));
+      expect(wc.subCategory, equals('Plastic Bottle'));
       expect(wc.confidence, equals(0.92));
       expect(wc.modelSource, equals('layer1_on_device'));
       expect(wc.modelVersion, equals('mobilenet_v3_v1'));
@@ -316,7 +316,7 @@ void main() {
 
       expect(wc.itemName, equals('Wet Waste'));
       expect(wc.category, equals('Wet Waste'));
-      expect(wc.subcategory, isNull);
+      expect(wc.subCategory, isNull);
     });
   });
 }

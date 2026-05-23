@@ -166,4 +166,4 @@ curl -X GET "https://asia-south1-waste-segregation-app-df523.cloudfunctions.net/
 
 ---
 
-**This deployment marks a critical milestone in the Waste Segregation App's evolution, providing the foundation for cost-effective AI processing at scale while maintaining excellent user experience.** 
+**This deployment marks a critical milestone in the ReLoop's evolution, providing the foundation for cost-effective AI processing at scale while maintaining excellent user experience.** 

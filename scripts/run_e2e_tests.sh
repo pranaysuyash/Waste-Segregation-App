@@ -104,7 +104,7 @@ cat > test_results/e2e/report.html << EOF
 <body>
     <div class="header">
         <h1>🎭 Playwright-Style E2E Test Report</h1>
-        <p>Flutter Waste Segregation App - Automated UI Testing</p>
+        <p>Flutter ReLoop - Automated UI Testing</p>
         <p>Generated: $(date)</p>
     </div>
     

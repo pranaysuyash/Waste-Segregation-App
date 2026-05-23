@@ -4,7 +4,7 @@ import 'package:patrol/patrol.dart';
 import 'package:waste_segregation_app/main.dart' as app;
 
 void main() {
-  group('Comprehensive Waste Segregation App E2E Tests', () {
+  group('Comprehensive ReLoop E2E Tests', () {
     patrolTest(
       'Complete App Launch and Navigation Flow',
       ($) async {
@@ -277,7 +277,7 @@ Future<void> _verifyHomeScreen(PatrolIntegrationTester $) async {
 
   // Look for home screen indicators
   expect(
-      $(const Text('Waste Segregation')).exists ||
+      $(const Text('ReLoop')).exists ||
           $(FloatingActionButton).exists ||
           $(const Text('Scan')).exists ||
           $(const Text('Home')).exists ||
@@ -628,7 +628,7 @@ Future<void> _testConnectivityRecovery(PatrolIntegrationTester $) async {
 
     // App should recover gracefully
     expect(
-        $(const Text('Waste Segregation')).exists ||
+        $(const Text('ReLoop')).exists ||
             $(FloatingActionButton).exists ||
             $(NavigationBar).exists,
         isTrue,
@@ -774,7 +774,7 @@ Future<void> _testResponsiveDesign(PatrolIntegrationTester $) async {
     expect(
         $(NavigationBar).exists ||
             $(FloatingActionButton).exists ||
-            $(const Text('Waste Segregation')).exists,
+            $(const Text('ReLoop')).exists,
         isTrue,
         reason: 'App should work in landscape mode');
 

@@ -1,6 +1,6 @@
-# 🚀 Waste Segregation App - Future Development Plans
+# 🚀 ReLoop - Future Development Plans
 
-This document outlines the strategic roadmap for future enhancements and features for the Waste Segregation App, prioritized by impact, feasibility, and user value.
+This document outlines the strategic roadmap for future enhancements and features for the ReLoop, prioritized by impact, feasibility, and user value.
 
 _Last updated: May 24, 2025_
 
@@ -8,7 +8,7 @@ _Last updated: May 24, 2025_
 
 ## 📋 Executive Summary
 
-The Waste Segregation App has successfully evolved from a simple classification tool into a comprehensive waste management assistant. With the recent implementation of the **Disposal Instructions Feature**, the app now provides complete end-to-end guidance from identification to proper disposal.
+The ReLoop has successfully evolved from a simple classification tool into a comprehensive waste management assistant. With the recent implementation of the **Disposal Instructions Feature**, the app now provides complete end-to-end guidance from identification to proper disposal.
 
 **Current Status**: 
 - ✅ Core classification system
@@ -345,7 +345,7 @@ class NavigationService {
 
 ---
 
-This roadmap represents an ambitious but achievable growth plan for the Waste Segregation App. The focus remains on user value, environmental impact, and sustainable technology solutions that make proper waste management accessible and engaging for everyone.
+This roadmap represents an ambitious but achievable growth plan for the ReLoop. The focus remains on user value, environmental impact, and sustainable technology solutions that make proper waste management accessible and engaging for everyone.
 
 **Next Review**: June 1, 2025
 **Document Owner**: Development Team

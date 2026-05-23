@@ -1,4 +1,4 @@
-# 🔧 Waste Segregation App - Critical Fixes & Enhancements
+# 🔧 ReLoop - Critical Fixes & Enhancements
 
 ## 📋 **Issues Fixed**
 

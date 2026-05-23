@@ -13,7 +13,7 @@ void main() {
       // Verify basic properties
       expect(fallback.itemName, equals('Unidentified Item - Fallback'));
       expect(fallback.category, equals('Requires Manual Review'));
-      expect(fallback.subcategory, equals('Classification Needed'));
+      expect(fallback.subCategory, equals('Classification Needed'));
       expect(fallback.userId, equals(userId));
       expect(fallback.imageUrl, equals(imagePath));
       expect(fallback.confidence, equals(0.0));
@@ -116,7 +116,7 @@ void main() {
       // But same core properties
       expect(fallback1.itemName, equals(fallback2.itemName));
       expect(fallback1.category, equals(fallback2.category));
-      expect(fallback1.subcategory, equals(fallback2.subcategory));
+      expect(fallback1.subCategory, equals(fallback2.subCategory));
       expect(fallback1.explanation, equals(fallback2.explanation));
       expect(fallback1.disposalInstructions.primaryMethod,
           equals(fallback2.disposalInstructions.primaryMethod));
@@ -132,7 +132,7 @@ void main() {
 
       expect(restored.itemName, equals(original.itemName));
       expect(restored.category, equals(original.category));
-      expect(restored.subcategory, equals(original.subcategory));
+      expect(restored.subCategory, equals(original.subCategory));
       expect(restored.explanation, equals(original.explanation));
       expect(restored.confidence, equals(original.confidence));
       expect(

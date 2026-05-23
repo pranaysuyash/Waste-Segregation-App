@@ -1,4 +1,4 @@
-# Waste Segregation App - Quick Wins & Enhancement Backlog
+# ReLoop - Quick Wins & Enhancement Backlog
 
 ## ✅ COMPLETED QUICK WINS
 

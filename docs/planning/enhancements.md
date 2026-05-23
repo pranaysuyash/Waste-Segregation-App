@@ -1,6 +1,6 @@
-# Waste Segregation App - Major Features Enhancement
+# ReLoop - Major Features Enhancement
 
-This document provides detailed information about the major feature enhancements implemented in the Waste Segregation App, transforming it from a simple classification tool into a comprehensive waste management assistant.
+This document provides detailed information about the major feature enhancements implemented in the ReLoop, transforming it from a simple classification tool into a comprehensive waste management assistant.
 
 ## Table of Contents
 1. [Disposal Instructions Feature](#1-disposal-instructions-feature) ✨ **NEW**

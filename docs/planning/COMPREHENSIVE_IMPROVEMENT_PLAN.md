@@ -1,4 +1,4 @@
-# Comprehensive Improvement Plan - Waste Segregation App
+# Comprehensive Improvement Plan - ReLoop
 
 ## 📋 Executive Summary
 

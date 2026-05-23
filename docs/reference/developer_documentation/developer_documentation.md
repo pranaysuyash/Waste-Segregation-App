@@ -1,4 +1,4 @@
-# Waste Segregation App - Developer Documentation
+# ReLoop - Developer Documentation
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -16,7 +16,7 @@
 
 ## Introduction
 
-The Waste Segregation App is a Flutter-based educational application that helps users properly segregate waste items using AI-powered image classification. This document provides comprehensive documentation for developers working on the project.
+The ReLoop is a Flutter-based educational application that helps users properly segregate waste items using AI-powered image classification. This document provides comprehensive documentation for developers working on the project.
 
 ## Architecture Overview
 

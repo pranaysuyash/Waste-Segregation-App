@@ -224,7 +224,7 @@ if (!kIsWeb) {
 **UPLOAD FUNCTIONALITY**: Seamless on all Android versions
 **BUILD STATUS**: Successful across all platforms
 
-The Flutter Waste Segregation App now has:
+The Flutter ReLoop now has:
 - ✅ Robust AI response parsing
 - ✅ Modern Android permission handling
 - ✅ Seamless camera/upload experience

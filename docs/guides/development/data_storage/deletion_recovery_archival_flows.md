@@ -404,7 +404,7 @@ Account Deletion Impact Across Devices:
 
 ```
 App Installation → Sign In → Welcome Back Flow:
-├── Device Recognition: "Welcome back to Waste Segregation!"
+├── Device Recognition: "Welcome back to ReLoop!"
 ├── Data Summary: "We found your account with 247 classifications"
 ├── Sync Options: "Download all data" or "Selective sync"
 ├── Progress Tracking: "Syncing classifications... 156/247"

@@ -33,7 +33,7 @@ void main() {
 
       expect(classification.itemName, 'Unidentified Item - Fallback');
       expect(classification.category, 'Requires Manual Review');
-      expect(classification.subcategory, 'Classification Needed');
+      expect(classification.subCategory, 'Classification Needed');
       expect(classification.explanation,
           contains('unable to automatically identify'));
       expect(classification.imageUrl, '/path/to/image.jpg');

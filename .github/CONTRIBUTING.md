@@ -1,4 +1,4 @@
-# Contributing to Waste Segregation App
+# Contributing to ReLoop
 
 Thank you for your interest in contributing to our AI-powered waste segregation application! This guide will help you get started with our sophisticated development workflow.
 

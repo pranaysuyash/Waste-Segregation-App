@@ -1,7 +1,7 @@
 # App Theme and Style Guide
 
 ## Overview
-This document defines the visual language for the Waste Segregation App, ensuring consistency across all screens and components. It provides guidelines for colors, typography, spacing, and UI components, with special attention to handling different subscription tiers visually.
+This document defines the visual language for the ReLoop, ensuring consistency across all screens and components. It provides guidelines for colors, typography, spacing, and UI components, with special attention to handling different subscription tiers visually.
 
 ## Color System
 

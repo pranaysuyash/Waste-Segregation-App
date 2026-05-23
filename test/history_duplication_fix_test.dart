@@ -31,7 +31,7 @@ void main() {
       // Verify properties
       expect(classification.itemName, equals('Test Plastic Bottle'));
       expect(classification.category, equals('Dry Waste'));
-      expect(classification.subcategory, equals('Plastic'));
+      expect(classification.subCategory, equals('Plastic'));
       expect(classification.confidence, equals(0.95));
       expect(classification.isRecyclable, equals(true));
       expect(classification.isCompostable, equals(false));

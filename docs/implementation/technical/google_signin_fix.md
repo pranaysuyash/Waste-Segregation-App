@@ -20,7 +20,7 @@ When you deploy to Play Store internal testing, Google Play Console uses **Play 
 ### Step 1: Get Play App Signing SHA-1 Certificate
 
 1. Go to [Google Play Console](https://play.google.com/console)
-2. Select your **"Waste Segregation"** app  
+2. Select your **"ReLoop"** app  
 3. Navigate to **Release** → **Setup** → **App signing**
 4. Under **"App signing key certificate"**, copy the **SHA-1 certificate fingerprint**
 

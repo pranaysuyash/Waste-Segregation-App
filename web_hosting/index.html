@@ -1,612 +1,613 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Waste Segregation App helps people sort waste faster with AI classification, daily free scans, premium unlocks, impact tracking, and privacy controls.">
-  <meta name="keywords" content="waste segregation, waste sorting, AI classification, recycling, waste app, disposal guide, sustainability, premium, token wallet">
-  <meta name="theme-color" content="#166534">
-  <meta name="robots" content="index,follow">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Waste Segregation App">
-  <meta property="og:description" content="AI-powered waste sorting, daily free scans, premium unlocks, and privacy-first support.">
-  <meta property="og:locale" content="en_US">
-  <title>Waste Segregation App | AI Waste Sorting</title>
-  <style>
-    :root {
-      --bg: #07130d;
-      --bg-elevated: rgba(10, 30, 20, 0.82);
-      --panel: rgba(255, 255, 255, 0.06);
-      --panel-strong: rgba(255, 255, 255, 0.1);
-      --text: #f3fbf6;
-      --muted: rgba(243, 251, 246, 0.76);
-      --accent: #5bfa9a;
-      --accent-2: #87c9ff;
-      --warning: #ffd166;
-      --border: rgba(255, 255, 255, 0.12);
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-      --radius: 24px;
-      --max: 1140px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      margin: 0;
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(91, 250, 154, 0.16), transparent 28%),
-        radial-gradient(circle at top right, rgba(135, 201, 255, 0.12), transparent 32%),
-        linear-gradient(180deg, #03100a 0%, #081711 45%, #07130d 100%);
-      min-height: 100vh;
-      line-height: 1.5;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .shell {
-      width: min(var(--max), calc(100% - 32px));
-      margin: 0 auto;
-      padding: 28px 0 40px;
-    }
-
-    .nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      padding: 14px 18px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.18);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 16px;
-      z-index: 10;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-    }
-
-    .brand-mark {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, rgba(91, 250, 154, 0.9), rgba(135, 201, 255, 0.9));
-      color: #052013;
-      font-size: 18px;
-      box-shadow: 0 10px 28px rgba(91, 250, 154, 0.26);
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 18px;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .nav-links a:hover {
-      color: var(--text);
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.25fr 0.95fr;
-      gap: 28px;
-      align-items: center;
-      margin-top: 34px;
-      padding: 34px;
-      border: 1px solid var(--border);
-      border-radius: calc(var(--radius) + 10px);
-      background: linear-gradient(180deg, rgba(12, 32, 23, 0.96), rgba(6, 20, 14, 0.94));
-      box-shadow: var(--shadow);
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border: 1px solid rgba(91, 250, 154, 0.28);
-      border-radius: 999px;
-      background: rgba(91, 250, 154, 0.08);
-      color: #c8ffe0;
-      font-size: 13px;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(36px, 5vw, 64px);
-      line-height: 0.98;
-      letter-spacing: -0.04em;
-      max-width: 11ch;
-    }
-
-    .hero-copy {
-      color: var(--muted);
-      font-size: 18px;
-      max-width: 62ch;
-      margin: 18px 0 0;
-    }
-
-    .cta-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 26px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      min-height: 48px;
-      padding: 0 18px;
-      border-radius: 14px;
-      font-weight: 700;
-      border: 1px solid transparent;
-      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), #8cfcc0);
-      color: #082115;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: var(--border);
-      color: var(--text);
-    }
-
-    .btn-tertiary {
-      background: rgba(135, 201, 255, 0.08);
-      border-color: rgba(135, 201, 255, 0.22);
-      color: #d9efff;
-    }
-
-    .hero-card {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      padding: 22px;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-    }
-
-    .hero-card h2 {
-      margin: 0 0 16px;
-      font-size: 18px;
-    }
-
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .stat {
-      padding: 16px;
-      border-radius: 18px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-    }
-
-    .stat strong {
-      display: block;
-      font-size: 22px;
-      margin-bottom: 6px;
-    }
-
-    .stat span {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .section {
-      margin-top: 26px;
-      padding: 26px 0 0;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: end;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .section-header h3 {
-      margin: 0;
-      font-size: 28px;
-      letter-spacing: -0.03em;
-    }
-
-    .section-header p {
-      margin: 0;
-      color: var(--muted);
-      max-width: 58ch;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .card {
-      padding: 20px;
-      border-radius: 20px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-    }
-
-    .card h4 {
-      margin: 10px 0 8px;
-      font-size: 18px;
-    }
-
-    .card p,
-    .card li {
-      color: var(--muted);
-      margin: 0;
-      font-size: 15px;
-    }
-
-    .icon-pill {
-      width: 44px;
-      height: 44px;
-      display: grid;
-      place-items: center;
-      border-radius: 14px;
-      background: rgba(91, 250, 154, 0.12);
-      border: 1px solid rgba(91, 250, 154, 0.18);
-      font-size: 20px;
-    }
-
-    .check-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
-      gap: 10px;
-    }
-
-    .check-list li {
-      position: relative;
-      padding-left: 28px;
-    }
-
-    .check-list li::before {
-      content: '✓';
-      position: absolute;
-      left: 0;
-      top: 0;
-      color: var(--accent);
-      font-weight: 800;
-    }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .step {
-      position: relative;
-      min-height: 180px;
-    }
-
-    .step .num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
-      margin-bottom: 10px;
-      background: rgba(135, 201, 255, 0.12);
-      border: 1px solid rgba(135, 201, 255, 0.18);
-      color: #d7efff;
-      font-weight: 800;
-    }
-
-    .cta-band {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 14px;
-      margin-top: 14px;
-      padding: 22px;
-      border-radius: 22px;
-      background: linear-gradient(135deg, rgba(91, 250, 154, 0.11), rgba(135, 201, 255, 0.08));
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .cta-band p {
-      margin: 10px 0 0;
-      color: var(--muted);
-    }
-
-    .footer {
-      margin: 30px 0 0;
-      padding: 18px 0 8px;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-      font-size: 14px;
-    }
-
-    .footer a {
-      color: var(--text);
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .badge-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    .badge {
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .small {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    @media (max-width: 960px) {
-      .hero,
-      .cta-band,
-      .grid-3,
-      .grid-2,
-      .steps {
-        grid-template-columns: 1fr;
-      }
-
-      .section-header,
-      .nav {
-        align-items: start;
-        flex-direction: column;
-      }
-
-      h1 {
-        max-width: none;
-      }
-
-      .nav-links {
-        gap: 10px;
-      }
-    }
-  </style>
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Waste Segregation App",
-    "applicationCategory": "UtilitiesApplication",
-    "operatingSystem": "Android, iOS, Web",
-    "description": "AI-powered waste sorting with daily free scans, premium unlocks, and privacy controls."
-  }
-  </script>
-</head>
-<body>
-  <main class="shell">
-    <header class="nav" aria-label="Primary">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">♻</div>
-        <div>
-          <div>Waste Segregation App</div>
-          <div class="small">AI waste sorting, built for launch</div>
-        </div>
-      </div>
-      <nav class="nav-links" aria-label="Section navigation">
-        <a href="#how-it-works">How it works</a>
-        <a href="#features">Features</a>
-        <a href="#privacy">Privacy</a>
-        <a href="#support">Support</a>
-      </nav>
-    </header>
-
-    <section class="hero" aria-labelledby="hero-title">
-      <div>
-        <div class="eyebrow">Money-first product surface • static public hosting • privacy-aware</div>
-        <h1 id="hero-title">Sort waste faster. Spend less. Ship cleaner.</h1>
-        <p class="hero-copy">
-          Waste Segregation App turns a photo into a clear disposal recommendation, keeps the experience lightweight,
-          and supports a real monetization path with daily free scans, premium unlocks, and server-side guardrails.
-        </p>
-        <div class="cta-row">
-          <a class="btn btn-primary" href="mailto:support@wastewise-app.com?subject=Waste%20Segregation%20App%20Access%20Request">
-            Request access
-          </a>
-          <a class="btn btn-secondary" href="#features">See what it does</a>
-          <a class="btn btn-tertiary" href="#privacy">Privacy & data controls</a>
-        </div>
-        <div class="badge-row" aria-label="Highlights">
-          <span class="badge">AI classification</span>
-          <span class="badge">Daily free quota</span>
-          <span class="badge">Premium unlocks</span>
-          <span class="badge">Ad-free upgrades</span>
-          <span class="badge">Impact tracking</span>
-        </div>
-      </div>
-
-      <aside class="hero-card" aria-label="Launch summary">
-        <h2>What users get</h2>
-        <div class="stat-grid">
-          <div class="stat">
-            <strong>1 photo</strong>
-            <span>to identify the item and return a disposal path</span>
-          </div>
-          <div class="stat">
-            <strong>3 free</strong>
-            <span>daily scans before quota enforcement kicks in</span>
-          </div>
-          <div class="stat">
-            <strong>Premium</strong>
-            <span>removes ads and unlocks higher limits</span>
-          </div>
-          <div class="stat">
-            <strong>Private</strong>
-            <span>account/data controls are surfaced openly</span>
-          </div>
-        </div>
-      </aside>
-    </section>
-
-    <section class="section" id="how-it-works">
-      <div class="section-header">
-        <div>
-          <h3>How it works</h3>
-          <p>Three steps, no fluff. The landing page should reduce friction and push users toward the first scan or an access request.</p>
-        </div>
-      </div>
-      <div class="steps">
-        <article class="card step">
-          <div class="num">1</div>
-          <h4>Take a photo</h4>
-          <p>Capture the waste item and send it through the app’s classification flow.</p>
-        </article>
-        <article class="card step">
-          <div class="num">2</div>
-          <h4>Get the disposal rule</h4>
-          <p>See the predicted category, disposal guidance, and follow-up actions immediately.</p>
-        </article>
-        <article class="card step">
-          <div class="num">3</div>
-          <h4>Track the impact</h4>
-          <p>History, achievements, and contribution signals make the behavior sticky instead of one-off.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="section" id="features">
-      <div class="section-header">
-        <div>
-          <h3>Features that matter</h3>
-          <p>This is the surface users actually care about: the app does the work, the site explains the value, and the backend keeps costs in check.</p>
-        </div>
-      </div>
-      <div class="grid-3">
-        <article class="card">
-          <div class="icon-pill" aria-hidden="true">⚡</div>
-          <h4>Fast AI classification</h4>
-          <p>Server-side inference path, explicit fallback behavior, and remote-config-driven model selection keep release behavior predictable.</p>
-        </article>
-        <article class="card">
-          <div class="icon-pill" aria-hidden="true">💳</div>
-          <h4>Monetization that is actually enforceable</h4>
-          <p>Daily quota, token wallet, premium unlocks, and ad-free gating are all designed to be checked server-side, not trusted on the client.</p>
-        </article>
-        <article class="card">
-          <div class="icon-pill" aria-hidden="true">📈</div>
-          <h4>Visible user value</h4>
-          <p>Impact metrics, history, achievements, and community signals make the product feel useful after the first scan.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="section" id="privacy">
-      <div class="section-header">
-        <div>
-          <h3>Privacy and data control</h3>
-          <p>No fake trust copy. The site links directly to the account and data deletion flows the app already exposes.</p>
-        </div>
-      </div>
-      <div class="grid-2">
-        <article class="card">
-          <h4>What we keep</h4>
-          <ul class="check-list">
-            <li>Account and profile data needed for the app to work.</li>
-            <li>Classification history if the user opts into history.</li>
-            <li>Token and premium state required for quotas and unlocks.</li>
-          </ul>
-        </article>
-        <article class="card">
-          <h4>What users can control</h4>
-          <ul class="check-list">
-            <li>Delete the entire account.</li>
-            <li>Delete specific data without removing the account.</li>
-            <li>Use the app with a clear support channel and documented request path.</li>
-          </ul>
-        </article>
-      </div>
-    </section>
-
-    <section class="section" id="support">
-      <div class="cta-band">
-        <div>
-          <h3>Need access, support, or a privacy request?</h3>
-          <p>
-            Keep the acquisition path short. If the user is interested, the next action should be obvious: request access,
-            read the privacy pages, or email support.
-          </p>
-        </div>
-        <div class="cta-row" style="margin-top: 0; justify-content: flex-end; align-items: start;">
-          <a class="btn btn-primary" href="mailto:support@wastewise-app.com">Email support</a>
-          <a class="btn btn-secondary" href="delete_account.html">Delete account</a>
-          <a class="btn btn-secondary" href="delete_data.html">Delete data</a>
-        </div>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <div>
-        <strong>Waste Segregation App</strong>
-        <div>Public web surface for acquisition, support, and privacy requests.</div>
-      </div>
-      <div class="footer-links">
-        <a href="mailto:support@wastewise-app.com">support@wastewise-app.com</a>
-        <a href="delete_account.html">Account deletion</a>
-        <a href="delete_data.html">Data deletion</a>
-      </div>
-    </footer>
-  </main>
-</body>
-</html>
+     1|<!DOCTYPE html>
+     2|<html lang="en">
+     3|<head>
+     4|  <meta charset="UTF-8">
+     5|  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     6|  <meta name="description" content="ReLoop helps people sort waste faster with AI classification, daily free scans, premium unlocks, impact tracking, and privacy controls.">
+     7|  <meta name="keywords" content="waste segregation, waste sorting, AI classification, recycling, waste app, disposal guide, sustainability, premium, token wallet">
+     8|  <meta name="theme-color" content="#166534">
+     9|  <meta name="robots" content="index,follow">
+    10|  <meta property="og:type" content="website">
+    11|  <meta property="og:title" content="ReLoop">
+    12|  <meta property="og:description" content="AI-powered waste sorting, daily free scans, premium unlocks, and privacy-first support.">
+    13|  <meta property="og:locale" content="en_US">
+    14|  <title>ReLoop | AI Waste Sorting</title>
+    15|  <style>
+    16|    :root {
+    17|      --bg: #07130d;
+    18|      --bg-elevated: rgba(10, 30, 20, 0.82);
+    19|      --panel: rgba(255, 255, 255, 0.06);
+    20|      --panel-strong: rgba(255, 255, 255, 0.1);
+    21|      --text: #f3fbf6;
+    22|      --muted: rgba(243, 251, 246, 0.76);
+    23|      --accent: #5bfa9a;
+    24|      --accent-2: #87c9ff;
+    25|      --warning: #ffd166;
+    26|      --border: rgba(255, 255, 255, 0.12);
+    27|      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    28|      --radius: 24px;
+    29|      --max: 1140px;
+    30|    }
+    31|
+    32|    * {
+    33|      box-sizing: border-box;
+    34|    }
+    35|
+    36|    html {
+    37|      scroll-behavior: smooth;
+    38|    }
+    39|
+    40|    body {
+    41|      margin: 0;
+    42|      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    43|      color: var(--text);
+    44|      background:
+    45|        radial-gradient(circle at top left, rgba(91, 250, 154, 0.16), transparent 28%),
+    46|        radial-gradient(circle at top right, rgba(135, 201, 255, 0.12), transparent 32%),
+    47|        linear-gradient(180deg, #03100a 0%, #081711 45%, #07130d 100%);
+    48|      min-height: 100vh;
+    49|      line-height: 1.5;
+    50|    }
+    51|
+    52|    a {
+    53|      color: inherit;
+    54|      text-decoration: none;
+    55|    }
+    56|
+    57|    .shell {
+    58|      width: min(var(--max), calc(100% - 32px));
+    59|      margin: 0 auto;
+    60|      padding: 28px 0 40px;
+    61|    }
+    62|
+    63|    .nav {
+    64|      display: flex;
+    65|      justify-content: space-between;
+    66|      align-items: center;
+    67|      gap: 16px;
+    68|      padding: 14px 18px;
+    69|      border: 1px solid var(--border);
+    70|      border-radius: 999px;
+    71|      background: rgba(0, 0, 0, 0.18);
+    72|      backdrop-filter: blur(12px);
+    73|      position: sticky;
+    74|      top: 16px;
+    75|      z-index: 10;
+    76|      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    77|    }
+    78|
+    79|    .brand {
+    80|      display: flex;
+    81|      align-items: center;
+    82|      gap: 12px;
+    83|      font-weight: 800;
+    84|      letter-spacing: 0.2px;
+    85|    }
+    86|
+    87|    .brand-mark {
+    88|      width: 38px;
+    89|      height: 38px;
+    90|      border-radius: 12px;
+    91|      display: grid;
+    92|      place-items: center;
+    93|      background: linear-gradient(135deg, rgba(91, 250, 154, 0.9), rgba(135, 201, 255, 0.9));
+    94|      color: #052013;
+    95|      font-size: 18px;
+    96|      box-shadow: 0 10px 28px rgba(91, 250, 154, 0.26);
+    97|    }
+    98|
+    99|    .nav-links {
+   100|      display: flex;
+   101|      gap: 18px;
+   102|      flex-wrap: wrap;
+   103|      color: var(--muted);
+   104|      font-size: 14px;
+   105|    }
+   106|
+   107|    .nav-links a:hover {
+   108|      color: var(--text);
+   109|    }
+   110|
+   111|    .hero {
+   112|      display: grid;
+   113|      grid-template-columns: 1.25fr 0.95fr;
+   114|      gap: 28px;
+   115|      align-items: center;
+   116|      margin-top: 34px;
+   117|      padding: 34px;
+   118|      border: 1px solid var(--border);
+   119|      border-radius: calc(var(--radius) + 10px);
+   120|      background: linear-gradient(180deg, rgba(12, 32, 23, 0.96), rgba(6, 20, 14, 0.94));
+   121|      box-shadow: var(--shadow);
+   122|    }
+   123|
+   124|    .eyebrow {
+   125|      display: inline-flex;
+   126|      align-items: center;
+   127|      gap: 8px;
+   128|      padding: 8px 14px;
+   129|      border: 1px solid rgba(91, 250, 154, 0.28);
+   130|      border-radius: 999px;
+   131|      background: rgba(91, 250, 154, 0.08);
+   132|      color: #c8ffe0;
+   133|      font-size: 13px;
+   134|      margin-bottom: 18px;
+   135|    }
+   136|
+   137|    h1 {
+   138|      margin: 0;
+   139|      font-size: clamp(36px, 5vw, 64px);
+   140|      line-height: 0.98;
+   141|      letter-spacing: -0.04em;
+   142|      max-width: 11ch;
+   143|    }
+   144|
+   145|    .hero-copy {
+   146|      color: var(--muted);
+   147|      font-size: 18px;
+   148|      max-width: 62ch;
+   149|      margin: 18px 0 0;
+   150|    }
+   151|
+   152|    .cta-row {
+   153|      display: flex;
+   154|      gap: 12px;
+   155|      flex-wrap: wrap;
+   156|      margin-top: 26px;
+   157|    }
+   158|
+   159|    .btn {
+   160|      display: inline-flex;
+   161|      align-items: center;
+   162|      justify-content: center;
+   163|      gap: 10px;
+   164|      min-height: 48px;
+   165|      padding: 0 18px;
+   166|      border-radius: 14px;
+   167|      font-weight: 700;
+   168|      border: 1px solid transparent;
+   169|      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+   170|    }
+   171|
+   172|    .btn:hover {
+   173|      transform: translateY(-1px);
+   174|    }
+   175|
+   176|    .btn-primary {
+   177|      background: linear-gradient(135deg, var(--accent), #8cfcc0);
+   178|      color: #082115;
+   179|    }
+   180|
+   181|    .btn-secondary {
+   182|      background: rgba(255, 255, 255, 0.04);
+   183|      border-color: var(--border);
+   184|      color: var(--text);
+   185|    }
+   186|
+   187|    .btn-tertiary {
+   188|      background: rgba(135, 201, 255, 0.08);
+   189|      border-color: rgba(135, 201, 255, 0.22);
+   190|      color: #d9efff;
+   191|    }
+   192|
+   193|    .hero-card {
+   194|      background: var(--bg-elevated);
+   195|      border: 1px solid var(--border);
+   196|      border-radius: 22px;
+   197|      padding: 22px;
+   198|      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+   199|    }
+   200|
+   201|    .hero-card h2 {
+   202|      margin: 0 0 16px;
+   203|      font-size: 18px;
+   204|    }
+   205|
+   206|    .stat-grid {
+   207|      display: grid;
+   208|      grid-template-columns: repeat(2, minmax(0, 1fr));
+   209|      gap: 12px;
+   210|    }
+   211|
+   212|    .stat {
+   213|      padding: 16px;
+   214|      border-radius: 18px;
+   215|      background: var(--panel);
+   216|      border: 1px solid var(--border);
+   217|    }
+   218|
+   219|    .stat strong {
+   220|      display: block;
+   221|      font-size: 22px;
+   222|      margin-bottom: 6px;
+   223|    }
+   224|
+   225|    .stat span {
+   226|      color: var(--muted);
+   227|      font-size: 13px;
+   228|    }
+   229|
+   230|    .section {
+   231|      margin-top: 26px;
+   232|      padding: 26px 0 0;
+   233|    }
+   234|
+   235|    .section-header {
+   236|      display: flex;
+   237|      justify-content: space-between;
+   238|      align-items: end;
+   239|      gap: 16px;
+   240|      margin-bottom: 16px;
+   241|    }
+   242|
+   243|    .section-header h3 {
+   244|      margin: 0;
+   245|      font-size: 28px;
+   246|      letter-spacing: -0.03em;
+   247|    }
+   248|
+   249|    .section-header p {
+   250|      margin: 0;
+   251|      color: var(--muted);
+   252|      max-width: 58ch;
+   253|    }
+   254|
+   255|    .grid-3 {
+   256|      display: grid;
+   257|      grid-template-columns: repeat(3, minmax(0, 1fr));
+   258|      gap: 14px;
+   259|    }
+   260|
+   261|    .grid-2 {
+   262|      display: grid;
+   263|      grid-template-columns: repeat(2, minmax(0, 1fr));
+   264|      gap: 14px;
+   265|    }
+   266|
+   267|    .card {
+   268|      padding: 20px;
+   269|      border-radius: 20px;
+   270|      background: var(--panel);
+   271|      border: 1px solid var(--border);
+   272|      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+   273|    }
+   274|
+   275|    .card h4 {
+   276|      margin: 10px 0 8px;
+   277|      font-size: 18px;
+   278|    }
+   279|
+   280|    .card p,
+   281|    .card li {
+   282|      color: var(--muted);
+   283|      margin: 0;
+   284|      font-size: 15px;
+   285|    }
+   286|
+   287|    .icon-pill {
+   288|      width: 44px;
+   289|      height: 44px;
+   290|      display: grid;
+   291|      place-items: center;
+   292|      border-radius: 14px;
+   293|      background: rgba(91, 250, 154, 0.12);
+   294|      border: 1px solid rgba(91, 250, 154, 0.18);
+   295|      font-size: 20px;
+   296|    }
+   297|
+   298|    .check-list {
+   299|      list-style: none;
+   300|      padding: 0;
+   301|      margin: 0;
+   302|      display: grid;
+   303|      gap: 10px;
+   304|    }
+   305|
+   306|    .check-list li {
+   307|      position: relative;
+   308|      padding-left: 28px;
+   309|    }
+   310|
+   311|    .check-list li::before {
+   312|      content: '✓';
+   313|      position: absolute;
+   314|      left: 0;
+   315|      top: 0;
+   316|      color: var(--accent);
+   317|      font-weight: 800;
+   318|    }
+   319|
+   320|    .steps {
+   321|      display: grid;
+   322|      grid-template-columns: repeat(3, minmax(0, 1fr));
+   323|      gap: 14px;
+   324|    }
+   325|
+   326|    .step {
+   327|      position: relative;
+   328|      min-height: 180px;
+   329|    }
+   330|
+   331|    .step .num {
+   332|      display: inline-flex;
+   333|      align-items: center;
+   334|      justify-content: center;
+   335|      width: 36px;
+   336|      height: 36px;
+   337|      border-radius: 12px;
+   338|      margin-bottom: 10px;
+   339|      background: rgba(135, 201, 255, 0.12);
+   340|      border: 1px solid rgba(135, 201, 255, 0.18);
+   341|      color: #d7efff;
+   342|      font-weight: 800;
+   343|    }
+   344|
+   345|    .cta-band {
+   346|      display: grid;
+   347|      grid-template-columns: 1.15fr 0.85fr;
+   348|      gap: 14px;
+   349|      margin-top: 14px;
+   350|      padding: 22px;
+   351|      border-radius: 22px;
+   352|      background: linear-gradient(135deg, rgba(91, 250, 154, 0.11), rgba(135, 201, 255, 0.08));
+   353|      border: 1px solid rgba(255, 255, 255, 0.12);
+   354|    }
+   355|
+   356|    .cta-band p {
+   357|      margin: 10px 0 0;
+   358|      color: var(--muted);
+   359|    }
+   360|
+   361|    .footer {
+   362|      margin: 30px 0 0;
+   363|      padding: 18px 0 8px;
+   364|      color: var(--muted);
+   365|      display: flex;
+   366|      justify-content: space-between;
+   367|      gap: 16px;
+   368|      flex-wrap: wrap;
+   369|      font-size: 14px;
+   370|    }
+   371|
+   372|    .footer a {
+   373|      color: var(--text);
+   374|    }
+   375|
+   376|    .footer-links {
+   377|      display: flex;
+   378|      gap: 14px;
+   379|      flex-wrap: wrap;
+   380|    }
+   381|
+   382|    .badge-row {
+   383|      display: flex;
+   384|      flex-wrap: wrap;
+   385|      gap: 10px;
+   386|      margin-top: 18px;
+   387|    }
+   388|
+   389|    .badge {
+   390|      padding: 8px 12px;
+   391|      border-radius: 999px;
+   392|      background: rgba(255, 255, 255, 0.05);
+   393|      border: 1px solid var(--border);
+   394|      color: var(--muted);
+   395|      font-size: 13px;
+   396|    }
+   397|
+   398|    .small {
+   399|      font-size: 13px;
+   400|      color: var(--muted);
+   401|    }
+   402|
+   403|    @media (max-width: 960px) {
+   404|      .hero,
+   405|      .cta-band,
+   406|      .grid-3,
+   407|      .grid-2,
+   408|      .steps {
+   409|        grid-template-columns: 1fr;
+   410|      }
+   411|
+   412|      .section-header,
+   413|      .nav {
+   414|        align-items: start;
+   415|        flex-direction: column;
+   416|      }
+   417|
+   418|      h1 {
+   419|        max-width: none;
+   420|      }
+   421|
+   422|      .nav-links {
+   423|        gap: 10px;
+   424|      }
+   425|    }
+   426|  </style>
+   427|  <script type="application/ld+json">
+   428|  {
+   429|    "@context": "https://schema.org",
+   430|    "@type": "SoftwareApplication",
+   431|    "name": "ReLoop",
+   432|    "applicationCategory": "UtilitiesApplication",
+   433|    "operatingSystem": "Android, iOS, Web",
+   434|    "description": "AI-powered waste sorting with daily free scans, premium unlocks, and privacy controls."
+   435|  }
+   436|  </script>
+   437|</head>
+   438|<body>
+   439|  <main class="shell">
+   440|    <header class="nav" aria-label="Primary">
+   441|      <div class="brand">
+   442|        <div class="brand-mark" aria-hidden="true">♻</div>
+   443|        <div>
+   444|          <div>ReLoop</div>
+   445|          <div class="small">AI waste sorting, built for launch</div>
+   446|        </div>
+   447|      </div>
+   448|      <nav class="nav-links" aria-label="Section navigation">
+   449|        <a href="#how-it-works">How it works</a>
+   450|        <a href="#features">Features</a>
+   451|        <a href="#privacy">Privacy</a>
+   452|        <a href="#support">Support</a>
+   453|      </nav>
+   454|    </header>
+   455|
+   456|    <section class="hero" aria-labelledby="hero-title">
+   457|      <div>
+   458|        <div class="eyebrow">Money-first product surface • static public hosting • privacy-aware</div>
+   459|        <h1 id="hero-title">Sort waste faster. Spend less. Ship cleaner.</h1>
+   460|        <p class="hero-copy">
+   461|          ReLoop turns a photo into a clear disposal recommendation, keeps the experience lightweight,
+   462|          and supports a real monetization path with daily free scans, premium unlocks, and server-side guardrails.
+   463|        </p>
+   464|        <div class="cta-row">
+   465|          <a class="btn btn-primary" href="mailto:support@reloop.app?subject=ReLoop%20Access%20Request">
+   466|            Request access
+   467|          </a>
+   468|          <a class="btn btn-secondary" href="#features">See what it does</a>
+   469|          <a class="btn btn-tertiary" href="#privacy">Privacy & data controls</a>
+   470|        </div>
+   471|        <div class="badge-row" aria-label="Highlights">
+   472|          <span class="badge">AI classification</span>
+   473|          <span class="badge">Daily free quota</span>
+   474|          <span class="badge">Premium unlocks</span>
+   475|          <span class="badge">Ad-free upgrades</span>
+   476|          <span class="badge">Impact tracking</span>
+   477|        </div>
+   478|      </div>
+   479|
+   480|      <aside class="hero-card" aria-label="Launch summary">
+   481|        <h2>What users get</h2>
+   482|        <div class="stat-grid">
+   483|          <div class="stat">
+   484|            <strong>1 photo</strong>
+   485|            <span>to identify the item and return a disposal path</span>
+   486|          </div>
+   487|          <div class="stat">
+   488|            <strong>3 free</strong>
+   489|            <span>daily scans before quota enforcement kicks in</span>
+   490|          </div>
+   491|          <div class="stat">
+   492|            <strong>Premium</strong>
+   493|            <span>removes ads and unlocks higher limits</span>
+   494|          </div>
+   495|          <div class="stat">
+   496|            <strong>Private</strong>
+   497|            <span>account/data controls are surfaced openly</span>
+   498|          </div>
+   499|        </div>
+   500|      </aside>
+   501|    </section>
+   502|
+   503|    <section class="section" id="how-it-works">
+   504|      <div class="section-header">
+   505|        <div>
+   506|          <h3>How it works</h3>
+   507|          <p>Three steps, no fluff. The landing page should reduce friction and push users toward the first scan or an access request.</p>
+   508|        </div>
+   509|      </div>
+   510|      <div class="steps">
+   511|        <article class="card step">
+   512|          <div class="num">1</div>
+   513|          <h4>Take a photo</h4>
+   514|          <p>Capture the waste item and send it through the app’s classification flow.</p>
+   515|        </article>
+   516|        <article class="card step">
+   517|          <div class="num">2</div>
+   518|          <h4>Get the disposal rule</h4>
+   519|          <p>See the predicted category, disposal guidance, and follow-up actions immediately.</p>
+   520|        </article>
+   521|        <article class="card step">
+   522|          <div class="num">3</div>
+   523|          <h4>Track the impact</h4>
+   524|          <p>History, achievements, and contribution signals make the behavior sticky instead of one-off.</p>
+   525|        </article>
+   526|      </div>
+   527|    </section>
+   528|
+   529|    <section class="section" id="features">
+   530|      <div class="section-header">
+   531|        <div>
+   532|          <h3>Features that matter</h3>
+   533|          <p>This is the surface users actually care about: the app does the work, the site explains the value, and the backend keeps costs in check.</p>
+   534|        </div>
+   535|      </div>
+   536|      <div class="grid-3">
+   537|        <article class="card">
+   538|          <div class="icon-pill" aria-hidden="true">⚡</div>
+   539|          <h4>Fast AI classification</h4>
+   540|          <p>Server-side inference path, explicit fallback behavior, and remote-config-driven model selection keep release behavior predictable.</p>
+   541|        </article>
+   542|        <article class="card">
+   543|          <div class="icon-pill" aria-hidden="true">💳</div>
+   544|          <h4>Monetization that is actually enforceable</h4>
+   545|          <p>Daily quota, token wallet, premium unlocks, and ad-free gating are all designed to be checked server-side, not trusted on the client.</p>
+   546|        </article>
+   547|        <article class="card">
+   548|          <div class="icon-pill" aria-hidden="true">📈</div>
+   549|          <h4>Visible user value</h4>
+   550|          <p>Impact metrics, history, achievements, and community signals make the product feel useful after the first scan.</p>
+   551|        </article>
+   552|      </div>
+   553|    </section>
+   554|
+   555|    <section class="section" id="privacy">
+   556|      <div class="section-header">
+   557|        <div>
+   558|          <h3>Privacy and data control</h3>
+   559|          <p>No fake trust copy. The site links directly to the account and data deletion flows the app already exposes.</p>
+   560|        </div>
+   561|      </div>
+   562|      <div class="grid-2">
+   563|        <article class="card">
+   564|          <h4>What we keep</h4>
+   565|          <ul class="check-list">
+   566|            <li>Account and profile data needed for the app to work.</li>
+   567|            <li>Classification history if the user opts into history.</li>
+   568|            <li>Token and premium state required for quotas and unlocks.</li>
+   569|          </ul>
+   570|        </article>
+   571|        <article class="card">
+   572|          <h4>What users can control</h4>
+   573|          <ul class="check-list">
+   574|            <li>Delete the entire account.</li>
+   575|            <li>Delete specific data without removing the account.</li>
+   576|            <li>Use the app with a clear support channel and documented request path.</li>
+   577|          </ul>
+   578|        </article>
+   579|      </div>
+   580|    </section>
+   581|
+   582|    <section class="section" id="support">
+   583|      <div class="cta-band">
+   584|        <div>
+   585|          <h3>Need access, support, or a privacy request?</h3>
+   586|          <p>
+   587|            Keep the acquisition path short. If the user is interested, the next action should be obvious: request access,
+   588|            read the privacy pages, or email support.
+   589|          </p>
+   590|        </div>
+   591|        <div class="cta-row" style="margin-top: 0; justify-content: flex-end; align-items: start;">
+   592|          <a class="btn btn-primary" href="mailto:support@reloop.app">Email support</a>
+   593|          <a class="btn btn-secondary" href="delete_account.html">Delete account</a>
+   594|          <a class="btn btn-secondary" href="delete_data.html">Delete data</a>
+   595|        </div>
+   596|      </div>
+   597|    </section>
+   598|
+   599|    <footer class="footer">
+   600|      <div>
+   601|        <strong>ReLoop</strong>
+   602|        <div>Public web surface for acquisition, support, and privacy requests.</div>
+   603|      </div>
+   604|      <div class="footer-links">
+   605|        <a href="mailto:support@reloop.app">support@reloop.app</a>
+   606|        <a href="delete_account.html">Account deletion</a>
+   607|        <a href="delete_data.html">Data deletion</a>
+   608|      </div>
+   609|    </footer>
+   610|  </main>
+   611|</body>
+   612|</html>
+   613|

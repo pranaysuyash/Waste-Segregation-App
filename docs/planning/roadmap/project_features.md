@@ -1,4 +1,4 @@
-# Waste Segregation App - Project Features Overview
+# ReLoop - Project Features Overview
 
 This document provides a comprehensive overview of the project's features, categorizing them by implementation status, and highlighting future development opportunities. Status is updated based on the video demo review from May 2025.
 

@@ -2,7 +2,7 @@
 
 **Date:** June 17, 2025  
 **Status:** Implemented and Ready  
-**Purpose:** Provide safe data archival and fresh start capabilities for the Waste Segregation App
+**Purpose:** Provide safe data archival and fresh start capabilities for the ReLoop
 
 ## Overview
 

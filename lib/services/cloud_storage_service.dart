@@ -436,8 +436,8 @@ class CloudStorageService {
       final adminData = {
         'itemName': classification.itemName,
         'category': classification.category,
-        'subcategory': classification.subcategory,
-        'materialType': classification.materialType,
+        'subCategory': classification.subCategory,
+        'materials': classification.materials?.join(', '),
         'isRecyclable': classification.isRecyclable,
         'isCompostable': classification.isCompostable,
         'requiresSpecialDisposal': classification.requiresSpecialDisposal,

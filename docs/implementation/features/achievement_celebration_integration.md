@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the implementation of the `AchievementCelebration` widget integration across the WasteWise app, providing users with epic confetti and 3D badge effects when they earn achievements or reach daily goals.
+This document describes the implementation of the `AchievementCelebration` widget integration across the ReLoop app, providing users with epic confetti and 3D badge effects when they earn achievements or reach daily goals.
 
 ## Implementation Summary
 

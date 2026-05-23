@@ -2,7 +2,7 @@
 
 ## Document Purpose
 
-This technical specification outlines the implementation details for adding family/team functionality to the Waste Segregation App. It provides technical guidance for developers implementing the features described in the `user_management_enhancements.md` document.
+This technical specification outlines the implementation details for adding family/team functionality to the ReLoop. It provides technical guidance for developers implementing the features described in the `user_management_enhancements.md` document.
 
 ## System Architecture
 
@@ -878,4 +878,4 @@ Future<void> syncFamilyData(String familyId) async {
 
 ---
 
-This technical specification provides a comprehensive blueprint for implementing the multi-user family system in the Waste Segregation App. It should be used in conjunction with the `user_management_enhancements.md` document to guide the development process.
+This technical specification provides a comprehensive blueprint for implementing the multi-user family system in the ReLoop. It should be used in conjunction with the `user_management_enhancements.md` document to guide the development process.

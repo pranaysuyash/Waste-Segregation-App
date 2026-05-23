@@ -1,4 +1,4 @@
-# Waste Segregation App – Living Knowledge Base
+# ReLoop – Living Knowledge Base
 
 > **Purpose:** The canonical, single-source-of-truth reference for any coding agent joining this project. This is not documentation—it's a living brief that captures what actually exists, what's aspirational, and where the gaps are. Keep this file current when code or assumptions change. Err on the side of over-sharing. All agents working on this project MUST read and update this file.
 

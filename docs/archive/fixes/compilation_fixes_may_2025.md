@@ -1,7 +1,7 @@
 # Compilation Fixes - May 2025
 
 ## Overview
-This document tracks the compilation errors resolved for the Flutter Waste Segregation App and the solutions implemented.
+This document tracks the compilation errors resolved for the Flutter ReLoop and the solutions implemented.
 
 ## Fixed Issues
 

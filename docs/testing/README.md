@@ -1,6 +1,6 @@
 # Testing Documentation
 
-This directory contains documentation related to testing strategy and best practices for the Waste Segregation App.
+This directory contains documentation related to testing strategy and best practices for the ReLoop.
 
 ## Main File
 

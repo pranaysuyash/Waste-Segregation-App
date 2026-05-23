@@ -288,8 +288,6 @@ class AiResponseParser {
         itemName: itemName,
         category: safeStringParse(jsonContent['category']) ??
             'Requires Manual Review',
-        subcategory: safeStringParse(jsonContent['subcategory']),
-        materialType: safeStringParse(jsonContent['materialType']),
         recyclingCode: parseRecyclingCode(jsonContent['recyclingCode']),
         explanation: safeStringParse(jsonContent['explanation']) ??
             'No explanation provided',

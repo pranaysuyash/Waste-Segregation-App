@@ -603,7 +603,7 @@ Recommended decision: **conditional pilot, not official city-wide tie-up.**
 
 Approved message:
 
-> The municipality may evaluate a limited educational pilot of the Waste Segregation App to improve citizen understanding of source segregation. The pilot will use municipality-reviewed guidance, opt-in consent, aggregate reporting, and no enforcement or household-level monitoring.
+> The municipality may evaluate a limited educational pilot of the ReLoop to improve citizen understanding of source segregation. The pilot will use municipality-reviewed guidance, opt-in consent, aggregate reporting, and no enforcement or household-level monitoring.
 
 Rejected message:
 

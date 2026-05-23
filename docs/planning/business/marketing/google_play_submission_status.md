@@ -1,6 +1,6 @@
 # Google Play Store Submission Status
 
-This document tracks the current status of the Waste Segregation App submission process to the Google Play Store.
+This document tracks the current status of the ReLoop submission process to the Google Play Store.
 
 ## Submission Timeline
 
@@ -14,7 +14,7 @@ This document tracks the current status of the Waste Segregation App submission 
 
 ### App Information
 
-- **App Name**: Waste Segregation App
+- **App Name**: ReLoop
 - **Package Name**: com.ecointelligence.waste_segregation_app 
 - **Version**: 0.9.0+90
 - **Build Type**: Release

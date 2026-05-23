@@ -1,5 +1,5 @@
 # Release Notes - Version 0.1.5+97
-*Waste Segregation App - Play Store Release*
+*ReLoop - Play Store Release*
 
 ## 🎉 What's New in This Release
 

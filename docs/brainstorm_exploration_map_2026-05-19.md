@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-19
 **Mode:** Single-agent (no external LLM CLIs detected); all roles dispatched as strongly differentiated subagent voices in one pass.
-**Subject under test:** The exploration/research map just built for the Waste Segregation App:
+**Subject under test:** The exploration/research map just built for the ReLoop:
 - [EXPLORATION_TOPICS.md](EXPLORATION_TOPICS.md) — 35 topics, 8 categories
 - [EXPLORATION_FRONTIER.md](EXPLORATION_FRONTIER.md) — 10 frontier bets with kill criteria
 - [EXPLORATION_ROADMAP_WHILE_BUILDING.md](EXPLORATION_ROADMAP_WHILE_BUILDING.md) — NOW / NEXT / LATER phase mapping

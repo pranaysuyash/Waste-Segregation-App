@@ -2,7 +2,7 @@
 
 ## 1. Introduction & Goals of the Gamification and Engagement System
 
-The Gamification and Engagement System is a critical component of the Waste Segregation App, designed to motivate users, reinforce positive behaviors, and enhance the overall user experience. By incorporating game-like elements, the system aims to make the often mundane task of waste management more enjoyable, rewarding, and educational.
+The Gamification and Engagement System is a critical component of the ReLoop, designed to motivate users, reinforce positive behaviors, and enhance the overall user experience. By incorporating game-like elements, the system aims to make the often mundane task of waste management more enjoyable, rewarding, and educational.
 
 **Primary Goals:**
 
@@ -335,7 +335,7 @@ Leveraging AI, particularly Large Language Models (LLMs), will be central to cre
     *   **Personalized Tips:** Within a challenge, AI could offer contextual tips based on the user's previous attempts or common mistakes related to the challenge objective.
 *   **Integration with Educational Content System:** Requires tight integration between the gamification engine and the educational content library, allowing AI to query and retrieve relevant content snippets or links.
 
-By thoughtfully integrating AI, the gamification system can become more adaptive, personalized, and ultimately more effective at motivating users and enriching their experience with the Waste Segregation App.
+By thoughtfully integrating AI, the gamification system can become more adaptive, personalized, and ultimately more effective at motivating users and enriching their experience with the ReLoop.
 
 ## 4. Reward System & Virtual Economy
 

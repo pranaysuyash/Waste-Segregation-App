@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Waste Segregation App will be documented in this file.
+All notable changes to the ReLoop will be documented in this file.
 
 ## [Unreleased] - 2026-01-27
 

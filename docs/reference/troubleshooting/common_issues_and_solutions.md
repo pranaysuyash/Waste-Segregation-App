@@ -1,8 +1,8 @@
-# Waste Segregation App: Comprehensive Troubleshooting Guide
+# ReLoop: Comprehensive Troubleshooting Guide
 
 ## Overview
 
-This troubleshooting guide provides solutions for common issues encountered during development, testing, and production use of the Waste Segregation App. Updated with the latest critical fixes and learnings.
+This troubleshooting guide provides solutions for common issues encountered during development, testing, and production use of the ReLoop. Updated with the latest critical fixes and learnings.
 
 _Last updated: May 24, 2025_
 

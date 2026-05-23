@@ -1,6 +1,6 @@
 # Advanced AI and Image Segmentation Features
 
-This document outlines the technical specifications and implementation plan for enhancing the Waste Segregation App with advanced AI capabilities and state-of-the-art image segmentation features.
+This document outlines the technical specifications and implementation plan for enhancing the ReLoop with advanced AI capabilities and state-of-the-art image segmentation features.
 
 ## Current AI Implementation
 
@@ -503,6 +503,6 @@ Looking beyond the initial implementation, future AI capabilities could include:
 
 ## Conclusion
 
-The advanced AI and image segmentation features outlined in this document represent a significant enhancement to the Waste Segregation App's core capabilities. By implementing a dual-framework approach with SAM and GluonCV, the app will provide a more accurate, efficient, and versatile waste classification system that works well across different devices and connectivity scenarios.
+The advanced AI and image segmentation features outlined in this document represent a significant enhancement to the ReLoop's core capabilities. By implementing a dual-framework approach with SAM and GluonCV, the app will provide a more accurate, efficient, and versatile waste classification system that works well across different devices and connectivity scenarios.
 
 The multi-phase implementation approach ensures manageable development cycles while addressing technical challenges through thoughtful mitigations. The resulting system will not only improve waste classification accuracy but also create a more engaging and educational user experience that drives sustainable waste management behaviors.

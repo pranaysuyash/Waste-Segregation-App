@@ -1,6 +1,6 @@
 {
   "name": "waste-segregation-functions",
-  "description": "Cloud Functions for Waste Segregation App",
+  "description": "Cloud Functions for ReLoop",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",

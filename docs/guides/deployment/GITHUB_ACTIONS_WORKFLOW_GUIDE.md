@@ -1,6 +1,6 @@
 # GitHub Actions Workflow Guide
 
-## Waste Segregation App Development Process
+## ReLoop Development Process
 
 **Created**: June 15, 2025  
 **Last Updated**: June 15, 2025  
@@ -10,7 +10,7 @@
 
 ## Overview
 
-This document outlines the complete GitHub Actions workflow and development process for the Waste Segregation App, including exact commands, branch protection rules, CI/CD pipeline, and the systematic approach we follow for all feature implementations.
+This document outlines the complete GitHub Actions workflow and development process for the ReLoop, including exact commands, branch protection rules, CI/CD pipeline, and the systematic approach we follow for all feature implementations.
 
 ---
 
@@ -496,4 +496,4 @@ gh run rerun [RUN-ID]
 
 ---
 
-This workflow ensures consistent, high-quality development with proper testing, documentation, and deployment processes for the Waste Segregation App.
+This workflow ensures consistent, high-quality development with proper testing, documentation, and deployment processes for the ReLoop.

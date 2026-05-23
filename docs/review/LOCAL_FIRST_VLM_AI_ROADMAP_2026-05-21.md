@@ -1,4 +1,4 @@
-# Local-First VLM AI Roadmap — Waste Segregation App
+# Local-First VLM AI Roadmap — ReLoop
 
 **Date**: 2026-05-21
 **Author**: Session review (Pranay)

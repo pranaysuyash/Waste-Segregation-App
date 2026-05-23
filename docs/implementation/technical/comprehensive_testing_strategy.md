@@ -1,12 +1,12 @@
 # Comprehensive Testing Strategy
 
-This document outlines a complete testing strategy for the Waste Segregation App, covering all aspects of quality assurance from unit testing to user acceptance testing. As a solo developer, this structured approach will help you efficiently identify and resolve issues while ensuring a high-quality user experience.
+This document outlines a complete testing strategy for the ReLoop, covering all aspects of quality assurance from unit testing to user acceptance testing. As a solo developer, this structured approach will help you efficiently identify and resolve issues while ensuring a high-quality user experience.
 
 ## 1. Testing Approach Overview
 
 ### Testing Pyramid Strategy
 
-The Waste Segregation App will follow a modified testing pyramid approach, balancing automated and manual testing while accounting for the unique requirements of a mobile AI application:
+The ReLoop will follow a modified testing pyramid approach, balancing automated and manual testing while accounting for the unique requirements of a mobile AI application:
 
 ```
                     ┌─────────────────────┐
@@ -2072,7 +2072,7 @@ Classification shows loading indicator for 30 seconds, then displays timeout err
 
 ## Conclusion
 
-This comprehensive testing strategy provides a structured approach to ensuring the quality, performance, and user satisfaction of the Waste Segregation App. By implementing this strategy, even as a solo developer, you can:
+This comprehensive testing strategy provides a structured approach to ensuring the quality, performance, and user satisfaction of the ReLoop. By implementing this strategy, even as a solo developer, you can:
 
 1. **Build confidence** in the app's functionality and reliability
 2. **Identify issues** early in the development process

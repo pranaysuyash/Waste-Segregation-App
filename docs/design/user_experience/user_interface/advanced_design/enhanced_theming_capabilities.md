@@ -1,7 +1,7 @@
 # Enhanced Theming Capabilities
 
 ## Overview
-This document explores advanced theming capabilities for the Waste Segregation App, expanding beyond basic light/dark modes to create a responsive, adaptive visual environment that enhances user engagement and emotional connection. These capabilities will support our premium tier offerings while providing a cohesive experience across all user segments.
+This document explores advanced theming capabilities for the ReLoop, expanding beyond basic light/dark modes to create a responsive, adaptive visual environment that enhances user engagement and emotional connection. These capabilities will support our premium tier offerings while providing a cohesive experience across all user segments.
 
 ## Dynamic Color Adaptation
 

@@ -4,7 +4,7 @@
 
 ## Summary
 
-This file previously described the technical architecture of the Waste Segregation App, including system components, data flows, and technology choices. All up-to-date details are now maintained in the unified architecture documentation.
+This file previously described the technical architecture of the ReLoop, including system components, data flows, and technology choices. All up-to-date details are now maintained in the unified architecture documentation.
 
 ---
 
@@ -14,6 +14,6 @@ This document is preserved for historical context. Please refer to the unified a
 
 # Technical Architecture
 
-This document outlines the technical architecture of the Waste Segregation App, describing the system components, data flows, technology choices, and implementation considerations for a robust, scalable application.
+This document outlines the technical architecture of the ReLoop, describing the system components, data flows, technology choices, and implementation considerations for a robust, scalable application.
 
 [Content continues...]

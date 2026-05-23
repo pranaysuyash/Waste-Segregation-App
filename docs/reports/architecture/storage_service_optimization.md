@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document details the comprehensive optimization of the storage service in the Waste Segregation App, focusing on performance improvements, TypeAdapter implementation, and scalability enhancements.
+This document details the comprehensive optimization of the storage service in the ReLoop, focusing on performance improvements, TypeAdapter implementation, and scalability enhancements.
 
 ## Recent Critical Fix - Gamification TypeAdapters (June 15, 2025)
 

@@ -181,7 +181,7 @@ void main() {
 
         expect(classification.itemName, equals('Test Item'));
         expect(classification.category, equals('Dry Waste'));
-        expect(classification.subcategory, equals('Plastic'));
+        expect(classification.subCategory, equals('Plastic'));
         expect(classification.confidence, equals(0.85));
         expect(classification.disposalInstructions.steps.length, equals(2));
         expect(classification.visualFeatures.length, equals(2));

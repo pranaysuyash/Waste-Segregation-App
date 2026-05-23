@@ -20,7 +20,7 @@ class DebugWasteApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Waste Segregation App - Debug',
+      title: 'ReLoop - Debug',
       theme: ThemeData(
         primarySwatch: Colors.green,
         useMaterial3: true,
@@ -37,7 +37,7 @@ class DebugHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Debug - Waste Segregation App'),
+        title: const Text('Debug - ReLoop'),
         backgroundColor: Colors.green,
       ),
       body: Center(

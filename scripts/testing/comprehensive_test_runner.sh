@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Comprehensive Test Runner for Waste Segregation App
+# Comprehensive Test Runner for ReLoop
 # This script runs all test categories and provides detailed reporting
 
 set -e
@@ -19,7 +19,7 @@ COVERAGE_THRESHOLD=80
 PERFORMANCE_THRESHOLD=5000  # milliseconds
 MEMORY_THRESHOLD=200  # MB
 
-echo -e "${BLUE}🧪 Comprehensive Test Suite - Waste Segregation App${NC}"
+echo -e "${BLUE}🧪 Comprehensive Test Suite - ReLoop${NC}"
 echo -e "${BLUE}=====================================================${NC}"
 echo ""
 

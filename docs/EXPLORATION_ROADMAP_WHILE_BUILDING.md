@@ -1,4 +1,4 @@
-# Exploration Roadmap While Building — Waste Segregation App
+# Exploration Roadmap While Building — ReLoop
 
 **Purpose**: What to investigate *in parallel* with shipping. Maps exploration topics to the build phases they should de-risk before — or alongside — implementation.
 **Status**: Living

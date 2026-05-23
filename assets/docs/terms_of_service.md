@@ -2,7 +2,7 @@
 
 _Last updated: May 2025_
 
-Welcome to the Waste Segregation App ("the App"). By using this app, you agree to these Terms of Service. Please read them carefully.
+Welcome to the ReLoop ("the App"). By using this app, you agree to these Terms of Service. Please read them carefully.
 
 ## 1. Acceptance of Terms
 By accessing or using the App, you agree to be bound by these Terms. If you do not agree, do not use the App.

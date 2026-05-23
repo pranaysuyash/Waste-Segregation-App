@@ -19,7 +19,7 @@ void main() {
           home: Scaffold(
             appBar: AppBar(
               title: const ResponsiveAppBarTitle(
-                title: 'Waste Segregation',
+                title: 'ReLoop',
               ),
             ),
             body: const Center(
@@ -48,7 +48,7 @@ void main() {
           home: Scaffold(
             appBar: AppBar(
               title: const ResponsiveAppBarTitle(
-                title: 'Waste Segregation Pro Edition with Advanced Features',
+                title: 'ReLoop Pro Edition with Advanced Features',
               ),
             ),
             body: const Center(
@@ -80,7 +80,7 @@ void main() {
           home: Scaffold(
             appBar: AppBar(
               title: const ResponsiveAppBarTitle(
-                title: 'Waste Segregation Application',
+                title: 'ReLoop Application',
               ),
             ),
             body: const Center(
@@ -265,7 +265,7 @@ void main() {
             home: Scaffold(
               appBar: AppBar(
                 title: const ResponsiveAppBarTitle(
-                  title: 'Waste Segregation App',
+                  title: 'ReLoop',
                 ),
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
@@ -338,7 +338,7 @@ void main() {
           home: Scaffold(
             appBar: AppBar(
               title: const ResponsiveAppBarTitle(
-                title: 'Waste Segregation',
+                title: 'ReLoop',
               ),
             ),
             body: Padding(

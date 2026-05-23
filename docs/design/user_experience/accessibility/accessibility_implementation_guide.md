@@ -1,7 +1,7 @@
 # Accessibility Implementation Guide
 
 ## Overview
-Ensuring our Waste Segregation App is accessible to all users is a core value. This guide outlines specific implementation details for making our app fully accessible, with consideration for users with visual, motor, hearing, and cognitive disabilities.
+Ensuring our ReLoop is accessible to all users is a core value. This guide outlines specific implementation details for making our app fully accessible, with consideration for users with visual, motor, hearing, and cognitive disabilities.
 
 ## WCAG Compliance Goals
 
@@ -858,6 +858,6 @@ While core accessibility must be maintained across all tiers, certain advanced a
 
 ## Conclusion
 
-Implementing strong accessibility features in the Waste Segregation App is not just about compliance—it's about creating an inclusive experience that works well for all users. By following these guidelines and implementing the suggested components, we can ensure that users with diverse abilities can effectively use the app to learn about and practice proper waste management.
+Implementing strong accessibility features in the ReLoop is not just about compliance—it's about creating an inclusive experience that works well for all users. By following these guidelines and implementing the suggested components, we can ensure that users with diverse abilities can effectively use the app to learn about and practice proper waste management.
 
 The tiered approach to advanced accessibility features provides additional value to premium subscribers while maintaining essential accessibility for all users. This strategy aligns with both our business goals and our commitment to inclusive design.

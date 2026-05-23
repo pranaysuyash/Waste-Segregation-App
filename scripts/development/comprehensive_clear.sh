@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Comprehensive Data Clearing Script for WasteWise App
+# Comprehensive Data Clearing Script for ReLoop App
 # This script provides multiple methods to clear all app data when automated methods fail
 
-echo "🧹 WasteWise Comprehensive Data Clearing Script"
+echo "🧹 ReLoop Comprehensive Data Clearing Script"
 echo "=============================================="
 echo ""
 
@@ -150,7 +150,7 @@ main() {
     # Check if we're in the right directory
     if [ ! -f "pubspec.yaml" ]; then
         echo "❌ Error: This script must be run from the Flutter project root directory."
-        echo "Please navigate to your WasteWise project directory and try again."
+        echo "Please navigate to your ReLoop project directory and try again."
         exit 1
     fi
     

@@ -270,7 +270,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get aboutDialogBodyLine2 => 'Built with Flutter and powered by AI for accurate waste classification.';
 
   @override
-  String get appName => 'Waste Segregation App';
+  String get appName => 'ReLoop';
 
   @override
   String get newBadge => 'NEW';
@@ -520,7 +520,7 @@ class AppLocalizationsKn extends AppLocalizations {
   }
 
   @override
-  String get unableToOpenAppStore => 'Unable to open app store. Please search for \"Waste Segregation App\" in your app store.';
+  String get unableToOpenAppStore => 'Unable to open app store. Please search for \"ReLoop\" in your app store.';
 
   @override
   String errorOpeningAppStore(String error) {

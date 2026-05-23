@@ -1,4 +1,4 @@
-# Waste Segregation App - Resolution Plan v1.0
+# ReLoop - Resolution Plan v1.0
 
 ## Executive Summary
 

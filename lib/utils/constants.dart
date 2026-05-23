@@ -307,7 +307,7 @@ class AppTheme {
 // App String Constants
 class AppStrings {
   // App Title
-  static const String appName = 'Waste Segregation';
+  static const String appName = 'ReLoop';
 
   // Auth Screen
   static const String signInWithGoogle = 'Sign in with Google';

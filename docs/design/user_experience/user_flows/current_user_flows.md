@@ -1,6 +1,6 @@
 # Current User Flows
 
-This document outlines the current user flows in the Waste Segregation App, describing the step-by-step journey users take to accomplish key tasks within the application.
+This document outlines the current user flows in the ReLoop, describing the step-by-step journey users take to accomplish key tasks within the application.
 
 ## Core User Flows
 

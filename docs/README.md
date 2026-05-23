@@ -1,6 +1,6 @@
-# 📚 Waste Segregation App Documentation
+# 📚 ReLoop Documentation
 
-Welcome to the comprehensive documentation for the Waste Segregation App. This directory contains all technical documentation, guides, and specifications.
+Welcome to the comprehensive documentation for the ReLoop. This directory contains all technical documentation, guides, and specifications.
 
 ## 📋 **Quick Navigation**
 
@@ -74,7 +74,7 @@ When updating documentation:
 
 ---
 
-**Note**: This documentation is actively maintained and reflects the current state of the Waste Segregation App as of the last update date.
+**Note**: This documentation is actively maintained and reflects the current state of the ReLoop as of the last update date.
 
 ## 📁 Document Organization
 

@@ -1,7 +1,7 @@
 # Technical Debt Cleanup Summary
 *Created: December 2024*
 
-This document summarizes the systematic technical debt cleanup performed on the WasteWise application, addressing critical issues identified by the Flutter analyzer.
+This document summarizes the systematic technical debt cleanup performed on the ReLoop application, addressing critical issues identified by the Flutter analyzer.
 
 ## 📊 Overview
 

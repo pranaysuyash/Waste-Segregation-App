@@ -166,7 +166,7 @@
 
 ## 12. Conclusion
 
-This contextual advertising strategy transforms traditional advertising from a potential source of friction into a value-adding component of the Waste Segregation App. By focusing on contextual relevance, sustainability, and user preferences, the app can create a premium advertising experience that generates revenue while advancing the app's core mission of promoting sustainable waste management practices.
+This contextual advertising strategy transforms traditional advertising from a potential source of friction into a value-adding component of the ReLoop. By focusing on contextual relevance, sustainability, and user preferences, the app can create a premium advertising experience that generates revenue while advancing the app's core mission of promoting sustainable waste management practices.
 
 The key success factors will be:
 

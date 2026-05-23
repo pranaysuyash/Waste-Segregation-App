@@ -1,4 +1,4 @@
-# Skeptic: Token Economy Brainstorm — Waste Segregation App
+# Skeptic: Token Economy Brainstorm — ReLoop
 
 **Date:** 2026-05-19  
 **Mandate:** Find the holes. Ignore the enthusiasm. Report the rot.

@@ -1,6 +1,6 @@
 # Item Database Schema
 
-This document outlines the proposed schema for individual items within the Waste Segregation App's database. A rich item database is crucial for enabling advanced and AI-powered gamification features, such as hidden badges, content unlocks based on discovery, and personalized quests.
+This document outlines the proposed schema for individual items within the ReLoop's database. A rich item database is crucial for enabling advanced and AI-powered gamification features, such as hidden badges, content unlocks based on discovery, and personalized quests.
 
 ## Item Object Structure
 

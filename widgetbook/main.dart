@@ -156,7 +156,7 @@ class WidgetbookApp extends StatelessWidget {
 
 WidgetbookCategory _componentCategory() {
   return WidgetbookCategory(
-    name: 'Waste Segregation Components',
+    name: 'ReLoop Components',
     children: [
       WidgetbookFolder(
         name: 'Design Lab',
@@ -1306,7 +1306,7 @@ WidgetbookCategory _componentCategory() {
                 name: 'AppBar Title',
                 builder: (context) => _surface(
                   const ResponsiveText.appBarTitle(
-                    'Waste Segregation Assistant',
+                    'ReLoop Assistant',
                   ),
                 ),
               ),
@@ -1331,7 +1331,7 @@ WidgetbookCategory _componentCategory() {
                 name: 'Responsive AppBar Title',
                 builder: (context) => _surface(
                   const ResponsiveAppBarTitle(
-                    title: 'Waste Segregation Assistant',
+                    title: 'ReLoop Assistant',
                   ),
                 ),
               ),

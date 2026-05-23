@@ -1,8 +1,8 @@
-# Waste Segregation App - UI Revamp Documentation 🎨✨
+# ReLoop - UI Revamp Documentation 🎨✨
 
 ## Executive Summary
 
-This document outlines a comprehensive UI/UX revamp for the Waste Segregation App, transforming it from a functional utility into an engaging, Gen Z-appealing experience that makes waste management fun, social, and visually stunning.
+This document outlines a comprehensive UI/UX revamp for the ReLoop, transforming it from a functional utility into an engaging, Gen Z-appealing experience that makes waste management fun, social, and visually stunning.
 
 ## 🎯 Target Audience Analysis: Gen Z (Born 1997-2012)
 
@@ -453,7 +453,7 @@ dependencies:
 
 ## 🚀 Conclusion
 
-This UI revamp transforms the Waste Segregation App from a functional tool into an engaging, beautiful, and socially conscious platform that Gen Z users will love to use and share. By combining cutting-edge design trends with meaningful environmental impact, we create an app that's not just useful, but genuinely exciting to interact with.
+This UI revamp transforms the ReLoop from a functional tool into an engaging, beautiful, and socially conscious platform that Gen Z users will love to use and share. By combining cutting-edge design trends with meaningful environmental impact, we create an app that's not just useful, but genuinely exciting to interact with.
 
 The key is making every interaction feel rewarding, every piece of information visually engaging, and every user feel part of a larger community working toward positive environmental change. This isn't just an app redesign—it's creating a movement through design.
 

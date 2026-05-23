@@ -1,7 +1,7 @@
 # Advanced Visual Design System
 
 ## Overview
-This document outlines the next-generation visual design system for the Waste Segregation App, expanding on the foundational style guide to implement the advanced visual concepts identified in our comprehensive gap analysis. The goal is to create a visual language that not only maintains consistency but also communicates our environmental mission, adapts to user context, and creates emotional connections through thoughtful design.
+This document outlines the next-generation visual design system for the ReLoop, expanding on the foundational style guide to implement the advanced visual concepts identified in our comprehensive gap analysis. The goal is to create a visual language that not only maintains consistency but also communicates our environmental mission, adapts to user context, and creates emotional connections through thoughtful design.
 
 ## Comprehensive Component Library
 

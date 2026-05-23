@@ -1,4 +1,4 @@
-# Cartographer: Token Economy Spatial Map — Waste Segregation App
+# Cartographer: Token Economy Spatial Map — ReLoop
 
 **Date:** 2026-05-19
 **Role:** Cartographer

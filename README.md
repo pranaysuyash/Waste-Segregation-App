@@ -1,4 +1,4 @@
-# Waste Segregation App
+# ReLoop
 
 A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education, enhanced with world-class recycling research and AI-powered material recognition.
 

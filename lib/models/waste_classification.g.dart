@@ -20,8 +20,6 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       id: fields[0] as String?,
       itemName: fields[1] as String,
       category: fields[2] as String,
-      subcategory: fields[3] as String?,
-      materialType: fields[4] as String?,
       recyclingCode: fields[5] as int?,
       explanation: fields[6] as String,
       disposalMethod: fields[7] as String?,
@@ -117,17 +115,13 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
   @override
   void write(BinaryWriter writer, WasteClassification obj) {
     writer
-      ..writeByte(94)
+      ..writeByte(92)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.itemName)
       ..writeByte(2)
       ..write(obj.category)
-      ..writeByte(3)
-      ..write(obj.subcategory)
-      ..writeByte(4)
-      ..write(obj.materialType)
       ..writeByte(5)
       ..write(obj.recyclingCode)
       ..writeByte(6)

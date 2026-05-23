@@ -925,7 +925,7 @@ class GDPRExportService {
         exportDate: DateTime.now(),
         userId: userId,
         userEmail: user.email,
-        dataController: 'Waste Segregation App',
+        dataController: 'ReLoop',
         legalBasis: 'Consent',
         exportId: generateExportId(),
       ),

@@ -64,7 +64,7 @@ void main() {
       expect(candidate.datasetEligible, isTrue);
       expect(candidate.imageStoragePath, 'training/review/2026/05/img.jpg');
       expect(candidate.category, 'Dry Waste');
-      expect(candidate.subcategory, 'Plastic bottle');
+      expect(candidate.subCategory, 'Plastic bottle');
       expect(candidate.itemName, 'PET bottle');
       expect(candidate.userIdHash, 'hash_123');
     });

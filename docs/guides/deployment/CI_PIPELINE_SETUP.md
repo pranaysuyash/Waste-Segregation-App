@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the comprehensive CI pipeline implemented to catch remaining test issues and establish proper quality gates for the Waste Segregation App.
+This document describes the comprehensive CI pipeline implemented to catch remaining test issues and establish proper quality gates for the ReLoop.
 
 ## Pipeline Architecture
 

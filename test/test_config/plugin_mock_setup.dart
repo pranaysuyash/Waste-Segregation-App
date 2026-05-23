@@ -100,7 +100,7 @@ class PluginMockSetup {
       channel,
       (MethodCall methodCall) async {
         return {
-          'appName': 'Waste Segregation App Test',
+          'appName': 'ReLoop Test',
           'packageName': 'com.example.waste_segregation_app',
           'version': '1.0.0+test',
           'buildNumber': 'test',

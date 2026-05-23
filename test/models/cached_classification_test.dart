@@ -21,7 +21,7 @@ void main() {
       mockClassification = WasteClassification(
         itemName: 'Plastic Water Bottle',
         category: 'Dry Waste',
-        subcategory: 'Plastic',
+        subCategory: 'Plastic',
         explanation: 'Clear plastic bottle, recyclable with PET code 1',
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle in blue bin',
@@ -363,8 +363,8 @@ void main() {
             equals(mockClassification.itemName));
         expect(cached.classification.category,
             equals(mockClassification.category));
-        expect(cached.classification.subcategory,
-            equals(mockClassification.subcategory));
+        expect(cached.classification.subCategory,
+            equals(mockClassification.subCategory));
         expect(cached.classification.confidence,
             equals(mockClassification.confidence));
         expect(cached.classification.visualFeatures,
@@ -379,7 +379,7 @@ void main() {
         final fullClassification = WasteClassification(
           itemName: 'Complex Item',
           category: 'Hazardous Waste',
-          subcategory: 'Chemical',
+          subCategory: 'Chemical',
           explanation: 'Complex hazardous chemical requiring special handling',
           disposalInstructions: DisposalInstructions(
             primaryMethod: 'Special facility disposal',

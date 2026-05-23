@@ -2,7 +2,7 @@
   "name": "waste-segregation-rules-test",
   "version": "1.0.0",
   "private": true,
-  "description": "Firestore rules unit tests for Waste Segregation App",
+  "description": "Firestore rules unit tests for ReLoop",
   "scripts": {
     "test": "mocha --exit --timeout 30000 rules-test.spec.js classification-feedback-rules-test.spec.js family-rules-test.spec.js",
     "test:emulator": "firebase emulators:exec --only firestore \"npm test\"",

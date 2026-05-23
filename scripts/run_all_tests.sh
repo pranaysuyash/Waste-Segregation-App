@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Comprehensive Test Runner for Waste Segregation App
+# Comprehensive Test Runner for ReLoop
 # This script runs all types of tests: unit, widget, integration, golden, and E2E
 
 set -e
 
-echo "🧪 Starting comprehensive test suite for Waste Segregation App"
+echo "🧪 Starting comprehensive test suite for ReLoop"
 echo "============================================================"
 
 # Colors for output

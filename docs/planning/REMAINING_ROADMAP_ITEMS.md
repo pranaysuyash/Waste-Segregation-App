@@ -7,7 +7,7 @@
 
 ## 🎯 Overview
 
-The Waste Segregation App has achieved 97% completion of the comprehensive roadmap. The remaining 3% consists of polish items that enhance user experience but don't block production deployment.
+The ReLoop has achieved 97% completion of the comprehensive roadmap. The remaining 3% consists of polish items that enhance user experience but don't block production deployment.
 
 ---
 

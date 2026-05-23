@@ -1,6 +1,6 @@
 # Provider State Management Issue and Resolution Plan
 
-This document outlines an issue encountered with the Provider state management package in the Waste Segregation App and the plan to resolve it.
+This document outlines an issue encountered with the Provider state management package in the ReLoop and the plan to resolve it.
 
 ## Issue Summary
 

@@ -6,7 +6,7 @@ import 'package:waste_segregation_app/main.dart' as app;
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Waste Segregation App E2E Tests', () {
+  group('ReLoop E2E Tests', () {
     testWidgets('Complete waste classification flow',
         (WidgetTester tester) async {
       // Launch the app
@@ -17,7 +17,7 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
       // Verify home screen loads
-      expect(find.text('Waste Segregation'), findsOneWidget);
+      expect(find.text('ReLoop'), findsOneWidget);
 
       // Navigate to camera/classification screen
       final classifyButton = find.byKey(const Key('classify_button'));

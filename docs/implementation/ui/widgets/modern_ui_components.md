@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Waste Segregation App incorporates a suite of custom "Modern UI" components designed to provide a consistent, responsive, and aesthetically pleasing user experience. These components are generally located in the `lib/widgets/modern_ui/` directory and often leverage Flutter's `LayoutBuilder` for adaptive behavior.
+The ReLoop incorporates a suite of custom "Modern UI" components designed to provide a consistent, responsive, and aesthetically pleasing user experience. These components are generally located in the `lib/widgets/modern_ui/` directory and often leverage Flutter's `LayoutBuilder` for adaptive behavior.
 
 This document provides a high-level overview of these components. More detailed documentation for specific complex components may be available in separate files (e.g., `view_all_button.md`).
 

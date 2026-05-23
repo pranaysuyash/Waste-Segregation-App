@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document tracks the progress of fixing CI/CD pipeline failures in the Waste Segregation App.
+This document tracks the progress of fixing CI/CD pipeline failures in the ReLoop.
 
 ## Initial Status
 
