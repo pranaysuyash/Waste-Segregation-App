@@ -5,6 +5,8 @@ import '../utils/waste_app_logger.dart';
 import 'layer0_disposal_mapping.dart';
 import 'layer0_router.dart';
 import 'classification_router_guardrails.dart';
+import 'classification_router.dart';
+import 'confidence_calibration_service.dart';
 import 'local_classifier_service.dart';
 
 /// Orchestrates the multi-layer classification pipeline:
@@ -18,11 +20,18 @@ class ClassificationPipeline {
     required this.layer0Router,
     required this.localClassifier,
     ClassificationRouterGuardrails? guardrails,
-  }) : guardrails = guardrails ?? const ClassificationRouterGuardrails();
+    ClassificationRouter? router,
+    ConfidenceCalibrationService? calibrationService,
+  })  : guardrails = guardrails ?? const ClassificationRouterGuardrails(),
+        router = router ?? ClassificationRouter(),
+        calibrationService =
+            calibrationService ?? ConfidenceCalibrationService();
 
   final Layer0Router layer0Router;
   final LocalClassifier localClassifier;
   final ClassificationRouterGuardrails guardrails;
+  final ClassificationRouter router;
+  final ConfidenceCalibrationService calibrationService;
 
   /// Try only local layers (Layer 0 + Layer 1) and return null if all escalate.
   ///
@@ -233,6 +242,18 @@ class ClassificationPipeline {
       language: 'en',
     );
 
+    // Use calibrated confidence for routing decisions.
+    final rawConfidence = cloudResult.confidence ?? 0.0;
+    final calibratedConfidence =
+        calibrationService.calibrate(rawConfidence);
+
+    final routingDecision = router.decide(
+      rawConfidence: rawConfidence,
+      currentLayer: 2,
+      category: cloudResult.category,
+    );
+    router.logDecision(routingDecision);
+
     final cloudDecision = guardrails.evaluateCloud(
       cloudResult,
       localRuleVersionChanged: localRuleVersionChanged,
@@ -245,6 +266,7 @@ class ClassificationPipeline {
         routeDecision: 'manual_review',
         routeReason: cloudDecision.reason,
         modelSelectionStrategy: 'cloud_guardrailed',
+        calibratedConfidence: calibratedConfidence,
         clarificationNeeded: true,
       );
     }
@@ -254,8 +276,9 @@ class ClassificationPipeline {
         analysisSource: cloudResult.analysisSource ??
             WasteClassification.analysisSourceCloudPrimary,
         routeDecision: 'accepted_cloud',
-        routeReason: 'guardrail_passed',
-        modelSelectionStrategy: 'cloud_guardrailed',
+        routeReason: routingDecision.reason,
+        modelSelectionStrategy: router.strategy.name,
+        calibratedConfidence: calibratedConfidence,
       );
   }
 

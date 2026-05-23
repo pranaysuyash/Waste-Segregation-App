@@ -310,6 +310,11 @@ void main() {
 
       expect(find.text('Upgrade to Use Offline Mode'), findsOneWidget);
       expect(find.text('See Premium Features'), findsOneWidget);
+      expect(find.textContaining('Classify items without internet'), findsOneWidget);
+      expect(
+        find.textContaining('Offline Mode is a premium feature'),
+        findsOneWidget,
+      );
 
       await tester.tap(find.text('See Premium Features'));
       await tester.pumpAndSettle();
@@ -363,6 +368,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('offline-settings-route'), findsOneWidget);
+    });
+
+    testWidgets(
+        'FeaturesSection locked advanced analytics opens contextual upgrade dialog',
+        (tester) async {
+      await tester.pumpWidget(
+        _buildApp(
+          premiumService: _FakePremiumService(),
+          child: const FeaturesSection(),
+          routes: {
+            Routes.wasteDashboard: (_) => const _RouteTarget('analytics-route'),
+            Routes.premiumFeatures: (_) => const _RouteTarget('premium-route'),
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Advanced Analytics'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Upgrade to Use Advanced Analytics'), findsOneWidget);
+      expect(
+        find.textContaining('Detailed insights and trends'),
+        findsAtLeastNWidgets(1),
+      );
+      expect(
+        find.textContaining('Advanced Analytics is a premium feature'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Training review queue is reachable via a named route',

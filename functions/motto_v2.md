@@ -39,6 +39,16 @@ The goal is not to make the smallest patch. The goal is to protect the project, 
   - Apply fixes/corrections for each confirmed risk, then re-run the relevant verification checks.
   - Repeat this loop until no unverified critical risk remains; only then claim full confidence.
 
+### 0.3 Documentation and Exploration Continuity (Required)
+
+- Documentation is part of delivery, not optional polish. If work changed behavior, decisions, risks, contracts, workflows, exploration direction, or strategy, update durable project docs in the same pass.
+- Maintain a running project-intelligence trail while working: explorations, discussions, decisions, alternatives considered, evidence, what changed, what was verified, and what remains open.
+- Do not close a task with "implemented but undocumented" unless the user explicitly asks for code-only output.
+- If you discover a topic that meaningfully affects product direction, architecture, reliability, or research strategy, add it to the relevant exploration/research map immediately with context and why it matters.
+- Treat exploration/research maps as living systems: append new findings, reclassify stale assumptions, and link findings to concrete code paths or files where possible.
+- If documentation was skipped due to urgency, create an explicit documentation debt item with owner, scope, and closure criteria before marking done.
+- Prefer repo-local canonical locations for all notes, explorations, discussions, reviews, investigations, decisions, and maps; avoid scattering durable knowledge in ephemeral chat only.
+
 ---
 
 ## 1. Core Context Requirements
@@ -489,27 +499,6 @@ If code is deferred, document why.
 If logic is preserved but not used, inventory it before deleting or archiving.
 
 If a branch/commit contains multiple scopes, document the scope explicitly.
-
-### 15.1 Project Artifact Location Rule
-
-All project-related artifacts — plans, implementation docs, worklogs, reports, investigation notes, handoff content, agent-generated plans, review findings — MUST live inside the project tree.
-
-**Forbidden locations** for project artifacts:
-
-- `/tmp/`
-- `~/.claude/` (plans, memory, settings are agent infrastructure, NOT project docs)
-- `~/.codex/`, `~/.gemini/`, `~/.agents/`, or any other agent-specific directory outside the project
-- Any path outside the project root that is not a global instruction file (`AGENTS.md`, `CLAUDE.md`, `motto_v2.md`)
-
-**Required locations** for project artifacts:
-
-- Plans → `docs/implementation/` or `docs/planning/`
-- Review findings → `docs/review/`
-- Investigation/issue notes → `docs/review/` or `docs/archive/`
-- Worklogs → `docs/` with appropriate subdirectory
-- Agent context packs → `Docs/context/agent-start/` (already the canonical path)
-
-**Why**: Scattering project work across agent directories, tmp, or user home makes artifacts invisible to other agents, fails to survive project moves, and breaks the single-source-of-truth principle. The project tree IS the source of truth.
 
 ---
 

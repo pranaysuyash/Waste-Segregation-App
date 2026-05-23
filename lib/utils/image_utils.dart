@@ -13,6 +13,35 @@ class ImageUtils {
   static const int defaultTargetWidth = 300;
   static const int defaultTargetHeight = 300;
 
+  /// Strips all EXIF metadata (GPS, camera info, timestamps) from image bytes.
+  ///
+  /// Decodes to raw pixels, bakes orientation, and re-encodes — which
+  /// effectively removes all embedded metadata. Returns original bytes
+  /// on failure (fail-open to avoid breaking the pipeline).
+  static Uint8List stripExifData(Uint8List bytes) {
+    try {
+      final raw = img.decodeImage(bytes);
+      if (raw == null) return bytes;
+      final oriented = img.bakeOrientation(raw);
+      // Detect original format and re-encode in the same format
+      if (_isPng(bytes)) {
+        return Uint8List.fromList(img.encodePng(oriented));
+      }
+      return Uint8List.fromList(img.encodeJpg(oriented, quality: 95));
+    } catch (e) {
+      WasteAppLogger.severe('Error stripping EXIF data: $e');
+      return bytes;
+    }
+  }
+
+  static bool _isPng(Uint8List bytes) {
+    return bytes.length >= 4 &&
+        bytes[0] == 0x89 &&
+        bytes[1] == 0x50 &&
+        bytes[2] == 0x4E &&
+        bytes[3] == 0x47;
+  }
+
   /// Normalizes image bytes by stripping EXIF data and baking orientation
   /// This ensures consistent hashing regardless of camera orientation
   static Future<Uint8List> _normalizedBytes(Uint8List bytes) async {

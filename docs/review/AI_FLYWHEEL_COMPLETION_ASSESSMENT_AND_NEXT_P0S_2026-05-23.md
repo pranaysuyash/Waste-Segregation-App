@@ -28,6 +28,8 @@ What is **not** done:
 
 My opinion: the next move should **not** be “train a model” and should **not** be “add more eval cases” as busywork. The highest leverage is to convert this foundation into a truthful product gate: make eval reports unambiguous, then wire router threshold policy into runtime behavior behind safe flags.
 
+Update note: after this assessment, a first-pass runtime router guardrail layer was added in `lib/services/classification_router_guardrails.dart` and wired into `lib/services/classification_pipeline.dart`. The policy now rejects low-confidence local predictions, always escalates safety-critical categories below the safety threshold, and produces route metadata used by the pipeline.
+
 ---
 
 ## Current-state evidence

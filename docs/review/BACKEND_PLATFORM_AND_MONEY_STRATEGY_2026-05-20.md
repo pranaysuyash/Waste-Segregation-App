@@ -489,6 +489,13 @@ Inspected files (phase-0 and extended):
 - functions tests (http guards and emulator suites)
 
 Status of execution boundaries for this report:
-- No platform migration executed.
-- No broad backend replacement executed.
-- This deliverable is decision + roadmap + task decomposition.
+|- No platform migration executed.
+|- No broad backend replacement executed.
+|- This deliverable is decision + roadmap + task decomposition.
+
+## 21. Addendum (2026-05-23)
+
+Implementation note after the initial review:
+- The public acquisition surface has now been moved forward as a static landing page in `web_hosting/index.html` so the Cloudflare/additive public-web recommendation is no longer just theoretical.
+- The related public privacy pages in `web_hosting/delete_account.html` and `web_hosting/delete_data.html` were aligned to the app naming used elsewhere in the repo.
+- This does not change the recommendation: keep Firebase as the launch core, harden it, and use Cloudflare for the public edge/public content lane.

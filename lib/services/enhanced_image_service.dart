@@ -8,6 +8,7 @@ import 'package:image/image.dart' as img;
 import 'package:uuid/uuid.dart';
 import 'package:waste_segregation_app/utils/safe_file_path.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import 'package:waste_segregation_app/utils/image_utils.dart';
 
 /// Provides helper methods for saving and loading images across
 /// platforms with basic retry logic for network requests.
@@ -36,7 +37,10 @@ class EnhancedImageService {
       throw ArgumentError('Cannot save empty image bytes');
     }
 
-    final detectedMime = _detectImageMime(bytes);
+    // Strip EXIF metadata (GPS, camera info, timestamps) before saving.
+    final cleanBytes = ImageUtils.stripExifData(bytes);
+
+    final detectedMime = _detectImageMime(cleanBytes);
     final extension = _extensionForMime(detectedMime);
 
     if (kIsWeb) {
@@ -54,11 +58,11 @@ class EnhancedImageService {
         ? '${sanitizeFileName(fileName, fallback: id)}_$id$extension'
         : '$id$extension';
     final file = File(safeJoinWithin(imagesDir.path, safeName));
-    await file.writeAsBytes(bytes, flush: true);
+    await file.writeAsBytes(cleanBytes, flush: true);
 
     WasteAppLogger.info('image_save_started', context: {
       'path': file.path,
-      'size_bytes': bytes.length,
+      'size_bytes': cleanBytes.length,
       'mime': detectedMime
     });
     return file.path;
@@ -437,11 +441,12 @@ class EnhancedImageService {
   // ─── Private helpers ───────────────────────────────────────────
 
   String _saveWebImageAsDataUrl(Uint8List bytes, String mimeType) {
-    final base64Data = base64Encode(bytes);
+    final cleanBytes = ImageUtils.stripExifData(bytes);
+    final base64Data = base64Encode(cleanBytes);
     WasteAppLogger.info('image_save_started', context: {
       'format': 'web_data_url',
       'mime': mimeType,
-      'size_bytes': bytes.length
+      'size_bytes': cleanBytes.length
     });
     return 'web_image:data:$mimeType;base64,$base64Data';
   }

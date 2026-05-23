@@ -32,13 +32,20 @@ Routing is **error-based only** — fallback triggers on `invalidImageTooLarge` 
 | `BackendProxyProvider` | `lib/services/providers/backend_proxy_provider.dart` | `classifyImage` proxy |
 | `classificationLayer` field | `lib/models/waste_classification.dart` | Tracks which layer classified |
 
-### What's missing
+### What's built (2026-05-23)
 
-- No routing controller that decides which layer/provider to use
-- No confidence-based escalation between layers
-- No cost-based routing (always uses most expensive available)
+| Component | Location | Status |
+|-----------|----------|--------|
+| `ClassificationRouter` | `lib/services/classification_router.dart` | 4 strategies (costFirst, qualityFirst, latencyFirst, balanced), safety overrides, escalation logic |
+| `ConfidenceCalibrationService` | `lib/services/confidence_calibration_service.dart` | Per-category calibration bins, safety overrides (Hazardous→L3, Medical→L3, E-Waste→L2) |
+| Pipeline wiring | `lib/services/classification_pipeline.dart` | Router + calibration wired into `classify()` — cloud results get calibrated confidence + routing decision logging |
+| Tests | 8 router tests + 9 calibration tests | 17 tests covering strategies, overrides, thresholds, edge cases |
+
+### What's still missing
+
 - No image-complexity analysis before routing
 - No A/B testing of routing strategies
+- No Remote Config integration for per-user-tier strategy selection
 
 ---
 
@@ -136,24 +143,34 @@ Use Remote Config to select strategy per user tier:
 
 ## 5. Implementation Path
 
-### Phase 1: Routing controller
+### Phase 1: Routing controller ✅ Done
 
-Create `ClassificationRouter` service that:
-1. Evaluates image metadata (size, complexity estimate)
-2. Checks user tier and privacy preferences
-3. Selects routing strategy
-4. Manages escalation between layers
-5. Records routing decision and outcome for eval
+`ClassificationRouter` service (`lib/services/classification_router.dart`):
+1. Evaluates barcode presence and metadata for initial routing
+2. Selects routing strategy (costFirst / qualityFirst / latencyFirst / balanced)
+3. Manages escalation between layers with configurable thresholds
+4. Records routing decisions via `logDecision()`
+5. Safety overrides: E-Waste → Layer 2, Hazardous/Medical → Layer 3
 
-### Phase 2: Confidence-based escalation
+`ConfidenceCalibrationService` (`lib/services/confidence_calibration_service.dart`):
+1. Per-category calibration bins with empirical accuracy tracking
+2. `calibrate()` maps raw confidence → calibrated confidence
+3. `decide()` returns accept/escalate/hint per layer thresholds
+4. Safety category overrides with mandatory minimum layers
 
-Wire `ClassificationPipeline` to use calibrated confidence thresholds:
+Pipeline wiring (`lib/services/classification_pipeline.dart`):
+- `classify()` now calibrates cloud confidence and logs routing decisions
+- Cloud results include `calibratedConfidence` and `modelSelectionStrategy`
+
+### Phase 2: Confidence-based escalation ✅ Done
+
+Wired into `ClassificationPipeline.classify()`:
 - Layer 0 pass: ≥ 0.90
 - Layer 1 pass: ≥ 0.75
 - Layer 2 pass: ≥ 0.60
 - Safety override: Hazardous/Medical → always Layer 3
 
-### Phase 3: Adaptive routing
+### Phase 3: Adaptive routing (next)
 
 - A/B test routing strategies via Remote Config
 - Measure per-strategy accuracy, cost, latency

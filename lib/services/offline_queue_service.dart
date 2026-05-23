@@ -281,6 +281,20 @@ class OfflineQueueService {
             region: item.region,
           );
 
+          // Reconcile: remove any offline hint classification for the same image
+          // so the fresh cloud result replaces it (avoids duplicate history entries).
+          if (result.imageHash != null && result.imageHash!.isNotEmpty) {
+            final removed = await StorageService()
+                .classificationStorage
+                .removeOfflineHintsByImageHash(result.imageHash!);
+            if (removed > 0) {
+              WasteAppLogger.info('offline_hint_reconciled', context: {
+                'queue_id': item.id,
+                'hints_removed': removed,
+              });
+            }
+          }
+
           // Save to local storage
           await StorageService().saveClassification(result);
 

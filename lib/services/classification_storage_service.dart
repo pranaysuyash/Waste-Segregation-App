@@ -498,4 +498,58 @@ class ClassificationStorageService {
       return 0;
     }
   }
+
+  /// Remove offline hint classifications matching the given image hash.
+  ///
+  /// When the offline queue processes a previously-hinted item, this removes
+  /// the degraded Layer 0 hint so the fresh cloud result can replace it.
+  /// Returns the number of hint classifications removed.
+  Future<int> removeOfflineHintsByImageHash(String imageHash) async {
+    if (imageHash.isEmpty) return 0;
+    try {
+      final box = await Hive.openBox(_classificationsBoxName);
+      var removed = 0;
+
+      for (final key in box.keys.toList()) {
+        try {
+          final data = box.get(key);
+          if (data == null) continue;
+
+          WasteClassification classification;
+          if (data is WasteClassification) {
+            classification = data;
+          } else if (data is String) {
+            if (data.isEmpty) continue;
+            classification =
+                WasteClassification.fromJson(jsonDecode(data));
+          } else if (data is Map) {
+            classification = WasteClassification.fromJson(
+                data is Map<String, dynamic>
+                    ? data
+                    : Map<String, dynamic>.from(data));
+          } else {
+            continue;
+          }
+
+          if (classification.isOfflineHint &&
+              classification.imageHash == imageHash) {
+            await box.delete(key);
+            removed++;
+            WasteAppLogger.info('offline_hint_replaced', context: {
+              'hint_id': classification.id,
+              'image_hash': imageHash,
+            });
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
+      return removed;
+    } catch (e, s) {
+      WasteAppLogger.severe('Error removing offline hints',
+          error: e, stackTrace: s);
+      return 0;
+    }
+  }
 }

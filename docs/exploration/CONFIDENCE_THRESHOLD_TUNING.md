@@ -25,9 +25,9 @@ Model-reported confidence (e.g., `0.87`) does NOT reliably mean the result is co
 - Category (hazardous items tend to have inflated confidence)
 - Image quality (blurry images sometimes get high confidence)
 
-### Routing currently ignores confidence
+### Routing now uses calibrated confidence (2026-05-23)
 
-`AiService` uses static fallback chain based on errors, not confidence. `ClassificationPipeline` uses Layer 0 confidence for accept/hint/reject but doesn't escalate based on cloud confidence.
+`ClassificationRouter` (`lib/services/classification_router.dart`) implements 4 strategies with confidence-based escalation. `ClassificationPipeline.classify()` calibrates cloud confidence via `ConfidenceCalibrationService` and logs routing decisions. Layer 0 confidence handling for accept/hint/reject remains in the pipeline's local path.
 
 ---
 
@@ -134,12 +134,12 @@ Record per-classification:
 
 ## 6. Implementation Path
 
-1. **Build calibration data**: Run eval harness, collect confidence/accuracy pairs
-2. **Create calibration service**: `ConfidenceCalibrationService` with lookup table
-3. **Wire into pipeline**: Apply calibration before routing decisions
-4. **Add per-category overrides**: Category-specific minimum layers
-5. **Build drift monitoring**: Weekly eval comparison + alerting
-6. **Tune thresholds**: A/B test threshold values via Remote Config
+1. **Build calibration data**: Run eval harness, collect confidence/accuracy pairs — *pending (eval harness exists, needs continuous runs)*
+2. **Create calibration service** ✅: `ConfidenceCalibrationService` (`lib/services/confidence_calibration_service.dart`) — empirical binning, per-category overrides, safety overrides
+3. **Wire into pipeline** ✅: `ClassificationPipeline.classify()` now calibrates cloud confidence, logs routing decisions via `ClassificationRouter`
+4. **Add per-category overrides** ✅: Hazardous→L3, Medical→L3, E-Waste→L2 built into calibration service and router
+5. **Build drift monitoring**: Weekly eval comparison + alerting — *pending*
+6. **Tune thresholds**: A/B test threshold values via Remote Config — *pending*
 
 ---
 

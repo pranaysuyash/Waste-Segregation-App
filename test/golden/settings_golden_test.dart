@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/test_helper.dart';
 import 'package:waste_segregation_app/widgets/settings/setting_tile.dart';
-import 'package:waste_segregation_app/widgets/settings/settings_theme.dart';
 import 'package:waste_segregation_app/widgets/settings/account_section.dart';
 import 'package:waste_segregation_app/widgets/settings/premium_section.dart';
 import 'package:waste_segregation_app/widgets/settings/app_settings_section.dart';

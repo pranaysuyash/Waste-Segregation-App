@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/community_feed.dart';
 import '../services/community_service.dart';
+import '../services/moderation_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../widgets/modern_ui/modern_cards.dart';
@@ -383,11 +384,127 @@ class _CommunityScreenState extends State<CommunityScreen>
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert, color: Colors.grey[400], size: 20),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                onSelected: (value) {
+                  if (value == 'report') {
+                    _showReportDialog(item);
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'report',
+                    height: 36,
+                    child: Row(
+                      children: [
+                        Icon(Icons.flag, color: Colors.red, size: 16),
+                        SizedBox(width: 8),
+                        Text('Report', style: TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  void _showReportDialog(CommunityFeedItem item) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Report Post',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const Divider(),
+              ...ReportReason.values.map(
+                (reason) => ListTile(
+                  leading: Icon(_reasonIcon(reason), size: 20),
+                  title: Text(_reasonLabel(reason),
+                      style: const TextStyle(fontSize: 14)),
+                  dense: true,
+                  onTap: () async {
+                    Navigator.pop(context);
+                    try {
+                      await ModerationService().reportPost(
+                        postId: item.id,
+                        reason: reason,
+                      );
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Report submitted. Thank you.'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Report failed: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _reasonIcon(ReportReason reason) {
+    switch (reason) {
+      case ReportReason.inappropriate:
+        return Icons.block;
+      case ReportReason.spam:
+        return Icons.report;
+      case ReportReason.misinformation:
+        return Icons.error_outline;
+      case ReportReason.harmful:
+        return Icons.warning;
+      case ReportReason.privacy:
+        return Icons.visibility_off;
+      case ReportReason.other:
+        return Icons.more_horiz;
+    }
+  }
+
+  String _reasonLabel(ReportReason reason) {
+    switch (reason) {
+      case ReportReason.inappropriate:
+        return 'Inappropriate content';
+      case ReportReason.spam:
+        return 'Spam';
+      case ReportReason.misinformation:
+        return 'Incorrect classification';
+      case ReportReason.harmful:
+        return 'Harmful or dangerous';
+      case ReportReason.privacy:
+        return 'Privacy concern';
+      case ReportReason.other:
+        return 'Other';
+    }
   }
 
   Widget _buildStatsTab() {

@@ -519,11 +519,11 @@ class AiService {
     WasteAppLogger.info(
         'Original image size: ${(imageBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
 
-    // If image is already smaller than preferred size, return as is
+    // If image is already smaller than preferred size, still strip EXIF metadata
     if (imageBytes.length < preferredSizeBytes) {
       WasteAppLogger.info(
           'Image is smaller than preferred size, error: no compression needed.');
-      return imageBytes;
+      return ImageUtils.stripExifData(imageBytes);
     }
 
     // OPTIMIZATION: Use compute() to run compression in isolate (off main thread)
@@ -599,7 +599,7 @@ class AiService {
     const maxSizeBytes = 50 * 1024 * 1024; // 50MB for Gemini
 
     if (imageBytes.length <= maxSizeBytes) {
-      return imageBytes; // No compression needed
+      return ImageUtils.stripExifData(imageBytes); // Strip EXIF even when no compression needed
     }
 
     WasteAppLogger.warning(

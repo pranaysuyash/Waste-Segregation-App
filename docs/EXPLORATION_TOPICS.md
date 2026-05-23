@@ -1248,7 +1248,7 @@ Current model self-reported confidence is an uncalibrated signal — the model's
 
 **Category**: UX & Engagement / On-Device & Edge
 
-**Status**: Partial — `offline_queue_*` service captures items when offline. No explicit UX design for "what the user sees when no network and no on-device model available."
+**Status**: Partial — `offline_queue_*` service captures items when offline. Hint reconciliation built (offline hints removed when cloud results arrive). Offline degradation tiers defined (Tier 2 plan exists). Full degraded-result UX (offline banner, degraded result screen) not yet implemented — plan in `.claude/plans/jazzy-wondering-haven.md`.
 
 **Overview**: There are three distinct offline states with different UX needs:
 

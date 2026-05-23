@@ -2,7 +2,7 @@
 
 **Purpose**: What to investigate *in parallel* with shipping. Maps exploration topics to the build phases they should de-risk before — or alongside — implementation.
 **Status**: Living
-**Last Updated**: 2026-05-19
+**Last Updated**: 2026-05-23
 **Parent**: [EXPLORATION_TOPICS.md](EXPLORATION_TOPICS.md)
 **Sibling**: [EXPLORATION_FRONTIER.md](EXPLORATION_FRONTIER.md)
 
@@ -189,25 +189,41 @@ These exploration practices apply regardless of phase. Treat them as guardrails.
 
 ---
 
-## Status Snapshot (2026-05-19)
+## Status Snapshot (2026-05-23)
 
 | Phase | Track | Topic | Status |
 |------:|------|-------|--------|
-| NOW | N1 | AI Cost & Guardrails | ✅ Exploration doc complete |
-| NOW | N2 | Offline Queue Contract | ✅ Decision doc + acceptance tests complete |
-| NOW | N3 | Privacy / Photo PII + Retention | ✅ Two exploration docs complete |
-| NOW | N4 | Onboarding Activation | ✅ Exploration doc complete |
-| NOW | N5 | Moderation Baseline | ✅ Exploration doc complete |
+| NOW | N1 | AI Cost & Guardrails | ✅ Exploration doc + code (`cost_guardrail_service.dart`) |
+| NOW | N2 | Offline Queue Contract | ✅ Decision doc + acceptance tests + hint reconciliation |
+| NOW | N3 | Privacy / Photo PII + Retention | ✅ Two exploration docs + EXIF stripping + `toCloudJson()` path sanitization |
+| NOW | N4 | Onboarding Activation | ✅ Exploration doc + `OnboardingScreen` wired into auth flow |
+| NOW | N5 | Moderation Baseline | ✅ Exploration doc + `ModerationService` + report UI on community feed |
 | NOW | N6 | Token Economy & Pricing Coherence | ✅ Synthesis doc complete |
 | NEXT | X1 | Eval Harness | ✅ Built (flywheel) — needs CI integration |
-| NEXT | X2 | Multi-Model Routing + Disposal | ✅ Exploration doc complete |
+| NEXT | X2 | Multi-Model Routing + Disposal | ✅ Exploration doc + `ClassificationRouter` + `ConfidenceCalibrationService` |
 | NEXT | X3 | Region-Aware Rulesets | ✅ Built (7 cities) |
-| NEXT | X4 | Gamification + Habit Loop | ✅ Two exploration docs complete |
+| NEXT | X4 | Gamification + Habit Loop | ✅ Two exploration docs + v2 quality-based points (`isBatch` bonus) |
 | NEXT | X5 | Firestore + History Schema | ✅ Two exploration docs complete |
 | LATER | L1 | On-Device Inference | 🟡 Interface + pipeline in place (Phase A+B). Real model (Phase C) deferred. |
 | LATER | L2 | Smart-Bin / QR Layer | 🟢 |
 | LATER | L3 | B2B / School Wedge | 🟢 |
 | LATER | L4 | Continuous Learning Loop | 🟢 |
 | LATER | L5 | Reuse Marketplace | 🟢 |
+| G1 | — | Deterministic Pre-processing (Layer 0) | ✅ Built — `layer0_router.dart` + `classification_pipeline.dart` |
+| G6 | — | Offline Degradation UX | 🟡 Hint reconciliation built. Full degraded UX (banner + result screen) planned. |
+
+### Test Coverage (2026-05-23)
+
+| Test file | Tests | What it covers |
+|-----------|-------|----------------|
+| `test/services/classification_router_test.dart` | 8 | Routing strategies, initial layer, barcode, safety overrides |
+| `test/services/confidence_calibration_service_test.dart` | 9 | Calibration bins, decisions, overrides, data tracking |
+| `test/services/moderation_service_test.dart` | 6 | Report enums, Firestore serialization, auto-hide threshold |
+| `test/services/face_detection_service_test.dart` | 3 | Face detection stub, blur pass-through, result data |
+| `test/models/waste_classification_cloud_json_test.dart` | 7 | Path stripping, URL preservation, batch points |
+| `test/utils/image_utils_exif_test.dart` | 5 | EXIF stripping, JPEG/PNG handling, fail-open |
+| **Total** | **38** | |
+
+Full suite: 2315 pass, 12 skip, 1 pre-existing failure (premium_feature_card_test).
 
 Update this snapshot whenever a topic's status changes in [EXPLORATION_TOPICS.md](EXPLORATION_TOPICS.md).

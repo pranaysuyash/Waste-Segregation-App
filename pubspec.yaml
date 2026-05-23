@@ -77,9 +77,9 @@ dependencies:
   flutter_map_heatmap: ^0.0.8 # For visualizing data density (e.g., waste hotspots)
   geoflutterfire_plus: ^0.0.32 # For Firebase geospatial queries
 
-  flutter_markdown: any
   flutter_image_compress: ^2.3.0
   firebase_app_check: ^0.3.2+10
+  flutter_markdown_plus: ^1.0.7
 
   # --- On-Device ML & Computer Vision ---
   # TensorFlow Lite for on-device model inference (zero cost)
@@ -128,7 +128,7 @@ dev_dependencies:
 dependency_overrides:
   web: ^1.1.1 # Override to resolve Firebase and package_info_plus conflicts
   path: 1.8.3 # Pin to version required by integration_test from Flutter SDK
-  video_player_platform_interface: ^6.2.0 # Ensure compatibility
+  video_player_platform_interface: 6.6.0 # Pin below Dart 3.9 requirement (6.7.0 breaks on current Flutter toolchain)
   google_sign_in: 6.2.0 # Pin to exact version compatible with Dart SDK 3.5.0
   webview_flutter: 4.8.0 # Pin to version compatible with Dart SDK 3.5.0
   fl_chart: 0.68.0 # Pin to version compatible with Dart SDK 3.5.0

@@ -771,8 +771,13 @@ class WasteClassification extends HiveObject {
   }
 
   /// Calculate dynamic points based on classification richness and environmental impact
-  int calculatePoints() {
+  int calculatePoints({bool isBatch = false}) {
     var points = 10; // Base points for classification
+
+    // Batch mode bonus — rewards efficient scanning.
+    if (isBatch) {
+      points += 5;
+    }
 
     // Data richness bonus (up to 15 points)
     var dataFields = 0;
@@ -1104,6 +1109,22 @@ class WasteClassification extends HiveObject {
       'modelSelectionStrategy': modelSelectionStrategy,
       'isOfflineHint': isOfflineHint,
     };
+  }
+
+  /// Serializes for Firestore cloud writes, stripping local file paths
+  /// to prevent device path leakage (e.g. /Users/…/images/abc.jpg).
+  Map<String, dynamic> toCloudJson() {
+    final json = toJson();
+    // Strip local file paths — only keep http/https URLs and web data URLs
+    if (json['imageUrl'] is String) {
+      final url = json['imageUrl'] as String;
+      if (!url.startsWith('http://') &&
+          !url.startsWith('https://') &&
+          !url.startsWith('web_image:')) {
+        json['imageUrl'] = null;
+      }
+    }
+    return json;
   }
 
   /// Creates a copy with updated fields

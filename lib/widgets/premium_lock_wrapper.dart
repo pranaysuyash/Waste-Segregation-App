@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 class PremiumLockWrapper extends StatelessWidget {
   const PremiumLockWrapper({
@@ -17,6 +18,9 @@ class PremiumLockWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!isLocked) return child;
+
+    final t = AppLocalizations.of(context);
+    final premiumLabel = t?.premiumFeatureBadge ?? 'Premium feature';
 
     return Stack(
       children: [
@@ -43,16 +47,16 @@ class PremiumLockWrapper extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.workspace_premium,
                         size: 16,
                         color: Colors.white,
-                        semanticLabel: 'Premium feature',
+                        semanticLabel: premiumLabel,
                       ),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
-                          lockedOverlayMessage ?? 'Premium feature',
+                          lockedOverlayMessage ?? premiumLabel,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,

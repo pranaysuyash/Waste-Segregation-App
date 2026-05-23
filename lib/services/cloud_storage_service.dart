@@ -15,6 +15,7 @@ import '../utils/waste_app_logger.dart';
 import 'dart:io';
 import 'firestore_schema_registry.dart';
 import '../utils/constants.dart';
+import '../utils/image_utils.dart';
 
 /// Service for syncing user app data to Firestore cloud storage.
 ///
@@ -265,7 +266,7 @@ class CloudStorageService {
           .collection(FirestoreCollections.classifications)
           .doc(docId)
           .update({
-        ...cloudClassification.toJson(),
+        ...cloudClassification.toCloudJson(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
@@ -318,7 +319,7 @@ class CloudStorageService {
               .doc(docId);
 
           batch.update(docRef, {
-            ...cloudClassification.toJson(),
+            ...cloudClassification.toCloudJson(),
             'updatedAt': FieldValue.serverTimestamp(),
           });
 
@@ -389,7 +390,7 @@ class CloudStorageService {
           .collection(FirestoreCollections.classifications)
           .doc(docId)
           .set({
-        ...cloudClassification.toJson(),
+        ...cloudClassification.toCloudJson(),
         'syncedAt': FieldValue.serverTimestamp(),
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -763,7 +764,7 @@ class CloudStorageService {
           batch.set(
               docRef,
               {
-                ...cloudClassification.toJson(),
+                ...cloudClassification.toCloudJson(),
                 'syncedAt': FieldValue.serverTimestamp(),
                 'createdAt': FieldValue.serverTimestamp(),
               },
@@ -1027,6 +1028,9 @@ class CloudStorageService {
   Future<String> _uploadToFirebaseStorage(
       Uint8List imageBytes, String userId) async {
     try {
+      // Strip EXIF metadata before uploading to cloud storage
+      final cleanBytes = ImageUtils.stripExifData(imageBytes);
+
       final storage = FirebaseStorage.instance;
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final fileName = 'batch_image_$timestamp.jpg';
@@ -1035,7 +1039,7 @@ class CloudStorageService {
       WasteAppLogger.info('Uploading to Firebase Storage', context: {
         'service': 'cloud_storage_service',
         'path': path,
-        'size': imageBytes.length,
+        'size': cleanBytes.length,
       });
 
       // Create storage reference
@@ -1052,7 +1056,7 @@ class CloudStorageService {
       );
 
       // Upload the file
-      final uploadTask = ref.putData(imageBytes, metadata);
+      final uploadTask = ref.putData(cleanBytes, metadata);
       final snapshot = await uploadTask;
 
       // Get the download URL

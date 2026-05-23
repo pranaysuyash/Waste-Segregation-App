@@ -216,14 +216,12 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildFeatureBadge(context, 'No Ads'),
-              const SizedBox(width: 8),
-              _buildFeatureBadge(context, 'Offline Mode'),
-              const SizedBox(width: 8),
-              _buildFeatureBadge(context, 'Analytics'),
-            ],
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: PremiumFeature.features
+                .map((f) => _buildFeatureBadge(context, f.title))
+                .toList(),
           ),
         ],
       ),
@@ -261,7 +259,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Available Premium Features',
+          'Locked Premium Features',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -305,6 +303,13 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
   }
 
   void _showLockedFeaturePrompt(BuildContext context, PremiumFeature feature) {
+    final currentRoute = ModalRoute.of(context)?.settings.name;
+    final isOnPremiumScreen = [
+      Routes.premium,
+      Routes.premiumFeatures,
+      Routes.premiumFeaturesHyphen,
+    ].contains(currentRoute);
+
     DialogHelper.showPremiumPrompt(
       context,
       featureName: feature.title,
@@ -313,12 +318,19 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
         featureName: feature.title,
         benefit: feature.description,
       ),
-      onUpgrade: () => Navigator.pushNamed(context, Routes.premiumFeatures),
+      onUpgrade: isOnPremiumScreen
+          ? null
+          : () => Navigator.pushNamed(context, Routes.premiumFeatures),
     );
   }
 
   Widget _buildPurchaseSection(BuildContext context) {
-    final purchaseService = Provider.of<PurchaseService?>(context);
+    PurchaseService? purchaseService;
+    try {
+      purchaseService = Provider.of<PurchaseService>(context);
+    } on ProviderNotFoundException {
+      purchaseService = null;
+    }
     final premiumService = Provider.of<PremiumService>(context);
     final hasPremium = premiumService.hasActivePremiumPlan();
 
@@ -376,7 +388,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
         ? 'Processing...'
         : product == null
             ? 'Premium Unavailable'
-            : 'App Store \$4.99/mo';
+            : 'App Store ${product.price}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -1122,6 +1122,73 @@ class PrivacyGuardConfig {
 // SECTION 5: Schema Validation Helpers
 // ============================================================
 
+class CommunityReportsSchema {
+  static const String collection = 'community_reports';
+
+  static const List<SchemaField> modelFields = [
+    SchemaField(
+      name: 'id',
+      type: 'String',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'postId',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'Reference to community_feed document ID',
+    ),
+    SchemaField(
+      name: 'reportedBy',
+      type: 'String',
+      classification: FieldClassification.pii,
+      description: 'UID of the reporting user',
+    ),
+    SchemaField(
+      name: 'reason',
+      type: 'String',
+      classification: FieldClassification.userContent,
+      description: 'One of: inappropriate, spam, misinformation, harmful, privacy, other',
+    ),
+    SchemaField(
+      name: 'details',
+      type: 'String?',
+      classification: FieldClassification.userContent,
+      required: false,
+    ),
+    SchemaField(
+      name: 'status',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'One of: pending, reviewed, dismissed, actioned',
+    ),
+    SchemaField(
+      name: 'createdAt',
+      type: 'Timestamp',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'reviewedBy',
+      type: 'String?',
+      classification: FieldClassification.pii,
+      required: false,
+      description: 'Admin UID who reviewed the report',
+    ),
+    SchemaField(
+      name: 'reviewedAt',
+      type: 'Timestamp?',
+      classification: FieldClassification.system,
+      required: false,
+    ),
+    SchemaField(
+      name: 'resolution',
+      type: 'String?',
+      classification: FieldClassification.userContent,
+      required: false,
+      description: 'Admin resolution note',
+    ),
+  ];
+}
+
 /// Validates that a data map conforms to the expected schema for a collection.
 ///
 /// This is the runtime validation layer that catches schema drift before

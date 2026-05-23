@@ -10,6 +10,7 @@ import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/services/points_engine.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
+import 'package:waste_segregation_app/utils/constants.dart';
 
 class MockStorageService extends Mock implements StorageService {
   @override
@@ -195,6 +196,8 @@ void main() {
 
       test('returns daily goal nudge when 1 scan away from daily target',
           () async {
+        final oneBeforeDailyGoal = AppValues.dailyGoalTarget - 1;
+
         final userProfile = UserProfile(
           id: 'daily_goal_user',
           email: 'daily@test.com',
@@ -209,7 +212,7 @@ void main() {
             weeklyStats: [
               WeeklyStats(
                 weekStartDate: DateTime.now().subtract(const Duration(days: 3)),
-                itemsIdentified: 4,
+                itemsIdentified: oneBeforeDailyGoal,
                 pointsEarned: 20,
               ),
             ],
@@ -226,8 +229,8 @@ void main() {
         expect(nudge, isNotNull);
         expect(nudge!.type, equals(NudgeType.dailyGoal));
         expect(nudge.priority, equals(NudgePriority.high));
-        expect(nudge.progress, equals(4));
-        expect(nudge.target, equals(5));
+        expect(nudge.progress, equals(oneBeforeDailyGoal));
+        expect(nudge.target, equals(AppValues.dailyGoalTarget));
       });
 
       test('returns challenge nudge when 1 away from challenge completion',
@@ -369,6 +372,8 @@ void main() {
       });
 
       test('prioritizes daily goal over challenge', () async {
+        final oneBeforeDailyGoal = AppValues.dailyGoalTarget - 1;
+
         final challenge = Challenge(
           id: 'challenge_2',
           title: 'Test Challenge',
@@ -396,7 +401,7 @@ void main() {
             weeklyStats: [
               WeeklyStats(
                 weekStartDate: DateTime.now().subtract(const Duration(days: 3)),
-                itemsIdentified: 4,
+                itemsIdentified: oneBeforeDailyGoal,
                 pointsEarned: 20,
               ),
             ],

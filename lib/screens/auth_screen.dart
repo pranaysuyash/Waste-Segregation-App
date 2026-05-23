@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/google_drive_service.dart';
 import '../utils/constants.dart';
 import '../widgets/navigation_wrapper.dart';
+import 'onboarding_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -42,11 +44,7 @@ class _AuthScreenState extends State<AuthScreen> {
       final user = await googleDriveService.signIn();
 
       if (user != null && mounted) {
-        await navigator.pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const MainNavigationWrapper(),
-          ),
-        );
+        await _navigatePostAuth(navigator);
       }
     } catch (e) {
       if (mounted) {
@@ -64,12 +62,35 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _continueAsGuest(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const MainNavigationWrapper(isGuestMode: true),
-      ),
-    );
+    _navigatePostAuth(Navigator.of(context), isGuest: true);
+  }
+
+  Future<void> _navigatePostAuth(NavigatorState navigator,
+      {bool isGuest = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+
+    if (!onboardingComplete) {
+      await navigator.pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => OnboardingScreen(
+            onNext: () => navigator.pushReplacement(
+              MaterialPageRoute(
+                builder: (context) =>
+                    MainNavigationWrapper(isGuestMode: isGuest),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      await navigator.pushReplacement(
+        MaterialPageRoute(
+          builder: (context) =>
+              MainNavigationWrapper(isGuestMode: isGuest),
+        ),
+      );
+    }
   }
 
   @override
