@@ -13,3 +13,6 @@ Key rule:
 - No consent => no candidate
 - No verified truth => cannot become golden/training_eligible
 - privacy failed/needs redaction/revoked/deleted/unreviewed => excluded
+- Stale policy version => excluded unless explicit export override
+- `reviewerVerified.reviewedAt` required for export inclusion
+- Lifecycle output state is explicit: `trainingEligible`, `golden`, `excluded`

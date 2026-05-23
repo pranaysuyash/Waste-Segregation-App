@@ -41,6 +41,7 @@ dart run tool/ai_review_workflow.dart --mode export --input test/fixtures/ai_eva
 dart run tool/ai_review_workflow.dart --mode apply --input test/fixtures/ai_eval/recorded_outputs/training_candidates_sample.jsonl --decisions tool/templates/review_decisions_template.jsonl --out build/reports/ai_review/updated_candidates.jsonl --reviewer reviewer@example.com
 
 dart run tool/ai_review_workflow.dart --mode report --out build/reports/ai_review/updated_candidates.jsonl
+dart run tool/ai_review_dashboard.dart --input build/reports/ai_review/updated_candidates.jsonl --out-json build/reports/ai_review/dashboard.json --out-md build/reports/ai_review/dashboard.md
 
 
 echo "[8/11] Seed coverage report"
@@ -63,6 +64,7 @@ echo "  build/reports/ai_eval/recorded_local_latest.json"
 echo "  build/reports/ai_eval/merged_records.jsonl"
 echo "  build/reports/ai_eval/router_compare_backend.json"
 echo "  build/reports/ai_eval/router_strategy_recommendations.md"
+echo "  build/reports/ai_eval/calibration_report.json"
 echo "  build/reports/ai_eval/seed_coverage_report.json"
 echo "  build/reports/ai_dataset/latest/manifest.jsonl"
 echo "  build/reports/ai_dataset/latest/labels.jsonl"
@@ -71,6 +73,8 @@ echo "  build/reports/ai_dataset/latest/excluded.jsonl"
 echo "  build/reports/ai_dataset/latest/version.json"
 echo "  build/reports/ai_review/review_template.jsonl"
 echo "  build/reports/ai_review/updated_candidates.jsonl"
+echo "  build/reports/ai_review/dashboard.json"
+echo "  build/reports/ai_review/dashboard.md"
 echo "  build/reports/ai_flywheel/acceptance_report.json"
 echo "  build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md"
 
@@ -85,6 +89,7 @@ required_artifacts=(
   "build/reports/ai_eval/merged_records.jsonl"
   "build/reports/ai_eval/router_compare_backend.json"
   "build/reports/ai_eval/router_strategy_recommendations.md"
+  "build/reports/ai_eval/calibration_report.json"
   "build/reports/ai_eval/seed_coverage_report.json"
   "build/reports/ai_dataset/latest/manifest.jsonl"
   "build/reports/ai_dataset/latest/labels.jsonl"
@@ -93,6 +98,8 @@ required_artifacts=(
   "build/reports/ai_dataset/latest/version.json"
   "build/reports/ai_review/review_template.jsonl"
   "build/reports/ai_review/updated_candidates.jsonl"
+  "build/reports/ai_review/dashboard.json"
+  "build/reports/ai_review/dashboard.md"
   "build/reports/ai_flywheel/acceptance_report.json"
   "build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md"
 )

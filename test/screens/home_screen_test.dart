@@ -8,6 +8,7 @@ import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/providers/app_providers.dart'
     as app_providers;
+import 'package:waste_segregation_app/providers/points_engine_provider.dart';
 import 'package:waste_segregation_app/screens/achievements_screen.dart';
 import 'package:waste_segregation_app/screens/content_detail_screen.dart';
 import 'package:waste_segregation_app/screens/educational_content_screen.dart';
@@ -30,10 +31,11 @@ class _StubGamificationService extends GamificationService {
   _StubGamificationService({
     required GamificationProfile profile,
     this.nearMilestoneNudge,
-  }) : _profile = profile, super(
-    FakeStorageService(),
-    CloudStorageService(FakeStorageService()),
-  );
+  }) : _profile = profile,
+       super(
+         FakeStorageService(),
+         CloudStorageService(FakeStorageService()),
+       );
 
   final GamificationProfile _profile;
   final NearMilestoneNudge? nearMilestoneNudge;
@@ -42,8 +44,33 @@ class _StubGamificationService extends GamificationService {
   GamificationProfile? get currentProfile => _profile;
 
   @override
-  Future<NearMilestoneNudge?> getNearMilestoneNudge() async =>
-      nearMilestoneNudge;
+  Future<NearMilestoneNudge?> getNearMilestoneNudge() async {
+    if (nearMilestoneNudge != null) {
+      return nearMilestoneNudge;
+    }
+    return super.getNearMilestoneNudge();
+  }
+}
+
+class _StaticTipEducationalContentService extends EducationalContentService {
+  _StaticTipEducationalContentService({
+    required this.tip,
+    required this.content,
+  });
+
+  final DailyTip tip;
+  final EducationalContent content;
+
+  @override
+  DailyTip getDailyTipForHome({DateTime? date, String? preferredCategory}) {
+    return tip.copyWith(date: date ?? DateTime.now());
+  }
+
+  @override
+  EducationalContent? getContentById(String id) {
+    if (id == content.id) return content;
+    return super.getContentById(id);
+  }
 }
 
 class _TestNavigatorObserver extends NavigatorObserver {
@@ -69,9 +96,6 @@ void main() {
         lastActivityDate: now,
       ),
     },
-    achievements: const [],
-    discoveredItemIds: const [],
-    unlockedHiddenContentIds: const [],
   );
 
   final mockUserProfile = UserProfile(
@@ -123,6 +147,15 @@ void main() {
       providers: [
         provider_pkg.ChangeNotifierProvider<AdService>(
           create: (_) => AdService(),
+        ),
+        provider_pkg.Provider<EducationalContentService>(
+          create: (_) => educationalService,
+        ),
+        provider_pkg.ChangeNotifierProvider<PointsEngineProvider>(
+          create: (_) => PointsEngineProvider(
+            FakeStorageService(),
+            CloudStorageService(FakeStorageService()),
+          ),
         ),
         provider_pkg.Provider<AnalyticsService>(
           create: (_) => AnalyticsService(
@@ -310,7 +343,6 @@ void main() {
               id: 'recent',
               itemName: 'Bottle',
               timestamp: now,
-              category: 'Dry Waste',
             ),
           ],
         ),
@@ -332,7 +364,6 @@ void main() {
               id: 'stale',
               itemName: 'Bottle',
               timestamp: now.subtract(const Duration(days: 10)),
-              category: 'Dry Waste',
             ),
           ],
         ),
@@ -340,6 +371,181 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(service.lastPreferredCategory, isNull);
+    });
+
+    testWidgets('daily progress and near milestone cards reflect the shared goal', (
+      WidgetTester tester,
+    ) async {
+      final service = EducationalContentService();
+      final goalProfile = mockProfile.copyWith(
+        weeklyStats: [
+          WeeklyStats(
+            weekStartDate: now.subtract(const Duration(days: 1)),
+            itemsIdentified: 2,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        buildApp(
+          educationalService: service,
+          classifications: [
+            classification(
+              id: 'today-1',
+              itemName: 'Bottle',
+              timestamp: now,
+            ),
+            classification(
+              id: 'today-2',
+              itemName: 'Can',
+              timestamp: now.subtract(const Duration(minutes: 1)),
+            ),
+            classification(
+              id: 'yesterday',
+              itemName: 'Paper',
+              timestamp: now.subtract(const Duration(days: 1)),
+            ),
+          ],
+          profile: goalProfile,
+          nearMilestoneNudge: const NearMilestoneNudge(
+            type: NudgeType.dailyGoal,
+            title: 'Almost there!',
+            message: '1 more scan today to reach your daily goal of 3 scans',
+            progress: 2,
+            target: 3,
+            priority: NudgePriority.high,
+            iconName: 'flag',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('home_daily_progress_card')), findsOneWidget);
+      expect(find.text('2/3 scans today'), findsOneWidget);
+      expect(find.byKey(const Key('home_near_milestone_card')), findsOneWidget);
+      expect(
+        find.text('1 more scan today to reach your daily goal of 3 scans'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('community impact card opens the dashboard', (
+      WidgetTester tester,
+    ) async {
+      final service = EducationalContentService();
+      final observer = _TestNavigatorObserver();
+      await tester.binding.setSurfaceSize(const Size(800, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        buildApp(
+          educationalService: service,
+          classifications: [
+            classification(
+              id: 'community-1',
+              itemName: 'Jar',
+              timestamp: now,
+            ),
+          ],
+          navigatorObservers: [observer],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('home_community_impact_card')), findsOneWidget);
+      expect(find.text('Your Impact'), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const Key('home_community_impact_card')));
+      await tester.tap(find.byKey(const Key('home_community_impact_card')));
+      await tester.pumpAndSettle();
+      expect(find.byType(WasteDashboardScreen), findsOneWidget);
+    });
+
+    testWidgets('active challenge card opens achievements and shows progress', (
+      WidgetTester tester,
+    ) async {
+      final service = EducationalContentService();
+      final challenge = Challenge(
+        id: 'challenge-1',
+        title: 'Recycle 5 items',
+        description: 'Classify five recyclable items this week.',
+        startDate: now.subtract(const Duration(days: 1)),
+        endDate: now.add(const Duration(days: 7)),
+        pointsReward: 50,
+        iconName: 'recycling',
+        color: Colors.green,
+        requirements: const {'count': 5},
+        progress: 0.6,
+      );
+      final challengeProfile = mockProfile.copyWith(
+        activeChallenges: [challenge],
+      );
+
+      await tester.binding.setSurfaceSize(const Size(800, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        buildApp(
+          educationalService: service,
+          profile: challengeProfile,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('home_active_challenge_card')), findsOneWidget);
+      expect(find.text('Recycle 5 items'), findsOneWidget);
+      expect(find.text('60%'), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const Key('home_active_challenge_card')));
+      await tester.tap(find.byKey(const Key('home_active_challenge_card')));
+      await tester.pumpAndSettle();
+      expect(find.byType(AchievementsScreen), findsOneWidget);
+    });
+
+    testWidgets('daily tip contentId opens the detail screen', (
+      WidgetTester tester,
+    ) async {
+      final content = EducationalContent.article(
+        id: 'detail-tip-1',
+        title: 'Reusable Lunch Boxes',
+        description: 'A practical guide to reducing disposable packaging.',
+        thumbnailUrl: 'https://example.com/thumb.jpg',
+        contentText: 'Choose reusable containers to cut down on single-use waste.',
+        categories: const ['Dry Waste'],
+        level: ContentLevel.beginner,
+        durationMinutes: 3,
+      );
+      final service = _StaticTipEducationalContentService(
+        tip: DailyTip(
+          id: 'tip-1',
+          title: 'Reduce single-use packaging',
+          content: 'Choose reusable containers to cut down on waste.',
+          category: 'Dry Waste',
+          date: now,
+          actionText: 'Read more',
+          contentId: content.id,
+        ),
+        content: content,
+      );
+
+      await tester.binding.setSurfaceSize(const Size(800, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        buildApp(
+          educationalService: service,
+          classifications: [
+            classification(
+              id: 'tip-recent',
+              itemName: 'Bottle',
+              timestamp: now,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('home_daily_tip_card')), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const Key('home_daily_tip_card')));
+      await tester.tap(find.byKey(const Key('home_daily_tip_card')));
+      await tester.pumpAndSettle();
+      expect(find.byType(ContentDetailScreen), findsOneWidget);
+      expect(find.textContaining('single-use waste'), findsOneWidget);
     });
 
     testWidgets('supports small width and larger text scale', (
@@ -356,7 +562,9 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+
+      expect(find.byKey(const Key('home_daily_tip_card')), findsOneWidget);
+      expect(find.byKey(const Key('home_empty_state')), findsOneWidget);
     });
   });
 }

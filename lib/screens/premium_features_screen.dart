@@ -4,7 +4,10 @@ import '../services/premium_service.dart';
 import '../services/purchase_service.dart';
 import '../services/web_checkout_service.dart';
 import '../widgets/premium_feature_card.dart';
+import '../widgets/settings/premium_feature_visuals.dart';
+import '../utils/dialog_helper.dart';
 import '../utils/constants.dart';
+import '../utils/routes.dart';
 import '../utils/developer_config.dart';
 import 'package:provider/provider.dart';
 
@@ -268,6 +271,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
         ...comingSoonFeatures.map((feature) => PremiumFeatureCard(
               feature: feature,
               isEnabled: false,
+              onTap: () => _showLockedFeaturePrompt(context, feature),
             )),
       ],
     );
@@ -297,6 +301,19 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
               isEnabled: true,
             )),
       ],
+    );
+  }
+
+  void _showLockedFeaturePrompt(BuildContext context, PremiumFeature feature) {
+    DialogHelper.showPremiumPrompt(
+      context,
+      featureName: feature.title,
+      description: PremiumFeatureVisuals.upgradeMessage(
+        context,
+        featureName: feature.title,
+        benefit: feature.description,
+      ),
+      onUpgrade: () => Navigator.pushNamed(context, Routes.premiumFeatures),
     );
   }
 

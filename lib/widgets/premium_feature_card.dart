@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/premium_feature.dart';
 import '../utils/constants.dart';
 import 'premium_lock_wrapper.dart';
+import 'settings/premium_feature_visuals.dart';
 
 class PremiumFeatureCard extends StatelessWidget {
   const PremiumFeatureCard({
@@ -17,13 +19,21 @@ class PremiumFeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final iconData = AppIcons.fromString(feature.icon);
+    final t = AppLocalizations.of(context)!;
 
     return Semantics(
       label: feature.title,
-      value: isEnabled ? 'Enabled' : 'Locked, premium feature',
-      button: true,
+      value: PremiumFeatureVisuals.semanticsState(
+        context,
+        isUnlocked: isEnabled,
+      ),
+      hint: isEnabled
+          ? feature.description
+          : t.upgradeToUse(feature.title),
+      button: onTap != null,
       child: PremiumLockWrapper(
         isLocked: !isEnabled,
+        absorbInteractions: false,
         lockedOverlayMessage: feature.title,
         child: Card(
           margin: const EdgeInsets.only(bottom: 16),
@@ -95,12 +105,11 @@ class PremiumFeatureCard extends StatelessWidget {
                   ),
                   Container(
                     margin: const EdgeInsets.only(left: 8),
-                    child: isEnabled
-                        ? const Icon(Icons.check_circle,
-                            color: Colors.green, size: 24,
-                            semanticLabel: 'Enabled')
-                        : const Icon(Icons.lock, color: Colors.grey, size: 24,
-                            semanticLabel: 'Locked'),
+                    child: PremiumFeatureVisuals.buildStatusIndicator(
+                      context,
+                      isUnlocked: isEnabled,
+                      showChevron: false,
+                    ),
                   ),
                 ],
               ),

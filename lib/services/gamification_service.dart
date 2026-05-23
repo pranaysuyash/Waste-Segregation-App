@@ -2251,7 +2251,7 @@ class GamificationService extends ChangeNotifier {
             )
             .itemsIdentified
         : 0;
-    const dailyGoalTarget = 5;
+    const dailyGoalTarget = AppValues.dailyGoalTarget;
     if (todayScans < dailyGoalTarget && (dailyGoalTarget - todayScans) == 1) {
       return NearMilestoneNudge(
         type: NudgeType.dailyGoal,

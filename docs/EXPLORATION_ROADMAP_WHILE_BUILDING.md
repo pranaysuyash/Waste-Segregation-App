@@ -193,17 +193,17 @@ These exploration practices apply regardless of phase. Treat them as guardrails.
 
 | Phase | Track | Topic | Status |
 |------:|------|-------|--------|
-| NOW | N1 | AI Cost & Guardrails | 🔴 Seeded — no exploration doc yet |
-| NOW | N2 | Offline Queue Contract | 🔴 Code exists, contract under-specified |
-| NOW | N3 | Privacy / Photo PII + Retention | 🔴 Partial coverage in `docs/security/`, `docs/legal/` |
-| NOW | N4 | Onboarding Activation | 🔴 Not instrumented |
-| NOW | N5 | Moderation Baseline | 🔴 Not formalised |
-| NOW | N6 | Token Economy & Pricing Coherence | 🔴 IN FLIGHT — 9 brainstorm files + TOKEN_ECONOMY_TODO.md; synthesis pending promotion to `exploration/` |
-| NEXT | X1 | Eval Harness | 🔴 Missing as first-class artefact |
-| NEXT | X2 | Multi-Model Routing + Disposal | 🟡 Seeded |
-| NEXT | X3 | Region-Aware Rulesets | 🔴 Implicit in prompts today |
-| NEXT | X4 | Gamification + Habit Loop | 🟡 v1 lives in code; needs critical rework |
-| NEXT | X5 | Firestore + History Schema | 🟡 Implicit |
+| NOW | N1 | AI Cost & Guardrails | ✅ Exploration doc complete |
+| NOW | N2 | Offline Queue Contract | ✅ Decision doc + acceptance tests complete |
+| NOW | N3 | Privacy / Photo PII + Retention | ✅ Two exploration docs complete |
+| NOW | N4 | Onboarding Activation | ✅ Exploration doc complete |
+| NOW | N5 | Moderation Baseline | ✅ Exploration doc complete |
+| NOW | N6 | Token Economy & Pricing Coherence | ✅ Synthesis doc complete |
+| NEXT | X1 | Eval Harness | ✅ Built (flywheel) — needs CI integration |
+| NEXT | X2 | Multi-Model Routing + Disposal | ✅ Exploration doc complete |
+| NEXT | X3 | Region-Aware Rulesets | ✅ Built (7 cities) |
+| NEXT | X4 | Gamification + Habit Loop | ✅ Two exploration docs complete |
+| NEXT | X5 | Firestore + History Schema | ✅ Two exploration docs complete |
 | LATER | L1 | On-Device Inference | 🟡 Interface + pipeline in place (Phase A+B). Real model (Phase C) deferred. |
 | LATER | L2 | Smart-Bin / QR Layer | 🟢 |
 | LATER | L3 | B2B / School Wedge | 🟢 |

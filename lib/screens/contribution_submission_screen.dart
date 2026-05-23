@@ -813,11 +813,9 @@ class _ContributionSubmissionScreenState
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final image = await _imagePicker.pickImage(
+      final image = await CaptureImageOptions.pick(
+        _imagePicker,
         source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 80,
       );
 
       if (image != null) {

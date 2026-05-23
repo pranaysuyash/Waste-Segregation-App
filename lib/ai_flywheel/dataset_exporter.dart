@@ -57,6 +57,7 @@ class DatasetExporter {
       'noVerifiedLabel': 0,
       'stalePolicy': 0,
       'needsRedaction': 0,
+      'unverifiedReview': 0,
     };
 
     for (final c in rawCandidates) {
@@ -72,6 +73,7 @@ class DatasetExporter {
       final deleted = c['deletedAt'] != null;
       final stalePolicy = (consent['policyVersion'] as String?) != TrainingCandidatePolicy.canonicalPolicyVersion;
       final hasVerifiedLabel = (verified['groundTruth'] as Map?) != null || review['verifiedLabel'] != null;
+      final reviewVerifiedAt = verified['reviewedAt'] != null;
 
       String? reason;
       if (!hasConsent) {
@@ -88,6 +90,8 @@ class DatasetExporter {
         reason = 'needsRedaction';
       } else if (privacy == 'pii_failed' || privacy == 'rejected') {
         reason = 'pii';
+      } else if (!reviewVerifiedAt) {
+        reason = 'unverifiedReview';
       } else if (!hasVerifiedLabel) {
         reason = 'noVerifiedLabel';
       } else if (stalePolicy) {

@@ -75,6 +75,11 @@ class StorageKeys {
   static const String weeklyStatsKey = 'weeklyStats';
 }
 
+/// Shared app values that must stay aligned across providers and services.
+class AppValues {
+  static const int dailyGoalTarget = 3;
+}
+
 /// User preference keys for `UserProfile.preferences`.
 ///
 /// These are string keys used inside the `preferences` Map on UserProfile.

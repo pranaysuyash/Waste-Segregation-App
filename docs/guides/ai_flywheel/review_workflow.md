@@ -13,5 +13,7 @@ dart run tool/ai_review_workflow.dart --mode apply --input test/fixtures/ai_eval
 Validation gates:
 - invalid decision => fail
 - golden/training_eligible require verified category
-- training_eligible blocked by `needs_redaction` privacy flag
+- golden/training_eligible blocked by privacy blockers: `needs_redaction`, `pii_failed`, `rejected`, `deleted`
 - delete marks deleted/excluded
+- rejected marks `excludedFromTrainingAt`
+- lifecycle state is materialized per candidate (`trainingEligible`, `golden`, `excluded`)

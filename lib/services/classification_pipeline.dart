@@ -4,6 +4,7 @@ import '../models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
 import 'layer0_disposal_mapping.dart';
 import 'layer0_router.dart';
+import 'classification_router_guardrails.dart';
 import 'local_classifier_service.dart';
 
 /// Orchestrates the multi-layer classification pipeline:
@@ -16,10 +17,12 @@ class ClassificationPipeline {
   ClassificationPipeline({
     required this.layer0Router,
     required this.localClassifier,
-  });
+    ClassificationRouterGuardrails? guardrails,
+  }) : guardrails = guardrails ?? const ClassificationRouterGuardrails();
 
   final Layer0Router layer0Router;
   final LocalClassifier localClassifier;
+  final ClassificationRouterGuardrails guardrails;
 
   /// Try only local layers (Layer 0 + Layer 1) and return null if all escalate.
   ///
@@ -180,13 +183,47 @@ class ClassificationPipeline {
       required String region,
       required String language,
     }) cloudClassifier,
+    bool localRuleVersionChanged = false,
   }) async {
-    final localResult = await tryLocalOnly(
-      imageBytes: imageBytes,
-      region: region,
-      barcode: barcode,
-    );
-    if (localResult != null) return localResult;
+    // Local path with strict guardrails.
+    try {
+      final layer0 = await tryLocalWithHint(
+        imageBytes: imageBytes,
+        region: region,
+        barcode: barcode,
+      );
+      if (layer0.accepted != null) return layer0.accepted!;
+      if (localClassifier.isModelLoaded) {
+        final localResult = await localClassifier.classify(
+          imageBytes: imageBytes,
+          region: region,
+        );
+        final localDecision = guardrails.evaluateLocal(localResult);
+        if (localDecision.accepted) {
+          return buildLocalClassification(localResult: localResult, region: region)
+              .copyWith(
+            routeDecision: 'accepted_local',
+            routeReason: 'guardrail_passed',
+            modelSelectionStrategy: 'local_first_guardrailed',
+          );
+        }
+        WasteAppLogger.aiEvent(
+          'Pipeline: Guardrail escalation',
+          model: localResult.modelVersion,
+          context: <String, dynamic>{
+            'reason': localDecision.reason,
+            'confidence': localResult.confidence,
+            'category': localResult.category,
+          },
+        );
+      }
+    } catch (e, s) {
+      WasteAppLogger.warning(
+        'Pipeline: Guardrail local execution failed, escalating',
+        error: e,
+        stackTrace: s,
+      );
+    }
 
     // Layer 2/3: Cloud classification (cheap then strong fallback).
     final cloudResult = await cloudClassifier(
@@ -196,10 +233,29 @@ class ClassificationPipeline {
       language: 'en',
     );
 
+    final cloudDecision = guardrails.evaluateCloud(
+      cloudResult,
+      localRuleVersionChanged: localRuleVersionChanged,
+    );
+    if (!cloudDecision.accepted) {
       return cloudResult.copyWith(
         classificationLayer: 'layer2_cloud_cheap',
         analysisSource: cloudResult.analysisSource ??
             WasteClassification.analysisSourceCloudPrimary,
+        routeDecision: 'manual_review',
+        routeReason: cloudDecision.reason,
+        modelSelectionStrategy: 'cloud_guardrailed',
+        clarificationNeeded: true,
+      );
+    }
+
+      return cloudResult.copyWith(
+        classificationLayer: 'layer2_cloud_cheap',
+        analysisSource: cloudResult.analysisSource ??
+            WasteClassification.analysisSourceCloudPrimary,
+        routeDecision: 'accepted_cloud',
+        routeReason: 'guardrail_passed',
+        modelSelectionStrategy: 'cloud_guardrailed',
       );
   }
 

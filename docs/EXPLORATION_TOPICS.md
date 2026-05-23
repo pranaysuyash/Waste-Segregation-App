@@ -1273,6 +1273,27 @@ The current app does not distinguish these states. An offline user who opens the
 ---
 
 
+## Exploration Docs Added (2026-05-23)
+
+All NOW-phase and NEXT-phase exploration docs completed:
+
+| Doc | Track | Status |
+|-----|-------|--------|
+| [AI Cost Telemetry & Guardrails](exploration/AI_COST_TELEMETRY_AND_GUARDRAILS.md) | N1 | Complete — cost model, gaps, per-tier caps |
+| [Offline Queue & Sync Contract](exploration/OFFLINE_QUEUE_AND_SYNC.md) | N2 | Complete — contract, gaps, 6 acceptance tests |
+| [Privacy / Photo PII](exploration/PRIVACY_PHOTO_PII.md) | N3 | Complete — gap analysis, remediation plan |
+| [Data Retention & PII Strategy](exploration/DATA_RETENTION_AND_PII_STRATEGY.md) | N3 | Complete — retention policies, PII inventory |
+| [Onboarding & Activation](exploration/ONBOARDING_AND_ACTIVATION.md) | N4 | Complete — funnel analysis, onboarding flow |
+| [Moderation & Safety](exploration/MODERATION_AND_SAFETY.md) | N5 | Complete — 3-tier moderation, trust scoring |
+| [Token Economy & Pricing Coherence](exploration/TOKEN_ECONOMY_AND_PRICING_COHERENCE.md) | N6 | Complete — synthesis of 9 brainstorms, phased rollout |
+| [Multi-Model AI Routing](exploration/MULTI_MODEL_AI_ROUTING.md) | X2 | Complete — 4-layer cascade, adaptive routing |
+| [Gamification Depth](exploration/GAMIFICATION_DEPTH.md) | X4 | Complete — v2 quality-based point system |
+| [Habit Formation Loop](exploration/HABIT_FORMATION_LOOP.md) | X4 | Complete — Hook model, progressive disclosure |
+| [Firestore Cost & Indexing](exploration/FIRESTORE_COST_AND_INDEXING.md) | X5 | Complete — per-MAU cost model, optimization |
+| [Classification History Schema](exploration/CLASSIFICATION_HISTORY_SCHEMA.md) | X5 | Complete — v2 schema, indexes, dedup |
+| [Local-First Privacy Architecture](exploration/LOCAL_FIRST_PRIVACY_ARCHITECTURE.md) | G2 | Complete — privacy by layer, consent flow |
+| [Confidence Threshold Tuning](exploration/CONFIDENCE_THRESHOLD_TUNING.md) | G3 | Complete — calibration methodology, per-category overrides |
+
 ## Flywheel Foundation Link (2026-05-22)
 - Added workflow docs: `docs/guides/ai_flywheel/annotation_review_workflow.md`, `docs/guides/ai_flywheel/router_comparison_workflow.md`
 

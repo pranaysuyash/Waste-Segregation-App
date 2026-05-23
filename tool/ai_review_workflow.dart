@@ -10,6 +10,13 @@ const _validStates = <String>{
   'deleted',
 };
 
+const _privacyBlockers = <String>{
+  'needs_redaction',
+  'pii_failed',
+  'rejected',
+  'deleted',
+};
+
 void main(List<String> args) {
   final mode = _arg(args, '--mode', fallback: 'export');
   final inputPath = _arg(args, '--input', fallback: 'test/fixtures/ai_eval/recorded_outputs/training_candidates_sample.jsonl');
@@ -118,6 +125,10 @@ void _applyDecisions(String inputPath, String decisionsPath, String outputPath, 
     if (decision == 'training_eligible' && privacyFlags.contains('needs_redaction')) {
       throw StateError('training_eligible blocked by privacy flags for $id');
     }
+    if ((decision == 'training_eligible' || decision == 'golden') &&
+        privacyFlags.any(_privacyBlockers.contains)) {
+      throw StateError('$decision blocked by privacy flags for $id');
+    }
 
     final review = (c['review'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
     review['status'] = decision;
@@ -142,6 +153,16 @@ void _applyDecisions(String inputPath, String decisionsPath, String outputPath, 
       'notes': d['reviewNotes'],
     };
 
+    final lifecycle = (c['lifecycle'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+    lifecycle['lastDecision'] = decision;
+    lifecycle['lastDecisionAt'] = now;
+    lifecycle['reviewer'] = reviewer;
+    lifecycle['trainingEligible'] =
+        decision == 'golden' || decision == 'training_eligible';
+    lifecycle['golden'] = decision == 'golden';
+    lifecycle['excluded'] = decision == 'deleted' || decision == 'needs_redaction' || decision == 'rejected';
+    c['lifecycle'] = lifecycle;
+
     c['dataset'] = <String, dynamic>{
       'eligible': decision == 'golden' || decision == 'training_eligible',
       'includedInVersions': c['dataset'] is Map
@@ -162,6 +183,10 @@ void _applyDecisions(String inputPath, String decisionsPath, String outputPath, 
       c['excludedFromTrainingAt'] = now;
     }
 
+    if (decision == 'rejected') {
+      c['excludedFromTrainingAt'] = now;
+    }
+
     updated.add(c);
   }
 
@@ -172,9 +197,18 @@ void _applyDecisions(String inputPath, String decisionsPath, String outputPath, 
 void _report(String path) {
   final rows = _readJsonl(path);
   final counts = <String, int>{};
+  final lifecycle = <String, int>{
+    'trainingEligible': 0,
+    'golden': 0,
+    'excluded': 0,
+  };
   for (final r in rows) {
     final status = '${(r['review'] as Map?)?['status'] ?? 'unknown'}';
     counts[status] = (counts[status] ?? 0) + 1;
+    final lc = (r['lifecycle'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+    if (lc['trainingEligible'] == true) lifecycle['trainingEligible'] = lifecycle['trainingEligible']! + 1;
+    if (lc['golden'] == true) lifecycle['golden'] = lifecycle['golden']! + 1;
+    if (lc['excluded'] == true) lifecycle['excluded'] = lifecycle['excluded']! + 1;
   }
 
   stdout.writeln('Review report: $path');
@@ -182,4 +216,5 @@ void _report(String path) {
   for (final k in counts.keys.toList()..sort()) {
     stdout.writeln('  $k: ${counts[k]}');
   }
+  stdout.writeln('Lifecycle: trainingEligible=${lifecycle['trainingEligible']} golden=${lifecycle['golden']} excluded=${lifecycle['excluded']}');
 }

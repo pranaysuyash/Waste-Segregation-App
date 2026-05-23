@@ -21,28 +21,33 @@ class ContentDetailScreen extends StatefulWidget {
 }
 
 class _ContentDetailScreenState extends State<ContentDetailScreen> {
+  EducationalContentService? _educationalService;
+  bool _trackedContentView = false;
+
   @override
-  void initState() {
-    super.initState();
-    final educationalService =
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _educationalService ??=
         Provider.of<EducationalContentService>(context, listen: false);
-    final content = educationalService.getContentById(widget.contentId);
-    if (content != null) {
-      educationalService.trackContentViewed(content);
+    if (!_trackedContentView) {
+      final content = _educationalService!.getContentById(widget.contentId);
+      if (content != null) {
+        _educationalService!.trackContentViewed(content);
+      }
+      _trackedContentView = true;
     }
   }
 
   @override
   void dispose() {
-    final educationalService =
-        Provider.of<EducationalContentService>(context, listen: false);
-    educationalService.endContentView();
+    _educationalService?.endContentView();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final educationalService = Provider.of<EducationalContentService>(context);
+    final educationalService =
+        _educationalService ?? Provider.of<EducationalContentService>(context);
     final content = educationalService.getContentById(widget.contentId);
 
     if (content == null) {

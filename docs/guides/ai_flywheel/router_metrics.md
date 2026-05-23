@@ -6,6 +6,7 @@ dart run tool/router_compare_report.dart --input build/reports/ai_eval/latest.js
 
 Also writes:
 - `build/reports/ai_eval/router_strategy_recommendations.md`
+- `build/reports/ai_eval/calibration_report.json`
 
 Includes:
 - accuracy
@@ -16,3 +17,5 @@ Includes:
 - confidence behavior flags
 - latency/cost/cache/fallback/failure
 - disagreement case matrix
+- provider pair disagreement counts
+- confidence calibration bins per provider

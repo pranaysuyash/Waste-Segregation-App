@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/models/premium_feature.dart';
 import 'package:waste_segregation_app/screens/premium_features_screen.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
+import 'package:waste_segregation_app/widgets/premium_feature_card.dart';
 
 class FakePremiumService extends ChangeNotifier implements PremiumService {
   final Map<String, bool> _enabled = {};
@@ -75,7 +78,16 @@ Widget buildTestApp(FakePremiumService premiumService) {
     providers: [
       ChangeNotifierProvider<PremiumService>.value(value: premiumService),
     ],
-    child: const MaterialApp(home: PremiumFeaturesScreen()),
+    child: MaterialApp(
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const PremiumFeaturesScreen(),
+    ),
   );
 }
 
@@ -174,6 +186,27 @@ void main() {
         (w) => w is ButtonStyleButton && w.onPressed != null,
       );
       expect(btnFinder, findsWidgets);
+    });
+
+    testWidgets('locked premium feature card opens upgrade explanation',
+        (tester) async {
+      await tester.pumpWidget(buildTestApp(FakePremiumService()));
+      await tester.pumpAndSettle();
+
+      final offlineCard = find.byWidgetPredicate(
+        (widget) =>
+            widget is PremiumFeatureCard && widget.feature.id == 'offline_mode',
+      );
+      expect(offlineCard, findsOneWidget);
+
+      await tester.ensureVisible(offlineCard);
+      await tester.pumpAndSettle();
+      await tester.tap(offlineCard);
+      await tester.pumpAndSettle();
+
+      expect(find.text('See Premium Features'), findsOneWidget);
+      expect(find.textContaining('Offline Classification is a premium feature'),
+          findsOneWidget);
     });
   });
 }

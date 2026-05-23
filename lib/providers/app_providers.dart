@@ -16,6 +16,7 @@ import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/training_data_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/utils/firebase_gate.dart';
+import 'package:waste_segregation_app/utils/constants.dart';
 import 'cost_management_providers.dart';
 
 /// Central provider declarations for all services
@@ -77,7 +78,7 @@ final todayGoalProvider = FutureProvider<(int, int)>((ref) async {
   }).length;
 
   // Default daily goal for home habit loop.
-  const dailyGoal = 3;
+  const dailyGoal = AppValues.dailyGoalTarget;
 
   return (todayClassifications, dailyGoal);
 });

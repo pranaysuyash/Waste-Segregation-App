@@ -48,16 +48,75 @@ void main(List<String> args) {
   }
 
   final disagreement = <String, int>{};
+  final safetyDisagreement = <String, int>{};
+  final providerPairDisagreement = <String, int>{};
   final groupedByCase = <String, List<Map<String, dynamic>>>{};
   for (final o in outcomes) {
     final caseId = '${o['caseId'] ?? ''}';
     groupedByCase.putIfAbsent(caseId, () => <Map<String, dynamic>>[]).add(o);
   }
   for (final entry in groupedByCase.entries) {
-    final categories = entry.value.map((e) => '${e['predictedCategory'] ?? ''}').toSet();
+    final categories = entry.value
+        .map((e) => '${e['predictedCategory'] ?? ''}')
+        .toSet();
     if (categories.length > 1) {
       disagreement[entry.key] = categories.length;
     }
+    final safety = entry.value
+        .where((e) =>
+            (e['predictedCategory'] == 'Hazardous Waste' ||
+                e['predictedCategory'] == 'Medical Waste' ||
+                e['predictedCategory'] == 'E-Waste'))
+        .map((e) => '${e['provider'] ?? 'unknown'}')
+        .toList();
+    if (safety.isNotEmpty && safety.length != entry.value.length) {
+      safetyDisagreement[entry.key] = safety.length;
+    }
+    for (var i = 0; i < entry.value.length; i += 1) {
+      for (var j = i + 1; j < entry.value.length; j += 1) {
+        final a = entry.value[i];
+        final b = entry.value[j];
+        final pair = ('${a['provider']}|${b['provider']}').split('|')..sort();
+        final key = '${pair[0]}__${pair[1]}';
+        if ('${a['predictedCategory']}' != '${b['predictedCategory']}') {
+          providerPairDisagreement[key] =
+              (providerPairDisagreement[key] ?? 0) + 1;
+        }
+      }
+    }
+  }
+
+  final calibrationByProvider = <String, Map<String, dynamic>>{};
+  for (final p in byProvider.keys) {
+    final rows = byProvider[p]!;
+    final bins = <String, Map<String, num>>{
+      '0.00-0.49': <String, num>{'total': 0, 'correct': 0},
+      '0.50-0.69': <String, num>{'total': 0, 'correct': 0},
+      '0.70-0.84': <String, num>{'total': 0, 'correct': 0},
+      '0.85-1.00': <String, num>{'total': 0, 'correct': 0},
+    };
+    for (final r in rows) {
+      final conf = (r['confidence'] as num?)?.toDouble() ?? 0;
+      final correct = r['strictPass'] == true || r['acceptableAlternativePass'] == true;
+      final bin = conf < 0.5
+          ? '0.00-0.49'
+          : conf < 0.7
+              ? '0.50-0.69'
+              : conf < 0.85
+                  ? '0.70-0.84'
+                  : '0.85-1.00';
+      bins[bin]!['total'] = (bins[bin]!['total'] ?? 0) + 1;
+      if (correct) bins[bin]!['correct'] = (bins[bin]!['correct'] ?? 0) + 1;
+    }
+    calibrationByProvider[p] = bins.map((k, v) {
+      final total = v['total']!.toInt();
+      final correct = v['correct']!.toInt();
+      return MapEntry(k, <String, dynamic>{
+        'total': total,
+        'correct': correct,
+        'accuracy': total == 0 ? 0 : correct / total,
+      });
+    });
   }
 
   final report = <String, dynamic>{
@@ -65,7 +124,11 @@ void main(List<String> args) {
     'providerDisagreementMatrix': {
       'disagreementCaseCount': disagreement.length,
       'cases': disagreement,
+      'safetyDisagreementCaseCount': safetyDisagreement.length,
+      'safetyCases': safetyDisagreement,
+      'providerPairDisagreement': providerPairDisagreement,
     },
+    'confidenceCalibration': calibrationByProvider,
   };
 
   final outFile = File(out);
@@ -80,12 +143,25 @@ void main(List<String> args) {
   rec.writeln('- Escalate to backend when local confidence < 0.70.');
   rec.writeln('- If providers disagree on safety category, ask user clarification and enqueue review candidate.');
   rec.writeln('- Avoid cache reuse when local-rule version changes.');
+  rec.writeln('- Route to human review when provider pair disagreement persists for > 5% of overlapping cases.');
   final recFile = File('build/reports/ai_eval/router_strategy_recommendations.md');
   recFile.parent.createSync(recursive: true);
   recFile.writeAsStringSync(rec.toString());
 
+  final calibrationFile = File('build/reports/ai_eval/calibration_report.json');
+  calibrationFile.parent.createSync(recursive: true);
+  calibrationFile.writeAsStringSync(
+    const JsonEncoder.withIndent('  ').convert(<String, dynamic>{
+      'generatedAt': DateTime.now().toIso8601String(),
+      'confidenceCalibration': calibrationByProvider,
+      'providerPairDisagreement': providerPairDisagreement,
+      'safetyDisagreementCaseCount': safetyDisagreement.length,
+    }),
+  );
+
   stdout.writeln('Wrote router comparison report: $out');
   stdout.writeln('Wrote strategy recommendations: ${recFile.path}');
+  stdout.writeln('Wrote calibration report: ${calibrationFile.path}');
 }
 
 String _arg(List<String> args, String name, {required String fallback}) {

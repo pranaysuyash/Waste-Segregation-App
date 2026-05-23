@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:waste_segregation_app/models/premium_feature.dart';
-import 'package:waste_segregation_app/utils/constants.dart';
-import 'package:waste_segregation_app/widgets/modern_ui/modern_buttons.dart';
 import 'package:waste_segregation_app/widgets/modern_ui/modern_cards.dart';
+import 'package:waste_segregation_app/widgets/modern_ui/modern_buttons.dart';
 import 'package:waste_segregation_app/widgets/premium_feature_card.dart';
+import 'package:waste_segregation_app/models/premium_feature.dart';
 
 import '../helpers/component_test_harness.dart';
 

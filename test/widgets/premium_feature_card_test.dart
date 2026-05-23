@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/widgets/premium_feature_card.dart';
 import 'package:waste_segregation_app/models/premium_feature.dart';
 
@@ -36,6 +38,13 @@ void main() {
       VoidCallback? onTap,
     }) {
       return MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: PremiumFeatureCard(
             feature: feature ?? testFeature,
@@ -62,13 +71,13 @@ void main() {
         await tester.pumpWidget(createTestWidget(isEnabled: true));
 
         expect(find.byIcon(Icons.check_circle), findsOneWidget);
-        expect(find.byIcon(Icons.lock), findsNothing);
+        expect(find.byIcon(Icons.workspace_premium), findsNothing);
       });
 
       testWidgets('should render with disabled state', (tester) async {
         await tester.pumpWidget(createTestWidget(isEnabled: false));
 
-        expect(find.byIcon(Icons.lock), findsOneWidget);
+        expect(find.byIcon(Icons.workspace_premium), findsAtLeastNWidgets(1));
         expect(find.byIcon(Icons.check_circle), findsNothing);
       });
 
@@ -186,10 +195,10 @@ void main() {
         // Test disabled state
         await tester.pumpWidget(createTestWidget(isEnabled: false));
 
-        expect(find.byIcon(Icons.lock), findsOneWidget);
-
-        final lockIcon = tester.widget<Icon>(find.byIcon(Icons.lock));
-        expect(lockIcon.color, equals(Colors.grey));
+        final premiumIcons =
+            tester.widgetList<Icon>(find.byIcon(Icons.workspace_premium)).toList();
+        expect(premiumIcons, isNotEmpty);
+        expect(premiumIcons.any((icon) => icon.color == Colors.amber), isTrue);
       });
 
       testWidgets('should style feature icon based on enabled state',
@@ -250,7 +259,7 @@ void main() {
       testWidgets('should have proper content layout', (tester) async {
         await tester.pumpWidget(createTestWidget());
 
-        expect(find.byType(Row), findsOneWidget);
+        expect(find.byType(Row), findsAtLeastNWidgets(1));
         expect(find.byType(Column), findsOneWidget);
         expect(find.byType(Container),
             findsAtLeastNWidgets(2)); // Icon container + main container
@@ -352,6 +361,13 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: PremiumFeatureCard(
                 feature: testFeature,
@@ -368,6 +384,13 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.dark(),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: PremiumFeatureCard(
                 feature: testFeature,
@@ -390,6 +413,13 @@ void main() {
               primaryColor: customColor,
               colorScheme: ColorScheme.fromSeed(seedColor: customColor),
             ),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: PremiumFeatureCard(
                 feature: testFeature,
@@ -507,6 +537,13 @@ void main() {
       testWidgets('should handle multiple cards efficiently', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: ListView(
                 children: List.generate(
@@ -595,8 +632,18 @@ void main() {
         await tester.pumpWidget(createTestWidget());
 
         // Navigate away to trigger disposal
-        await tester
-            .pumpWidget(const MaterialApp(home: Text('Different Widget')));
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const Scaffold(body: Text('Different Widget')),
+          ),
+        );
 
         expect(find.text('Different Widget'), findsOneWidget);
         expect(find.byType(PremiumFeatureCard), findsNothing);

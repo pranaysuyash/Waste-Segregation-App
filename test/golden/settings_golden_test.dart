@@ -12,6 +12,7 @@ import 'package:waste_segregation_app/widgets/settings/premium_section.dart';
 import 'package:waste_segregation_app/widgets/settings/app_settings_section.dart';
 import 'package:waste_segregation_app/services/google_drive_service.dart';
 import 'package:waste_segregation_app/services/haptic_settings_service.dart';
+import 'package:waste_segregation_app/services/premium_service.dart';
 
 class _FakeGoogleDriveService extends GoogleDriveService {
   _FakeGoogleDriveService() : super(MockStorageService());
@@ -31,6 +32,17 @@ class _FakeHapticSettingsService extends HapticSettingsService {
     _enabled = value;
     notifyListeners();
   }
+}
+
+class _FakePremiumService extends PremiumService {
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  bool hasActivePremiumPlan() => false;
+
+  @override
+  bool isPremiumFeature(String featureId) => false;
 }
 
 void main() {
@@ -247,6 +259,9 @@ Widget _buildSettingsSections(ThemeMode themeMode) {
       Provider<GoogleDriveService>(create: (_) => _FakeGoogleDriveService()),
       ChangeNotifierProvider<HapticSettingsService>(
           create: (_) => _FakeHapticSettingsService()),
+      ChangeNotifierProvider<PremiumService>(
+        create: (_) => _FakePremiumService(),
+      ),
     ],
     child: createTestWidget(
       child: Scaffold(

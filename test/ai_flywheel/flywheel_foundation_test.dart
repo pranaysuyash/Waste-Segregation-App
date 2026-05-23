@@ -8,6 +8,8 @@ import 'package:waste_segregation_app/ai_flywheel/eval_runner.dart';
 import 'package:waste_segregation_app/ai_flywheel/eval_scoring.dart';
 import 'package:waste_segregation_app/ai_flywheel/router_metrics.dart';
 import 'package:waste_segregation_app/ai_flywheel/training_candidate_policy.dart';
+import 'package:waste_segregation_app/services/classification_router_guardrails.dart';
+import 'package:waste_segregation_app/services/local_classifier_service.dart';
 
 void main() {
   test('1. Eval schema validates good cases', () {
@@ -94,7 +96,7 @@ void main() {
     final raw = lines.map((l) => jsonDecode(l) as Map<String, dynamic>).toList();
     final outDir = Directory.systemTemp.createTempSync('dataset-export-test').path;
     final summary = await DatasetExporter().export(rawCandidates: raw, datasetVersion: 'waste-v0.1', outputDir: outDir);
-    expect(summary.caseCount, 2);
+    expect(summary.caseCount, 0);
     expect(File('$outDir/excluded.jsonl').existsSync(), isTrue);
   });
 
@@ -118,8 +120,8 @@ void main() {
 
   test('11. Dataset export produces deterministic manifest order', () async {
     final raw = <Map<String, dynamic>>[
-      <String, dynamic>{'candidateId': 'b', 'consent': <String, dynamic>{'enabledAtCapture': true,'policyVersion':'training-data-v1'}, 'review': <String, dynamic>{'status': 'training_eligible'}, 'reviewerVerified':<String,dynamic>{'groundTruth':<String,dynamic>{'category':'Dry Waste'}}, 'image': <String, dynamic>{'redactionStatus': 'pii_passed'}},
-      <String, dynamic>{'candidateId': 'a', 'consent': <String, dynamic>{'enabledAtCapture': true,'policyVersion':'training-data-v1'}, 'review': <String, dynamic>{'status': 'training_eligible'}, 'reviewerVerified':<String,dynamic>{'groundTruth':<String,dynamic>{'category':'Dry Waste'}}, 'image': <String, dynamic>{'redactionStatus': 'pii_passed'}},
+      <String, dynamic>{'candidateId': 'b', 'consent': <String, dynamic>{'enabledAtCapture': true,'policyVersion':'training-data-v1'}, 'review': <String, dynamic>{'status': 'training_eligible'}, 'reviewerVerified':<String,dynamic>{'reviewedAt':'2026-05-23T00:00:00Z','groundTruth':<String,dynamic>{'category':'Dry Waste'}}, 'image': <String, dynamic>{'redactionStatus': 'pii_passed'}},
+      <String, dynamic>{'candidateId': 'a', 'consent': <String, dynamic>{'enabledAtCapture': true,'policyVersion':'training-data-v1'}, 'review': <String, dynamic>{'status': 'training_eligible'}, 'reviewerVerified':<String,dynamic>{'reviewedAt':'2026-05-23T00:00:00Z','groundTruth':<String,dynamic>{'category':'Dry Waste'}}, 'image': <String, dynamic>{'redactionStatus': 'pii_passed'}},
     ];
     final outDir = Directory.systemTemp.createTempSync('dataset-order-test').path;
     await DatasetExporter().export(rawCandidates: raw, datasetVersion: 'waste-v0.1', outputDir: outDir);
@@ -135,5 +137,91 @@ void main() {
     expect(result.total, 2);
     expect(result.safetyCriticalFailures, 1);
     expect(result.multiItemFailures, 1);
+  });
+
+  test('13. Stale policy version excluded unless override', () {
+    const record = TrainingCandidateRecord(
+      candidateId: 'x',
+      reviewStatus: 'training_eligible',
+      consentEnabledAtCapture: true,
+      policyVersion: 'training-data-v0',
+      deletedAt: null,
+      excludedFromTrainingAt: null,
+      privacyStatus: 'pii_passed',
+      hasVerifiedLabel: true,
+    );
+    expect(TrainingCandidatePolicy.exportEligible(record), isFalse);
+    expect(
+      TrainingCandidatePolicy.exportEligible(record, allowPolicyOverride: true),
+      isTrue,
+    );
+  });
+
+  test('14. Local router guardrails escalate safety unless high confidence', () {
+    const guardrails = ClassificationRouterGuardrails();
+    final low = LocalClassificationResult(
+      category: 'E-Waste',
+      confidence: 0.93,
+      modelVersion: 'local-v2',
+    );
+    final high = LocalClassificationResult(
+      category: 'E-Waste',
+      confidence: 0.99,
+      modelVersion: 'local-v2',
+    );
+    expect(guardrails.evaluateLocal(low).accepted, isFalse);
+    expect(guardrails.evaluateLocal(high).accepted, isTrue);
+  });
+
+  test('15. Unknown region with local rule is policy overclaim', () {
+    final c = EvalCase.fromJson(<String, dynamic>{
+      'id': 'x',
+      'imageRef': 'x',
+      'region': 'unknown city',
+      'language': 'en',
+      'expected': <String, dynamic>{'category': 'Dry Waste'},
+      'mustNot': <String>[],
+      'safetyCritical': false,
+      'localRuleCritical': false,
+      'localRuleId': null,
+    });
+    const p = EvalPrediction(
+      caseId: 'x',
+      category: 'Dry Waste',
+      provider: 'backend',
+      model: 'm',
+      localRuleId: 'city_rule',
+    );
+    final o = EvalScoring.scoreCase(c, p);
+    expect(o.policyOverclaim, isTrue);
+  });
+
+  test('16. Multi-item category mismatch is failure', () {
+    final c = EvalCase.fromJson(<String, dynamic>{
+      'id': 'x',
+      'imageRef': 'x',
+      'region': 'Bangalore, IN',
+      'language': 'en',
+      'expected': <String, dynamic>{'category': 'Dry Waste'},
+      'mustNot': <String>[],
+      'safetyCritical': false,
+      'localRuleCritical': false,
+      'expectedItems': <Map<String, dynamic>>[
+        <String, dynamic>{'itemName': 'plastic bottle', 'category': 'Dry Waste'},
+        <String, dynamic>{'itemName': 'banana peel', 'category': 'Wet Waste'},
+      ],
+    });
+    const p = EvalPrediction(
+      caseId: 'x',
+      category: 'Dry Waste',
+      provider: 'backend',
+      model: 'm',
+      predictedItems: <Map<String, dynamic>>[
+        <String, dynamic>{'itemName': 'plastic bottle', 'category': 'Dry Waste'},
+        <String, dynamic>{'itemName': 'banana peel', 'category': 'Dry Waste'},
+      ],
+    );
+    final o = EvalScoring.scoreCase(c, p);
+    expect(o.multiItemFailure, isTrue);
   });
 }
