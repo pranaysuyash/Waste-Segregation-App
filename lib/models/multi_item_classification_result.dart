@@ -9,6 +9,17 @@ class MultiItemClassificationResult {
     this.mixedWasteGuidance,
   });
 
+  factory MultiItemClassificationResult.fromJson(Map<String, dynamic> json) =>
+      MultiItemClassificationResult(
+        sourceImagePath: json['sourceImagePath'],
+        sourceImageBytes: json['hasSourceImageBytes'] == true ? [] : null,
+        regions: (json['regions'] as List)
+            .map((r) => DetectedWasteRegion.fromJson(r as Map<String, dynamic>))
+            .toList(),
+        aggregateWarnings: List<String>.from(json['aggregateWarnings'] ?? []),
+        mixedWasteGuidance: json['mixedWasteGuidance'],
+      );
+
   final String sourceImagePath;
   final List<int>? sourceImageBytes;
   final List<DetectedWasteRegion> regions;
@@ -107,15 +118,4 @@ class MultiItemClassificationResult {
         'mixedWasteGuidance':
             mixedWasteGuidance ?? inferMixedWasteGuidance(regions),
       };
-
-  factory MultiItemClassificationResult.fromJson(Map<String, dynamic> json) =>
-      MultiItemClassificationResult(
-        sourceImagePath: json['sourceImagePath'],
-        sourceImageBytes: json['hasSourceImageBytes'] == true ? [] : null,
-        regions: (json['regions'] as List)
-            .map((r) => DetectedWasteRegion.fromJson(r as Map<String, dynamic>))
-            .toList(),
-        aggregateWarnings: List<String>.from(json['aggregateWarnings'] ?? []),
-        mixedWasteGuidance: json['mixedWasteGuidance'],
-      );
 }

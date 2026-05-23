@@ -22,6 +22,27 @@ class SocietyPolicyOverride {
     this.unitCount,
   });
 
+  factory SocietyPolicyOverride.fromJson(Map<String, dynamic> json) =>
+      SocietyPolicyOverride(
+        societyId: json['societyId'] as String,
+        societyName: json['societyName'] as String,
+        basePluginId: json['basePluginId'] as String,
+        overrides: (json['overrides'] as List<dynamic>)
+            .map((o) =>
+                RuleOverride.fromJson(o as Map<String, dynamic>))
+            .toList(),
+        verifiedById: json['verifiedById'] as String?,
+        verifiedByName: json['verifiedByName'] as String?,
+        verifiedAt: json['verifiedAt'] != null
+            ? DateTime.parse(json['verifiedAt'] as String)
+            : null,
+        isVerified: json['isVerified'] as bool? ?? false,
+        locationLat: (json['locationLat'] as num?)?.toDouble(),
+        locationLng: (json['locationLng'] as num?)?.toDouble(),
+        address: json['address'] as String?,
+        unitCount: json['unitCount'] as int?,
+      );
+
   /// Firestore document ID or internal ID for this society
   final String societyId;
 
@@ -70,27 +91,6 @@ class SocietyPolicyOverride {
         'address': address,
         'unitCount': unitCount,
       };
-
-  factory SocietyPolicyOverride.fromJson(Map<String, dynamic> json) =>
-      SocietyPolicyOverride(
-        societyId: json['societyId'] as String,
-        societyName: json['societyName'] as String,
-        basePluginId: json['basePluginId'] as String,
-        overrides: (json['overrides'] as List<dynamic>)
-            .map((o) =>
-                RuleOverride.fromJson(o as Map<String, dynamic>))
-            .toList(),
-        verifiedById: json['verifiedById'] as String?,
-        verifiedByName: json['verifiedByName'] as String?,
-        verifiedAt: json['verifiedAt'] != null
-            ? DateTime.parse(json['verifiedAt'] as String)
-            : null,
-        isVerified: json['isVerified'] as bool? ?? false,
-        locationLat: (json['locationLat'] as num?)?.toDouble(),
-        locationLng: (json['locationLng'] as num?)?.toDouble(),
-        address: json['address'] as String?,
-        unitCount: json['unitCount'] as int?,
-      );
 }
 
 /// A single rule override within a society's policy.
@@ -101,6 +101,16 @@ class RuleOverride {
     required this.value,
     this.description,
   });
+
+  factory RuleOverride.fromJson(Map<String, dynamic> json) => RuleOverride(
+        categoryKey: json['categoryKey'] as String,
+        overrideType: RuleOverrideType.values.firstWhere(
+          (e) => e.name == json['overrideType'],
+          orElse: () => RuleOverrideType.binColor,
+        ),
+        value: json['value'] as String,
+        description: json['description'] as String?,
+      );
 
   /// Category this override applies to (e.g. 'wet_waste', 'dry_waste')
   final String categoryKey;
@@ -113,23 +123,6 @@ class RuleOverride {
 
   /// Human-readable description of this override
   final String? description;
-
-  Map<String, dynamic> toJson() => {
-        'categoryKey': categoryKey,
-        'overrideType': overrideType.name,
-        'value': value,
-        'description': description,
-      };
-
-  factory RuleOverride.fromJson(Map<String, dynamic> json) => RuleOverride(
-        categoryKey: json['categoryKey'] as String,
-        overrideType: RuleOverrideType.values.firstWhere(
-          (e) => e.name == json['overrideType'],
-          orElse: () => RuleOverrideType.binColor,
-        ),
-        value: json['value'] as String,
-        description: json['description'] as String?,
-      );
 }
 
 enum RuleOverrideType {

@@ -118,7 +118,7 @@ mixin ServiceInitializationMixin<T extends StatefulWidget> on State<T> {
       () async {
         await services.googleDrive.signOut();
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed(redirectRoute ?? '/auth');
+          await Navigator.of(context).pushReplacementNamed(redirectRoute ?? '/auth');
         }
       },
       context: 'Sign out',
@@ -129,7 +129,7 @@ mixin ServiceInitializationMixin<T extends StatefulWidget> on State<T> {
       userMessage: 'Failed to sign out. Please try again.',
     );
 
-    if (success) {
+    if (success && mounted) {
       ErrorHandler.showSuccessMessage(context, 'Signed out successfully');
     }
   }

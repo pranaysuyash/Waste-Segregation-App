@@ -238,19 +238,22 @@ export const spendUserTokens = asiaSouth1.https.onCall(async (data, context) => 
     //   instant = 5 tokens (free)
     //
     // Premium/enterprise instant discount is server-configurable via
-    // SPEND_PREMIUM_DISCOUNT_PERCENT (default 40) and is always computed on
-    // server-authoritative entitlement.
+    // SPEND_PREMIUM_DISCOUNT_PERCENT (default 50, matching Flutter's
+    // TokenService.premiumInstantDiscountPercent = 50) and is always computed
+    // on server-authoritative entitlement.
+    // Math.floor matches Dart's ~/ (truncating integer division) so that
+    // server-computed cost == client-computed cost for identical inputs.
     // -------------------------------------------------------------------------
     const INSTANT_COST_FREE = 5;
     const premiumDiscountPercentRaw = Number(
-      process.env.SPEND_PREMIUM_DISCOUNT_PERCENT ?? 40,
+      process.env.SPEND_PREMIUM_DISCOUNT_PERCENT ?? 50,
     );
     const premiumDiscountPercent = Number.isFinite(premiumDiscountPercentRaw)
       ? Math.max(0, Math.min(100, premiumDiscountPercentRaw))
-      : 40;
+      : 50;
     const INSTANT_COST_PREMIUM = Math.max(
       1,
-      Math.ceil(INSTANT_COST_FREE * (1 - premiumDiscountPercent / 100)),
+      Math.floor(INSTANT_COST_FREE * (1 - premiumDiscountPercent / 100)),
     );
     const BATCH_COST = 1;
 

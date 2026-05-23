@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math' show pow, sqrt;
 import 'package:flutter/foundation.dart';
@@ -104,7 +103,7 @@ class AiService {
         _resultProcessor = ClassificationResultProcessor(
           policyEngine: localPolicyEngine ?? const LocalPolicyEngine(),
           cacheService: cacheService ?? ClassificationCacheService(),
-          cachingEnabled: cachingEnabled ?? true,
+          cachingEnabled: cachingEnabled,
           promptVersion: AiService.promptVersion,
           schemaVersion: AiService.schemaVersion,
           localGuidelinesVersion: AiService.localGuidelinesVersion,
@@ -288,71 +287,6 @@ class AiService {
 
   /// Checks if the current operation has been cancelled.
   bool get isCancelled => _cancelToken?.isCancelled ?? false;
-
-  /// Handles DioException and converts cancellation to a more user-friendly exception
-  void _handleDioException(DioException e, {String? provider, String? model}) {
-    if (e.type == DioExceptionType.cancel) {
-      throw AiFailure(
-        AiFailureKind.cancelled,
-        'Analysis cancelled by user',
-        provider: provider,
-        model: model,
-        cause: e,
-      );
-    } else if (e.type == DioExceptionType.badResponse) {
-      final statusCode = e.response?.statusCode ?? 0;
-      throw AiFailure(
-        _failureKindFromStatus(statusCode),
-        'Provider HTTP error $statusCode: ${e.response?.data}',
-        provider: provider,
-        model: model,
-        cause: e,
-      );
-    } else if (e.type == DioExceptionType.connectionTimeout) {
-      throw AiFailure(
-        AiFailureKind.network,
-        'Connection timeout - please check your internet connection',
-        provider: provider,
-        model: model,
-        cause: e,
-      );
-    } else if (e.type == DioExceptionType.receiveTimeout) {
-      throw AiFailure(
-        AiFailureKind.network,
-        'Request timeout - the server took too long to respond',
-        provider: provider,
-        model: model,
-        cause: e,
-      );
-    } else if (e.type == DioExceptionType.sendTimeout) {
-      throw AiFailure(
-        AiFailureKind.network,
-        'Upload timeout - failed to send image data',
-        provider: provider,
-        model: model,
-        cause: e,
-      );
-    } else {
-      throw AiFailure(
-        AiFailureKind.network,
-        'Network error: ${e.message}',
-        provider: provider,
-        model: model,
-        cause: e,
-      );
-    }
-  }
-
-  AiFailureKind _failureKindFromStatus(int statusCode) {
-    if (statusCode == 400) return AiFailureKind.invalidImage;
-    if (statusCode == 401 || statusCode == 403) return AiFailureKind.auth;
-    if (statusCode == 429) return AiFailureKind.rateLimited;
-    if (statusCode == 503 || statusCode == 502) {
-      return AiFailureKind.providerUnavailable;
-    }
-    return AiFailureKind.unknown;
-  }
-
   bool _shouldFallbackToGemini(
       AiFailureKind kind, int retryCount, int maxRetries) {
     if (retryCount >= maxRetries) return true;
@@ -477,10 +411,6 @@ class AiService {
       ClassificationPrompts.correctionPrompt(
           previousClassification, userCorrection, userReason);
 
-  /// Converts [Uint8List] image data to a base64 encoded string.
-  String _bytesToBase64(Uint8List bytes) {
-    return base64Encode(bytes);
-  }
 
   /// Detects the image format from [Uint8List] data and returns an appropriate MIME type.
   ///

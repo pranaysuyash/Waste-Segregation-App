@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:waste_segregation_app/widgets/correction_dialog.dart';
 import 'package:waste_segregation_app/widgets/history_list_item.dart';
 import 'package:waste_segregation_app/widgets/interactive_tag.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 
 void main() {
   group('UI Overflow Fixes Tests', () {
-    testWidgets('History list item handles long category names',
+    testWidgets('History list item opens feedback dialog and refreshes on submission',
         (WidgetTester tester) async {
       final classification = WasteClassification(
         itemName: 'Very Long Item Name That Could Cause Overflow',
-        subcategory: 'Very Long Subcategory Name',
+        subCategory: 'Very Long Subcategory Name',
         explanation: 'Test explanation',
         category: 'plastic',
         disposalInstructions: DisposalInstructions(
@@ -27,6 +28,8 @@ void main() {
         requiresSpecialDisposal: true,
       );
 
+      var feedbackCalls = 0;
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -34,7 +37,7 @@ void main() {
               width: 300,
               child: HistoryListItem(
                 classification: classification,
-                onFeedbackSubmitted: (_) {},
+                onFeedbackSubmitted: (_) => feedbackCalls++,
                 onTap: () {},
               ),
             ),
@@ -42,7 +45,18 @@ void main() {
         ),
       );
 
-      expect(find.byType(HistoryListItem), findsOneWidget);
+      await tester.tap(find.byTooltip('Give feedback'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CorrectionDialog), findsOneWidget);
+
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      navigator.pop(const CorrectionResult(
+        userConfirmed: false,
+        userSuggestedCategory: 'Wet Waste',
+      ));
+      await tester.pumpAndSettle();
+
+      expect(feedbackCalls, 1);
       expect(tester.takeException(), isNull);
     });
 

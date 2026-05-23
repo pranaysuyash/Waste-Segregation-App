@@ -72,6 +72,9 @@ class RemoteConfigService {
         'premium_ad_free_enabled': true,
         'interstitial_every_n_classifications': 5,
         'offline_degradation_tier2_enabled': true,
+
+        // Classification routing
+        'classification_routing_strategy': 'balanced',
       });
 
       // Configure fetch settings
@@ -220,5 +223,18 @@ class RemoteConfigService {
       }
       return {};
     }
+  }
+
+  /// Resolve the classification routing strategy from remote config.
+  ///
+  /// Valid values: `costFirst`, `qualityFirst`, `latencyFirst`, `balanced`.
+  /// Falls back to `balanced` if the key is missing or unrecognized.
+  Future<String> getClassificationRoutingStrategy() async {
+    final value = await getString(
+      'classification_routing_strategy',
+      defaultValue: 'balanced',
+    );
+    const valid = ['costFirst', 'qualityFirst', 'latencyFirst', 'balanced'];
+    return valid.contains(value) ? value : 'balanced';
   }
 }

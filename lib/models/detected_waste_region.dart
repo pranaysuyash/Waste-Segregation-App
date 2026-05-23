@@ -14,6 +14,20 @@ class DetectedWasteRegion {
     this.label,
   }) : id = id ?? const Uuid().v4();
 
+  factory DetectedWasteRegion.fromJson(Map<String, dynamic> json) =>
+      DetectedWasteRegion(
+        id: json['id'],
+        boundingBox: NormalizedBoundingBox.fromJson(json['boundingBox']),
+        cropPath: json['cropPath'],
+        cropBytes: json['hasCropBytes'] == true ? [] : null,
+        classification: json['classification'] != null
+            ? WasteClassification.fromJson(json['classification'])
+            : null,
+        confidence: (json['confidence'] as num?)?.toDouble(),
+        userConfirmed: json['userConfirmed'] ?? false,
+        label: json['label'],
+      );
+
   final String id;
   final NormalizedBoundingBox boundingBox;
   String? cropPath;
@@ -44,20 +58,6 @@ class DetectedWasteRegion {
       label: label ?? this.label,
     );
   }
-
-  factory DetectedWasteRegion.fromJson(Map<String, dynamic> json) =>
-      DetectedWasteRegion(
-        id: json['id'],
-        boundingBox: NormalizedBoundingBox.fromJson(json['boundingBox']),
-        cropPath: json['cropPath'],
-        cropBytes: json['hasCropBytes'] == true ? [] : null,
-        classification: json['classification'] != null
-            ? WasteClassification.fromJson(json['classification'])
-            : null,
-        confidence: (json['confidence'] as num?)?.toDouble(),
-        userConfirmed: json['userConfirmed'] ?? false,
-        label: json['label'],
-      );
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -137,19 +137,19 @@ class NormalizedBoundingBox {
       height >= 0;
 
   Map<String, dynamic> toJson() => {
-    'left': left,
-    'top': top,
-    'width': width,
-    'height': height,
-  };
+        'left': left,
+        'top': top,
+        'width': width,
+        'height': height,
+      };
 
   /// Compat: legacy API expected scaled [0, 100] integer coordinates.
   Map<String, dynamic> toBoundsMap() => <String, dynamic>{
-    'x': left * 100,
-    'y': top * 100,
-    'width': width * 100,
-    'height': height * 100,
-  };
+        'x': left * 100,
+        'y': top * 100,
+        'width': width * 100,
+        'height': height * 100,
+      };
 }
 
 enum RegionDetectionSource {

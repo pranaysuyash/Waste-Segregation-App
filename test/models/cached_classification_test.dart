@@ -411,7 +411,7 @@ void main() {
           isRecyclable: false,
           isCompostable: false,
           requiresSpecialDisposal: true,
-          materialType: 'Chemical compound',
+          materials: ['Chemical compound'],
           colorCode: '#RED',
           brand: 'ChemCorp',
           product: 'Industrial Cleaner',

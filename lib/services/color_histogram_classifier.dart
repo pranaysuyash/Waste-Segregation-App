@@ -124,9 +124,11 @@ _HistogramResult _computeHistogramInIsolate(Uint8List imageBytes) {
   for (var y = 0; y < resized.height; y++) {
     for (var x = 0; x < resized.width; x++) {
       final pixel = resized.getPixelSafe(x, y);
-      final r = pixel.r.toDouble();
-      final g = pixel.g.toDouble();
-      final b = pixel.b.toDouble();
+      // Normalise from uint8 [0-255] → [0-1] before HSV conversion.
+      // _rgbToHsv expects [0-1] inputs; pixel.r/.g/.b are raw channel values.
+      final r = pixel.r.toDouble() / 255.0;
+      final g = pixel.g.toDouble() / 255.0;
+      final b = pixel.b.toDouble() / 255.0;
 
       final hsv = _rgbToHsv(r, g, b);
       sumH += hsv[0];
@@ -150,7 +152,12 @@ _HistogramResult _computeHistogramInIsolate(Uint8List imageBytes) {
   for (var y = 0; y < resized.height; y++) {
     for (var x = 0; x < resized.width; x++) {
       final pixel = resized.getPixelSafe(x, y);
-      final hsv = _rgbToHsv(pixel.r.toDouble(), pixel.g.toDouble(), pixel.b.toDouble());
+      // Normalise here as well for consistency.
+      final hsv = _rgbToHsv(
+        pixel.r.toDouble() / 255.0,
+        pixel.g.toDouble() / 255.0,
+        pixel.b.toDouble() / 255.0,
+      );
       final bin = (hsv[0] / 30).floor().clamp(0, 11);
       hueBins[bin]++;
     }

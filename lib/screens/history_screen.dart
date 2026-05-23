@@ -998,7 +998,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
             key: ValueKey<String>(classification.id),
             classification: classification,
             onTap: () => _navigateToClassificationDetails(classification),
-            onFeedbackSubmitted: _handleFeedbackSubmission,
+            onFeedbackSubmitted: (_) => _handleFeedbackSubmission(),
             showFeedbackButton: _canProvideFeedback(classification),
           ),
         );
@@ -1022,12 +1022,9 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     );
   }
 
-  Future<void> _handleFeedbackSubmission(
-      WasteClassification updatedClassification) async {
+  Future<void> _handleFeedbackSubmission() async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
-      await storageService.saveClassification(updatedClassification);
+      await _loadClassifications();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1046,15 +1043,13 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
           ),
         );
       }
-
-      await _loadClassifications();
     } catch (e, stackTrace) {
       ErrorHandler.handleError(e, stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Failed to save feedback: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+                'Failed to refresh after feedback: ${ErrorHandler.getUserFriendlyMessage(e)}'),
             backgroundColor: Colors.red.shade600,
           ),
         );

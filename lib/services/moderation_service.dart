@@ -35,17 +35,6 @@ class ContentReport {
     this.resolution,
   });
 
-  final String id;
-  final String postId;
-  final String reportedBy;
-  final ReportReason reason;
-  final String? details;
-  final ReportStatus status;
-  final DateTime createdAt;
-  final String? reviewedBy;
-  final DateTime? reviewedAt;
-  final String? resolution;
-
   factory ContentReport.fromFirestore(Map<String, dynamic> data) {
     return ContentReport(
       id: data['id'] as String? ?? '',
@@ -66,6 +55,17 @@ class ContentReport {
       resolution: data['resolution'] as String?,
     );
   }
+
+  final String id;
+  final String postId;
+  final String reportedBy;
+  final ReportReason reason;
+  final String? details;
+  final ReportStatus status;
+  final DateTime createdAt;
+  final String? reviewedBy;
+  final DateTime? reviewedAt;
+  final String? resolution;
 
   Map<String, dynamic> toFirestore() => {
         'id': id,

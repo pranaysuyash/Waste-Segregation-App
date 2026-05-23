@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:waste_segregation_app/models/classification_feedback.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/services/training_data_service.dart';
@@ -64,7 +63,7 @@ void main() {
       expect(candidate.datasetEligible, isTrue);
       expect(candidate.imageStoragePath, 'training/review/2026/05/img.jpg');
       expect(candidate.category, 'Dry Waste');
-      expect(candidate.subCategory, 'Plastic bottle');
+      expect(candidate.subcategory, 'Plastic bottle');
       expect(candidate.itemName, 'PET bottle');
       expect(candidate.userIdHash, 'hash_123');
     });

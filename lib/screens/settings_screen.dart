@@ -1049,11 +1049,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   applicationIcon: const FlutterLogo(size: 64),
                   children: [
                     const Text(
-                      'Waste Segregation App helps you learn how to properly segregate waste using AI-powered image recognition.',
+                      'ReLoop helps you learn how to properly segregate waste using AI-powered image recognition.',
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      '© 2024 Waste Segregation App. All rights reserved.',
+                      '© 2024 ReLoop. All rights reserved.',
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -1336,23 +1336,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final buildNumber = packageInfo.buildNumber;
 
       final subject =
-          Uri.encodeComponent('Waste Segregation App - Support Request');
+          Uri.encodeComponent('ReLoop - Support Request');
       final body = Uri.encodeComponent('Hi Support Team,\n\n'
-          'I need help with the Waste Segregation App.\n\n'
+          'I need help with the ReLoop.\n\n'
           'App Version: $appVersion ($buildNumber)\n'
           'Platform: ${Platform.operatingSystem}\n'
           'Device: ${Platform.operatingSystemVersion}\n\n'
           'Please describe your issue below:\n\n');
 
       final emailUrl =
-          'mailto:support@wastewise.app?subject=$subject&body=$body';
+          'mailto:support@reloop.app?subject=$subject&body=$body';
       final uri = Uri.parse(emailUrl);
 
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
         if (context.mounted) {
-          _showEmailFallback(context, 'support@wastewise.app');
+          _showEmailFallback(context, 'support@reloop.app');
         }
       }
     } catch (e) {
@@ -1374,9 +1374,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final appVersion = packageInfo.version;
       final buildNumber = packageInfo.buildNumber;
 
-      final subject = Uri.encodeComponent('Waste Segregation App - Bug Report');
+      final subject = Uri.encodeComponent('ReLoop - Bug Report');
       final body = Uri.encodeComponent('Hi Development Team,\n\n'
-          'I found a bug in the Waste Segregation App.\n\n'
+          'I found a bug in the ReLoop.\n\n'
           'App Version: $appVersion ($buildNumber)\n'
           'Platform: ${Platform.operatingSystem}\n'
           'Device: ${Platform.operatingSystemVersion}\n\n'
@@ -1391,14 +1391,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           '- Screenshots (if applicable): \n'
           '- Frequency: Always / Sometimes / Once\n\n');
 
-      final emailUrl = 'mailto:bugs@wastewise.app?subject=$subject&body=$body';
+      final emailUrl = 'mailto:bugs@reloop.app?subject=$subject&body=$body';
       final uri = Uri.parse(emailUrl);
 
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
         if (context.mounted) {
-          _showEmailFallback(context, 'bugs@wastewise.app');
+          _showEmailFallback(context, 'bugs@reloop.app');
         }
       }
     } catch (e) {
@@ -1427,7 +1427,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'https://play.google.com/store/apps/details?id=com.wastewise.app';
       } else {
         // Fallback for other platforms
-        storeUrl = 'https://wastewise.app';
+        storeUrl = 'https://reloop.app';
       }
 
       final uri = Uri.parse(storeUrl);
@@ -1439,7 +1439,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                  'Unable to open app store. Please search for "Waste Segregation App" in your app store.'),
+                  'Unable to open app store. Please search for "ReLoop" in your app store.'),
               backgroundColor: Colors.orange,
             ),
           );

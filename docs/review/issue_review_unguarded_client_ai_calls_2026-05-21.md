@@ -111,14 +111,40 @@ This means `ProductionSafetyException` propagates unmodified from its throw site
 
 ---
 
-## Open Items
+## Resolved Items *(2026-05-22)*
 
-1. **`OfflineQueueService` token refund on `ProductionSafetyException`**: Tokens deducted before `analyzeWasteImage` is called (at queue item creation time) are NOT refunded when `ProductionSafetyException` fires, because the refund code is after the `rethrow`. This is the correct outcome for safety violations — the item is abandoned — but verify that queue item deletion also occurs (it currently does not; the `retryCount` increment and `item.delete()` are also skipped). **Action required:** confirm queue item cleanup path for safety exceptions at the `_processQueue` outer loop level.
+1. **`OfflineQueueService` queue cleanup on `ProductionSafetyException`** — FIXED.
+   Previous `rethrow` left items stranded forever in the queue. Now: refunds the
+   token for the current item, clears the entire queue box (all items are
+   unprocessable for the same build reason), increments `permanentFailCount`, and
+   `break`s out of the loop so `_processQueue` exits normally through the `finally`
+   block. Tested via `offline_queue_service_test.dart` (no regression).
 
-2. **Tests:** No unit tests exist for `guardClientAiCall` integration in `EnhancedAiApiService` or `AiJobService`. Tests should mock `kReleaseMode=true` and verify both services throw `ProductionSafetyException` rather than making HTTP calls. Also needed: test that `_backendRoutingEnabled=true` routes to backend and does NOT reach `_analyzeWithOpenAI`/`_analyzeWithGemini`.
+2. **Tests** — FIXED. `test/services/enhanced_ai_api_service_safety_test.dart`
+   added with 26 passing tests covering: construction with/without injectable proxy,
+   static flag contracts, backend routing via `overrideBackendRoutingForTest`,
+   `providerCallCount` telemetry, terminal vs non-terminal failure rethrow,
+   `ProductionSafetyConfig` invariants, and `getStatistics` shape.
 
-3. **`AiJobService` batch result polling (`updateJobStatus`, `getUserJobs`)**: These read from Firestore, not direct AI API — no guard needed. Confirmed.
+3. **`AiJobService` batch result polling** — confirmed no guard needed (Firestore reads only).
 
-4. **CI build flags**: Ensure release CI builds do NOT set `ALLOW_CLIENT_AI_IN_RELEASE=true` inadvertently. Recommend adding a build-time assertion or CI lint check.
+4. **CI safety flag audit** — FIXED. Added `Safety flag audit` step to
+   `.github/workflows/release.yml` that `grep`s `.github/`, `Makefile`, and
+   `scripts/` for `ALLOW_CLIENT_AI_IN_RELEASE=true` and fails the build if found.
 
-5. **`EnhancedAiApiService` injectable `backendProxy`** *(2026-05-22)*: `_analyzeWithBackend` creates `BackendProxyProvider(functions: FirebaseFunctions.instance)` inline on every call. Unlike `AiService`, there is no `ClassificationProvider? backendProxy` constructor parameter for test injection. This means backend routing cannot be unit-tested without a live Firebase instance. Fix: add `ClassificationProvider? backendProxy` optional constructor parameter mirroring `AiService` and store it as `_backendProxy`; use `_backendProxy ?? BackendProxyProvider(functions: FirebaseFunctions.instance)` inside `_analyzeWithBackend`.
+5. **`EnhancedAiApiService` injectable `backendProxy`** — FIXED. Added
+   `ClassificationProvider? backendProxy` optional constructor parameter, stored as
+   `_backendProxy`. `_analyzeWithBackend` uses
+   `_backendProxy ?? BackendProxyProvider(functions: FirebaseFunctions.instance)`.
+   Also added `@visibleForTesting overrideBackendRoutingForTest(bool?)` and
+   `@visibleForTesting int get providerCallCount`, mirroring `AiService`.
+
+## Remaining Open Items
+
+- **`getStatistics()` reports `backend_proxy_mode: false` in debug with backend routing
+  override active** — minor cosmetic gap; `getStatistics()` uses `kReleaseMode`
+  as its proxy-mode indicator but doesn't check `_backendRoutingOverride`. Not a
+  correctness issue at runtime; tracked for future cleanup.
+- **No test for `OfflineQueueService._processQueue` safety-exception clear path** —
+  the existing test only covers queueing and clearing; the internal `_processQueue`
+  path requires a running `TokenService` + Hive. Tracked for integration test.

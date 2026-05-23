@@ -674,7 +674,7 @@ class _CompactFeedbackButton extends StatelessWidget {
         classification: classification,
       ),
     ).then((corrected) {
-      if (corrected == true) {
+      if (corrected != null) {
         onFeedbackSubmitted(classification);
       }
     });

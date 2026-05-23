@@ -69,7 +69,7 @@ void main() {
       final classification = WasteClassification(
         itemName: 'Apple Core',
         category: 'Wet Waste',
-        subcategory: 'Food Waste',
+        subCategory: 'Food Waste',
         explanation: 'Organic waste suitable for composting',
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Compost bin',
@@ -86,7 +86,7 @@ void main() {
       final json = classification.toJson();
       expect(json['itemName'], equals('Apple Core'));
       expect(json['category'], equals('Wet Waste'));
-      expect(json['subcategory'], equals('Food Waste'));
+      expect(json['subCategory'], equals('Food Waste'));
       expect(json['visualFeatures'], isA<List>());
       expect(json['alternatives'], isA<List>());
 

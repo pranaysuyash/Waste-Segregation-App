@@ -5,8 +5,6 @@ part 'token_wallet.g.dart';
 /// Token wallet model for AI micro-economy
 @HiveType(typeId: 20)
 class TokenWallet {
-  static const int currentSchemaVersion = 1;
-
   const TokenWallet({
     required this.balance,
     required this.totalEarned,
@@ -14,7 +12,7 @@ class TokenWallet {
     required this.lastUpdated,
     this.dailyConversionsUsed = 0,
     this.lastConversionDate,
-    this.schemaVersion = currentSchemaVersion,
+    this.schemaVersion = 1,
   });
 
   factory TokenWallet.fromJson(Map<String, dynamic> json) {
@@ -41,6 +39,8 @@ class TokenWallet {
       schemaVersion: currentSchemaVersion,
     );
   }
+
+  static const int currentSchemaVersion = 1;
 
   @HiveField(0)
   final int balance; // Current spendable tokens

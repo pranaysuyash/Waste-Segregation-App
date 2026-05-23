@@ -124,8 +124,8 @@ Goal: the AI is measurably improving, the experience is sticky beyond novelty, a
 
 - **Topics**: [Gamification Depth (🟡)](EXPLORATION_TOPICS.md#16-gamification-depth-), [Habit Formation Loop (🟡)](EXPLORATION_TOPICS.md#17-habit-formation-loop-)
 - **De-risk question**: Is current gamification rewarding the *right* behaviour or just any behaviour? Where's the week-3 retention cliff?
-- **Output**: `docs/exploration/GAMIFICATION_DEPTH.md` + `docs/exploration/HABIT_FORMATION_LOOP.md`.
-- **Built artefact this enables**: a v2 gamification system tied to disposal correctness, not scan volume.
+- **Output**: `docs/exploration/GAMIFICATION_DEPTH.md` + `docs/exploration/HABIT_FORMATION_LOOP.md` + `docs/planning/gamification-redesign-spec.md`.
+- **Built artefact this enables**: a v2 gamification system tied to disposal correctness, not scan volume, with adaptive engine, challenge system, points sinks, and phased rollout plan.
 
 ### Track X5 — Firestore Cost & History Schema
 
@@ -202,7 +202,7 @@ These exploration practices apply regardless of phase. Treat them as guardrails.
 | NEXT | X1 | Eval Harness | ✅ Built (flywheel) — needs CI integration |
 | NEXT | X2 | Multi-Model Routing + Disposal | ✅ Exploration doc + `ClassificationRouter` + `ConfidenceCalibrationService` |
 | NEXT | X3 | Region-Aware Rulesets | ✅ Built (7 cities) |
-| NEXT | X4 | Gamification + Habit Loop | ✅ Two exploration docs + v2 quality-based points (`isBatch` bonus) |
+| NEXT | X4 | Gamification + Habit Loop | ✅ Two exploration docs + redesign spec with adaptive engine, challenges, points sinks, achievement tiers |
 | NEXT | X5 | Firestore + History Schema | ✅ Two exploration docs complete |
 | LATER | L1 | On-Device Inference | 🟡 Interface + pipeline in place (Phase A+B). Real model (Phase C) deferred. |
 | LATER | L2 | Smart-Bin / QR Layer | 🟢 |
@@ -210,7 +210,7 @@ These exploration practices apply regardless of phase. Treat them as guardrails.
 | LATER | L4 | Continuous Learning Loop | 🟢 |
 | LATER | L5 | Reuse Marketplace | 🟢 |
 | G1 | — | Deterministic Pre-processing (Layer 0) | ✅ Built — `layer0_router.dart` + `classification_pipeline.dart` |
-| G6 | — | Offline Degradation UX | 🟡 Hint reconciliation built. Full degraded UX (banner + result screen) planned. |
+| G6 | — | Offline Degradation UX | ✅ Built — offline tiers, hint flow, `OfflineResultBanner`, result screen integration, `tryLocalWithHint()` pipeline wiring |
 
 ### Test Coverage (2026-05-23)
 

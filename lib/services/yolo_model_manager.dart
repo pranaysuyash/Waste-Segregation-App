@@ -11,8 +11,8 @@ enum YoloModelVariant {
   yolo26nSeg('yolo26n-seg'),
   customWaste('waste-custom');
 
-  final String label;
   const YoloModelVariant(this.label);
+  final String label;
 }
 
 class YoloModelManager {

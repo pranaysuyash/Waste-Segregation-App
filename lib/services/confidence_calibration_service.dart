@@ -164,6 +164,84 @@ class ConfidenceCalibrationService {
   /// Whether calibration data is available.
   bool get hasCalibrationData => _bins.isNotEmpty;
   DateTime? get binsUpdatedAt => _binsUpdatedAt;
+
+  // ── Drift detection ─────────────────────────────────────────────────
+
+  List<CalibrationBin> _baseline = const [];
+  DateTime? _baselineSetAt;
+
+  /// Set the current calibration bins as the drift baseline.
+  ///
+  /// Call this after a stable eval run to establish the reference point.
+  void setBaseline() {
+    _baseline = List.of(_bins);
+    _baselineSetAt = DateTime.now();
+    WasteAppLogger.info('calibration_baseline_set', context: {
+      'bin_count': _baseline.length,
+      'total_samples': _baseline.fold<int>(0, (sum, b) => sum + b.sampleCount),
+    });
+  }
+
+  /// Compare current bins against the baseline and return bins that
+  /// have drifted beyond [maxDrift] (default 5%).
+  ///
+  /// Returns empty if no baseline is set or no bins are loaded.
+  List<CalibrationDrift> detectDrift({double maxDrift = 0.05}) {
+    if (_baseline.isEmpty || _bins.isEmpty) return [];
+
+    final drifts = <CalibrationDrift>[];
+    for (final current in _bins) {
+      final match = _baseline.where(
+        (b) => b.rawLow == current.rawLow && b.rawHigh == current.rawHigh,
+      );
+      if (match.isEmpty) continue;
+      final base = match.first;
+      final delta = current.empiricalAccuracy - base.empiricalAccuracy;
+      if (delta.abs() > maxDrift) {
+        drifts.add(CalibrationDrift(
+          rawLow: current.rawLow,
+          rawHigh: current.rawHigh,
+          baselineAccuracy: base.empiricalAccuracy,
+          currentAccuracy: current.empiricalAccuracy,
+          delta: delta,
+        ));
+      }
+    }
+
+    if (drifts.isNotEmpty) {
+      WasteAppLogger.warning('calibration_drift_detected', context: {
+        'drifted_bins': drifts.length,
+        'max_drift': drifts.map((d) => d.delta.abs()).reduce((a, b) => a > b ? a : b).toStringAsFixed(3),
+      });
+    }
+
+    return drifts;
+  }
+
+  /// Whether a drift baseline has been established.
+  bool get hasBaseline => _baseline.isNotEmpty;
+  DateTime? get baselineSetAt => _baselineSetAt;
+}
+
+/// Represents a calibration bin that has drifted beyond the threshold.
+class CalibrationDrift {
+  const CalibrationDrift({
+    required this.rawLow,
+    required this.rawHigh,
+    required this.baselineAccuracy,
+    required this.currentAccuracy,
+    required this.delta,
+  });
+
+  final double rawLow;
+  final double rawHigh;
+  final double baselineAccuracy;
+  final double currentAccuracy;
+  final double delta;
+
+  @override
+  String toString() =>
+      'CalibrationDrift([$rawLow–$rawHigh]: $baselineAccuracy → $currentAccuracy, Δ=$delta)';
 }
 
 enum RoutingAction { accept, escalate, override }

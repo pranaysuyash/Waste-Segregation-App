@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:waste_segregation_app/providers/token_providers.dart';
 import '../models/token_wallet.dart';
-import '../services/token_service.dart';
 import '../utils/routes.dart';
-import '../utils/wallet_encryption.dart';
 import '../utils/waste_app_logger.dart';
 
 class TokenWalletScreen extends ConsumerWidget {

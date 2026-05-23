@@ -1614,6 +1614,18 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
                           Icons.chevron_right,
                           color: Colors.teal,
                         ),
+                        GestureDetector(
+                          onTap: _dismissSuggestion,
+                          behavior: HitTestBehavior.opaque,
+                          child: const Padding(
+                            padding: EdgeInsets.only(left: 4),
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.grey,
+                              size: 18,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
