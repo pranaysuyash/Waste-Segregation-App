@@ -131,6 +131,7 @@ coverage/
 # Logs
 logs/
 *.log
+*.hprof
 
 # Structured logging files
 waste_app_logs.jsonl

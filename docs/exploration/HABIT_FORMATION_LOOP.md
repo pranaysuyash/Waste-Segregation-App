@@ -114,8 +114,15 @@ Connect waste sorting to existing daily routines:
 
 ---
 
-## 5. Related
+## 5. Relation to Redesign Spec
 
+The progressive disclosure timeline described in §3 (week-by-week mechanic unlock) directly feeds into the [gamification redesign spec](../planning/gamification-redesign-spec.md#7-onboarding-flow)'s phased onboarding flow (§7), which starts minimal on first visit and progressively reveals streaks (return visit), challenges (day 3+), full achievements (week 1+), and adaptive adjustments (week 2+). The redesign spec further adds an adaptive system that adjusts habit loops based on the user's detected motivation archetype — reinforcing different triggers, rewards, and investments for Achievers vs Explorers vs Socialites vs Habit-formers vs Impact-driven users.
+
+---
+
+## 6. Related
+
+- [Gamification Redesign — Full Spec](../planning/gamification-redesign-spec.md) — comprehensive specification (adaptive engine, challenges, points sinks, phased onboarding)
 - [Gamification Depth](GAMIFICATION_DEPTH.md) — reward system design
 - [Onboarding & Activation](ONBOARDING_AND_ACTIVATION.md) — first habit formation
 - [Notification Strategy](../EXPLORATION_TOPICS.md#a11-notification-strategy-) — trigger delivery

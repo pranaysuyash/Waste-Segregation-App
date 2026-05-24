@@ -9,7 +9,7 @@ WasteClassification _classification({String itemName = 'Plastic Bottle'}) {
   return WasteClassification(
     itemName: itemName,
     category: 'Dry Waste',
-    subcategory: 'Plastic',
+    subCategory: 'Plastic',
     explanation: 'Test classification',
     disposalInstructions: DisposalInstructions(
       primaryMethod: 'Recycle',

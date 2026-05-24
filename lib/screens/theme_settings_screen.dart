@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../providers.dart';
 import '../utils/routes.dart';
+import '../utils/dialog_helper.dart';
+import '../widgets/settings/premium_feature_visuals.dart';
 
 class ThemeSettingsScreen extends ConsumerWidget {
   const ThemeSettingsScreen({super.key});
@@ -91,26 +93,74 @@ class ThemeSettingsScreen extends ConsumerWidget {
               subtitle: Text(t.premiumFeaturesSubtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.pushNamed(context, Routes.premium);
+                Navigator.pushNamed(context, Routes.premiumFeatures);
               },
             ),
           ),
-          if (!isPremium) ...[
-            const SizedBox(height: 8),
-            Card(
+          const SizedBox(height: 8),
+          Semantics(
+            label: t.themeCustomization,
+            value: PremiumFeatureVisuals.semanticsState(
+              context,
+              isUnlocked: isPremium,
+            ),
+            hint: isPremium
+                ? t.themeSettingsSubtitle
+                : t.upgradeToUse(t.themeCustomization),
+            button: true,
+            excludeSemantics: true,
+            onTap: () {
+              if (isPremium) {
+                _showThemeCustomizationEnabledInfo(context, t);
+              } else {
+                _showPremiumFeaturePrompt(
+                  context,
+                  t,
+                  featureName: t.themeCustomization,
+                  benefit: t.themeSettingsSubtitle,
+                );
+              }
+            },
+            child: Card(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: ListTile(
-                leading: const Icon(Icons.palette, color: Colors.amber),
-                title: const Text('Custom Themes'),
-                subtitle: const Text('Create your own theme colors'),
-                trailing:
-                    const Icon(Icons.workspace_premium, color: Colors.amber),
+                leading: Icon(
+                  Icons.palette,
+                  color: isPremium ? Colors.green : Colors.amber,
+                ),
+                title: Text(
+                  t.themeCustomization,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: isPremium ? null : Colors.grey.shade700,
+                  ),
+                ),
+                subtitle: Text(
+                  t.themeSettingsSubtitle,
+                  style: TextStyle(
+                    color: isPremium ? null : Colors.grey.shade600,
+                  ),
+                ),
+                trailing: PremiumFeatureVisuals.buildStatusIndicator(
+                  context,
+                  isUnlocked: isPremium,
+                  showChevron: false,
+                ),
                 onTap: () {
-                  _showPremiumFeaturePrompt(context, ref, t);
+                  if (isPremium) {
+                    _showThemeCustomizationEnabledInfo(context, t);
+                  } else {
+                    _showPremiumFeaturePrompt(
+                      context,
+                      t,
+                      featureName: t.themeCustomization,
+                      benefit: t.themeSettingsSubtitle,
+                    );
+                  }
                 },
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -121,26 +171,27 @@ class ThemeSettingsScreen extends ConsumerWidget {
   }
 
   void _showPremiumFeaturePrompt(
-      BuildContext context, WidgetRef ref, AppLocalizations t) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(t.premiumFeatureTitle('Custom Themes')),
-        content: Text(t.premiumCustomThemesBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(t.notNow),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, Routes.premium);
-            },
-            child: Text(t.upgrade),
-          ),
-        ],
+    BuildContext context,
+    AppLocalizations t, {
+    required String featureName,
+    required String benefit,
+  }) {
+    DialogHelper.showPremiumPrompt(
+      context,
+      featureName: featureName,
+      description: PremiumFeatureVisuals.upgradeMessage(
+        context,
+        featureName: featureName,
+        benefit: benefit,
       ),
+      onUpgrade: () => Navigator.pushNamed(context, Routes.premiumFeatures),
+    );
+  }
+
+  void _showThemeCustomizationEnabledInfo(
+      BuildContext context, AppLocalizations t) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(t.themeSettingsSubtitle)),
     );
   }
 }

@@ -1,8 +1,10 @@
-# ReLoop - UI Revamp Documentation 🎨✨
+# ReLoop - UI Design Exploration (Gen Z / Social Gaming Angle) 🎨✨
+
+> **Status: Exploratory / Aspirational.** This document captures design exploration and ambition, not current implementation status. It serves as a directional reference for visual thinking, not a committed roadmap. Verify against the codebase before treating any claim as implemented.
 
 ## Executive Summary
 
-This document outlines a comprehensive UI/UX revamp for the ReLoop, transforming it from a functional utility into an engaging, Gen Z-appealing experience that makes waste management fun, social, and visually stunning.
+This document explores a comprehensive UI/UX design direction for ReLoop, sketching what it could look like as an engaging, Gen Z-appealing experience that makes waste management fun, social, and visually stunning. It is an exploration angle, not a live spec.
 
 ## 🎯 Target Audience Analysis: Gen Z (Born 1997-2012)
 
@@ -326,31 +328,33 @@ Android: Material You theming, adaptive icons, floating action buttons
 Web: Keyboard shortcuts, right-click menus, responsive breakpoints
 ```
 
-## 🎨 Implementation Roadmap
+## 🎨 Aspirational Roadmap
 
-### Phase 1: Foundation (2-3 weeks)
-- [ ] Update color palette and typography
-- [ ] Create component design system
-- [ ] Implement basic animations
-- [ ] Update core screens (Home, Camera, Results)
+> These phases are design exploration targets, not committed work items. Check the codebase for current status.
 
-### Phase 2: Engagement (2-3 weeks)
-- [ ] Add gamification enhancements
-- [ ] Implement social features
-- [ ] Create achievement celebration system
-- [ ] Add theme customization
+### Phase 1: Foundation (aspirational)
+- [x] Color palette (done — `lib/utils/constants.dart:158-163`)
+- [ ] Typography system (Roboto only; SF Pro Rounded, JetBrains Mono, Poppins not configured)
+- [ ] Component design system (partial — colors/buttons/cards exist, not formalized)
+- [ ] Core screen visual overhaul (Home ~70%, Auth ~55%, Results ~50%, Camera ~20%, Splash ~15%)
 
-### Phase 3: Polish (1-2 weeks)
+### Phase 2: Engagement (aspirational)
+- [ ] Gamification enhancements (points/achievements/streaks/confetti exist; avatar, rewards store, team challenges do not)
+- [ ] Social features (community feed exists but list-based, not grid; feed comments/reactions missing)
+- [ ] Theme customization (light/dark/system only; 5 named themes not implemented)
+- [ ] Achievement celebration system (confetti exists; 3D badges, orchestrated sequence not)
+
+### Phase 3: Polish (aspirational)
 - [ ] Micro-interaction refinements
-- [ ] Performance optimization
-- [ ] Accessibility improvements
+- [ ] Performance optimization (no cached_network_image; no AVIF)
+- [x] 44px touch targets not systemic (resolved — `ThemeData` now enforces `VisualDensity.comfortable` + `minimumSize: Size(44,44)` on all button themes in `constants.dart`)
 - [ ] Cross-platform testing
 
-### Phase 4: Advanced Features (2-3 weeks)
-- [ ] AR integration experiments
-- [ ] Advanced data visualizations
-- [ ] Community features
-- [ ] Premium theme system
+### Phase 4: Advanced Features (aspirational)
+- [ ] AR integration (not started; Flutter AR feasibility unknown)
+- [x] Data visualizations (`data_visualization_animations.dart` stubs replaced by enhanced canonical `AnimatedWidgets.animatedProgress()` in `animation_system.dart`, wired into home screen daily goal)
+- [ ] Community features expansion
+- [ ] Premium theme system (premium paywall placeholder exists, no implementation)
 
 ## 🔧 Technical Implementation Notes
 

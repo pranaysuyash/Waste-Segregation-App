@@ -130,7 +130,7 @@ AiProviderResponse _successResponse({
   final json = _classificationJson(
     itemName: itemName,
     category: category,
-    subcategory: subcategory,
+    subCategory: subcategory,
     confidence: confidence,
   );
   return AiProviderResponse(
@@ -279,7 +279,7 @@ void main() {
       final resp = _successResponse(
         itemName: 'Glass Jar',
         category: 'Dry Waste',
-        subcategory: 'Glass',
+        subCategory: 'Glass',
         confidence: 0.87,
       );
 
@@ -296,7 +296,7 @@ void main() {
       final resp = _successResponse(
         itemName: 'Newspaper',
         category: 'Dry Waste',
-        subcategory: 'Paper',
+        subCategory: 'Paper',
       );
 
       expect(resp.rawResponseMap['itemName'], equals('Newspaper'));

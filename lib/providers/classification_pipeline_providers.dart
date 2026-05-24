@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/classification_pipeline.dart';
+import '../services/classification_router_guardrails.dart';
 import '../services/classification_router.dart';
 import '../services/local_classifier_service.dart';
 import 'layer0_providers.dart';
@@ -30,6 +31,13 @@ final routingStrategyProvider = FutureProvider<RoutingStrategy>((ref) async {
   );
 });
 
+final routerPolicyConfigProvider =
+    FutureProvider<ClassificationRouterGuardrails>((ref) async {
+  final remoteConfig = ref.read(remoteConfigServiceProvider);
+  final config = await remoteConfig.getAiRouterPolicyConfig();
+  return ClassificationRouterGuardrails.fromPolicy(config);
+});
+
 /// Provides the [ClassificationPipeline] that orchestrates
 /// Layer 0 → Layer 1 → Cloud classification.
 ///
@@ -39,16 +47,23 @@ final classificationPipelineProvider = Provider<ClassificationPipeline>((ref) {
   final layer0Router = ref.read(layer0RouterProvider);
   final localClassifier = ref.read(localClassifierProvider);
   final strategyAsync = ref.watch(routingStrategyProvider);
+  final guardrailsAsync = ref.watch(routerPolicyConfigProvider);
 
   final strategy = strategyAsync.when(
     data: (s) => s,
     loading: () => RoutingStrategy.balanced,
     error: (_, __) => RoutingStrategy.balanced,
   );
+  final guardrails = guardrailsAsync.when(
+    data: (g) => g,
+    loading: () => const ClassificationRouterGuardrails(),
+    error: (_, __) => const ClassificationRouterGuardrails(),
+  );
 
   return ClassificationPipeline(
     layer0Router: layer0Router,
     localClassifier: localClassifier,
+    guardrails: guardrails,
     router: ClassificationRouter(strategy: strategy),
   );
 });

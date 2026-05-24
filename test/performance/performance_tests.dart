@@ -777,7 +777,7 @@ Future<void> _performOptimizedResourceOperation(ResourceTracker tracker) async {
 WasteClassification _createTestClassification(String itemName) {
   return WasteClassification(
     itemName: itemName,
-    subcategory: 'Test',
+    subCategory: 'Test',
     explanation: 'Performance test classification',
     category: 'plastic',
     disposalInstructions: DisposalInstructions(

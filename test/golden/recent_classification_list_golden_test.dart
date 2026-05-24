@@ -16,7 +16,7 @@ void main() {
                   RecentClassificationCard(
                     itemName: 'Plastic Water Bottle',
                     category: 'Dry Waste',
-                    subcategory: 'Plastic',
+                    subCategory: 'Plastic',
                     timestamp: DateTime(2024, 1, 15, 10, 30),
                     imageUrl: 'test_image.jpg',
                     isRecyclable: true,
@@ -28,7 +28,7 @@ void main() {
                   RecentClassificationCard(
                     itemName: 'Apple Core',
                     category: 'Wet Waste',
-                    subcategory: 'Food',
+                    subCategory: 'Food',
                     timestamp: DateTime(2024, 1, 14, 15, 45),
                     imageUrl: 'test_image2.jpg',
                     isRecyclable: false,
@@ -40,7 +40,7 @@ void main() {
                   RecentClassificationCard(
                     itemName: 'Used Battery',
                     category: 'Hazardous Waste',
-                    subcategory: 'Electronic',
+                    subCategory: 'Electronic',
                     timestamp: DateTime(2024, 1, 13, 9, 15),
                     imageUrl: 'test_image3.jpg',
                     isRecyclable: false,
@@ -76,7 +76,7 @@ void main() {
                       itemName:
                           'Very Long Item Name That Should Not Cause Overflow Issues',
                       category: 'Dry Waste',
-                      subcategory: 'Very Long Subcategory Name',
+                      subCategory: 'Very Long Subcategory Name',
                       timestamp: DateTime(2024, 1, 15, 10, 30),
                       imageUrl: 'test_image.jpg',
                       isRecyclable: true,
@@ -91,7 +91,7 @@ void main() {
                     child: RecentClassificationCard(
                       itemName: 'Medium Width Item Name',
                       category: 'Wet Waste',
-                      subcategory: 'Food',
+                      subCategory: 'Food',
                       timestamp: DateTime(2024, 1, 14, 15, 45),
                       imageUrl: 'test_image2.jpg',
                       isRecyclable: false,
@@ -106,7 +106,7 @@ void main() {
                     child: RecentClassificationCard(
                       itemName: 'Narrow Screen Item',
                       category: 'Hazardous Waste',
-                      subcategory: 'Chemical',
+                      subCategory: 'Chemical',
                       timestamp: DateTime(2024, 1, 13, 9, 15),
                       isRecyclable: false,
                       isCompostable: false,
@@ -214,7 +214,7 @@ void main() {
                     child: RecentClassificationCard(
                       itemName: 'Wide Layout Item',
                       category: 'Dry Waste',
-                      subcategory: 'Paper',
+                      subCategory: 'Paper',
                       timestamp: DateTime(2024, 1, 15, 10, 30),
                       imageUrl: 'test_image.jpg',
                       isRecyclable: true,
@@ -230,7 +230,7 @@ void main() {
                     child: RecentClassificationCard(
                       itemName: 'Medium Layout Item',
                       category: 'Wet Waste',
-                      subcategory: 'Food',
+                      subCategory: 'Food',
                       timestamp: DateTime(2024, 1, 14, 15, 45),
                       imageUrl: 'test_image2.jpg',
                       isRecyclable: false,
@@ -246,7 +246,7 @@ void main() {
                     child: RecentClassificationCard(
                       itemName: 'Narrow Layout Item',
                       category: 'Hazardous Waste',
-                      subcategory: 'Chemical',
+                      subCategory: 'Chemical',
                       timestamp: DateTime(2024, 1, 13, 9, 15),
                       imageUrl: 'test_image3.jpg',
                       isRecyclable: false,
@@ -262,7 +262,7 @@ void main() {
                     child: RecentClassificationCard(
                       itemName: 'Very Narrow Item',
                       category: 'Medical Waste',
-                      subcategory: 'Syringe',
+                      subCategory: 'Syringe',
                       timestamp: DateTime(2024, 1, 12, 14, 20),
                       isRecyclable: false,
                       isCompostable: false,
@@ -303,7 +303,7 @@ void main() {
                   RecentClassificationCard(
                     itemName: 'Item with Subcategory',
                     category: 'Wet Waste',
-                    subcategory: 'Food',
+                    subCategory: 'Food',
                     timestamp: DateTime(2024, 1, 14, 15, 45),
                     onTap: () {},
                   ),

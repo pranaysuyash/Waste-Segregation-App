@@ -183,7 +183,7 @@ After the initial reorganization, important UI and design documentation was rest
 ```
 docs/design/
 ├── README.md                          # Design documentation index
-├── UI_REVAMP_MASTER_PLAN.md          # Comprehensive UI improvement strategy
+├── UI_DESIGN_EXPLORATION_GEN_Z_ANGLE.md  # Aspirational visual design exploration
 ├── app_theme_and_style_guide.md      # Design system and style guide
 ├── assets_and_icons_strategy.md      # Icon design and asset management
 ├── waste_app_ui_revamp.md            # Detailed UI revamp specifications

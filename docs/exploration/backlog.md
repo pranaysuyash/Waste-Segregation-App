@@ -80,13 +80,15 @@ Sources already mined for this initial list:
 
 ## Gamification & Behaviour
 
-- [ ] Reward correct disposal, not just scan volume — needs verification primitive
-- [ ] Anti-cheating: detect repeat-scan farming
-- [ ] Cooperative family / group challenges vs purely competitive
-- [ ] Streak design that survives travel / sick days without punishing
-- [ ] Habit loop measurement — cue → routine → reward, with retention cliffs
-- [ ] Week-3 retention cliff investigation (where does novelty wear off?)
-- [ ] Long-term motivation beyond points (impact narrative, identity, belonging)
+These items are now scoped, deferred, or addressed in the [gamification redesign spec](../planning/gamification-redesign-spec.md). The spec covers v2 quality-based points, adaptive motivation engine, challenge system, points sinks, achievement tiers, negative mechanics research, and v1/v2/v3 phased rollout.
+
+- [~] Reward correct disposal, not just scan volume — **Addressed in redesign spec §2 (v2 Points System)**: quality-scored points, difficulty multipliers, no-repeat bonuses. Verification primitive still open.
+- [~] Anti-cheating: detect repeat-scan farming — **Scoped to v3 per redesign spec §13.1**: anti-farming deferred; light protections (server daily cap) considered for v2.
+- [~] Cooperative family / group challenges — **Scoped to v2 per redesign spec §3.6**: family features explicitly deferred to v2, with challenge system (§6) designed for extensibility.
+- [~] Streak design that survives travel / sick days — **Addressed in redesign spec §7 (Onboarding Flow)**: progressive streak reveal, design principles allow streak protection mechanics.
+- [~] Habit loop measurement — **Addressed in redesign spec §4 (Adaptive System)**: 6-signal profile detection (interaction freq, completion patterns, time-of-day, feature affinity, durability, social density) feeding 5 motivation archetypes.
+- [~] Week-3 retention cliff investigation — **Addressed in redesign spec §14 (Risks & Mitigation)**: retention cliff identified as explicit risk #1 with week-3 check-in intervention.
+- [~] Long-term motivation beyond points — **Addressed in redesign spec §6.3 (Challenge types)**: discovery, impact, streak challenges provide alternative motivation vectors beyond point accumulation.
 
 ## Community & Social
 

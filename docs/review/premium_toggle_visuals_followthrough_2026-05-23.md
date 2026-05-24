@@ -184,3 +184,46 @@ Results:
   - `test/widgets/settings/settings_navigation_contract_test.dart`
   - this review doc
 - Working tree contains many unrelated concurrent edits from other tracks. Keep VIS-13 review/staging scoped to the files above plus the previously accepted VIS-13 files.
+
+## Addendum (motto_v2 continuation pass: theme-settings feature-entry standardization)
+
+### Additional implementation changes
+
+1) Theme customization entry in Theme Settings now follows shared premium-lock visuals/semantics
+- File: `lib/screens/theme_settings_screen.dart`
+- Changes:
+  - Added shared premium status indicator usage via `PremiumFeatureVisuals.buildStatusIndicator(..., showChevron: false)`.
+  - Added accessibility semantics for locked/unlocked state:
+    - `label`: `themeCustomization`
+    - `value`: `PremiumFeatureVisuals.semanticsState(...)`
+    - `hint`: feature benefit when unlocked, upgrade hint when locked.
+  - Replaced hardcoded "Custom Themes" row with localization-backed `themeCustomization` and `themeSettingsSubtitle`.
+  - Always renders the theme customization entry so premium users see active state (`ENABLED`) instead of hidden state.
+
+2) Theme customization locked tap now uses contextual upgrade prompt
+- File: `lib/screens/theme_settings_screen.dart`
+- Changes:
+  - Replaced local generic alert dialog with `DialogHelper.showPremiumPrompt(...)`.
+  - Uses `PremiumFeatureVisuals.upgradeMessage(...)` so dialog body includes concrete feature benefit + feature-specific premium explanation.
+  - Upgrade CTA now routes to canonical `Routes.premiumFeatures` for consistency with other settings entry points.
+
+3) Added regression test coverage for Theme Settings premium-gating behavior
+- File: `test/screens/theme_settings_screen_premium_gate_test.dart`
+- Coverage:
+  - free-tier: locked "Theme Customization" shows `PRO` state and contextual upgrade dialog copy.
+  - premium-tier: same entry shows active `ENABLED` state and does not open upgrade dialog.
+
+### Additional verification commands and outcomes
+
+Commands executed:
+1. `TMPDIR=$PWD/.tmp flutter test test/screens/theme_settings_screen_premium_gate_test.dart` (red)
+2. `TMPDIR=$PWD/.tmp flutter test test/screens/theme_settings_screen_premium_gate_test.dart` (green after implementation)
+3. `TMPDIR=$PWD/.tmp flutter analyze --no-fatal-infos lib/screens/theme_settings_screen.dart lib/widgets/settings/app_settings_section.dart lib/widgets/settings/features_section.dart lib/widgets/premium_segmentation_toggle.dart test/screens/theme_settings_screen_premium_gate_test.dart test/widgets/settings/settings_navigation_contract_test.dart test/widgets/premium_segmentation_toggle_test.dart`
+4. `TMPDIR=$PWD/.tmp flutter test test/widgets/settings/settings_navigation_contract_test.dart test/widgets/premium_segmentation_toggle_test.dart test/screens/theme_settings_screen_premium_gate_test.dart test/screens/premium_features_screen_test.dart test/widgets/premium_feature_card_test.dart`
+5. `TMPDIR=$PWD/.tmp flutter analyze --no-fatal-infos lib/screens/theme_settings_screen.dart test/screens/theme_settings_screen_premium_gate_test.dart`
+6. `TMPDIR=$PWD/.tmp flutter test test/screens/theme_settings_screen_premium_gate_test.dart`
+
+Results:
+- New theme-settings premium-gating tests: pass.
+- Targeted settings/premium regression suite: pass.
+- Analyze for final touched theme-settings scope: pass with no issues.

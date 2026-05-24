@@ -409,7 +409,7 @@ WasteClassification _createTestClassification(
   return WasteClassification(
     itemName: itemName,
     category: category,
-    subcategory: subcategory,
+    subCategory: subcategory,
     explanation: 'This is a test $itemName for golden test purposes.',
     disposalInstructions: DisposalInstructions(
       primaryMethod:

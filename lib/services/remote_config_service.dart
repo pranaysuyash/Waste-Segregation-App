@@ -1,6 +1,7 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import '../config/monetization_ai_config_contract.dart';
+import 'ai_router_policy_config.dart';
 import '../utils/waste_app_logger.dart';
 
 /// Service for managing Firebase Remote Config for A/B testing and feature flags
@@ -75,6 +76,15 @@ class RemoteConfigService {
 
         // Classification routing
         'classification_routing_strategy': 'balanced',
+        'ai_router_policy_pack': '''
+{
+  "policyPackVersion": "router-policy-v1",
+  "localAcceptanceThreshold": 0.85,
+  "localEscalationThreshold": 0.70,
+  "localSafetyThreshold": 0.97,
+  "blockCacheOnRuleVersionChange": true,
+  "enforceSafetyEscalation": true
+}''',
       });
 
       // Configure fetch settings
@@ -236,5 +246,10 @@ class RemoteConfigService {
     );
     const valid = ['costFirst', 'qualityFirst', 'latencyFirst', 'balanced'];
     return valid.contains(value) ? value : 'balanced';
+  }
+
+  Future<AiRouterPolicyConfig> getAiRouterPolicyConfig() async {
+    final raw = await getString('ai_router_policy_pack');
+    return AiRouterPolicyConfig.fromJsonString(raw);
   }
 }

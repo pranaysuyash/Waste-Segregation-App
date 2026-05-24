@@ -5,7 +5,7 @@ This folder contains comprehensive design documentation for the ReLoop's user in
 ## 📱 **Core UI Documentation**
 
 ### **Design Strategy & Planning**
-- **[UI Revamp Master Plan](UI_REVAMP_MASTER_PLAN.md)** - Comprehensive UI improvement strategy and implementation roadmap
+- **[UI Design Exploration (Gen Z Angle)](UI_DESIGN_EXPLORATION_GEN_Z_ANGLE.md)** - Comprehensive UI improvement strategy and implementation roadmap
 - **[App Theme and Style Guide](app_theme_and_style_guide.md)** - Complete design system, colors, typography, and component guidelines
 - **[Assets and Icons Strategy](assets_and_icons_strategy.md)** - Icon design philosophy and asset management
 
@@ -93,7 +93,7 @@ This folder contains comprehensive design documentation for the ReLoop's user in
 
 ### **For Developers**
 1. Start with [App Theme and Style Guide](app_theme_and_style_guide.md) for implementation details
-2. Reference [UI Revamp Master Plan](UI_REVAMP_MASTER_PLAN.md) for architectural decisions
+2. Reference [UI Design Exploration (Gen Z Angle)](UI_DESIGN_EXPLORATION_GEN_Z_ANGLE.md) for architectural decisions
 3. Use [Assets and Icons Strategy](assets_and_icons_strategy.md) for asset implementation
 
 ### **For Designers**
@@ -102,7 +102,7 @@ This folder contains comprehensive design documentation for the ReLoop's user in
 3. Reference design system guidelines for consistency
 
 ### **For Project Managers**
-1. See [UI Revamp Master Plan](UI_REVAMP_MASTER_PLAN.md) for roadmap and priorities
+1. See [UI Design Exploration (Gen Z Angle)](UI_DESIGN_EXPLORATION_GEN_Z_ANGLE.md) for roadmap and priorities
 2. Track implementation progress against design specifications
 
 ## 🚀 **Getting Started**

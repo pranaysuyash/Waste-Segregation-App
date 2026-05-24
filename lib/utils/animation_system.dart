@@ -172,6 +172,22 @@ class AnimationSystem {
 
     return controller;
   }
+
+  /// Whether animations should play, respecting system accessibility preferences.
+  /// Checks both [MediaQuery.disableAnimations] and [MediaQuery.accessibleNavigationOf].
+  static bool shouldAnimate(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    if (mediaQuery.disableAnimations) return false;
+    if (mediaQuery.accessibleNavigationOf) return false;
+    return true;
+  }
+
+  /// Returns [Duration.zero] when animations are disabled, [fallback] otherwise.
+  /// Use when building [AnimationController] durations.
+  static Duration accessibleDuration(
+      BuildContext context, Duration fallback) {
+    return shouldAnimate(context) ? fallback : Duration.zero;
+  }
 }
 
 /// Pre-built animation widgets for common use cases
@@ -257,7 +273,7 @@ class AnimatedWidgets {
     );
   }
 
-  /// Animated progress indicator
+  /// Animated progress indicator with optional label and percentage
   static Widget animatedProgress({
     required double value,
     Duration duration = AnimationSystem.normalDuration,
@@ -265,14 +281,34 @@ class AnimatedWidgets {
     Color? color,
     Color? backgroundColor,
     double height = 4.0,
+    String? label,
+    bool showPercentage = false,
+    double borderRadius = 0.0,
+    EdgeInsets padding = EdgeInsets.zero,
   }) {
-    return _AnimatedProgress(
+    final progress = _AnimatedProgress(
       value: value,
       duration: duration,
       curve: curve,
       color: color,
       backgroundColor: backgroundColor,
       height: height,
+      borderRadius: borderRadius,
+    );
+    if (label == null && !showPercentage) {
+      return Padding(padding: padding, child: progress);
+    }
+    return Padding(
+      padding: padding,
+      child: _LabeledProgress(
+        value: value,
+        duration: duration,
+        curve: curve,
+        color: color,
+        label: label,
+        showPercentage: showPercentage,
+        progress: progress,
+      ),
     );
   }
 }
@@ -628,6 +664,7 @@ class _AnimatedProgress extends StatefulWidget {
     this.color,
     this.backgroundColor,
     required this.height,
+    this.borderRadius = 0.0,
   });
 
   final double value;
@@ -636,6 +673,7 @@ class _AnimatedProgress extends StatefulWidget {
   final Color? color;
   final Color? backgroundColor;
   final double height;
+  final double borderRadius;
 
   @override
   State<_AnimatedProgress> createState() => _AnimatedProgressState();
@@ -691,7 +729,7 @@ class _AnimatedProgressState extends State<_AnimatedProgress>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
+    final indicator = AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
         return LinearProgressIndicator(
@@ -702,5 +740,125 @@ class _AnimatedProgressState extends State<_AnimatedProgress>
         );
       },
     );
+    if (widget.borderRadius > 0) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        child: indicator,
+      );
+    }
+    return indicator;
+  }
+}
+
+class _LabeledProgress extends StatefulWidget {
+  const _LabeledProgress({
+    required this.value,
+    required this.duration,
+    required this.curve,
+    required this.progress,
+    this.color,
+    this.label,
+    this.showPercentage = false,
+  });
+
+  final double value;
+  final Duration duration;
+  final Curve curve;
+  final Widget progress;
+  final Color? color;
+  final String? label;
+  final bool showPercentage;
+
+  @override
+  State<_LabeledProgress> createState() => _LabeledProgressState();
+}
+
+class _LabeledProgressState extends State<_LabeledProgress>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: widget.duration,
+      vsync: this,
+    );
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: widget.value,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: widget.curve,
+    ));
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(_LabeledProgress oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _animation = Tween<double>(
+        begin: _animation.value,
+        end: widget.value,
+      ).animate(CurvedAnimation(
+        parent: _controller,
+        curve: widget.curve,
+      ));
+      _controller.reset();
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final effectiveColor = widget.color ?? theme.colorScheme.primary;
+
+    if (widget.label != null || widget.showPercentage) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (widget.label != null || widget.showPercentage)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (widget.label != null)
+                  Text(
+                    widget.label!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                if (widget.showPercentage)
+                  AnimatedBuilder(
+                    animation: _animation,
+                    builder: (context, child) {
+                      return Text(
+                        '${(_animation.value * 100).round()}%',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: effectiveColor,
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          if (widget.label != null || widget.showPercentage)
+            const SizedBox(height: 6),
+          widget.progress,
+        ],
+      );
+    }
+    return widget.progress;
   }
 }

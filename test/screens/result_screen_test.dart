@@ -134,7 +134,7 @@ WasteClassification _classification() {
     id: 'c1',
     itemName: 'Plastic Bottle',
     category: 'Dry Waste',
-    subcategory: 'Plastic',
+    subCategory: 'Plastic',
     explanation: 'Test explanation',
     disposalInstructions: DisposalInstructions(
       primaryMethod: 'Recycle',
@@ -491,7 +491,7 @@ void main() {
 
         final classification = _classification().copyWith(
           category: 'Hazardous Waste',
-          subcategory: 'Chemicals',
+          subCategory: 'Chemicals',
         );
 
         await tester.pumpWidget(
@@ -560,7 +560,7 @@ void main() {
 
         final classification = _classification().copyWith(
           category: 'Sanitary Waste',
-          subcategory: 'Diapers',
+          subCategory: 'Diapers',
         );
 
         await tester.pumpWidget(

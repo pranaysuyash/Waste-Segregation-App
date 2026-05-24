@@ -1,10 +1,12 @@
 # Gamification Depth
 
 **Date**: 2026-05-23
-**Status**: Exploration — v2 gamification system design
+**Status**: Exploration — v2 gamification system design; redesign spec complete after interview synthesis
 **Parent**: [EXPLORATION_TOPICS.md](../EXPLORATION_TOPICS.md) entry 16
-**Decision this unblocks**: v2 gamification tied to disposal correctness, not scan volume
+**Decision this unblocks**: v2 gamification tied to disposal correctness, not scan volume, with adaptive engine, challenge system, and points sinks
 **Kill criteria**: If gamification has no measurable impact on week-3 retention, simplify to streaks + badges only
+
+> **Full redesign spec**: [`docs/planning/gamification-redesign-spec.md`](../planning/gamification-redesign-spec.md) — comprehensive specification from the gamification interview recovery + 3 follow-up interview rounds. This exploration doc covers the v2 point/achievement foundation; the redesign spec adds the adaptive engine, challenge system, points sinks, negative mechanics research, and phased rollout plan.
 
 ---
 
@@ -99,8 +101,61 @@
 
 ---
 
-## 5. Related
+## 5. Redesign Spec — What's Beyond v2
 
+The [redesign spec](../planning/gamification-redesign-spec.md) extends the v2 foundation described above with the following major additions, all derived from the gamification interview (5 recovered rounds + 3 follow-up rounds):
+
+### Adaptive Motivation Engine
+
+- Collects **6 signals**: interaction frequency, completion patterns, time-of-day, category breadth, challenge engagement, social participation
+- Detects **5 archetypes**: Achiever, Explorer, Socialite, Habit-former, Impact-driven
+- Adaptation is **invisible + optional reveal** — system adapts silently; users can view their profile
+- **Detection cadence**: short-term nudges (3–5 sessions), sustained profile shifts (7–14 days)
+
+### Challenge System
+
+- **6 challenge types**: Daily, Weekly, Discovery, Counterbalance, Amplification, Community
+- **Rebalancing**: system detects behavioral narrowing and suggests counterbalancing challenges
+- **Selection algorithm** uses: user archetype + recent narrowing + category gaps + time of week + rebalancing role
+
+### Points Sinks (all ship together in v1)
+
+| Sink | Purpose |
+|------|---------|
+| Eco-impact spending | Fund real tree planting / waste cleanup |
+| Cosmetic rewards | Themes, badges, emoji reactions, virtual items |
+| Streak protection | Buy streak freezes or extra challenge slots |
+| Custom challenges | Create custom challenges for self or group |
+
+### Negative Mechanics (Deferred)
+
+- All negative mechanics (streak reset, point decay, challenge failure cost, level demotion) deferred to v2 A/B experiment
+- v1 is pure positive reinforcement
+
+### Phased Onboarding
+
+- **First visit**: minimal (points + streak tracking invisible)
+- **Return visit**: streak shown, achievements introduced
+- **Week 1+**: challenges, full achievement list, adaptive adjustments begin
+
+### Token Economy Separation
+
+- Keep separate ledgers: points for engagement, tokens for AI usage metering
+- One-way + event-only crossover (points can earn tokens on special occasions)
+- No general conversion path
+
+### Phasing & Release
+
+- **v1**: Core implementation (2–3 weeks) — v2 points, ~20 achievements, streak overhaul, challenges, points sinks, signal collection
+- **v2**: Adaptive engine (1 week) — archetype detection, adaptive challenge selection, rebalancing, visible profile
+- **v3**: Polish & launch (1 week) — full suite testing, baseline metrics, UI polish
+
+---
+
+## 6. Related
+
+- [Gamification Redesign — Full Spec](../planning/gamification-redesign-spec.md) — comprehensive specification (adaptive engine, challenges, points sinks, phasing)
 - [Habit Formation Loop](HABIT_FORMATION_LOOP.md) — behavioural mechanics
 - [Token Economy & Pricing Coherence](TOKEN_ECONOMY_AND_PRICING_COHERENCE.md) — point/token relationship
 - [Onboarding & Activation](ONBOARDING_AND_ACTIVATION.md) — first-achievement design
+- [Family Dashboard UI](FAMILY_DASHBOARD_UI.md) — household mode (separate v2 effort)

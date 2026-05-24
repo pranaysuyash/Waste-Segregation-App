@@ -1,5 +1,6 @@
 import '../models/waste_classification.dart';
 import 'local_classifier_service.dart';
+import 'ai_router_policy_config.dart';
 
 class RouterGuardrailDecision {
   const RouterGuardrailDecision({
@@ -16,11 +17,27 @@ class ClassificationRouterGuardrails {
     this.localAcceptanceThreshold = 0.85,
     this.localEscalationThreshold = 0.70,
     this.localSafetyThreshold = 0.97,
+    this.blockCacheOnRuleVersionChange = true,
+    this.enforceSafetyEscalation = true,
   });
 
   final double localAcceptanceThreshold;
   final double localEscalationThreshold;
   final double localSafetyThreshold;
+  final bool blockCacheOnRuleVersionChange;
+  final bool enforceSafetyEscalation;
+
+  factory ClassificationRouterGuardrails.fromPolicy(
+    AiRouterPolicyConfig config,
+  ) {
+    return ClassificationRouterGuardrails(
+      localAcceptanceThreshold: config.localAcceptanceThreshold,
+      localEscalationThreshold: config.localEscalationThreshold,
+      localSafetyThreshold: config.localSafetyThreshold,
+      blockCacheOnRuleVersionChange: config.blockCacheOnRuleVersionChange,
+      enforceSafetyEscalation: config.enforceSafetyEscalation,
+    );
+  }
 
   static const Set<String> _alwaysEscalate = <String>{
     'Hazardous Waste',
@@ -49,7 +66,8 @@ class ClassificationRouterGuardrails {
       return const RouterGuardrailDecision(
           accepted: false, reason: 'manual_review_category');
     }
-    if (_alwaysEscalate.contains(local.category) &&
+    if (enforceSafetyEscalation &&
+        _alwaysEscalate.contains(local.category) &&
         local.confidence < localSafetyThreshold) {
       return const RouterGuardrailDecision(
           accepted: false, reason: 'safety_threshold_guardrail');
@@ -69,7 +87,7 @@ class ClassificationRouterGuardrails {
     WasteClassification cloud, {
     required bool localRuleVersionChanged,
   }) {
-    if (localRuleVersionChanged) {
+    if (blockCacheOnRuleVersionChange && localRuleVersionChanged) {
       return const RouterGuardrailDecision(
           accepted: false, reason: 'local_rule_version_changed');
     }
@@ -80,4 +98,3 @@ class ClassificationRouterGuardrails {
     return const RouterGuardrailDecision(accepted: true);
   }
 }
-

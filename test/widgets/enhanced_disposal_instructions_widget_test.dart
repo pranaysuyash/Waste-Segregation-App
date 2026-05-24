@@ -14,8 +14,8 @@ void main() {
         id: 'test-id',
         itemName: 'Plastic Bottle',
         category: 'plastic',
-        subcategory: 'Plastic',
-        materialType: 'PET Plastic',
+        subCategory: 'Plastic',
+        materials: ['PET Plastic'],
         explanation: 'This is a plastic bottle made of PET plastic',
         region: 'Test Region',
         visualFeatures: const ['transparent', 'bottle-shaped'],
@@ -194,7 +194,7 @@ void main() {
       final classificationWithBrand = mockClassification.copyWith(
         brand: 'Coca-Cola',
         itemName: 'Soda Bottle',
-        materialType: 'PET Plastic',
+        materials: ['PET Plastic'],
       );
 
       String? capturedMaterial;

@@ -229,5 +229,6 @@ Already partially complete:
 - [TOKEN_ECONOMY_TODO.md](../../TOKEN_ECONOMY_TODO.md) — phase-by-phase execution checklist
 - [EXPLORATION_TOPICS.md](../EXPLORATION_TOPICS.md#27a-token-economy--pricing-coherence---in-flight--2026-05-19) — parent index entry
 - [AI Cost Telemetry & Guardrails](AI_COST_TELEMETRY_AND_GUARDRAILS.md) — cost tracking infrastructure
+- [Gamification Redesign Spec](../planning/gamification-redesign-spec.md#10-token-economy-separation) — token separation contract (one-way + event-only, §10) and integration design (§12.1)
 - [Gamification Depth](../EXPLORATION_TOPICS.md#16-gamification-depth-) — token earning through gamification
 - [Habit Formation Loop](../EXPLORATION_TOPICS.md#17-habit-formation-loop-) — token economy as habit driver

@@ -17,3 +17,10 @@ Validation gates:
 - delete marks deleted/excluded
 - rejected marks `excludedFromTrainingAt`
 - lifecycle state is materialized per candidate (`trainingEligible`, `golden`, `excluded`)
+
+Operations:
+- Generate review queue dashboard:
+```bash
+dart run tool/ai_review_dashboard.dart --input build/reports/ai_review/updated_candidates.jsonl --out-json build/reports/ai_review/dashboard.json --out-md build/reports/ai_review/dashboard.md
+```
+- See runbook: `docs/guides/ai_flywheel/review_dashboard_ops.md`

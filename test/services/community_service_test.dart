@@ -425,7 +425,7 @@ WasteClassification _createTestClassification({
     id: id,
     itemName: 'Test Item',
     category: 'Plastic',
-    subcategory: 'Bottle',
+    subCategory: 'Bottle',
     explanation: 'Test recyclable plastic bottle',
     disposalInstructions: DisposalInstructions(
       primaryMethod: 'Recycle',

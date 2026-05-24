@@ -11,7 +11,7 @@ WasteClassification _createTestClassification(String itemName) {
     id: 'test-${DateTime.now().millisecondsSinceEpoch}',
     itemName: itemName,
     category: 'Dry Waste',
-    subcategory: 'Plastic',
+    subCategory: 'Plastic',
     explanation: 'Test item: $itemName',
     disposalInstructions: DisposalInstructions(
       primaryMethod: 'Test disposal',
@@ -89,7 +89,7 @@ void main() {
         id: 'test-legacy-id',
         itemName: 'Legacy Item',
         category: 'Dry Waste',
-        subcategory: 'Plastic',
+        subCategory: 'Plastic',
         explanation: 'Legacy test item',
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle',

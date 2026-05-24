@@ -10,8 +10,7 @@ void main() {
       testClassification = WasteClassification(
         itemName: 'Plastic Water Bottle',
         category: 'Dry Waste',
-        subcategory: 'Plastic',
-        materialType: 'PET Plastic',
+        subCategory: 'Plastic',
         recyclingCode: 1,
         explanation: 'Single-use plastic bottle made from PET plastic',
         disposalInstructions: DisposalInstructions(

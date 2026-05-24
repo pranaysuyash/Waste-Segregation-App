@@ -31,7 +31,7 @@ void main() {
       final key = service.buildMaterialCacheKey(
         material: 'प्लास्टिक बोतल',
         category: 'Dry Waste',
-        subcategory: 'PET 1',
+        subCategory: 'PET 1',
         lang: 'hi',
       );
 
@@ -46,12 +46,12 @@ void main() {
       final key1 = service.buildMaterialCacheKey(
         material: 'bottle',
         category: 'Dry Waste',
-        subcategory: 'PET',
+        subCategory: 'PET',
       );
       final key2 = service.buildMaterialCacheKey(
         material: 'bottle',
         category: 'Dry Waste',
-        subcategory: 'HDPE',
+        subCategory: 'HDPE',
       );
 
       expect(key1, isNot(equals(key2)));
@@ -66,7 +66,7 @@ void main() {
       final canonical = service.buildMaterialCacheKey(
         material: 'plastic bottle',
         category: 'Dry Waste',
-        subcategory: 'PET 1',
+        subCategory: 'PET 1',
         lang: 'en',
       );
 

@@ -116,4 +116,5 @@ After first scan, home screen shows:
 
 - [Habit Formation Loop](HABIT_FORMATION_LOOP.md) — what happens after activation
 - [Gamification Depth](GAMIFICATION_DEPTH.md) — reward system for first actions
+- [Gamification Redesign Spec](../planning/gamification-redesign-spec.md#7-onboarding-flow) — phased onboarding flow (§7: minimal first visit, progressive reveal on return, week-by-week unlock cadence)
 - [Token Economy & Pricing Coherence](TOKEN_ECONOMY_AND_PRICING_COHERENCE.md) — token visibility

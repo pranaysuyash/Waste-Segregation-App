@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/app_providers.dart';
 import 'community_screen.dart';
 import 'family_dashboard_screen.dart';
 import '../utils/constants.dart';
@@ -19,13 +20,15 @@ class _SocialScreenState extends ConsumerState<SocialScreen> {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: const [
-          CommunityScreen(),
+        children: [
+          const CommunityScreen(),
           SafeArea(
             top: false,
             left: false,
             right: false,
-            child: FamilyDashboardScreen(),
+            child: FamilyDashboardScreen(
+              analyticsService: ref.read(analyticsServiceProvider),
+            ),
           ),
         ],
       ),

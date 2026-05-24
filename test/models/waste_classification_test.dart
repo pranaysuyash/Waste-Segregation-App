@@ -129,7 +129,7 @@ void main() {
     test('should create AlternativeClassification correctly', () {
       final alternative = AlternativeClassification(
         category: 'Wet Waste',
-        subcategory: 'Food Waste',
+        subCategory: 'Food Waste',
         confidence: 0.7,
         reason: 'Could be organic material',
       );

@@ -124,7 +124,7 @@ Goal: the AI is measurably improving, the experience is sticky beyond novelty, a
 
 - **Topics**: [Gamification Depth (🟡)](EXPLORATION_TOPICS.md#16-gamification-depth-), [Habit Formation Loop (🟡)](EXPLORATION_TOPICS.md#17-habit-formation-loop-)
 - **De-risk question**: Is current gamification rewarding the *right* behaviour or just any behaviour? Where's the week-3 retention cliff?
-- **Output**: `docs/exploration/GAMIFICATION_DEPTH.md` + `docs/exploration/HABIT_FORMATION_LOOP.md` + `docs/planning/gamification-redesign-spec.md`.
+- **Output**: `docs/exploration/GAMIFICATION_DEPTH.md` + `docs/exploration/HABIT_FORMATION_LOOP.md` + `docs/planning/gamification-redesign-spec.md` + `docs/exploration/FAMILY_DASHBOARD_UI.md`.
 - **Built artefact this enables**: a v2 gamification system tied to disposal correctness, not scan volume, with adaptive engine, challenge system, points sinks, and phased rollout plan.
 
 ### Track X5 — Firestore Cost & History Schema

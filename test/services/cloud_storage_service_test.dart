@@ -59,7 +59,7 @@ WasteClassification _classification({String id = 'classification-1'}) {
     id: id,
     itemName: 'Glass Bottle',
     category: 'Dry Waste',
-    subcategory: 'Glass',
+    subCategory: 'Glass',
     explanation: 'Test classification',
     disposalInstructions: DisposalInstructions(
       primaryMethod: 'Recycle',

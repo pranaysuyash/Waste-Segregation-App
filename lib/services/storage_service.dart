@@ -139,6 +139,90 @@ class StorageService {
     await HiveManager.openBox<String>('classificationHashesBox');
   }
 
+  /// Recovers from legacy/corrupted Hive payloads that throw
+  /// `type 'Null' is not a subtype of type 'int' in type cast` while opening
+  /// strongly-typed boxes.
+  ///
+  /// Blast-radius strategy:
+  /// 1) Probe likely boxes and keep healthy ones untouched.
+  /// 2) Delete only boxes that fail with the specific null->int cast error.
+  ///
+  /// Returns the list of box names that were deleted and should be recreated.
+  static Future<List<String>> recoverFromNullIntHiveCast() async {
+    final repairedBoxes = <String>[];
+
+    // Ordered by risk/likelihood of int-cast schema drift from older builds.
+    const candidateBoxes = <String>[
+      StorageKeys.gamificationBox,
+      StorageKeys.userBox,
+      StorageKeys.classificationsBox,
+      StorageKeys.classificationFeedbackBox,
+      StorageKeys.familiesBox,
+      StorageKeys.invitationsBox,
+      StorageKeys.settingsBox,
+      StorageKeys.cacheBox,
+      'classificationHashesBox',
+    ];
+
+    for (final boxName in candidateBoxes) {
+      try {
+        if (Hive.isBoxOpen(boxName)) {
+          await Hive.box(boxName).close();
+        }
+
+        final probe = await Hive.openBox(boxName);
+        await probe.close();
+      } catch (e) {
+        final message = e.toString();
+        final isNullIntCast = message.contains(
+          "type 'Null' is not a subtype of type 'int'",
+        );
+
+        if (!isNullIntCast) {
+          // Non-matching failures are logged but not auto-deleted.
+          WasteAppLogger.warning(
+            'Hive probe failed for box (no auto-delete due non-matching error)',
+            error: e,
+            context: {
+              'service': 'storage',
+              'file': 'storage_service',
+              'box': boxName,
+            },
+          );
+          continue;
+        }
+
+        try {
+          if (Hive.isBoxOpen(boxName)) {
+            await Hive.box(boxName).close();
+          }
+          await Hive.deleteBoxFromDisk(boxName);
+          repairedBoxes.add(boxName);
+          WasteAppLogger.warning(
+            'Deleted corrupted Hive box during null-int recovery',
+            context: {
+              'service': 'storage',
+              'file': 'storage_service',
+              'box': boxName,
+            },
+          );
+        } catch (deleteError) {
+          WasteAppLogger.severe(
+            'Failed to delete corrupted Hive box during recovery',
+            error: deleteError,
+            context: {
+              'service': 'storage',
+              'file': 'storage_service',
+              'box': boxName,
+            },
+          );
+        }
+      }
+    }
+
+    return repairedBoxes;
+  }
+
   // User methods
   Future<void> saveUserProfile(UserProfile userProfile) async {
     final userBox = Hive.box(StorageKeys.userBox);

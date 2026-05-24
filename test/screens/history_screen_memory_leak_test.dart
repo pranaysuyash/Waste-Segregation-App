@@ -32,7 +32,7 @@ WasteClassification _classification({
     id: id,
     itemName: 'Test Item',
     category: 'Dry Waste',
-    subcategory: 'Plastic',
+    subCategory: 'Plastic',
     explanation: 'Test explanation',
     disposalInstructions: DisposalInstructions(
       primaryMethod: 'Test method',

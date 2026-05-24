@@ -4,6 +4,7 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/services/barcode_lookup_service.dart';
 import 'package:waste_segregation_app/services/classification_pipeline.dart';
 import 'package:waste_segregation_app/services/layer0_router.dart';
+import 'package:waste_segregation_app/services/classification_router_guardrails.dart';
 import 'package:waste_segregation_app/services/local_classifier_service.dart';
 
 void main() {
@@ -59,7 +60,7 @@ void main() {
         isModelLoaded: true,
         stubbedResult: LocalClassificationResult(
           category: 'Wet Waste',
-          subcategory: 'Food Scraps',
+          subCategory: 'Food Scraps',
           confidence: 0.92,
           modelVersion: 'test-model-v1',
           processingTimeMs: 50,
@@ -273,6 +274,98 @@ void main() {
       expect(result.category, equals('Wet Waste'));
       expect(cloudCalled, isFalse);
     });
+
+    test('marks manual review when local rule version changed', () async {
+      layer0Router.stubbedDecision = Layer0Decision.reject;
+      localClassifier = FakeLocalClassifier(isModelLoaded: false);
+
+      final result = await pipeline.classify(
+        imageBytes: dummyBytes,
+        region: 'Bangalore, IN',
+        localRuleVersionChanged: true,
+        cloudClassifier: ({
+          required Uint8List imageBytes,
+          required String imageName,
+          required String region,
+          required String language,
+        }) async {
+          return WasteClassification(
+            itemName: 'Cloud Item',
+            category: 'Dry Waste',
+            explanation: 'Cloud classification',
+            disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Dispose',
+              steps: ['Step 1'],
+              hasUrgentTimeframe: false,
+            ),
+            region: region,
+            visualFeatures: [],
+            alternatives: [],
+            confidence: 0.85,
+            modelSource: 'openai',
+          );
+        },
+      );
+
+      expect(result.routeDecision, equals('manual_review'));
+      expect(result.routeReason, equals('local_rule_version_changed'));
+      expect(result.relatedItems, isNotNull);
+      expect(result.localGuidelinesReference, isNotNull);
+    });
+
+    test('uses guardrail reason when local confidence below acceptance threshold',
+        () async {
+      layer0Router.stubbedDecision = Layer0Decision.reject;
+      localClassifier = FakeLocalClassifier(
+        isModelLoaded: true,
+        stubbedResult: LocalClassificationResult(
+          category: 'Dry Waste',
+          confidence: 0.80,
+          modelVersion: 'local-v2',
+        ),
+      );
+      pipeline = ClassificationPipeline(
+        layer0Router: layer0Router,
+        localClassifier: localClassifier,
+        guardrails: const ClassificationRouterGuardrails(
+          localAcceptanceThreshold: 0.85,
+          localEscalationThreshold: 0.70,
+          localSafetyThreshold: 0.97,
+        ),
+      );
+
+      final result = await pipeline.classify(
+        imageBytes: dummyBytes,
+        region: 'Unknown City',
+        cloudClassifier: ({
+          required Uint8List imageBytes,
+          required String imageName,
+          required String region,
+          required String language,
+        }) async {
+          return WasteClassification(
+            itemName: 'Cloud Item',
+            category: 'Dry Waste',
+            explanation: 'Cloud classification',
+            disposalInstructions: DisposalInstructions(
+              primaryMethod: 'Dispose',
+              steps: ['Step 1'],
+              hasUrgentTimeframe: false,
+            ),
+            region: region,
+            visualFeatures: [],
+            alternatives: [],
+            confidence: 0.88,
+            modelSource: 'openai',
+          );
+        },
+      );
+
+      expect(result.classificationLayer, equals('layer2_cloud_cheap'));
+      expect(result.routeDecision, equals('accepted_cloud'));
+      expect(result.localGuidelinesReference, equals('battery_never_regular_bin'));
+      expect(result.relatedItems, isNotEmpty);
+    });
   });
 
   group('ClassificationPipeline.buildLocalClassification', () {
@@ -280,7 +373,7 @@ void main() {
         () async {
       final localResult = LocalClassificationResult(
         category: 'Dry Waste',
-        subcategory: 'Plastic Bottle',
+        subCategory: 'Plastic Bottle',
         confidence: 0.92,
         modelVersion: 'mobilenet_v3_v1',
         processingTimeMs: 42,

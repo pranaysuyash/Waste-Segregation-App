@@ -39,7 +39,7 @@ void main() {
       final classification = WasteClassification(
         itemName: 'Plastic Bottle',
         category: 'plastic',
-        subcategory: 'Recyclable Plastic',
+        subCategory: 'Recyclable Plastic',
         explanation: 'Test classification',
         region: 'US',
         visualFeatures: const ['test feature'],
@@ -73,7 +73,7 @@ void main() {
         final classification = WasteClassification(
           itemName: 'Recyclable Item $i',
           category: 'plastic',
-          subcategory: 'Recyclable',
+          subCategory: 'Recyclable',
           explanation: 'Test classification',
           region: 'US',
           visualFeatures: const ['test feature'],
@@ -98,7 +98,7 @@ void main() {
       final finalClassification = WasteClassification(
         itemName: 'Final Recyclable',
         category: 'plastic',
-        subcategory: 'Recyclable',
+        subCategory: 'Recyclable',
         explanation: 'Test classification',
         region: 'US',
         visualFeatures: const ['test feature'],
@@ -137,7 +137,7 @@ void main() {
         WasteClassification(
           itemName: 'Compost',
           category: 'plastic',
-          subcategory: 'Organic',
+          subCategory: 'Organic',
           explanation: 'Test classification',
           region: 'US',
           visualFeatures: const ['test feature'],
@@ -158,7 +158,7 @@ void main() {
         WasteClassification(
           itemName: 'Battery',
           category: 'plastic',
-          subcategory: 'Electronic Waste',
+          subCategory: 'Electronic Waste',
           explanation: 'Test classification',
           region: 'US',
           visualFeatures: const ['test feature'],
@@ -196,7 +196,7 @@ void main() {
       final classification1 = WasteClassification(
         itemName: 'Day 1 Item',
         category: 'plastic',
-        subcategory: 'Recyclable',
+        subCategory: 'Recyclable',
         explanation: 'Test classification',
         region: 'US',
         visualFeatures: const ['test feature'],
@@ -217,7 +217,7 @@ void main() {
       final classification2 = WasteClassification(
         itemName: 'Day 2 Item',
         category: 'plastic',
-        subcategory: 'Recyclable',
+        subCategory: 'Recyclable',
         explanation: 'Test classification',
         region: 'US',
         visualFeatures: const ['test feature'],
@@ -239,7 +239,7 @@ void main() {
       final classification3 = WasteClassification(
         itemName: 'Day 3 Item',
         category: 'plastic',
-        subcategory: 'Recyclable',
+        subCategory: 'Recyclable',
         explanation: 'Test classification',
         region: 'US',
         visualFeatures: const ['test feature'],

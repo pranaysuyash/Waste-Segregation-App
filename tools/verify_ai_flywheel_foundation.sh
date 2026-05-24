@@ -131,3 +131,37 @@ if report.get('allPassed') is not True:
     sys.exit(1)
 print('Acceptance report allPassed=true')
 PY
+
+echo "Post-run release gate assertions"
+python3 - <<'PY'
+import json, sys
+
+offline = json.load(open('build/reports/ai_eval/offline_latest.json'))
+router = json.load(open('build/reports/ai_eval/router_compare_backend.json'))
+cal = json.load(open('build/reports/ai_eval/calibration_report.json'))
+
+must_not = int(offline.get('mustNotViolations', 0))
+safety = int(offline.get('safetyCriticalFailures', 0))
+if must_not > 40:
+    print(f'Release gate failed: mustNotViolations={must_not} > 40', file=sys.stderr)
+    sys.exit(1)
+if safety > 20:
+    print(f'Release gate failed: safetyCriticalFailures={safety} > 20', file=sys.stderr)
+    sys.exit(1)
+
+pair_disagree = cal.get('providerPairDisagreement', {}) or {}
+max_pair = max(pair_disagree.values()) if pair_disagree else 0
+if max_pair > 80:
+    print(f'Release gate failed: providerPairDisagreement max={max_pair} > 80', file=sys.stderr)
+    sys.exit(1)
+
+providers = router.get('providers', {}) or {}
+backend = providers.get('backend', {})
+if backend:
+    acc = float(backend.get('accuracy', 0))
+    if acc < 0.95:
+        print(f'Release gate failed: backend accuracy={acc:.3f} < 0.95', file=sys.stderr)
+        sys.exit(1)
+
+print('Release gates passed')
+PY

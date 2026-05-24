@@ -58,6 +58,8 @@ This is the version that feels realistic for the current Flutter stack.
 - 950-1250 ms: impact saved check or leaf burst
 - 1250-1600 ms: points/reward appears softly
 
+> The reward/points moment at the end of the journey ties into the v2 gamification system. The [gamification redesign spec](../planning/gamification-redesign-spec.md) defines how points work (quality-scored, category multipliers), what achievements exist (tiers, hidden, streak-based), and points sinks (cosmetic, eco-impact, streak protection, custom challenges). The animation's reward chip reveal should reflect the actual point values and future sink mechanics.
+
 ### Why V1 is good
 
 - Low engineering cost.

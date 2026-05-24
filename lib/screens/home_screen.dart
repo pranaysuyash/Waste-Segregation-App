@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../utils/animation_system.dart';
 import '../utils/routes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -992,10 +993,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       ],
                     ),
                     const SizedBox(height: 10),
-                    LinearProgressIndicator(
+                    AnimatedWidgets.animatedProgress(
                       value: progress,
-                      borderRadius: BorderRadius.circular(6),
-                      minHeight: 8,
+                      height: 8,
+                      borderRadius: 6,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ],
                 ),

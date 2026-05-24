@@ -235,7 +235,35 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
         );
       } else {
         await _runInitStep('Hive', () async {
-          await StorageService.initializeHive();
+          try {
+            await StorageService.initializeHive();
+          } catch (e, s) {
+            final isNullIntCast = e.toString().contains(
+                  "type 'Null' is not a subtype of type 'int'",
+                );
+
+            if (!isNullIntCast) rethrow;
+
+            WasteAppLogger.warning(
+              'BOOT: Hive null->int cast detected; attempting targeted Hive recovery',
+              error: e,
+              stackTrace: s,
+            );
+
+            final repairedBoxes =
+                await StorageService.recoverFromNullIntHiveCast();
+
+            WasteAppLogger.warning(
+              'BOOT: Hive recovery completed, retrying initialization',
+              context: {
+                'repaired_boxes_count': repairedBoxes.length,
+                'repaired_boxes': repairedBoxes,
+              },
+            );
+
+            await StorageService.initializeHive();
+          }
+
           await HiveBoxManager.instance.initialize();
           await CacheFeatureFlags.initialize();
         }, critical: true);
@@ -540,7 +568,7 @@ class _SplashScreenState extends State<_SplashScreen>
   }
 }
 
-class WasteSegregationApp extends StatelessWidget {
+class WasteSegregationApp extends StatefulWidget {
   const WasteSegregationApp({
     super.key,
     required this.storageService,
@@ -575,36 +603,43 @@ class WasteSegregationApp extends StatelessWidget {
   final UserConsentService userConsentService;
 
   @override
+  State<WasteSegregationApp> createState() => _WasteSegregationAppState();
+}
+
+class _WasteSegregationAppState extends State<WasteSegregationApp> {
+  @override
   Widget build(BuildContext context) {
     return riverpod.ProviderScope(
       overrides: [
-        storageServiceProvider.overrideWithValue(storageService),
+        storageServiceProvider.overrideWithValue(widget.storageService),
         cloudStorageServiceProvider
-            .overrideWith((ref) => CloudStorageService(storageService)),
+          .overrideWith((ref) => CloudStorageService(widget.storageService)),
       ],
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
-          Provider<StorageService>.value(value: storageService),
-          Provider<AiService>.value(value: aiService),
+          Provider<StorageService>.value(value: widget.storageService),
+          Provider<AiService>.value(value: widget.aiService),
           ChangeNotifierProvider<AnalyticsService>.value(
-              value: analyticsService),
+            value: widget.analyticsService),
           ChangeNotifierProvider<EducationalContentAnalyticsService>.value(
-              value: educationalContentAnalyticsService),
-          Provider<GoogleDriveService>.value(value: googleDriveService),
+            value: widget.educationalContentAnalyticsService),
+          Provider<GoogleDriveService>.value(value: widget.googleDriveService),
           Provider<EducationalContentService>.value(
-              value: educationalContentService),
+            value: widget.educationalContentService),
           ChangeNotifierProvider<GamificationService>.value(
-              value: gamificationService),
-          ChangeNotifierProvider<PremiumService>.value(value: premiumService),
-          ChangeNotifierProvider<PurchaseService>.value(value: purchaseService),
-          ChangeNotifierProvider<AdService>.value(value: adService),
+            value: widget.gamificationService),
+          ChangeNotifierProvider<PremiumService>.value(
+            value: widget.premiumService),
+          ChangeNotifierProvider<PurchaseService>.value(
+            value: widget.purchaseService),
+          ChangeNotifierProvider<AdService>.value(value: widget.adService),
           ChangeNotifierProvider<NavigationSettingsService>.value(
-              value: navigationSettingsService),
+            value: widget.navigationSettingsService),
           ChangeNotifierProvider<HapticSettingsService>.value(
-              value: hapticSettingsService),
-          Provider<CommunityService>.value(value: communityService),
-          Provider<UserConsentService>.value(value: userConsentService),
+            value: widget.hapticSettingsService),
+          Provider<CommunityService>.value(value: widget.communityService),
+          Provider<UserConsentService>.value(value: widget.userConsentService),
           Provider(
               create: (context) =>
                   CloudStorageService(context.read<StorageService>())),
@@ -788,28 +823,7 @@ class WasteSegregationApp extends StatelessWidget {
                   },
                   home: kDebugMode && _forceDebugHome
                       ? const _DebugHome()
-                      : FutureBuilder<Map<String, bool>>(
-                          future: _checkInitialConditions(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const _SplashScreen();
-                            }
-                            final conditions =
-                                snapshot.data ?? {'hasConsent': false};
-                            if (!(conditions['hasConsent'] ?? false)) {
-                              return ConsentDialogScreen(
-                                onConsent: () => Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const AuthScreen()),
-                                ),
-                                onDecline: () => SystemNavigator.pop(),
-                              );
-                            }
-                            return const AuthScreen();
-                          },
-                        ),
+                      : _buildInitialHome(context),
                 );
               },
             );
@@ -819,13 +833,29 @@ class WasteSegregationApp extends StatelessWidget {
     );
   }
 
-  Future<Map<String, bool>> _checkInitialConditions() async {
-    await Future.delayed(const Duration(seconds: 1));
+  Widget _buildInitialHome(BuildContext context) {
+    var hasConsent = false;
     try {
-      return {'hasConsent': userConsentService.hasAllRequiredConsents};
-    } catch (e) {
-      return {'hasConsent': false};
+      hasConsent = widget.userConsentService.hasAllRequiredConsents;
+    } catch (e, s) {
+      WasteAppLogger.warning(
+        'Initial consent read failed; defaulting to consent dialog.',
+        error: e,
+        stackTrace: s,
+      );
     }
+
+    if (!hasConsent) {
+      return ConsentDialogScreen(
+        onConsent: () => Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AuthScreen()),
+        ),
+        onDecline: () => SystemNavigator.pop(),
+      );
+    }
+
+    return const AuthScreen();
   }
 }
 

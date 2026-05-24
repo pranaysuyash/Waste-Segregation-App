@@ -10,3 +10,7 @@ Outputs:
 - datasheet.md
 - version.json
 - excluded.jsonl
+
+Default exclusion notes:
+- candidates without `reviewerVerified.reviewedAt` are excluded
+- stale policy version excluded unless explicit override in policy layer

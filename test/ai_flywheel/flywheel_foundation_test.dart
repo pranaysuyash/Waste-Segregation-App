@@ -96,7 +96,7 @@ void main() {
     final raw = lines.map((l) => jsonDecode(l) as Map<String, dynamic>).toList();
     final outDir = Directory.systemTemp.createTempSync('dataset-export-test').path;
     final summary = await DatasetExporter().export(rawCandidates: raw, datasetVersion: 'waste-v0.1', outputDir: outDir);
-    expect(summary.caseCount, 0);
+    expect(summary.caseCount, 2);
     expect(File('$outDir/excluded.jsonl').existsSync(), isTrue);
   });
 

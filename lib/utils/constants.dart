@@ -101,7 +101,11 @@ class AppTheme {
 
   /// Build a [ThemeData] from the given [ColorScheme].
   static ThemeData fromScheme(ColorScheme scheme) {
-    final base = ThemeData(useMaterial3: true, colorScheme: scheme);
+    final base = ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      visualDensity: VisualDensity.comfortable,
+    );
     return base.copyWith(
       primaryColor: seedColor,
       scaffoldBackgroundColor: scheme.surface,
@@ -115,10 +119,24 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: seedColor,
           foregroundColor: Colors.white,
+          minimumSize: const Size(44, 44),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(foregroundColor: seedColor),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: seedColor,
+          minimumSize: const Size(44, 44),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(44, 44),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          minimumSize: const Size(44, 44),
+        ),
       ),
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.all(seedColor),

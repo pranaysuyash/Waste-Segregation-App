@@ -17,7 +17,7 @@ void main() {
       baseClassification = WasteClassification(
         itemName: 'AA Battery',
         category: 'Hazardous Waste',
-        subcategory: 'Battery',
+        subCategory: 'Battery',
         explanation: 'Battery requires special disposal',
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Special disposal facility',

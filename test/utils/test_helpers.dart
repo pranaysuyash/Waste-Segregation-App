@@ -28,7 +28,7 @@ class TestHelpers {
     return WasteClassification(
       itemName: itemName ?? 'Test Item',
       category: 'Dry Waste',
-      subcategory: 'Test Subcategory',
+      subCategory: 'Test Subcategory',
       explanation: 'Test explanation for testing purposes',
       disposalInstructions: DisposalInstructions(
         primaryMethod: 'Test disposal method',
@@ -56,7 +56,7 @@ class TestHelpers {
     return WasteClassification(
       itemName: itemName ?? 'Detailed Test Item',
       category: category ?? 'Dry Waste',
-      subcategory: 'Plastic',
+      subCategory: 'Plastic',
       explanation:
           'Comprehensive test item with detailed properties for thorough testing scenarios',
       disposalInstructions: DisposalInstructions(
@@ -80,7 +80,7 @@ class TestHelpers {
           [
             AlternativeClassification(
               category: 'Non-Waste',
-              subcategory: 'Reusable',
+              subCategory: 'Reusable',
               confidence: 0.3,
               reason: 'Could potentially be reused for storage',
             ),
@@ -90,7 +90,7 @@ class TestHelpers {
       isCompostable: false,
       requiresSpecialDisposal: false,
       recyclingCode: recyclingCode ?? 1,
-      materialType: 'PET Plastic',
+      materials: ['PET Plastic'],
       colorCode: '#FFFFFF',
       brand: 'Test Brand',
       product: 'Test Product Line',
@@ -104,7 +104,7 @@ class TestHelpers {
     return WasteClassification(
       itemName: 'Lithium Battery',
       category: 'Hazardous Waste',
-      subcategory: 'Electronic Waste',
+      subCategory: 'Electronic Waste',
       explanation:
           'Lithium-ion battery containing toxic materials requiring special handling',
       disposalInstructions: DisposalInstructions(
@@ -138,7 +138,7 @@ class TestHelpers {
       isRecyclable: false,
       isCompostable: false,
       requiresSpecialDisposal: true,
-      materialType: 'Lithium-ion',
+      materials: ['Lithium-ion'],
       userId: 'test_user_123',
     );
   }
@@ -171,7 +171,7 @@ class TestHelpers {
       return WasteClassification(
         itemName: '$item ${index + 1}',
         category: category,
-        subcategory: 'Test Subcategory $index',
+        subCategory: 'Test Subcategory $index',
         explanation: 'Test explanation for $item ${index + 1}',
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Test disposal for $category',
@@ -603,7 +603,7 @@ class TestHelpers {
             10,
             (i) => AlternativeClassification(
                   category: 'Alternative $i',
-                  subcategory: 'Option $i',
+                  subCategory: 'Option $i',
                   confidence: 0.1 + (i * 0.05),
                   reason: 'Possible classification option $i',
                 )),

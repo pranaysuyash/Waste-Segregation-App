@@ -115,14 +115,16 @@ Waste segregation should feel rewarding because it *is* rewarding — not throug
 | Safety-critical correct | 2× | Reward correct hazardous handling |
 | Community-verified | 1.2× | Community endorsement |
 
-### 4.3 Points Sinks (all ship together in v1)
+### 4.3 Points Sinks (all ship in v1; eco-impact gated)
 
-| Sink | Cost | Purpose |
-|------|------|---------|
-| Eco-impact spending | Variable | Fund real tree planting / waste cleanup — real-world impact |
-| Cosmetic rewards | Variable | Themes, badges, emoji reactions, virtual items |
-| Streak protection | Fixed | Buy streak freezes or extra challenge slots |
-| Custom challenges | Variable | Create custom challenges for self or group |
+All four sink types ship in v1. Eco-impact is gated behind verified partnerships and disabled by default until active.
+
+| Sink | Cost | Purpose | Availability |
+|------|------|---------|-------------|
+| Eco-impact spending | Variable | Fund real tree planting / waste cleanup — real-world impact | **Gated** — disabled until verified partnership exists (infra ships v1, activation in later phase) |
+| Cosmetic rewards | Variable | Themes, badges, emoji reactions, virtual items | **Active at v1 launch** |
+| Streak protection | Fixed | Buy streak freezes or extra challenge slots | **Active at v1 launch** |
+| Custom challenges | Variable | Create custom challenges for self or group | **Active at v1 launch** |
 
 ---
 
@@ -431,13 +433,22 @@ Open questions for future:
 
 ## 15. Open Questions for Further Exploration
 
-1. **Premium intersection**: Should premium users have gamification advantages? Cosmetic vs practical vs none?
-2. **Family/household mode**: Separate v2 effort — design spec needed separately
-3. **Profile storage location**: On-device vs server-side — needs prototyping to decide
-4. **Success metric targets**: To be defined after baseline measurement
-5. **Negative mechanics A/B**: Deferred — experiment design needed when v1 is stable
-6. **Real-world impact partnerships**: Eco-impact spending requires partner relationships (tree planting, cleanup orgs)
-7. **Signal privacy posture**: What level of signal collection needs explicit user consent?
+### Resolved by Deep Dives
+
+| # | Question | Resolution | Document |
+|---|----------|------------|----------|
+| 1 | Motivation archetypes — concrete definitions, scoring heuristics, detection algorithm | **Deep dive complete** — 5 archetypes defined with weighted signals, state machine, narrowing detection, and system responses | [`gamification-archetypes-deep-dive.md`](gamification-archetypes-deep-dive.md) |
+| 2 | Points economy design — earn rates, sink costs, budget projections, inflation guardrails, dual-currency separation | **Deep dive complete** — detailed earn table, multiplier stacking rules, daily caps, 4 sink cost structures, monthly budget model, economic anti-patterns, monitoring dashboard | [`gamification-points-economy-deep-dive.md`](gamification-points-economy-deep-dive.md) |
+| 3 | Negative mechanics — A/B experiment design to determine if they improve retention | **Deep dive complete** — 3-phase experiment (baseline → single-variant → multi-variant), 9 hypotheses, sample size analysis, ethical guardrails, hard kill criteria, analysis plan, timeline | [`gamification-negative-mechanics-ab-design.md`](gamification-negative-mechanics-ab-design.md) |
+
+### Still Open
+
+1. **Premium intersection**: Should premium users have gamification advantages? Cosmetic vs practical vs none? Needs separate exploration.
+2. **Family/household mode**: Separate v2 effort — design spec needed separately.
+3. **Profile storage location**: On-device vs server-side — needs prototyping to decide.
+4. **Success metric targets**: To be defined after baseline measurement.
+5. **Real-world impact partnerships**: Eco-impact spending requires partner relationships (tree planting, cleanup orgs).
+6. **Signal privacy posture**: What level of signal collection needs explicit user consent?
 
 ---
 

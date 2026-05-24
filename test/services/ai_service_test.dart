@@ -133,7 +133,7 @@ void main() {
         final mockService = MockAiService();
         final expectedClassification = WasteClassification(
           itemName: 'Plastic Bottle',
-          subcategory: 'Plastic',
+          subCategory: 'Plastic',
           category: 'Dry Waste',
           explanation: 'This is a plastic bottle that can be recycled',
           disposalInstructions: DisposalInstructions(
@@ -164,7 +164,7 @@ void main() {
       test('WasteClassification should have required fields', () {
         final classification = WasteClassification(
           itemName: 'Test Item',
-          subcategory: 'Plastic',
+          subCategory: 'Plastic',
           category: 'Dry Waste',
           explanation: 'Test explanation',
           disposalInstructions: DisposalInstructions(
@@ -190,7 +190,7 @@ void main() {
       test('should validate confidence score range', () {
         final highConfidenceClassification = WasteClassification(
           itemName: 'Test Item',
-          subcategory: 'Plastic',
+          subCategory: 'Plastic',
           category: 'Dry Waste',
           explanation: 'Test explanation',
           disposalInstructions: DisposalInstructions(
@@ -207,7 +207,7 @@ void main() {
 
         final lowConfidenceClassification = WasteClassification(
           itemName: 'Test Item',
-          subcategory: 'Plastic',
+          subCategory: 'Plastic',
           category: 'Dry Waste',
           explanation: 'Test explanation',
           disposalInstructions: DisposalInstructions(
@@ -240,7 +240,7 @@ void main() {
         for (final category in validCategories) {
           final classification = WasteClassification(
             itemName: 'Test Item',
-            subcategory: 'General',
+            subCategory: 'General',
             category: category,
             explanation: 'Test explanation',
             disposalInstructions: DisposalInstructions(

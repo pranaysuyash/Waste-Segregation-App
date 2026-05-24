@@ -123,6 +123,13 @@ class RuleOverride {
 
   /// Human-readable description of this override
   final String? description;
+
+  Map<String, dynamic> toJson() => {
+        'categoryKey': categoryKey,
+        'overrideType': overrideType.name,
+        'value': value,
+        'description': description,
+      };
 }
 
 enum RuleOverrideType {

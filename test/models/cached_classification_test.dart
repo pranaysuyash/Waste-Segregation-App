@@ -402,7 +402,7 @@ void main() {
           alternatives: [
             AlternativeClassification(
               category: 'Non-Waste',
-              subcategory: 'Professional disposal',
+              subCategory: 'Professional disposal',
               confidence: 0.2,
               reason: 'Requires professional handling',
             ),

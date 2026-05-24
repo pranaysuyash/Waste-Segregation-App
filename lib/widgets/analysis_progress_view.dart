@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../models/classification_state.dart';
 import '../utils/constants.dart';
+import '../utils/animation_system.dart';
 
 /// Progress/status view rendered during image analysis.
 ///
@@ -73,8 +74,7 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
   }
 
   void _triggerStateHaptic(ClassificationState state) {
-    if (MediaQuery.accessibleNavigationOf(context) ||
-        !_shouldAnimate(context)) {
+    if (!AnimationSystem.shouldAnimate(context)) {
       return;
     }
     try {
@@ -115,17 +115,11 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
     } catch (_) {}
   }
 
-  bool _shouldAnimate(BuildContext context) {
-    return !MediaQuery.of(context).disableAnimations;
-  }
+  Duration get _microAnimationDuration =>
+      AnimationSystem.accessibleDuration(context, const Duration(milliseconds: 240));
 
-  Duration get _microAnimationDuration => Duration(
-        milliseconds: _shouldAnimate(context) ? 240 : 0,
-      );
-
-  Duration get _macroAnimationDuration => Duration(
-        milliseconds: _shouldAnimate(context) ? 420 : 0,
-      );
+  Duration get _macroAnimationDuration =>
+      AnimationSystem.accessibleDuration(context, const Duration(milliseconds: 420));
 
   double get _stageProgress {
     switch (widget.state) {
@@ -297,7 +291,7 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final reducedMotion = !_shouldAnimate(context);
+    final reducedMotion = !AnimationSystem.shouldAnimate(context);
     final stageColor = _primaryColor(context);
     final cs = widget.state;
 
@@ -474,7 +468,7 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
   }
 
   Widget _buildLeadingIcon(ThemeData theme, Color stageColor) {
-    final reducedMotion = !_shouldAnimate(context);
+    final reducedMotion = !AnimationSystem.shouldAnimate(context);
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 1.0, end: reducedMotion ? 1.0 : 1.08),
       duration: _macroAnimationDuration,

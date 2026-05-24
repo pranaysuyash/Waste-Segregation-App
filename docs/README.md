@@ -112,7 +112,7 @@ When updating documentation:
 ### 🎨 **Design & UI**
 
 - **[Design Documentation](design/README.md)** - UI design system, style guide, and design specifications
-- **[UI Revamp Master Plan](design/UI_REVAMP_MASTER_PLAN.md)** - Comprehensive UI improvement strategy
+- **[UI Design Exploration (Gen Z Angle)](design/UI_DESIGN_EXPLORATION_GEN_Z_ANGLE.md)** - Aspirational visual design direction
 - **[Style Guide](design/app_theme_and_style_guide.md)** - Colors, typography, and component guidelines
 - **[Cyberpunk Design Guide](design/ui/cyberpunk_design_guide.md)** - Advanced UI design patterns
 
@@ -139,7 +139,7 @@ When updating documentation:
 
 - Review [Design Documentation](design/README.md) for UI system
 - Check [Style Guide](design/app_theme_and_style_guide.md) for design standards
-- See [UI Revamp Plan](design/UI_REVAMP_MASTER_PLAN.md) for improvement roadmap
+- See [UI Design Exploration](design/UI_DESIGN_EXPLORATION_GEN_Z_ANGLE.md) for improvement roadmap
 
 **For Project Management:**
 

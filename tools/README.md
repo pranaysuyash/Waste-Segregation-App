@@ -11,8 +11,10 @@ Runs:
 - recorded provider evals (backend/openai/gemini/local)
 - recorded merge
 - router comparison report
+- router calibration + disagreement report
 - dataset export
 - annotation workflow export/apply/report
+- review dashboard generation
 
 Usage:
 ```bash
@@ -94,4 +96,12 @@ Builds a single markdown summary from generated verification artifacts.
 Usage:
 ```bash
 dart run tool/ai_flywheel_evidence_summary.dart --out build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md
+```
+
+## 10) `../tool/ai_review_dashboard.dart`
+Generates operational review queue analytics from reviewed candidate JSONL.
+
+Usage:
+```bash
+dart run tool/ai_review_dashboard.dart --input build/reports/ai_review/updated_candidates.jsonl --out-json build/reports/ai_review/dashboard.json --out-md build/reports/ai_review/dashboard.md
 ```

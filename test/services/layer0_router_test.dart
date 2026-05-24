@@ -23,7 +23,7 @@ void main() {
           barcodeResult: BarcodeLookupResult(
             found: true,
             category: 'Dry Waste',
-            subcategory: 'Plastic Bottle',
+            subCategory: 'Plastic Bottle',
             confidence: 0.95,
             productName: 'Coke 500ml',
             brand: 'Coca-Cola',
@@ -92,7 +92,7 @@ void main() {
         colorClassifier: _StubColorClassifier(
           result: LocalClassificationResult(
             category: 'Wet Waste',
-            subcategory: 'Organic / Food Scraps',
+            subCategory: 'Organic / Food Scraps',
             confidence: 0.92,
             modelVersion: 'color_histogram_v1',
           ),
@@ -119,7 +119,7 @@ void main() {
         colorClassifier: _StubColorClassifier(
           result: LocalClassificationResult(
             category: 'Wet Waste',
-            subcategory: 'Organic / Food Scraps',
+            subCategory: 'Organic / Food Scraps',
             confidence: 0.92,
             modelVersion: 'color_histogram_v1',
           ),

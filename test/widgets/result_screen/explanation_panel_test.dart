@@ -37,7 +37,7 @@ void main() {
         id: 'c2',
         itemName: 'Paper Cup',
         category: 'Dry Waste',
-        subcategory: 'Paper',
+        subCategory: 'Paper',
         explanation: 'Paper cup with plastic lining',
         disposalInstructions: DisposalInstructions(
           primaryMethod: 'Recycle',
@@ -49,7 +49,7 @@ void main() {
         alternatives: [
           AlternativeClassification(
             category: 'Wet Waste',
-            subcategory: 'Food Soiled',
+            subCategory: 'Food Soiled',
             confidence: 0.25,
             reason: 'If heavily food-soiled, compost instead',
           ),

@@ -170,6 +170,8 @@
 - Tamper-proof community drop-off records.
 - Optional incentive ladder beyond gamification points.
 
+> The [gamification redesign spec](planning/gamification-redesign-spec.md) serves as the foundation layer below any future tokenised or external incentive ladder. Its points economy (§2), achievement tiers (§3), and challenge system (§6) define the base engagement loop that a web3/impact layer would extend. Any tokenised layer should integrate via the one-way integration contract (§12.1) to avoid compromising the core points economy.
+
 **Honest assessment**:
 
 - High narrative risk vs current practical value. Most "web3 for waste" projects have struggled with real user pull-through.

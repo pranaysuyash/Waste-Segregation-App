@@ -76,7 +76,6 @@ import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/widgets/gamification_widgets.dart';
 import 'package:waste_segregation_app/widgets/dashboard_widgets.dart';
 import 'package:waste_segregation_app/widgets/error_boundary.dart';
-import 'package:waste_segregation_app/widgets/animations/data_visualization_animations.dart';
 import 'package:waste_segregation_app/widgets/animations/social_animations.dart';
 import 'package:waste_segregation_app/widgets/animations/educational_animations.dart';
 import 'package:waste_segregation_app/widgets/animated_fab.dart';
@@ -2729,30 +2728,6 @@ WidgetbookCategory _componentCategory() {
                       isVisible: true,
                       message: 'Great sorting streak!',
                     ),
-                  ),
-                ),
-              ),
-              WidgetbookUseCase(
-                name: 'SortingAnimationWidget',
-                builder: (context) => _surface(
-                  const SortingAnimationWidget(
-                    child: Text('Sorting transition preview'),
-                  ),
-                ),
-              ),
-              WidgetbookUseCase(
-                name: 'AnimatedDashboardWidget',
-                builder: (context) => _surface(
-                  const AnimatedDashboardWidget(
-                    child: Text('Dashboard animation wrapper'),
-                  ),
-                ),
-              ),
-              WidgetbookUseCase(
-                name: 'ProgressTrackingWidget',
-                builder: (context) => _surface(
-                  const ProgressTrackingWidget(
-                    child: Text('Progress animation wrapper'),
                   ),
                 ),
               ),

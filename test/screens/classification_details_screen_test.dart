@@ -9,7 +9,7 @@ SharedWasteClassification _sharedClassification() {
     id: 'c1',
     itemName: 'Test Item',
     category: 'Dry Waste',
-    subcategory: 'Plastic',
+    subCategory: 'Plastic',
     explanation: 'Explanation',
     disposalInstructions: DisposalInstructions(
       primaryMethod: 'Recycle',

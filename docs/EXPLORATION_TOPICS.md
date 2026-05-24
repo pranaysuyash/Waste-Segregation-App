@@ -106,6 +106,7 @@ If you see drift between this index and any of the above, **the source artefact 
 │  COMMUNITY & SOCIAL                           IoT, SMART CITY & PARTNERS      │
 │  ├── Community Feed Trust Layer   [🟡]        ├── Smart-Bin Integration [🟢] │
 │  ├── Family / Group Mechanics     [🟡]        ├── Municipal APIs (Global) [🟡] │
+│  │   └── Family Dashboard UI      [🟡]        │                                 │
 │  ├── Local Reuse Marketplace      [🟢]        ├── Collector Network     [🟢] │
 │  └── Moderation & Safety          [🔴]        └── Hardware Partners     [🟢] │
 │                                                                               │

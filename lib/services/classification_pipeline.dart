@@ -7,7 +7,9 @@ import 'layer0_router.dart';
 import 'classification_router_guardrails.dart';
 import 'classification_router.dart';
 import 'confidence_calibration_service.dart';
+import 'local_global_rule_resolver.dart';
 import 'local_classifier_service.dart';
+import 'segmentation_route_service.dart';
 
 /// Orchestrates the multi-layer classification pipeline:
 /// Layer 0 (deterministic) → Layer 1 (on-device ML) → Cloud.
@@ -22,16 +24,22 @@ class ClassificationPipeline {
     ClassificationRouterGuardrails? guardrails,
     ClassificationRouter? router,
     ConfidenceCalibrationService? calibrationService,
+    LocalGlobalRuleResolver? ruleResolver,
+    SegmentationRouteService? segmentationService,
   })  : guardrails = guardrails ?? const ClassificationRouterGuardrails(),
         router = router ?? ClassificationRouter(),
-        calibrationService =
-            calibrationService ?? ConfidenceCalibrationService();
+        calibrationService = calibrationService ?? ConfidenceCalibrationService(),
+        ruleResolver = ruleResolver ?? const LocalGlobalRuleResolver(),
+        segmentationService =
+            segmentationService ?? const StubSegmentationRouteService();
 
   final Layer0Router layer0Router;
   final LocalClassifier localClassifier;
   final ClassificationRouterGuardrails guardrails;
   final ClassificationRouter router;
   final ConfidenceCalibrationService calibrationService;
+  final LocalGlobalRuleResolver ruleResolver;
+  final SegmentationRouteService segmentationService;
 
   /// Try only local layers (Layer 0 + Layer 1) and return null if all escalate.
   ///
@@ -241,6 +249,12 @@ class ClassificationPipeline {
       region: region,
       language: 'en',
     );
+    final ruleResolution = ruleResolver.resolve(region);
+    final segmentation = await segmentationService.segment(
+      imageBytes: imageBytes,
+      region: region,
+      fallbackCategory: cloudResult.category,
+    );
 
     // Use calibrated confidence for routing decisions.
     final rawConfidence = cloudResult.confidence ?? 0.0;
@@ -268,6 +282,14 @@ class ClassificationPipeline {
         modelSelectionStrategy: 'cloud_guardrailed',
         calibratedConfidence: calibratedConfidence,
         clarificationNeeded: true,
+        localGuidelinesReference:
+            ruleResolution.localRuleId ?? ruleResolution.globalSafetyRule,
+        localRegulations: <String, String>{
+          'authority': ruleResolution.authority,
+          'globalSafetyRule': ruleResolution.globalSafetyRule,
+          'usedGlobalFallback': '${ruleResolution.usedGlobalFallback}',
+        },
+        relatedItems: segmentation.items.map((e) => e.itemName).toList(),
       );
     }
 
@@ -279,6 +301,14 @@ class ClassificationPipeline {
         routeReason: routingDecision.reason,
         modelSelectionStrategy: router.strategy.name,
         calibratedConfidence: calibratedConfidence,
+        localGuidelinesReference:
+            ruleResolution.localRuleId ?? ruleResolution.globalSafetyRule,
+        localRegulations: <String, String>{
+          'authority': ruleResolution.authority,
+          'globalSafetyRule': ruleResolution.globalSafetyRule,
+          'usedGlobalFallback': '${ruleResolution.usedGlobalFallback}',
+        },
+        relatedItems: segmentation.items.map((e) => e.itemName).toList(),
       );
   }
 

@@ -8,7 +8,7 @@ void main() {
       final classification = WasteClassification(
         itemName: 'Test Plastic Bottle',
         category: 'Dry Waste',
-        subcategory: 'Plastic',
+        subCategory: 'Plastic',
         confidence: 0.95,
         region: 'Test Region',
         visualFeatures: ['plastic', 'bottle', 'clear'],
