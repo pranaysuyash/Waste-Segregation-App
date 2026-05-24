@@ -40,21 +40,31 @@ class AiProviderRouter {
         kind == AiFailureKind.providerUnavailable;
   }
 
-  bool _isTerminalFailureKind(AiFailureKind kind) {
+  static bool isTerminalFailureKind(AiFailureKind kind) {
     return kind == AiFailureKind.cancelled ||
         kind == AiFailureKind.unsafeClientAiBlocked ||
         kind == AiFailureKind.auth ||
         kind == AiFailureKind.budgetExceeded;
   }
 
+  bool _isTerminalFailureKind(AiFailureKind kind) =>
+      AiProviderRouter.isTerminalFailureKind(kind);
+
   Future<ProviderRouterResult> orchestrate({
     required ProviderCall backendCall,
     required ProviderCall openAiCall,
     required ProviderCall geminiCall,
+    bool? backendRoutingEnabled,
+    bool? backendRoutingFailClosed,
   }) async {
     final attempted = <String>[];
 
-    if (_backendRoutingEnabled) {
+    final effectiveBackendEnabled =
+        backendRoutingEnabled ?? _backendRoutingEnabled;
+    final effectiveBackendFailClosed =
+        backendRoutingFailClosed ?? _backendRoutingFailClosed;
+
+    if (effectiveBackendEnabled) {
       attempted.add('backend');
       try {
         final response = await backendCall();
@@ -64,7 +74,7 @@ class AiProviderRouter {
           attemptedProviders: List.unmodifiable(attempted),
         );
       } on AiFailure catch (e) {
-        if (_backendRoutingFailClosed ||
+        if (effectiveBackendFailClosed ||
             e.kind == AiFailureKind.cancelled ||
             e.kind == AiFailureKind.auth ||
             e.kind == AiFailureKind.budgetExceeded) {

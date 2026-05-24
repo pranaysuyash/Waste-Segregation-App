@@ -1,151 +1,121 @@
 {
   "@@locale": "kn",
-  
   "settingsTitle": "Settings",
   "@settingsTitle": {
     "description": "Title for the settings screen"
   },
-  
   "accountSection": "Account",
   "@accountSection": {
     "description": "Header for account management section"
   },
-  
   "signOut": "Sign Out",
   "@signOut": {
     "description": "Button text to sign out"
   },
-  
   "switchToGoogle": "Switch to Google Account",
   "@switchToGoogle": {
     "description": "Button text to switch to Google account"
   },
-  
   "signOutSubtitle": "Sign out and return to login screen",
   "@signOutSubtitle": {
     "description": "Subtitle for sign out option"
   },
-  
   "guestModeSubtitle": "Currently in guest mode - sign in to sync data",
   "@guestModeSubtitle": {
     "description": "Subtitle when in guest mode"
   },
-  
   "signOutConfirmTitle": "Sign Out",
   "@signOutConfirmTitle": {
     "description": "Title for sign out confirmation dialog"
   },
-  
   "signOutConfirmBody": "Are you sure you want to sign out? Your data will remain on this device, but you won't be able to sync with the cloud.",
   "@signOutConfirmBody": {
     "description": "Confirmation text when signing out"
   },
-  
   "cancel": "Cancel",
   "@cancel": {
     "description": "Cancel button text"
   },
-  
   "premiumSection": "Premium",
   "@premiumSection": {
     "description": "Header for premium features section"
   },
-  
   "premiumFeatures": "Premium Features",
   "@premiumFeatures": {
     "description": "Premium features menu item"
   },
-  
   "premiumFeaturesSubtitle": "Unlock advanced features",
   "@premiumFeaturesSubtitle": {
     "description": "Subtitle for premium features"
   },
-  
   "appSettingsSection": "App Settings",
   "@appSettingsSection": {
     "description": "Header for app settings section"
   },
-  
   "themeSettings": "Theme Settings",
   "@themeSettings": {
     "description": "Theme settings menu item"
   },
-  
   "themeSettingsSubtitle": "Customize app appearance",
   "@themeSettingsSubtitle": {
     "description": "Subtitle for theme settings"
   },
-  
   "notificationSettings": "Notification Settings",
   "@notificationSettings": {
     "description": "Notification settings menu item"
   },
-  
   "notificationSettingsSubtitle": "Manage notifications and alerts",
   "@notificationSettingsSubtitle": {
     "description": "Subtitle for notification settings"
   },
-  
   "offlineMode": "Offline Mode",
   "@offlineMode": {
     "description": "Offline mode menu item"
   },
-  
   "offlineModeSubtitle": "Configure offline functionality",
   "@offlineModeSubtitle": {
     "description": "Subtitle for offline mode"
   },
-  
   "dataExport": "Data Export",
   "@dataExport": {
     "description": "Data export menu item"
   },
-  
   "dataExportSubtitle": "Export your data and history",
   "@dataExportSubtitle": {
     "description": "Subtitle for data export"
   },
-  
   "navigationSection": "Navigation",
   "@navigationSection": {
     "description": "Header for navigation settings section"
   },
-  
   "navigationSettings": "Navigation Settings",
   "@navigationSettings": {
     "description": "Navigation settings menu item"
   },
-  
   "navigationSettingsSubtitle": "Customize navigation behavior",
   "@navigationSettingsSubtitle": {
     "description": "Subtitle for navigation settings"
   },
-  
   "bottomNavigation": "Bottom Navigation",
   "@bottomNavigation": {
     "description": "Bottom navigation toggle"
   },
-  
   "bottomNavigationSubtitle": "Show bottom navigation bar",
   "@bottomNavigationSubtitle": {
     "description": "Subtitle for bottom navigation toggle"
   },
-  
   "cameraButton": "Camera Button (FAB)",
   "@cameraButton": {
     "description": "Camera button toggle"
   },
-  
   "cameraButtonSubtitle": "Show floating camera button",
   "@cameraButtonSubtitle": {
     "description": "Subtitle for camera button toggle"
   },
-  
   "navigationStyle": "Navigation Style",
   "@navigationStyle": {
     "description": "Navigation style setting"
   },
-  
   "navigationStyleCurrent": "Current: {style}",
   "@navigationStyleCurrent": {
     "description": "Current navigation style display",
@@ -155,67 +125,54 @@
       }
     }
   },
-  
   "navigationStyles": "Navigation Styles",
   "@navigationStyles": {
     "description": "Navigation styles demo"
   },
-  
   "navigationStylesSubtitle": "Try different navigation designs",
   "@navigationStylesSubtitle": {
     "description": "Subtitle for navigation styles demo"
   },
-  
   "featuresSection": "Features & Tools",
   "@featuresSection": {
     "description": "Header for features section"
   },
-  
   "modernUIComponents": "Modern UI Components",
   "@modernUIComponents": {
     "description": "Modern UI components showcase"
   },
-  
   "modernUIComponentsSubtitle": "Showcase of new design elements",
   "@modernUIComponentsSubtitle": {
     "description": "Subtitle for modern UI components"
   },
-  
   "offlineModeClassify": "Classify items without internet",
   "@offlineModeClassify": {
     "description": "Subtitle for offline mode feature"
   },
-  
   "analytics": "Analytics",
   "@analytics": {
     "description": "Analytics menu item"
   },
-  
   "analyticsSubtitle": "View your waste classification insights",
   "@analyticsSubtitle": {
     "description": "Subtitle for analytics"
   },
-  
   "advancedAnalytics": "Advanced Analytics",
   "@advancedAnalytics": {
     "description": "Advanced analytics menu item"
   },
-  
   "advancedAnalyticsSubtitle": "Detailed insights and trends",
   "@advancedAnalyticsSubtitle": {
     "description": "Subtitle for advanced analytics"
   },
-
   "advancedSegmentation": "Advanced Segmentation",
   "@advancedSegmentation": {
     "description": "Premium segmentation toggle title"
   },
-
   "advancedSegmentationSubtitle": "Identify multiple objects in a single image",
   "@advancedSegmentationSubtitle": {
     "description": "Premium segmentation toggle subtitle"
   },
-  
   "offlineModeComingSoon": "Offline mode settings coming soon!",
   "@offlineModeComingSoon": {
     "description": "SnackBar text for offline mode settings coming soon"
@@ -224,135 +181,110 @@
   "@legalSupportSection": {
     "description": "Header for legal and support section"
   },
-  
   "privacyPolicy": "Privacy Policy",
   "@privacyPolicy": {
     "description": "Privacy policy menu item"
   },
-  
   "privacyPolicySubtitle": "How we handle your data",
   "@privacyPolicySubtitle": {
     "description": "Subtitle for privacy policy"
   },
-  
   "termsOfService": "Terms of Service",
   "@termsOfService": {
     "description": "Terms of service menu item"
   },
-  
   "termsOfServiceSubtitle": "Terms and conditions",
   "@termsOfServiceSubtitle": {
     "description": "Subtitle for terms of service"
   },
-  
   "helpSupport": "Help & Support",
   "@helpSupport": {
     "description": "Help and support menu item"
   },
-  
   "helpSupportSubtitle": "Get help and contact support",
   "@helpSupportSubtitle": {
     "description": "Subtitle for help and support"
   },
-  
   "about": "About",
   "@about": {
     "description": "About menu item"
   },
-  
   "aboutSubtitle": "App version and information",
   "@aboutSubtitle": {
-  "aboutDialogLine1": "A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.",
-  "@aboutDialogLine1": {
-    "description": "First line of about dialog"
-  },
-  "aboutDialogLine2": "Built with Flutter and powered by AI for accurate waste classification.",
-  "@aboutDialogLine2": {
-    "description": "Second line of about dialog"
-  },
+    "aboutDialogLine1": "A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.",
+    "@aboutDialogLine1": {
+      "description": "First line of about dialog"
+    },
+    "aboutDialogLine2": "Built with Flutter and powered by AI for accurate waste classification.",
+    "@aboutDialogLine2": {
+      "description": "Second line of about dialog"
+    },
     "description": "Subtitle for about"
   },
-  
   "contactSupport": "Contact Support",
   "@contactSupport": {
     "description": "Contact support option"
   },
-  
   "contactSupportSubtitle": "Send us an email",
   "@contactSupportSubtitle": {
     "description": "Subtitle for contact support"
   },
-  
   "reportBug": "Report a Bug",
   "@reportBug": {
     "description": "Report bug option"
   },
-  
   "reportBugSubtitle": "Help us improve the app",
   "@reportBugSubtitle": {
     "description": "Subtitle for report bug"
   },
-  
   "rateApp": "Rate the App",
   "@rateApp": {
     "description": "Rate app option"
   },
-  
   "rateAppSubtitle": "Leave a review",
   "@rateAppSubtitle": {
     "description": "Subtitle for rate app"
   },
-  
   "developerOptions": "DEVELOPER OPTIONS",
   "@developerOptions": {
     "description": "Developer options header"
   },
-  
   "toggleDeveloperMode": "Toggle Developer Mode",
   "@toggleDeveloperMode": {
     "description": "Tooltip for developer mode toggle"
   },
-  
   "toggleFeaturesForTesting": "Toggle features for testing",
   "@toggleFeaturesForTesting": {
     "description": "Subtitle for developer options"
   },
-  
   "resetAll": "Reset All",
   "@resetAll": {
     "description": "Reset all button text"
   },
-  
   "factoryReset": "Factory Reset",
   "@factoryReset": {
     "description": "Factory reset dialog title"
   },
-  
   "factoryResetBody": "This will delete ALL app data including classifications, settings, and user preferences. This action cannot be undone.\\n\\nAre you sure you want to continue?",
   "@factoryResetBody": {
     "description": "Factory reset confirmation text"
   },
-  
   "resetAllData": "Reset All Data",
   "@resetAllData": {
     "description": "Reset all data button text"
   },
-  
   "clearFirebaseData": "Clear Firebase Data",
   "@clearFirebaseData": {
     "description": "Clear Firebase data dialog title"
   },
-  
   "clearFirebaseDataBody": "This will clear all Firebase data for testing purposes. This simulates a fresh install experience.\\n\\nContinue?",
   "@clearFirebaseDataBody": {
     "description": "Clear Firebase data confirmation text"
   },
-  
   "clearData": "Clear Data",
   "@clearData": {
     "description": "Clear data button text"
   },
-  
   "premiumFeatureTitle": "{feature} - Premium Feature",
   "@premiumFeatureTitle": {
     "description": "Premium feature dialog title",
@@ -362,7 +294,6 @@
       }
     }
   },
-  
   "premiumFeatureBody": "{feature} is a premium feature. Upgrade to unlock this and other advanced features.",
   "@premiumFeatureBody": {
     "description": "Premium feature dialog body",
@@ -372,12 +303,10 @@
       }
     }
   },
-  
   "upgrade": "Upgrade",
   "@upgrade": {
     "description": "Upgrade button text"
   },
-  
   "bottomNavEnabled": "Bottom navigation {status}",
   "@bottomNavEnabled": {
     "description": "Bottom navigation status message",
@@ -387,7 +316,6 @@
       }
     }
   },
-  
   "cameraButtonEnabled": "Camera button {status}",
   "@cameraButtonEnabled": {
     "description": "Camera button status message",
@@ -397,7 +325,6 @@
       }
     }
   },
-  
   "navigationStyleChanged": "Navigation style changed to {style}",
   "@navigationStyleChanged": {
     "description": "Navigation style change message",
@@ -407,22 +334,18 @@
       }
     }
   },
-  
   "enabled": "enabled",
   "@enabled": {
     "description": "Enabled status"
   },
-  
   "disabled": "disabled",
   "@disabled": {
     "description": "Disabled status"
   },
-  
   "successfullySignedIn": "Successfully signed in to Google account",
   "@successfullySignedIn": {
     "description": "Success message for sign in"
   },
-  
   "signOutFailed": "Failed to sign out: {error}",
   "@signOutFailed": {
     "description": "Error message for sign out failure",
@@ -432,62 +355,50 @@
       }
     }
   },
-  
   "newFeatureBadge": "New feature",
   "@newFeatureBadge": {
     "description": "Semantic label for new feature badge"
   },
-  
   "updatedFeatureBadge": "Updated feature",
   "@updatedFeatureBadge": {
     "description": "Semantic label for updated feature badge"
   },
-  
   "premiumFeatureBadge": "Premium feature",
   "@premiumFeatureBadge": {
     "description": "Semantic label for premium feature badge"
   },
-  
   "toggleBottomNavigation": "Toggle bottom navigation bar",
   "@toggleBottomNavigation": {
     "description": "Semantic label for bottom navigation toggle"
   },
-  
   "toggleFloatingCameraButton": "Toggle floating camera button",
   "@toggleFloatingCameraButton": {
     "description": "Semantic label for floating camera button toggle"
   },
-
   "privacySection": "ಗೌಪ್ಯತೆ ಮತ್ತು ಸಮ್ಮತಿ",
   "@privacySection": {
     "description": "Header for the privacy and consent section"
   },
-
   "leaderboardOptOut": "ಲೀಡರ್ಬೋರ್ಡ್‌ನಿಂದ ಮರೆಮಾಡಿ",
   "@leaderboardOptOut": {
     "description": "Leaderboard opt-out toggle label"
   },
-
   "leaderboardOptOutHide": "ಲೀಡರ್ಬೋರ್ಡ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಫೋಟೋ ಮರೆಮಾಡಲಾಗಿದೆ",
   "@leaderboardOptOutHide": {
     "description": "Subtitle when leaderboard opt-out is enabled"
   },
-
   "leaderboardOptOutVisible": "ಲೀಡರ್ಬೋರ್ಡ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಫೋಟೋ ಗೋಚರಿಸುತ್ತದೆ",
   "@leaderboardOptOutVisible": {
     "description": "Subtitle when leaderboard opt-out is disabled"
   },
-
   "leaderboardHidden": "ನೀವು ಈಗ ಲೀಡರ್ಬೋರ್ಡ್‌ನಿಂದ ಮರೆಮಾಡಲ್ಪಟ್ಟಿದ್ದೀರಿ",
   "@leaderboardHidden": {
     "description": "Snackbar message when user opts out of leaderboard"
   },
-
   "leaderboardVisible": "ನೀವು ಈಗ ಲೀಡರ್ಬೋರ್ಡ್‌ನಲ್ಲಿ ಗೋಚರಿಸುತ್ತಿದ್ದೀರಿ",
   "@leaderboardVisible": {
     "description": "Snackbar message when user opts into leaderboard"
   },
-
   "failedToUpdateLeaderboard": "ಲೀಡರ್ಬೋರ್ಡ್ ಗೌಪ್ಯತೆಯನ್ನು ನವೀಕರಿಸಲು ವಿಫಲವಾಗಿದೆ: {error}",
   "@failedToUpdateLeaderboard": {
     "description": "Error message when leaderboard privacy update fails",
@@ -497,37 +408,30 @@
       }
     }
   },
-
   "noUserProfileFound": "ಯಾವುದೇ ಬಳಕೆದಾರ ಪ್ರೊಫೈಲ್ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಮೊದಲು ಸೈನ್ ಇನ್ ಮಾಡಿ.",
   "@noUserProfileFound": {
     "description": "Message when no user profile is found"
   },
-
   "trainingConsent": "ನನ್ನ ಚಿತ್ರಗಳೊಂದಿಗೆ ಮಾದರಿಯನ್ನು ಸುಧಾರಿಸಿ",
   "@trainingConsent": {
     "description": "Training consent toggle label"
   },
-
   "trainingConsentEnabled": "ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ನೀವು ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ರದ್ದುಮಾಡಬಹುದು ಮತ್ತು ಕೊಡುಗೆ ನೀಡಿದ ತರಬೇತಿ ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಅಳಿಸಲು ವಿನಂತಿಸಬಹುದು.",
   "@trainingConsentEnabled": {
     "description": "Subtitle when training consent is enabled"
   },
-
   "trainingConsentDisabled": "ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ಯಾವುದೇ ಹೊಸ ಚಿತ್ರ/ತಿದ್ದುಪಡಿ ತರಬೇತಿ ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಪ್ರವೇಶಿಸುವುದಿಲ್ಲ.",
   "@trainingConsentDisabled": {
     "description": "Subtitle when training consent is disabled"
   },
-
   "trainingConsentGranted": "ತರಬೇತಿ ಸಮ್ಮತಿಯನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ.",
   "@trainingConsentGranted": {
     "description": "Snackbar when training consent is granted"
   },
-
   "trainingConsentRevoked": "ತರಬೇತಿ ಸಮ್ಮತಿಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ ಮತ್ತು ಅಳಿಸಲು ವಿನಂತಿಸಲಾಗಿದೆ.",
   "@trainingConsentRevoked": {
     "description": "Snackbar when training consent is revoked"
   },
-
   "couldNotUpdateTrainingConsent": "ತರಬೇತಿ ಸಮ್ಮತಿಯನ್ನು ನವೀಕರಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ: {error}",
   "@couldNotUpdateTrainingConsent": {
     "description": "Error message when training consent update fails",
@@ -537,32 +441,26 @@
       }
     }
   },
-
   "syncEnabledUploadPrompt": "ನಿಮ್ಮ ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ಸ್ಥಳೀಯ ವರ್ಗೀಕರಣಗಳನ್ನು ಕ್ಲೌಡ್‌ಗೆ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ನೀವು ಬಯಸುವಿರಾ?",
   "@syncEnabledUploadPrompt": {
     "description": "Prompt when enabling sync to upload existing data"
   },
-
   "syncAvailableAcrossDevices": "ಇದು ನಿಮ್ಮ ಎಲ್ಲಾ ಸಾಧನಗಳಲ್ಲಿ ಅವುಗಳನ್ನು ಲಭ್ಯವಾಗುವಂತೆ ಮಾಡುತ್ತದೆ.",
   "@syncAvailableAcrossDevices": {
     "description": "Info text about cloud sync availability"
   },
-
   "skip": "ಬಿಟ್ಟುಬಿಡಿ",
   "@skip": {
     "description": "Skip button text"
   },
-
   "uploadNow": "ಈಗ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
   "@uploadNow": {
     "description": "Upload now button text"
   },
-
   "syncingDataToCloud": "ಕ್ಲೌಡ್‌ಗೆ ಡೇಟಾ ಸಿಂಕ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
   "@syncingDataToCloud": {
     "description": "Loading message while syncing data to cloud"
   },
-
   "syncedToCloud": "{count} ವರ್ಗೀಕರಣಗಳನ್ನು ಕ್ಲೌಡ್‌ಗೆ ಯಶಸ್ವಿಯಾಗಿ ಸಿಂಕ್ ಮಾಡಲಾಗಿದೆ!",
   "@syncedToCloud": {
     "description": "Message when classifications are synced to cloud",
@@ -572,12 +470,10 @@
       }
     }
   },
-
   "noClassificationsSynced": "ಯಾವುದೇ ವರ್ಗೀಕರಣಗಳನ್ನು ಸಿಂಕ್ ಮಾಡಲಾಗಿಲ್ಲ.",
   "@noClassificationsSynced": {
     "description": "Message when no classifications were synced"
   },
-
   "syncFailed": "ಸಿಂಕ್ ವಿಫಲವಾಗಿದೆ: {error}",
   "@syncFailed": {
     "description": "Error message when sync fails",
@@ -587,12 +483,10 @@
       }
     }
   },
-
   "downloadingFromCloud": "ಕ್ಲೌಡ್‌ನಿಂದ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
   "@downloadingFromCloud": {
     "description": "Loading message while downloading from cloud"
   },
-
   "downloadedFromCloud": "ಕ್ಲೌಡ್‌ನಿಂದ {count} ವರ್ಗೀಕರಣಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ!",
   "@downloadedFromCloud": {
     "description": "Message when classifications are downloaded from cloud",
@@ -602,12 +496,10 @@
       }
     }
   },
-
   "noClassificationsDownloaded": "ಯಾವುದೇ ವರ್ಗೀಕರಣಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿಲ್ಲ.",
   "@noClassificationsDownloaded": {
     "description": "Message when no classifications were downloaded"
   },
-
   "downloadFailed": "ಡೌನ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ: {error}",
   "@downloadFailed": {
     "description": "Error message when download fails",
@@ -617,102 +509,82 @@
       }
     }
   },
-
   "feedbackOnHistoryEnabled": "ಇತಿಹಾಸದಿಂದ ಇತ್ತೀಚಿನ ವರ್ಗೀಕರಣಗಳ ಬಗ್ಗೆ ಪ್ರತಿಕ್ರಿಯೆ ನೀಡಬಹುದು",
   "@feedbackOnHistoryEnabled": {
     "description": "Subtitle when feedback on history is enabled"
   },
-
   "feedbackOnHistoryDisabled": "ಹೊಸ ವರ್ಗೀಕರಣಗಳ ಬಗ್ಗೆ ಮಾತ್ರ ಪ್ರತಿಕ್ರಿಯೆ ನೀಡಬಹುದು",
   "@feedbackOnHistoryDisabled": {
     "description": "Subtitle when feedback on history is disabled"
   },
-
   "feedbackExplanationEnabled": "ಅನೇಕ ವಸ್ತುಗಳನ್ನು ತ್ವರಿತವಾಗಿ ಸ್ಕ್ಯಾನ್ ಮಾಡಲು ಮತ್ತು ನಂತರ ಪ್ರತಿಕ್ರಿಯೆ ನೀಡಲು ಸೂಕ್ತವಾಗಿದೆ!",
   "@feedbackExplanationEnabled": {
     "description": "Explanation when feedback on history is enabled"
   },
-
   "feedbackExplanationDisabled": "ಪ್ರತಿಕ್ರಿಯೆಯು ವರ್ಗೀಕರಣದ ನಂತರ ತಕ್ಷಣವೇ ಮಾತ್ರ ಲಭ್ಯವಿರುತ್ತದೆ.",
   "@feedbackExplanationDisabled": {
     "description": "Explanation when feedback on history is disabled"
   },
-
   "syncClassificationsLocally": "ವರ್ಗೀಕರಣಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಕ್ಲೌಡ್‌ಗೆ ಸಿಂಕ್ ಆಗುತ್ತವೆ",
   "@syncClassificationsLocally": {
     "description": "Subtitle when Google Cloud Sync is enabled"
   },
-
   "syncClassificationsLocalOnly": "ವರ್ಗೀಕರಣಗಳು ಸ್ಥಳೀಯವಾಗಿ ಮಾತ್ರ ಉಳಿಸಲ್ಪಡುತ್ತವೆ",
   "@syncClassificationsLocalOnly": {
     "description": "Subtitle when Google Cloud Sync is disabled"
   },
-
   "enableNotifications": "ಅಧಿಸೂಚನೆಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
   "@enableNotifications": {
     "description": "Toggle to enable notifications"
   },
-
   "educationalContent": "ಶೈಕ್ಷಣಿಕ ವಿಷಯ",
   "@educationalContent": {
     "description": "Educational content notifications toggle"
   },
-
   "gamification": "ಗೇಮಿಫಿಕೇಶನ್",
   "@gamification": {
     "description": "Gamification notifications toggle"
   },
-
   "reminders": "ಜ್ಞಾಪನೆಗಳು",
   "@reminders": {
     "description": "Reminder notifications toggle"
   },
-
   "notificationSettingsSaved": "ಅಧಿಸೂಚನೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ",
   "@notificationSettingsSaved": {
     "description": "Snackbar message when notification settings are saved"
   },
-
   "systemDefault": "ಸಿಸ್ಟಮ್ ಡೀಫಾಲ್ಟ್",
   "@systemDefault": {
     "description": "System default theme option"
   },
-
   "followSystemTheme": "ಸಿಸ್ಟಮ್ ಥೀಮ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಅನುಸರಿಸಿ",
   "@followSystemTheme": {
     "description": "Subtitle for system default theme"
   },
-
   "lightTheme": "ಲೈಟ್ ಥೀಮ್",
   "@lightTheme": {
     "description": "Light theme option"
   },
-
   "alwaysUseLight": "ಯಾವಾಗಲೂ ಲೈಟ್ ಥೀಮ್ ಬಳಸಿ",
   "@alwaysUseLight": {
     "description": "Subtitle for light theme"
   },
-
   "darkTheme": "ಡಾರ್ಕ್ ಥೀಮ್",
   "@darkTheme": {
     "description": "Dark theme option"
   },
-
   "alwaysUseDark": "ಯಾವಾಗಲೂ ಡಾರ್ಕ್ ಥೀಮ್ ಬಳಸಿ",
   "@alwaysUseDark": {
     "description": "Subtitle for dark theme"
   },
-
   "offlineSaved": "ಆಫ್‌ಲೈನ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ",
   "@offlineSaved": {
     "description": "Snackbar message when offline settings are saved"
   },
-
   "enableOfflineMode": "ಆಫ್‌ಲೈನ್ ಮೋಡ್ ಸಕ್ರಿಯಗೊಳಿಸಿ",
   "@enableOfflineMode": {
     "description": "Title for enable offline mode section"
   },
-
   "downloadModel": "{model} ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
   "@downloadModel": {
     "description": "Download button for a model",
@@ -722,7 +594,6 @@
       }
     }
   },
-
   "removeModel": "{model} ತೆಗೆದುಹಾಕಿ",
   "@removeModel": {
     "description": "Remove button or title for a model",
@@ -732,7 +603,6 @@
       }
     }
   },
-
   "modelRemoved": "{model} ತೆಗೆದುಹಾಕಲಾಗಿದೆ",
   "@modelRemoved": {
     "description": "Snackbar message when a model is removed",
@@ -742,7 +612,6 @@
       }
     }
   },
-
   "downloadingModel": "{model} ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
   "@downloadingModel": {
     "description": "Download progress dialog title",
@@ -752,7 +621,6 @@
       }
     }
   },
-
   "downloadingModelSize": "{size} ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
   "@downloadingModelSize": {
     "description": "Download progress status",
@@ -762,7 +630,6 @@
       }
     }
   },
-
   "modelDownloaded": "{model} ಯಶಸ್ವಿಯಾಗಿ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ",
   "@modelDownloaded": {
     "description": "Snackbar message when model download succeeds",
@@ -772,112 +639,90 @@
       }
     }
   },
-
   "downloadedModels": "ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಮಾಡೆಲ್‌ಗಳು",
   "@downloadedModels": {
     "description": "Section header for downloaded models list"
   },
-
   "advancedSettings": "ಸುಧಾರಿತ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
   "@advancedSettings": {
     "description": "Section header for advanced settings"
   },
-
   "autoDownloadUpdates": "ಮಾಡೆಲ್ ಅಪ್‌ಡೇಟ್‌ಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
   "@autoDownloadUpdates": {
     "description": "Auto-download model updates toggle"
   },
-
   "autoDownloadSubtitle": "ಹೊಸ ಮಾಡೆಲ್ ಆವೃತ್ತಿಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
   "@autoDownloadSubtitle": {
     "description": "Subtitle for auto-download updates toggle"
   },
-
   "compressImages": "ಚಿತ್ರಗಳನ್ನು ಸಂಕುಚಿತಗೊಳಿಸಿ",
   "@compressImages": {
     "description": "Compress images toggle"
   },
-
   "compressSubtitle": "ವೇಗದ ಸಂಸ್ಕರಣೆಗಾಗಿ ಚಿತ್ರದ ಗಾತ್ರ ಕಡಿಮೆ ಮಾಡಿ",
   "@compressSubtitle": {
     "description": "Subtitle for compress images toggle"
   },
-
   "storageOptimization": "ಸಂಗ್ರಹಣೆ ಆಪ್ಟಿಮೈಜೇಶನ್",
   "@storageOptimization": {
     "description": "Storage optimization toggle"
   },
-
   "storageSubtitle": "ಹಳೆಯ ಕ್ಯಾಶ್ ಫೈಲ್‌ಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸ್ವಚ್ಛಗೊಳಿಸಿ",
   "@storageSubtitle": {
     "description": "Subtitle for storage optimization toggle"
   },
-
   "storageUsage": "ಸಂಗ್ರಹಣೆ ಬಳಕೆ",
   "@storageUsage": {
     "description": "Storage usage section header"
   },
-
   "modelsDownloaded": "ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ಮಾಡೆಲ್‌ಗಳು:",
   "@modelsDownloaded": {
     "description": "Label for model download count"
   },
-
   "totalStorageUsed": "ಒಟ್ಟು ಸಂಗ್ರಹಣೆ ಬಳಕೆ:",
   "@totalStorageUsed": {
     "description": "Label for total storage used"
   },
-
   "available": "ಲಭ್ಯವಿದೆ:",
   "@available": {
     "description": "Label for available storage"
   },
-
   "enableOfflineClassification": "ಆಫ್‌ಲೈನ್ ವರ್ಗೀಕರಣವನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
   "@enableOfflineClassification": {
     "description": "Toggle for enabling offline classification"
   },
-
   "offlineEnabled": "ಆಫ್‌ಲೈನ್ ಮೋಡ್ ಸಕ್ರಿಯಗೊಂಡಿದೆ",
   "@offlineEnabled": {
     "description": "Status when offline mode is enabled"
   },
-
   "offlineDisabled": "ಆಫ್‌ಲೈನ್ ಮೋಡ್ ನಿಷ್ಕ್ರಿಯಗೊಂಡಿದೆ",
   "@offlineDisabled": {
     "description": "Status when offline mode is disabled"
   },
-
   "offlineDescription": "ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕವಿಲ್ಲದೆಯೇ ತ್ಯಾಜ್ಯ ವಸ್ತುಗಳನ್ನು ವರ್ಗೀಕರಿಸಿ. ಆಫ್‌ಲೈನ್ ಮಾಡೆಲ್‌ಗಳನ್ನು ನಿಮ್ಮ ಸಾಧನಕ್ಕೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗುತ್ತದೆ.",
   "@offlineDescription": {
     "description": "Description text for offline mode"
   },
-
   "loadingOfflineSettings": "ಆಫ್‌ಲೈನ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
   "@loadingOfflineSettings": {
     "description": "Loading message for offline settings screen"
   },
-
   "save": "ಉಳಿಸಿ",
   "@save": {
     "description": "Save button text"
   },
-
   "ok": "ಸರಿ",
   "@ok": {
     "description": "OK button text"
   },
-
   "remove": "ತೆಗೆದುಹಾಕಿ",
   "@remove": {
     "description": "Remove button text"
   },
-
   "downloadFailedTitle": "ಡೌನ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ",
   "@downloadFailedTitle": {
     "description": "Download failed dialog title"
   },
-
   "modelDownloadFailed": "{model} ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ",
   "@modelDownloadFailed": {
     "description": "Snackbar message when model download fails",
@@ -887,7 +732,6 @@
       }
     }
   },
-
   "modelRemoveFailed": "{model} ತೆಗೆದುಹಾಕಲು ವಿಫಲವಾಗಿದೆ",
   "@modelRemoveFailed": {
     "description": "Snackbar message when model removal fails",
@@ -897,7 +741,6 @@
       }
     }
   },
-
   "removeModelConfirm": "ನೀವು ಖಚಿತವಾಗಿ {model} ಅನ್ನು ತೆಗೆದುಹಾಕಲು ಬಯಸುವಿರಾ? ನೀವು ನಂತರ ಮತ್ತೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದು.",
   "@removeModelConfirm": {
     "description": "Confirmation dialog body for model removal",
@@ -907,9 +750,445 @@
       }
     }
   },
-
   "premiumCustomThemesBody": "ಕಸ್ಟಮ್ ಥೀಮ್‌ಗಳು ಪ್ರೀಮಿಯಂ ಚಂದಾದಾರಿಕೆಯೊಂದಿಗೆ ಲಭ್ಯವಿದೆ. ಈ ವೈಶಿಷ್ಟ್ಯವನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ!",
   "@premiumCustomThemesBody": {
     "description": "Premium prompt body for custom themes"
+  },
+  "aboutDialogBodyLine1": "A comprehensive Flutter application for proper waste identification, segregation guidance, and environmental education.",
+  "@aboutDialogBodyLine1": {
+    "description": "First line of the settings about dialog body"
+  },
+  "aboutDialogBodyLine2": "Built with Flutter and powered by AI for accurate waste classification.",
+  "@aboutDialogBodyLine2": {
+    "description": "Second line of the settings about dialog body"
+  },
+  "adsCurrentlyDisabled": "Ads are currently disabled",
+  "@adsCurrentlyDisabled": {
+    "description": "Snackbar message when ads are disabled"
+  },
+  "adsDisabled": "Ads are disabled",
+  "@adsDisabled": {
+    "description": "Message when ads are disabled"
+  },
+  "advancedAnalyticsFeature": "Advanced Analytics",
+  "@advancedAnalyticsFeature": {
+    "description": "Advanced analytics feature name"
+  },
+  "allDataClearedSuccessfully": "All data cleared successfully",
+  "@allDataClearedSuccessfully": {
+    "description": "Message when all data is cleared"
+  },
+  "allPremiumFeaturesReset": "All premium features reset",
+  "@allPremiumFeaturesReset": {
+    "description": "Message when all premium features are reset"
+  },
+  "allowFeedbackRecentHistory": "Allow Feedback on Recent History",
+  "@allowFeedbackRecentHistory": {
+    "description": "Allow feedback on recent history setting"
+  },
+  "appInformationAndCredits": "App information and credits",
+  "@appInformationAndCredits": {
+    "description": "About section subtitle"
+  },
+  "appName": "ReLoop",
+  "@appName": {
+    "description": "Application name used in About dialogs and settings surfaces"
+  },
+  "bugReportComingSoon": "Bug reporting feature coming soon!",
+  "@bugReportComingSoon": {
+    "description": "Bug reporting coming soon message"
+  },
+  "cameraShutterHint": "Takes a photo",
+  "@cameraShutterHint": {
+    "description": "Hint for camera shutter button"
+  },
+  "cameraShutterLabel": "Camera shutter",
+  "@cameraShutterLabel": {
+    "description": "Semantic label for camera shutter button"
+  },
+  "clearFirebaseDataFresh": "Clear Firebase Data (Fresh Install)",
+  "@clearFirebaseDataFresh": {
+    "description": "Clear Firebase data button"
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Close button"
+  },
+  "copyEmail": "Copy Email",
+  "@copyEmail": {
+    "description": "Copy email button"
+  },
+  "dataClearingFailed": "Data clearing failed: {error}",
+  "@dataClearingFailed": {
+    "description": "Error message when clearing app data fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "debugMode": "Debug Mode",
+  "@debugMode": {
+    "description": "Developer mode tile title"
+  },
+  "debugModeSubtitle": "Enable debug logging",
+  "@debugModeSubtitle": {
+    "description": "Developer mode tile subtitle"
+  },
+  "developerModeToggled": "Developer mode {status}",
+  "@developerModeToggled": {
+    "description": "Developer mode feedback message",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "emailAddressCopied": "Email address copied to clipboard",
+  "@emailAddressCopied": {
+    "description": "Email address copied message"
+  },
+  "emailNotAvailable": "Email Not Available",
+  "@emailNotAvailable": {
+    "description": "Email not available dialog title"
+  },
+  "errorOpeningAppStore": "Error opening app store: {error}",
+  "@errorOpeningAppStore": {
+    "description": "Error opening app store message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorOpeningEmail": "Error opening email: {error}",
+  "@errorOpeningEmail": {
+    "description": "Error opening email message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorSigningOut": "Error signing out: {error}",
+  "@errorSigningOut": {
+    "description": "Error signing out message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportData": "Export Data",
+  "@exportData": {
+    "description": "Export data feature name"
+  },
+  "exportDataSubtitle": "Export your classification history",
+  "@exportDataSubtitle": {
+    "description": "Subtitle for export data option"
+  },
+  "factoryResetWarning": "This will delete ALL app data including:\\n\\n• All classification history\\n• All gamification progress (points, streaks, achievements)\\n• All user preferences and settings\\n• All cached data\\n• All premium feature settings\\n\\nThis action cannot be undone.\\n\\nAre you sure you want to continue?",
+  "@factoryResetWarning": {
+    "description": "Factory reset warning message"
+  },
+  "failedToToggleGoogleSync": "Failed to toggle Google sync: {error}",
+  "@failedToToggleGoogleSync": {
+    "description": "Failed to toggle Google sync message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "featureEnabledForTesting": "{feature} {status} for testing",
+  "@featureEnabledForTesting": {
+    "description": "Developer feature toggle feedback message",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStatusChanged": "{title} {status}",
+  "@featureStatusChanged": {
+    "description": "Feature status changed message",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "feedbackSettings": "Feedback Settings",
+  "@feedbackSettings": {
+    "description": "Feedback settings title"
+  },
+  "feedbackSettingsSubtitle": "Control when you can provide feedback",
+  "@feedbackSettingsSubtitle": {
+    "description": "Feedback settings subtitle"
+  },
+  "feedbackTimeframe": "Feedback Timeframe",
+  "@feedbackTimeframe": {
+    "description": "Feedback timeframe setting"
+  },
+  "feedbackTimeframeDays": "Can provide feedback on items from last {days} days",
+  "@feedbackTimeframeDays": {
+    "description": "Feedback timeframe description",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "floating": "Floating",
+  "@floating": {
+    "description": "Floating navigation style"
+  },
+  "forceCrashTest": "Force Crash (Crashlytics Test)",
+  "@forceCrashTest": {
+    "description": "Force crash test button"
+  },
+  "forceDownloadFromCloud": "Force Download from Cloud",
+  "@forceDownloadFromCloud": {
+    "description": "Force download from cloud option"
+  },
+  "forceDownloadSubtitle": "Download latest data from cloud",
+  "@forceDownloadSubtitle": {
+    "description": "Force download subtitle"
+  },
+  "fourteenDays": "14 days",
+  "@fourteenDays": {
+    "description": "Fourteen days option"
+  },
+  "getHelpViaEmail": "Get help via email",
+  "@getHelpViaEmail": {
+    "description": "Contact support subtitle"
+  },
+  "glassmorphism": "Glassmorphism",
+  "@glassmorphism": {
+    "description": "Glassmorphism navigation style"
+  },
+  "googleCloudSync": "Google Cloud Sync",
+  "@googleCloudSync": {
+    "description": "Google cloud sync setting"
+  },
+  "googleSyncDisabled": "Google sync disabled. Future classifications will be saved locally only.",
+  "@googleSyncDisabled": {
+    "description": "Google sync disabled message"
+  },
+  "googleSyncEnabled": "Google Sync Enabled",
+  "@googleSyncEnabled": {
+    "description": "Google sync enabled dialog title"
+  },
+  "googleSyncEnabledMessage": "Google sync is now enabled!",
+  "@googleSyncEnabledMessage": {
+    "description": "Google sync enabled message"
+  },
+  "hapticFeedback": "Haptic Feedback",
+  "@hapticFeedback": {
+    "description": "Haptic feedback setting title"
+  },
+  "hapticFeedbackSubtitle": "Vibrate on successful scan",
+  "@hapticFeedbackSubtitle": {
+    "description": "Haptic feedback setting subtitle"
+  },
+  "helpUsImproveApp": "Help us improve the app",
+  "@helpUsImproveApp": {
+    "description": "Report bug subtitle"
+  },
+  "lastCloudSync": "Last Cloud Sync",
+  "@lastCloudSync": {
+    "description": "Last cloud sync label"
+  },
+  "manageAdPreferences": "Manage ad preferences",
+  "@manageAdPreferences": {
+    "description": "Subtitle for ad settings"
+  },
+  "material3": "Material 3",
+  "@material3": {
+    "description": "Material 3 navigation style"
+  },
+  "migrateOldClassifications": "Migrate Old Classifications",
+  "@migrateOldClassifications": {
+    "description": "Migrate old classifications button"
+  },
+  "migrationCompleted": "Migration completed: {updated} updated, {skipped} skipped, {errors} errors",
+  "@migrationCompleted": {
+    "description": "Migration success message",
+    "placeholders": {
+      "updated": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "errors": {
+        "type": "int"
+      }
+    }
+  },
+  "migrationFailed": "Migration failed: {message}",
+  "@migrationFailed": {
+    "description": "Migration failure message",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "newBadge": "NEW",
+  "@newBadge": {
+    "description": "Badge label for newly added settings items"
+  },
+  "noEmailAppFound": "No email app found. Please send an email to:",
+  "@noEmailAppFound": {
+    "description": "No email app found message"
+  },
+  "notNow": "Not Now",
+  "@notNow": {
+    "description": "Not now button"
+  },
+  "oneDay": "1 day",
+  "@oneDay": {
+    "description": "One day option"
+  },
+  "performanceMonitor": "Performance Monitor",
+  "@performanceMonitor": {
+    "description": "Performance monitor tile title"
+  },
+  "performanceMonitorSubtitle": "View performance metrics",
+  "@performanceMonitorSubtitle": {
+    "description": "Performance monitor tile subtitle"
+  },
+  "privacyPolicyAndTerms": "Privacy Policy and Terms of Service",
+  "@privacyPolicyAndTerms": {
+    "description": "Privacy policy and terms subtitle"
+  },
+  "rateAppComingSoon": "App rating feature coming soon!",
+  "@rateAppComingSoon": {
+    "description": "Rate app coming soon message"
+  },
+  "rateUsOnAppStore": "Rate us on the app store",
+  "@rateUsOnAppStore": {
+    "description": "Rate app subtitle"
+  },
+  "removeAds": "Remove Ads",
+  "@removeAds": {
+    "description": "Remove ads feature name"
+  },
+  "resetAllAppData": "Reset all app data (history, settings, preferences)",
+  "@resetAllAppData": {
+    "description": "Reset all app data subtitle"
+  },
+  "resetAppData": "Reset App Data",
+  "@resetAppData": {
+    "description": "Reset app data tile title"
+  },
+  "resetAppDataSubtitle": "Clear all app data",
+  "@resetAppDataSubtitle": {
+    "description": "Reset app data tile subtitle"
+  },
+  "resetFullData": "Reset Full Data (Factory Reset)",
+  "@resetFullData": {
+    "description": "Reset full data button"
+  },
+  "resettingAllData": "Resetting all data...",
+  "@resettingAllData": {
+    "description": "Loading message while resetting app data"
+  },
+  "resettingToFactorySettings": "Resetting app to factory settings...",
+  "@resettingToFactorySettings": {
+    "description": "Resetting to factory settings message"
+  },
+  "rewardConfettiHint": "Celebrates your achievement",
+  "@rewardConfettiHint": {
+    "description": "Hint for achievement confetti overlay"
+  },
+  "rewardConfettiLabel": "Reward confetti",
+  "@rewardConfettiLabel": {
+    "description": "Semantic label for achievement confetti overlay"
+  },
+  "seePremiumFeatures": "See Premium Features",
+  "@seePremiumFeatures": {
+    "description": "See premium features button"
+  },
+  "sevenDays": "7 days",
+  "@sevenDays": {
+    "description": "Seven days option"
+  },
+  "signIn": "Sign In",
+  "@signIn": {
+    "description": "Sign in button"
+  },
+  "signingOut": "Signing out...",
+  "@signingOut": {
+    "description": "Signing out progress message"
+  },
+  "startClassifyingHint": "Opens the camera to classify waste",
+  "@startClassifyingHint": {
+    "description": "Hint for the start classifying button"
+  },
+  "stayInGuestMode": "Stay in Guest Mode",
+  "@stayInGuestMode": {
+    "description": "Stay in guest mode button"
+  },
+  "supportContactComingSoon": "Support contact feature coming soon!",
+  "@supportContactComingSoon": {
+    "description": "Support contact coming soon message"
+  },
+  "syncLocalDataSubtitle": "Upload existing local classifications to cloud",
+  "@syncLocalDataSubtitle": {
+    "description": "Sync local data subtitle"
+  },
+  "syncLocalDataToCloud": "Sync Local Data to Cloud",
+  "@syncLocalDataToCloud": {
+    "description": "Sync local data to cloud option"
+  },
+  "testModeFeature": "Test mode: {feature}",
+  "@testModeFeature": {
+    "description": "Developer toggle subtitle for a feature",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  "themeCustomization": "Theme Customization",
+  "@themeCustomization": {
+    "description": "Theme customization feature name"
+  },
+  "thirtyDays": "30 days",
+  "@thirtyDays": {
+    "description": "Thirty days option"
+  },
+  "threeDays": "3 days",
+  "@threeDays": {
+    "description": "Three days option"
+  },
+  "trainingReviewQueue": "Training Review Queue",
+  "@trainingReviewQueue": {
+    "description": "Title for the training review queue"
+  },
+  "trainingReviewQueueSubtitle": "Review pending training samples and labels",
+  "@trainingReviewQueueSubtitle": {
+    "description": "Subtitle for the training review queue"
+  },
+  "unableToOpenAppStore": "Unable to open app store. Please search for \"ReLoop\" in your app store.",
+  "@unableToOpenAppStore": {
+    "description": "Unable to open app store message"
+  },
+  "upgradeToUse": "Upgrade to Use {feature}",
+  "@upgradeToUse": {
+    "description": "Upgrade to use feature dialog title",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
   }
 }

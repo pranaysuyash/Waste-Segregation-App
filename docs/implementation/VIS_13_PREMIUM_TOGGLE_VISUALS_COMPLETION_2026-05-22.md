@@ -103,10 +103,10 @@ Executed and passed:
 
 4) Full-suite status
 - `flutter test` was executed to sample whole-repo health.
-- Result: suite reports existing failures outside VIS-13 scope (`Some tests failed`, aggregate shown as `-4` in run output).
+- Result: suite reports existing failures outside VIS-13 scope (`Some tests failed`, aggregate shown as `-44` in run output).
 - VIS-13 targeted premium/settings tests remain green.
 
 ## Residual risks / follow-up
 1. Segmentation premium label/subtitle are now localized via l10n keys (`advancedSegmentation`, `advancedSegmentationSubtitle`) and generated localization classes.
 2. This change standardizes canonical settings modules; legacy `lib/screens/settings_screen.dart` still contains older patterns and should be treated as non-canonical or reconciled later.
-3. Full repo test suite currently reports 4 failures outside this VIS-13 scope; targeted premium/settings suites are green.
+3. Full repo test suite currently reports 44 failures outside this VIS-13 scope; targeted premium/settings suites are green.

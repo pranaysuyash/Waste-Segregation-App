@@ -47,7 +47,8 @@ class TokenService extends ChangeNotifier {
   static const int dailyLoginBonus = 2; // 2 tokens for daily login
 
   // Runtime controls for enforcement behavior.
-  static bool enableTokenEnforcement = true;
+  // Phase 0 default: enforcement stays OFF until explicitly enabled.
+  static bool enableTokenEnforcement = false;
   static bool enableServerSideValidation = true;
   static const int premiumInstantDiscountPercent = 50;
 

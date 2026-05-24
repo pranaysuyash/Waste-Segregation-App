@@ -23,18 +23,18 @@
 | Cost guardrails | `lib/services/cost_guardrail_service.dart` | Live — batch mode enforcement, budget monitoring |
 | Dynamic pricing | `lib/services/dynamic_pricing_service.dart` | Live — Remote Config driven pricing |
 | Free daily scan limit | `image_capture_screen.dart` | Live — Hive-backed counter, premium bypass |
-| Token enforcement flag | `TokenService.enableTokenEnforcement` | Live — Remote Config kill switch, default false |
+| Token enforcement flag | `TokenService.enableTokenEnforcement` | Live — kill switch, default false |
 | Server-side validation | `TokenService.enableServerSideValidation` | Live — gates server calls, requires Firebase |
 | Wallet backup/restore | `lib/screens/token_wallet_screen.dart` | Live — export/import with integrity verification |
 
 ### The core contradiction
 
-Tokens are **displayed but not enforced**. The `enableTokenEnforcement` flag defaults to `false`. This means:
-- Users see "5 tokens" cost on instant analysis
-- Tokens are NOT deducted
-- The display is either a soft-launch experiment or an unimplemented bug
+Tokens are **displayed**, and the current runtime keeps enforcement OFF by default. This means:
+- Users see token cost on instant analysis
+- Enforcement can be flipped on without changing the UI contract
+- The soft-launch state matches the Phase 0 design again
 
-All 8 brainstorm roles agree: **the current state is not sustainable.** Displaying costs without enforcement is either a bug or a lie.
+The remaining open question is whether the existing points-to-tokens conversion path should stay general or later be narrowed to event-only crossover.
 
 ### Three-territory pricing problem
 
@@ -137,7 +137,7 @@ User presses "Analyze"
 | Daily login | 2 tokens | Once per day | Last login > 24h ago |
 | Correct classification | 1 token | Per correction accepted | User correction → system agrees |
 | Community contribution | 1 token | Per approved contribution | Moderation approval |
-| Points conversion | 200 points → 2 tokens | Up to 3/day | `canConvertToday` check |
+| Points conversion | 200 points → 2 tokens | Up to 5/day | `canConvertToday` check |
 
 ### Spending paths
 

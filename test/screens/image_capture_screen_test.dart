@@ -35,11 +35,16 @@ class MockAiService extends Mock implements AiService {}
 
 class MockAnalyticsService extends Mock implements AnalyticsService {
   @override
-  Future<void> trackScreenView(String screenName,
-          {Map<String, dynamic>? parameters}) =>
+  Future<void> trackScreenView(
+    String screenName, {
+    Map<String, dynamic>? parameters,
+  }) =>
       super.noSuchMethod(
         Invocation.method(
-            #trackScreenView, [screenName], {#parameters: parameters}),
+          #trackScreenView,
+          [screenName],
+          {#parameters: parameters},
+        ),
         returnValue: Future<void>.value(),
         returnValueForMissingStub: Future<void>.value(),
       ) as Future<void>;
@@ -57,64 +62,100 @@ class FakePremiumService extends PremiumService {
 
 void main() {
   group('ImageCaptureScreen', () {
-    testWidgets('renders waiting state when no image is provided',
-        (tester) async {
+    testWidgets('renders waiting state when no image is provided', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
-            home: ImageCaptureScreen(),
-          ),
-        ),
+        const ProviderScope(child: MaterialApp(home: ImageCaptureScreen())),
       );
 
       expect(find.text('Waiting for camera...'), findsOneWidget);
     });
 
-    testWidgets('tapping "Select multiple items" enters region selection mode',
-        (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            aiServiceProvider.overrideWithValue(MockAiService()),
-            analyticsServiceProvider.overrideWithValue(MockAnalyticsService()),
-            storageServiceProvider.overrideWithValue(MockStorageService()),
-            resultPipelineProvider.overrideWith((_) => MockResultPipeline()),
-          ],
-          child: MaterialApp(
-            home: ImageCaptureScreen(
-              webImage: kTestPng,
-            ),
+    testWidgets(
+      'tapping "Select multiple items" enters region selection mode',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              aiServiceProvider.overrideWithValue(MockAiService()),
+              analyticsServiceProvider.overrideWithValue(
+                MockAnalyticsService(),
+              ),
+              storageServiceProvider.overrideWithValue(MockStorageService()),
+              resultPipelineProvider.overrideWith((_) => MockResultPipeline()),
+            ],
+            child: MaterialApp(home: ImageCaptureScreen(webImage: kTestPng)),
           ),
-        ),
-      );
-      // Use pump instead of pumpAndSettle because image decoding in tests
-      // may not settle with tiny test data.
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
+        );
+        // Use pump instead of pumpAndSettle because image decoding in tests
+        // may not settle with tiny test data.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
-      // Scroll down to find the button (overflowing content)
-      await tester.drag(find.byType(Scrollable), const Offset(0, -300));
-      await tester.pump();
+        // Scroll down to find the button (overflowing content)
+        await tester.drag(find.byType(Scrollable), const Offset(0, -300));
+        await tester.pump();
 
-      final selectMultipleItemsFinder = find.text('Select multiple items');
-      expect(selectMultipleItemsFinder, findsOneWidget);
-      await tester.scrollUntilVisible(
-        selectMultipleItemsFinder,
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(selectMultipleItemsFinder);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+        final selectMultipleItemsFinder = find.text('Select multiple items');
+        expect(selectMultipleItemsFinder, findsOneWidget);
+        await tester.scrollUntilVisible(
+          selectMultipleItemsFinder,
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(selectMultipleItemsFinder);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('Cancel'), findsOneWidget);
-      expect(find.byType(ManualRegionSelector), findsOneWidget);
-      expect(find.textContaining('Analyze'), findsWidgets);
-    });
+        expect(find.text('Cancel'), findsOneWidget);
+        expect(find.byType(ManualRegionSelector), findsOneWidget);
+        expect(find.textContaining('Analyze'), findsWidgets);
+      },
+    );
 
     testWidgets(
-        'region selection mode disables analyze button when no regions selected',
-        (tester) async {
+      'region selection mode disables analyze button when no regions selected',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              aiServiceProvider.overrideWithValue(MockAiService()),
+              analyticsServiceProvider.overrideWithValue(
+                MockAnalyticsService(),
+              ),
+              storageServiceProvider.overrideWithValue(MockStorageService()),
+              resultPipelineProvider.overrideWith((_) => MockResultPipeline()),
+            ],
+            child: MaterialApp(home: ImageCaptureScreen(webImage: kTestPng)),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Scroll down to find the button
+        await tester.drag(find.byType(Scrollable), const Offset(0, -300));
+        await tester.pump();
+
+        final selectMultipleItemsFinder = find.text('Select multiple items');
+        await tester.scrollUntilVisible(
+          selectMultipleItemsFinder,
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(selectMultipleItemsFinder);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Region selection mode is active and an Analyze CTA is present.
+        expect(find.byType(ManualRegionSelector), findsOneWidget);
+        expect(find.textContaining('Analyze'), findsWidgets);
+      },
+    );
+
+    testWidgets('review screen keeps Analyze enabled before analysis starts', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -123,33 +164,18 @@ void main() {
             storageServiceProvider.overrideWithValue(MockStorageService()),
             resultPipelineProvider.overrideWith((_) => MockResultPipeline()),
           ],
-          child: MaterialApp(
-            home: ImageCaptureScreen(
-              webImage: kTestPng,
-            ),
-          ),
+          child: MaterialApp(home: ImageCaptureScreen(webImage: kTestPng)),
         ),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      // Scroll down to find the button
-      await tester.drag(find.byType(Scrollable), const Offset(0, -300));
-      await tester.pump();
+      expect(find.text('Review Image'), findsOneWidget);
 
-      final selectMultipleItemsFinder = find.text('Select multiple items');
-      await tester.scrollUntilVisible(
-        selectMultipleItemsFinder,
-        200,
-        scrollable: find.byType(Scrollable).first,
+      final analyzeButton = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Analyze (Instant)'),
       );
-      await tester.tap(selectMultipleItemsFinder);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-
-      // Region selection mode is active and an Analyze CTA is present.
-      expect(find.byType(ManualRegionSelector), findsOneWidget);
-      expect(find.textContaining('Analyze'), findsWidgets);
+      expect(analyzeButton.onPressed, isNotNull);
     });
   });
 
@@ -188,8 +214,9 @@ void main() {
   });
 
   group('CombinedResultScreen', () {
-    testWidgets('renders combined summary for multiple classifications',
-        (tester) async {
+    testWidgets('renders combined summary for multiple classifications', (
+      tester,
+    ) async {
       final classifications = [
         WasteClassification(
           id: 'c1',
@@ -244,8 +271,9 @@ void main() {
       expect(find.text('Wet Waste'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('renders mixed waste guidance when multi-item data is passed',
-        (tester) async {
+    testWidgets('renders mixed waste guidance when multi-item data is passed', (
+      tester,
+    ) async {
       final classifications = [
         WasteClassification(
           id: 'c1',
@@ -327,8 +355,10 @@ void main() {
       expect(find.text('Mixed Waste Detected'), findsOneWidget);
       expect(find.text('Disposal Summary'), findsOneWidget);
       expect(find.byType(PerItemResultCard), findsOneWidget);
-      expect(find.textContaining('Separate items before disposal'),
-          findsOneWidget);
+      expect(
+        find.textContaining('Separate items before disposal'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renders single classification without errors', (tester) async {

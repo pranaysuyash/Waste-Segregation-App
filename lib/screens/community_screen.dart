@@ -43,36 +43,18 @@ class _CommunityScreenState extends State<CommunityScreen>
 
     setState(() {
       _isLoading = true;
-      _loadingMessage = 'Syncing your scans';
+      _loadingMessage = 'Loading community data';
     });
 
     try {
-      final storageService = Provider.of<StorageService>(
-        context,
-        listen: false,
-      );
-      final communityService = Provider.of<CommunityService>(
-        context,
-        listen: false,
-      );
-      final userProfile = await storageService.getCurrentUserProfile();
-
-      await communityService.initCommunity();
-
-      // Sync with real user data first
-      final userClassifications = await storageService.getAllClassifications();
-      await communityService.syncWithUserData(userClassifications, userProfile);
-
-      final feedItems = await communityService.getFeedItems();
-      final stats = await communityService.getStats();
-      await communityService.reconcileCommunityStats(
+      final snapshot = await _fetchCommunitySnapshot(
         runDriftCheck: kDebugMode,
       );
 
       if (mounted) {
         setState(() {
-          _feedItems = feedItems;
-          _stats = stats;
+          _feedItems = snapshot.feedItems;
+          _stats = snapshot.stats;
           _isLoading = false;
           _loadingMessage = 'Done';
         });
@@ -123,42 +105,40 @@ class _CommunityScreenState extends State<CommunityScreen>
           userProfile,
         );
 
-        // Reload data after sync
-        final feedItems = await communityService.getFeedItems();
-        final stats = await communityService.getStats();
-        final reconciliation = await communityService.reconcileCommunityStats(
+        // Reload the read model after the explicit sync completes.
+        final snapshot = await _fetchCommunitySnapshot(
           runDriftCheck: kDebugMode,
         );
 
         if (mounted) {
           setState(() {
-            _feedItems = feedItems;
-            _stats = stats;
+            _feedItems = snapshot.feedItems;
+            _stats = snapshot.stats;
             _isLoading = false;
+            _loadingMessage = 'Done';
           });
 
           // Calculate delta for feedback
-          final userDelta = (stats.totalUsers) - (statsBefore?.totalUsers ?? 0);
-          final classDelta = (stats.totalClassifications) -
+          final userDelta =
+              (snapshot.stats.totalUsers) - (statsBefore?.totalUsers ?? 0);
+          final classDelta = (snapshot.stats.totalClassifications) -
               (statsBefore?.totalClassifications ?? 0);
           final pointsDelta =
-              (stats.totalPoints) - (statsBefore?.totalPoints ?? 0);
+              (snapshot.stats.totalPoints) - (statsBefore?.totalPoints ?? 0);
 
           // Show detailed success message with delta
-          String deltaMessage = '✅ Sync Complete!';
+          var deltaMessage = '✅ Sync Complete!';
           if (classDelta > 0 || pointsDelta > 0 || userDelta > 0) {
             final parts = <String>[];
             if (classDelta > 0) parts.add('+$classDelta classifications');
             if (pointsDelta > 0) parts.add('+$pointsDelta points');
             if (userDelta > 0) parts.add('+$userDelta users');
             deltaMessage = '✅ Synced: ${parts.join(', ')}';
-          } else if (reconciliation.isInSync && feedItems.isNotEmpty) {
-            deltaMessage = '✅ Synced ${feedItems.length} community activities';
-          } else if (!reconciliation.isInSync) {
+          } else if (snapshot.reconciliation.isInSync) {
+            deltaMessage = '✅ Sync complete and community stats are aligned';
+          } else {
             deltaMessage =
                 '⚠️ Sync complete, but stats reconciliation flagged drift';
-          } else {
-            deltaMessage = '✅ Sync complete';
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -180,7 +160,7 @@ class _CommunityScreenState extends State<CommunityScreen>
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Sync failed: $e'),
+            content: Text(_communitySyncErrorMessage()),
             backgroundColor: Colors.red,
           ),
         );
@@ -608,7 +588,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${_feedItems.length} activities',
+                              '$_feedClassificationCount classifications',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -629,7 +609,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                         child: Column(
                           children: [
                             const Text(
-                              'Expected Total',
+                              'Canonical Total',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.accentColor,
@@ -637,18 +617,12 @@ class _CommunityScreenState extends State<CommunityScreen>
                               ),
                             ),
                             const SizedBox(height: 4),
-                            FutureBuilder<int>(
-                              future: _getExpectedActivityCount(),
-                              builder: (context, snapshot) {
-                                final count = snapshot.data ?? 0;
-                                return Text(
-                                  '$count activities',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                );
-                              },
+                            Text(
+                              '$_canonicalClassificationCount classifications',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ],
                         ),
@@ -656,49 +630,39 @@ class _CommunityScreenState extends State<CommunityScreen>
                     ),
                   ],
                 ),
-                FutureBuilder<int>(
-                  future: _getExpectedActivityCount(),
-                  builder: (context, snapshot) {
-                    final expectedCount = snapshot.data ?? 0;
-                    if (_feedItems.length < expectedCount) {
-                      return Column(
-                        children: [
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: Colors.orange.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.warning_amber,
-                                  color: Colors.orange,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Tap the sync button above to reconcile all historical data',
-                                    style: TextStyle(
-                                      color: Colors.orange[800],
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                if (_feedClassificationCount !=
+                    _canonicalClassificationCount) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: Colors.orange.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.warning_amber,
+                          color: Colors.orange,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Feed classifications and canonical stats differ. Tap Sync All Data to backfill recent local scans.',
+                            style: TextStyle(
+                              color: Colors.orange[800],
+                              fontSize: 11,
                             ),
                           ),
-                        ],
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -794,20 +758,43 @@ class _CommunityScreenState extends State<CommunityScreen>
     );
   }
 
-  Future<int> _getExpectedActivityCount() async {
-    try {
-      final storageService = Provider.of<StorageService>(
-        context,
-        listen: false,
-      );
-      final classifications = await storageService.getAllClassifications();
-      // Expected activity count should be at least the number of classifications
-      // plus any achievements (rough estimate)
-      return classifications.length;
-    } catch (e) {
-      WasteAppLogger.severe('Error getting expected activity count: $e');
-      return 0;
-    }
+  Future<
+      ({
+        List<CommunityFeedItem> feedItems,
+        CommunityStats stats,
+        CommunityStatsConsistencyReport reconciliation,
+      })> _fetchCommunitySnapshot({
+    required bool runDriftCheck,
+  }) async {
+    final communityService = Provider.of<CommunityService>(
+      context,
+      listen: false,
+    );
+
+    await communityService.initCommunity();
+
+    final feedItems = await communityService.getFeedItems();
+    final stats = await communityService.getStats();
+    final reconciliation = await communityService.reconcileCommunityStats(
+      runDriftCheck: runDriftCheck,
+    );
+
+    return (
+      feedItems: feedItems,
+      stats: stats,
+      reconciliation: reconciliation,
+    );
+  }
+
+  int get _feedClassificationCount => _feedItems
+      .where(
+          (item) => item.activityType == CommunityActivityType.classification)
+      .length;
+
+  int get _canonicalClassificationCount => _stats?.totalClassifications ?? 0;
+
+  String _communitySyncErrorMessage() {
+    return 'We could not sync your community data right now. Please try again.';
   }
 
   /// Format DateTime for display (e.g., "2 hours ago", "Today at 3:30 PM")

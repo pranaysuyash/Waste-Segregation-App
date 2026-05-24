@@ -15,7 +15,7 @@
 1. **Perceived scarcity**: Points must feel earned, not given. Users should naturally spend faster than they earn at high engagement levels.
 2. **Invisible guardrails**: The economy self-regulates through progressive sink costs, diminishing returns, and time-gated earn caps — no visible inflation-fighting mechanics.
 3. **Sink > Earn at ceiling**: At maximum engagement, total sink costs should slightly exceed total earn rates, forcing trade-off decisions between sinks.
-4. **Dual separation**: Points (engagement) and Tokens (AI usage metering) are separate ledgers with one-way event-only crossover. No general conversion dilutes either economy.
+4. **Dual separation**: Points (engagement) and Tokens (AI usage metering) are separate ledgers. The current runtime includes a general points-to-tokens conversion path with a daily cap; if we later want event-only crossover, that should be an explicit product restriction instead of an implied assumption.
 
 ### 1.2 Dual-Currency Contract
 
@@ -24,11 +24,11 @@
 | **Points** | Engagement, achievement, community | Classifications (quality-scaled), corrections, education, streaks, challenges, community contributions | Eco-impact, cosmetics, streak protection, custom challenges | GamificationProfile.points |
 | **Tokens** | AI usage metering, premium | Daily login (2/day), purchase, special event crossover | AI analysis beyond free tier, premium features | TokenWallet |
 
-**Crossover rules** (from redesign spec §12.1):
-- One-way: points → tokens during special events only ("Gamification Week")
-- No general conversion
-- Events set the ratio (e.g., 200 points → 2 tokens)
-- No code path that converts tokens → points
+**Crossover rules** (current runtime):
+- One-way in the current app: points → tokens via `TokenService.convertPointsToTokens(...)`
+- General conversion exists today with a daily cap
+- If we later want event-only crossover, that should be a future gating decision
+- No code path converts tokens → points
 
 ---
 

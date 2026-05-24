@@ -61,7 +61,7 @@ Waste segregation should feel rewarding because it *is* rewarding — not throug
 |----------|----------|-------|
 | Points sink | **Mix of all four** | Eco-impact spending + cosmetic rewards + streak protection + custom challenges — all ship together in v1 |
 | Negative mechanics | **Phase it later** | Skip for v1. Explore as an A/B experiment once the positive system is stable |
-| Token crossover | **One-way + event-only** | Points can earn tokens on special occasions (Gamification Week events). No general conversion in either direction |
+| Token crossover | **General conversion today; event-only crossover later if desired** | The current runtime exposes a points-to-tokens conversion path with a daily cap. If we later want a gated event-only bridge, that should be a separate product decision |
 
 ### 3.5 Achievements & Challenges
 
@@ -359,12 +359,12 @@ Not shipping in v1. Design space for future exploration:
 
 ## 12. Integration Points
 
-### 12.1 Token Economy Integration (One-Way + Events)
+### 12.1 Token Economy Integration
 
-- **One-way path**: Points → tokens via special event conversions (e.g., "Gamification Week: convert 200 points to 2 bonus tokens")
-- **No general conversion**: No always-available conversion between points and tokens
-- **Event system**: Periodic themed events create temporary currency bridges
-- **Separation enforced**: Two separate ledgers. No code path that creates tokens from points except through explicit event handlers
+- **Current runtime path**: Points → tokens via `TokenService.convertPointsToTokens(...)` with a daily cap
+- **Current default**: `enableTokenEnforcement` is off by default in Phase 0, so the app can show the economy before hard enforcement
+- **If we later want event-only crossover**: gate or remove the general conversion path and add an explicit event bridge
+- **Separation still matters**: Points remain the engagement ledger; tokens remain the AI-usage ledger
 
 ### 12.2 Classification Pipeline Integration
 

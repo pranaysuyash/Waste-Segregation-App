@@ -24,13 +24,14 @@ import 'package:waste_segregation_app/services/providers/classification_provider
 import 'package:waste_segregation_app/services/providers/openai_provider_client.dart';
 import 'package:waste_segregation_app/services/providers/gemini_provider_client.dart';
 import 'package:waste_segregation_app/services/providers/ai_provider_response.dart';
-import 'package:waste_segregation_app/services/providers/ai_provider_response_adapter.dart';
+import 'package:waste_segregation_app/services/providers/ai_provider_router.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import 'package:waste_segregation_app/services/parsers/ai_response_parser.dart';
 import 'package:waste_segregation_app/services/prompts/classification_prompts.dart';
 import 'package:waste_segregation_app/services/classification_result_processor.dart';
 import 'package:waste_segregation_app/services/ai_usage_accounting_service.dart';
+
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
 /// This service handles image processing, API requests, response parsing,
@@ -95,8 +96,7 @@ class AiService {
     // instances are identical (no duplicate default creations).
     final resolvedCacheService = cacheService ?? ClassificationCacheService();
     final resolvedPricingService = pricingService ?? DynamicPricingService();
-    final resolvedGuardrailService =
-        guardrailService ?? CostGuardrailService();
+    final resolvedGuardrailService = guardrailService ?? CostGuardrailService();
     final resolvedErrorHandler = errorHandler ?? EnhancedApiErrorHandler();
     final resolvedImageService = imageService ?? EnhancedImageService();
     final resolvedLocalPolicyEngine =
@@ -173,13 +173,15 @@ class AiService {
         _usageAccounting = AiUsageAccountingService(
           pricingService: pricingService,
           guardrailService: guardrailService,
-        );
+        ),
+        _router = AiProviderRouter();
 
   static const String promptVersion = 'waste-classification-v2';
   static const String schemaVersion = 'waste-classification-schema-v2';
   static const String localGuidelinesVersion = 'bbmp-2024';
-  static const bool enableDebugGridSegmentation =
-      bool.fromEnvironment('ENABLE_DEBUG_GRID_SEGMENTATION');
+  static const bool enableDebugGridSegmentation = bool.fromEnvironment(
+    'ENABLE_DEBUG_GRID_SEGMENTATION',
+  );
   final String openAiBaseUrl;
   final String openAiApiKey;
   final String geminiBaseUrl;
@@ -191,6 +193,7 @@ class AiService {
   final LocalPolicyEngine localPolicyEngine;
   final ClassificationResultProcessor _resultProcessor;
   final AiUsageAccountingService _usageAccounting;
+  final AiProviderRouter _router;
 
   // ✅ OPTIMIZATION: Add as class field to avoid creating new instances repeatedly
   final EnhancedImageService _imageService;
@@ -255,14 +258,15 @@ class AiService {
     _logAiConfigState();
 
     WasteAppLogger.info(
-        'AiService initialized with enhanced pricing and error handling',
-        context: {
-          'service': 'ai_service',
-          'caching_enabled': cachingEnabled,
-          'pricing_service_initialized': true,
-          'guardrail_service_initialized': true,
-          'error_handler_configured': true,
-        });
+      'AiService initialized with enhanced pricing and error handling',
+      context: {
+        'service': 'ai_service',
+        'caching_enabled': cachingEnabled,
+        'pricing_service_initialized': true,
+        'guardrail_service_initialized': true,
+        'error_handler_configured': true,
+      },
+    );
   }
 
   void _logAiConfigState() {
@@ -349,32 +353,33 @@ class AiService {
 
   /// Checks if the current operation has been cancelled.
   bool get isCancelled => _cancelToken?.isCancelled ?? false;
-  bool _shouldFallbackToGemini(
-      AiFailureKind kind, int retryCount, int maxRetries) {
-    if (retryCount >= maxRetries) return true;
-    return kind == AiFailureKind.invalidImageTooLarge ||
-        kind == AiFailureKind.providerUnavailable;
+
+  bool? _backendRoutingOverride;
+  bool? _backendFailClosedOverride;
+
+  @visibleForTesting
+  // ignore: use_setters_to_change_properties
+  void overrideBackendRoutingForTest(bool? value) {
+    _backendRoutingOverride = value;
   }
 
-  bool _isTerminalFailureKind(AiFailureKind kind) {
-    return kind == AiFailureKind.cancelled ||
-        kind == AiFailureKind.unsafeClientAiBlocked ||
-        kind == AiFailureKind.auth ||
-        kind == AiFailureKind.budgetExceeded;
+  @visibleForTesting
+  // ignore: use_setters_to_change_properties
+  void overrideBackendFailClosedForTest(bool? value) {
+    _backendFailClosedOverride = value;
   }
 
-  bool get _backendRoutingEnabled {
-    // Motto-aligned invariant:
-    // - release builds must use backend classification path
-    // - debug/profile can opt in via --dart-define=USE_BACKEND_AI_IN_RELEASE=true
-    // Both ProductionSafetyConfig.useBackendAiInRelease and
-    // BackendProxyProvider.isEnabled read the same dart-define flag.
+  @visibleForTesting
+  bool get backendRoutingEnabled {
+    if (_backendRoutingOverride != null) return _backendRoutingOverride!;
     return kReleaseMode ||
         ProductionSafetyConfig.useBackendAiInRelease ||
         BackendProxyProvider.isEnabled;
   }
 
-  bool get _backendRoutingFailClosed {
+  @visibleForTesting
+  bool get backendRoutingFailClosed {
+    if (_backendFailClosedOverride != null) return _backendFailClosedOverride!;
     return kReleaseMode || ProductionSafetyConfig.useBackendAiInRelease;
   }
 
@@ -462,17 +467,23 @@ class AiService {
   ///
   /// Instructs the AI model to return a comprehensive, strictly formatted JSON object
   /// with 21+ data points including environmental impact, CO2 footprint, and local guidelines.
-  String get _mainClassificationPrompt => ClassificationPrompts.mainClassificationPrompt;
+  String get _mainClassificationPrompt =>
+      ClassificationPrompts.mainClassificationPrompt;
 
   /// Correction/disagreement prompt for handling user feedback.
   ///
   /// Guides the AI to re-analyze an item based on user-provided corrections
   /// or disagreements, updating the classification and explaining changes.
-  String _getCorrectionPrompt(Map<String, dynamic> previousClassification,
-          String userCorrection, String? userReason) =>
+  String _getCorrectionPrompt(
+    Map<String, dynamic> previousClassification,
+    String userCorrection,
+    String? userReason,
+  ) =>
       ClassificationPrompts.correctionPrompt(
-          previousClassification, userCorrection, userReason);
-
+        previousClassification,
+        userCorrection,
+        userReason,
+      );
 
   /// Detects the image format from [Uint8List] data and returns an appropriate MIME type.
   ///
@@ -525,33 +536,36 @@ class AiService {
     const preferredSizeBytes = 5 * 1024 * 1024; // 5MB preferred
 
     WasteAppLogger.info(
-        'Original image size: ${(imageBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
+      'Original image size: ${(imageBytes.length / 1024 / 1024).toStringAsFixed(2)} MB',
+    );
 
     // If image is already smaller than preferred size, still strip EXIF metadata
     if (imageBytes.length < preferredSizeBytes) {
       WasteAppLogger.info(
-          'Image is smaller than preferred size, error: no compression needed.');
+        'Image is smaller than preferred size, error: no compression needed.',
+      );
       return ImageUtils.stripExifData(imageBytes);
     }
 
     // OPTIMIZATION: Use compute() to run compression in isolate (off main thread)
     try {
-      final compressedBytes = await compute(
-        _compressImageIsolate,
-        {
-          'imageBytes': imageBytes,
-          'preferredSizeBytes': preferredSizeBytes,
-          'maxSizeBytes': maxSizeBytes,
-        },
-      );
+      final compressedBytes = await compute(_compressImageIsolate, {
+        'imageBytes': imageBytes,
+        'preferredSizeBytes': preferredSizeBytes,
+        'maxSizeBytes': maxSizeBytes,
+      });
 
       WasteAppLogger.info(
-          'Compressed image in isolate to ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
+        'Compressed image in isolate to ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB',
+      );
 
       return compressedBytes;
     } catch (e, s) {
-      WasteAppLogger.severe('Error during isolate image compression',
-          error: e, stackTrace: s);
+      WasteAppLogger.severe(
+        'Error during isolate image compression',
+        error: e,
+        stackTrace: s,
+      );
       // Fallback to synchronous compression if isolate fails
       return _compressImageSync(imageBytes, preferredSizeBytes, maxSizeBytes);
     }
@@ -583,8 +597,9 @@ class AiService {
           return compressedBytes; // Return current if decoding fails
         }
 
-        compressedBytes =
-            Uint8List.fromList(img.encodeJpg(image, quality: quality));
+        compressedBytes = Uint8List.fromList(
+          img.encodeJpg(image, quality: quality),
+        );
         quality -= 5;
       } catch (e) {
         break; // Exit loop on error
@@ -607,29 +622,33 @@ class AiService {
     const maxSizeBytes = 50 * 1024 * 1024; // 50MB for Gemini
 
     if (imageBytes.length <= maxSizeBytes) {
-      return ImageUtils.stripExifData(imageBytes); // Strip EXIF even when no compression needed
+      return ImageUtils.stripExifData(
+        imageBytes,
+      ); // Strip EXIF even when no compression needed
     }
 
     WasteAppLogger.warning(
-        'Image exceeds Gemini max size, error: applying compression.');
+      'Image exceeds Gemini max size, error: applying compression.',
+    );
 
     // OPTIMIZATION: Use compute() to run compression in isolate (off main thread)
     try {
-      final compressedBytes = await compute(
-        _compressImageForGeminiIsolate,
-        {
-          'imageBytes': imageBytes,
-          'maxSizeBytes': maxSizeBytes,
-        },
-      );
+      final compressedBytes = await compute(_compressImageForGeminiIsolate, {
+        'imageBytes': imageBytes,
+        'maxSizeBytes': maxSizeBytes,
+      });
 
       WasteAppLogger.info(
-          'Compressed image in isolate for Gemini: ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB');
+        'Compressed image in isolate for Gemini: ${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB',
+      );
 
       return compressedBytes;
     } catch (e, s) {
-      WasteAppLogger.severe('Error during Gemini isolate compression',
-          error: e, stackTrace: s);
+      WasteAppLogger.severe(
+        'Error during Gemini isolate compression',
+        error: e,
+        stackTrace: s,
+      );
       // Fallback to synchronous compression
       return _compressImageForGeminiSync(imageBytes, maxSizeBytes);
     }
@@ -645,7 +664,9 @@ class AiService {
 
   /// Synchronous Gemini compression logic
   static Uint8List _compressImageForGeminiSync(
-      Uint8List imageBytes, int maxSizeBytes) {
+    Uint8List imageBytes,
+    int maxSizeBytes,
+  ) {
     var image = img.decodeImage(imageBytes);
 
     if (image == null) {
@@ -653,20 +674,24 @@ class AiService {
     }
 
     // Scale down to fit within max size, maintaining aspect ratio
-    final scale =
-        sqrt(maxSizeBytes / imageBytes.length); // Approximate scaling factor
+    final scale = sqrt(
+      maxSizeBytes / imageBytes.length,
+    ); // Approximate scaling factor
     image = img.copyResize(
       image,
       width: (image.width * scale).round(),
       height: (image.height * scale).round(),
     );
 
-    final List<int> compressedBytes =
-        img.encodeJpg(image, quality: 80); // Maintain good quality
+    final List<int> compressedBytes = img.encodeJpg(
+      image,
+      quality: 80,
+    ); // Maintain good quality
 
     if (compressedBytes.length > maxSizeBytes) {
       throw Exception(
-          'Image still too large after Gemini compression (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB). Max allowed is ${maxSizeBytes / 1024 / 1024} MB.');
+        'Image still too large after Gemini compression (${(compressedBytes.length / 1024 / 1024).toStringAsFixed(2)} MB). Max allowed is ${maxSizeBytes / 1024 / 1024} MB.',
+      );
     }
 
     return Uint8List.fromList(compressedBytes);
@@ -708,10 +733,15 @@ class AiService {
       final imageBytes = await permanentFile.readAsBytes();
       thumbnailPath = await _imageService.saveThumbnail(imageBytes);
     } catch (e, s) {
-      WasteAppLogger.severe('Error saving image permanently',
-          error: e, stackTrace: s);
-      return WasteClassification.fallback(imageFile.path,
-          id: currentClassificationId);
+      WasteAppLogger.severe(
+        'Error saving image permanently',
+        error: e,
+        stackTrace: s,
+      );
+      return WasteClassification.fallback(
+        imageFile.path,
+        id: currentClassificationId,
+      );
     }
 
     try {
@@ -749,8 +779,9 @@ class AiService {
             contentHash: contextAwareContentHash,
           );
           if (cachedResult != null) {
-            return Future.value(cachedResult.classification
-                .copyWith(id: currentClassificationId));
+            return Future.value(
+              cachedResult.classification.copyWith(id: currentClassificationId),
+            );
           }
         }
       }
@@ -769,11 +800,13 @@ class AiService {
       );
     } catch (e, s) {
       if (e is ProductionSafetyException) rethrow;
-      if (e is AiFailure && _isTerminalFailureKind(e.kind)) rethrow;
+      if (e is AiFailure && AiProviderRouter.isTerminalFailureKind(e.kind))
+        rethrow;
 
       if (retryCount < maxRetries) {
-        final waitTime =
-            Duration(milliseconds: 500 * pow(2, retryCount).toInt());
+        final waitTime = Duration(
+          milliseconds: 500 * pow(2, retryCount).toInt(),
+        );
         await Future.delayed(waitTime);
         return analyzeImage(
           permanentFile,
@@ -785,8 +818,11 @@ class AiService {
         );
       }
 
-      WasteAppLogger.severe('Top-level analysis failed',
-          error: e, stackTrace: s);
+      WasteAppLogger.severe(
+        'Top-level analysis failed',
+        error: e,
+        stackTrace: s,
+      );
       return WasteClassification.fallback(
         permanentFile.path,
         id: currentClassificationId,
@@ -836,14 +872,21 @@ class AiService {
       if (_saveWebImageOverride != null) {
         savedImagePath = await _saveWebImageOverride(imageBytes, imageName);
       } else {
-        savedImagePath = await _imageService.saveImagePermanently(imageBytes,
-            fileName: imageName);
+        savedImagePath = await _imageService.saveImagePermanently(
+          imageBytes,
+          fileName: imageName,
+        );
       }
     } catch (e, s) {
-      WasteAppLogger.severe('Error saving web image permanently',
-          error: e, stackTrace: s);
-      return WasteClassification.fallback(imageName,
-          id: currentClassificationId);
+      WasteAppLogger.severe(
+        'Error saving web image permanently',
+        error: e,
+        stackTrace: s,
+      );
+      return WasteClassification.fallback(
+        imageName,
+        id: currentClassificationId,
+      );
     }
 
     try {
@@ -856,9 +899,11 @@ class AiService {
         contentHash = hashes['contentHash'];
 
         WasteAppLogger.info(
-            'Generated perceptual hash for web image: $imageHash');
+          'Generated perceptual hash for web image: $imageHash',
+        );
         WasteAppLogger.info(
-            'Generated content hash for web image: $contentHash');
+          'Generated content hash for web image: $contentHash',
+        );
 
         if (imageHash != null) {
           final perceptualHash = imageHash;
@@ -881,8 +926,9 @@ class AiService {
             contentHash: contextAwareContentHash,
           );
           if (cachedResult != null) {
-            return Future.value(cachedResult.classification
-                .copyWith(id: currentClassificationId));
+            return Future.value(
+              cachedResult.classification.copyWith(id: currentClassificationId),
+            );
           }
         }
       }
@@ -900,11 +946,13 @@ class AiService {
       );
     } catch (e, s) {
       if (e is ProductionSafetyException) rethrow;
-      if (e is AiFailure && _isTerminalFailureKind(e.kind)) rethrow;
+      if (e is AiFailure && AiProviderRouter.isTerminalFailureKind(e.kind))
+        rethrow;
 
       if (retryCount < maxRetries) {
-        final waitTime =
-            Duration(milliseconds: 500 * pow(2, retryCount).toInt());
+        final waitTime = Duration(
+          milliseconds: 500 * pow(2, retryCount).toInt(),
+        );
         await Future.delayed(waitTime);
         return analyzeWebImage(
           imageBytes,
@@ -917,8 +965,11 @@ class AiService {
         );
       }
 
-      WasteAppLogger.severe('Top-level web analysis failed',
-          error: e, stackTrace: s);
+      WasteAppLogger.severe(
+        'Top-level web analysis failed',
+        error: e,
+        stackTrace: s,
+      );
       return WasteClassification.fallback(
         imageName,
         id: currentClassificationId,
@@ -1003,7 +1054,7 @@ class AiService {
     );
   }
 
-  /// Internal: crops a single region and analyzes it with OpenAI.
+  /// Internal: crops a single region and analyzes it through orchestration.
   Future<WasteClassification> _analyzeSingleRegion(
     Uint8List imageBytes,
     String imageName,
@@ -1043,137 +1094,36 @@ class AiService {
 
     WasteAppLogger.info('Analyzing single cropped region.');
     WasteAppLogger.info(
-        'Cropped image size: ${(croppedBytes.length / 1024).toStringAsFixed(2)} KB');
+      'Cropped image size: ${(croppedBytes.length / 1024).toStringAsFixed(2)} KB',
+    );
 
-    return _analyzeWithOpenAI(
-      croppedBytes,
-      imageName,
-      region ?? defaultRegion,
-      instructionsLang ?? defaultLanguage,
-      null,
-      const Uuid().v4(),
+    return _orchestrateAnalysis(
+      imageBytes: croppedBytes,
+      imagePath: imageName,
+      analysisRegion: region ?? defaultRegion,
+      analysisLang: instructionsLang ?? defaultLanguage,
+      classificationId: const Uuid().v4(),
     );
   }
 
-  Future<WasteClassification> _orchestrateAnalysis({
-    required Uint8List imageBytes,
-    required String imagePath,
-    required String analysisRegion,
-    required String analysisLang,
-    String? imageHash,
-    required String classificationId,
-    String? contentHash,
-    String? thumbnailPath,
-    int retryCount = 0,
-    int maxRetries = 3,
-  }) async {
-    if (_backendRoutingEnabled) {
-      try {
-        return await _analyzeWithBackend(
-          imageBytes,
-          imagePath,
-          analysisRegion,
-          analysisLang,
-          imageHash,
-          classificationId,
-          contentHash: contentHash,
-          thumbnailPath: thumbnailPath,
-        );
-      } on AiFailure catch (e) {
-        if (_backendRoutingFailClosed ||
-            e.kind == AiFailureKind.cancelled ||
-            e.kind == AiFailureKind.auth ||
-            e.kind == AiFailureKind.budgetExceeded) {
-          rethrow;
-        }
-        WasteAppLogger.warning(
-          '[BackendProxy] Failed (${e.kind.name}), falling back to direct provider (non-release only).',
-        );
-      }
-    }
-
-    try {
-      return await _analyzeWithOpenAI(
-        imageBytes,
-        imagePath,
-        analysisRegion,
-        analysisLang,
-        imageHash,
-        classificationId,
-        contentHash: contentHash,
-        thumbnailPath: thumbnailPath,
-      );
-    } on Exception catch (openAiError, s) {
-      if (openAiError is ProductionSafetyException) {
-        rethrow;
-      }
-
-      WasteAppLogger.severe('OpenAI analysis failed',
-          error: openAiError, stackTrace: s);
-
-      final failureKind =
-          openAiError is AiFailure ? openAiError.kind : AiFailureKind.unknown;
-
-      if (failureKind == AiFailureKind.cancelled ||
-          failureKind == AiFailureKind.unsafeClientAiBlocked ||
-          failureKind == AiFailureKind.auth ||
-          failureKind == AiFailureKind.budgetExceeded) {
-        rethrow;
-      }
-
-      if (_shouldFallbackToGemini(failureKind, retryCount, maxRetries)) {
-        WasteAppLogger.info('Falling back to Gemini analysis.');
-        try {
-          return await _analyzeWithGemini(
-            imageBytes,
-            imagePath,
-            analysisRegion,
-            analysisLang,
-            imageHash,
-            classificationId,
-            contentHash: contentHash,
-            thumbnailPath: thumbnailPath,
-          );
-        } on Exception catch (geminiError) {
-          WasteAppLogger.severe('Gemini fallback also failed',
-              error: geminiError);
-          rethrow;
-        }
-      }
-
-      rethrow;
-    }
-  }
-
-  /// Analyzes an image using the OpenAI API.
-  ///
-  /// Compresses the image if necessary, constructs the request,
-  /// and processes the response. Caches the result if successful.
-  /// Includes cost tracking and enhanced error handling.
-  Future<WasteClassification> _analyzeWithOpenAI(
+  Future<AiProviderResponse> _callOpenAiProvider(
     Uint8List imageBytes,
-    String imageName,
     String region,
     String language,
-    String? imageHash,
-    String classificationId, {
-    String? contentHash,
-    String? thumbnailPath,
-  }) async {
+  ) async {
     _providerCallCount++;
-    const providerName = 'openai';
     const modelName = ApiConfig.primaryModel;
     final modelKey =
         ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
-    final startTime = DateTime.now();
 
-    final canAffordInstant =
-        guardrailService.canUseInstantAnalysis(model: modelKey);
+    final canAffordInstant = guardrailService.canUseInstantAnalysis(
+      model: modelKey,
+    );
     if (!canAffordInstant) {
       throw AiFailure(
         AiFailureKind.budgetExceeded,
         'Budget exceeded - instant analysis not available. Please use batch mode.',
-        provider: providerName,
+        provider: 'openai',
         model: modelName,
       );
     }
@@ -1189,73 +1139,36 @@ class AiService {
           model: modelName,
         );
 
-    final userPrompt =
-        '$_mainClassificationPrompt\n\nAdditional context:\n'
+    final userPrompt = '$_mainClassificationPrompt\n\nAdditional context:\n'
         '- Region: $region\n'
         '- Instructions language: $language\n'
         '- Image source: web upload';
 
-    final response = await openAiProvider.analyzeWithSplitPrompts(
+    return openAiProvider.analyzeWithSplitPrompts(
       imageBytes: compressedBytes,
       mimeType: mimeType,
       systemPrompt: _systemPrompt,
       userPrompt: userPrompt,
       cancelToken: _cancelToken,
     );
-
-    final processingTime = DateTime.now().difference(startTime);
-
-    await _usageAccounting.recordUsage(
-      response: response,
-      modelKey: modelKey,
-      processingTime: processingTime,
-    );
-
-    final classification = await _resultProcessor.process(
-      providerResponse: response,
-      imagePath: imageName,
-      region: region,
-      language: language,
-      imageSize: imageBytes.length,
-      classificationId: classificationId,
-      imageHash: imageHash,
-      contentHash: contentHash,
-      thumbnailPath: thumbnailPath,
-    );
-
-    return classification;
   }
 
-  /// Routes classification through the secure Firebase backend proxy.
-  ///
-  /// Enabled via `--dart-define=USE_BACKEND_AI_IN_RELEASE=true` (canonical flag).
-  /// The backend enforces App Check, Firebase Auth, per-UID rate limiting, and
-  /// server-side cost telemetry — no direct AI provider key is needed on the
-  /// client. Falls through to the direct provider paths on non-terminal failures.
-  Future<WasteClassification> _analyzeWithBackend(
+  Future<AiProviderResponse> _callBackendProvider(
     Uint8List imageBytes,
-    String imagePath,
     String region,
     String language,
-    String? imageHash,
-    String classificationId, {
     String? contentHash,
-    String? thumbnailPath,
-  }) async {
+    String classificationId,
+  ) async {
     _providerCallCount++;
 
-    // Compress to stay under the 4 MB gateway limit (same as OpenAI path).
     final compressedBytes = await _compressImageForOpenAI(imageBytes);
     final mimeType = _detectImageMimeType(compressedBytes);
 
-    // Use injected proxy if available (e.g. in tests), otherwise create one
-    // bound to FirebaseFunctions.instance at runtime.
     final proxy = _backendProxy ??
-        BackendProxyProvider(
-          functions: FirebaseFunctions.instance,
-        );
+        BackendProxyProvider(functions: FirebaseFunctions.instance);
 
-    final response = await proxy.analyze(
+    return proxy.analyze(
       imageBytes: compressedBytes,
       mimeType: mimeType,
       clientHash: contentHash,
@@ -1263,58 +1176,29 @@ class AiService {
       lang: language,
       requestId: classificationId,
     );
-
-    final classification = await _resultProcessor.process(
-      providerResponse: response,
-      imagePath: imagePath,
-      region: region,
-      language: language,
-      imageSize: imageBytes.length,
-      classificationId: classificationId,
-      imageHash: imageHash,
-      contentHash: contentHash,
-      thumbnailPath: thumbnailPath,
-    );
-
-    return classification;
   }
 
-  /// Analyzes an image using the Gemini API.
-  ///
-  /// Used as a fallback if OpenAI fails or the image is too large.
-  /// Applies light compression if the image is excessively large even for Gemini.
-  /// Converts Gemini's response format to the standard [WasteClassification] model.
-  /// Caches the result if successful.
-  Future<WasteClassification> _analyzeWithGemini(
+  Future<AiProviderResponse> _callGeminiProvider(
     Uint8List imageBytes,
-    String imageName,
     String region,
     String language,
-    String? imageHash,
-    String classificationId, {
-    String? contentHash,
-    String? thumbnailPath,
-  }) async {
+  ) async {
     _providerCallCount++;
     const providerName = 'gemini';
     const modelName = ApiConfig.tertiaryModel;
-    final startTime = DateTime.now();
     WasteAppLogger.info('Falling back to Gemini for analysis.');
 
-    // Gemini can handle larger images, but still compress if extremely large
     var processedBytes = imageBytes;
-    const geminiMaxSize = 50 * 1024 * 1024; // 50MB for Gemini (more generous)
+    const geminiMaxSize = 50 * 1024 * 1024;
 
     if (imageBytes.length > geminiMaxSize) {
       WasteAppLogger.warning(
-          'Image exceeds Gemini max size, error: applying compression.');
+        'Image exceeds Gemini max size, applying compression.',
+      );
       processedBytes = await _compressImageForGemini(imageBytes);
     }
 
     final mimeType = _detectImageMimeType(processedBytes);
-
-    WasteAppLogger.info(
-        'Sending image to Gemini. Size: ${(processedBytes.length / 1024).toStringAsFixed(2)} KB');
 
     final geminiProvider = _geminiProvider ??
         GeminiProviderClient(
@@ -1346,26 +1230,68 @@ class AiService {
       );
     }
 
-    final processingTime = DateTime.now().difference(startTime);
+    return response;
+  }
 
-    const modelKey = 'gemini_2_0_flash';
-    await _usageAccounting.recordUsage(
-      response: response,
-      modelKey: modelKey,
-      processingTime: processingTime,
+  Future<WasteClassification> _orchestrateAnalysis({
+    required Uint8List imageBytes,
+    required String imagePath,
+    required String analysisRegion,
+    required String analysisLang,
+    String? imageHash,
+    required String classificationId,
+    String? contentHash,
+    String? thumbnailPath,
+    int retryCount = 0,
+    int maxRetries = 3,
+  }) async {
+    final result = await _router.orchestrate(
+      backendCall: () => _callBackendProvider(
+        imageBytes,
+        analysisRegion,
+        analysisLang,
+        contentHash,
+        classificationId,
+      ),
+      openAiCall: () =>
+          _callOpenAiProvider(imageBytes, analysisRegion, analysisLang),
+      geminiCall: () =>
+          _callGeminiProvider(imageBytes, analysisRegion, analysisLang),
+      backendRoutingEnabled: backendRoutingEnabled,
+      backendRoutingFailClosed: backendRoutingFailClosed,
     );
 
     final classification = await _resultProcessor.process(
-      providerResponse: response,
-      imagePath: imageName,
-      region: region,
-      language: language,
+      providerResponse: result.response,
+      imagePath: imagePath,
+      region: analysisRegion,
+      language: analysisLang,
       imageSize: imageBytes.length,
       classificationId: classificationId,
       imageHash: imageHash,
       contentHash: contentHash,
       thumbnailPath: thumbnailPath,
     );
+
+    if (result.providerUsed != 'backend') {
+      String modelKey;
+      final startTime = DateTime.now();
+
+      if (result.providerUsed == 'gemini') {
+        modelKey = 'gemini_2_0_flash';
+      } else {
+        modelKey =
+            ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
+      }
+
+      final processingTime = DateTime.now().difference(startTime);
+
+      await _usageAccounting.recordUsage(
+        response: result.response,
+        modelKey: modelKey,
+        processingTime: processingTime,
+      );
+    }
 
     return classification;
   }
@@ -1398,8 +1324,9 @@ class AiService {
       Uint8List? imageBytes;
 
       if (imageUrl != null && !kIsWeb) {
-        final safeLocalPath =
-            await _imageService.resolveTrustedLocalPath(imageUrl);
+        final safeLocalPath = await _imageService.resolveTrustedLocalPath(
+          imageUrl,
+        );
         if (safeLocalPath != null && File(safeLocalPath).existsSync()) {
           imageBytes = await File(safeLocalPath).readAsBytes();
         }
@@ -1422,7 +1349,10 @@ class AiService {
 
       final mimeType = _detectImageMimeType(imageBytes);
       final correctionPrompt = _getCorrectionPrompt(
-          originalClassification.toJson(), userCorrection, userReason);
+        originalClassification.toJson(),
+        userCorrection,
+        userReason,
+      );
 
       final AiProviderResponse providerResponse;
       if (useGeminiProvider) {
@@ -1463,7 +1393,6 @@ class AiService {
         imageSize: imageBytes.length,
         classificationId: originalClassification.id,
         imageHash: originalClassification.imageHash,
-        contentHash: null,
       );
 
       return applyCorrectionProvenance(
@@ -1475,15 +1404,18 @@ class AiService {
       );
     } catch (e, s) {
       if (e is ProductionSafetyException) rethrow;
-      if (e is AiFailure && _isTerminalFailureKind(e.kind)) rethrow;
-      WasteAppLogger.severe('Correction flow failed',
-          error: e,
-          stackTrace: s,
-          context: {
-            'model': modelToUse,
-            'provider': useGeminiProvider ? 'gemini' : 'openai',
-            'classification_id': originalClassification.id,
-          });
+      if (e is AiFailure && AiProviderRouter.isTerminalFailureKind(e.kind))
+        rethrow;
+      WasteAppLogger.severe(
+        'Correction flow failed',
+        error: e,
+        stackTrace: s,
+        context: {
+          'model': modelToUse,
+          'provider': useGeminiProvider ? 'gemini' : 'openai',
+          'classification_id': originalClassification.id,
+        },
+      );
       return originalClassification.copyWith(
         userCorrection: userCorrection,
         disagreementReason: 'Failed to process correction.',
@@ -1498,12 +1430,14 @@ class AiService {
   /// (e.g., ```json ... ```) or include extraneous text before or after the JSON.
   /// Also strips C/C++ style comments that can cause JSON parsing to fail.
   @visibleForTesting
-  String cleanJsonString(String rawContent) => AiResponseParser.cleanJsonString(rawContent);
+  String cleanJsonString(String rawContent) =>
+      AiResponseParser.cleanJsonString(rawContent);
 
   Future<List<Map<String, dynamic>>> segmentImage(dynamic imageSource) async {
     if (!enableDebugGridSegmentation) {
       throw UnsupportedError(
-          'Segmentation is disabled in production. Enable debug grid segmentation explicitly for demo/testing.');
+        'Segmentation is disabled in production. Enable debug grid segmentation explicitly for demo/testing.',
+      );
     }
     try {
       Uint8List imageBytes;
@@ -1560,8 +1494,11 @@ class AiService {
         }
       }
 
-      WasteAppLogger.cacheEvent('cache_operation', 'classification',
-          context: {'service': 'ai', 'file': 'ai_service'});
+      WasteAppLogger.cacheEvent(
+        'cache_operation',
+        'classification',
+        context: {'service': 'ai', 'file': 'ai_service'},
+      );
       return segments;
     } catch (e) {
       WasteAppLogger.severe('Error occurred');

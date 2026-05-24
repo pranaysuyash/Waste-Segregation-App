@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:image/image.dart' as img;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/services/ai_failure.dart';
@@ -50,22 +51,29 @@ final Uint8List _tinyJpeg = Uint8List.fromList([
   0x00, 0x00, 0x3F, 0x00, 0xFB, 0xD5, 0xFF, 0xD9,
 ]);
 
+final Uint8List _regionTestImage = Uint8List.fromList(
+  img.encodePng(img.Image(width: 8, height: 8)),
+);
+
 // ---------------------------------------------------------------------------
 // Fake ClassificationProvider implementations
 // ---------------------------------------------------------------------------
 
 /// Returns a fixed AiProviderResponse without calling Firebase.
 class _FakeBackendProxy implements ClassificationProvider {
-  _FakeBackendProxy({
-    AiProviderResponse? response,
-    Exception? exception,
-  })  : _response = response,
+  _FakeBackendProxy({AiProviderResponse? response, Exception? exception})
+      : _response = response,
         _exception = exception;
 
   final AiProviderResponse? _response;
   final Exception? _exception;
 
   int callCount = 0;
+  Uint8List? lastImageBytes;
+  String? lastMimeType;
+  String? lastRegion;
+  String? lastLang;
+  String? lastRequestId;
 
   @override
   String get providerName => 'backend';
@@ -88,6 +96,11 @@ class _FakeBackendProxy implements ClassificationProvider {
     CancelToken? cancelToken,
   }) async {
     callCount++;
+    lastImageBytes = imageBytes;
+    lastMimeType = mimeType;
+    lastRegion = region;
+    lastLang = lang;
+    lastRequestId = requestId;
     if (_exception != null) throw _exception!;
     return _response!;
   }
@@ -130,7 +143,7 @@ AiProviderResponse _successResponse({
   final json = _classificationJson(
     itemName: itemName,
     category: category,
-    subCategory: subcategory,
+    subcategory: subcategory,
     confidence: confidence,
   );
   return AiProviderResponse(
@@ -187,27 +200,29 @@ void main() {
     });
 
     test(
-        '_FakeBackendProxy.analyze() increments callCount and returns response',
-        () async {
-      final fake = _FakeBackendProxy(response: _successResponse());
-      expect(fake.callCount, equals(0));
+      '_FakeBackendProxy.analyze() increments callCount and returns response',
+      () async {
+        final fake = _FakeBackendProxy(response: _successResponse());
+        expect(fake.callCount, equals(0));
 
-      final resp = await fake.analyze(
-        imageBytes: _tinyJpeg,
-        mimeType: 'image/jpeg',
-      );
+        final resp = await fake.analyze(
+          imageBytes: _regionTestImage,
+          mimeType: 'image/jpeg',
+        );
 
-      expect(fake.callCount, equals(1));
-      expect(resp.provider, equals('backend'));
-      expect(resp.textContent, contains('Plastic Bottle'));
-    });
+        expect(fake.callCount, equals(1));
+        expect(resp.provider, equals('backend'));
+        expect(resp.textContent, contains('Plastic Bottle'));
+      },
+    );
 
     test('_FakeBackendProxy.analyze() propagates exception', () async {
       final fake = _FakeBackendProxy(
         exception: AiFailure(AiFailureKind.network, 'network error'),
       );
       expect(
-        () => fake.analyze(imageBytes: _tinyJpeg, mimeType: 'image/jpeg'),
+        () =>
+            fake.analyze(imageBytes: _regionTestImage, mimeType: 'image/jpeg'),
         throwsA(isA<AiFailure>()),
       );
     });
@@ -218,28 +233,98 @@ void main() {
   // -------------------------------------------------------------------------
   group('AiService backend routing', () {
     test(
-        'BackendProxyProvider.isEnabled reads USE_BACKEND_AI_IN_RELEASE dart-define',
-        () {
-      // In test environment, the dart-define is not set, so isEnabled is false.
-      // This verifies the static constant exists and reads the right flag.
-      expect(BackendProxyProvider.isEnabled, isFalse,
+      'BackendProxyProvider.isEnabled reads USE_BACKEND_AI_IN_RELEASE dart-define',
+      () {
+        // In test environment, the dart-define is not set, so isEnabled is false.
+        // This verifies the static constant exists and reads the right flag.
+        expect(
+          BackendProxyProvider.isEnabled,
+          isFalse,
           reason:
-              'USE_BACKEND_AI_IN_RELEASE is not set in test runs, so isEnabled must be false');
-    });
+              'USE_BACKEND_AI_IN_RELEASE is not set in test runs, so isEnabled must be false',
+        );
+      },
+    );
 
-    test('AiService can be constructed with a ClassificationProvider injection',
-        () {
-      final fake = _FakeBackendProxy(response: _successResponse());
-      final service = _makeService(backendProxy: fake);
-      // Verify no exception — construction succeeded.
-      expect(service, isA<AiService>());
-    });
+    test(
+      'AiService can be constructed with a ClassificationProvider injection',
+      () {
+        final fake = _FakeBackendProxy(response: _successResponse());
+        final service = _makeService(backendProxy: fake);
+        // Verify no exception — construction succeeded.
+        expect(service, isA<AiService>());
+      },
+    );
 
     test('AiService exposes providerCallCount @visibleForTesting accessor', () {
       final fake = _FakeBackendProxy(response: _successResponse());
       final service = _makeService(backendProxy: fake);
       expect(service.providerCallCount, equals(0));
     });
+
+    test(
+      'analyzeWebImageRegion routes cropped analysis through backend proxy',
+      () async {
+        final fake = _FakeBackendProxy(response: _successResponse());
+        final service = _makeService(backendProxy: fake)
+          ..overrideBackendRoutingForTest(true);
+
+        expect(service.backendRoutingEnabled, isTrue);
+        expect(service.backendRoutingFailClosed, isFalse);
+
+        final result = await service.analyzeWebImageRegion(
+          _regionTestImage,
+          'region.jpg',
+          {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+          region: 'Bangalore, IN',
+          instructionsLang: 'kn',
+        );
+
+        expect(fake.callCount, equals(1));
+        expect(fake.lastMimeType, equals('image/jpeg'));
+        expect(fake.lastRegion, equals('Bangalore, IN'));
+        expect(fake.lastLang, equals('kn'));
+        expect(fake.lastRequestId, isNotNull);
+        expect(result.itemName, equals('Plastic Bottle'));
+      },
+    );
+
+    test(
+      'analyzeWebImageRegion keeps fail-closed backend failures terminal',
+      () async {
+        final fake = _FakeBackendProxy(
+          exception: AiFailure(
+            AiFailureKind.providerUnavailable,
+            'backend down',
+          ),
+        );
+        final service = _makeService(backendProxy: fake)
+          ..overrideBackendRoutingForTest(true)
+          ..overrideBackendFailClosedForTest(true);
+
+        expect(service.backendRoutingEnabled, isTrue);
+        expect(service.backendRoutingFailClosed, isTrue);
+
+        await expectLater(
+          service.analyzeWebImageRegion(
+            _regionTestImage,
+            'region.jpg',
+            {'x': 0, 'y': 0, 'width': 100, 'height': 100},
+            region: 'Bangalore, IN',
+            instructionsLang: 'en',
+          ),
+          throwsA(
+            isA<AiFailure>().having(
+              (e) => e.kind,
+              'kind',
+              AiFailureKind.providerUnavailable,
+            ),
+          ),
+        );
+
+        expect(fake.callCount, equals(1));
+      },
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -253,10 +338,16 @@ void main() {
       final result = await service.analyzeWebImage(Uint8List(0), 'test.jpg');
 
       expect(result, isA<WasteClassification>());
-      expect(result.clarificationNeeded, isTrue,
-          reason: 'fallback always sets clarificationNeeded=true');
-      expect(fake.callCount, equals(0),
-          reason: 'backend proxy must not be called for empty image');
+      expect(
+        result.clarificationNeeded,
+        isTrue,
+        reason: 'fallback always sets clarificationNeeded=true',
+      );
+      expect(
+        fake.callCount,
+        equals(0),
+        reason: 'backend proxy must not be called for empty image',
+      );
       expect(service.providerCallCount, equals(0));
     });
 
@@ -279,7 +370,7 @@ void main() {
       final resp = _successResponse(
         itemName: 'Glass Jar',
         category: 'Dry Waste',
-        subCategory: 'Glass',
+        subcategory: 'Glass',
         confidence: 0.87,
       );
 
@@ -296,7 +387,7 @@ void main() {
       final resp = _successResponse(
         itemName: 'Newspaper',
         category: 'Dry Waste',
-        subCategory: 'Paper',
+        subcategory: 'Paper',
       );
 
       expect(resp.rawResponseMap['itemName'], equals('Newspaper'));
@@ -340,18 +431,16 @@ void main() {
   // -------------------------------------------------------------------------
   group('_FakeBackendProxy exception propagation', () {
     test('network AiFailure is thrown by fake', () async {
-      final networkError =
-          AiFailure(AiFailureKind.network, 'connection refused');
+      final networkError = AiFailure(
+        AiFailureKind.network,
+        'connection refused',
+      );
       final fake = _FakeBackendProxy(exception: networkError);
 
       await expectLater(
-        fake.analyze(imageBytes: _tinyJpeg, mimeType: 'image/jpeg'),
+        fake.analyze(imageBytes: _regionTestImage, mimeType: 'image/jpeg'),
         throwsA(
-          isA<AiFailure>().having(
-            (e) => e.kind,
-            'kind',
-            AiFailureKind.network,
-          ),
+          isA<AiFailure>().having((e) => e.kind, 'kind', AiFailureKind.network),
         ),
       );
     });
@@ -361,13 +450,9 @@ void main() {
       final fake = _FakeBackendProxy(exception: authError);
 
       await expectLater(
-        fake.analyze(imageBytes: _tinyJpeg, mimeType: 'image/jpeg'),
+        fake.analyze(imageBytes: _regionTestImage, mimeType: 'image/jpeg'),
         throwsA(
-          isA<AiFailure>().having(
-            (e) => e.kind,
-            'kind',
-            AiFailureKind.auth,
-          ),
+          isA<AiFailure>().having((e) => e.kind, 'kind', AiFailureKind.auth),
         ),
       );
     });
@@ -377,7 +462,7 @@ void main() {
       final fake = _FakeBackendProxy(exception: rateError);
 
       await expectLater(
-        fake.analyze(imageBytes: _tinyJpeg, mimeType: 'image/jpeg'),
+        fake.analyze(imageBytes: _regionTestImage, mimeType: 'image/jpeg'),
         throwsA(
           isA<AiFailure>().having(
             (e) => e.kind,

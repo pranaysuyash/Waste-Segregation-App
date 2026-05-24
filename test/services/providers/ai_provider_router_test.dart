@@ -4,20 +4,16 @@ import 'package:waste_segregation_app/utils/production_safety_config.dart';
 import 'package:waste_segregation_app/services/providers/ai_provider_router.dart';
 import 'package:waste_segregation_app/services/providers/ai_provider_response.dart';
 
-AiProviderResponse _response({String content = '', String provider = 'test'}) {
+AiProviderResponse _response({String textContent = ''}) {
   return AiProviderResponse(
-    provider: provider,
+    provider: 'test',
     model: 'test-model',
-    rawResponseMap: {
-      'choices': [
-        {'message': {'content': content}}
-      ]
-    },
-    textContent: content,
+    textContent: textContent,
+    rawResponseMap: {'choices': [{'message': {'content': textContent}}]},
   );
 }
 
-final _successResponse = _response(content: 'classify this');
+final _successResponse = _response(textContent: 'plastic bottle');
 
 void main() {
   late AiProviderRouter router;
@@ -27,31 +23,29 @@ void main() {
   });
 
   group('backend routing', () {
-    // In debug/test mode, backend routing is disabled unless
-    // USE_BACKEND_AI_IN_RELEASE is set. These tests verify the fallback
-    // behavior when backend is not in the routing path. Full backend
-    // routing is verified in integration tests with the dart-define set.
     test('backend success returns immediately', () async {
       final result = await router.orchestrate(
         backendCall: () async => _successResponse,
         openAiCall: () async => _response(),
         geminiCall: () async => _response(),
+        backendRoutingEnabled: true,
       );
 
-      // Without USE_BACKEND_AI_IN_RELEASE, backend is skipped in test mode.
-      expect(result.providerUsed, 'openai');
-      expect(result.response.textContent, '');
+      expect(result.providerUsed, 'backend');
+      expect(result.response.textContent, 'plastic bottle');
     });
 
     test('backend terminal failure rethrows', () async {
-      // In test mode, backend call is never made, so OpenAI succeeds.
-      final result = await router.orchestrate(
-        backendCall: () async =>
-            throw AiFailure(AiFailureKind.auth, 'auth error'),
-        openAiCall: () async => _response(),
-        geminiCall: () async => _response(),
+      expect(
+        () => router.orchestrate(
+          backendCall: () async =>
+              throw AiFailure(AiFailureKind.auth, 'auth error'),
+          openAiCall: () async => _response(),
+          geminiCall: () async => _response(),
+          backendRoutingEnabled: true,
+        ),
+        throwsA(isA<AiFailure>()),
       );
-      expect(result.providerUsed, 'openai');
     });
 
     test('backend non-terminal failure falls through to OpenAI', () async {
@@ -60,11 +54,11 @@ void main() {
             throw AiFailure(AiFailureKind.providerUnavailable, 'down'),
         openAiCall: () async => _successResponse,
         geminiCall: () async => _response(),
+        backendRoutingEnabled: true,
       );
 
       expect(result.providerUsed, 'openai');
-      // Backend is not attempted in test mode.
-      expect(result.attemptedProviders, isNot(contains('backend')));
+      expect(result.attemptedProviders, contains('backend'));
     });
   });
 
@@ -77,7 +71,7 @@ void main() {
       );
 
       expect(result.providerUsed, 'openai');
-      expect(result.response.textContent, 'classify this');
+      expect(result.response.textContent, 'plastic bottle');
     });
 
     test('OpenAI terminal failure rethrows', () async {
@@ -104,19 +98,16 @@ void main() {
       );
     });
 
-    test('OpenAI non-AI exception falls to unknown kind and may fallback',
+    test('OpenAI non-AI exception with low maxRetries falls to Gemini',
         () async {
-      // A plain Exception has unknown kind, which is not terminal and
-      // not a Gemini-fallback kind at retry count 2 (< maxRetries=3),
-      // so it rethrows.
-      expect(
-        () => router.orchestrate(
-          backendCall: () async => _response(),
-          openAiCall: () async => throw Exception('weird error'),
-          geminiCall: () async => _successResponse,
-        ),
-        throwsA(isA<Exception>()),
+      final router = AiProviderRouter(maxRetries: 1);
+      final result = await router.orchestrate(
+        backendCall: () async => _response(),
+        openAiCall: () async => throw Exception('weird error'),
+        geminiCall: () async => _successResponse,
       );
+
+      expect(result.providerUsed, 'gemini');
     });
   });
 

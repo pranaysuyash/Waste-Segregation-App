@@ -307,7 +307,32 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       ref.read(classificationStateMachineProvider.notifier);
 
   ClassificationState get _classificationState => _stateMachine.current;
-  bool get _isAnalyzing => _stateMachine.isActive;
+  bool get _isAnalyzing {
+    switch (_classificationState) {
+      case ClassificationState.qualityChecking:
+      case ClassificationState.cacheChecking:
+      case ClassificationState.cacheHit:
+      case ClassificationState.cloudClassifying:
+      case ClassificationState.localClassifying:
+      case ClassificationState.queuedOffline:
+      case ClassificationState.classificationSucceeded:
+      case ClassificationState.policyApplied:
+      case ClassificationState.awaitingUserConfirmation:
+      case ClassificationState.saving:
+      case ClassificationState.saved:
+      case ClassificationState.syncing:
+      case ClassificationState.synced:
+        return true;
+      case ClassificationState.idle:
+      case ClassificationState.imageSelected:
+      case ClassificationState.qualityRejected:
+      case ClassificationState.failedRetryable:
+      case ClassificationState.failedPermanent:
+      case ClassificationState.cancelled:
+        return false;
+    }
+  }
+
   bool get _isCancelled =>
       _stateMachine.current == ClassificationState.cancelled;
 
@@ -385,9 +410,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       _setClassificationState(ClassificationState.policyApplied);
       await Future<void>.delayed(const Duration(milliseconds: 220));
       if (!mounted || _isCancelled) return;
-      _setClassificationState(
-        ClassificationState.awaitingUserConfirmation,
-      );
+      _setClassificationState(ClassificationState.awaitingUserConfirmation);
       return;
     }
 
@@ -401,9 +424,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   Future<void> _navigateToResult(WasteClassification classification) async {
     if (!mounted || _isCancelled) return;
 
-    final resultRoute = ResultScreenWrapper(
-      classification: classification,
-    );
+    final resultRoute = ResultScreenWrapper(classification: classification);
 
     try {
       await Navigator.pushReplacement(
@@ -432,7 +453,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       statusMessage: _analysisErrorMessage,
       confidenceText: _analysisConfidenceText(),
       resultCategoryColor: WasteAppDesignSystem.getCategoryColor(
-          _pendingClassification?.category ?? ''),
+        _pendingClassification?.category ?? '',
+      ),
       onRetry:
           cs == ClassificationState.failedRetryable ? _retryAnalysis : null,
       onCancel: cs == ClassificationState.failedRetryable ||
@@ -491,10 +513,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
     WasteAppLogger.info(
       'Analysis cancelled by user.',
-      context: {
-        'service': 'screen',
-        'file': 'image_capture_screen',
-      },
+      context: {'service': 'screen', 'file': 'image_capture_screen'},
     );
 
     if (mounted) {
@@ -911,14 +930,18 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     if (!_isOnline && !kIsWeb) {
       if (imageBytes != null && imageBytes.isNotEmpty) {
         // If Layer 0 produced a hint, show a degraded result (gated by remote config).
-        final tier2Enabled = await RemoteConfigService()
-            .getBool('offline_degradation_tier2_enabled', defaultValue: true);
+        final tier2Enabled = await RemoteConfigService().getBool(
+          'offline_degradation_tier2_enabled',
+          defaultValue: true,
+        );
         if (tier2Enabled &&
             _lastLayer0Result != null &&
             _lastLayer0Result!.decision == Layer0Decision.hint &&
             mounted) {
-          final hintShown =
-              await _tryShowOfflineHint(_lastLayer0Result!, imageBytes);
+          final hintShown = await _tryShowOfflineHint(
+            _lastLayer0Result!,
+            imageBytes,
+          );
           if (hintShown) return;
         }
         if (mounted) {
@@ -1485,362 +1508,397 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   }
 
   Widget _buildNormalReviewBody() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Image preview
-          Center(
-            child: _useSegmentation
-                ? Stack(
-                    children: [
-                      _buildImagePreview(),
-                      if (_segments.isNotEmpty)
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final imageWidth = constraints.maxWidth;
-                            final imageHeight = constraints.maxHeight;
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Column(
+              children: [
+                // Image preview
+                Center(
+                  child: _useSegmentation
+                      ? Stack(
+                          children: [
+                            _buildImagePreview(),
+                            if (_segments.isNotEmpty)
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final imageWidth = constraints.maxWidth;
+                                  final imageHeight = constraints.maxHeight;
 
-                            return Stack(
-                              children: List.generate(_segments.length, (
-                                index,
-                              ) {
-                                // Using segment bounds from Map
-                                final segment = _segments[index];
-                                final bounds =
-                                    segment['bounds'] as Map<String, dynamic>;
-                                final left = (bounds['x'] as num).toDouble() *
-                                    imageWidth /
-                                    100;
-                                final top = (bounds['y'] as num).toDouble() *
-                                    imageHeight /
-                                    100;
-                                final width =
-                                    (bounds['width'] as num).toDouble() *
-                                        imageWidth /
-                                        100;
-                                final height =
-                                    (bounds['height'] as num).toDouble() *
-                                        imageHeight /
-                                        100;
-                                final selected = _selectedSegments.contains(
-                                  index,
-                                );
+                                  return Stack(
+                                    children: List.generate(_segments.length, (
+                                      index,
+                                    ) {
+                                      // Using segment bounds from Map
+                                      final segment = _segments[index];
+                                      final bounds = segment['bounds']
+                                          as Map<String, dynamic>;
+                                      final left =
+                                          (bounds['x'] as num).toDouble() *
+                                              imageWidth /
+                                              100;
+                                      final top =
+                                          (bounds['y'] as num).toDouble() *
+                                              imageHeight /
+                                              100;
+                                      final width =
+                                          (bounds['width'] as num).toDouble() *
+                                              imageWidth /
+                                              100;
+                                      final height =
+                                          (bounds['height'] as num).toDouble() *
+                                              imageHeight /
+                                              100;
+                                      final selected =
+                                          _selectedSegments.contains(
+                                        index,
+                                      );
 
-                                return Positioned(
-                                  left: left,
-                                  top: top,
-                                  width: width,
-                                  height: height,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        if (selected) {
-                                          _selectedSegments.remove(index);
-                                        } else {
-                                          _selectedSegments.add(index);
-                                        }
-                                      });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: selected
-                                            ? AppTheme.secondaryColor
-                                                .withValues(alpha: 0.3)
-                                            : Colors.transparent,
-                                        border: Border.all(
-                                          color: selected
-                                              ? AppTheme.secondaryColor
-                                              : Colors.white,
-                                          width: 2,
+                                      return Positioned(
+                                        left: left,
+                                        top: top,
+                                        width: width,
+                                        height: height,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              if (selected) {
+                                                _selectedSegments.remove(index);
+                                              } else {
+                                                _selectedSegments.add(index);
+                                              }
+                                            });
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: selected
+                                                  ? AppTheme.secondaryColor
+                                                      .withValues(alpha: 0.3)
+                                                  : Colors.transparent,
+                                              border: Border.all(
+                                                color: selected
+                                                    ? AppTheme.secondaryColor
+                                                    : Colors.white,
+                                                width: 2,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }),
-                            );
-                          },
-                        ),
-                    ],
-                  )
-                : _buildImagePreview(),
-          ),
+                                      );
+                                    }),
+                                  );
+                                },
+                              ),
+                          ],
+                        )
+                      : _buildImagePreview(),
+                ),
 
-          // Multi-item suggestion banner
-          if (_suggestedRegions != null && _suggestedRegions!.length > 1)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.paddingRegular,
-                vertical: AppTheme.paddingSmall,
-              ),
-              child: Material(
-                color: Colors.teal.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => _enterRegionSelectionMode(
-                    preDetected: _suggestedRegions,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(AppTheme.paddingRegular),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.teal.withValues(alpha: 0.3),
-                      ),
+                // Multi-item suggestion banner
+                if (_suggestedRegions != null && _suggestedRegions!.length > 1)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.paddingRegular,
+                      vertical: AppTheme.paddingSmall,
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
+                    child: Material(
+                      color: Colors.teal.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => _enterRegionSelectionMode(
+                            preDetected: _suggestedRegions),
+                        child: Container(
+                          padding:
+                              const EdgeInsets.all(AppTheme.paddingRegular),
                           decoration: BoxDecoration(
-                            color: Colors.teal.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.teal.withValues(alpha: 0.3),
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.crop_square,
-                            color: Colors.teal,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              Text(
-                                'I see ${_suggestedRegions!.length} possible items',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.teal.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.crop_square,
+                                  color: Colors.teal,
+                                  size: 24,
                                 ),
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Tap each one to confirm',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 13,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'I see ${_suggestedRegions!.length} possible items',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Tap each one to confirm',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right,
+                                  color: Colors.teal),
+                              GestureDetector(
+                                onTap: _dismissSuggestion,
+                                behavior: HitTestBehavior.opaque,
+                                child: const Padding(
+                                  padding: EdgeInsets.only(left: 4),
+                                  child: Icon(
+                                    Icons.close,
+                                    color: Colors.grey,
+                                    size: 18,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(
-                          Icons.chevron_right,
-                          color: Colors.teal,
+                      ),
+                    ),
+                  ),
+
+                // Instructions
+                const ModernCard(
+                  margin:
+                      EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
+                  padding: EdgeInsets.all(AppTheme.paddingRegular),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: AppTheme.primaryColor),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Position the item clearly in the image for best results.',
+                          style: TextStyle(fontSize: AppTheme.fontSizeRegular),
                         ),
-                        GestureDetector(
-                          onTap: _dismissSuggestion,
-                          behavior: HitTestBehavior.opaque,
-                          child: const Padding(
-                            padding: EdgeInsets.only(left: 4),
-                            child: Icon(
-                              Icons.close,
-                              color: Colors.grey,
-                              size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppTheme.paddingSmall),
+                _buildScanInsights(),
+
+                // Segmentation toggle with premium feature indication
+                if (_isDebugGridSegmentationEnabled)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.paddingRegular,
+                    ),
+                    child: PremiumSegmentationToggle(
+                      value: _useSegmentation,
+                      onChanged: (bool value) async {
+                        setState(() {
+                          _useSegmentation = value;
+                        });
+                        // Set restoration property safely after state update
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            _useSegmentationRestorable.value = value;
+                          }
+                        });
+                        if (value && _segments.isEmpty) {
+                          // Capture ScaffoldMessenger before async operation
+                          final scaffoldMessenger =
+                              ScaffoldMessenger.of(context);
+                          try {
+                            await _runSegmentation();
+                          } catch (e) {
+                            WasteAppLogger.severe(
+                              'Segmentation failed',
+                              error: e,
+                              context: {
+                                'service': 'screen',
+                                'file': 'image_capture_screen',
+                              },
+                            );
+                            if (mounted) {
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Segmentation failed: ${e.toString()}',
+                                  ),
+                                  duration: const Duration(seconds: 5),
+                                ),
+                              );
+                              setState(() {
+                                _useSegmentation = false;
+                              });
+                            }
+                          }
+                        } else if (!value) {
+                          setState(() {
+                            _segments.clear();
+                            _selectedSegments.clear();
+                          });
+                        }
+                      },
+                    ),
+                  ),
+
+                // Segmentation results info
+                if (_isDebugGridSegmentationEnabled &&
+                    _useSegmentation &&
+                    _segments.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: AppTheme.secondaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${_segments.length} debug grid regions generated. Tap to select for analysis.',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.secondaryColor,
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ),
-            ),
+                if (_isDebugGridSegmentationEnabled &&
+                    _useSegmentation &&
+                    _segments.isNotEmpty)
+                  _buildDetectedObjectsCard(),
 
-          // Instructions
-          const ModernCard(
-            margin: EdgeInsets.symmetric(horizontal: AppTheme.paddingRegular),
-            padding: EdgeInsets.all(AppTheme.paddingRegular),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: AppTheme.primaryColor),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Position the item clearly in the image for best results.',
-                    style: TextStyle(fontSize: AppTheme.fontSizeRegular),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppTheme.paddingSmall),
-          _buildScanInsights(),
-
-          // Segmentation toggle with premium feature indication
-          if (_isDebugGridSegmentationEnabled)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.paddingRegular,
-              ),
-              child: PremiumSegmentationToggle(
-                value: _useSegmentation,
-                onChanged: (bool value) async {
-                  setState(() {
-                    _useSegmentation = value;
-                  });
-                  // Set restoration property safely after state update
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      _useSegmentationRestorable.value = value;
-                    }
-                  });
-                  if (value && _segments.isEmpty) {
-                    // Capture ScaffoldMessenger before async operation
-                    final scaffoldMessenger = ScaffoldMessenger.of(context);
-                    try {
-                      await _runSegmentation();
-                    } catch (e) {
-                      WasteAppLogger.severe(
-                        'Segmentation failed',
-                        error: e,
-                        context: {
-                          'service': 'screen',
-                          'file': 'image_capture_screen',
-                        },
-                      );
-                      if (mounted) {
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Segmentation failed: ${e.toString()}',
-                            ),
-                            duration: const Duration(seconds: 5),
+                // Speed selector
+                const SizedBox(height: 16),
+                AnalysisSpeedSelector(
+                  selectedSpeed: _selectedSpeed,
+                  forceBatchMode: _guardrailForcesBatch,
+                  onSpeedChanged: (AnalysisSpeed speed) {
+                    if (_guardrailForcesBatch &&
+                        speed == AnalysisSpeed.instant) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Instant mode is disabled by cost guardrails right now.',
                           ),
-                        );
-                        setState(() {
-                          _useSegmentation = false;
-                        });
-                      }
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                      return;
                     }
-                  } else if (!value) {
                     setState(() {
-                      _segments.clear();
-                      _selectedSegments.clear();
+                      _selectedSpeed = speed;
                     });
-                  }
-                },
-              ),
-            ),
-
-          // Segmentation results info
-          if (_isDebugGridSegmentationEnabled &&
-              _useSegmentation &&
-              _segments.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: AppTheme.secondaryColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '${_segments.length} debug grid regions generated. Tap to select for analysis.',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.secondaryColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          if (_isDebugGridSegmentationEnabled &&
-              _useSegmentation &&
-              _segments.isNotEmpty)
-            _buildDetectedObjectsCard(),
-
-          // Speed selector
-          const SizedBox(height: 16),
-          AnalysisSpeedSelector(
-            selectedSpeed: _selectedSpeed,
-            forceBatchMode: _guardrailForcesBatch,
-            onSpeedChanged: (AnalysisSpeed speed) {
-              if (_guardrailForcesBatch && speed == AnalysisSpeed.instant) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Instant mode is disabled by cost guardrails right now.',
-                    ),
-                    duration: Duration(seconds: 3),
-                  ),
-                );
-                return;
-              }
-              setState(() {
-                _selectedSpeed = speed;
-              });
-              if (speed == AnalysisSpeed.batch) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    _enterRegionSelectionMode();
-                  }
-                });
-              }
-            },
-          ),
-          const SizedBox(height: 12),
-          _buildAnalysisSummaryCard(),
-
-          // Action buttons
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.paddingRegular),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Select multiple items button
-                _buildSelectMultipleItemsButton(),
-                const SizedBox(height: AppTheme.paddingSmall),
-
-                // Quick analyze button (prominent)
-                _buildAnalyzeButton(),
-                const SizedBox(height: AppTheme.paddingSmall),
-
-                // Quick action row
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.arrow_back, size: 18),
-                        label: const Text('Back'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.grey.shade600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppTheme.paddingSmall),
-                    Expanded(
-                      child: TextButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                '💡 Tip: Use camera button with long press for instant analysis!',
-                              ),
-                              duration: Duration(seconds: 3),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.flash_on, size: 18),
-                        label: const Text('Quick Tip'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppTheme.primaryColor,
-                        ),
-                      ),
-                    ),
-                  ],
+                    if (speed == AnalysisSpeed.batch) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          _enterRegionSelectionMode();
+                        }
+                      });
+                    }
+                  },
                 ),
+                const SizedBox(height: 12),
+                _buildAnalysisSummaryCard(),
               ],
             ),
           ),
-        ],
+        ),
+        _buildReviewActionDock(),
+      ],
+    );
+  }
+
+  Widget _buildReviewActionDock() {
+    return SafeArea(
+      top: false,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(
+          AppTheme.paddingRegular,
+          AppTheme.paddingRegular,
+          AppTheme.paddingRegular,
+          AppTheme.paddingRegular,
+        ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 18,
+              offset: const Offset(0, -6),
+            ),
+          ],
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outline.withValues(
+                    alpha: 0.12,
+                  ),
+            ),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildSelectMultipleItemsButton(),
+            const SizedBox(height: AppTheme.paddingSmall),
+            _buildAnalyzeButton(),
+            const SizedBox(height: AppTheme.paddingSmall),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back, size: 18),
+                    label: const Text('Back'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppTheme.paddingSmall),
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            '💡 Tip: Use camera button with long press for instant analysis!',
+                          ),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.flash_on, size: 18),
+                    label: const Text('Quick Tip'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
