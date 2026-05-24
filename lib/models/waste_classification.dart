@@ -188,10 +188,13 @@ class WasteClassification extends HiveObject {
       id: json['id'],
       itemName: json['itemName'] ?? 'Unknown Item',
       category: json['category'] ?? 'Dry Waste',
-      subCategory: json['subCategory'] as String?,
+      subCategory: (json['subCategory'] as String?) ??
+          (json['subcategory'] as String?),
       materials: json['materials'] != null
           ? List<String>.from(json['materials'])
-          : null,
+          : (json['materialType'] != null
+              ? [json['materialType'] as String]
+              : null),
       recyclingCode: json['recyclingCode'],
       explanation: json['explanation'] ?? '',
       disposalMethod: json['disposalMethod'],

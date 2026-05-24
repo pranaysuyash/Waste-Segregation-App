@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../services/visual_feedback_service.dart';
 
 /// ActionRow provides secondary actions for the result screen
 /// Implements the evenly-spaced icon buttons design from the plan
@@ -99,7 +99,7 @@ class ActionRow extends ConsumerWidget {
                 child: InkWell(
                   onTap: onPressed != null
                       ? () {
-                          HapticFeedback.lightImpact();
+                          VisualFeedbackService.instance.lightImpact();
                           onPressed();
                         }
                       : null,

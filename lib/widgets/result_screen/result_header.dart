@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../services/visual_feedback_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../../utils/waste_theme.dart';
 
@@ -321,7 +321,7 @@ class ResultHeader extends ConsumerWidget {
     return ElevatedButton.icon(
       onPressed: () {
         // Haptic feedback as per design spec
-        HapticFeedback.mediumImpact();
+        VisualFeedbackService.instance.mediumImpact();
         onDisposeCorrectly();
       },
       icon: const Icon(Icons.recycling_rounded),

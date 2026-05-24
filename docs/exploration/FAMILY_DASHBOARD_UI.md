@@ -43,9 +43,8 @@ This surface should not become a second generic home screen. It only earns its p
 Per the gamification redesign spec, family features are a separate v2 effort. This dashboard should be maintained as a thin presentation layer until v2 gamification is ready to provide the shared goals and cooperative mechanics it needs to earn its place.
 
 ## Next step
-Measure whether the dashboard changes behaviour, not just whether it renders.
-- Track household participation rate
-- Track return frequency for non-primary users
-- Track challenge join/complete rate
-- Track 7-day and 28-day retention for family-group users versus solo users
-- If the metrics do not move, demote this from a product bet to a presentation layer only
+Move from observation to behaviour design, then keep the measurement loop tight.
+- Family/team cooperative mechanics (see `docs/EXPLORATION_TOPICS.md` item 141): shared goals, role-based tasks, no-shame leaderboards, household streaks, parent-child missions, and conflict prevention
+- Gamification analytics dashboard (see `docs/EXPLORATION_TOPICS.md` item 160): mechanic-level retention, challenge completion, correction quality, learning mastery, and long-term behaviour change
+- Keep tracking household participation rate, non-primary-user return frequency, challenge join/complete rate, and 7-day / 28-day retention for family-group users versus solo users
+- If those metrics do not move, demote this from a product bet to a presentation layer only

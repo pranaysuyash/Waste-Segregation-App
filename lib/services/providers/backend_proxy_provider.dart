@@ -15,7 +15,7 @@ import 'classification_provider.dart';
 /// - Call the `classifyImage` Firebase HTTPS Callable function.
 /// - Return a raw `AiProviderResponse` whose `rawResponseMap` is the
 ///   `classification` sub-object returned by the function, so that
-///   `AiService`'s existing parser (`_processAiResponseData`) can parse it
+///   `ClassificationResultProcessor` (via `AiResponseParser`) can parse it
 ///   into a `WasteClassification` without modification.
 /// - Map Firebase function errors to `AiFailure`.
 ///
@@ -180,7 +180,7 @@ class BackendProxyProvider implements ClassificationProvider {
     final usedProvider = meta['provider'] as String? ?? 'backend';
     final usedModel = meta['model'] as String? ?? _functionName;
 
-    // AiService's _processAiResponseData expects either:
+    // ClassificationResultProcessor / AiResponseParser expects either:
     //   - OpenAI shape: { choices: [{ message: { content: "<json>" } }] }
     //   - Gemini shape: handled via textContent
     //   - Or: a raw map that is itself the classification JSON (for backend)

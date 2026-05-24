@@ -58,12 +58,12 @@ class _SyncSectionState extends State<SyncSection> {
           Provider.of<CloudStorageService>(context, listen: false);
 
       final currentSettings = await storageService.getSettings();
-      if (!context.mounted) return;
+      if (!mounted) return;
       await storageService.saveSettings(
         isDarkMode: currentSettings['isDarkMode'] ?? false,
         isGoogleSyncEnabled: value,
       );
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       setState(() => _isGoogleSyncEnabled = value);
 
@@ -134,12 +134,12 @@ class _SyncSectionState extends State<SyncSection> {
 
       final cloudStorageService =
           Provider.of<CloudStorageService>(context, listen: false);
+      final storageService =
+          Provider.of<StorageService>(context, listen: false);
       final syncedCount =
           await cloudStorageService.syncAllLocalClassificationsToCloud();
 
       if (syncedCount > 0) {
-        final storageService =
-            Provider.of<StorageService>(context, listen: false);
         final lastSync = await storageService.getLastCloudSync();
         if (mounted) {
           setState(() => _lastCloudSync = lastSync);

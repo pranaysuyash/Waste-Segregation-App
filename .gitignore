@@ -207,6 +207,8 @@ scripts/eval/__pycache__/
 
 # Local generated build/test/workspace artifacts (do not commit)
 .tmp_test_hive/
+.gradle-local/
+android/motto_v2.md
 android/.kotlin/
 ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 ios/Runner.xcworkspace/xcshareddata/swiftpm/

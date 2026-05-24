@@ -125,6 +125,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       parameters: {
         'dashboard_state': state,
         'has_family': state == 'loaded',
+        'analytics_contract_version': 1,
+        'family_id': _familyId,
         if (memberCount != null) 'family_member_count': memberCount,
         if (totalClassifications != null)
           'family_total_classifications': totalClassifications,

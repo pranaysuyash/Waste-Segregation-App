@@ -227,3 +227,68 @@ Results:
 - New theme-settings premium-gating tests: pass.
 - Targeted settings/premium regression suite: pass.
 - Analyze for final touched theme-settings scope: pass with no issues.
+
+## Addendum (motto_v2 continuation pass: explicit accessibility-node assertions)
+
+### Additional implementation hardening
+
+1) Theme customization semantics made deterministic at node level
+- File: `lib/screens/theme_settings_screen.dart`
+- Change:
+  - Added `excludeSemantics: true` to the outer `Semantics` wrapper for the theme customization entry.
+  - Kept explicit semantic contract on that node:
+    - `label`: `themeCustomization`
+    - `value`: `PremiumFeatureVisuals.semanticsState(...)`
+    - `hint`: unlocked (`themeSettingsSubtitle`) vs locked (`upgradeToUse(themeCustomization)`).
+  - Preserved functional tap behavior through the tile `onTap` callback while keeping outer semantics action available.
+
+2) Theme settings premium-gate test now verifies actual semantics node contract
+- File: `test/screens/theme_settings_screen_premium_gate_test.dart`
+- Changes:
+  - Added semantics-enabled assertions for both free and premium tiers against the Theme Customization entry node.
+  - Assertions now validate:
+    - label correctness
+    - locked/unlocked value correctness
+    - state-specific hint correctness
+    - button semantic flag presence
+  - Wrapped `ensureSemantics()` usage in `try/finally` to guarantee disposal and avoid test harness leakage.
+
+### Verification commands and outcomes
+
+Commands executed:
+1. `TMPDIR=$PWD/.tmp flutter test test/screens/theme_settings_screen_premium_gate_test.dart`
+2. `TMPDIR=$PWD/.tmp flutter analyze --no-fatal-infos lib/screens/theme_settings_screen.dart test/screens/theme_settings_screen_premium_gate_test.dart`
+3. `TMPDIR=$PWD/.tmp flutter test test/widgets/settings/settings_navigation_contract_test.dart test/widgets/premium_segmentation_toggle_test.dart test/screens/premium_features_screen_test.dart`
+
+Results:
+- `theme_settings_screen_premium_gate_test.dart`: pass (2/2).
+- Analyze for touched files: pass (no issues).
+- Related premium/settings regression subset: pass.
+
+## Addendum (motto_v2 continuation pass: settings accessibility-state contract closure)
+
+### Additional implementation changes
+
+1) Added explicit semantics-state regression coverage for AppSettings premium entries
+- File: `test/widgets/settings/settings_navigation_contract_test.dart`
+- Changes:
+  - Added free-tier test verifying locked accessibility contract (`label` + `value` + `hint`) for:
+    - Theme Settings (gated by Theme Customization)
+    - Remove Ads
+    - Offline Mode
+    - Data Export
+  - Added unlocked-tier test verifying enabled accessibility contract for the same entries.
+  - Assertions use `PremiumFeatureVisuals.semanticsState(...)` to stay aligned with shared semantics source-of-truth.
+  - Validated button semantic affordance exists on the locked Theme Settings entry.
+
+### Verification commands and outcomes
+
+Commands executed:
+1. `TMPDIR=$PWD/.tmp flutter test test/widgets/settings/settings_navigation_contract_test.dart`
+2. `TMPDIR=$PWD/.tmp flutter test test/widgets/premium_segmentation_toggle_test.dart test/widgets/settings/settings_navigation_contract_test.dart test/screens/theme_settings_screen_premium_gate_test.dart test/screens/premium_features_screen_test.dart`
+3. `TMPDIR=$PWD/.tmp flutter analyze --no-fatal-infos test/widgets/settings/settings_navigation_contract_test.dart`
+
+Results:
+- `settings_navigation_contract_test.dart`: pass (12/12 including new semantics-state tests).
+- Combined premium/settings regression subset: pass (30/30).
+- Analyze on touched test file: pass (no issues).

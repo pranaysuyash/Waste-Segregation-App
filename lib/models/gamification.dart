@@ -1105,6 +1105,8 @@ class AnalyticsEvent {
       'eventName': eventName,
       'parameters': parameters,
       'timestamp': timestamp.toIso8601String(),
+      'timestampUtc': timestamp.toUtc().toIso8601String(),
+      'timestampMillis': timestamp.millisecondsSinceEpoch,
       'sessionId': sessionId,
       'deviceInfo': deviceInfo,
     };

@@ -12,6 +12,7 @@ import 'package:waste_segregation_app/utils/routes.dart';
 import 'package:waste_segregation_app/widgets/settings/app_settings_section.dart';
 import 'package:waste_segregation_app/widgets/settings/features_section.dart';
 import 'package:waste_segregation_app/widgets/settings/navigation_section.dart';
+import 'package:waste_segregation_app/widgets/settings/premium_feature_visuals.dart';
 
 class _FakeHapticSettingsService extends ChangeNotifier
     implements HapticSettingsService {
@@ -320,6 +321,166 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('premium-route'), findsOneWidget);
+    });
+
+    testWidgets(
+        'AppSettingsSection free tier exposes locked accessibility states for premium entries',
+        (tester) async {
+      final semanticsHandle = tester.ensureSemantics();
+      try {
+        await tester.pumpWidget(
+          _buildApp(
+            hapticSettingsService: _FakeHapticSettingsService(),
+            premiumService: _FakePremiumService(),
+            child: const AppSettingsSection(),
+            routes: {
+              Routes.premiumFeatures: (_) => const _RouteTarget('premium-route'),
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final context = tester.element(find.byType(AppSettingsSection));
+        final t = AppLocalizations.of(context)!;
+        final lockedValue =
+            PremiumFeatureVisuals.semanticsState(context, isUnlocked: false);
+
+        Finder findTileSemantics(String label, String value, String hint) {
+          return find.byWidgetPredicate(
+            (widget) =>
+                widget is Semantics &&
+                widget.properties.label == label &&
+                widget.properties.value == value &&
+                widget.properties.hint == hint,
+          );
+        }
+
+        expect(
+          findTileSemantics(
+            t.themeSettings,
+            lockedValue,
+            t.upgradeToUse(t.themeCustomization),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          findTileSemantics(
+            t.removeAds,
+            lockedValue,
+            t.upgradeToUse(t.removeAds),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          findTileSemantics(
+            t.offlineMode,
+            lockedValue,
+            t.upgradeToUse(t.offlineMode),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          findTileSemantics(
+            t.dataExport,
+            lockedValue,
+            t.upgradeToUse(t.exportData),
+          ),
+          findsOneWidget,
+        );
+
+        final themeSemantics = tester.widget<Semantics>(
+          findTileSemantics(
+            t.themeSettings,
+            lockedValue,
+            t.upgradeToUse(t.themeCustomization),
+          ),
+        );
+        expect(themeSemantics.properties.button, isTrue);
+      } finally {
+        semanticsHandle.dispose();
+      }
+    });
+
+    testWidgets(
+        'AppSettingsSection unlocked premium entries expose enabled accessibility states',
+        (tester) async {
+      final premiumService = _FakePremiumService();
+      await premiumService.setPremiumFeature('theme_customization', true);
+      await premiumService.setPremiumFeature('remove_ads', true);
+      await premiumService.setPremiumFeature('offline_mode', true);
+      await premiumService.setPremiumFeature('export_data', true);
+
+      final semanticsHandle = tester.ensureSemantics();
+      try {
+        await tester.pumpWidget(
+          _buildApp(
+            hapticSettingsService: _FakeHapticSettingsService(),
+            premiumService: premiumService,
+            child: const AppSettingsSection(),
+            routes: {
+              Routes.premiumFeatures: (_) => const _RouteTarget('premium-route'),
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final context = tester.element(find.byType(AppSettingsSection));
+        final t = AppLocalizations.of(context)!;
+
+        final enabledValue =
+            PremiumFeatureVisuals.semanticsState(context, isUnlocked: true);
+
+        Finder findTileSemantics(String label, String value, String hint) {
+          return find.byWidgetPredicate(
+            (widget) =>
+                widget is Semantics &&
+                widget.properties.label == label &&
+                widget.properties.value == value &&
+                widget.properties.hint == hint,
+          );
+        }
+
+        expect(
+          findTileSemantics(
+            t.themeSettings,
+            enabledValue,
+            t.themeSettingsSubtitle,
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          findTileSemantics(
+            t.removeAds,
+            enabledValue,
+            t.adsCurrentlyDisabled,
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          findTileSemantics(
+            t.offlineMode,
+            enabledValue,
+            t.offlineModeSubtitle,
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          findTileSemantics(
+            t.dataExport,
+            enabledValue,
+            t.dataExportSubtitle,
+          ),
+          findsOneWidget,
+        );
+      } finally {
+        semanticsHandle.dispose();
+      }
     });
 
     testWidgets('NavigationSection updates style via dropdown', (tester) async {

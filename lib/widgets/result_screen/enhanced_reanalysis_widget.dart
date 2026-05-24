@@ -1,8 +1,8 @@
 import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../../services/visual_feedback_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../../services/ai_service.dart';
 import '../../services/analytics_service.dart';
@@ -340,7 +340,7 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
 
     // Haptic feedback (fire-and-forget)
     if (hapticService.enabled) {
-      unawaited(HapticFeedback.lightImpact());
+      unawaited(VisualFeedbackService.instance.lightImpact());
     }
 
     setState(() {

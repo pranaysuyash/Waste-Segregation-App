@@ -18,6 +18,7 @@ export { createCheckoutSession } from './create_checkout_session';
 export { dodopaymentsWebhook } from './dodopayments_webhook';
 export { getR2UploadUrl } from './r2_storage';
 export { createReferralCode, redeemReferralCode, getReferralStats } from './referrals';
+export { aggregateFamilyDashboardAnalytics } from './family_dashboard_analytics';
 
 // Initialize Firebase Admin
 admin.initializeApp();

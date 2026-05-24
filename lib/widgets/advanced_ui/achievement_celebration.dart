@@ -110,7 +110,7 @@ class _AchievementCelebrationState extends State<AchievementCelebration>
   }
 
   void _startCelebration() async {
-    HapticFeedback.heavyImpact();
+    VisualFeedbackService.instance.heavyImpact();
     _mainController.forward();
     _confettiController.forward();
     await Future.delayed(const Duration(milliseconds: 300));
@@ -541,6 +541,10 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
   @override
   void dispose() {
     _controller.dispose();
+    super.dispose();
+  }
+}
+dispose();
     super.dispose();
   }
 }

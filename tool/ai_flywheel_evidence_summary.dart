@@ -36,8 +36,18 @@ void main(List<String> args) {
   if (acceptance == null) {
     b.writeln('- Acceptance report missing: `build/reports/ai_flywheel/acceptance_report.json`');
   } else {
-    b.writeln('- Passed: ${acceptance['passed']}/${acceptance['total']}');
-    b.writeln('- All passed: ${acceptance['allPassed']}');
+    final harness = (acceptance['harness'] as Map?)?.cast<String, dynamic>();
+    final providerQuality =
+        (acceptance['providerQualityGate'] as Map?)?.cast<String, dynamic>();
+    b.writeln(
+        '- Harness passed: ${harness?['passed'] ?? acceptance['passed']}/${harness?['total'] ?? acceptance['total']}');
+    b.writeln('- Harness all passed: ${harness?['allPassed'] ?? acceptance['allPassed']}');
+    if (providerQuality != null) {
+      b.writeln(
+          '- Provider quality releaseReady: ${providerQuality['releaseReady']}');
+      b.writeln(
+          '- Provider quality allPassed: ${providerQuality['allPassed']}');
+    }
   }
   b.writeln();
 

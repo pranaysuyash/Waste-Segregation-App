@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/visual_feedback_service.dart';
 import '../models/recycling_code.dart';
 import '../utils/constants.dart';
 
@@ -161,7 +162,7 @@ class _RecyclingCodeInfoCardState extends State<RecyclingCodeInfoCard> {
                       child: const Icon(Icons.expand_more),
                     ),
                     onPressed: () {
-                      HapticFeedback.selectionClick();
+                      VisualFeedbackService.instance.selectionClick();
                       setState(() {
                         _isExpanded = !_isExpanded;
                       });

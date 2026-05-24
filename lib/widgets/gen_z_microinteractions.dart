@@ -81,7 +81,7 @@ class GenZMicrointeractions {
   }) {
     return FloatingActionButton(
       onPressed: () {
-        HapticFeedback.mediumImpact();
+        VisualFeedbackService.instance.mediumImpact();
         PerformanceOptimizer.fastStateUpdate(onPressed);
       },
       backgroundColor: backgroundColor ?? Colors.blue,
@@ -120,7 +120,7 @@ class GenZMicrointeractions {
         child: Icon(rightIcon, color: Colors.white, size: 30),
       ),
       onDismissed: (direction) {
-        HapticFeedback.lightImpact();
+        VisualFeedbackService.instance.lightImpact();
         if (direction == DismissDirection.startToEnd) {
           onSwipeLeft();
         } else {
@@ -195,7 +195,7 @@ class GenZMicrointeractions {
   }) {
     return GestureDetector(
       onTap: () {
-        HapticFeedback.selectionClick();
+        VisualFeedbackService.instance.selectionClick();
         onTap();
       },
       child: AnimatedContainer(
@@ -319,6 +319,11 @@ class GenZMicrointeractions {
           ),
         );
       },
+      child: child,
+    );
+  }
+}
+,
       child: child,
     );
   }

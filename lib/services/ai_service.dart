@@ -59,7 +59,12 @@ class AiService {
   /// [cachingEnabled] defaults to true.
   /// [defaultRegion] defaults to 'Bangalore, IN'.
   /// [defaultLanguage] defaults to 'en'.
-  AiService({
+  ///
+  /// Resolves all dependencies exactly once and shares the same instances
+  /// with [ClassificationResultProcessor] and [AiUsageAccountingService].
+  /// This prevents the hidden-state bug where field-level instances and
+  /// sub-service instances diverge when default creation is triggered.
+  factory AiService({
     String? openAiBaseUrl,
     String? openAiApiKey,
     String? geminiBaseUrl,
@@ -73,9 +78,9 @@ class AiService {
     Dio? dioClient,
     Future<String> Function(Uint8List bytes, String imageName)?
         saveWebImageOverride,
-    this.cachingEnabled = true,
-    this.defaultRegion = 'Bangalore, IN',
-    this.defaultLanguage = 'en',
+    bool cachingEnabled = true,
+    String defaultRegion = 'Bangalore, IN',
+    String defaultLanguage = 'en',
 
     /// Optional injectable [ClassificationProvider] for the backend path.
     ///
@@ -85,32 +90,89 @@ class AiService {
     ClassificationProvider? backendProxy,
     OpenAiProviderClient? openAiProvider,
     GeminiProviderClient? geminiProvider,
+  }) {
+    // Resolve each dependency exactly once so field instances and sub-service
+    // instances are identical (no duplicate default creations).
+    final resolvedCacheService = cacheService ?? ClassificationCacheService();
+    final resolvedPricingService = pricingService ?? DynamicPricingService();
+    final resolvedGuardrailService =
+        guardrailService ?? CostGuardrailService();
+    final resolvedErrorHandler = errorHandler ?? EnhancedApiErrorHandler();
+    final resolvedImageService = imageService ?? EnhancedImageService();
+    final resolvedLocalPolicyEngine =
+        localPolicyEngine ?? const LocalPolicyEngine();
+    final resolvedDio = dioClient ?? Dio();
+    final resolvedOpenAiBaseUrl = openAiBaseUrl ?? ApiConfig.openAiBaseUrl;
+    final resolvedOpenAiApiKey = openAiApiKey ?? ApiConfig.openAiApiKey;
+    final resolvedGeminiBaseUrl = geminiBaseUrl ?? ApiConfig.geminiBaseUrl;
+    final resolvedGeminiApiKey = geminiApiKey ?? ApiConfig.apiKey;
+
+    return AiService._fromResolved(
+      openAiBaseUrl: resolvedOpenAiBaseUrl,
+      openAiApiKey: resolvedOpenAiApiKey,
+      geminiBaseUrl: resolvedGeminiBaseUrl,
+      geminiApiKey: resolvedGeminiApiKey,
+      cacheService: resolvedCacheService,
+      pricingService: resolvedPricingService,
+      guardrailService: resolvedGuardrailService,
+      errorHandler: resolvedErrorHandler,
+      imageService: resolvedImageService,
+      localPolicyEngine: resolvedLocalPolicyEngine,
+      dioClient: resolvedDio,
+      saveWebImageOverride: saveWebImageOverride,
+      cachingEnabled: cachingEnabled,
+      defaultRegion: defaultRegion,
+      defaultLanguage: defaultLanguage,
+      backendProxy: backendProxy,
+      openAiProvider: openAiProvider,
+      geminiProvider: geminiProvider,
+    );
+  }
+
+  /// Private constructor that takes fully-resolved, non-nullable dependencies.
+  ///
+  /// All dependency instances (cache, pricing, guardrail, engine, etc.) are
+  /// guaranteed to be non-null and shared between [AiService] fields,
+  /// [_resultProcessor], and [_usageAccounting].
+  AiService._fromResolved({
+    required this.openAiBaseUrl,
+    required this.openAiApiKey,
+    required this.geminiBaseUrl,
+    required this.geminiApiKey,
+    required this.cacheService,
+    required this.pricingService,
+    required this.guardrailService,
+    required this.errorHandler,
+    required this.localPolicyEngine,
+    required this.cachingEnabled,
+    required this.defaultRegion,
+    required this.defaultLanguage,
+    required ClassificationProvider? backendProxy,
+    required OpenAiProviderClient? openAiProvider,
+    required GeminiProviderClient? geminiProvider,
+    required Future<String> Function(Uint8List bytes, String imageName)?
+        saveWebImageOverride,
+    required EnhancedImageService imageService,
+    required Dio dioClient,
   })  : _openAiProvider = openAiProvider,
         _geminiProvider = geminiProvider,
-        openAiBaseUrl = openAiBaseUrl ?? ApiConfig.openAiBaseUrl,
-        openAiApiKey = openAiApiKey ?? ApiConfig.openAiApiKey,
-        geminiBaseUrl = geminiBaseUrl ?? ApiConfig.geminiBaseUrl,
-        geminiApiKey = geminiApiKey ?? ApiConfig.apiKey,
-        cacheService = cacheService ?? ClassificationCacheService(),
-        pricingService = pricingService ?? DynamicPricingService(),
-        guardrailService = guardrailService ?? CostGuardrailService(),
-        errorHandler = errorHandler ?? EnhancedApiErrorHandler(),
-        _imageService = imageService ?? EnhancedImageService(),
-        localPolicyEngine = localPolicyEngine ?? const LocalPolicyEngine(),
-        _dio = dioClient ?? Dio(),
-        _saveWebImageOverride = saveWebImageOverride,
         _backendProxy = backendProxy,
+        _saveWebImageOverride = saveWebImageOverride,
+        _imageService = imageService,
+        _dio = dioClient,
+        // These sub-services receive the same resolved instances as the fields
+        // above — no separate fallback creation, no identity divergence.
         _resultProcessor = ClassificationResultProcessor(
-          policyEngine: localPolicyEngine ?? const LocalPolicyEngine(),
-          cacheService: cacheService ?? ClassificationCacheService(),
+          policyEngine: localPolicyEngine,
+          cacheService: cacheService,
           cachingEnabled: cachingEnabled,
           promptVersion: AiService.promptVersion,
           schemaVersion: AiService.schemaVersion,
           localGuidelinesVersion: AiService.localGuidelinesVersion,
         ),
         _usageAccounting = AiUsageAccountingService(
-          pricingService: pricingService ?? DynamicPricingService(),
-          guardrailService: guardrailService ?? CostGuardrailService(),
+          pricingService: pricingService,
+          guardrailService: guardrailService,
         );
 
   static const String promptVersion = 'waste-classification-v2';
@@ -1393,15 +1455,15 @@ class AiService {
         );
       }
 
-      final correctedClassification = _processAiResponseData(
-        AiProviderResponseAdapter.toParserMap(providerResponse),
-        originalClassification.imageUrl ?? 'correction_update',
-        originalClassification.region,
-        originalClassification.instructionsLang,
-        reanalysisModelsTried,
-        originalClassification.id,
-        provider: useGeminiProvider ? 'gemini' : 'openai',
-        model: modelToUse,
+      final correctedClassification = await _resultProcessor.process(
+        providerResponse: providerResponse,
+        imagePath: originalClassification.imageUrl ?? 'correction_update',
+        region: originalClassification.region ?? defaultRegion,
+        language: originalClassification.instructionsLang ?? defaultLanguage,
+        imageSize: imageBytes.length,
+        classificationId: originalClassification.id,
+        imageHash: originalClassification.imageHash,
+        contentHash: null,
       );
 
       return applyCorrectionProvenance(
@@ -1428,31 +1490,6 @@ class AiService {
         clarificationNeeded: true,
       );
     }
-  }
-
-  /// Processes the raw AI response data by delegating to [AiResponseParser.processResponse].
-  WasteClassification _processAiResponseData(
-    Map<String, dynamic> responseData,
-    String imagePath,
-    String region,
-    String? instructionsLang,
-    List<String>? reanalysisModelsTried,
-    String? classificationId, {
-    required String provider,
-    required String model,
-    String? thumbnailPath,
-  }) {
-    return AiResponseParser.processResponse(
-      responseData,
-      imagePath,
-      region,
-      instructionsLang,
-      reanalysisModelsTried,
-      classificationId,
-      provider: provider,
-      model: model,
-      thumbnailPath: thumbnailPath,
-    );
   }
 
   /// Extracts potential JSON content from a raw AI response string.

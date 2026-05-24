@@ -6,8 +6,11 @@ import 'package:waste_segregation_app/ai_flywheel/dataset_exporter.dart';
 import 'package:waste_segregation_app/ai_flywheel/eval_models.dart';
 import 'package:waste_segregation_app/ai_flywheel/eval_runner.dart';
 import 'package:waste_segregation_app/ai_flywheel/eval_scoring.dart';
+import 'package:waste_segregation_app/ai_flywheel/provider_quality_gate.dart';
 import 'package:waste_segregation_app/ai_flywheel/router_metrics.dart';
+import 'package:waste_segregation_app/ai_flywheel/router_policy_recommendations.dart';
 import 'package:waste_segregation_app/ai_flywheel/training_candidate_policy.dart';
+import 'package:waste_segregation_app/services/ai_router_policy_config.dart';
 import 'package:waste_segregation_app/services/classification_router_guardrails.dart';
 import 'package:waste_segregation_app/services/local_classifier_service.dart';
 
@@ -223,5 +226,57 @@ void main() {
     );
     final o = EvalScoring.scoreCase(c, p);
     expect(o.multiItemFailure, isTrue);
+  });
+
+  test('17. Provider quality gate fails when safety/must-not are non-zero', () {
+    const gate = ProviderQualityGate(ProviderQualityGateThresholds());
+    final result = gate.evaluateSummary(
+      <String, dynamic>{
+        'cases': 10,
+        'strictPass': 9,
+        'acceptablePass': 0,
+        'mustNotViolations': 1,
+        'safetyCriticalFailures': 1,
+        'localRuleFailures': 0,
+        'providerLabel': 'backend',
+      },
+      defaultProviderLabel: 'backend',
+    );
+    expect(result.passed, isFalse);
+    expect(result.failureReasons, isNotEmpty);
+  });
+
+  test('18. Provider quality gate passes with clean summary', () {
+    const gate = ProviderQualityGate(ProviderQualityGateThresholds());
+    final result = gate.evaluateSummary(
+      <String, dynamic>{
+        'cases': 20,
+        'strictPass': 19,
+        'acceptablePass': 1,
+        'mustNotViolations': 0,
+        'safetyCriticalFailures': 0,
+        'localRuleFailures': 0,
+        'providerLabel': 'backend',
+      },
+      defaultProviderLabel: 'backend',
+    );
+    expect(result.passed, isTrue);
+    expect(result.accuracy, equals(1.0));
+  });
+
+  test('19. Router recommendation text is generated from policy pack', () {
+    const policy = AiRouterPolicyConfig(
+      policyPackVersion: 'router-policy-v9',
+      localAcceptanceThreshold: 0.91,
+      localEscalationThreshold: 0.73,
+      localSafetyThreshold: 0.98,
+      blockCacheOnRuleVersionChange: true,
+      enforceSafetyEscalation: true,
+    );
+    final text = buildRouterStrategyRecommendations(policy);
+    expect(text.contains('router-policy-v9'), isTrue);
+    expect(text.contains('0.91'), isTrue);
+    expect(text.contains('0.73'), isTrue);
+    expect(text.contains('0.98'), isTrue);
   });
 }

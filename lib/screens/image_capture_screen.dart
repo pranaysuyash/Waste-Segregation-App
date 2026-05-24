@@ -162,6 +162,9 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       } else if (_xFile != null) {
         _imagePath.value = _xFile!.path;
       }
+      if (_imageFile != null || _xFile != null || _webImageBytes != null) {
+        _markImageSelected();
+      }
       _useSegmentationRestorable.value = _useSegmentation;
       if (widget.autoAnalyze &&
           (_imageFile != null || _xFile != null || _webImageBytes != null)) {
@@ -268,6 +271,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             _imagePath.value = image.path;
+            _markImageSelected();
           }
         });
         if (kIsWeb) {
@@ -291,6 +295,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         setState(() {
           _webImageBytes = bytes;
         });
+        _markImageSelected();
       }
     }
   }
@@ -306,12 +311,23 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   bool get _isCancelled =>
       _stateMachine.current == ClassificationState.cancelled;
 
+  void _markImageSelected() {
+    if (!mounted) return;
+    if (_classificationState == ClassificationState.imageSelected) {
+      return;
+    }
+    if (_classificationState != ClassificationState.idle) {
+      _stateMachineNotifier.reset();
+    }
+    _stateMachineNotifier.transitionTo(ClassificationState.imageSelected);
+    setState(() {});
+  }
+
   void _setClassificationState(ClassificationState state) {
     if (!mounted) return;
     _stateMachineNotifier.transitionTo(state);
     setState(() {});
   }
-
 
   String _currentImageName() {
     return _imageFile?.path.split('/').last ??
@@ -359,20 +375,23 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     if (!mounted || _isCancelled) return;
 
     _pendingClassification = classification;
-    _setClassificationState(ClassificationState.policyApplied);
+    _setClassificationState(ClassificationState.classificationSucceeded);
 
-    // Let users perceive the local rule pass before outcome is surfaced.
+    // Let users perceive the classification result before local rules apply.
     await Future<void>.delayed(const Duration(milliseconds: 320));
     if (!mounted || _isCancelled) return;
 
     if (_isFallbackClassification(classification)) {
+      _setClassificationState(ClassificationState.policyApplied);
+      await Future<void>.delayed(const Duration(milliseconds: 220));
+      if (!mounted || _isCancelled) return;
       _setClassificationState(
         ClassificationState.awaitingUserConfirmation,
       );
       return;
     }
 
-    _setClassificationState(ClassificationState.classificationSucceeded);
+    _setClassificationState(ClassificationState.policyApplied);
     await Future<void>.delayed(const Duration(milliseconds: 500));
     if (!mounted || _isCancelled) return;
 
@@ -414,9 +433,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       confidenceText: _analysisConfidenceText(),
       resultCategoryColor: WasteAppDesignSystem.getCategoryColor(
           _pendingClassification?.category ?? ''),
-      onRetry: cs == ClassificationState.failedRetryable
-          ? _retryAnalysis
-          : null,
+      onRetry:
+          cs == ClassificationState.failedRetryable ? _retryAnalysis : null,
       onCancel: cs == ClassificationState.failedRetryable ||
               cs == ClassificationState.qualityChecking ||
               cs == ClassificationState.cacheChecking ||
@@ -534,9 +552,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       _isSelectingRegions = true;
       _hasShownSuggestion = false;
       if (preDetected != null && preDetected.isNotEmpty) {
-        _selectedRegions = preDetected
-            .map((r) => r.boundingBox)
-            .toList();
+        _selectedRegions = preDetected.map((r) => r.boundingBox).toList();
       } else {
         _selectedRegions = [_defaultRegionSeed()];
       }
@@ -758,8 +774,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     final hintClassification = hintWc.copyWith(
       isOfflineHint: true,
       classificationLayer: 'layer0_hint_pending_cloud',
-      explanation:
-          'Preliminary classification (offline). '
+      explanation: 'Preliminary classification (offline). '
           'Will re-verify when connected.',
     );
 
@@ -777,6 +792,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   Future<void> _analyzeImage() async {
     if (_isAnalyzing || _isCancelled) return;
 
+    _markImageSelected();
     _setClassificationState(ClassificationState.qualityChecking);
     setState(() {
       _analysisErrorMessage = null;
@@ -901,8 +917,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             _lastLayer0Result != null &&
             _lastLayer0Result!.decision == Layer0Decision.hint &&
             mounted) {
-          final hintShown = await _tryShowOfflineHint(
-              _lastLayer0Result!, imageBytes);
+          final hintShown =
+              await _tryShowOfflineHint(_lastLayer0Result!, imageBytes);
           if (hintShown) return;
         }
         if (mounted) {

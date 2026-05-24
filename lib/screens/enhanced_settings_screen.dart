@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../services/ad_service.dart';
+import '../services/visual_feedback_service.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/routes.dart';
 import '../utils/developer_config.dart';
@@ -145,7 +146,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
     });
 
     // Provide haptic feedback
-    HapticFeedback.selectionClick();
+    VisualFeedbackService.instance.selectionClick();
 
     // Show feedback
     final t = AppLocalizations.of(context)!;

@@ -136,17 +136,16 @@ echo "Post-run release gate assertions"
 python3 - <<'PY'
 import json, sys
 
-offline = json.load(open('build/reports/ai_eval/offline_latest.json'))
+acceptance = json.load(open('build/reports/ai_flywheel/acceptance_report.json'))
 router = json.load(open('build/reports/ai_eval/router_compare_backend.json'))
 cal = json.load(open('build/reports/ai_eval/calibration_report.json'))
 
-must_not = int(offline.get('mustNotViolations', 0))
-safety = int(offline.get('safetyCriticalFailures', 0))
-if must_not > 40:
-    print(f'Release gate failed: mustNotViolations={must_not} > 40', file=sys.stderr)
-    sys.exit(1)
-if safety > 20:
-    print(f'Release gate failed: safetyCriticalFailures={safety} > 20', file=sys.stderr)
+provider_gate = acceptance.get('providerQualityGate', {}) or {}
+provider_rows = provider_gate.get('evaluatedProviders', {}) or {}
+backend_gate = provider_rows.get('backend', {}) or {}
+if backend_gate and backend_gate.get('passed') is not True:
+    print('Release gate failed: backend provider quality gate did not pass', file=sys.stderr)
+    print(f"failureReasons={backend_gate.get('failureReasons')}", file=sys.stderr)
     sys.exit(1)
 
 pair_disagree = cal.get('providerPairDisagreement', {}) or {}

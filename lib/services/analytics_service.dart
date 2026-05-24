@@ -685,6 +685,45 @@ class AnalyticsService extends ChangeNotifier {
     }
   }
 
+  /// Gets a durable family dashboard reporting summary.
+  Future<Map<String, dynamic>> getFamilyDashboardAnalyticsSummary({
+    String? familyId,
+    int windowDays = 28,
+  }) async {
+    try {
+      if (!_isFirestoreAvailable || _firestore == null) {
+        WasteAppLogger.info(
+            'Analytics: Firestore not available for family dashboard report query');
+        return {'error': 'Analytics service unavailable'};
+      }
+
+      final normalizedWindowDays = windowDays == 7 ? 7 : 28;
+      final scopePrefix = familyId == null
+          ? 'global'
+          : 'family__${Uri.encodeComponent(familyId)}';
+      final docId = '${scopePrefix}__rolling__${normalizedWindowDays}d';
+      final doc = await _firestore!
+          .collection(FirestoreCollections.familyDashboardReports)
+          .doc(docId)
+          .get();
+
+      if (!doc.exists || doc.data() == null) {
+        return {
+          'error': 'Family dashboard report unavailable',
+          'scope': familyId == null ? 'global' : 'family',
+          'windowDays': normalizedWindowDays,
+        };
+      }
+
+      return doc.data()!;
+    } catch (e) {
+      WasteAppLogger.severe(
+          'Analytics: Error getting family dashboard report: $e');
+      _isFirestoreAvailable = false;
+      return {'error': 'Failed to fetch family dashboard analytics'};
+    }
+  }
+
   // ================ ANALYTICS AGGREGATION ================
 
   /// Aggregate user analytics from events

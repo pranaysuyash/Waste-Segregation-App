@@ -919,16 +919,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
   /// Trigger haptic feedback
   void _triggerHapticFeedback() {
-    try {
-      final haptic = HapticSettingsService();
-      if (haptic.enabled &&
-          _classification.category != 'Requires Manual Review') {
-        HapticFeedback.lightImpact();
-      }
-    } catch (e) {
-      // Haptic feedback is non-critical
-      WasteAppLogger.warning('Haptic feedback failed', error: e);
-    }
+    if (_classification.category == 'Requires Manual Review') return;
+    VisualFeedbackService.instance.lightImpact();
   }
 
   void _handleDisposeCorrectly() {

@@ -39,7 +39,7 @@ class ClassificationRouterGuardrails {
     );
   }
 
-  static const Set<String> _alwaysEscalate = <String>{
+  static const Set<String> alwaysEscalateCategories = <String>{
     'Hazardous Waste',
     'Medical Waste',
     'Medical',
@@ -52,7 +52,7 @@ class ClassificationRouterGuardrails {
     'Pharmaceutical',
   };
 
-  static const Set<String> _manualReviewCategories = <String>{
+  static const Set<String> manualReviewCategories = <String>{
     'Unknown',
     'Requires Manual Review',
   };
@@ -62,12 +62,12 @@ class ClassificationRouterGuardrails {
       return const RouterGuardrailDecision(
           accepted: false, reason: 'local_failure');
     }
-    if (_manualReviewCategories.contains(local.category)) {
+    if (manualReviewCategories.contains(local.category)) {
       return const RouterGuardrailDecision(
           accepted: false, reason: 'manual_review_category');
     }
     if (enforceSafetyEscalation &&
-        _alwaysEscalate.contains(local.category) &&
+        alwaysEscalateCategories.contains(local.category) &&
         local.confidence < localSafetyThreshold) {
       return const RouterGuardrailDecision(
           accepted: false, reason: 'safety_threshold_guardrail');

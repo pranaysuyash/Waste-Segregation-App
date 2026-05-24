@@ -111,7 +111,7 @@ class _PolishedFABState extends State<PolishedFAB>
   }
 
   void _handleTap() {
-    HapticFeedback.mediumImpact();
+    VisualFeedbackService.instance.mediumImpact();
     widget.onPressed();
   }
 
@@ -252,7 +252,7 @@ class _PolishedActionButtonState extends State<PolishedActionButton>
   }
 
   void _handleTap() {
-    HapticFeedback.lightImpact();
+    VisualFeedbackService.instance.lightImpact();
     widget.onPressed();
   }
 
@@ -355,3 +355,4 @@ class _PolishedActionButtonState extends State<PolishedActionButton>
     );
   }
 }
+

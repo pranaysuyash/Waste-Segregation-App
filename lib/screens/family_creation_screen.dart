@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 // import '../models/enhanced_family.dart';
 import '../models/user_profile.dart';
+import '../services/analytics_service.dart';
 import '../services/firebase_family_service.dart';
 import '../services/storage_service.dart';
 import '../utils/constants.dart';
@@ -290,10 +293,17 @@ class _FamilyCreationScreenState extends State<FamilyCreationScreen> {
 
       if (mounted) {
         // Navigate to family dashboard
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const FamilyDashboardScreen(),
+        unawaited(
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FamilyDashboardScreen(
+                analyticsService: Provider.of<AnalyticsService>(
+                  context,
+                  listen: false,
+                ),
+              ),
+            ),
           ),
         );
 

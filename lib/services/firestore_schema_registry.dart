@@ -59,6 +59,7 @@ class FirestoreCollections {
 
   // --- Analytics ---
   static const String analyticsEvents = 'analytics_events';
+  static const String familyDashboardReports = 'family_dashboard_reports';
 
   // --- Admin collections ---
   static const String adminClassifications = 'admin_classifications';
@@ -105,6 +106,7 @@ class FirestoreCollections {
     trainingDatasetVersions,
     aiJobs,
     analyticsEvents,
+    familyDashboardReports,
     adminClassifications,
     adminUserRecovery,
     admin,

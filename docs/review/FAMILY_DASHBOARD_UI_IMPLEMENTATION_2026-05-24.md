@@ -26,3 +26,9 @@ The family dashboard should be treated as a first-class household coordination s
 - `TMPDIR=$PWD/.tmp flutter test test/screens/family_dashboard_screen_test.dart`
 
 Both passed.
+
+## Analytics contract addendum
+- `FamilyDashboardScreen` now accepts an optional `AnalyticsService` and emits durable snapshot events for loaded, no-family, and error states.
+- Snapshot payloads now include dashboard state plus the core counters that matter long-term: member count, total classifications, total points, current streak, current user role, and error type when relevant.
+- Widget tests cover the snapshot contract and a representative click interaction on a visible dashboard control so analytics regressions fail at the screen boundary instead of drifting silently.
+- The error-state widget test now triggers the top-level failure path via storage lookup failure, which is the actual branch that produces the error snapshot.

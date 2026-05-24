@@ -251,7 +251,7 @@ class _HintTestRouter extends Layer0Router {
       routeReason: 'stub_${decision.name}',
       classificationResult: LocalClassificationResult(
         category: 'Dry Waste',
-        subCategory: 'Plastic Bottle',
+        subcategory: 'Plastic Bottle',
         confidence: decision == Layer0Decision.accept ? 0.95 : 0.65,
         modelVersion: 'color_histogram_v1',
       ),

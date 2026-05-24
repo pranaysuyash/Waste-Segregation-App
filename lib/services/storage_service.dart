@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:csv/csv.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/waste_classification_adapter.dart';
 import '../models/filter_options.dart';
 import '../models/user_profile.dart';
 import '../models/classification_feedback.dart';
@@ -70,7 +71,7 @@ class StorageService {
 
     // Register TypeAdapters for better performance
     if (!Hive.isAdapterRegistered(0)) {
-      Hive.registerAdapter(WasteClassificationAdapter());
+      Hive.registerAdapter(MigratingWasteClassificationAdapter());
     }
     if (!Hive.isAdapterRegistered(1)) {
       Hive.registerAdapter(AlternativeClassificationAdapter());

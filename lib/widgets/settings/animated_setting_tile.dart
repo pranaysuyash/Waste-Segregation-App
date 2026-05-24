@@ -166,7 +166,7 @@ class _AnimatedSettingTileState extends State<AnimatedSettingTile>
     if (!widget.enabled) return;
 
     // Haptic feedback
-    HapticFeedback.selectionClick();
+    VisualFeedbackService.instance.selectionClick();
 
     if (widget.enableTapAnimation) {
       _tapController.forward().then((_) {
@@ -507,7 +507,7 @@ class _AnimatedSectionHeaderState extends State<AnimatedSectionHeader>
       _expandController.reverse();
     }
 
-    HapticFeedback.selectionClick();
+    VisualFeedbackService.instance.selectionClick();
   }
 
   @override
@@ -556,6 +556,10 @@ class _AnimatedSectionHeaderState extends State<AnimatedSectionHeader>
             children: widget.children,
           ),
         ),
+      ],
+    );
+  }
+}
       ],
     );
   }

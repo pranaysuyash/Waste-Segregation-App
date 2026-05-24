@@ -2,10 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:waste_segregation_app/ai_flywheel/router_metrics.dart';
+import 'package:waste_segregation_app/ai_flywheel/router_policy_recommendations.dart';
+import 'package:waste_segregation_app/services/ai_router_policy_config.dart';
 
 void main(List<String> args) {
   final input = _arg(args, '--input', fallback: 'build/reports/ai_eval/latest.json');
   final out = _arg(args, '--out', fallback: 'build/reports/ai_eval/router_compare.json');
+  final policyPackFile = _arg(args, '--policy-pack-file', fallback: '');
+  final policy = _loadPolicy(policyPackFile);
 
   final file = File(input);
   if (!file.existsSync()) {
@@ -135,18 +139,9 @@ void main(List<String> args) {
   outFile.parent.createSync(recursive: true);
   outFile.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(report));
 
-  final rec = StringBuffer();
-  rec.writeln('# Router Strategy Recommendations');
-  rec.writeln();
-  rec.writeln('- Use `local` route only when confidence >= 0.85 and case is not safety-critical.');
-  rec.writeln('- Always escalate batteries/medical/e-waste to backend until local safety-critical fail rate is < 1%.');
-  rec.writeln('- Escalate to backend when local confidence < 0.70.');
-  rec.writeln('- If providers disagree on safety category, ask user clarification and enqueue review candidate.');
-  rec.writeln('- Avoid cache reuse when local-rule version changes.');
-  rec.writeln('- Route to human review when provider pair disagreement persists for > 5% of overlapping cases.');
   final recFile = File('build/reports/ai_eval/router_strategy_recommendations.md');
   recFile.parent.createSync(recursive: true);
-  recFile.writeAsStringSync(rec.toString());
+  recFile.writeAsStringSync(buildRouterStrategyRecommendations(policy));
 
   final calibrationFile = File('build/reports/ai_eval/calibration_report.json');
   calibrationFile.parent.createSync(recursive: true);
@@ -168,6 +163,19 @@ String _arg(List<String> args, String name, {required String fallback}) {
   for (var i = 0; i < args.length; i += 1) {
     if (args[i] == name && i + 1 < args.length) return args[i + 1].trim();
     if (args[i].startsWith('$name=')) return args[i].split('=').last.trim();
+  }
+
+  AiRouterPolicyConfig _loadPolicy(String policyPackFile) {
+    if (policyPackFile.trim().isEmpty) {
+      return AiRouterPolicyConfig.defaults;
+    }
+    final file = File(policyPackFile.trim());
+    if (!file.existsSync()) {
+      stderr.writeln(
+          'Policy pack file not found ($policyPackFile). Falling back to defaults.');
+      return AiRouterPolicyConfig.defaults;
+    }
+    return AiRouterPolicyConfig.fromJsonString(file.readAsStringSync());
   }
   return fallback;
 }

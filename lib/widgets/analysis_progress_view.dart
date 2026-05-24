@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/classification_state.dart';
+import '../services/visual_feedback_service.dart';
 import '../utils/constants.dart';
 import '../utils/animation_system.dart';
 
@@ -84,25 +85,25 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
         case ClassificationState.cacheChecking:
         case ClassificationState.cloudClassifying:
         case ClassificationState.localClassifying:
-          HapticFeedback.selectionClick();
+          VisualFeedbackService.instance.selectionClick();
           break;
         case ClassificationState.queuedOffline:
-          HapticFeedback.lightImpact();
+          VisualFeedbackService.instance.lightImpact();
           break;
         case ClassificationState.policyApplied:
         case ClassificationState.classificationSucceeded:
         case ClassificationState.saved:
         case ClassificationState.synced:
-          HapticFeedback.mediumImpact();
+          VisualFeedbackService.instance.mediumImpact();
           break;
         case ClassificationState.awaitingUserConfirmation:
-          HapticFeedback.selectionClick();
+          VisualFeedbackService.instance.selectionClick();
           break;
         case ClassificationState.failedRetryable:
-          HapticFeedback.heavyImpact();
+          VisualFeedbackService.instance.heavyImpact();
           break;
         case ClassificationState.failedPermanent:
-          HapticFeedback.heavyImpact();
+          VisualFeedbackService.instance.heavyImpact();
           break;
         case ClassificationState.idle:
         case ClassificationState.imageSelected:
@@ -115,11 +116,11 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
     } catch (_) {}
   }
 
-  Duration get _microAnimationDuration =>
-      AnimationSystem.accessibleDuration(context, const Duration(milliseconds: 240));
+  Duration get _microAnimationDuration => AnimationSystem.accessibleDuration(
+      context, const Duration(milliseconds: 240));
 
-  Duration get _macroAnimationDuration =>
-      AnimationSystem.accessibleDuration(context, const Duration(milliseconds: 420));
+  Duration get _macroAnimationDuration => AnimationSystem.accessibleDuration(
+      context, const Duration(milliseconds: 420));
 
   double get _stageProgress {
     switch (widget.state) {
@@ -394,8 +395,8 @@ class _AnalysisProgressViewState extends State<AnalysisProgressView> {
                             .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: theme.colorScheme.error
-                              .withValues(alpha: 0.45),
+                          color:
+                              theme.colorScheme.error.withValues(alpha: 0.45),
                         ),
                       ),
                       child: Text(

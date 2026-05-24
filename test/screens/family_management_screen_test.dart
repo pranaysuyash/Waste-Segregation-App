@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_redundant_argument_values
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -42,10 +43,10 @@ class MockFirebaseFamilyService extends Mock implements FirebaseFamilyService {
 
 class MockStorageService extends Mock implements StorageService {
   @override
-  Future<UserProfile?> getCurrentUserProfile() => super.noSuchMethod(
+  Future<UserProfile?> getCurrentUserProfile() =>
+      super.noSuchMethod(
         Invocation.method(#getCurrentUserProfile, const []),
         returnValue: Future<UserProfile?>.value(null),
-        returnValueForMissingStub: Future<UserProfile?>.value(null),
       ) as Future<UserProfile?>;
 }
 

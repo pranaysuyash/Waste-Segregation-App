@@ -61,7 +61,6 @@ import 'screens/waste_dashboard_screen.dart';
 import 'screens/smart_suggestions_screen.dart';
 import 'screens/token_wallet_screen.dart';
 import 'screens/model_routing_screen.dart';
-import 'widgets/navigation_wrapper.dart';
 import 'utils/constants.dart';
 import 'utils/routes.dart';
 import 'utils/error_handler.dart';
@@ -126,6 +125,8 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
   bool _initialized = false;
   String? _error;
   UserConsentService? _userConsentService;
+  bool? _lastReportedInitialized;
+  bool _reportedErrorState = false;
 
   // Service instances
   late StorageService _storageService;
@@ -326,10 +327,23 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
 
       WasteAppLogger.debug('BOOT: All services instantiated');
 
+      WasteAppLogger.info(
+        'BOOT: About to mark bootstrap initialized',
+        context: {
+          'mounted': mounted,
+          'initialized_before': _initialized,
+        },
+      );
+
       if (mounted) {
         setState(() {
           _initialized = true;
         });
+
+        WasteAppLogger.info(
+          'BOOT: Bootstrap initialized flag set',
+          context: {'initialized_after': _initialized},
+        );
       }
 
       // Initialize dynamic links once the MaterialApp is mounted.
@@ -421,7 +435,25 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
 
   @override
   Widget build(BuildContext context) {
+    if (_lastReportedInitialized != _initialized) {
+      _lastReportedInitialized = _initialized;
+      WasteAppLogger.info(
+        'BOOT_UI: bootstrap build state changed',
+        context: {
+          'initialized': _initialized,
+          'has_error': _error != null,
+        },
+      );
+    }
+
     if (_error != null) {
+      if (!_reportedErrorState) {
+        _reportedErrorState = true;
+        WasteAppLogger.severe(
+          'BOOT_UI: rendering initialization error screen',
+          context: {'error': _error},
+        );
+      }
       return MaterialApp(
         home: Scaffold(
           body: Center(
@@ -609,11 +641,16 @@ class WasteSegregationApp extends StatefulWidget {
 class _WasteSegregationAppState extends State<WasteSegregationApp> {
   @override
   Widget build(BuildContext context) {
+    WasteAppLogger.info(
+      'APP_UI: WasteSegregationApp build entered',
+      context: {'widget_hash': widget.hashCode},
+    );
+
     return riverpod.ProviderScope(
       overrides: [
         storageServiceProvider.overrideWithValue(widget.storageService),
         cloudStorageServiceProvider
-          .overrideWith((ref) => CloudStorageService(widget.storageService)),
+            .overrideWith((ref) => CloudStorageService(widget.storageService)),
       ],
       child: MultiProvider(
         providers: [
@@ -621,23 +658,23 @@ class _WasteSegregationAppState extends State<WasteSegregationApp> {
           Provider<StorageService>.value(value: widget.storageService),
           Provider<AiService>.value(value: widget.aiService),
           ChangeNotifierProvider<AnalyticsService>.value(
-            value: widget.analyticsService),
+              value: widget.analyticsService),
           ChangeNotifierProvider<EducationalContentAnalyticsService>.value(
-            value: widget.educationalContentAnalyticsService),
+              value: widget.educationalContentAnalyticsService),
           Provider<GoogleDriveService>.value(value: widget.googleDriveService),
           Provider<EducationalContentService>.value(
-            value: widget.educationalContentService),
+              value: widget.educationalContentService),
           ChangeNotifierProvider<GamificationService>.value(
-            value: widget.gamificationService),
+              value: widget.gamificationService),
           ChangeNotifierProvider<PremiumService>.value(
-            value: widget.premiumService),
+              value: widget.premiumService),
           ChangeNotifierProvider<PurchaseService>.value(
-            value: widget.purchaseService),
+              value: widget.purchaseService),
           ChangeNotifierProvider<AdService>.value(value: widget.adService),
           ChangeNotifierProvider<NavigationSettingsService>.value(
-            value: widget.navigationSettingsService),
+              value: widget.navigationSettingsService),
           ChangeNotifierProvider<HapticSettingsService>.value(
-            value: widget.hapticSettingsService),
+              value: widget.hapticSettingsService),
           Provider<CommunityService>.value(value: widget.communityService),
           Provider<UserConsentService>.value(value: widget.userConsentService),
           Provider(
@@ -773,7 +810,6 @@ class _WasteSegregationAppState extends State<WasteSegregationApp> {
                     return mediaWrapped;
                   },
                   routes: {
-                    Routes.home: (context) => const MainNavigationWrapper(),
                     Routes.settings: (context) =>
                         const EnhancedSettingsScreen(),
                     Routes.auth: (context) => const AuthScreen(),
@@ -837,6 +873,10 @@ class _WasteSegregationAppState extends State<WasteSegregationApp> {
     var hasConsent = false;
     try {
       hasConsent = widget.userConsentService.hasAllRequiredConsents;
+      WasteAppLogger.info(
+        'APP_UI: Initial home consent evaluated',
+        context: {'has_consent': hasConsent},
+      );
     } catch (e, s) {
       WasteAppLogger.warning(
         'Initial consent read failed; defaulting to consent dialog.',
@@ -846,15 +886,25 @@ class _WasteSegregationAppState extends State<WasteSegregationApp> {
     }
 
     if (!hasConsent) {
+      WasteAppLogger.info('APP_UI: Rendering ConsentDialogScreen');
       return ConsentDialogScreen(
-        onConsent: () => Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AuthScreen()),
-        ),
+        onConsent: () {
+          final nav = navigatorKey.currentState;
+          if (nav == null) {
+            WasteAppLogger.warning(
+              'Consent accepted but navigator was unavailable; staying on consent screen.',
+            );
+            return;
+          }
+          nav.pushReplacement(
+            MaterialPageRoute(builder: (context) => const AuthScreen()),
+          );
+        },
         onDecline: () => SystemNavigator.pop(),
       );
     }
 
+    WasteAppLogger.info('APP_UI: Rendering AuthScreen');
     return const AuthScreen();
   }
 }

@@ -174,11 +174,11 @@ class AnimationSystem {
   }
 
   /// Whether animations should play, respecting system accessibility preferences.
-  /// Checks both [MediaQuery.disableAnimations] and [MediaQuery.accessibleNavigationOf].
+  /// Checks both [MediaQuery.disableAnimations] and [MediaQueryData.accessibleNavigation].
   static bool shouldAnimate(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     if (mediaQuery.disableAnimations) return false;
-    if (mediaQuery.accessibleNavigationOf) return false;
+    if (mediaQuery.accessibleNavigation) return false;
     return true;
   }
 

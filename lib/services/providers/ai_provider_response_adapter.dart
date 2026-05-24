@@ -1,7 +1,7 @@
 import 'ai_provider_response.dart';
 
 /// Converts [AiProviderResponse] from any provider into the map shape
-/// expected by `_processAiResponseData` (the OpenAI choices format).
+/// expected by `AiResponseParser.processResponse` (the OpenAI choices format).
 ///
 /// Each provider returns a different wire format:
 ///   - OpenAI:  `{ choices: [{ message: { content: "<json>" } }] }`  (rawResponseMap)

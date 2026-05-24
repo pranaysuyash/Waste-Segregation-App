@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:waste_segregation_app/ai_flywheel/provider_quality_gate.dart';
+
 class Criterion {
   const Criterion(this.id, this.text, this.check);
 
@@ -30,7 +32,14 @@ int _jsonlLineCount(String path) {
 void main(List<String> args) {
   final out = _arg(args, '--out', fallback: 'build/reports/ai_flywheel/acceptance_report.json');
 
-  final evalJson = _readJsonFile('build/reports/ai_eval/latest.json');
+  final offlineEvalJson = _readJsonFile('build/reports/ai_eval/offline_latest.json')
+      ?? _readJsonFile('build/reports/ai_eval/latest.json');
+  final providerEvalFiles = <String, String>{
+    'backend': 'build/reports/ai_eval/recorded_backend_latest.json',
+    'openai': 'build/reports/ai_eval/recorded_openai_latest.json',
+    'gemini': 'build/reports/ai_eval/recorded_gemini_latest.json',
+    'local': 'build/reports/ai_eval/recorded_local_latest.json',
+  };
   final datasetVersionJson = _readJsonFile('build/reports/ai_dataset/latest/version.json');
   final routerJson = _readJsonFile('build/reports/ai_eval/router_compare.json')
       ?? _readJsonFile('build/reports/ai_eval/router_compare_backend.json');
@@ -40,7 +49,7 @@ void main(List<String> args) {
     Criterion(1, 'Golden eval schema exists', () => _exists('test/fixtures/ai_eval/schema.md')),
     Criterion(2, '>=100 seed eval cases exist and semantic coverage report passes',
         () => _jsonlLineCount('test/fixtures/ai_eval/golden_cases.jsonl') >= 100 && seedCoverageJson != null && seedCoverageJson['allRulesPassed'] == true),
-    Criterion(3, 'Offline eval report exists', () => evalJson != null),
+    Criterion(3, 'Offline scorer-smoke eval report exists', () => offlineEvalJson != null),
     Criterion(4, 'Safety + must-not + local-rule + multi-item scoring exists',
         () => _exists('lib/ai_flywheel/eval_scoring.dart')),
     Criterion(5, 'Consent-aware training candidate schema exists',
@@ -71,16 +80,49 @@ void main(List<String> args) {
   }
 
   final passed = rows.where((r) => r['pass'] == true).length;
+  final providerThresholds = _thresholdsFromArgs(args);
+  final providerGate = ProviderQualityGate(providerThresholds);
+  final providerResults = <String, ProviderQualityGateResult>{};
+  for (final entry in providerEvalFiles.entries) {
+    final summary = _readJsonFile(entry.value);
+    if (summary == null) {
+      continue;
+    }
+    providerResults[entry.key] =
+        providerGate.evaluateSummary(summary, defaultProviderLabel: entry.key);
+  }
+
+  final providerRows = providerResults.map(
+    (provider, result) => MapEntry(provider, result.toJson()),
+  );
+  final providerQualityAllPassed =
+      providerResults.isNotEmpty && providerResults.values.every((r) => r.passed);
+
   final report = <String, dynamic>{
     'generatedAt': DateTime.now().toIso8601String(),
+    'harness': <String, dynamic>{
+      'passed': passed,
+      'total': rows.length,
+      'allPassed': passed == rows.length,
+    },
+    'providerQualityGate': <String, dynamic>{
+      'description':
+          'Provider quality gate is separate from harness checks and determines release-readiness.',
+      'thresholds': providerThresholds.toJson(),
+      'evaluatedProviders': providerRows,
+      'allPassed': providerQualityAllPassed,
+      'releaseReady': providerQualityAllPassed,
+      'missingProviders':
+          providerEvalFiles.keys.where((k) => !providerRows.containsKey(k)).toList(),
+    },
     'passed': passed,
     'total': rows.length,
     'allPassed': passed == rows.length,
     'criteria': rows,
     'notes': <String>[
-      'Criteria that depend on runtime artifacts remain false until verification commands are executed.',
-      'This report checks evidence artifacts and semantic seed coverage status.',
-      'Human review of final evidence summary is still required for product sign-off.',
+      'Harness pass (`allPassed`) confirms scaffold and artifact integrity, not provider quality.',
+      'Provider quality gate (`providerQualityGate.releaseReady`) is the model safety/readiness signal.',
+      'Offline scorer-smoke can include synthetic failures and is not a product-quality result by itself.',
     ],
   };
 
@@ -96,6 +138,29 @@ String _arg(List<String> args, String name, {required String fallback}) {
   for (var i = 0; i < args.length; i += 1) {
     if (args[i] == name && i + 1 < args.length) return args[i + 1].trim();
     if (args[i].startsWith('$name=')) return args[i].split('=').last.trim();
+  }
+
+  ProviderQualityGateThresholds _thresholdsFromArgs(List<String> args) {
+    final minAccuracy = _argDouble(args, '--quality-min-accuracy', fallback: 0.95);
+    final maxMustNot = _argInt(args, '--quality-max-must-not', fallback: 0);
+    final maxSafety = _argInt(args, '--quality-max-safety', fallback: 0);
+    final maxLocalRule = _argInt(args, '--quality-max-local-rule', fallback: 0);
+    return ProviderQualityGateThresholds(
+      minAccuracy: minAccuracy,
+      maxMustNotViolations: maxMustNot,
+      maxSafetyCriticalFailures: maxSafety,
+      maxLocalRuleFailures: maxLocalRule,
+    );
+  }
+
+  double _argDouble(List<String> args, String name, {required double fallback}) {
+    final raw = _arg(args, name, fallback: '$fallback');
+    return double.tryParse(raw) ?? fallback;
+  }
+
+  int _argInt(List<String> args, String name, {required int fallback}) {
+    final raw = _arg(args, name, fallback: '$fallback');
+    return int.tryParse(raw) ?? fallback;
   }
   return fallback;
 }

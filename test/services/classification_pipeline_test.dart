@@ -60,7 +60,7 @@ void main() {
         isModelLoaded: true,
         stubbedResult: LocalClassificationResult(
           category: 'Wet Waste',
-          subCategory: 'Food Scraps',
+          subcategory: 'Food Scraps',
           confidence: 0.92,
           modelVersion: 'test-model-v1',
           processingTimeMs: 50,
@@ -373,7 +373,7 @@ void main() {
         () async {
       final localResult = LocalClassificationResult(
         category: 'Dry Waste',
-        subCategory: 'Plastic Bottle',
+        subcategory: 'Plastic Bottle',
         confidence: 0.92,
         modelVersion: 'mobilenet_v3_v1',
         processingTimeMs: 42,

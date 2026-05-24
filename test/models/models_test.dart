@@ -28,7 +28,7 @@ void main() {
         alternatives: [
           AlternativeClassification(
             category: 'Non-Waste',
-            subCategory: 'Reusable',
+            subcategory: 'Reusable',
             confidence: 0.3,
             reason: 'Could be reused as storage container',
           ),

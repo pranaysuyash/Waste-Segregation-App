@@ -96,8 +96,16 @@ class AppTheme {
   /// Updated to a more vibrant eco-green for modern Material 3 theming
   static const Color seedColor = Color(0xFF2ECC71);
 
-  /// Base text theme using Roboto for consistent typography.
-  static TextTheme _roboto(TextTheme base) => GoogleFonts.robotoTextTheme(base);
+  /// Primary text theme using Poppins (friendly, modern). SF Pro Rounded /
+  /// Google Sans are not available as open fonts; Poppins serves as the open
+  /// equivalent with a playful-yet-professional character.
+  static TextTheme _primaryTextTheme(TextTheme base) =>
+      GoogleFonts.poppinsTextTheme(base);
+
+  /// Monospace text theme for data, stats, and technical information.
+  /// Apply to widgets that display numbers, codes, or structured data.
+  static TextTheme monoTextTheme(TextTheme base) =>
+      GoogleFonts.jetBrainsMonoTextTheme(base);
 
   /// Build a [ThemeData] from the given [ColorScheme].
   static ThemeData fromScheme(ColorScheme scheme) {
@@ -147,11 +155,14 @@ class AppTheme {
         indicatorColor: Colors.white,
         indicatorSize: TabBarIndicatorSize.tab,
       ),
-      textTheme: _roboto(
+      textTheme: _primaryTextTheme(
         scheme.brightness == Brightness.dark
             ? ThemeData.dark().textTheme
             : ThemeData.light().textTheme,
       ),
+      // Monospace text theme for data/stats widgets.
+      // Usage: Theme.of(context).textTheme.apply(fontFamily: 'JetBrains Mono')
+      // or use AppTheme.monoTextTheme(Theme.of(context).textTheme)
     );
   }
 

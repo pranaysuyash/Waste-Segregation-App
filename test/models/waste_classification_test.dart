@@ -99,6 +99,29 @@ void main() {
       expect(updated.id, original.id); // Should remain unchanged
     });
 
+    test('fromJson migrates legacy subcategory/materialType fields', () {
+      final json = {
+        'itemName': 'Legacy Item',
+        'category': 'Dry Waste',
+        'explanation': 'Test',
+        'disposalInstructions': {
+          'primaryMethod': 'Recycle',
+          'steps': ['Step 1'],
+          'hasUrgentTimeframe': false,
+        },
+        'region': 'Bangalore',
+        'visualFeatures': ['bottle'],
+        'alternatives': [],
+        'subcategory': 'Plastic Bottle',
+        'materialType': 'PET',
+      };
+
+      final classification = WasteClassification.fromJson(json);
+
+      expect(classification.subCategory, 'Plastic Bottle');
+      expect(classification.materials, ['PET']);
+    });
+
     test('should persist analysis source metadata through JSON', () {
       final original = WasteClassification(
         itemName: 'Source Item',
@@ -129,7 +152,7 @@ void main() {
     test('should create AlternativeClassification correctly', () {
       final alternative = AlternativeClassification(
         category: 'Wet Waste',
-        subCategory: 'Food Waste',
+        subcategory: 'Food Waste',
         confidence: 0.7,
         reason: 'Could be organic material',
       );

@@ -8,6 +8,7 @@ import 'package:waste_segregation_app/models/shared_waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/screens/family_dashboard_screen.dart';
+import 'package:waste_segregation_app/services/analytics_service.dart';
 import 'package:waste_segregation_app/services/firebase_family_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 
@@ -18,6 +19,94 @@ class FakeStorageService extends StorageService {
 
   @override
   Future<UserProfile?> getCurrentUserProfile() async => profile;
+}
+
+class AnalyticsCall {
+  AnalyticsCall({
+    required this.method,
+    required this.name,
+    required this.parameters,
+  });
+
+  final String method;
+  final String name;
+  final Map<String, dynamic> parameters;
+}
+
+class FakeAnalyticsService extends AnalyticsService {
+  FakeAnalyticsService() : super(FakeStorageService(null), enableFirestore: false);
+
+  final List<AnalyticsCall> calls = [];
+
+  void _record(String method, String name, Map<String, dynamic> parameters) {
+    calls.add(
+      AnalyticsCall(
+        method: method,
+        name: name,
+        parameters: Map<String, dynamic>.from(parameters),
+      ),
+    );
+  }
+
+  @override
+  Future<void> trackEvent({
+    required String eventType,
+    required String eventName,
+    Map<String, dynamic> parameters = const {},
+  }) async {
+    _record('trackEvent', eventName, {
+      'event_type': eventType,
+      ...parameters,
+    });
+  }
+
+  @override
+  Future<void> trackUserAction(
+    String actionName, {
+    Map<String, dynamic>? parameters,
+  }) async {
+    _record('trackUserAction', actionName, parameters ?? const {});
+  }
+
+  @override
+  Future<void> trackClick({
+    required String elementId,
+    required String screenName,
+    required String elementType,
+    String? userIntent,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    _record('trackClick', elementId, {
+      'screen_name': screenName,
+      'element_type': elementType,
+      if (userIntent != null) 'user_intent': userIntent,
+      ...?additionalData,
+    });
+  }
+
+  @override
+  Future<void> trackPageView(
+    String screenName, {
+    String? previousScreen,
+    String? navigationMethod,
+    int? timeOnPreviousScreen,
+  }) async {
+    _record('trackPageView', screenName, {
+      if (previousScreen != null) 'previous_screen': previousScreen,
+      if (navigationMethod != null) 'navigation_method': navigationMethod,
+      if (timeOnPreviousScreen != null)
+        'time_on_previous_screen_ms': timeOnPreviousScreen,
+    });
+  }
+}
+
+class _ThrowingStorageService extends FakeStorageService {
+  _ThrowingStorageService() : super(null);
+
+  @override
+  Future<UserProfile?> getCurrentUserProfile() async {
+    throw Exception('storage lookup failed');
+  }
 }
 
 class FakeFamilyService extends FirebaseFamilyService {
@@ -223,12 +312,14 @@ void main() {
         invitations: const [],
         activity: const [],
       );
+      final analytics = FakeAnalyticsService();
 
       await tester.pumpWidget(
         _wrapDashboard(
           FamilyDashboardScreen(
             storageService: storage,
             familyService: familyService,
+            analyticsService: analytics,
           ),
           width: 360,
           height: 900,
@@ -250,6 +341,16 @@ void main() {
       );
       expect(find.text('Family Dashboard'), findsOneWidget);
       expect(tester.takeException(), isNull);
+
+      final snapshot = analytics.calls.firstWhere(
+        (call) =>
+            call.method == 'trackUserAction' &&
+            call.name == 'family_dashboard_snapshot',
+      );
+      expect(snapshot.parameters['dashboard_state'], 'no_family');
+      expect(snapshot.parameters['has_family'], isFalse);
+      expect(snapshot.parameters['analytics_contract_version'], 1);
+      expect(snapshot.parameters['family_id'], isNull);
     });
 
     testWidgets('renders the household dashboard sections for a family', (
@@ -272,12 +373,14 @@ void main() {
         invitations: _invitationsFixture(),
         activity: _activityFixture(),
       );
+      final analytics = FakeAnalyticsService();
 
       await tester.pumpWidget(
         _wrapDashboard(
           FamilyDashboardScreen(
             storageService: storage,
             familyService: familyService,
+            analyticsService: analytics,
           ),
           width: 800,
           height: 1200,
@@ -309,6 +412,32 @@ void main() {
       expect(find.text('18'), findsWidgets);
       expect(find.text('120'), findsWidgets);
       expect(find.text('6 days'), findsWidgets);
+
+      final snapshot = analytics.calls.firstWhere(
+        (call) =>
+            call.method == 'trackUserAction' &&
+            call.name == 'family_dashboard_snapshot',
+      );
+      expect(snapshot.parameters['dashboard_state'], 'loaded');
+      expect(snapshot.parameters['has_family'], isTrue);
+      expect(snapshot.parameters['analytics_contract_version'], 1);
+      expect(snapshot.parameters['family_id'], family.id);
+      expect(snapshot.parameters['family_member_count'], 2);
+      expect(snapshot.parameters['family_total_classifications'], 18);
+      expect(snapshot.parameters['family_total_points'], 120);
+      expect(snapshot.parameters['family_current_streak'], 6);
+
+      await tester.tap(find.byKey(const Key('family-dashboard-invite-button')));
+      await tester.pumpAndSettle();
+
+      expect(
+        analytics.calls.where(
+          (call) =>
+              call.method == 'trackClick' &&
+              call.name == 'family_dashboard_invite_button',
+        ),
+        isNotEmpty,
+      );
       expect(tester.takeException(), isNull);
     });
 
@@ -332,12 +461,14 @@ void main() {
         invitations: _invitationsFixture(),
         activity: _activityFixture(),
       );
+      final analytics = FakeAnalyticsService();
 
       await tester.pumpWidget(
         _wrapDashboard(
           FamilyDashboardScreen(
             storageService: storage,
             familyService: familyService,
+            analyticsService: analytics,
           ),
           width: 320,
           height: 900,
@@ -372,22 +503,22 @@ void main() {
     testWidgets('shows retryable error state when loading fails', (
       tester,
     ) async {
-      final storage = FakeStorageService(
-        UserProfile(
-          id: 'user_1',
-          email: 'alex@example.com',
-          displayName: 'Alex',
-          familyId: 'family_1',
-          role: UserRole.admin,
-        ),
+      final storage = _ThrowingStorageService();
+      final familyService = FakeFamilyService(
+        family: null,
+        stats: null,
+        members: const [],
+        invitations: const [],
+        activity: const [],
       );
-      final familyService = _ThrowingFamilyService();
+      final analytics = FakeAnalyticsService();
 
       await tester.pumpWidget(
         _wrapDashboard(
           FamilyDashboardScreen(
             storageService: storage,
             familyService: familyService,
+            analyticsService: analytics,
           ),
           width: 360,
           height: 900,
@@ -395,35 +526,20 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(
-        find.byKey(const Key('family-dashboard-error-state')),
+      expect(find.byKey(const Key('family-dashboard-error-state')),
         findsOneWidget,
       );
       expect(find.text('Retry'), findsOneWidget);
+      final snapshot = analytics.calls.firstWhere(
+        (call) =>
+            call.method == 'trackUserAction' &&
+            call.name == 'family_dashboard_snapshot',
+      );
+      expect(snapshot.parameters['dashboard_state'], 'error');
+      expect(snapshot.parameters['analytics_contract_version'], 1);
+      expect(snapshot.parameters['family_id'], isNull);
+      expect(snapshot.parameters['error_type'], contains('Exception'));
       expect(tester.takeException(), isNull);
     });
   });
-}
-
-class _ThrowingFamilyService extends FakeFamilyService {
-  _ThrowingFamilyService()
-      : super(
-          family: null,
-          stats: null,
-          members: const [],
-          invitations: const [],
-          activity: const [],
-        );
-
-  @override
-  Future<family_models.Family?> getFamily(String familyId) async {
-    throw Exception('family lookup failed');
-  }
-
-  @override
-  Stream<family_models.Family?> getFamilyStream(String familyId) {
-    return Stream<family_models.Family?>.error(
-      Exception('family lookup failed'),
-    );
-  }
 }

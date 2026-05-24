@@ -156,6 +156,7 @@
 - `test/models/waste_classification_test.dart` - Fixed constructor usage
 - `test/models/gamification_test.dart` - Fixed enum expectations
 - `test/services/analytics_service_test.dart` - Partial Firebase fixes
+- `test/screens/family_dashboard_screen_test.dart` - Added analytics snapshot/click coverage for the family dashboard
 
 ### Key Fixes
 1. **UserProfile Constructor**: Updated to match actual model structure

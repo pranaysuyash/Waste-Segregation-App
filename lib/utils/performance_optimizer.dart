@@ -89,7 +89,7 @@ class PerformanceOptimizer {
       child: InkWell(
         onTap: () {
           // Add haptic feedback for premium feel
-          HapticFeedback.lightImpact();
+          VisualFeedbackService.instance.lightImpact();
           fastStateUpdate(onPressed);
         },
         borderRadius: borderRadius ?? BorderRadius.circular(8),
@@ -130,6 +130,12 @@ class PerformanceOptimizer {
       SchedulerBinding.instance.addPostFrameCallback((_) {
         if (state.mounted) {
           callback();
+        }
+      });
+    }
+  }
+}
+();
         }
       });
     }

@@ -212,18 +212,19 @@ These exploration practices apply regardless of phase. Treat them as guardrails.
 | G1 | — | Deterministic Pre-processing (Layer 0) | ✅ Built — `layer0_router.dart` + `classification_pipeline.dart` |
 | G6 | — | Offline Degradation UX | ✅ Built — offline tiers, hint flow, `OfflineResultBanner`, result screen integration, `tryLocalWithHint()` pipeline wiring |
 
-### Test Coverage (2026-05-23)
+### Test Coverage (2026-05-24)
 
 | Test file | Tests | What it covers |
 |-----------|-------|----------------|
 | `test/services/classification_router_test.dart` | 8 | Routing strategies, initial layer, barcode, safety overrides |
-| `test/services/confidence_calibration_service_test.dart` | 9 | Calibration bins, decisions, overrides, data tracking |
+| `test/services/confidence_calibration_service_test.dart` | 9 | Calibration bins, decisions, overrides, data tracking, drift |
 | `test/services/moderation_service_test.dart` | 6 | Report enums, Firestore serialization, auto-hide threshold |
 | `test/services/face_detection_service_test.dart` | 3 | Face detection stub, blur pass-through, result data |
 | `test/models/waste_classification_cloud_json_test.dart` | 7 | Path stripping, URL preservation, batch points |
 | `test/utils/image_utils_exif_test.dart` | 5 | EXIF stripping, JPEG/PNG handling, fail-open |
-| **Total** | **38** | |
+| `test/services/remote_config_routing_strategy_test.dart` | 4 | Routing strategy defaults, validation, fallback |
+| **Total** | **42** | |
 
-Full suite: 2315 pass, 12 skip, 1 pre-existing failure (premium_feature_card_test).
+Full suite: 2339 pass, 12 skip, 12 pre-existing failures (7 golden rendering, 2 theme gate, 3 misc).
 
 Update this snapshot whenever a topic's status changes in [EXPLORATION_TOPICS.md](EXPLORATION_TOPICS.md).

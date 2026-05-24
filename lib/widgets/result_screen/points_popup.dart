@@ -5,7 +5,7 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../../../services/visual_feedback_service.dart';
 
 /// Animated popup showing points earned
 class PointsEarnedPopup extends StatefulWidget {
@@ -137,7 +137,7 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
   void _collectNow() {
     if (_isCollected) return;
     setState(() => _isCollected = true);
-    HapticFeedback.mediumImpact();
+    VisualFeedbackService.instance.mediumImpact();
     _coinController.animateTo(1.0, duration: const Duration(milliseconds: 240));
     Future.delayed(const Duration(milliseconds: 260), () {
       if (mounted) {
@@ -485,6 +485,6 @@ extension PointsPopupExtension on BuildContext {
     overlay.insert(entry);
 
     // Trigger haptic feedback
-    HapticFeedback.lightImpact();
+    VisualFeedbackService.instance.lightImpact();
   }
 }

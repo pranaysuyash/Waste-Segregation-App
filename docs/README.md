@@ -67,6 +67,7 @@ When updating documentation:
 
 ## 🔄 **Recent Updates**
 
+- **May 24, 2026**: Added family dashboard analytics reporting spec and durable snapshot aggregation notes
 - **May 20, 2026**: Refreshed canonical documentation copy metadata and cross-index pointers
 - **June 16, 2025**: Added comprehensive Future Enhancements TODO
 - **June 16, 2025**: Completed Thumbnail Hardening Patches documentation

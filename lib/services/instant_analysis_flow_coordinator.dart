@@ -29,12 +29,12 @@ class InstantAnalysisFlowCoordinator {
   }) async {
     if (isCancelled() || !isMounted()) return;
 
-    setStage(ClassificationState.policyApplied);
-    await delay(localRulesDelay);
-    if (isCancelled() || !isMounted()) return;
-
     setStage(ClassificationState.classificationSucceeded);
     await delay(successDelay);
+    if (isCancelled() || !isMounted()) return;
+
+    setStage(ClassificationState.policyApplied);
+    await delay(localRulesDelay);
     if (isCancelled() || !isMounted()) return;
 
     await navigateToResult(classification);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../services/visual_feedback_service.dart';
 import '../../utils/constants.dart';
 
 /// A modern Android-style bottom navigation bar with smooth animations,
@@ -100,7 +101,7 @@ class _ModernBottomNavigationState extends State<ModernBottomNavigation>
 
   void _handleTap(int index) {
     if (widget.enableHapticFeedback) {
-      HapticFeedback.lightImpact();
+      VisualFeedbackService.instance.lightImpact();
     }
 
     _rippleController.forward().then((_) {
