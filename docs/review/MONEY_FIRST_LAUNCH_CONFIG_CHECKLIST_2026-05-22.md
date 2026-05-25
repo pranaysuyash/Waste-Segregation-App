@@ -74,13 +74,13 @@ For batch refund records:
 - metadata.refundReason = openai_submission_failed
 - metadata.originalLedgerId present
 
-## 6) Explicit blocker before full Flutter suite sign-off
+## 6) Full Flutter-suite blocker status
 
-Current repo has pre-existing compile breakage in lib/services/ai_service.dart affecting:
+Previous blocker status has been revalidated and is now closed in current repo state.
 
-- flutter test test/services/enhanced_ai_api_service_safety_test.dart
+- flutter test test/services/enhanced_ai_api_service_safety_test.dart -> PASS
 
-This must be stabilized in a separate focused task before declaring full app-level verification complete.
+As of latest verification, this checklist no longer has an open compile blocker for the release-safety test lane.
 
 ## 7) Post-launch week-1 thresholds
 
@@ -96,3 +96,9 @@ Trigger immediate investigation if any condition is met:
 - No backend platform migration (InsForge/Supabase/VPS)
 - No source-control actions
 - No broad UI refactors
+
+## 9) Secret hygiene guardrail (operational)
+
+- Rotate/revoke any token exposed in terminal history or shared context exports.
+- Do not place token values directly in command lines that persist in shell history.
+- Prefer secret-manager backed environment loading and local `.env` sourcing patterns.

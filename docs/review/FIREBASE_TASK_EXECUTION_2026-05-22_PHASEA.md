@@ -265,3 +265,54 @@ Current repo note:
 
 - `flutter test test/services/enhanced_ai_api_service_safety_test.dart` currently fails to compile due pre-existing breakage in `lib/services/ai_service.dart` (syntax and missing symbol errors unrelated to this Phase D slice).
 - This blocker predates/exists outside the files changed for this addendum and should be handled as a dedicated stabilization task before full Flutter suite sign-off.
+
+## Phase E addendum — blocker revalidation and closure (2026-05-22)
+
+### What changed in current repo state
+
+- The previously reported compile blocker in `lib/services/ai_service.dart` is no longer reproducible in the current working state.
+- No additional code patch was required in this execution slice to clear the blocker; verification was rerun against the live repository state.
+
+### Fresh verification evidence
+
+1) Launch-critical backend build
+- `npm --prefix functions run build`
+- Result: PASS
+
+2) Callable/auth/rate-limit/emulator regression suite
+- `npm --prefix functions run test:http-guards:emulator`
+- Result: PASS (8/8)
+
+3) Firestore + Storage rules full suite
+- `npm --prefix firestore-rules-test run test:all:emulator`
+- Result: PASS (Firestore 83, Storage 5)
+
+4) Release-safety static analysis gate
+- `flutter analyze lib/services/enhanced_ai_api_service.dart test/services/enhanced_ai_api_service_safety_test.dart`
+- Result: PASS
+
+5) Previously blocked Flutter test lane
+- `flutter test test/services/enhanced_ai_api_service_safety_test.dart`
+- Result: PASS (26/26)
+
+6) Additional touched-lane sanity
+- `flutter test test/services/batching_service_test.dart`
+- Result: PASS (2/2)
+
+### Updated status
+
+- The explicit blocker recorded in Phase D is now closed.
+- All checklist validation commands defined in `docs/review/MONEY_FIRST_LAUNCH_CONFIG_CHECKLIST_2026-05-22.md` currently pass in this repository state.
+
+## Security nitpick follow-up (2026-05-25)
+
+Observed risk:
+- A terminal history/context export included a raw auth token environment assignment.
+
+Required immediate hygiene actions:
+- Rotate/revoke the exposed token at the provider.
+- Stop exporting long-lived secrets directly in shell history-bearing commands.
+- Use secret manager/secure local env loading (`.env` + local shell sourcing) and avoid committing or logging secret-bearing command lines.
+
+Repository posture note:
+- No token value is stored in this repository by this update; this is an operational hygiene remediation note.

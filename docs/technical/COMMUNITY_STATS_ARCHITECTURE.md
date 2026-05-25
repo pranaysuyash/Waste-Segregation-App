@@ -493,7 +493,13 @@ None required (uses default Firestore project from `google-services.json`)
 - Add last-updated timestamp display
 - Add source of truth annotations in UI
 
+### 2026-05-22 (Phase 5)
+- Implement Cloud Function batch aggregator
+- Add hourly scheduled aggregation with pagination
+- Add HTTP endpoint for manual trigger
+- Documentation: [COMMUNITY_STATS_PHASE_5_IMPLEMENTATION.md](./COMMUNITY_STATS_PHASE_5_IMPLEMENTATION.md)
+
 ### Future
-- Optimize for 100k+ items (Cloud Function aggregation)
-- Add cache invalidation strategy
-- Add stats export/analytics
+- Phase 5.1: Real-time WebSocket listener (replace hourly polling)
+- Phase 5.2: Per-category caching for sub-queries
+- Phase 5.3: BigQuery export for historical analytics

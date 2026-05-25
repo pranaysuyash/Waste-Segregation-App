@@ -376,7 +376,7 @@ void main() {
       await storage.saveClassification(classification, force: true);
       await storage.saveClassificationFeedback(feedback);
       await cloud.saveClassificationFeedbackToCloud(feedback);
-      await gamification.addPoints('feedback_provided', customPoints: 5);
+      await gamification.addPoints('feedback_provided', customPoints: 3);
       await analytics.trackEvent(
         eventType: 'userAction',
         eventName: 'classification.feedback',
@@ -391,7 +391,7 @@ void main() {
       expect(analytics.tracker.count('trackEvent'), equals(1));
       expect(gamification.addPointsCalls.length, equals(1));
       expect(gamification.addPointsCalls.first.$1, equals('feedback_provided'));
-      expect(gamification.addPointsCalls.first.$2, equals(5));
+      expect(gamification.addPointsCalls.first.$2, equals(3));
     });
 
     test('duplicate submission skips all side effects', () async {
@@ -520,7 +520,7 @@ void main() {
       );
 
       await storage.saveClassificationFeedback(feedback);
-      await gamification.addPoints('feedback_provided', customPoints: 5);
+      await gamification.addPoints('feedback_provided', customPoints: 3);
       await analytics.trackEvent(
         eventType: 'userAction',
         eventName: 'classification.feedback',
@@ -559,7 +559,7 @@ void main() {
       }
 
       // Points still awarded despite cloud failure
-      await gamification.addPoints('feedback_provided', customPoints: 5);
+      await gamification.addPoints('feedback_provided', customPoints: 3);
       await analytics.trackEvent(
         eventType: 'userAction',
         eventName: 'classification.feedback',

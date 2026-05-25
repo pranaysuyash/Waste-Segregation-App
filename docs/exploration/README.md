@@ -27,6 +27,10 @@ Every exploration doc should declare, near the top:
 4. **Status** — Seed / Active / Decided / Killed, with date.
 5. **Links** — back to the master index entry, and to related explorations.
 
+## Status markers are not a close signal
+
+A topic marked `[✓]` (complete), `[🟡]` (medium priority), or `[🟢]` (low priority) in the master index is **always open for further deep dives**. Status reflects current urgency — not that a topic is settled. New information, changed context, or fresh questions can justify re-opening any entry. Document findings, update the status in the index, and include a link back.
+
 ## Lifecycle
 
 ```diagram
