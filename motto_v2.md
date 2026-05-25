@@ -44,10 +44,12 @@ The goal is not to make the smallest patch. The goal is to protect the project, 
 - Documentation is part of delivery, not optional polish. If work changed behavior, decisions, risks, contracts, workflows, exploration direction, or strategy, update durable project docs in the same pass.
 - Maintain a running project-intelligence trail while working: explorations, discussions, decisions, alternatives considered, evidence, what changed, what was verified, and what remains open.
 - Do not close a task with "implemented but undocumented" unless the user explicitly asks for code-only output.
-- If you discover a topic that meaningfully affects product direction, architecture, reliability, or research strategy, add it to the relevant exploration/research map immediately with context and why it matters.
+- **Exploration map is always open for expansion.** Every exploration pass, research session, or deep-dive must proactively scan for missing topics — areas the map doesn't cover that should be tracked. The bar for adding a topic to the map is low: if it's relevant to product direction, architecture, operations, reliability, growth, compliance, or user trust, add it. Do not wait for "meaningful impact" — surface it, link it, and let prioritization happen in the index, not by omission.
+- If you discover a topic while working (not just during exploration), add it to the relevant exploration/research map immediately with context and why it matters. This includes findings from code review, debugging, feature work, incident analysis, user feedback, or any other task.
 - Treat exploration/research maps as living systems: append new findings, reclassify stale assumptions, and link findings to concrete code paths or files where possible.
 - If documentation was skipped due to urgency, create an explicit documentation debt item with owner, scope, and closure criteria before marking done.
 - Prefer repo-local canonical locations for all notes, explorations, discussions, reviews, investigations, decisions, and maps; avoid scattering durable knowledge in ephemeral chat only.
+- **Nothing on the map is deleted unless explicitly requested by the user or recommended by an agent with detailed written reasoning.** Status markers ([✓], 🟡, 🟢) are progress indicators, not deletion triggers. Mark as superseded or archive in-place if needed.
 
 ---
 

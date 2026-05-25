@@ -1476,104 +1476,117 @@ All NOW-phase and NEXT-phase exploration docs completed:
 
 97. **Force-update / version deprecation strategy** 🟡 — minimum supported version gates, forced-update UX, graceful degradation for outdated clients, API versioning on Firebase Functions, sunset timeline policy, and App Store / Play Store coordination. → [`docs/exploration/FORCE_UPDATE_VERSION_DEPRECATION.md`](exploration/FORCE_UPDATE_VERSION_DEPRECATION.md)
 
+
+### P1/P2 — Platform Integrity & Operations (added 2026-05-25)
+
+98. **Customer support & user help infrastructure** ð¡ — in-app FAQ / knowledge base, LLM-grounded support chatbot, email ticket triage, safety-critical query SLAs, crash report handling, user feedback pipeline, and community Q&A. → [`docs/exploration/CUSTOMER_SUPPORT_USER_HELP.md`](exploration/CUSTOMER_SUPPORT_USER_HELP.md)
+
+99. **White-label / multi-tenant B2B infrastructure** ð¡ — branded app variants for schools, apartments/RWAs, municipalities, and corporate ESG teams. Tenant data isolation, custom theming, tenant admin dashboards, bulk user import, tenant-specific feature flags and rulesets, pricing/plan models. → [`docs/exploration/WHITE_LABEL_MULTI_TENANT_B2B.md`](exploration/WHITE_LABEL_MULTI_TENANT_B2B.md)
+
+100. **Security incident response & vulnerability management** ð¡ — incident classification (P0-P2), data breach response plan, API key rotation procedure, vulnerability disclosure policy, bug bounty program, dependency vuln monitoring, penetration testing schedule, post-mortem culture. → [`docs/exploration/SECURITY_INCIDENT_RESPONSE.md`](exploration/SECURITY_INCIDENT_RESPONSE.md)
+
+101. **User research & usability testing methodology** ð¡ — research cadence (continuous/intermittent), methodology mix (moderated/unmoderated/surveys/diary studies), participant sourcing, finding documentation, A/B test interpretation protocol, NPS/CSAT tracking, competitive UX benchmarking, design validation before building. → [`docs/exploration/USER_RESEARCH_USABILITY_TESTING.md`](exploration/USER_RESEARCH_USABILITY_TESTING.md)
+
+102. **Anti-abuse & platform integrity** ð´ — scan farming detection, token farming prevention, referral abuse mitigation, duplicate account detection, content abuse (spam/disinformation in community), civic report abuse, premium account sharing limits, appeals process for false positives. Server-authoritative token accounting and App Check are non-negotiable first lines. → [`docs/exploration/ANTI_ABUSE_PLATFORM_INTEGRITY.md`](exploration/ANTI_ABUSE_PLATFORM_INTEGRITY.md)
+
 ### P1/P2 — App-Specific Product Surface Inventory
 
-98. **Navigation and information architecture system** 🔴 — decide canonical placement for Scan, History, Social/Family, Achievements, Settings, Facilities, Tokens, Training Review, Premium, and Local Rules.
-99. **History as personal knowledge base** 🟡 — turn classification history into search, filters, re-analysis, learning recap, correction status, export, and “what I commonly waste” insights.
-100. **Token wallet UX and trust** 🔴 — make balances, spends, refunds, failed analysis, premium grants, race-mode costs, and offline/local free classifications understandable.
-101. **Premium feature discoverability** 🟡 — premium toggles, locked states, trials, upgrade copy, fairness, refund routes, and no-dark-pattern constraints.
-102. **Training review/admin surfaces** 🔴 — queue filters, reviewer workload, quality checks, escalation, admin roles, audit log, and “operator can use day 1” readiness.
-103. **Settings architecture** 🟡 — consolidate privacy, region, notifications, model downloads, offline mode, tokens, account, family, accessibility, developer toggles, and consent into a coherent settings map.
-104. **Widgetbook/design-lab governance** 🟡 — keep component stories, visual states, tokens, golden screenshots, accessibility variants, and result-card states in sync with production.
-105. **Empty/error/loading state system** 🟡 — design all no-history, no-network, low-token, model-missing, unsupported-region, no-consent, failed-scan, stale-policy, and review-pending states.
+103. **Navigation and information architecture system** 🔴 — decide canonical placement for Scan, History, Social/Family, Achievements, Settings, Facilities, Tokens, Training Review, Premium, and Local Rules.
+104. **History as personal knowledge base** 🟡 — turn classification history into search, filters, re-analysis, learning recap, correction status, export, and “what I commonly waste” insights.
+105. **Token wallet UX and trust** 🔴 — make balances, spends, refunds, failed analysis, premium grants, race-mode costs, and offline/local free classifications understandable.
+106. **Premium feature discoverability** 🟡 — premium toggles, locked states, trials, upgrade copy, fairness, refund routes, and no-dark-pattern constraints.
+107. **Training review/admin surfaces** 🔴 — queue filters, reviewer workload, quality checks, escalation, admin roles, audit log, and “operator can use day 1” readiness.
+108. **Settings architecture** 🟡 — consolidate privacy, region, notifications, model downloads, offline mode, tokens, account, family, accessibility, developer toggles, and consent into a coherent settings map.
+109. **Widgetbook/design-lab governance** 🟡 — keep component stories, visual states, tokens, golden screenshots, accessibility variants, and result-card states in sync with production.
+110. **Empty/error/loading state system** 🟡 — design all no-history, no-network, low-token, model-missing, unsupported-region, no-consent, failed-scan, stale-policy, and review-pending states.
 
 ### P1/P2 — Marketing, Positioning, Launch, and Distribution
 
-106. **Positioning and category narrative** 🔴 — decide whether the app is “AI waste sorting,” “local disposal companion,” “zero-waste coach,” “family eco habit app,” or “civic waste platform”; messaging changes product priorities.
-107. **App Store Optimization and screenshots** 🔴 — keywords, subtitle, preview video, screenshot story, privacy trust claims, local-language listings, and competitor comparison.
-108. **SEO/content acquisition engine** 🟡 — city/category pages like “Bangalore battery disposal,” “pizza box recycling,” “e-waste pickup near me,” with source freshness and conversion to app install.
-109. **WhatsApp-first distribution** 🟡 — shareable result cards, local-rule snippets, RWA notices, referral links, challenge invites, support flows, and low-friction install loops.
-110. **Campus/school ambassador strategy** 🟢 — classroom kits, printable certificates, teacher onboarding, student challenges, science-fair angle, and child-safety governance.
-111. **RWA/apartment launch playbook** 🟢 — one-building pilot package: bin labels, QR posters, local rules, challenges, reports, volunteer roles, and before/after metrics.
-112. **NGO/municipal co-marketing** 🟢 — credibility partnerships, cleanup drives, official ruleset sponsorship, helpline integration, and public-good reports.
-113. **Creator/influencer content loops** 🟢 — sustainability creators, local-language reels, myth-busting shorts, challenge templates, and measurable install attribution.
-114. **Referral economics and fraud** 🟡 — reward amount, eligibility, abuse detection, family/self-referral prevention, inviter/invitee value, and CAC payback.
-115. **Launch sequencing by geography** 🔴 — Bangalore-first vs India metros vs global generic; choose based on rule accuracy, facilities data, language, partner access, and marketing focus.
+111. **Positioning and category narrative** 🔴 — decide whether the app is “AI waste sorting,” “local disposal companion,” “zero-waste coach,” “family eco habit app,” or “civic waste platform”; messaging changes product priorities.
+112. **App Store Optimization and screenshots** 🔴 — keywords, subtitle, preview video, screenshot story, privacy trust claims, local-language listings, and competitor comparison.
+113. **SEO/content acquisition engine** 🟡 — city/category pages like “Bangalore battery disposal,” “pizza box recycling,” “e-waste pickup near me,” with source freshness and conversion to app install.
+114. **WhatsApp-first distribution** 🟡 — shareable result cards, local-rule snippets, RWA notices, referral links, challenge invites, support flows, and low-friction install loops.
+115. **Campus/school ambassador strategy** 🟢 — classroom kits, printable certificates, teacher onboarding, student challenges, science-fair angle, and child-safety governance.
+116. **RWA/apartment launch playbook** 🟢 — one-building pilot package: bin labels, QR posters, local rules, challenges, reports, volunteer roles, and before/after metrics.
+117. **NGO/municipal co-marketing** 🟢 — credibility partnerships, cleanup drives, official ruleset sponsorship, helpline integration, and public-good reports.
+118. **Creator/influencer content loops** 🟢 — sustainability creators, local-language reels, myth-busting shorts, challenge templates, and measurable install attribution.
+119. **Referral economics and fraud** 🟡 — reward amount, eligibility, abuse detection, family/self-referral prevention, inviter/invitee value, and CAC payback.
+120. **Launch sequencing by geography** 🔴 — Bangalore-first vs India metros vs global generic; choose based on rule accuracy, facilities data, language, partner access, and marketing focus.
 
 ### P1/P2 — Industry-Specific Waste Domains
 
-116. **Biomedical and sharps domain** 🔴 — household medical waste, syringes, masks, sanitary waste, expired medicines, pharmacies, clinics, liability, and safe “do not handle” copy.
-117. **E-waste and battery domain** 🔴 — lithium fire risk, power banks, phones, chargers, cables, take-back programs, EPR, pickup partners, and data-wipe education.
-118. **Food service and hospitality waste** 🟡 — restaurant packaging, bulk food waste, composting, grease contamination, hotel/event waste audits, and B2B wedge.
-119. **Construction and demolition waste** 🟢 — paint, solvents, tiles, rubble, wood, glass, asbestos risk, contractor workflows, and municipal drop-off rules.
-120. **Retail and packaging domain** 🟡 — brand/SKU packaging, DPP, deposit schemes, store take-back, refill programs, and packaging feedback to manufacturers.
-121. **Events/festivals waste mode** 🟢 — temporary bins, volunteer sorting, QR posters, crowd education, event impact report, and sponsor dashboards.
-122. **Office/corporate waste mode** 🟢 — printer cartridges, office e-waste, pantry waste, employee challenges, procurement feedback, and ESG reports.
-123. **Informal economy and worker safety** 🟡 — kabadiwala/recycler workflows, fair pricing, language/literacy, dignity, safety guidance, and avoiding extractive data practices.
+121. **Biomedical and sharps domain** 🔴 — household medical waste, syringes, masks, sanitary waste, expired medicines, pharmacies, clinics, liability, and safe “do not handle” copy.
+122. **E-waste and battery domain** 🔴 — lithium fire risk, power banks, phones, chargers, cables, take-back programs, EPR, pickup partners, and data-wipe education.
+123. **Food service and hospitality waste** 🟡 — restaurant packaging, bulk food waste, composting, grease contamination, hotel/event waste audits, and B2B wedge.
+124. **Construction and demolition waste** 🟢 — paint, solvents, tiles, rubble, wood, glass, asbestos risk, contractor workflows, and municipal drop-off rules.
+125. **Retail and packaging domain** 🟡 — brand/SKU packaging, DPP, deposit schemes, store take-back, refill programs, and packaging feedback to manufacturers.
+126. **Events/festivals waste mode** 🟢 — temporary bins, volunteer sorting, QR posters, crowd education, event impact report, and sponsor dashboards.
+127. **Office/corporate waste mode** 🟢 — printer cartridges, office e-waste, pantry waste, employee challenges, procurement feedback, and ESG reports.
+128. **Informal economy and worker safety** 🟡 — kabadiwala/recycler workflows, fair pricing, language/literacy, dignity, safety guidance, and avoiding extractive data practices.
 
 ### P1/P2 — Regulatory, Legal, and Policy Landscape
 
-124. **India DPDP and consent compliance** 🔴 — lawful basis, consent withdrawal, child data, grievance officer, retention, processors, and cross-border handling.
-125. **India SWM/E-waste/biomedical/plastic waste rules** 🔴 — align advice with Solid Waste Management Rules, E-Waste Rules, Plastic Waste Rules, Biomedical Waste Rules, and city bylaws.
-126. **GDPR/UK/EU expansion posture** 🟡 — DSRs, data minimization, DPIA, legitimate interest vs consent, DPP integration, and processor contracts.
-127. **COPPA/kids/classroom compliance** 🟡 — age gates, guardian consent, school consent, ads off, public sharing off, and educational records boundaries.
-128. **AI transparency and liability** 🟡 — explainability, disclaimers, hazardous advice liability, “not official municipal advice” wording, and escalation for dangerous items.
-129. **Advertising, affiliate, and sponsorship ethics** 🟡 — advice neutrality, disclosures, ad targeting, kid-safe restrictions, and avoiding greenwashing.
-130. **Data licensing and public-source use** 🟡 — municipal data reuse rights, scraped facility data, Open Food Facts/barcode data licenses, and attribution obligations.
-131. **Partner contracts and SLA model** 🟢 — recycler/pickup/facility partner obligations, dispute handling, refunds, safety, and quality scoring.
+129. **India DPDP and consent compliance** 🔴 — lawful basis, consent withdrawal, child data, grievance officer, retention, processors, and cross-border handling.
+130. **India SWM/E-waste/biomedical/plastic waste rules** 🔴 — align advice with Solid Waste Management Rules, E-Waste Rules, Plastic Waste Rules, Biomedical Waste Rules, and city bylaws.
+131. **GDPR/UK/EU expansion posture** 🟡 — DSRs, data minimization, DPIA, legitimate interest vs consent, DPP integration, and processor contracts.
+132. **COPPA/kids/classroom compliance** 🟡 — age gates, guardian consent, school consent, ads off, public sharing off, and educational records boundaries.
+133. **AI transparency and liability** 🟡 — explainability, disclaimers, hazardous advice liability, “not official municipal advice” wording, and escalation for dangerous items.
+134. **Advertising, affiliate, and sponsorship ethics** 🟡 — advice neutrality, disclosures, ad targeting, kid-safe restrictions, and avoiding greenwashing.
+135. **Data licensing and public-source use** 🟡 — municipal data reuse rights, scraped facility data, Open Food Facts/barcode data licenses, and attribution obligations.
+136. **Partner contracts and SLA model** 🟢 — recycler/pickup/facility partner obligations, dispute handling, refunds, safety, and quality scoring.
 
 ### P1/P2 — Operations, Support, Moderation, and Field Work
 
-132. **Customer support operating model** 🟡 — categories, macros, escalation, refund/token disputes, privacy requests, wrong disposal reports, and SLA.
-133. **Moderation staffing and cost model** 🔴 — reviewer ratios, queue SLAs, expert escalation, abuse handling, trust tiers, and cost per 1k UGC/review items.
-134. **City expansion operations playbook** 🔴 — source research, legal check, rule-pack authoring, local validator, pilot testing, freshness monitoring, and promotion gates.
-135. **Facility verification operations** 🟡 — call/check schedule, user verification, partner verification, stale reports, closure handling, and confidence badges.
-136. **Field research at bins** 🟡 — observe real disposal moments, photo-taking constraints, language needs, time pressure, social embarrassment, and failure modes.
-137. **Incident response playbook** 🔴 — harmful advice, leaked image/PII, abusive community content, AI cost spike, wrong municipal rule, payment failure, and public complaint.
-138. **Partner onboarding operations** 🟢 — recycler/facility/RWA/school onboarding, verification, training, support, reporting cadence, and churn prevention.
-139. **Data quality review cadence** 🟡 — weekly hard-case review, monthly city-rule review, quarterly model benchmark, and stale-doc cleanup.
+137. **Customer support operating model** 🟡 — categories, macros, escalation, refund/token disputes, privacy requests, wrong disposal reports, and SLA.
+138. **Moderation staffing and cost model** 🔴 — reviewer ratios, queue SLAs, expert escalation, abuse handling, trust tiers, and cost per 1k UGC/review items.
+139. **City expansion operations playbook** 🔴 — source research, legal check, rule-pack authoring, local validator, pilot testing, freshness monitoring, and promotion gates.
+140. **Facility verification operations** 🟡 — call/check schedule, user verification, partner verification, stale reports, closure handling, and confidence badges.
+141. **Field research at bins** 🟡 — observe real disposal moments, photo-taking constraints, language needs, time pressure, social embarrassment, and failure modes.
+142. **Incident response playbook** 🔴 — harmful advice, leaked image/PII, abusive community content, AI cost spike, wrong municipal rule, payment failure, and public complaint.
+143. **Partner onboarding operations** 🟢 — recycler/facility/RWA/school onboarding, verification, training, support, reporting cadence, and churn prevention.
+144. **Data quality review cadence** 🟡 — weekly hard-case review, monthly city-rule review, quarterly model benchmark, and stale-doc cleanup.
 
 ### P1/P2 — Gamification Full-Spectrum Expansion
 
-140. **Player archetype framework** 🔴 — achiever, explorer, socializer, impact-seeker, collector, learner, helper, streaker, utility-only; map mechanics and anti-patterns per archetype.
-141. **Progression pacing and inflation control** 🔴 — XP curves, level caps, reward rarity, seasonal resets, long-term goals, and preventing meaningless point inflation.
-142. **Ethical gamification guardrails** 🔴 — no addiction dark patterns, anxiety caps, kid-safe mechanics, opt-outs, cooldowns, and transparency around personalization.
-143. **Seasonal and cultural campaign calendar** 🟡 — Earth Day, Plastic-Free July, Diwali cleanup, local festivals, school terms, monsoon waste issues, and city-specific campaigns.
-144. **Family/team cooperative mechanics** 🟡 — shared goals, role-based tasks, no-shame leaderboards, household streaks, parent-child missions, and conflict prevention.
-145. **Anti-farming and reward abuse** 🔴 — repeat image, fake disposal, referral spam, civic report spam, challenge gaming, emulator abuse, and server-side detection.
-146. **Reward redemption and liability** 🟡 — coupons, donations, perks, refund handling, sponsor fulfillment, tax/accounting implications, and abuse limits.
-147. **Personalization controls for gamification** 🟡 — let users tune competition, social visibility, notifications, difficulty, negative mechanics, and impact framing.
-148. **Motivation profile inference model** 🔴 — infer motivation from interaction frequency, completion patterns, time-of-day, feature visits, challenge choices, explicit check-ins, confidence, decay, and cold-start defaults.
-149. **Adaptive challenge generator** 🔴 — generate safe personalized solo/social/learning/impact challenges from verified templates, local rules, user history, and available rewards without hallucinating disposal advice.
-150. **Counterbalance vs amplification policy** 🔴 — decide when to broaden neglected behaviours versus amplify what already works; explicitly model the user’s “motivation diet.”
-151. **Gamification ethics contract** 🔴 — define hard boundaries for streak pressure, loss aversion, kids, notifications, social comparison, personalization opacity, and manipulative loops.
-152. **Reward economy inflation model** 🔴 — XP curves, level caps, rarity, seasonal resets, sinks, prestige tiers, long-term goals, and “points still mean something after year one.”
-153. **Verified action hierarchy** 🔴 — rank actions by real-world value: scan, correct, learn, dispose, verify, teach, contribute, organize, reduce, repair, reuse, and prevent waste.
-154. **Anti-gaming threat model for gamification** 🔴 — repeat scans, fake corrections, fake disposal, family collusion, civic spam, referral fraud, emulator/device abuse, and trust-ladder attacks.
-155. **Social pressure safety design** 🟡 — cooperative defaults, no-shame leaderboards, private progress, opt-out visibility, kid/family boundaries, and comparison copy that motivates without humiliating.
-156. **Impact narrative personalization** 🟡 — choose whether to frame progress as carbon, landfill diversion, contamination avoided, local cleanliness, family teaching, money/refunds, safety, or mastery.
-157. **Seasonal campaign operating system** 🟡 — campaign templates, local calendars, sponsor slots, challenge bundles, notification cadence, metrics, and post-campaign reports.
-158. **Reward sink catalog and rules** 🟡 — streak freezes, themes, avatars, donation matching, custom challenges, family perks, sponsor coupons, certificates, and what each currency can buy.
-159. **Gamification-to-learning bridge** 🔴 — wrong scans, hazardous scans, low-confidence results, and local-rule mistakes should trigger micro-lessons/quizzes; reward mastery more than passive reading.
-160. **Burnout and fatigue detection** 🟡 — detect avoidance, notification fatigue, challenge abandonment, streak anxiety, and social comparison stress; switch to gentler utility mode.
-161. **Dynamic difficulty tuning** 🟡 — challenge difficulty based on history, confidence, category familiarity, correction quality, user bandwidth, household context, and recent success/failure.
-162. **Household/team game modes** 🟡 — cooperative household goals, role-specific missions, kid-safe quests, RWA/team challenges, office competitions, and team anti-farming controls.
-163. **Gamification analytics dashboard** 🟡 — mechanic-level retention, conversion, fatigue, abuse, challenge completion, correction quality, learning mastery, and long-term behaviour change.
-164. **Identity and status system** 🟡 — titles like “Battery Safety Guardian” or “Compost Coach” earned through verified competence, not raw points.
-165. **Real-world reward governance** 🟡 — define what sponsors can fund, what must remain neutral, how rewards avoid corrupting advice, and how fulfillment/fraud is handled.
-166. **Personalization controls UI** 🟡 — user-facing controls for competitiveness, social visibility, notification pressure, challenge difficulty, negative mechanics, impact framing, and private mode.
-167. **Mechanic-level kill criteria** 🔴 — every mechanic must justify itself by retention, correction quality, education completion, safe disposal, verified impact, partner value, or be removed.
+145. **Player archetype framework** 🔴 — achiever, explorer, socializer, impact-seeker, collector, learner, helper, streaker, utility-only; map mechanics and anti-patterns per archetype.
+146. **Progression pacing and inflation control** 🔴 — XP curves, level caps, reward rarity, seasonal resets, long-term goals, and preventing meaningless point inflation.
+147. **Ethical gamification guardrails** 🔴 — no addiction dark patterns, anxiety caps, kid-safe mechanics, opt-outs, cooldowns, and transparency around personalization.
+148. **Seasonal and cultural campaign calendar** 🟡 — Earth Day, Plastic-Free July, Diwali cleanup, local festivals, school terms, monsoon waste issues, and city-specific campaigns.
+149. **Family/team cooperative mechanics** 🟡 — shared goals, role-based tasks, no-shame leaderboards, household streaks, parent-child missions, and conflict prevention.
+150. **Anti-farming and reward abuse** 🔴 — repeat image, fake disposal, referral spam, civic report spam, challenge gaming, emulator abuse, and server-side detection.
+151. **Reward redemption and liability** 🟡 — coupons, donations, perks, refund handling, sponsor fulfillment, tax/accounting implications, and abuse limits.
+152. **Personalization controls for gamification** 🟡 — let users tune competition, social visibility, notifications, difficulty, negative mechanics, and impact framing.
+153. **Motivation profile inference model** 🔴 — infer motivation from interaction frequency, completion patterns, time-of-day, feature visits, challenge choices, explicit check-ins, confidence, decay, and cold-start defaults.
+154. **Adaptive challenge generator** 🔴 — generate safe personalized solo/social/learning/impact challenges from verified templates, local rules, user history, and available rewards without hallucinating disposal advice.
+155. **Counterbalance vs amplification policy** 🔴 — decide when to broaden neglected behaviours versus amplify what already works; explicitly model the user’s “motivation diet.”
+156. **Gamification ethics contract** 🔴 — define hard boundaries for streak pressure, loss aversion, kids, notifications, social comparison, personalization opacity, and manipulative loops.
+157. **Reward economy inflation model** 🔴 — XP curves, level caps, rarity, seasonal resets, sinks, prestige tiers, long-term goals, and “points still mean something after year one.”
+158. **Verified action hierarchy** 🔴 — rank actions by real-world value: scan, correct, learn, dispose, verify, teach, contribute, organize, reduce, repair, reuse, and prevent waste.
+159. **Anti-gaming threat model for gamification** 🔴 — repeat scans, fake corrections, fake disposal, family collusion, civic spam, referral fraud, emulator/device abuse, and trust-ladder attacks.
+160. **Social pressure safety design** 🟡 — cooperative defaults, no-shame leaderboards, private progress, opt-out visibility, kid/family boundaries, and comparison copy that motivates without humiliating.
+161. **Impact narrative personalization** 🟡 — choose whether to frame progress as carbon, landfill diversion, contamination avoided, local cleanliness, family teaching, money/refunds, safety, or mastery.
+162. **Seasonal campaign operating system** 🟡 — campaign templates, local calendars, sponsor slots, challenge bundles, notification cadence, metrics, and post-campaign reports.
+163. **Reward sink catalog and rules** 🟡 — streak freezes, themes, avatars, donation matching, custom challenges, family perks, sponsor coupons, certificates, and what each currency can buy.
+164. **Gamification-to-learning bridge** 🔴 — wrong scans, hazardous scans, low-confidence results, and local-rule mistakes should trigger micro-lessons/quizzes; reward mastery more than passive reading.
+165. **Burnout and fatigue detection** 🟡 — detect avoidance, notification fatigue, challenge abandonment, streak anxiety, and social comparison stress; switch to gentler utility mode.
+166. **Dynamic difficulty tuning** 🟡 — challenge difficulty based on history, confidence, category familiarity, correction quality, user bandwidth, household context, and recent success/failure.
+167. **Household/team game modes** 🟡 — cooperative household goals, role-specific missions, kid-safe quests, RWA/team challenges, office competitions, and team anti-farming controls.
+168. **Gamification analytics dashboard** 🟡 — mechanic-level retention, conversion, fatigue, abuse, challenge completion, correction quality, learning mastery, and long-term behaviour change.
+169. **Identity and status system** 🟡 — titles like “Battery Safety Guardian” or “Compost Coach” earned through verified competence, not raw points.
+170. **Real-world reward governance** 🟡 — define what sponsors can fund, what must remain neutral, how rewards avoid corrupting advice, and how fulfillment/fraud is handled.
+171. **Personalization controls UI** 🟡 — user-facing controls for competitiveness, social visibility, notification pressure, challenge difficulty, negative mechanics, impact framing, and private mode.
+172. **Mechanic-level kill criteria** 🔴 — every mechanic must justify itself by retention, correction quality, education completion, safe disposal, verified impact, partner value, or be removed.
 
 ### P1/P2 — Research, Measurement, and Strategy
 
-168. **User interview tracks** 🔴 — consumers, parents, kids/teachers, RWA admins, recyclers, municipal workers, sustainability officers, and low-literacy users.
-169. **Retention cohort research** 🔴 — day 0/1/7/21/30 retention, novelty cliff, habit loop impact, notification tolerance, and paid conversion triggers.
-170. **Pricing willingness-to-pay research** 🟡 — India vs global PPP, family plans, school/RWA pricing, premium AI quality, offline packs, and token bundles.
-171. **Competitive teardown program** 🟡 — Yuka, Google Lens, Recycle Coach, municipal apps, Too Good To Go, OLX/Freecycle, smart-bin players, ESG tools.
-172. **Pilot design framework** 🔴 — define success metrics, kill criteria, sample size, ops burden, ethics, and before/after baselines for every school/RWA/civic pilot.
-173. **North-star metrics and KPI tree** 🔴 — safe correct disposals, retained useful users, local-rule confidence, training data quality, CAC, cost per successful classification, and verified impact.
-174. **Decision log and kill-criteria governance** 🟡 — every exploration topic needs owner, decision, evidence, next action, and kill/continue criteria to avoid idea sprawl.
-175. **Portfolio prioritization model** 🔴 — score all topics by user value, safety, moat, revenue, effort, dependency, evidence, and risk so exploration turns into sane sequencing.
+173. **User interview tracks** 🔴 — consumers, parents, kids/teachers, RWA admins, recyclers, municipal workers, sustainability officers, and low-literacy users.
+174. **Retention cohort research** 🔴 — day 0/1/7/21/30 retention, novelty cliff, habit loop impact, notification tolerance, and paid conversion triggers.
+175. **Pricing willingness-to-pay research** 🟡 — India vs global PPP, family plans, school/RWA pricing, premium AI quality, offline packs, and token bundles.
+176. **Competitive teardown program** 🟡 — Yuka, Google Lens, Recycle Coach, municipal apps, Too Good To Go, OLX/Freecycle, smart-bin players, ESG tools.
+177. **Pilot design framework** 🔴 — define success metrics, kill criteria, sample size, ops burden, ethics, and before/after baselines for every school/RWA/civic pilot.
+178. **North-star metrics and KPI tree** 🔴 — safe correct disposals, retained useful users, local-rule confidence, training data quality, CAC, cost per successful classification, and verified impact.
+179. **Decision log and kill-criteria governance** 🟡 — every exploration topic needs owner, decision, evidence, next action, and kill/continue criteria to avoid idea sprawl.
+180. **Portfolio prioritization model** 🔴 — score all topics by user value, safety, moat, revenue, effort, dependency, evidence, and risk so exploration turns into sane sequencing.
 
 **Still intentionally not a build queue**: these additions are exploration candidates, not commitments. Promote only when a decision needs research, there is a plausible owner, and the topic has clear kill criteria.
 

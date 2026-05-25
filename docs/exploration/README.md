@@ -31,6 +31,12 @@ Every exploration doc should declare, near the top:
 
 A topic marked `[✓]` (complete), `[🟡]` (medium priority), or `[🟢]` (low priority) in the master index is **always open for further deep dives**. Status reflects current urgency — not that a topic is settled. New information, changed context, or fresh questions can justify re-opening any entry. Document findings, update the status in the index, and include a link back.
 
+## Agent policy: map-first exploration
+
+Every exploration pass, research session, code review, debugging investigation, or feature implementation must **proactively scan for missing topics** that should be on the map but aren't. The bar for adding is low — if it touches product direction, architecture, operations, reliability, growth, compliance, or user trust, add it with context and let prioritization happen in the index.
+
+**Nothing on the map is deleted unless explicitly requested by the user or recommended with detailed written reasoning.** Status markers are progress indicators, not deletion triggers. Superseded topics are archived in-place or marked.
+
 ## Lifecycle
 
 ```diagram
@@ -38,8 +44,7 @@ A topic marked `[✓]` (complete), `[🟡]` (medium priority), or `[🟢]` (low 
 │ backlog │────────────▶│ exploration│──────────────▶│ built artefact│
 │  .md    │             │   doc      │               │ + index update│
 ╰────┬────╯             ╰─────┬──────╯               ╰──────┬───────╯
-     │                        │                             │
-     │ killed                 │ killed                      │
+     │                        │                             │     │ killed                      │ killed                      │
      ▼                        ▼                             ▼
-   delete / archive in same file with rationale     status [✓] in EXPLORATION_TOPICS.md
+   archive in place with rationale     status [✓] in EXPLORATION_TOPICS.md
 ```
