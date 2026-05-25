@@ -33,7 +33,9 @@ A topic marked `[✓]` (complete), `[🟡]` (medium priority), or `[🟢]` (low 
 
 ## Agent policy: map-first exploration
 
-Every exploration pass, research session, code review, debugging investigation, or feature implementation must **proactively scan for missing topics** that should be on the map but aren't. The bar for adding is low — if it touches product direction, architecture, operations, reliability, growth, compliance, or user trust, add it with context and let prioritization happen in the index.
+Any time you encounter something worth even a glance — while checking docs, reading code, browsing online, during research, debugging, feature work, or random discovery — add it to the map. The bar is the lowest possible: if it's interesting enough to notice, it's worth a map entry. Do not filter by category or wait for "meaningful impact." Surface it with a one-liner, link it, and let prioritization happen in the index.
+
+Explicit user requests to add a topic are always honored without extra justification.
 
 **Nothing on the map is deleted unless explicitly requested by the user or recommended with detailed written reasoning.** Status markers are progress indicators, not deletion triggers. Superseded topics are archived in-place or marked.
 
