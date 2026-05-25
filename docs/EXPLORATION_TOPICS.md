@@ -1446,12 +1446,12 @@ All NOW-phase and NEXT-phase exploration docs completed:
 
 ### P3 — Deep Frontier / Watchlist
 
-79. **Federated or privacy-preserving learning** 🟢 — improve on-device models from user corrections without centralizing raw photos; only after local model and consent foundations are mature.
-80. **AR decomposition / product lifecycle visualization** 🟢 — show decomposition timeline, material journey, facility path, or recycled product outcome in AR/3D for education.
-81. **Home smart-bin scale / compost / fridge integration** 🟢 — weight-based disposal tracking, compost health, expiry reminders, and smart-home routines.
-82. **Verified environmental impact ledger** 🟢 — proof-of-disposal/impact ledger, possibly non-blockchain first; web3 only if a paying partner requires it.
-83. **Waste forecasting and procurement feedback** 🟢 — predict household/organization waste patterns, recommend purchase changes, and feed aggregated “wish recycling” signals to brands.
-84. **Public-good open data layer** 🟢 — anonymized, privacy-safe municipal heatmaps, facility freshness, hard-to-recycle item trends, and policy gaps for civic benefit.
+79. **Federated or privacy-preserving learning** 🟢 — improve on-device models from user corrections without centralizing raw photos; only after local model and consent foundations are mature. → [`docs/exploration/FEDERATED_PRIVACY_PRESERVING_LEARNING.md`](exploration/FEDERATED_PRIVACY_PRESERVING_LEARNING.md)
+80. **AR decomposition / product lifecycle visualization** 🟢 — show decomposition timeline, material journey, facility path, or recycled product outcome in AR/3D for education. → [`docs/exploration/AR_DECOMPOSITION_LIFECYCLE_VISUALIZATION.md`](exploration/AR_DECOMPOSITION_LIFECYCLE_VISUALIZATION.md)
+81. **Home smart-bin scale / compost / fridge integration** 🟢 — weight-based disposal tracking, compost health, expiry reminders, and smart-home routines. → [`docs/exploration/HOME_SMART_BIN_SCALE_FRIDGE_INTEGRATION.md`](exploration/HOME_SMART_BIN_SCALE_FRIDGE_INTEGRATION.md)
+82. **Verified environmental impact ledger** 🟢 — proof-of-disposal/impact ledger, possibly non-blockchain first; web3 only if a paying partner requires it. → [`docs/exploration/VERIFIED_IMPACT_LEDGER.md`](exploration/VERIFIED_IMPACT_LEDGER.md)
+83. **Waste forecasting and procurement feedback** 🟢 — predict household/organization waste patterns, recommend purchase changes, and feed aggregated “wish recycling” signals to brands. → [`docs/exploration/WASTE_FORECASTING_PROCUREMENT_FEEDBACK.md`](exploration/WASTE_FORECASTING_PROCUREMENT_FEEDBACK.md)
+84. **Public-good open data layer** 🟢 — anonymized, privacy-safe municipal heatmaps, facility freshness, hard-to-recycle item trends, and policy gaps for civic benefit. → [`docs/exploration/PUBLIC_GOOD_OPEN_DATA_LAYER.md`](exploration/PUBLIC_GOOD_OPEN_DATA_LAYER.md)
 
 ### P1/P2 — Technical Architecture, MLOps, and Engineering Systems
 
