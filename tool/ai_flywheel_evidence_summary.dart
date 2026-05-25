@@ -18,13 +18,20 @@ int jsonlCount(String path) {
 }
 
 void main(List<String> args) {
-  final out = _arg(args, '--out', fallback: 'build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md');
+  final out = _arg(args, '--out',
+      fallback: 'build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md');
 
-  final acceptance = readJson('build/reports/ai_flywheel/acceptance_report.json');
-  final seedCoverage = readJson('build/reports/ai_eval/seed_coverage_report.json');
-  final evalLatest = readJson('build/reports/ai_eval/offline_latest.json') ?? readJson('build/reports/ai_eval/latest.json');
-  final datasetVersion = readJson('build/reports/ai_dataset/latest/version.json');
-  final router = readJson('build/reports/ai_eval/router_compare_backend.json') ?? readJson('build/reports/ai_eval/router_compare.json');
+  final acceptance =
+      readJson('build/reports/ai_flywheel/acceptance_report.json');
+  final seedCoverage =
+      readJson('build/reports/ai_eval/seed_coverage_report.json');
+  final evalLatest = readJson('build/reports/ai_eval/offline_latest.json') ??
+      readJson('build/reports/ai_eval/latest.json');
+  final datasetVersion =
+      readJson('build/reports/ai_dataset/latest/version.json');
+  final router =
+      readJson('build/reports/ai_eval/router_compare_backend.json') ??
+          readJson('build/reports/ai_eval/router_compare.json');
 
   final b = StringBuffer();
   b.writeln('# AI Flywheel Final Evidence Summary');
@@ -34,14 +41,16 @@ void main(List<String> args) {
 
   b.writeln('## Acceptance status');
   if (acceptance == null) {
-    b.writeln('- Acceptance report missing: `build/reports/ai_flywheel/acceptance_report.json`');
+    b.writeln(
+        '- Acceptance report missing: `build/reports/ai_flywheel/acceptance_report.json`');
   } else {
     final harness = (acceptance['harness'] as Map?)?.cast<String, dynamic>();
     final providerQuality =
         (acceptance['providerQualityGate'] as Map?)?.cast<String, dynamic>();
     b.writeln(
         '- Harness passed: ${harness?['passed'] ?? acceptance['passed']}/${harness?['total'] ?? acceptance['total']}');
-    b.writeln('- Harness all passed: ${harness?['allPassed'] ?? acceptance['allPassed']}');
+    b.writeln(
+        '- Harness all passed: ${harness?['allPassed'] ?? acceptance['allPassed']}');
     if (providerQuality != null) {
       b.writeln(
           '- Provider quality releaseReady: ${providerQuality['releaseReady']}');
@@ -53,22 +62,26 @@ void main(List<String> args) {
 
   b.writeln('## Seed coverage status');
   if (seedCoverage == null) {
-    b.writeln('- Seed coverage report missing: `build/reports/ai_eval/seed_coverage_report.json`');
+    b.writeln(
+        '- Seed coverage report missing: `build/reports/ai_eval/seed_coverage_report.json`');
   } else {
-    b.writeln('- Rules passed: ${seedCoverage['passedRules']}/${seedCoverage['totalRules']}');
+    b.writeln(
+        '- Rules passed: ${seedCoverage['passedRules']}/${seedCoverage['totalRules']}');
     b.writeln('- All rules passed: ${seedCoverage['allRulesPassed']}');
   }
   b.writeln();
 
   b.writeln('## Eval snapshot (offline/latest)');
   if (evalLatest == null) {
-    b.writeln('- Eval report missing: `build/reports/ai_eval/offline_latest.json` or `latest.json`');
+    b.writeln(
+        '- Eval report missing: `build/reports/ai_eval/offline_latest.json` or `latest.json`');
   } else {
     b.writeln('- Cases: ${evalLatest['cases']}');
     b.writeln('- Strict pass: ${evalLatest['strictPass']}');
     b.writeln('- Acceptable pass: ${evalLatest['acceptablePass']}');
     b.writeln('- Fail: ${evalLatest['fail']}');
-    b.writeln('- Safety-critical failures: ${evalLatest['safetyCriticalFailures']}');
+    b.writeln(
+        '- Safety-critical failures: ${evalLatest['safetyCriticalFailures']}');
     b.writeln('- Must-not violations: ${evalLatest['mustNotViolations']}');
     b.writeln('- Local-rule failures: ${evalLatest['localRuleFailures']}');
   }
@@ -76,27 +89,35 @@ void main(List<String> args) {
 
   b.writeln('## Dataset export snapshot');
   if (datasetVersion == null) {
-    b.writeln('- Dataset version report missing: `build/reports/ai_dataset/latest/version.json`');
+    b.writeln(
+        '- Dataset version report missing: `build/reports/ai_dataset/latest/version.json`');
   } else {
     b.writeln('- Dataset version: ${datasetVersion['datasetVersion']}');
     b.writeln('- Case count: ${datasetVersion['caseCount']}');
-    b.writeln('- Excluded counts: ${jsonEncode(datasetVersion['excludedCounts'])}');
+    b.writeln(
+        '- Excluded counts: ${jsonEncode(datasetVersion['excludedCounts'])}');
   }
-  b.writeln('- Manifest rows: ${jsonlCount('build/reports/ai_dataset/latest/manifest.jsonl')}');
-  b.writeln('- Label rows: ${jsonlCount('build/reports/ai_dataset/latest/labels.jsonl')}');
+  b.writeln(
+      '- Manifest rows: ${jsonlCount('build/reports/ai_dataset/latest/manifest.jsonl')}');
+  b.writeln(
+      '- Label rows: ${jsonlCount('build/reports/ai_dataset/latest/labels.jsonl')}');
   b.writeln();
 
   b.writeln('## Router comparison snapshot');
   if (router == null) {
-    b.writeln('- Router comparison report missing: `build/reports/ai_eval/router_compare_backend.json` or `router_compare.json`');
+    b.writeln(
+        '- Router comparison report missing: `build/reports/ai_eval/router_compare_backend.json` or `router_compare.json`');
   } else {
-    final providers = (router['providers'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+    final providers = (router['providers'] as Map?)?.cast<String, dynamic>() ??
+        <String, dynamic>{};
     if (providers.isEmpty) {
       b.writeln('- No provider entries found');
     } else {
       for (final key in providers.keys.toList()..sort()) {
-        final v = (providers[key] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
-        b.writeln('- $key: accuracy=${v['accuracy']} safetyFailures=${v['safetyCriticalFailures']} mustNot=${v['mustNotViolations']} localRule=${v['localRuleFailures']} avgLatencyMs=${v['avgLatencyMs']} avgCost=${v['avgEstimatedCostUsd']}');
+        final v = (providers[key] as Map?)?.cast<String, dynamic>() ??
+            <String, dynamic>{};
+        b.writeln(
+            '- $key: accuracy=${v['accuracy']} safetyFailures=${v['safetyCriticalFailures']} mustNot=${v['mustNotViolations']} localRule=${v['localRuleFailures']} avgLatencyMs=${v['avgLatencyMs']} avgCost=${v['avgEstimatedCostUsd']}');
       }
     }
   }

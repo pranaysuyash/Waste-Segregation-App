@@ -61,6 +61,8 @@ import 'screens/waste_dashboard_screen.dart';
 import 'screens/smart_suggestions_screen.dart';
 import 'screens/token_wallet_screen.dart';
 import 'screens/model_routing_screen.dart';
+import 'screens/gamification_analytics_screen.dart';
+import 'services/gamification_analytics_service.dart';
 import 'utils/constants.dart';
 import 'utils/routes.dart';
 import 'utils/error_handler.dart';
@@ -840,6 +842,13 @@ class _WasteSegregationAppState extends State<WasteSegregationApp> {
                         const TrainingReviewQueueScreen(),
                     Routes.modelRouting: (context) =>
                         const ModelRoutingScreen(),
+                    Routes.gamificationAnalytics: (context) =>
+                        GamificationAnalyticsScreen(
+                          analyticsService: GamificationAnalyticsService(
+                            analyticsService:
+                                context.read<AnalyticsService>(),
+                          ),
+                        ),
                     '/disposal-facilities': (context) =>
                         const DisposalFacilitiesScreen(),
                     '/impact-dashboard': (context) =>

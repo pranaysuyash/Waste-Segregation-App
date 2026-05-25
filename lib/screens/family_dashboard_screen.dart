@@ -15,6 +15,9 @@ import 'family_invite_screen.dart';
 import 'family_creation_screen.dart';
 import 'classification_details_screen.dart'; // Import the new screen
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import '../services/cooperative_mechanics_service.dart';
+import '../utils/time_ago.dart';
+import '../widgets/family/cooperative_section.dart';
 
 class FamilyDashboardScreen extends StatefulWidget {
   const FamilyDashboardScreen({
@@ -23,11 +26,13 @@ class FamilyDashboardScreen extends StatefulWidget {
     this.storageService,
     this.familyService,
     this.analyticsService,
+    this.cooperativeMechanicsService,
   });
   final bool showAppBar;
   final StorageService? storageService;
   final FirebaseFamilyService? familyService;
   final AnalyticsService? analyticsService;
+  final CooperativeMechanicsService? cooperativeMechanicsService;
 
   @override
   State<FamilyDashboardScreen> createState() => _FamilyDashboardScreenState();
@@ -35,12 +40,14 @@ class FamilyDashboardScreen extends StatefulWidget {
 
 class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   late FirebaseFamilyService _familyService;
+  late CooperativeMechanicsService _coopService;
   String? _familyId;
   family_models.FamilyStats? _familyStats;
   Stream<family_models.Family?>? _familyStream;
   Stream<List<invitation_models.FamilyInvitation>>? _invitationStatsStream;
   Stream<List<SharedWasteClassification>>? _recentActivityStream;
   List<user_profile_models.UserProfile> _members = [];
+  String? _currentUserId;
   String? _error;
   bool _isInitialLoading = true;
   bool _isStatsLoading = false;
@@ -59,6 +66,8 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
   void initState() {
     super.initState();
     _familyService = widget.familyService ?? FirebaseFamilyService();
+    _coopService = widget.cooperativeMechanicsService ??
+        CooperativeMechanicsService();
     _initializeFamilyData();
   }
 
@@ -166,6 +175,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
         );
       } else {
         _familyId = currentUser!.familyId!;
+        _currentUserId = currentUser.id;
         _familyStream = _familyService.getFamilyStream(_familyId!);
         _invitationStatsStream = _familyService.getInvitationsStream(
           _familyId!,
@@ -289,11 +299,103 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
                 : 'Family Dashboard')
             : '';
 
+        final isAdmin = family != null &&
+            family.getAdmins().any((m) => m.userId == _currentUserId);
         return Scaffold(
           appBar: widget.showAppBar ? _buildFamilyAppBar(appBarTitle) : null,
           body: _buildBodyContent(familySnapshot, family, _familyStats),
+          floatingActionButton: family != null && isAdmin
+              ? FloatingActionButton.extended(
+                  key: const Key('family-dashboard-create-coop-fab'),
+                  onPressed: () =>
+                      _showCreateCoopItemSheet(context, isAdmin: isAdmin),
+                  icon: const Icon(Icons.add),
+                  label: const Text('New Activity'),
+                )
+              : null,
         );
       },
+    );
+  }
+
+  void _showCreateCoopItemSheet(
+    BuildContext context, {
+    required bool isAdmin,
+  }) {
+    if (_familyId == null) return;
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(AppTheme.paddingLarge),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'What would you like to create?',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: AppTheme.paddingLarge),
+            _CoopCreateOption(
+              emoji: '🎯',
+              label: 'Shared Goal',
+              subtitle: 'Set a scan or points target for the whole household',
+              onTap: () {
+                Navigator.of(context).pop();
+                _openGoalCreation();
+              },
+            ),
+            const SizedBox(height: AppTheme.paddingSmall),
+            _CoopCreateOption(
+              emoji: '✅',
+              label: 'Household Task',
+              subtitle: 'Assign a one-off task to a specific role',
+              onTap: () {
+                Navigator.of(context).pop();
+                _openTaskCreation();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openGoalCreation() {
+    if (_familyId == null) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => CreateGoalSheet(
+        familyId: _familyId!,
+        createdBy: _currentUserId ?? '',
+        service: _coopService,
+      ),
+    );
+  }
+
+  void _openTaskCreation() {
+    if (_familyId == null) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => CreateTaskSheet(
+        familyId: _familyId!,
+        createdBy: _currentUserId ?? '',
+        service: _coopService,
+      ),
     );
   }
 
@@ -433,6 +535,13 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
               const Center(child: CircularProgressIndicator())
             else
               _buildStatsOverview(statsFromState),
+            const SizedBox(height: AppTheme.paddingLarge),
+            if (_familyId != null)
+              CooperativeMechanicsSection(
+                familyId: _familyId!,
+                cooperativeMechanicsService: _coopService,
+                currentUserId: _currentUserId,
+              ),
             const SizedBox(height: AppTheme.paddingLarge),
             _buildMembersSection(family),
             const SizedBox(height: AppTheme.paddingLarge),
@@ -1461,23 +1570,57 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
       ),
     );
   }
+
 }
 
-class TimeAgo {
-  static String format(DateTime date) {
-    final duration = DateTime.now().difference(date);
-    if (duration.inDays > 7) {
-      return '${date.day}/${date.month}/${date.year}';
-    }
-    if (duration.inDays >= 1) {
-      return '${duration.inDays}d ago';
-    }
-    if (duration.inHours >= 1) {
-      return '${duration.inHours}h ago';
-    }
-    if (duration.inMinutes >= 1) {
-      return '${duration.inMinutes}m ago';
-    }
-    return 'Just now';
+class _CoopCreateOption extends StatelessWidget {
+  const _CoopCreateOption({
+    required this.emoji,
+    required this.label,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final String label;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        child: Row(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 28)),
+            const SizedBox(width: AppTheme.paddingRegular),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.textSecondaryColor,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, size: 20),
+          ],
+        ),
+      ),
+    );
   }
 }

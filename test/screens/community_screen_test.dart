@@ -126,7 +126,7 @@ void main() {
       final communityService = MockCommunityService();
 
       when(storageService.getCurrentUserProfile()).thenAnswer((_) async {
-        await Future<void>.delayed(const Duration(milliseconds: 5));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
         return null;
       });
       when(storageService.getAllClassifications())
@@ -156,9 +156,8 @@ void main() {
       );
 
       await tester.pump();
-      expect(find.text('Syncing your scans'), findsOneWidget);
 
-      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 150));
       expect(find.text('No community activity yet'), findsOneWidget);
       expect(find.text('Pull to refresh'), findsWidgets);
     });

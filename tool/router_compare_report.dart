@@ -6,8 +6,10 @@ import 'package:waste_segregation_app/ai_flywheel/router_policy_recommendations.
 import 'package:waste_segregation_app/services/ai_router_policy_config.dart';
 
 void main(List<String> args) {
-  final input = _arg(args, '--input', fallback: 'build/reports/ai_eval/latest.json');
-  final out = _arg(args, '--out', fallback: 'build/reports/ai_eval/router_compare.json');
+  final input =
+      _arg(args, '--input', fallback: 'build/reports/ai_eval/latest.json');
+  final out = _arg(args, '--out',
+      fallback: 'build/reports/ai_eval/router_compare.json');
   final policyPackFile = _arg(args, '--policy-pack-file', fallback: '');
   final policy = _loadPolicy(policyPackFile);
 
@@ -60,17 +62,15 @@ void main(List<String> args) {
     groupedByCase.putIfAbsent(caseId, () => <Map<String, dynamic>>[]).add(o);
   }
   for (final entry in groupedByCase.entries) {
-    final categories = entry.value
-        .map((e) => '${e['predictedCategory'] ?? ''}')
-        .toSet();
+    final categories =
+        entry.value.map((e) => '${e['predictedCategory'] ?? ''}').toSet();
     if (categories.length > 1) {
       disagreement[entry.key] = categories.length;
     }
     final safety = entry.value
-        .where((e) =>
-            (e['predictedCategory'] == 'Hazardous Waste' ||
-                e['predictedCategory'] == 'Medical Waste' ||
-                e['predictedCategory'] == 'E-Waste'))
+        .where((e) => (e['predictedCategory'] == 'Hazardous Waste' ||
+            e['predictedCategory'] == 'Medical Waste' ||
+            e['predictedCategory'] == 'E-Waste'))
         .map((e) => '${e['provider'] ?? 'unknown'}')
         .toList();
     if (safety.isNotEmpty && safety.length != entry.value.length) {
@@ -101,7 +101,8 @@ void main(List<String> args) {
     };
     for (final r in rows) {
       final conf = (r['confidence'] as num?)?.toDouble() ?? 0;
-      final correct = r['strictPass'] == true || r['acceptableAlternativePass'] == true;
+      final correct =
+          r['strictPass'] == true || r['acceptableAlternativePass'] == true;
       final bin = conf < 0.5
           ? '0.00-0.49'
           : conf < 0.7
@@ -139,7 +140,8 @@ void main(List<String> args) {
   outFile.parent.createSync(recursive: true);
   outFile.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(report));
 
-  final recFile = File('build/reports/ai_eval/router_strategy_recommendations.md');
+  final recFile =
+      File('build/reports/ai_eval/router_strategy_recommendations.md');
   recFile.parent.createSync(recursive: true);
   recFile.writeAsStringSync(buildRouterStrategyRecommendations(policy));
 
@@ -164,18 +166,18 @@ String _arg(List<String> args, String name, {required String fallback}) {
     if (args[i] == name && i + 1 < args.length) return args[i + 1].trim();
     if (args[i].startsWith('$name=')) return args[i].split('=').last.trim();
   }
-
-  AiRouterPolicyConfig _loadPolicy(String policyPackFile) {
-    if (policyPackFile.trim().isEmpty) {
-      return AiRouterPolicyConfig.defaults;
-    }
-    final file = File(policyPackFile.trim());
-    if (!file.existsSync()) {
-      stderr.writeln(
-          'Policy pack file not found ($policyPackFile). Falling back to defaults.');
-      return AiRouterPolicyConfig.defaults;
-    }
-    return AiRouterPolicyConfig.fromJsonString(file.readAsStringSync());
-  }
   return fallback;
+}
+
+AiRouterPolicyConfig _loadPolicy(String policyPackFile) {
+  if (policyPackFile.trim().isEmpty) {
+    return AiRouterPolicyConfig.defaults;
+  }
+  final file = File(policyPackFile.trim());
+  if (!file.existsSync()) {
+    stderr.writeln(
+        'Policy pack file not found ($policyPackFile). Falling back to defaults.');
+    return AiRouterPolicyConfig.defaults;
+  }
+  return AiRouterPolicyConfig.fromJsonString(file.readAsStringSync());
 }

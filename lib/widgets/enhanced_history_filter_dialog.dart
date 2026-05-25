@@ -22,14 +22,10 @@ class _EnhancedHistoryFilterDialogState
   late FilterOptions _tempFilters;
   late TabController _tabController;
 
-  // Predefined filter options
-  final List<String> _availableCategories = [
-    'Recyclable',
-    'Organic/Compostable',
-    'Hazardous Waste',
-    'Electronic Waste',
-    'General Waste',
-  ];
+  // Predefined filter options sourced from canonical WasteCategory enum
+  final List<String> _availableCategories = WasteCategory.values
+      .map((c) => c.name)
+      .toList();
 
   @override
   void initState() {

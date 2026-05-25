@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import '../services/visual_feedback_service.dart';
 import '../models/classification_state.dart';
 import '../models/gamification.dart';
 import '../services/result_pipeline.dart';

@@ -8,7 +8,9 @@ import 'package:waste_segregation_app/models/shared_waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/screens/family_dashboard_screen.dart';
+import 'package:waste_segregation_app/models/cooperative_mechanics.dart';
 import 'package:waste_segregation_app/services/analytics_service.dart';
+import 'package:waste_segregation_app/services/cooperative_mechanics_service.dart';
 import 'package:waste_segregation_app/services/firebase_family_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 
@@ -171,6 +173,26 @@ class FakeFamilyService extends FirebaseFamilyService {
   }
 }
 
+/// Fake cooperative mechanics service: all streams emit empty lists,
+/// all futures succeed immediately. No Firebase access.
+class FakeCooperativeMechanicsService extends CooperativeMechanicsService {
+  @override
+  Stream<List<FamilyGoal>> watchActiveGoals(String familyId) =>
+      Stream.value([]);
+
+  @override
+  Stream<List<FamilyTask>> watchPendingTasks(String familyId) =>
+      Stream.value([]);
+
+  @override
+  Stream<HouseholdStreak?> watchStreak(String familyId) =>
+      Stream.value(null);
+
+  @override
+  Stream<List<CooperativeChallenge>> watchActiveChallenges(String familyId) =>
+      Stream.value([]);
+}
+
 Widget _wrapDashboard(
   Widget child, {
   required double width,
@@ -320,6 +342,7 @@ void main() {
             storageService: storage,
             familyService: familyService,
             analyticsService: analytics,
+            cooperativeMechanicsService: FakeCooperativeMechanicsService(),
           ),
           width: 360,
           height: 900,
@@ -381,6 +404,7 @@ void main() {
             storageService: storage,
             familyService: familyService,
             analyticsService: analytics,
+            cooperativeMechanicsService: FakeCooperativeMechanicsService(),
           ),
           width: 800,
           height: 1200,
@@ -469,6 +493,7 @@ void main() {
             storageService: storage,
             familyService: familyService,
             analyticsService: analytics,
+            cooperativeMechanicsService: FakeCooperativeMechanicsService(),
           ),
           width: 320,
           height: 900,
@@ -519,6 +544,7 @@ void main() {
             storageService: storage,
             familyService: familyService,
             analyticsService: analytics,
+            cooperativeMechanicsService: FakeCooperativeMechanicsService(),
           ),
           width: 360,
           height: 900,

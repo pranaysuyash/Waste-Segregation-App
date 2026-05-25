@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import '../services/visual_feedback_service.dart';
 
 /// Performance optimizer for snappy Gen Z user experience
 class PerformanceOptimizer {
@@ -130,12 +131,6 @@ class PerformanceOptimizer {
       SchedulerBinding.instance.addPostFrameCallback((_) {
         if (state.mounted) {
           callback();
-        }
-      });
-    }
-  }
-}
-();
         }
       });
     }

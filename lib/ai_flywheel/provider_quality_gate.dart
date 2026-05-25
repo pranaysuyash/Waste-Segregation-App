@@ -68,7 +68,8 @@ class ProviderQualityGate {
         (summary['mustNotViolations'] as num?)?.toInt() ?? 0;
     final safetyCriticalFailures =
         (summary['safetyCriticalFailures'] as num?)?.toInt() ?? 0;
-    final localRuleFailures = (summary['localRuleFailures'] as num?)?.toInt() ?? 0;
+    final localRuleFailures =
+        (summary['localRuleFailures'] as num?)?.toInt() ?? 0;
 
     final correct = strictPass + acceptablePass;
     final accuracy = cases == 0 ? 0.0 : correct / cases;
@@ -94,7 +95,8 @@ class ProviderQualityGate {
     }
 
     return ProviderQualityGateResult(
-      providerLabel: providerLabel.isEmpty ? defaultProviderLabel : providerLabel,
+      providerLabel:
+          providerLabel.isEmpty ? defaultProviderLabel : providerLabel,
       cases: cases,
       accuracy: accuracy,
       mustNotViolations: mustNotViolations,

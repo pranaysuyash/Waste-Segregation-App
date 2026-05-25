@@ -46,6 +46,14 @@ class FirestoreCollections {
   static const String sharedClassifications = 'shared_classifications';
   static const String familyStats = 'family_stats';
 
+  // --- Cooperative mechanics subcollections (under families/{familyId}/) ---
+  static const String familyGoals = 'family_goals';
+  static const String familyTasks = 'family_tasks';
+  static const String cooperativeChallenges = 'cooperative_challenges';
+  static const String householdStreaks = 'household_streaks';
+  static const String parentChildMissions = 'parent_child_missions';
+  static const String cooperativeSnapshots = 'cooperative_snapshots';
+
   // --- Classification feedback ---
   static const String classificationFeedback = 'classification_feedback';
 

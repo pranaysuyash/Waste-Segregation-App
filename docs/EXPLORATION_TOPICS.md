@@ -2,7 +2,7 @@
 
 **Purpose**: Living document tracking research areas for the ReLoop
 **Status**: Active — continuously updated as the project evolves
-**Last Updated**: 2026-05-23
+**Last Updated**: 2026-05-24
 **Sibling docs**:
 - [EXPLORATION_FRONTIER.md](EXPLORATION_FRONTIER.md) — high-ambition / "boil the ocean" frontier bets
 - [EXPLORATION_ROADMAP_WHILE_BUILDING.md](EXPLORATION_ROADMAP_WHILE_BUILDING.md) — what to explore in parallel with shipping
@@ -1294,6 +1294,13 @@ All NOW-phase and NEXT-phase exploration docs completed:
 | [Classification History Schema](exploration/CLASSIFICATION_HISTORY_SCHEMA.md) | X5 | Complete — v2 schema, indexes, dedup |
 | [Local-First Privacy Architecture](exploration/LOCAL_FIRST_PRIVACY_ARCHITECTURE.md) | G2 | Complete — privacy by layer, consent flow |
 | [Confidence Threshold Tuning](exploration/CONFIDENCE_THRESHOLD_TUNING.md) | G3 | Complete — calibration methodology, per-category overrides |
+| [Motivation Archetypes](exploration/MOTIVATION_ARCHETYPES.md) | X4 (adaptive gamification) | Complete — 5-archetype model, detection signals, industry research, ethical guardrails |
+| [Points Economy v2](exploration/POINTS_ECONOMY_V2.md) | X4 (adaptive gamification) | Complete — earn rates, dual-currency research, sink design, inflation modelling, monitoring |
+| [Negative Mechanics A/B](exploration/NEGATIVE_MECHANICS_AB.md) | X4 (adaptive gamification) | Complete — industry evidence, ethical guardrails, experiment design, sample size, kill criteria |
+| [AI Service Refactoring (motto_v2)](exploration/AI_SERVICE_REFACTORING_MOTTO_V2.md) | N1 (engineering foundations) | Complete — god-class decomposition, separation of concerns, clean architecture plan |
+| [Post-MVP Roadmap (Points, Challenges, Community)](exploration/POST_MVP_ROADMAP_POINTS_CHALLENGES_COMMUNITY.md) | X4 (adaptive gamification) | Complete — Duolingo/Habitica/Strava sequencing analysis, dependency ordering, phase plan |
+| [Onboarding Re-exploration](exploration/ONBOARDING_REEXPLORATION.md) | N4 | Complete — 2025-26 research, privacy-preserving flows, cold-start funnel, progressive onboarding vs immediate plunge |
+| [Lint / Static Analysis / Type Safety](exploration/LINT_STATIC_ANALYSIS_TYPE_SAFETY.md) | P2 (platform) | Complete — lint rulesets, CI integration, type safety patterns, dead code detection, performance linting |
 
 ## Flywheel Foundation Link (2026-05-22)
 - Added workflow docs: `docs/guides/ai_flywheel/annotation_review_workflow.md`, `docs/guides/ai_flywheel/router_comparison_workflow.md`
@@ -1324,10 +1331,10 @@ All NOW-phase and NEXT-phase exploration docs completed:
 
 ### P1 — Adaptive Gamification and Behaviour Design
 
-6. **Adaptive motivation profile** 🔴 — learn whether a user is solo-achievement, social, learning, impact, streak, or utility-driven from interaction frequency, completion patterns, time-of-day, feature visits, challenge choices, and explicit check-ins. Start balanced, then adapt.
-7. **Dynamic challenge weighting / counterbalance loop** 🔴 — use challenges to rebalance behaviour: if a user over-indexes on social competition, introduce solo mastery; if they only scan easy volume, introduce hazardous/e-waste or education; if they avoid community, introduce low-risk contribution tasks.
-8. **Negative mechanics research** 🟡 — explore whether streak breaks, gentle decay, challenge failure, or recovery mechanics improve retention without anxiety. Default posture: points never decrease; any loss mechanic must be opt-in, explainable, recoverable, and tested.
-9. **Points sinks and economy separation** 🟡 — define which sinks belong to points, tokens, civic reputation, or premium cosmetics: streak freezes, themes, custom challenges, eco-impact donations, family perks. Keep paid AI tokens separate unless a server-authoritative anti-farming path exists.
+6. **Adaptive motivation profile** 🔴 — learn whether a user is solo-achievement, social, learning, impact, streak, or utility-driven from interaction frequency, completion patterns, time-of-day, feature visits, challenge choices, and explicit check-ins. Start balanced, then adapt. → [Exploration doc complete](exploration/MOTIVATION_ARCHETYPES.md) with research on HEXAD, Bartle, Octalysis, and the 5-archetype ReLoop model.
+7. **Dynamic challenge weighting / counterbalance loop** 🔴 — use challenges to rebalance behaviour: if a user over-indexes on social competition, introduce solo mastery; if they only scan easy volume, introduce hazardous/e-waste or education; if they avoid community, introduce low-risk contribution tasks. (Design depends on archetype foundation #6.)
+8. **Negative mechanics research** 🟡 — explore whether streak breaks, gentle decay, challenge failure, or recovery mechanics improve retention without anxiety. Default posture: points never decrease; any loss mechanic must be opt-in, explainable, recoverable, and tested. → [Exploration doc complete](exploration/NEGATIVE_MECHANICS_AB.md) with industry evidence, ethical guardrails, and experiment design.
+9. **Points sinks and economy separation** 🟡 — define which sinks belong to points, tokens, civic reputation, or premium cosmetics: streak freezes, themes, custom challenges, eco-impact donations, family perks. Keep paid AI tokens separate unless a server-authoritative anti-farming path exists. → [Exploration doc complete](exploration/POINTS_ECONOMY_V2.md) with earn rates, sink types, inflation model, and monitoring dashboard.
 10. **Gamification moment quality** 🟡 — reduce noisy popups, reserve celebration for meaningful milestones, coalesce reward events, add flow-friendly banners, and make rewards feel earned rather than spammy.
 11. **Real-world impact personalization** 🟡 — learn which impact framing motivates each user: kg diverted, contamination prevented, local civic impact, family progress, carbon estimates, hazardous harm avoided, or learning mastery.
 

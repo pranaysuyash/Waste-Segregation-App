@@ -53,10 +53,6 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       _chartAnimationController.forward(from: 0);
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _ensureDataSync(context);
-    });
-
     _loadData();
   }
 
@@ -118,6 +114,13 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
   }
 
   void _processClassifications(List<WasteClassification> classifications) {
+    // Reset counters before processing — handles empty-to-empty transitions
+    _wasteCategoryCounts = {};
+    _wasteSubcategoryCounts = {};
+    _subcategoryCategoryMap.clear();
+    _wasteByDate = {};
+    _wasteByWeek = {};
+
     // Skip processing if no data
     if (classifications.isEmpty) return;
 
@@ -126,13 +129,6 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
 
     // Set first classification date
     _firstClassificationDate = classifications.first.timestamp;
-
-    // Reset counters
-    _wasteCategoryCounts = {};
-    _wasteSubcategoryCounts = {};
-    _subcategoryCategoryMap.clear();
-    _wasteByDate = {};
-    _wasteByWeek = {};
 
     // Process each classification
     for (final classification in classifications) {
@@ -1980,8 +1976,4 @@ class GamificationSummaryCard extends StatelessWidget {
       ),
     );
   }
-}
-
-Future<void> _ensureDataSync(BuildContext context) async {
-  // ... existing code ...
 }

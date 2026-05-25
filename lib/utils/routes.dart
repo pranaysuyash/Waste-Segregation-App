@@ -30,6 +30,7 @@ class Routes {
   static const String classification = '/classification';
   static const String result = '/result';
   static const String modelRouting = '/model_routing';
+  static const String gamificationAnalytics = '/gamification_analytics';
 
   // Utility method to check if a route exists
   static bool isValidRoute(String route) {
@@ -61,5 +62,6 @@ class Routes {
     classification,
     result,
     modelRouting,
+    gamificationAnalytics,
   ];
 }

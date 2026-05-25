@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import '../../models/gamification.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
+import '../../services/visual_feedback_service.dart';
 
 /// Epic achievement celebration with confetti and 3D badge effect
 class AchievementCelebration extends StatefulWidget {
@@ -541,10 +542,6 @@ class _PointsEarnedPopupState extends State<PointsEarnedPopup>
   @override
   void dispose() {
     _controller.dispose();
-    super.dispose();
-  }
-}
-dispose();
     super.dispose();
   }
 }

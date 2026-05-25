@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/providers/token_providers.dart';
 import '../models/token_wallet.dart';
 import '../utils/routes.dart';
+import '../utils/wallet_encryption.dart';
 import '../utils/waste_app_logger.dart';
 
 class TokenWalletScreen extends ConsumerWidget {
@@ -148,7 +150,18 @@ class TokenWalletScreen extends ConsumerWidget {
         return;
       }
       final walletJson = jsonEncode(wallet.toJson());
-      await Clipboard.setData(ClipboardData(text: walletJson));
+      final userProfile = await ref.read(userProfileProvider.future);
+      final userId = userProfile?.id ?? 'unknown';
+      final integrityHash = WalletEncryption.computeIntegrityHash(
+        walletJson: walletJson,
+        userId: userId,
+      );
+      final exportPayload = jsonEncode({
+        'v': 1,
+        'wallet': wallet.toJson(),
+        'integrity_hash': integrityHash,
+      });
+      await Clipboard.setData(ClipboardData(text: exportPayload));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -179,7 +192,35 @@ class TokenWalletScreen extends ConsumerWidget {
         return;
       }
       final parsed = jsonDecode(data.text!) as Map<String, dynamic>;
-      final restored = TokenWallet.fromJson(parsed);
+      Map<String, dynamic> walletData;
+      if (parsed.containsKey('v') && parsed.containsKey('wallet')) {
+        walletData = parsed['wallet'] as Map<String, dynamic>;
+        if (parsed.containsKey('integrity_hash')) {
+          final expectedHash = parsed['integrity_hash'] as String;
+          final walletJson = jsonEncode(walletData);
+          final userProfile = await ref.read(userProfileProvider.future);
+          final userId = userProfile?.id ?? 'unknown';
+          final valid = WalletEncryption.verifyIntegrity(
+            expectedHash: expectedHash,
+            walletJson: walletJson,
+            userId: userId,
+          );
+          if (!valid) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Wallet integrity check failed - data may be tampered'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+            return;
+          }
+        }
+      } else {
+        walletData = parsed;
+      }
+      final restored = TokenWallet.fromJson(walletData);
       final tokenService = ref.read(tokenServiceProvider);
       await tokenService.restoreWallet(restored);
       ref.invalidate(tokenWalletProvider);

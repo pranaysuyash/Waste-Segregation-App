@@ -199,13 +199,15 @@ If another agent gives a summary, treat it as a hypothesis. Verify against curre
 
 ---
 
-## 6. “Pre-existing” Is Not an Excuse
+## 6. “Pre-existing” Is Not an Excuse — Fix It
 
 Agents must not use “pre-existing” as a way to skip work, avoid responsibility, or continue while the repo is broken.
 
-A failure being pre-existing only changes how it is scoped. It does not make the failure irrelevant.
+**Knowing about a pre-existing issue is not permission to leave it. It is a mandate to resolve it.**
 
-A failure is only pre-existing if:
+If you are aware of a pre-existing issue — whether from prior context, memory, a previous agent's handoff, or your own inspection — you are responsible for fixing it as part of the current work. Awareness removes the “I didn't know” defense entirely. Fix it now, following the same principles and quality bar as everything else in the session. Do not downgrade the fix standard because the issue predates you.
+
+A failure is only genuinely pre-existing if:
 
 - it existed on `origin/master` or a captured baseline before the current work, and
 - proof is documented with command output, and
@@ -213,23 +215,23 @@ A failure is only pre-existing if:
 
 If the failing file, dependency, type, route, contract, or behavior was touched in the current work sequence, assume the current work introduced or exposed the failure until proven otherwise.
 
-When an issue is genuinely pre-existing:
+**Blast radius rule:** When an issue is in the blast radius of current work — meaning the same file, module, dependency chain, or behavioral path was touched — fix the issue in the same pass. “Blast radius” is not limited to the exact line changed; it includes the full module, its callers, its tests, and its documentation.
 
-- document it clearly
+When an issue is genuinely pre-existing and clearly outside the blast radius:
+
+- document it clearly with proof (command output)
 - classify severity
 - check if current work made it worse
 - check if current work depends on it
 - check if an existing supersession, replacement, migration, or canonical path already solves it
-- decide whether to fix now, include in the current batch, or create a tracked follow-up
-- do not continue silently
+- fix it in the current session unless explicitly out of scope and explicitly approved to defer
 
 Pre-existing failures must be handled through one of these rules:
 
-1. **Fix now** — if security, data loss, contract breakage, broken build/typecheck, or user-facing regression.
+1. **Fix now (default)** — fix it. This is the default path. Pre-existing does not mean defer.
 2. **Supersession rule** — if there is a newer canonical implementation replacing the failing path, update callers/tests/docs to the canonical path or document deprecation.
-3. **Containment rule** — if unrelated and not safe to fix now, document exact repro, ownership, severity, and follow-up.
-4. **Baseline rule** — if truly unrelated and already known, provide proof and continue only with explicit approval.
-5. **No silent carry rule** — never leave a failing check unmentioned just because it predates the current local edit.
+3. **Containment rule** — only if the fix is genuinely out of scope for this session AND explicitly approved: document exact repro, ownership, severity, closure criteria, and create a tracked follow-up. This is not a get-out clause.
+4. **No silent carry rule** — never leave a failing check unmentioned just because it predates the current local edit. Every known issue must be explicitly acknowledged and dispositioned.
 
 Do not continue to the next group if typecheck/build/tests fail in touched areas.
 

@@ -21,7 +21,7 @@ class ColorAdapter extends TypeAdapter<Color> {
   @override
   void write(BinaryWriter writer, Color obj) {
     // Color.value is ARGB packed as 0xAARRGGBB.
-    writer.writeUint32(obj.value);
+    writer.writeUint32(obj.toARGB32());
   }
 }
 
@@ -246,7 +246,7 @@ class Achievement {
       'type': type.toString().split('.').last,
       'threshold': threshold,
       'iconName': iconName,
-      'color': color.value,
+      'color': color.toARGB32(),
       'isSecret': isSecret,
       'earnedOn': earnedOn?.toIso8601String(),
       'progress': progress,
@@ -437,7 +437,7 @@ class Challenge {
       'endDate': endDate.toIso8601String(),
       'pointsReward': pointsReward,
       'iconName': iconName,
-      'color': color.value,
+      'color': color.toARGB32(),
       'requirements': requirements,
       'isCompleted': isCompleted,
       'progress': progress,
@@ -1135,6 +1135,9 @@ class AnalyticsEventTypes {
   static const String gamification = 'gamification';
   static const String content = 'content';
   static const String navigation = 'navigation';
+
+  // Cooperative mechanics events (family goals, tasks, challenges, streaks)
+  static const String cooperative = 'cooperative';
 }
 
 /// Types of near-milestone nudges

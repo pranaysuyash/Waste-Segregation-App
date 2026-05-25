@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../services/visual_feedback_service.dart';
 
 /// Animated version of SettingTile with smooth transitions and micro-interactions
 class AnimatedSettingTile extends StatefulWidget {
@@ -556,10 +557,6 @@ class _AnimatedSectionHeaderState extends State<AnimatedSectionHeader>
             children: widget.children,
           ),
         ),
-      ],
-    );
-  }
-}
       ],
     );
   }

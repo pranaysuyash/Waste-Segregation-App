@@ -40,8 +40,8 @@ void main() {
       );
 
       expect(stages, <ClassificationState>[
-        ClassificationState.policyApplied,
         ClassificationState.classificationSucceeded,
+        ClassificationState.policyApplied,
       ]);
       expect(navigateCount, 1);
     });

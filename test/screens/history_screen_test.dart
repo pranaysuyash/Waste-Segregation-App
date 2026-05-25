@@ -244,11 +244,11 @@ void main() {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
+      // Verify visible filter chips (horizontal ListView only renders on-screen items).
       expect(find.text('All'), findsOneWidget);
       expect(find.text('Wet Waste'), findsWidgets);
       expect(find.text('Dry Waste'), findsWidgets);
-      expect(find.text('Hazardous'), findsOneWidget);
-      expect(find.text('Manual Review'), findsOneWidget);
+      expect(find.text('Hazardous Waste'), findsWidgets);
     });
 
     testWidgets('filter chips narrow list by category', (
@@ -291,10 +291,10 @@ void main() {
     testWidgets('no-results state when filters produce no matches', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(buildApp());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Hazardous').first);
+      // Medical Waste has no items in mock data — pre-select it via filterCategory.
+      await tester.pumpWidget(buildApp(
+        child: const HistoryScreen(filterCategory: 'Medical Waste'),
+      ));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 

@@ -12,17 +12,20 @@ class ProviderRouterResult {
     required this.response,
     required this.providerUsed,
     this.attemptedProviders = const [],
+    this.providerDuration = Duration.zero,
   });
 
   final AiProviderResponse response;
   final String providerUsed;
   final List<String> attemptedProviders;
+
+  /// Wall-clock time from first provider attempt to successful response.
+  /// Suitable for passing to usage-accounting as processing time.
+  final Duration providerDuration;
 }
 
 class AiProviderRouter {
-  AiProviderRouter({this.maxRetries = 3});
-
-  final int maxRetries;
+  const AiProviderRouter();
 
   bool get _backendRoutingEnabled {
     return kReleaseMode ||
@@ -34,21 +37,28 @@ class AiProviderRouter {
     return kReleaseMode || ProductionSafetyConfig.useBackendAiInRelease;
   }
 
-  bool _shouldFallbackToGemini(AiFailureKind kind, int retryCount) {
-    if (retryCount >= maxRetries) return true;
+  /// Returns true for the two failure kinds where Gemini is a meaningful
+  /// alternative to OpenAI:
+  ///
+  /// - [AiFailureKind.invalidImageTooLarge]: Gemini handles larger images.
+  /// - [AiFailureKind.providerUnavailable]: Gemini may be up when OpenAI is not.
+  ///
+  /// All other failure kinds (terminal, rate-limited, network, unknown) must
+  /// NOT silently fall to Gemini — they should propagate so the caller can
+  /// handle them explicitly.
+  static bool shouldFallbackToGemini(AiFailureKind kind) {
     return kind == AiFailureKind.invalidImageTooLarge ||
         kind == AiFailureKind.providerUnavailable;
   }
 
+  /// Terminal failures that must never be swallowed or retried regardless of
+  /// which provider produced them.
   static bool isTerminalFailureKind(AiFailureKind kind) {
     return kind == AiFailureKind.cancelled ||
         kind == AiFailureKind.unsafeClientAiBlocked ||
         kind == AiFailureKind.auth ||
         kind == AiFailureKind.budgetExceeded;
   }
-
-  bool _isTerminalFailureKind(AiFailureKind kind) =>
-      AiProviderRouter.isTerminalFailureKind(kind);
 
   Future<ProviderRouterResult> orchestrate({
     required ProviderCall backendCall,
@@ -58,6 +68,7 @@ class AiProviderRouter {
     bool? backendRoutingFailClosed,
   }) async {
     final attempted = <String>[];
+    final routerStart = DateTime.now();
 
     final effectiveBackendEnabled =
         backendRoutingEnabled ?? _backendRoutingEnabled;
@@ -72,14 +83,15 @@ class AiProviderRouter {
           response: response,
           providerUsed: 'backend',
           attemptedProviders: List.unmodifiable(attempted),
+          providerDuration: DateTime.now().difference(routerStart),
         );
       } on AiFailure catch (e) {
-        if (effectiveBackendFailClosed ||
-            e.kind == AiFailureKind.cancelled ||
-            e.kind == AiFailureKind.auth ||
-            e.kind == AiFailureKind.budgetExceeded) {
+        // Fail-closed mode and all terminal kinds must propagate immediately —
+        // never fall through to a direct provider.
+        if (effectiveBackendFailClosed || isTerminalFailureKind(e.kind)) {
           rethrow;
         }
+        // Non-terminal backend failure: fall through to OpenAI.
       }
     }
 
@@ -90,6 +102,7 @@ class AiProviderRouter {
         response: response,
         providerUsed: 'openai',
         attemptedProviders: List.unmodifiable(attempted),
+        providerDuration: DateTime.now().difference(routerStart),
       );
     } on Exception catch (e) {
       if (e is ProductionSafetyException) {
@@ -98,22 +111,19 @@ class AiProviderRouter {
 
       final kind = e is AiFailure ? e.kind : AiFailureKind.unknown;
 
-      if (_isTerminalFailureKind(kind)) {
+      if (isTerminalFailureKind(kind)) {
         rethrow;
       }
 
-      if (_shouldFallbackToGemini(kind, attempted.length)) {
+      if (shouldFallbackToGemini(kind)) {
         attempted.add('gemini');
-        try {
-          final response = await geminiCall();
-          return ProviderRouterResult(
-            response: response,
-            providerUsed: 'gemini',
-            attemptedProviders: List.unmodifiable(attempted),
-          );
-        } on Exception catch (_) {
-          rethrow;
-        }
+        final response = await geminiCall();
+        return ProviderRouterResult(
+          response: response,
+          providerUsed: 'gemini',
+          attemptedProviders: List.unmodifiable(attempted),
+          providerDuration: DateTime.now().difference(routerStart),
+        );
       }
 
       rethrow;

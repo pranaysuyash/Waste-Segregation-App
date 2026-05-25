@@ -1,25 +1,25 @@
 # Token Economy Phase 2-6 Implementation TODO
 
-**Status Update**: ✅ All P0-P2 items complete. Wallet integrity (HMAC) and backup/restore implemented. Most Phase 5 items are already implemented in code (Remote Config pricing, cost guardrails). Remaining items are Phase 6 testing and the freemium daily scan limit enforcement.
+**Status Update**: Phase 4 complete (HMAC, backup/restore, audit logging). Phase 5: Remote Config pricing, cost guardrails, freemium gating, and daily scan limit enforcement are done. Gaps: cross-device sync is one-way push (not bidirectional), token purchase storefront not built, batch processing returns placeholder results (OpenAI Batch API not integrated). Phase 6: TokenService and WalletEncryption unit tests exist and pass; integration, performance, security, and UAT tests still needed.
 
 ## Phase 4: Security & Infrastructure
 - [x] Implement Firestore security rules for wallet data protection
 - [x] Add wallet data integrity verification (HMAC-SHA256) — `lib/utils/wallet_encryption.dart`
 - [x] Create token transaction audit logging
 - [x] Add wallet backup (export) and restore (import) — `lib/screens/token_wallet_screen.dart`
-- [x] Add cross-device wallet synchronization
+- [~] Add cross-device wallet synchronization (one-way push to Firestore exists; bidirectional pull-on-login + conflict resolution not implemented)
 
 ## Phase 5: Cost Management & Analytics
 - [x] Implement Remote Config for dynamic pricing — `lib/services/dynamic_pricing_service.dart`
 - [x] Add cost guardrails and budget monitoring — `lib/services/cost_guardrail_service.dart`
 - [x] Create usage analytics and cost reporting — `lib/services/cost_tracking_interceptor.dart` + `lib/services/ai_cost_tracker.dart`
 - [x] Implement freemium feature gating — `lib/services/premium_service.dart` with feature flag checks
-- [ ] Enforce `freeDailyScanLimit` (value exists in Remote Config at `monetization.free_daily_scan_limit`, not yet gating scans in `image_capture_screen.dart`)
+- [x] Enforce `freeDailyScanLimit` (gated in `image_capture_screen.dart:824-834` via `PremiumService.canPerformScan()`, tracked in local Hive with daily reset)
 - [ ] Add token purchase/earn incentives UI (storefront for buying tokens, earn-through-engagement prompts)
 
 ## Phase 6: Testing & Optimization
-- [ ] Add comprehensive unit tests for TokenService (earn, spend, convert, restoreWallet)
-- [ ] Add unit tests for WalletEncryption integrity verification
+- [x] Add comprehensive unit tests for TokenService (earn, spend, convert, restoreWallet) — `test/services/token_service_test.dart` (12 tests, all passing)
+- [x] Add unit tests for WalletEncryption integrity verification — `test/utils/wallet_encryption_test.dart` (8 tests, all passing)
 - [ ] Implement integration tests for wallet operations
 - [ ] Performance testing for high-volume token transactions
 - [ ] Security testing for wallet data protection (verify HMAC detects tampering)

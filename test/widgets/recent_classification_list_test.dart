@@ -12,7 +12,7 @@ void main() {
             body: RecentClassificationCard(
               itemName: 'Plastic Bottle',
               category: 'Dry Waste',
-              subCategory: 'Plastic',
+              subcategory: 'Plastic',
               timestamp: DateTime.now(),
               imageUrl: 'test_image.jpg',
               isRecyclable: true,
@@ -71,7 +71,7 @@ void main() {
               child: RecentClassificationCard(
                 itemName: 'Test Item',
                 category: 'Hazardous Waste',
-                subCategory: 'Battery',
+                subcategory: 'Battery',
                 timestamp: DateTime.now(),
                 isRecyclable: true,
                 isCompostable: true,
@@ -101,7 +101,7 @@ void main() {
               child: RecentClassificationCard(
                 itemName: 'Test Item',
                 category: 'Medical Waste',
-                subCategory: 'Syringe',
+                subcategory: 'Syringe',
                 timestamp: DateTime.now(),
                 imageUrl: 'test_image.jpg',
                 isRecyclable: false,
@@ -173,7 +173,7 @@ void main() {
             body: RecentClassificationCard(
               itemName: 'Full Item',
               category: 'Dry Waste',
-              subCategory: 'Paper',
+              subcategory: 'Paper',
               timestamp: DateTime.now(),
               imageUrl: 'test_image.jpg',
               isRecyclable: true,
@@ -309,7 +309,7 @@ void main() {
               child: RecentClassificationCard(
                 itemName: extremelyLongItemName,
                 category: 'Dry Waste',
-                subCategory: extremelyLongSubcategory,
+                subcategory: extremelyLongSubcategory,
                 timestamp: DateTime.now(),
                 isRecyclable: true,
                 isCompostable: true,
@@ -335,7 +335,7 @@ void main() {
             body: RecentClassificationCard(
               itemName: 'Accessible Item',
               category: 'Wet Waste',
-              subCategory: 'Food',
+              subcategory: 'Food',
               timestamp: DateTime.now(),
               isRecyclable: false,
               isCompostable: true,
@@ -368,7 +368,7 @@ void main() {
                 (index) => RecentClassificationCard(
                   itemName: 'Item $index',
                   category: 'Category $index',
-                  subCategory: 'Subcategory $index',
+                  subcategory: 'Subcategory $index',
                   timestamp: DateTime.now().subtract(Duration(days: index)),
                   isRecyclable: index % 2 == 0,
                   isCompostable: index % 3 == 0,
@@ -480,7 +480,7 @@ void main() {
               child: RecentClassificationCard(
                 itemName: 'Narrow Item',
                 category: 'Hazardous Waste',
-                subCategory: 'Chemical',
+                subcategory: 'Chemical',
                 timestamp: DateTime.now(),
                 isRecyclable: false,
                 isCompostable: false,

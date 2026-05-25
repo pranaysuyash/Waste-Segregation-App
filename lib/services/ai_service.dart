@@ -91,6 +91,7 @@ class AiService {
     ClassificationProvider? backendProxy,
     OpenAiProviderClient? openAiProvider,
     GeminiProviderClient? geminiProvider,
+    AiProviderRouter? router,
   }) {
     // Resolve each dependency exactly once so field instances and sub-service
     // instances are identical (no duplicate default creations).
@@ -126,6 +127,7 @@ class AiService {
       backendProxy: backendProxy,
       openAiProvider: openAiProvider,
       geminiProvider: geminiProvider,
+      router: router,
     );
   }
 
@@ -154,6 +156,7 @@ class AiService {
         saveWebImageOverride,
     required EnhancedImageService imageService,
     required Dio dioClient,
+    AiProviderRouter? router,
   })  : _openAiProvider = openAiProvider,
         _geminiProvider = geminiProvider,
         _backendProxy = backendProxy,
@@ -174,7 +177,7 @@ class AiService {
           pricingService: pricingService,
           guardrailService: guardrailService,
         ),
-        _router = AiProviderRouter();
+        _router = router ?? const AiProviderRouter();
 
   static const String promptVersion = 'waste-classification-v2';
   static const String schemaVersion = 'waste-classification-schema-v2';
@@ -1273,23 +1276,18 @@ class AiService {
       thumbnailPath: thumbnailPath,
     );
 
+    // Record usage for direct providers only — backend accounting is handled
+    // server-side. providerDuration from the router captures the full time
+    // spent waiting for the provider, not post-processing time.
     if (result.providerUsed != 'backend') {
-      String modelKey;
-      final startTime = DateTime.now();
-
-      if (result.providerUsed == 'gemini') {
-        modelKey = 'gemini_2_0_flash';
-      } else {
-        modelKey =
-            ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
-      }
-
-      final processingTime = DateTime.now().difference(startTime);
+      final modelKey = result.providerUsed == 'gemini'
+          ? 'gemini_2_0_flash'
+          : ApiConfig.primaryModel.replaceAll('-', '_').replaceAll('.', '_');
 
       await _usageAccounting.recordUsage(
         response: result.response,
         modelKey: modelKey,
-        processingTime: processingTime,
+        processingTime: result.providerDuration,
       );
     }
 

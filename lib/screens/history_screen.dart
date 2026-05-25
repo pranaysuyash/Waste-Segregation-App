@@ -56,14 +56,12 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
   final List<String> _selectedCategories = [];
 
-  static const List<String> _filterChipLabels = [
-    'All',
-    'Wet Waste',
-    'Dry Waste',
-    'Hazardous',
-    'Manual Review',
-    'Saved',
-  ];
+  static List<String> get _filterChipLabels => [
+        'All',
+        ...WasteCategory.values.map((c) => c.name),
+        'Manual Review',
+        'Saved',
+      ];
 
   String _activeFilterChip = 'All';
 
@@ -118,6 +116,12 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
         categories: [widget.filterCategory!],
       );
       _activeFilterChip = widget.filterCategory!;
+    }
+
+    if (widget.filterSubcategory != null) {
+      _filterOptions = _filterOptions.copyWith(
+        subcategories: [widget.filterSubcategory!],
+      );
     }
 
     _loadClassifications();
@@ -687,13 +691,8 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   Color _getCategoryColor(String category) =>
       WasteTheme.categoryColor(category);
 
-  List<String> get _allCategoryNames => [
-        'Wet Waste',
-        'Dry Waste',
-        'Hazardous Waste',
-        'Medical Waste',
-        'Non-Waste',
-      ];
+  List<String> get _allCategoryNames =>
+      WasteCategory.values.map((c) => c.name).toList();
 
   Color _getFilterChipColor(String label) {
     if (label == 'All') return AppTheme.primaryColor;

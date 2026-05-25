@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../utils/app_theme.dart';
+import '../../services/visual_feedback_service.dart';
 
 /// Enhanced FAB with pulsing animation and modern styling
 class PolishedFAB extends StatefulWidget {
@@ -355,4 +356,3 @@ class _PolishedActionButtonState extends State<PolishedActionButton>
     );
   }
 }
-

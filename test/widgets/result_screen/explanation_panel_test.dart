@@ -49,7 +49,7 @@ void main() {
         alternatives: [
           AlternativeClassification(
             category: 'Wet Waste',
-            subCategory: 'Food Soiled',
+            subcategory: 'Food Soiled',
             confidence: 0.25,
             reason: 'If heavily food-soiled, compost instead',
           ),

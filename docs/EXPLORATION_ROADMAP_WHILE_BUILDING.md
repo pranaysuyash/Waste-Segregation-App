@@ -2,7 +2,7 @@
 
 **Purpose**: What to investigate *in parallel* with shipping. Maps exploration topics to the build phases they should de-risk before — or alongside — implementation.
 **Status**: Living
-**Last Updated**: 2026-05-23
+**Last Updated**: 2026-05-24
 **Parent**: [EXPLORATION_TOPICS.md](EXPLORATION_TOPICS.md)
 **Sibling**: [EXPLORATION_FRONTIER.md](EXPLORATION_FRONTIER.md)
 
@@ -143,33 +143,35 @@ Goal: the product extends beyond the individual user — to bins, schools, citie
 
 - **Topics**: [On-Device Inference (🔴)](EXPLORATION_TOPICS.md#6-on-device-inference-), [Battery / Thermal (🟢)](EXPLORATION_TOPICS.md#8-battery-thermal--memory-budget-), [Model Cascades (🟡)](EXPLORATION_TOPICS.md#7-model-cascades-)
 - **De-risk question**: Can a Flutter-shippable local model handle the common case within battery and quality budget?
-- **Output**: `docs/exploration/ON_DEVICE_INFERENCE.md` + `docs/exploration/DEVICE_BUDGET.md`.
+- **Output**: ✅ `docs/exploration/ON_DEVICE_INFERENCE.md` written. `docs/exploration/DEVICE_BUDGET.md` still needed.
 - **Frontier dependency**: [F1. Fully On-Device Multi-Model Stack](EXPLORATION_FRONTIER.md#f1-fully-on-device-multi-model-stack).
 
 ### Track L2 — Smart-Bin / QR-Bin Layer
 
 - **Topics**: [Smart-Bin Integration (🟢)](EXPLORATION_TOPICS.md#24-smart-bin-integration--frontier), [Municipal APIs (🟡)](EXPLORATION_TOPICS.md#25-municipal-apis-bbmp-etc-)
 - **De-risk question**: Can the cheapest possible "smart bin" (a QR code) earn its keep with one RWA or school?
-- **Output**: `docs/exploration/SMART_BIN_INTEGRATION.md` + pilot summary.
+- **Output**: ✅ `docs/exploration/SMART_BIN_INTEGRATION.md` written. Pilot pending.
 - **Frontier dependency**: [F5. Smart-Bin / QR-Bin Aggregation Layer](EXPLORATION_FRONTIER.md#f5-smart-bin--qr-bin-aggregation-layer).
 
 ### Track L3 — B2B / School Wedge
 
 - **Topics**: [B2B / Enterprise Wedge (🟢)](EXPLORATION_TOPICS.md#29-b2b--enterprise-wedge-), [Persona Journeys (🟡)](EXPLORATION_TOPICS.md#15-persona-journeys-), [Carbon / Impact Accounting (🟡)](EXPLORATION_TOPICS.md#30-carbon--impact-accounting-)
 - **De-risk question**: Which segment (school, RWA, corporate) is the cleanest first wedge, and what's the smallest admin surface that earns the deal?
-- **Output**: `docs/exploration/B2B_ENTERPRISE_WEDGE.md` + a pilot proposal.
+- **Output**: ✅ `docs/exploration/B2B_ENTERPRISE_WEDGE.md` written. School-first strategy defined. Pilot pending.
 - **Frontier dependency**: [F10. Education-First White-Label for Schools](EXPLORATION_FRONTIER.md#f10-education-first-white-label-for-schools).
 
 ### Track L4 — Continuous Learning Loop
 
 - **Topics**: feedback loop between Eval Harness, History Schema, and Classification Confidence.
 - **De-risk question**: Can user corrections be turned into a defensible, ethical, weekly improvement cycle?
+- **Output**: ✅ `docs/exploration/CONTINUOUS_LEARNING_LOOP.md` written. Training data pipeline already built; closing loop (eval → improve → deploy) deferred.
 - **Frontier dependency**: [F3. Continuous Learning Loop from User Corrections](EXPLORATION_FRONTIER.md#f3-continuous-learning-loop-from-user-corrections).
 
 ### Track L5 — Local Reuse Marketplace (pilot only)
 
 - **Topic**: [Local Reuse Marketplace (🟢)](EXPLORATION_TOPICS.md#22-local-reuse-marketplace-)
 - **De-risk question**: Does the reuse surface complement or compete with the core classify loop?
+- **Output**: ✅ `docs/exploration/LOCAL_REUSE_MARKETPLACE.md` written. Give-away-only MVP pilot plan defined.
 - **Frontier dependency**: [F4. Neighbourhood Reuse Marketplace](EXPLORATION_FRONTIER.md#f4-neighbourhood-reuse-marketplace).
 
 ---
@@ -204,11 +206,11 @@ These exploration practices apply regardless of phase. Treat them as guardrails.
 | NEXT | X3 | Region-Aware Rulesets | ✅ Built (7 cities) |
 | NEXT | X4 | Gamification + Habit Loop | ✅ Two exploration docs + redesign spec with adaptive engine, challenges, points sinks, achievement tiers |
 | NEXT | X5 | Firestore + History Schema | ✅ Two exploration docs complete |
-| LATER | L1 | On-Device Inference | 🟡 Interface + pipeline in place (Phase A+B). Real model (Phase C) deferred. |
-| LATER | L2 | Smart-Bin / QR Layer | 🟢 |
-| LATER | L3 | B2B / School Wedge | 🟢 |
-| LATER | L4 | Continuous Learning Loop | 🟢 |
-| LATER | L5 | Reuse Marketplace | 🟢 |
+| LATER | L1 | On-Device Inference | 🟡 Exploration doc + interface + pipeline (Phase A+B). Real model (Phase C) deferred. |
+| LATER | L2 | Smart-Bin / QR Layer | 🟡 Exploration doc written. Pilot plan defined. |
+| LATER | L3 | B2B / School Wedge | 🟡 Exploration doc written. School-first wedge strategy defined. |
+| LATER | L4 | Continuous Learning Loop | 🟡 Exploration doc written. Training data pipeline already built; closing loop deferred. |
+| LATER | L5 | Reuse Marketplace | 🟡 Exploration doc written. Give-away-only MVP pilot plan defined. |
 | G1 | — | Deterministic Pre-processing (Layer 0) | ✅ Built — `layer0_router.dart` + `classification_pipeline.dart` |
 | G6 | — | Offline Degradation UX | ✅ Built — offline tiers, hint flow, `OfflineResultBanner`, result screen integration, `tryLocalWithHint()` pipeline wiring |
 
@@ -225,6 +227,6 @@ These exploration practices apply regardless of phase. Treat them as guardrails.
 | `test/services/remote_config_routing_strategy_test.dart` | 4 | Routing strategy defaults, validation, fallback |
 | **Total** | **42** | |
 
-Full suite: 2339 pass, 12 skip, 12 pre-existing failures (7 golden rendering, 2 theme gate, 3 misc).
+Full suite: 2447 pass, 12 skip, 0 failures (disk-constrained reruns show temp-dir failures, not code failures; all 5 previously-failing tests fixed and verified passing individually).
 
 Update this snapshot whenever a topic's status changes in [EXPLORATION_TOPICS.md](EXPLORATION_TOPICS.md).

@@ -68,13 +68,8 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
   String? _validationError;
   bool _hasTriedSubmit = false;
 
-  static const List<String> _commonCorrections = [
-    'Wet Waste',
-    'Dry Waste',
-    'Hazardous Waste',
-    'Medical Waste',
-    'Non-Waste',
-  ];
+  static List<String> get _commonCorrections =>
+      WasteCategory.values.map((c) => c.name).toList();
 
   @override
   void dispose() {
