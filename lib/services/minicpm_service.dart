@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
+import '../utils/production_safety_config.dart';
 
 class MiniCpmService {
   MiniCpmService({
@@ -14,7 +15,6 @@ class MiniCpmService {
 
   static const String _kDefaultApiUrl =
       'https://api.openbmb.ai/v1/chat/completions';
-  static const String _kDefaultApiKey = 'sk-minicpm-free'; // Free tier key
 
   final String apiBaseUrl;
   final String? apiKey;
@@ -29,17 +29,12 @@ class MiniCpmService {
         'MiniCPM-V 4.6 initialized for local inference '
         '(requires llama.cpp or Ollama mobile integration)',
       );
-    } else {
-      WasteAppLogger.info(
-        'MiniCPM-V 4.6 initialized for API inference '
-        '(free tier key available)',
-      );
     }
   }
 
-  String get _effectiveApiKey =>
+  String? get _effectiveApiKey =>
       apiKey ?? const String.fromEnvironment('MINICPM_API_KEY',
-          defaultValue: _kDefaultApiKey);
+          defaultValue: '');
 
   Future<WasteClassification> classifyCrop(
     Uint8List cropBytes,
@@ -47,6 +42,17 @@ class MiniCpmService {
     String? region,
   }) async {
     if (!_initialized) await initialize();
+
+    if (!useLocalInference) {
+      final key = _effectiveApiKey;
+      if (key == null || ProductionSafetyConfig.hasPlaceholderKey(key)) {
+        ProductionSafetyConfig.logKeyConfigStatus('MiniCPM-V', key ?? '');
+        throw const ProductionSafetyException(
+          'MiniCPM-V API key is placeholder/missing. '
+          'Set MINICPM_API_KEY env var or provide a real key.',
+        );
+      }
+    }
 
     if (useLocalInference) {
       return _classifyLocal(cropBytes, imageName, region: region);

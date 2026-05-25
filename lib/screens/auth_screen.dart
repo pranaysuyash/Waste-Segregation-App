@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/google_drive_service.dart';
 import '../utils/constants.dart';
 import '../widgets/navigation_wrapper.dart';
 import 'onboarding_screen.dart';
+import '../utils/firebase_gate.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -61,8 +63,32 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  void _continueAsGuest(BuildContext context) {
-    _navigatePostAuth(Navigator.of(context), isGuest: true);
+  Future<void> _continueAsGuest(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      if (isFirebaseEnabled) {
+        await FirebaseAuth.instance.signInAnonymously();
+      }
+      if (!mounted) return;
+      await _navigatePostAuth(navigator, isGuest: true);
+    } catch (e) {
+      if (!mounted) return;
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Guest sign-in failed: ${e.toString()}'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _navigatePostAuth(NavigatorState navigator,
@@ -86,8 +112,7 @@ class _AuthScreenState extends State<AuthScreen> {
     } else {
       await navigator.pushReplacement(
         MaterialPageRoute(
-          builder: (context) =>
-              MainNavigationWrapper(isGuestMode: isGuest),
+          builder: (context) => MainNavigationWrapper(isGuestMode: isGuest),
         ),
       );
     }
@@ -276,7 +301,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         _buildAuthCard(
                           onPressed: _isLoading
                               ? null
-                              : () => _continueAsGuest(context),
+                              : () async => _continueAsGuest(context),
                           icon: const Icon(
                             Icons.person_outline,
                             size: 24,

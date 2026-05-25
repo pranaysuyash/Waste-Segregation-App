@@ -1124,6 +1124,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         return const Color(0xFF4CAF50);
       case NudgeType.streakMilestone:
         return const Color(0xFFFF5722);
+      case NudgeType.pointsMilestone:
+        return const Color(0xFF9C27B0);
     }
   }
 

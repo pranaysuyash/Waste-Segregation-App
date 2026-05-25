@@ -2347,7 +2347,7 @@ class GamificationService extends ChangeNotifier {
     for (final milestone in pointsMilestones) {
       if (totalPoints < milestone && (milestone - totalPoints) <= 5) {
         return NearMilestoneNudge(
-          type: NudgeType.streakMilestone,
+          type: NudgeType.pointsMilestone,
           title: 'Almost there!',
           message:
               'You are ${milestone - totalPoints} points away from $milestone points',

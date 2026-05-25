@@ -260,7 +260,8 @@ service cloud.firestore {
 
     // Subscriptions (DodoPayments) - read only by the owning user
     match /subscriptions/{subscriptionId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
       allow create, update, delete: if false; // Managed by Cloud Functions
     }
 

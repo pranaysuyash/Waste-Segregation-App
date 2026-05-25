@@ -210,6 +210,8 @@ class OfflineQueueService {
 
     final startTime = DateTime.now();
     final items = _queueBox!.values.toList();
+    final enhancedAiService = EnhancedAiApiService();
+    final backendRoutingEnabled = enhancedAiService.isBackendRoutingEnabled;
     final tokenService =
         TokenService(StorageService(), CloudStorageService(StorageService()));
     await tokenService.initialize();
@@ -220,6 +222,7 @@ class OfflineQueueService {
 
     try {
       for (final item in items) {
+        var tokenSpentForItem = false;
         try {
           // Check connectivity before each item
           final connectivity = await Connectivity().checkConnectivity();
@@ -237,45 +240,48 @@ class OfflineQueueService {
             'queued_at': item.queuedAt.toIso8601String(),
           });
 
-          try {
-            await tokenService.spendAnalysisTokens(
-              AnalysisSpeed.batch,
-              isPremiumUser: false,
-              description: 'Offline queued analysis',
-              reference: item.id,
-              metadata: {
-                'source': 'offline_queue',
-                'queued_at': item.queuedAt.toIso8601String(),
-                'retry_count': item.retryCount,
-              },
-            );
-          } catch (spendError, spendStackTrace) {
-            final message = spendError.toString();
-            if (message.contains('Insufficient tokens')) {
-              insufficientTokenBlocks++;
-              WasteAppLogger.warning(
-                'Queue processing paused due to insufficient tokens',
-                error: spendError,
-                stackTrace: spendStackTrace,
-                context: {
-                  'queue_id': item.id,
-                  'remaining': _queueBox!.length,
+          if (!backendRoutingEnabled) {
+            try {
+              await tokenService.spendAnalysisTokens(
+                AnalysisSpeed.batch,
+                isPremiumUser: false,
+                description: 'Offline queued analysis',
+                reference: item.id,
+                metadata: {
+                  'source': 'offline_queue',
+                  'queued_at': item.queuedAt.toIso8601String(),
+                  'retry_count': item.retryCount,
                 },
               );
-              await _trackQueueAnalyticsEvent(
-                eventType: 'classification',
-                eventName: 'queue_blocked_insufficient_tokens',
-                parameters: {
-                  'queue_id': item.id,
-                  'remaining': _queueBox!.length,
-                },
-              );
-              break;
+              tokenSpentForItem = true;
+            } catch (spendError, spendStackTrace) {
+              final message = spendError.toString();
+              if (message.contains('Insufficient tokens')) {
+                insufficientTokenBlocks++;
+                WasteAppLogger.warning(
+                  'Queue processing paused due to insufficient tokens',
+                  error: spendError,
+                  stackTrace: spendStackTrace,
+                  context: {
+                    'queue_id': item.id,
+                    'remaining': _queueBox!.length,
+                  },
+                );
+                await _trackQueueAnalyticsEvent(
+                  eventType: 'classification',
+                  eventName: 'queue_blocked_insufficient_tokens',
+                  parameters: {
+                    'queue_id': item.id,
+                    'remaining': _queueBox!.length,
+                  },
+                );
+                break;
+              }
+              rethrow;
             }
-            rethrow;
           }
 
-          final result = await EnhancedAiApiService().analyzeWasteImage(
+          final result = await enhancedAiService.analyzeWasteImage(
             imageBytes: item.imageBytes,
             imageName: item.imageName ?? 'offline_item',
             region: item.region,
@@ -325,47 +331,51 @@ class OfflineQueueService {
                 'items_cleared': _queueBox?.length ?? 0,
               },
             );
-            try {
-              await tokenService.earnTokens(
-                AnalysisSpeed.batch.cost,
-                TokenTransactionType.refund,
-                'Offline queue blocked — client AI disabled in build',
-                reference: item.id,
-                metadata: {
-                  'source': 'offline_queue',
-                  'reason': 'production_safety_exception',
-                },
-              );
-            } catch (refundError) {
-              WasteAppLogger.warning(
-                'Failed to refund token after safety block',
-                error: refundError,
-                context: {'queue_id': item.id},
-              );
+            if (tokenSpentForItem) {
+              try {
+                await tokenService.earnTokens(
+                  AnalysisSpeed.batch.cost,
+                  TokenTransactionType.refund,
+                  'Offline queue blocked — client AI disabled in build',
+                  reference: item.id,
+                  metadata: {
+                    'source': 'offline_queue',
+                    'reason': 'production_safety_exception',
+                  },
+                );
+              } catch (refundError) {
+                WasteAppLogger.warning(
+                  'Failed to refund token after safety block',
+                  error: refundError,
+                  context: {'queue_id': item.id},
+                );
+              }
             }
             permanentFailCount += items.length - successCount;
             await _queueBox?.clear();
             break; // stop the loop; _processQueue exits normally via finally
           }
-          try {
-            await tokenService.earnTokens(
-              AnalysisSpeed.batch.cost,
-              TokenTransactionType.refund,
-              'Offline queue processing failed - token refund',
-              reference: item.id,
-              metadata: {
-                'source': 'offline_queue',
-                'retry_count': item.retryCount,
-                'error': e.toString(),
-              },
-            );
-          } catch (refundError, refundStackTrace) {
-            WasteAppLogger.severe(
-              'Failed to refund offline queue token after processing failure',
-              error: refundError,
-              stackTrace: refundStackTrace,
-              context: {'queue_id': item.id},
-            );
+          if (tokenSpentForItem) {
+            try {
+              await tokenService.earnTokens(
+                AnalysisSpeed.batch.cost,
+                TokenTransactionType.refund,
+                'Offline queue processing failed - token refund',
+                reference: item.id,
+                metadata: {
+                  'source': 'offline_queue',
+                  'retry_count': item.retryCount,
+                  'error': e.toString(),
+                },
+              );
+            } catch (refundError, refundStackTrace) {
+              WasteAppLogger.severe(
+                'Failed to refund offline queue token after processing failure',
+                error: refundError,
+                stackTrace: refundStackTrace,
+                context: {'queue_id': item.id},
+              );
+            }
           }
 
           item.retryCount++;

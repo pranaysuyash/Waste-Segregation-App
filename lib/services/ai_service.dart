@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' show pow, sqrt;
 import 'package:flutter/foundation.dart';
@@ -379,6 +380,8 @@ class AiService {
         ProductionSafetyConfig.useBackendAiInRelease ||
         BackendProxyProvider.isEnabled;
   }
+
+  bool get isBackendRoutingEnabled => backendRoutingEnabled;
 
   @visibleForTesting
   bool get backendRoutingFailClosed {
@@ -1307,8 +1310,6 @@ class AiService {
     String? model,
     List<String>? reanalysisModelsTried,
   }) async {
-    ProductionSafetyConfig.guardClientAiCall('AI correction');
-
     final sourceValue = (originalClassification.source ?? '').toLowerCase();
     final modelSourceValue =
         (originalClassification.modelSource ?? '').toLowerCase();
@@ -1344,6 +1345,44 @@ class AiService {
       if (imageBytes == null) {
         throw ArgumentError('No trusted image source available for correction');
       }
+
+      if (backendRoutingEnabled) {
+        final callable =
+            FirebaseFunctions.instanceFor(region: 'asia-south1').httpsCallable(
+          'reanalyzeWithCorrection',
+          options: HttpsCallableOptions(timeout: const Duration(seconds: 30)),
+        );
+        final payload = <String, dynamic>{
+          'imageBase64': base64Encode(imageBytes),
+          'mimeType': _detectImageMimeType(imageBytes),
+          'region': originalClassification.region,
+          'lang': originalClassification.instructionsLang,
+          'requestId': originalClassification.id,
+          'originalClassification': originalClassification.toJson(),
+          'userCorrection': userCorrection,
+          if (userReason != null && userReason.isNotEmpty)
+            'userReason': userReason,
+        };
+        final response = await callable.call(payload);
+        final data = Map<String, dynamic>.from(response.data as Map);
+        final classificationRaw =
+            Map<String, dynamic>.from(data['classification'] as Map);
+        final corrected = WasteClassification.fromJson(classificationRaw);
+        return applyCorrectionProvenance(
+          corrected: corrected,
+          original: originalClassification,
+          provider: data['meta'] is Map
+              ? ((data['meta'] as Map)['provider'] as String? ?? 'backend')
+              : 'backend',
+          model: data['meta'] is Map
+              ? ((data['meta'] as Map)['model'] as String? ??
+                  'reanalyzeWithCorrection')
+              : 'reanalyzeWithCorrection',
+          userCorrection: userCorrection,
+        );
+      }
+
+      ProductionSafetyConfig.guardClientAiCall('AI correction');
 
       final mimeType = _detectImageMimeType(imageBytes);
       final correctionPrompt = _getCorrectionPrompt(
@@ -1386,8 +1425,8 @@ class AiService {
       final correctedClassification = await _resultProcessor.process(
         providerResponse: providerResponse,
         imagePath: originalClassification.imageUrl ?? 'correction_update',
-        region: originalClassification.region ?? defaultRegion,
-        language: originalClassification.instructionsLang ?? defaultLanguage,
+        region: originalClassification.region,
+        language: originalClassification.instructionsLang,
         imageSize: imageBytes.length,
         classificationId: originalClassification.id,
         imageHash: originalClassification.imageHash,

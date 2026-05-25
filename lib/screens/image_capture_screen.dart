@@ -1164,7 +1164,8 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         _incrementDailyScanCount();
       }
 
-      if (_selectedSpeed == AnalysisSpeed.instant) {
+      if (_selectedSpeed == AnalysisSpeed.instant &&
+          !aiService.isBackendRoutingEnabled) {
         await tokenService.spendAnalysisTokens(
           _selectedSpeed,
           isPremiumUser: isPremiumUser,
@@ -2014,6 +2015,33 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     _setClassificationState(ClassificationState.cloudClassifying);
 
     try {
+      final tokenService = ref.read(tokenServiceProvider);
+      await tokenService.initialize();
+
+      final premiumService = context.read<PremiumService>();
+      final isPremiumUser = premiumService.hasActivePremiumPlan();
+
+      if (!tokenService.canAffordAnalysisWithPricing(
+        AnalysisSpeed.instant,
+        isPremiumUser: isPremiumUser,
+      )) {
+        if (mounted) {
+          _stateMachineNotifier.reset();
+          setState(() {});
+          ZeroBalanceOptionsSheet.show(
+            context,
+            requiredTokens: tokenService.getAnalysisCost(
+              AnalysisSpeed.instant,
+              isPremiumUser: isPremiumUser,
+            ),
+            onBatchSelected: () {
+              _analyzeImage();
+            },
+          );
+        }
+        return;
+      }
+
       final aiService = ref.read(aiServiceProvider);
       final regions = List<NormalizedBoundingBox>.from(_selectedRegions);
 
@@ -2059,6 +2087,17 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       }
 
       _stateMachineNotifier.reset();
+
+      await tokenService.spendAnalysisTokens(
+        AnalysisSpeed.instant,
+        isPremiumUser: isPremiumUser,
+        description: 'Region analysis',
+        reference: results.isNotEmpty ? results.first.id : '',
+        metadata: {
+          'screen': 'image_capture',
+          'regions': results.length,
+        },
+      );
 
       final detectedRegions = List<DetectedWasteRegion>.generate(
         regions.length < results.length ? regions.length : results.length,

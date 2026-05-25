@@ -608,6 +608,8 @@ class AppIcons {
         return timerOutlined;
       case 'bar_chart':
         return barChart;
+      case 'palette':
+        return Icons.palette;
       default:
         return autorenew; // Default to refresh icon
     }

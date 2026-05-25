@@ -15,10 +15,12 @@ import {
 // Re-export all module functions
 export { generateDisposal } from './disposal';
 export { createCheckoutSession } from './create_checkout_session';
+export { createTokenPurchaseSession } from './create_token_purchase';
 export { dodopaymentsWebhook } from './dodopayments_webhook';
 export { getR2UploadUrl } from './r2_storage';
 export { createReferralCode, redeemReferralCode, getReferralStats } from './referrals';
 export { aggregateFamilyDashboardAnalytics } from './family_dashboard_analytics';
+export { migrateLegacyUserData } from './migrate_legacy_user_data';
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -1154,7 +1156,7 @@ async function triggerJobCompletionNotification(jobId: string, userId: string, c
 // ---------------------------------------------------------------------------
 // Backend classification gateway (image proxy with App Check + rate limit)
 // ---------------------------------------------------------------------------
-export { classifyImage } from './classify_image';
+export { classifyImage, reanalyzeWithCorrection } from './classify_image';
 export {
   evaluateOpsThresholdAlerts,
   getClassifyReservationDashboard,

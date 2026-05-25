@@ -20,6 +20,7 @@ def keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
+def adMobAppId = localProperties.getProperty('ADMOB_APP_ID') ?: ''
 
 android {
     namespace = "com.pranaysuyash.wastewise"
@@ -41,9 +42,10 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24 // Updated for security: API 24+ receives reasonable security updates
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = localProperties.getProperty('flutter.versionCode').toInteger()
         versionName = localProperties.getProperty('flutter.versionName')
+        manifestPlaceholders = [adMobAppId: adMobAppId]
     }
 
     signingConfigs {
@@ -59,7 +61,16 @@ android {
 
     buildTypes {
         release {
-            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
+            if (!keystorePropertiesFile.exists() || !keystoreProperties['storeFile']) {
+                throw new GradleException("Missing key.properties for release signing")
+            }
+            if (!adMobAppId || adMobAppId.trim().isEmpty()) {
+                throw new GradleException("Missing ADMOB_APP_ID in local.properties for release build")
+            }
+            if (adMobAppId == "ca-app-pub-3940256099942544~3347511713") {
+                throw new GradleException("Refusing release build with test AdMob App ID")
+            }
+            signingConfig signingConfigs.release
             // Explicitly disable R8/Proguard until we have complete keep rules for
             // ML / TFLite delegate classes referenced by plugins. This prevents
             // release builds from failing with missing-class errors.

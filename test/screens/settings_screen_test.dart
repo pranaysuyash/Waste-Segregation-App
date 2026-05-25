@@ -14,6 +14,7 @@ import 'package:waste_segregation_app/services/haptic_settings_service.dart';
 import 'package:waste_segregation_app/services/navigation_settings_service.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/widgets/settings/settings_widgets.dart';
 
 import 'settings_screen_test.mocks.dart';
 
@@ -88,6 +89,42 @@ void main() {
       await tester.pumpWidget(_wrap());
       await tester.pumpAndSettle(const Duration(milliseconds: 500));
       expect(find.text('Settings'), findsOneWidget);
+    });
+
+    testWidgets('uses canonical scroll/sliver structure', (tester) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+
+      expect(find.byType(CustomScrollView), findsOneWidget);
+      expect(find.byType(SliverList), findsOneWidget);
+    });
+
+    testWidgets('composes canonical settings sections', (tester) async {
+      await tester.pumpWidget(_wrap());
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+
+      Future<void> expectSectionVisible(Finder finder) async {
+        await tester.scrollUntilVisible(
+          finder,
+          220,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.pumpAndSettle(const Duration(milliseconds: 300));
+        expect(finder, findsOneWidget);
+      }
+
+      // Core settings surface should include every canonical section.
+      await expectSectionVisible(find.byType(AccountSection));
+      await expectSectionVisible(find.byType(PremiumSection));
+      await expectSectionVisible(find.byType(AppSettingsSection));
+      await expectSectionVisible(find.byType(PrivacySection));
+      await expectSectionVisible(find.byType(SyncSection));
+      await expectSectionVisible(find.byType(FeedbackSettingsSection));
+      await expectSectionVisible(find.byType(RegionSelectionSection));
+      await expectSectionVisible(find.byType(NavigationSection));
+      await expectSectionVisible(find.byType(FeaturesSection));
+      await expectSectionVisible(find.byType(LegalSupportSection));
+      await expectSectionVisible(find.byType(DeveloperSection));
     });
   });
 }

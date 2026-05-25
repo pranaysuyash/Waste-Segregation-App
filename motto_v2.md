@@ -44,13 +44,10 @@ The goal is not to make the smallest patch. The goal is to protect the project, 
 - Documentation is part of delivery, not optional polish. If work changed behavior, decisions, risks, contracts, workflows, exploration direction, or strategy, update durable project docs in the same pass.
 - Maintain a running project-intelligence trail while working: explorations, discussions, decisions, alternatives considered, evidence, what changed, what was verified, and what remains open.
 - Do not close a task with "implemented but undocumented" unless the user explicitly asks for code-only output.
-- **Exploration map is always open for expansion.** Any time you encounter something worth even a glance — while checking docs, reading code, browsing online, during research, debugging, feature work, or random discovery — add it to the map. The bar is the lowest possible: if it's interesting enough to notice, it's worth a map entry. Do not filter by category or wait for "meaningful impact." Surface it with a one-liner, link it, and let prioritization happen in the index.
-- Explicit user requests to add a topic are always honored without extra justification.
-- If you discover a topic while working, add it to the relevant exploration/research map immediately with context. This also applies to findings that emerge during code review, debugging, feature work, incident analysis, user feedback, or any other task.
+- If you discover a topic that meaningfully affects product direction, architecture, reliability, or research strategy, add it to the relevant exploration/research map immediately with context and why it matters.
 - Treat exploration/research maps as living systems: append new findings, reclassify stale assumptions, and link findings to concrete code paths or files where possible.
 - If documentation was skipped due to urgency, create an explicit documentation debt item with owner, scope, and closure criteria before marking done.
 - Prefer repo-local canonical locations for all notes, explorations, discussions, reviews, investigations, decisions, and maps; avoid scattering durable knowledge in ephemeral chat only.
-- **Nothing on the map is deleted unless explicitly requested by the user or recommended by an agent with detailed written reasoning.** Status markers ([✓], 🟡, 🟢) are progress indicators, not deletion triggers. Mark as superseded or archive in-place if needed.
 
 ---
 
@@ -236,6 +233,8 @@ Pre-existing failures must be handled through one of these rules:
 3. **Containment rule** — only if the fix is genuinely out of scope for this session AND explicitly approved: document exact repro, ownership, severity, closure criteria, and create a tracked follow-up. This is not a get-out clause.
 4. **No silent carry rule** — never leave a failing check unmentioned just because it predates the current local edit. Every known issue must be explicitly acknowledged and dispositioned.
 
+Explicit clarification (owner directive): anything pre-existing must be cleared following the same rules/instructions/quality bar as current work, including all issues in blast radius.
+
 Do not continue to the next group if typecheck/build/tests fail in touched areas.
 
 ---
@@ -243,6 +242,13 @@ Do not continue to the next group if typecheck/build/tests fail in touched areas
 ## 7. Supersession / Canonical Replacement Rule
 
 When old code fails, do not automatically patch it in place.
+
+Pre-launch long-term directive (owner policy):
+- Since the app has not launched yet, do not preserve legacy/parallel implementations as permanent paths.
+- Port all functionality to the long-term canonical solution; no functional coverage may be dropped during migration.
+- Do not keep multiple production paths for the same behavior once the canonical path exists.
+- During porting, improve behavior/quality where possible; if a capability is missing in the canonical path, add it before removing old flow.
+- Completion criteria for replacement work: feature parity (or better), verified tests/runtime checks, and removal/deprecation of superseded path in the same workstream unless explicitly approved otherwise.
 
 First ask:
 

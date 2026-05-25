@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
@@ -40,8 +42,24 @@ class GoogleDriveService {
   final Future<Directory> Function() _temporaryDirectoryProvider;
   final Future<http.Client> Function()? _authenticatedHttpClientOverride;
 
+  Future<UserCredential> _signInToFirebaseAuth(
+    GoogleSignInAccount account,
+  ) async {
+    final auth = await account.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: auth.accessToken,
+      idToken: auth.idToken,
+    );
+    return FirebaseAuth.instance.signInWithCredential(credential);
+  }
+
   FirebaseFirestore get _firestoreInstance =>
       _firestore ?? FirebaseFirestore.instance;
+
+  String _safeIdPrefix(String value, {int length = 16}) {
+    if (value.length <= length) return value;
+    return value.substring(0, length);
+  }
 
   // Helper method to fetch UserProfile from Firestore
   Future<UserProfile?> _fetchUserProfileFromFirestore(String userId) async {
@@ -81,7 +99,54 @@ class GoogleDriveService {
       }
       final account = await googleSignIn.signIn();
       if (account != null) {
-        final userId = account.id;
+        final legacyGoogleUserId = account.id;
+        final userCredential = await _signInToFirebaseAuth(account);
+        final firebaseUser = userCredential.user;
+        if (firebaseUser == null) {
+          throw StateError(
+            'Google sign-in succeeded but FirebaseAuth user is null.',
+          );
+        }
+        final userId = firebaseUser.uid;
+
+        if (legacyGoogleUserId != userId) {
+          try {
+            await FirebaseFunctions.instanceFor(region: 'asia-south1')
+                .httpsCallable('migrateLegacyUserData')
+                .call(<String, dynamic>{'legacyUserId': legacyGoogleUserId});
+          } catch (e) {
+            WasteAppLogger.warning(
+              'Cloud legacy identity migration failed; continuing with local migration',
+              error: e,
+              context: {
+                'legacy_user_id': _safeIdPrefix(legacyGoogleUserId),
+                'firebase_uid': _safeIdPrefix(userId),
+              },
+            );
+          }
+
+          try {
+            final migration = await _storageService.migrateLocalIdentity(
+              fromUserId: legacyGoogleUserId,
+              toUserId: userId,
+            );
+            WasteAppLogger.info('Local identity migration completed', context: {
+              'legacy_user_id': _safeIdPrefix(legacyGoogleUserId),
+              'firebase_uid': _safeIdPrefix(userId),
+              ...migration,
+            });
+          } catch (e) {
+            WasteAppLogger.warning(
+              'Local legacy identity migration failed',
+              error: e,
+              context: {
+                'legacy_user_id': _safeIdPrefix(legacyGoogleUserId),
+                'firebase_uid': _safeIdPrefix(userId),
+              },
+            );
+          }
+        }
+
         var userProfile = await _fetchUserProfileFromFirestore(userId);
 
         if (userProfile == null) {
@@ -159,6 +224,7 @@ class GoogleDriveService {
       if (googleSignIn != null) {
         await googleSignIn.signOut();
       }
+      await FirebaseAuth.instance.signOut();
       await _storageService.clearUserInfo();
     } catch (e) {
       WasteAppLogger.severe('Error signing out from Google: $e');

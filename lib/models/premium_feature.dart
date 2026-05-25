@@ -41,14 +41,14 @@ class PremiumFeature {
       id: 'remove_ads',
       title: 'Remove Ads',
       description: 'Enjoy an ad-free experience throughout the app',
-      icon: 'block',
+      icon: 'auto_awesome',
       route: '/settings/ads',
     ),
     PremiumFeature(
       id: 'advanced_segmentation',
       title: 'Advanced Segmentation',
       description: 'Identify multiple objects in a single image',
-      icon: 'photo_library',
+      icon: 'category',
       route: '/premium',
     ),
     PremiumFeature(
@@ -62,7 +62,7 @@ class PremiumFeature {
       id: 'offline_mode',
       title: 'Offline Classification',
       description: 'Classify waste items without an internet connection',
-      icon: 'offline_bolt',
+      icon: 'devices',
       route: '/settings/offline',
     ),
     PremiumFeature(
@@ -70,7 +70,7 @@ class PremiumFeature {
       title: 'Advanced Analytics',
       description:
           'Get detailed insights and statistics about your waste habits',
-      icon: 'analytics',
+      icon: 'bar_chart',
       route: '/analytics',
     ),
     PremiumFeature(
@@ -78,7 +78,7 @@ class PremiumFeature {
       title: 'Data Export',
       description:
           'Export your classification history and statistics to CSV or PDF',
-      icon: 'file_download',
+      icon: 'description',
       route: '/settings/export',
     ),
   ];

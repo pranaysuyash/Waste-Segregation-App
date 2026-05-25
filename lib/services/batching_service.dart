@@ -1,10 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import '../models/vision_model_config.dart';
+import '../services/storage_service.dart';
 import '../utils/waste_app_logger.dart';
 import 'package:uuid/uuid.dart';
+import 'firestore_schema_registry.dart';
 
 /// Represents a queued image analysis request
 class BatchAnalysisRequest {
@@ -13,6 +19,7 @@ class BatchAnalysisRequest {
     required this.imageBytes,
     required this.imagePath,
     required this.completer,
+    this.userId,
     this.region,
     this.instructionsLang,
     DateTime? timestamp,
@@ -22,12 +29,13 @@ class BatchAnalysisRequest {
   final Uint8List imageBytes;
   final String imagePath;
   final Completer<WasteClassification> completer;
+  final String? userId;
   final String? region;
   final String? instructionsLang;
   final DateTime timestamp;
 }
 
-/// Service for batching multiple image analyses to reduce costs
+/// Service for batching multiple image analyses via Firebase Batch API
 ///
 /// Benefits:
 /// - 50% cost reduction via OpenAI batch API
@@ -35,8 +43,8 @@ class BatchAnalysisRequest {
 /// - Better resource utilization
 ///
 /// Trade-offs:
-/// - Slight delay (configurable: 10-60 seconds)
-/// - Results delivered asynchronously
+/// - Slight delay (results delivered asynchronously, minutes to hours)
+/// - Requires Firebase Auth and Storage
 ///
 /// Use cases:
 /// - Bulk image uploads
@@ -46,14 +54,21 @@ class BatchAnalysisRequest {
 class BatchingService {
   BatchingService({
     VisionModelConfig? config,
+    CloudStorageService? cloudStorageService,
+    StorageService? storageService,
   })  : _config = config ?? VisionModelConfig.batchCloud(),
         _pendingRequests = <BatchAnalysisRequest>[],
-        _processingTimer = null;
+        _processingTimer = null,
+        _cloudStorageService = cloudStorageService,
+        _storageService = storageService ?? StorageService();
 
   final VisionModelConfig _config;
   final List<BatchAnalysisRequest> _pendingRequests;
   Timer? _processingTimer;
   bool _isProcessing = false;
+  final CloudStorageService? _cloudStorageService;
+  final StorageService _storageService;
+  final Map<String, StreamSubscription<DocumentSnapshot>> _jobSubscriptions = {};
 
   /// Queue an image for batch analysis
   ///
@@ -63,6 +78,7 @@ class BatchingService {
   /// 2. Timeout is reached (default: 30 seconds)
   Future<WasteClassification> queueAnalysis({
     required File imageFile,
+    String? userId,
     String? region,
     String? instructionsLang,
   }) async {
@@ -71,6 +87,7 @@ class BatchingService {
       return queueAnalysisBytes(
         imageBytes: imageBytes,
         imagePath: imageFile.path,
+        userId: userId,
         region: region,
         instructionsLang: instructionsLang,
       );
@@ -85,14 +102,17 @@ class BatchingService {
   Future<WasteClassification> queueAnalysisBytes({
     required Uint8List imageBytes,
     required String imagePath,
+    String? userId,
     String? region,
     String? instructionsLang,
   }) async {
+    final effectiveUserId = userId ?? FirebaseAuth.instance.currentUser?.uid;
     final request = BatchAnalysisRequest(
       id: const Uuid().v4(),
       imageBytes: imageBytes,
       imagePath: imagePath,
       completer: Completer<WasteClassification>(),
+      userId: effectiveUserId,
       region: region,
       instructionsLang: instructionsLang,
     );
@@ -102,19 +122,16 @@ class BatchingService {
     WasteAppLogger.info('Queued analysis request ${request.id}. '
         'Pending: ${_pendingRequests.length}/${_config.batchSize}');
 
-    // Start processing timer if not already running
     _startProcessingTimer();
 
-    // Check if batch is full
     if (_pendingRequests.length >= _config.batchSize) {
-      WasteAppLogger.info('Batch size reached, error: processing immediately');
+      WasteAppLogger.info('Batch size reached, processing immediately');
       await _processBatch();
     }
 
     return request.completer.future;
   }
 
-  /// Start the processing timer
   void _startProcessingTimer() {
     if (_processingTimer != null && _processingTimer!.isActive) {
       return;
@@ -123,12 +140,11 @@ class BatchingService {
     final timeout = Duration(seconds: _config.batchTimeoutSeconds);
     _processingTimer = Timer(timeout, () {
       WasteAppLogger.info(
-          'Batch timeout reached, error: processing pending requests');
+          'Batch timeout reached, processing pending requests');
       _processBatch();
     });
   }
 
-  /// Process the current batch of requests
   Future<void> _processBatch() async {
     if (_isProcessing || _pendingRequests.isEmpty) {
       return;
@@ -142,88 +158,56 @@ class BatchingService {
     _pendingRequests.clear();
 
     WasteAppLogger.info(
-        'Processing batch of ${batchToProcess.length} requests');
+        'Processing batch of ${batchToProcess.length} requests via Firebase batch API');
 
     try {
-      // TODO: Implement actual batch API call here
-      // For now, process individually (placeholder)
-      await _processBatchPlaceholder(batchToProcess);
+      await _processBatchViaFirebase(batchToProcess);
     } catch (e, s) {
       WasteAppLogger.severe('Batch processing failed', error: e, stackTrace: s);
-      // Complete all requests with error
-      for (final request in batchToProcess) {
-        if (!request.completer.isCompleted) {
-          request.completer.completeError(e, s);
-        }
-      }
+      _completeAllWithError(batchToProcess, e, s);
     } finally {
       _isProcessing = false;
 
-      // Restart timer if there are pending requests
       if (_pendingRequests.isNotEmpty) {
         _startProcessingTimer();
       }
     }
   }
 
-  /// Placeholder for batch processing
+  /// Processes a batch of requests via Firebase Batch API.
   ///
-  /// In production, this should:
-  /// 1. Create OpenAI batch file with all images
-  /// 2. Upload to batch API
-  /// 3. Poll for results
-  /// 4. Parse and distribute results
-  Future<void> _processBatchPlaceholder(
+  /// For each request:
+  /// 1. Writes image bytes to a temp file
+  /// 2. Uploads to Firebase Storage
+  /// 3. Calls createBatchAiJob Firebase callable
+  /// 4. Subscribes to the ai_jobs Firestore document for completion
+  Future<void> _processBatchViaFirebase(
       List<BatchAnalysisRequest> batch) async {
-    WasteAppLogger.info('Processing batch (placeholder mode)');
+    final cloudStorage = _cloudStorageService ??
+        CloudStorageService(_storageService);
 
-    // Simulate batch API delay
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    // Process each request with placeholder result
     for (final request in batch) {
+      if (request.userId == null || request.userId!.isEmpty) {
+        WasteAppLogger.warning(
+            'Skipping batch request ${request.id}: no userId');
+        if (!request.completer.isCompleted) {
+          request.completer.completeError(
+            Exception('User authentication required for batch analysis'),
+          );
+        }
+        continue;
+      }
+
       try {
-        final result = WasteClassification(
-          itemName: 'Batch Analysis Pending',
-          category: 'Batch Mode',
-          explanation:
-              'This is a placeholder result. Full batch processing requires OpenAI Batch API integration. '
-              'Request ID: ${request.id}. '
-              'Batch size: ${batch.length}. '
-              'Cost savings: ~50% vs instant mode.',
-          disposalInstructions: DisposalInstructions(
-            primaryMethod: 'Batch Processing',
-            steps: [
-              'Integrate OpenAI Batch API for production use',
-              'Batch API reduces costs by ~50%',
-              'Results delivered within 24 hours',
-              'Ideal for non-urgent classifications',
-            ],
-            hasUrgentTimeframe: false,
-          ),
-          visualFeatures: [
-            'Batch processing',
-            'Cost optimized',
-            'Delayed results'
-          ],
-          alternatives: [
-            AlternativeClassification(
-              category: 'Instant Mode',
-              confidence: 1.0,
-              reason: 'Available for urgent analysis',
-            ),
-          ],
-          region: request.region ?? 'Global',
-          confidence: 0.0, // Indicates placeholder result
-          modelSource: 'batch-api-placeholder',
-          modelVersion: '1.0.0-batch',
-          processingTimeMs: 500,
+        final jobId = await _submitBatchJob(
+          request: request,
+          cloudStorage: cloudStorage,
         );
 
-        request.completer.complete(result);
-        WasteAppLogger.info('Completed batch request ${request.id}');
+        _listenForJobResult(request, jobId);
       } catch (e, s) {
-        WasteAppLogger.severe('Failed to process batch request ${request.id}',
+        WasteAppLogger.severe(
+            'Failed to submit batch job for ${request.id}',
             error: e, stackTrace: s);
         if (!request.completer.isCompleted) {
           request.completer.completeError(e, s);
@@ -232,7 +216,127 @@ class BatchingService {
     }
   }
 
-  /// Get current batch status
+  /// Submits a single image as a batch job via Firebase
+  Future<String> _submitBatchJob({
+    required BatchAnalysisRequest request,
+    required CloudStorageService cloudStorage,
+  }) async {
+    final tempDir = Directory.systemTemp;
+    final tempFile = File('${tempDir.path}/${request.id}.jpg');
+    await tempFile.writeAsBytes(request.imageBytes);
+
+    try {
+      final imagePath = await cloudStorage.uploadImageForBatchProcessing(
+        tempFile,
+        request.userId!,
+      );
+
+      final callable = FirebaseFunctions.instanceFor(region: 'asia-south1')
+          .httpsCallable('createBatchAiJob');
+      final response = await callable.call(<String, dynamic>{
+        'imageUrl': imagePath,
+      });
+
+      final payload = Map<String, dynamic>.from(response.data as Map);
+      final success = payload['success'] == true;
+      final jobId = (payload['jobId'] as String?)?.trim() ?? '';
+
+      if (!success || jobId.isEmpty) {
+        throw Exception(payload['error'] ?? 'Failed to create batch job');
+      }
+
+      WasteAppLogger.info('Batch job submitted', context: {
+        'jobId': jobId,
+        'requestId': request.id,
+      });
+
+      return jobId;
+    } finally {
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+    }
+  }
+
+  /// Listens on Firestore ai_jobs/{jobId} for the analysis result
+  void _listenForJobResult(
+      BatchAnalysisRequest request, String jobId) {
+    final subscription = FirebaseFirestore.instance
+        .collection(FirestoreCollections.aiJobs)
+        .doc(jobId)
+        .snapshots()
+        .listen((snapshot) {
+      if (!snapshot.exists) return;
+
+      final data = snapshot.data();
+      if (data == null) return;
+
+      final status = (data['status'] as String?) ?? '';
+
+      if (status == 'completed') {
+        _subscriptionCleanup(jobId);
+
+        if (request.completer.isCompleted) return;
+
+        final resultData = data['result'] as Map<String, dynamic>?;
+        if (resultData != null) {
+          try {
+            final result = WasteClassification.fromJson(resultData);
+            request.completer.complete(result);
+            WasteAppLogger.info('Batch job completed', context: {
+              'jobId': jobId,
+              'requestId': request.id,
+            });
+          } catch (e) {
+            WasteAppLogger.severe('Failed to parse batch result', error: e);
+            request.completer.completeError(e);
+          }
+        } else {
+          request.completer.completeError(
+            Exception('Batch job completed but no result data found'),
+          );
+        }
+      } else if (status == 'failed') {
+        _subscriptionCleanup(jobId);
+
+        if (!request.completer.isCompleted) {
+          final errorMessage =
+              data['errorMessage'] as String? ?? 'Batch job failed';
+          request.completer.completeError(Exception(errorMessage));
+        }
+      } else if (status == 'cancelled') {
+        _subscriptionCleanup(jobId);
+
+        if (!request.completer.isCompleted) {
+          request.completer.completeError(Exception('Batch job was cancelled'));
+        }
+      }
+    }, onError: (error) {
+      _subscriptionCleanup(jobId);
+      if (!request.completer.isCompleted) {
+        request.completer.completeError(error);
+      }
+    });
+
+    _jobSubscriptions[jobId] = subscription;
+  }
+
+
+
+  void _subscriptionCleanup(String jobId) {
+    final sub = _jobSubscriptions.remove(jobId);
+    sub?.cancel();
+  }
+
+  void _completeAllWithError(
+      List<BatchAnalysisRequest> requests, Object error, StackTrace stack) {
+    for (final request in requests) {
+      if (!request.completer.isCompleted) {
+        request.completer.completeError(error, stack);
+      }
+    }
+  }
+
   Map<String, dynamic> getBatchStatus() {
     return {
       'pending_requests': _pendingRequests.length,
@@ -240,21 +344,25 @@ class BatchingService {
       'batch_timeout_seconds': _config.batchTimeoutSeconds,
       'is_processing': _isProcessing,
       'timer_active': _processingTimer?.isActive ?? false,
+      'active_job_listeners': _jobSubscriptions.length,
     };
   }
 
-  /// Force process current batch immediately
   Future<void> flush() async {
     WasteAppLogger.info('Flushing batch service');
     await _processBatch();
   }
 
-  /// Cancel all pending requests
   void cancelAll() {
     WasteAppLogger.info('Cancelling all pending requests');
 
     _processingTimer?.cancel();
     _processingTimer = null;
+
+    for (final sub in _jobSubscriptions.values) {
+      sub.cancel();
+    }
+    _jobSubscriptions.clear();
 
     for (final request in _pendingRequests) {
       if (!request.completer.isCompleted) {
@@ -267,7 +375,6 @@ class BatchingService {
     _pendingRequests.clear();
   }
 
-  /// Dispose resources
   void dispose() {
     cancelAll();
     WasteAppLogger.info('Batching service disposed');

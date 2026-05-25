@@ -239,9 +239,8 @@ class TrainingDataService {
       'classificationId': c.id,
       'itemName': c.itemName,
       'category': c.category,
-      'subcategory': c.normalizedSubcategory,
-      'materialType':
-          c.normalizedMaterials.isNotEmpty ? c.normalizedMaterials.first : null,
+      'subCategory': c.normalizedSubcategory,
+      'materials': c.normalizedMaterials,
       'confidence': c.confidence,
       'modelSource': c.modelSource,
       'modelVersion': c.modelVersion,

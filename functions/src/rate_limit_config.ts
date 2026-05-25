@@ -33,7 +33,7 @@ export interface QuotaConfig {
   disposal: RateLimitConfig;
   /** Rate-limit config for the spendUserTokens callable function (UID-keyed). */
   tokenSpend: RateLimitConfig;
-  // NOTE: classifyImage does not exist as a Cloud Function yet.
+  // NOTE: classifyImage is deployed as a callable function and consumes this bucket.
   // Classification is currently Flutter client-side. Add here when added.
 }
 

@@ -1,7 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/providers/token_providers.dart';
 import '../models/token_wallet.dart';
@@ -76,6 +80,8 @@ class TokenWalletScreen extends ConsumerWidget {
                 onTap: () => Navigator.pushNamed(context, Routes.premium),
               ),
             ),
+            const SizedBox(height: 16),
+            _TokenStorefront(),
             const SizedBox(height: 16),
             const Text('Recent Transactions',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
@@ -283,6 +289,121 @@ class _WalletSummary extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TokenStorefront extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_TokenStorefront> createState() => _TokenStorefrontState();
+}
+
+class _TokenStorefrontState extends ConsumerState<_TokenStorefront> {
+  bool _loading = false;
+  String? _error;
+
+  static const _tokenPacks = <String, int>{
+    'token_pack_small': 25,
+    'token_pack_medium': 100,
+    'token_pack_large': 500,
+  };
+
+  static const _packLabels = <String, String>{
+    'token_pack_small': 'Small Pack',
+    'token_pack_medium': 'Medium Pack',
+    'token_pack_large': 'Large Pack',
+  };
+
+  static const _packPrices = <String, String>{
+    'token_pack_small': '\$0.99',
+    'token_pack_medium': '\$2.99',
+    'token_pack_large': '\$9.99',
+  };
+
+  Future<void> _buyPack(String packId) async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        setState(() => _error = 'Sign in to purchase tokens.');
+        return;
+      }
+
+      final functions = FirebaseFunctions.instanceFor(
+        region: 'asia-south1',
+      );
+      final result = await functions.httpsCallable('createTokenPurchaseSession')
+          .call(<String, dynamic>{'pack_id': packId});
+
+      final data = result.data as Map<String, dynamic>;
+      final checkoutUrl = data['checkout_url'] as String;
+
+      final uri = Uri.tryParse(checkoutUrl);
+      if (uri != null && await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        setState(() => _error = 'Could not open checkout page.');
+      }
+    } on FirebaseFunctionsException catch (e) {
+      setState(() => _error = e.message ?? 'Purchase failed.');
+    } catch (e) {
+      setState(() => _error = 'Purchase failed: $e');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Buy Tokens',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (_error != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              _error!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
+        ..._tokenPacks.entries.map((entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Card(
+                child: ListTile(
+                  leading: const Icon(Icons.token_outlined),
+                  title: Text(_packLabels[entry.key]!),
+                  subtitle: Text('${entry.value} tokens'),
+                  trailing: _loading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          _packPrices[entry.key]!,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                  onTap: _loading ? null : () => _buyPack(entry.key),
+                ),
+              ),
+            )),
+      ],
     );
   }
 }

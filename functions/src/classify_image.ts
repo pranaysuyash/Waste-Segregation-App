@@ -152,6 +152,17 @@ interface ClassifyImageRequest {
   perceptualHash?: string;
 }
 
+interface ReanalyzeWithCorrectionRequest {
+  imageBase64: string;
+  mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+  region?: string;
+  lang?: string;
+  requestId?: string;
+  originalClassification?: Record<string, unknown>;
+  userCorrection: string;
+  userReason?: string;
+}
+
 /**
  * Cached / returned classification result.
  *
@@ -836,6 +847,31 @@ resourceScarcity, pointsAwarded (null — calculated dynamically by the client).
 Set pointsAwarded to null always. Return ONLY the JSON object.
 `;
 
+const buildCorrectionPrompt = (
+  region: string,
+  lang: string,
+  originalClassification: Record<string, unknown>,
+  userCorrection: string,
+  userReason?: string,
+): string => `
+You are an expert in international waste classification, recycling, and proper disposal practices.
+Language for response content: ${lang}. Region context: ${region}.
+
+A user reviewed an earlier classification and submitted a correction. Re-analyze the image and produce an updated JSON classification.
+
+Original classification JSON:
+${JSON.stringify(originalClassification)}
+
+User correction:
+${userCorrection}
+
+User reason:
+${userReason ?? 'Not provided'}
+
+Return ONLY JSON using the same classification schema as standard classifyImage response.
+Set pointsAwarded to null.
+`;
+
 // ---------------------------------------------------------------------------
 // OpenAI Vision call
 // ---------------------------------------------------------------------------
@@ -844,13 +880,14 @@ async function callOpenAiVision(
   mimeType: string,
   region: string,
   lang: string,
+  promptOverride?: string,
 ): Promise<{ result: ClassificationResult; inputTokens: number | null; outputTokens: number | null }> {
   const apiKey = getOpenAiApiKey();
   if (!apiKey) {
     throw new functions.https.HttpsError('failed-precondition', 'OpenAI API key not configured.');
   }
 
-  const prompt = buildClassificationPrompt(region, lang);
+  const prompt = promptOverride ?? buildClassificationPrompt(region, lang);
 
   const response = await axios.post(
     'https://api.openai.com/v1/chat/completions',
@@ -923,13 +960,14 @@ async function callGeminiVision(
   mimeType: string,
   region: string,
   lang: string,
+  promptOverride?: string,
 ): Promise<{ result: ClassificationResult; inputTokens: number | null; outputTokens: number | null }> {
   const apiKey = getGeminiApiKey();
   if (!apiKey) {
     throw new functions.https.HttpsError('failed-precondition', 'Gemini API key not configured.');
   }
 
-  const prompt = buildClassificationPrompt(region, lang);
+  const prompt = promptOverride ?? buildClassificationPrompt(region, lang);
   const baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
 
   const response = await axios.post(
@@ -1477,3 +1515,143 @@ export const classifyImage = functions
     },
   };
 });
+
+export const reanalyzeWithCorrection = functions
+  .region('asia-south1')
+  .https.onCall(async (data: ReanalyzeWithCorrectionRequest, context) => {
+    if (!context.auth?.uid) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'Authentication required to re-analyze images.',
+      );
+    }
+    const uid = context.auth.uid;
+
+    if (shouldEnforceCallableAppCheck() && !context.app) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'App Check token required for reanalyzeWithCorrection.',
+      );
+    }
+
+    const {
+      imageBase64,
+      mimeType,
+      region,
+      lang,
+      requestId,
+      originalClassification,
+      userCorrection,
+      userReason,
+    } = data;
+
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      throw new functions.https.HttpsError('invalid-argument', 'imageBase64 is required.');
+    }
+    if (!mimeType) {
+      throw new functions.https.HttpsError('invalid-argument', 'mimeType is required.');
+    }
+    if (!userCorrection || userCorrection.trim().length === 0) {
+      throw new functions.https.HttpsError('invalid-argument', 'userCorrection is required.');
+    }
+
+    const analysisRegion = (typeof region === 'string' && region.trim().length > 0)
+      ? region.trim()
+      : 'Bangalore, IN';
+    const analysisLang = (typeof lang === 'string' && lang.trim().length > 0)
+      ? lang.trim()
+      : 'en';
+    const normalizedRequestId = normalizeRequestId(requestId);
+    const correctionPrompt = buildCorrectionPrompt(
+      analysisRegion,
+      analysisLang,
+      (originalClassification ?? {}) as Record<string, unknown>,
+      userCorrection.trim(),
+      userReason,
+    );
+
+    let classificationResult: ClassificationResult | null = null;
+    let usedProvider = 'openai';
+    let usedModel = OPENAI_VISION_MODEL;
+    let inputTokens: number | null = null;
+    let outputTokens: number | null = null;
+    let providerError: unknown = null;
+
+    try {
+      const openAiResult = await callOpenAiVision(
+        imageBase64,
+        mimeType,
+        analysisRegion,
+        analysisLang,
+        correctionPrompt,
+      );
+      classificationResult = openAiResult.result;
+      inputTokens = openAiResult.inputTokens;
+      outputTokens = openAiResult.outputTokens;
+      usedProvider = 'openai';
+      usedModel = OPENAI_VISION_MODEL;
+    } catch (err) {
+      providerError = err;
+      functions.logger.warn('reanalyzeWithCorrection: OpenAI failed; trying Gemini fallback', {
+        uid,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
+    if (!classificationResult) {
+      try {
+        const geminiResult = await callGeminiVision(
+          imageBase64,
+          mimeType,
+          analysisRegion,
+          analysisLang,
+          correctionPrompt,
+        );
+        classificationResult = geminiResult.result;
+        inputTokens = geminiResult.inputTokens;
+        outputTokens = geminiResult.outputTokens;
+        usedProvider = 'gemini';
+        usedModel = GEMINI_VISION_MODEL;
+      } catch (fallbackErr) {
+        functions.logger.error('reanalyzeWithCorrection: both providers failed', {
+          uid,
+          openAiError: providerError instanceof Error ? providerError.message : String(providerError),
+          geminiError: fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr),
+        });
+        throw new functions.https.HttpsError(
+          'unavailable',
+          'Re-analysis service temporarily unavailable. Please try again.',
+        );
+      }
+    }
+
+    void writeCostEvent({
+      uid,
+      timestamp: FieldValue.serverTimestamp(),
+      provider: usedProvider,
+      model: usedModel,
+      inputTokens,
+      outputTokens,
+      estimatedCostUsd: estimateCostUsd(usedModel, inputTokens, outputTokens),
+      imageHash: createHash('sha256').update(imageBase64).digest('hex'),
+      success: true,
+      cacheHit: false,
+      reservationId: null,
+      requestId: normalizedRequestId,
+      route: 'reanalyzeWithCorrection',
+    });
+
+    return {
+      classification: {
+        ...classificationResult,
+        source: 'ai_reanalysis_backend',
+        modelSource: `${usedProvider}-${usedModel}`,
+        modelVersion: usedModel,
+      },
+      meta: {
+        route: 'reanalyzeWithCorrection',
+        provider: usedProvider,
+        model: usedModel,
+      },
+    };
+  });

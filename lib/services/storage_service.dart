@@ -231,6 +231,90 @@ class StorageService {
     await userBox.put(StorageKeys.userProfileKey, userProfile);
   }
 
+  Future<Map<String, int>> migrateLocalIdentity({
+    required String fromUserId,
+    required String toUserId,
+  }) async {
+    if (fromUserId.trim().isEmpty ||
+        toUserId.trim().isEmpty ||
+        fromUserId == toUserId) {
+      return {'profile': 0, 'classifications': 0, 'feedback': 0};
+    }
+
+    var profileUpdated = 0;
+    var classificationsUpdated = 0;
+    var feedbackUpdated = 0;
+
+    final currentProfile = await getCurrentUserProfile();
+    if (currentProfile != null && currentProfile.id == fromUserId) {
+      await saveUserProfile(currentProfile.copyWith(id: toUserId));
+      profileUpdated = 1;
+    }
+
+    final classificationsBox = Hive.box(StorageKeys.classificationsBox);
+    for (final key in classificationsBox.keys) {
+      final data = classificationsBox.get(key);
+      if (data == null) continue;
+      try {
+        Map<String, dynamic> json;
+        if (data is String) {
+          json = jsonDecode(data);
+        } else if (data is Map<String, dynamic>) {
+          json = data;
+        } else if (data is Map) {
+          json = Map<String, dynamic>.from(data);
+        } else {
+          continue;
+        }
+        if (json['userId'] != fromUserId) continue;
+        json['userId'] = toUserId;
+        await classificationsBox.put(key, jsonEncode(json));
+        classificationsUpdated++;
+      } catch (_) {
+        continue;
+      }
+    }
+
+    final feedbackBox = Hive.box(StorageKeys.classificationFeedbackBox);
+    for (final key in feedbackBox.keys) {
+      final data = feedbackBox.get(key);
+      if (data == null) continue;
+      try {
+        Map<String, dynamic> json;
+        if (data is String) {
+          json = jsonDecode(data);
+        } else if (data is Map<String, dynamic>) {
+          json = data;
+        } else if (data is Map) {
+          json = Map<String, dynamic>.from(data);
+        } else {
+          continue;
+        }
+        if (json['userId'] != fromUserId) continue;
+        json['userId'] = toUserId;
+        final originalClassificationId =
+            json['originalClassificationId'] as String?;
+        final newKey = originalClassificationId == null
+            ? key.toString()
+            : ClassificationFeedback.dedupKey(
+                toUserId, originalClassificationId);
+        await feedbackBox.put(newKey, json);
+        if (newKey != key.toString()) {
+          await feedbackBox.delete(key);
+        }
+        feedbackUpdated++;
+      } catch (_) {
+        continue;
+      }
+    }
+
+    return {
+      'profile': profileUpdated,
+      'classifications': classificationsUpdated,
+      'feedback': feedbackUpdated,
+    };
+  }
+
   Future<void> updateTrainingConsent(TrainingConsent trainingConsent) async {
     final currentProfile = await getCurrentUserProfile();
     if (currentProfile == null) {
@@ -332,7 +416,8 @@ class StorageService {
     // Prefer image content hash for stronger dedup (image-based, not AI-output-based).
     // This prevents the same image from being classified multiple times even if
     // the AI produces slightly different output each time (e.g. "Plastic Bottle" vs "Plastic bottle").
-    if (classification.imageHash != null && classification.imageHash!.isNotEmpty) {
+    if (classification.imageHash != null &&
+        classification.imageHash!.isNotEmpty) {
       return 'img_${classification.imageHash}_${classification.userId}';
     }
     // Fallback to legacy AI-output-based hash (weaker — two different images
@@ -346,37 +431,37 @@ class StorageService {
   }) async {
     StoragePerformanceMonitor.startOperation('saveClassification');
     try {
-    final now = DateTime.now();
-    final userProfile = await getCurrentUserProfile();
-    final currentUserId = userProfile?.id ?? 'guest_user';
-    final classificationWithUserId =
-        classification.copyWith(userId: currentUserId);
-    final contentHash = _buildClassificationContentHash(
-      classificationWithUserId,
-      now,
-    );
+      final now = DateTime.now();
+      final userProfile = await getCurrentUserProfile();
+      final currentUserId = userProfile?.id ?? 'guest_user';
+      final classificationWithUserId =
+          classification.copyWith(userId: currentUserId);
+      final contentHash = _buildClassificationContentHash(
+        classificationWithUserId,
+        now,
+      );
 
-    if (!force) {
-      final recentSaveTime = _recentSaves[contentHash];
-      if (recentSaveTime != null &&
-          now.difference(recentSaveTime).inSeconds < 60) {
+      if (!force) {
+        final recentSaveTime = _recentSaves[contentHash];
+        if (recentSaveTime != null &&
+            now.difference(recentSaveTime).inSeconds < 60) {
+          return ClassificationSaveResult(
+            saved: false,
+            wasDuplicate: true,
+            contentHash: contentHash,
+          );
+        }
+      }
+
+      if (_activeSaves.contains(classification.id)) {
         return ClassificationSaveResult(
           saved: false,
           wasDuplicate: true,
           contentHash: contentHash,
         );
       }
-    }
 
-    if (_activeSaves.contains(classification.id)) {
-      return ClassificationSaveResult(
-        saved: false,
-        wasDuplicate: true,
-        contentHash: contentHash,
-      );
-    }
-
-    _activeSaves.add(classification.id);
+      _activeSaves.add(classification.id);
 
       final classificationsBox = Hive.box(StorageKeys.classificationsBox);
       final hashesBox = Hive.box<String>('classificationHashesBox');
@@ -459,7 +544,8 @@ class StorageService {
       return null;
     }
 
-    final existingClassification = classificationsBox.get(existingClassificationId);
+    final existingClassification =
+        classificationsBox.get(existingClassificationId);
     if (existingClassification != null) {
       return existingClassificationId;
     }
@@ -676,19 +762,19 @@ class StorageService {
       if (filterOptions.subcategories != null &&
           filterOptions.subcategories!.isNotEmpty) {
         if (classification.subCategory == null) return false;
-        final matchesSubcategory = filterOptions.subcategories!.any(
-            (s) =>
-                classification.subCategory!.toLowerCase() == s.toLowerCase());
+        final matchesSubcategory = filterOptions.subcategories!.any((s) =>
+            classification.subCategory!.toLowerCase() == s.toLowerCase());
         if (!matchesSubcategory) return false;
       }
 
       // Filter by material types
       if (filterOptions.materialTypes != null &&
           filterOptions.materialTypes!.isNotEmpty) {
-        if (classification.materials == null || classification.materials!.isEmpty) return false;
+        if (classification.materials == null ||
+            classification.materials!.isEmpty) return false;
         final matchesMaterial = filterOptions.materialTypes!.any(
-            (materialType) =>
-                classification.materials!.any((m) => m.toLowerCase() == materialType.toLowerCase()));
+            (materialType) => classification.materials!
+                .any((m) => m.toLowerCase() == materialType.toLowerCase()));
         if (!matchesMaterial) return false;
       }
 
@@ -1163,7 +1249,6 @@ class StorageService {
             context: {'service': 'storage', 'file': 'storage_service'});
         // Don't rethrow - this shouldn't block the entire factory reset
       }
-
     } catch (e) {
       WasteAppLogger.severe('Error occurred',
           context: {'service': 'storage', 'file': 'storage_service'});
@@ -1337,7 +1422,6 @@ class StorageService {
           await classificationsBox.put(
               key, jsonEncode(migratedClassification.toJson()));
           migratedCount++;
-
         }
       } catch (e) {
         WasteAppLogger.severe('Error occurred',
@@ -1368,7 +1452,6 @@ class StorageService {
     final classificationsBox = Hive.box(StorageKeys.classificationsBox);
     final userProfile = await getCurrentUserProfile();
     final currentUserId = userProfile?.id ?? 'guest_user';
-
 
     // Load all classifications
     final allKeys = classificationsBox.keys.toList();
@@ -1487,7 +1570,6 @@ class StorageService {
   /// Trigger migration of old classifications to update imageUrl fields
   Future<void> migrateOldClassifications() async {
     try {
-
       // Create cloud storage service instance
       final cloudStorageService = CloudStorageService(this);
 
@@ -1509,7 +1591,6 @@ class StorageService {
   /// Migrate existing classifications to generate missing thumbnails
   Future<void> migrateThumbnails() async {
     try {
-
       // Create image service instance
       final imageService = EnhancedImageService();
 
@@ -1530,7 +1611,6 @@ class StorageService {
   /// Clean up orphaned thumbnails that no longer have corresponding classifications
   Future<void> cleanUpOrphanedThumbnails() async {
     try {
-
       // Get all classifications and extract valid thumbnail paths
       final classifications = await getAllClassifications();
       final validThumbnailPaths = <String>[];
@@ -1545,7 +1625,6 @@ class StorageService {
       // Create image service instance and clean up orphans
       final imageService = EnhancedImageService();
       await imageService.cleanUpOrphanedThumbnails(validThumbnailPaths);
-
     } catch (e) {
       WasteAppLogger.severe('Error occurred',
           context: {'service': 'storage', 'file': 'storage_service'});
@@ -1555,7 +1634,6 @@ class StorageService {
   /// Migrate existing absolute image paths to relative paths
   Future<void> migrateImagePathsToRelative() async {
     try {
-
       final classifications = await getAllClassifications();
       var hasChanges = false;
 
@@ -1588,8 +1666,7 @@ class StorageService {
         for (final classification in classifications) {
           await box.add(classification);
         }
-      } else {
-      }
+      } else {}
     } catch (e) {
       WasteAppLogger.severe('Error occurred',
           context: {'service': 'storage', 'file': 'storage_service'});

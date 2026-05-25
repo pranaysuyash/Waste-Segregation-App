@@ -38,6 +38,29 @@ class CloudStorageService {
 
   StorageService get localStorageService => _localStorageService;
 
+  /// Fetches user profile from Firestore for cross-device sync.
+  ///
+  /// Returns null if the user document doesn't exist in Firestore.
+  Future<UserProfile?> fetchUserProfileFromFirestore(String userId) async {
+    try {
+      final doc = await _firestore
+          .collection(FirestoreCollections.users)
+          .doc(userId)
+          .get();
+
+      if (!doc.exists) return null;
+
+      final data = doc.data();
+      if (data == null) return null;
+
+      return UserProfile.fromJson(data);
+    } catch (e, s) {
+      WasteAppLogger.severe('Error fetching user profile from Firestore',
+          error: e, stackTrace: s);
+      return null;
+    }
+  }
+
   /// OPTIMIZATION: Saves or updates the user's profile and leaderboard using batch operations
   /// This reduces Firestore costs by batching writes together
   Future<void> saveUserProfileToFirestore(UserProfile userProfile,

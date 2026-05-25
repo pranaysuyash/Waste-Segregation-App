@@ -4,637 +4,643 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+
 class AdService extends ChangeNotifier {
 // static const String _removeAdsFeatureId = 'remove_ads'; // Unused field removed
-bool _hasPremium = false;
+  bool _hasPremium = false;
 // Test IDs are always used in debug/profile builds.
-static const String _testAndroidBannerId =
-'ca-app-pub-3940256099942544/6300978111';
-static const String _testIosBannerId =
-'ca-app-pub-3940256099942544/2934735716';
-static const String _testAndroidInterstitialId =
-'ca-app-pub-3940256099942544/1033173712';
-static const String _testIosInterstitialId =
-'ca-app-pub-3940256099942544/4411468910';
+  static const String _testAndroidBannerId =
+      'ca-app-pub-3940256099942544/6300978111';
+  static const String _testIosBannerId =
+      'ca-app-pub-3940256099942544/2934735716';
+  static const String _testAndroidInterstitialId =
+      'ca-app-pub-3940256099942544/1033173712';
+  static const String _testIosInterstitialId =
+      'ca-app-pub-3940256099942544/4411468910';
 // Release IDs must be provided via --dart-define.
-static const String _releaseAndroidBannerId =
-String.fromEnvironment('ADMOB_ANDROID_BANNER_AD_UNIT_ID');
-static const String _releaseIosBannerId =
-String.fromEnvironment('ADMOB_IOS_BANNER_AD_UNIT_ID');
-static const String _releaseAndroidInterstitialId =
-String.fromEnvironment('ADMOB_ANDROID_INTERSTITIAL_AD_UNIT_ID');
-static const String _releaseIosInterstitialId =
-String.fromEnvironment('ADMOB_IOS_INTERSTITIAL_AD_UNIT_ID');
+  static const String _releaseAndroidBannerId =
+      String.fromEnvironment('ADMOB_ANDROID_BANNER_AD_UNIT_ID');
+  static const String _releaseIosBannerId =
+      String.fromEnvironment('ADMOB_IOS_BANNER_AD_UNIT_ID');
+  static const String _releaseAndroidInterstitialId =
+      String.fromEnvironment('ADMOB_ANDROID_INTERSTITIAL_AD_UNIT_ID');
+  static const String _releaseIosInterstitialId =
+      String.fromEnvironment('ADMOB_IOS_INTERSTITIAL_AD_UNIT_ID');
 // TODO: Add reward ad unit IDs when implementing reward ads
 // static const Map<String, String> _rewardAdUnitIds = {
 //   'android': 'ca-app-pub-3940256099942544/5224354917', // TEST ID
 //   'ios': 'ca-app-pub-3940256099942544/1712485313',     // TEST ID
 // };
 // Ad state tracking
-InterstitialAd? _interstitialAd;
-bool _isInterstitialAdLoading = false;
-DateTime? _lastInterstitialAdTime;
-int _classificationsSinceLastAd = 0;
+  InterstitialAd? _interstitialAd;
+  bool _isInterstitialAdLoading = false;
+  DateTime? _lastInterstitialAdTime;
+  int _classificationsSinceLastAd = 0;
 // Ad context management - FIXED: Prevent notifyListeners during build
-bool _isInClassificationFlow = false;
-bool _isInEducationalContent = false;
-bool _isInSettings = false;
-bool _isInitialized = false;
-bool _isInitializing = false;
-bool _canRequestAds = false;
-BannerAd? _bannerAd;
-Widget? _cachedBannerWidget;
-String? _currentBannerAdKey;
-bool _didWarnReleaseBannerFallback = false;
-bool _didWarnReleaseInterstitialFallback = false;
+  bool _isInClassificationFlow = false;
+  bool _isInEducationalContent = false;
+  bool _isInSettings = false;
+  bool _isInitialized = false;
+  bool _isInitializing = false;
+  bool _canRequestAds = false;
+  BannerAd? _bannerAd;
+  Widget? _cachedBannerWidget;
+  String? _currentBannerAdKey;
 // Getters
-bool get isInitialized => _isInitialized;
-@visibleForTesting
-void debugSetCanRequestAds(bool value) {
-_canRequestAds = value;
-}
-bool get shouldShowAds =>
-!kIsWeb &&
-_canRequestAds &&
-!_hasPremium &&
-!_isInClassificationFlow &&
-!_isInEducationalContent &&
-!_isInSettings;
-bool get canShowInterstitialAd {
-if (_lastInterstitialAdTime == null) return true;
-return DateTime.now().difference(_lastInterstitialAdTime!).inMinutes >= 5;
-}
+  bool get isInitialized => _isInitialized;
+  @visibleForTesting
+  void debugSetCanRequestAds(bool value) {
+    _canRequestAds = value;
+  }
+
+  bool get shouldShowAds =>
+      !kIsWeb &&
+      _canRequestAds &&
+      !_hasPremium &&
+      !_isInClassificationFlow &&
+      !_isInEducationalContent &&
+      !_isInSettings;
+  bool get canShowInterstitialAd {
+    if (_lastInterstitialAdTime == null) return true;
+    return DateTime.now().difference(_lastInterstitialAdTime!).inMinutes >= 5;
+  }
+
 // Set premium status
-void setPremiumStatus(bool hasPremium) {
-if (_hasPremium != hasPremium) {
-_hasPremium = hasPremium;
-if (_hasPremium) {
-_classificationsSinceLastAd = 0;
-_bannerAd?.dispose();
-_bannerAd = null;
-_interstitialAd?.dispose();
-_interstitialAd = null;
-_cachedBannerWidget = null;
-_currentBannerAdKey = null;
-} else if (_isInitialized && _canRequestAds && !_disposed && !kIsWeb) {
-_loadBannerAd();
-}
+  void setPremiumStatus(bool hasPremium) {
+    if (_hasPremium != hasPremium) {
+      _hasPremium = hasPremium;
+      if (_hasPremium) {
+        _classificationsSinceLastAd = 0;
+        _bannerAd?.dispose();
+        _bannerAd = null;
+        _interstitialAd?.dispose();
+        _interstitialAd = null;
+        _cachedBannerWidget = null;
+        _currentBannerAdKey = null;
+      } else if (_isInitialized && _canRequestAds && !_disposed && !kIsWeb) {
+        _loadBannerAd();
+      }
 // Use post-frame callback to avoid calling notifyListeners during build
-WidgetsBinding.instance.addPostFrameCallback((_) {
-if (mounted) {
-notifyListeners();
-}
-});
-}
-}
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          notifyListeners();
+        }
+      });
+    }
+  }
+
 // Check if the service is still mounted (not disposed)
-bool get mounted => !_disposed;
-bool _disposed = false;
+  bool get mounted => !_disposed;
+  bool _disposed = false;
 // Initialize the ad service
-Future<void> initialize() async {
-if (kIsWeb) {
-_isInitialized = true;
-return; // Skip ad initialization on web
-}
-if (_isInitialized || _isInitializing || _disposed) return;
-_isInitializing = true;
-try {
-await MobileAds.instance.initialize();
-await _refreshConsentAndAdRequestEligibility();
-_isInitialized = true;
-if (_canRequestAds) {
-_loadInterstitialAd();
-_loadBannerAd();
-} else {
-WasteAppLogger.warning(
-'Ad loading skipped: consent/App eligibility not granted.',
-context: {'service': 'ad_service'},
-);
-}
+  Future<void> initialize() async {
+    if (kIsWeb) {
+      _isInitialized = true;
+      return; // Skip ad initialization on web
+    }
+    if (_isInitialized || _isInitializing || _disposed) return;
+    _isInitializing = true;
+    try {
+      await MobileAds.instance.initialize();
+      await _refreshConsentAndAdRequestEligibility();
+      _isInitialized = true;
+      if (_canRequestAds) {
+        _loadInterstitialAd();
+        _loadBannerAd();
+      } else {
+        WasteAppLogger.warning(
+          'Ad loading skipped: consent/App eligibility not granted.',
+          context: {'service': 'ad_service'},
+        );
+      }
 // Use post-frame callback to avoid calling notifyListeners during build
-WidgetsBinding.instance.addPostFrameCallback((_) {
-if (mounted) {
-notifyListeners();
-}
-});
-} catch (e) {
-WasteAppLogger.severe('Error initializing ads: $e');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          notifyListeners();
+        }
+      });
+    } catch (e) {
+      WasteAppLogger.severe('Error initializing ads: $e');
 // TODO: Implement proper error tracking/analytics
-} finally {
-_isInitializing = false;
-}
-}
-Future<void> _refreshConsentAndAdRequestEligibility() async {
-if (kIsWeb) {
-_canRequestAds = false;
-return;
-}
-final completer = Completer<void>();
-final params = ConsentRequestParameters();
-ConsentInformation.instance.requestConsentInfoUpdate(
-params,
-() async {
-try {
-final status = await ConsentInformation.instance.getConsentStatus();
-if (status == ConsentStatus.obtained ||
-status == ConsentStatus.notRequired) {
-_canRequestAds = true;
-completer.complete();
-return;
-}
-final isFormAvailable =
-await ConsentInformation.instance.isConsentFormAvailable();
-if (!isFormAvailable) {
-_canRequestAds = false;
-completer.complete();
-return;
-}
-ConsentForm.loadConsentForm(
-(ConsentForm consentForm) {
-consentForm.show((FormError? formError) async {
-if (formError != null) {
-WasteAppLogger.warning(
-'Consent form dismissed with error.',
-context: {
-'service': 'ad_service',
-'error': formError.message,
-'code': formError.errorCode,
-},
-);
-}
-try {
-final latestStatus =
-await ConsentInformation.instance.getConsentStatus();
-_canRequestAds = latestStatus == ConsentStatus.obtained ||
-latestStatus == ConsentStatus.notRequired;
-} catch (_) {
-_canRequestAds = false;
-}
-await consentForm.dispose();
-completer.complete();
-});
-},
-(FormError error) {
-WasteAppLogger.warning(
-'Consent form failed to load.',
-context: {
-'service': 'ad_service',
-'error': error.message,
-'code': error.errorCode,
-},
-);
-_canRequestAds = false;
-completer.complete();
-},
-);
-} catch (e) {
-WasteAppLogger.warning(
-'Consent evaluation failed after info update.',
-context: {'service': 'ad_service', 'error': e.toString()},
-);
-_canRequestAds = false;
-completer.complete();
-}
-},
-(FormError error) {
-WasteAppLogger.warning(
-'Consent info update failed.',
-context: {
-'service': 'ad_service',
-'error': error.message,
-'code': error.errorCode,
-},
-);
-_canRequestAds = false;
-completer.complete();
-},
-);
-await completer.future.timeout(
-const Duration(seconds: 15),
-onTimeout: () {
-_canRequestAds = false;
-},
-);
-}
-String _resolveBannerAdUnitId() {
-if (Platform.isAndroid) {
-return _resolveAdUnitId(
-releaseValue: _releaseAndroidBannerId,
-testValue: _testAndroidBannerId,
-isInterstitial: false,
-);
-}
-return _resolveAdUnitId(
-releaseValue: _releaseIosBannerId,
-testValue: _testIosBannerId,
-isInterstitial: false,
-);
-}
-String _resolveInterstitialAdUnitId() {
-if (Platform.isAndroid) {
-return _resolveAdUnitId(
-releaseValue: _releaseAndroidInterstitialId,
-testValue: _testAndroidInterstitialId,
-isInterstitial: true,
-);
-}
-return _resolveAdUnitId(
-releaseValue: _releaseIosInterstitialId,
-testValue: _testIosInterstitialId,
-isInterstitial: true,
-);
-}
-String _resolveAdUnitId({
-required String releaseValue,
-required String testValue,
-required bool isInterstitial,
-}) {
-if (!kReleaseMode) {
-return testValue;
-}
-if (releaseValue.trim().isNotEmpty) {
-return releaseValue.trim();
-}
-if (isInterstitial) {
-if (!_didWarnReleaseInterstitialFallback) {
-_didWarnReleaseInterstitialFallback = true;
-WasteAppLogger.warning(
-'Release interstitial ad unit ID not configured; using test ID fallback.',
-context: {'service': 'ad_service'},
-);
-}
-} else {
-if (!_didWarnReleaseBannerFallback) {
-_didWarnReleaseBannerFallback = true;
-WasteAppLogger.warning(
-'Release banner ad unit ID not configured; using test ID fallback.',
-context: {'service': 'ad_service'},
-);
-}
-}
-return testValue;
-}
+    } finally {
+      _isInitializing = false;
+    }
+  }
+
+  Future<void> _refreshConsentAndAdRequestEligibility() async {
+    if (kIsWeb) {
+      _canRequestAds = false;
+      return;
+    }
+    final completer = Completer<void>();
+    final params = ConsentRequestParameters();
+    ConsentInformation.instance.requestConsentInfoUpdate(
+      params,
+      () async {
+        try {
+          final status = await ConsentInformation.instance.getConsentStatus();
+          if (status == ConsentStatus.obtained ||
+              status == ConsentStatus.notRequired) {
+            _canRequestAds = true;
+            completer.complete();
+            return;
+          }
+          final isFormAvailable =
+              await ConsentInformation.instance.isConsentFormAvailable();
+          if (!isFormAvailable) {
+            _canRequestAds = false;
+            completer.complete();
+            return;
+          }
+          ConsentForm.loadConsentForm(
+            (ConsentForm consentForm) {
+              consentForm.show((FormError? formError) async {
+                if (formError != null) {
+                  WasteAppLogger.warning(
+                    'Consent form dismissed with error.',
+                    context: {
+                      'service': 'ad_service',
+                      'error': formError.message,
+                      'code': formError.errorCode,
+                    },
+                  );
+                }
+                try {
+                  final latestStatus =
+                      await ConsentInformation.instance.getConsentStatus();
+                  _canRequestAds = latestStatus == ConsentStatus.obtained ||
+                      latestStatus == ConsentStatus.notRequired;
+                } catch (_) {
+                  _canRequestAds = false;
+                }
+                await consentForm.dispose();
+                completer.complete();
+              });
+            },
+            (FormError error) {
+              WasteAppLogger.warning(
+                'Consent form failed to load.',
+                context: {
+                  'service': 'ad_service',
+                  'error': error.message,
+                  'code': error.errorCode,
+                },
+              );
+              _canRequestAds = false;
+              completer.complete();
+            },
+          );
+        } catch (e) {
+          WasteAppLogger.warning(
+            'Consent evaluation failed after info update.',
+            context: {'service': 'ad_service', 'error': e.toString()},
+          );
+          _canRequestAds = false;
+          completer.complete();
+        }
+      },
+      (FormError error) {
+        WasteAppLogger.warning(
+          'Consent info update failed.',
+          context: {
+            'service': 'ad_service',
+            'error': error.message,
+            'code': error.errorCode,
+          },
+        );
+        _canRequestAds = false;
+        completer.complete();
+      },
+    );
+    await completer.future.timeout(
+      const Duration(seconds: 15),
+      onTimeout: () {
+        _canRequestAds = false;
+      },
+    );
+  }
+
+  String _resolveBannerAdUnitId() {
+    if (Platform.isAndroid) {
+      return _resolveAdUnitId(
+        releaseValue: _releaseAndroidBannerId,
+        testValue: _testAndroidBannerId,
+        isInterstitial: false,
+      );
+    }
+    return _resolveAdUnitId(
+      releaseValue: _releaseIosBannerId,
+      testValue: _testIosBannerId,
+      isInterstitial: false,
+    );
+  }
+
+  String _resolveInterstitialAdUnitId() {
+    if (Platform.isAndroid) {
+      return _resolveAdUnitId(
+        releaseValue: _releaseAndroidInterstitialId,
+        testValue: _testAndroidInterstitialId,
+        isInterstitial: true,
+      );
+    }
+    return _resolveAdUnitId(
+      releaseValue: _releaseIosInterstitialId,
+      testValue: _testIosInterstitialId,
+      isInterstitial: true,
+    );
+  }
+
+  String _resolveAdUnitId({
+    required String releaseValue,
+    required String testValue,
+    required bool isInterstitial,
+  }) {
+    if (!kReleaseMode) {
+      return testValue;
+    }
+    if (releaseValue.trim().isNotEmpty) {
+      return releaseValue.trim();
+    }
+    final adType = isInterstitial ? 'interstitial' : 'banner';
+    throw StateError(
+      'Missing release $adType AdMob unit ID. Provide --dart-define values for release builds.',
+    );
+  }
+
 // Preload banner ad with performance optimization
-void _loadBannerAd() {
-if (kIsWeb || _bannerAd != null || _disposed) return;
+  void _loadBannerAd() {
+    if (kIsWeb || _bannerAd != null || _disposed) return;
 // Use microtask to avoid blocking the main thread
-scheduleMicrotask(() async {
-try {
-final adUnitId = _resolveBannerAdUnitId();
+    scheduleMicrotask(() async {
+      try {
+        final adUnitId = _resolveBannerAdUnitId();
 // Use adaptive banner for better performance and responsive design
-final newBannerAd = BannerAd(
-adUnitId: adUnitId,
-size: AdSize.banner, // Changed from AdSize.smartBanner
-request: const AdRequest(
-keywords: ['waste', 'recycling', 'environment', 'sustainability'],
-contentUrl: 'https://reloop.app',
-),
-listener: BannerAdListener(
-onAdLoaded: (ad) {
-WasteAppLogger.info('Banner ad loaded successfully');
-if (!_disposed) {
+        final newBannerAd = BannerAd(
+          adUnitId: adUnitId,
+          size: AdSize.banner, // Changed from AdSize.smartBanner
+          request: const AdRequest(
+            keywords: ['waste', 'recycling', 'environment', 'sustainability'],
+            contentUrl: 'https://reloop.app',
+          ),
+          listener: BannerAdListener(
+            onAdLoaded: (ad) {
+              WasteAppLogger.info('Banner ad loaded successfully');
+              if (!_disposed) {
 // Schedule UI update after current frame to prevent jank
-WidgetsBinding.instance.addPostFrameCallback((_) {
-if (!_disposed) {
-_bannerAd = ad as BannerAd;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!_disposed) {
+                    _bannerAd = ad as BannerAd;
 // Clear cached widget to force recreation
-_cachedBannerWidget = null;
-_currentBannerAdKey = null;
-if (mounted) {
-notifyListeners();
-}
-}
-});
-}
-},
-onAdFailedToLoad: (ad, error) {
-WasteAppLogger.severe('Banner ad failed to load: $error');
-ad.dispose();
+                    _cachedBannerWidget = null;
+                    _currentBannerAdKey = null;
+                    if (mounted) {
+                      notifyListeners();
+                    }
+                  }
+                });
+              }
+            },
+            onAdFailedToLoad: (ad, error) {
+              WasteAppLogger.severe('Banner ad failed to load: $error');
+              ad.dispose();
 // Schedule cleanup after current frame
-WidgetsBinding.instance.addPostFrameCallback((_) {
-if (!_disposed) {
-_bannerAd = null;
-_cachedBannerWidget = null;
-_currentBannerAdKey = null;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!_disposed) {
+                  _bannerAd = null;
+                  _cachedBannerWidget = null;
+                  _currentBannerAdKey = null;
 // Exponential backoff for retries
-_retryBannerAdLoad();
-}
-});
-},
-onAdImpression: (ad) {
-WasteAppLogger.info('Banner ad impression');
+                  _retryBannerAdLoad();
+                }
+              });
+            },
+            onAdImpression: (ad) {
+              WasteAppLogger.info('Banner ad impression');
 // Track ad impression analytics here
-},
-onAdClicked: (ad) {
-WasteAppLogger.info('Banner ad clicked');
+            },
+            onAdClicked: (ad) {
+              WasteAppLogger.info('Banner ad clicked');
 // Track ad click analytics here
-},
-),
-);
+            },
+          ),
+        );
 // Load ad asynchronously to prevent main thread blocking
-await newBannerAd.load();
-} catch (e) {
-WasteAppLogger.severe('Error creating banner ad: $e');
+        await newBannerAd.load();
+      } catch (e) {
+        WasteAppLogger.severe('Error creating banner ad: $e');
 // Schedule retry after error
-if (!_disposed) {
-_retryBannerAdLoad();
-}
-}
-});
-}
-int _bannerRetryCount = 0;
-static const int _maxBannerRetries = 3;
-void _retryBannerAdLoad() {
-if (_bannerRetryCount >= _maxBannerRetries || _disposed) {
-_bannerRetryCount = 0;
-return;
-}
-_bannerRetryCount++;
-final delay = Duration(seconds: _bannerRetryCount * 30); // 30s, 60s, 90s
-Future.delayed(delay, () {
-if (!_disposed) {
-_loadBannerAd();
-}
-});
-}
+        if (!_disposed) {
+          _retryBannerAdLoad();
+        }
+      }
+    });
+  }
+
+  int _bannerRetryCount = 0;
+  static const int _maxBannerRetries = 3;
+  void _retryBannerAdLoad() {
+    if (_bannerRetryCount >= _maxBannerRetries || _disposed) {
+      _bannerRetryCount = 0;
+      return;
+    }
+    _bannerRetryCount++;
+    final delay = Duration(seconds: _bannerRetryCount * 30); // 30s, 60s, 90s
+    Future.delayed(delay, () {
+      if (!_disposed) {
+        _loadBannerAd();
+      }
+    });
+  }
+
 // Load interstitial ad with performance optimization
-void _loadInterstitialAd() {
-if (kIsWeb ||
-_isInterstitialAdLoading ||
-_interstitialAd != null ||
-_disposed) {
-return;
-}
-_isInterstitialAdLoading = true;
+  void _loadInterstitialAd() {
+    if (kIsWeb ||
+        _isInterstitialAdLoading ||
+        _interstitialAd != null ||
+        _disposed) {
+      return;
+    }
+    _isInterstitialAdLoading = true;
 // Use microtask to avoid blocking the main thread
-scheduleMicrotask(() async {
-try {
-final adUnitId = _resolveInterstitialAdUnitId();
-await InterstitialAd.load(
-adUnitId: adUnitId,
-request: const AdRequest(
-keywords: ['waste', 'recycling', 'environment', 'sustainability'],
-contentUrl: 'https://reloop.app',
-),
-adLoadCallback: InterstitialAdLoadCallback(
-onAdLoaded: (ad) {
+    scheduleMicrotask(() async {
+      try {
+        final adUnitId = _resolveInterstitialAdUnitId();
+        await InterstitialAd.load(
+          adUnitId: adUnitId,
+          request: const AdRequest(
+            keywords: ['waste', 'recycling', 'environment', 'sustainability'],
+            contentUrl: 'https://reloop.app',
+          ),
+          adLoadCallback: InterstitialAdLoadCallback(
+            onAdLoaded: (ad) {
 // Schedule UI update after current frame to prevent jank
-WidgetsBinding.instance.addPostFrameCallback((_) {
-if (!_disposed) {
-_interstitialAd = ad;
-_isInterstitialAdLoading = false;
-_interstitialRetryCount = 0; // Reset retry count on success
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!_disposed) {
+                  _interstitialAd = ad;
+                  _isInterstitialAdLoading = false;
+                  _interstitialRetryCount = 0; // Reset retry count on success
 // Set callback for ad close
-ad.fullScreenContentCallback = FullScreenContentCallback(
-onAdDismissedFullScreenContent: (ad) {
-ad.dispose();
-_interstitialAd = null;
-if (!_disposed) {
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdDismissedFullScreenContent: (ad) {
+                      ad.dispose();
+                      _interstitialAd = null;
+                      if (!_disposed) {
 // Preload next ad asynchronously
-Future.delayed(
-const Duration(seconds: 5), _loadInterstitialAd);
-}
-},
-onAdFailedToShowFullScreenContent: (ad, error) {
-WasteAppLogger.severe(
-'Failed to show interstitial ad: $error');
-ad.dispose();
-_interstitialAd = null;
-if (!_disposed) {
-_retryInterstitialAdLoad();
-}
-},
-onAdImpression: (ad) {
-WasteAppLogger.info('Interstitial ad impression');
+                        Future.delayed(
+                            const Duration(seconds: 5), _loadInterstitialAd);
+                      }
+                    },
+                    onAdFailedToShowFullScreenContent: (ad, error) {
+                      WasteAppLogger.severe(
+                          'Failed to show interstitial ad: $error');
+                      ad.dispose();
+                      _interstitialAd = null;
+                      if (!_disposed) {
+                        _retryInterstitialAdLoad();
+                      }
+                    },
+                    onAdImpression: (ad) {
+                      WasteAppLogger.info('Interstitial ad impression');
 // Track ad impression analytics here
-},
-onAdClicked: (ad) {
-WasteAppLogger.info('Interstitial ad clicked');
+                    },
+                    onAdClicked: (ad) {
+                      WasteAppLogger.info('Interstitial ad clicked');
 // Track ad click analytics here
-},
-);
-if (mounted) {
-notifyListeners();
-}
-}
-});
-},
-onAdFailedToLoad: (error) {
-WasteAppLogger.severe('Failed to load interstitial ad: $error');
+                    },
+                  );
+                  if (mounted) {
+                    notifyListeners();
+                  }
+                }
+              });
+            },
+            onAdFailedToLoad: (error) {
+              WasteAppLogger.severe('Failed to load interstitial ad: $error');
 // Schedule retry after current frame
-WidgetsBinding.instance.addPostFrameCallback((_) {
-_isInterstitialAdLoading = false;
-if (!_disposed) {
-_retryInterstitialAdLoad();
-}
-});
-},
-),
-);
-} catch (e) {
-WasteAppLogger.severe('Error loading interstitial ad: $e');
-_isInterstitialAdLoading = false;
-if (!_disposed) {
-_retryInterstitialAdLoad();
-}
-}
-});
-}
-int _interstitialRetryCount = 0;
-static const int _maxInterstitialRetries = 3;
-void _retryInterstitialAdLoad() {
-if (_interstitialRetryCount >= _maxInterstitialRetries || _disposed) {
-_interstitialRetryCount = 0;
-return;
-}
-_interstitialRetryCount++;
-final delay =
-Duration(minutes: _interstitialRetryCount); // 1min, 2min, 3min
-Future.delayed(delay, () {
-if (!_disposed) {
-_loadInterstitialAd();
-}
-});
-}
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _isInterstitialAdLoading = false;
+                if (!_disposed) {
+                  _retryInterstitialAdLoad();
+                }
+              });
+            },
+          ),
+        );
+      } catch (e) {
+        WasteAppLogger.severe('Error loading interstitial ad: $e');
+        _isInterstitialAdLoading = false;
+        if (!_disposed) {
+          _retryInterstitialAdLoad();
+        }
+      }
+    });
+  }
+
+  int _interstitialRetryCount = 0;
+  static const int _maxInterstitialRetries = 3;
+  void _retryInterstitialAdLoad() {
+    if (_interstitialRetryCount >= _maxInterstitialRetries || _disposed) {
+      _interstitialRetryCount = 0;
+      return;
+    }
+    _interstitialRetryCount++;
+    final delay =
+        Duration(minutes: _interstitialRetryCount); // 1min, 2min, 3min
+    Future.delayed(delay, () {
+      if (!_disposed) {
+        _loadInterstitialAd();
+      }
+    });
+  }
+
 // Get banner ad widget - Optimized for performance and lifecycle management
-Widget getBannerAd() {
-if (kIsWeb || !shouldShowAds || _disposed) {
-return const SizedBox.shrink();
-}
-if (_bannerAd == null) {
+  Widget getBannerAd() {
+    if (kIsWeb || !shouldShowAds || _disposed) {
+      return const SizedBox.shrink();
+    }
+    if (_bannerAd == null) {
 // If banner ad is not loaded yet, try to load it asynchronously
-if (!_isInitializing) {
+      if (!_isInitializing) {
 // Schedule ad loading after the current build cycle to prevent jank
-WidgetsBinding.instance.addPostFrameCallback((_) {
-if (!_disposed) {
-_loadBannerAd();
-}
-});
-}
-return _buildPlaceholderAd();
-}
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!_disposed) {
+            _loadBannerAd();
+          }
+        });
+      }
+      return _buildPlaceholderAd();
+    }
 // Use a stable key based on ad instance to prevent unnecessary rebuilds
-final adKey = '${_bannerAd.hashCode}';
+    final adKey = '${_bannerAd.hashCode}';
 // Only create a new widget if we don't have a cached one or the ad changed
-if (_cachedBannerWidget == null || _currentBannerAdKey != adKey) {
-_cachedBannerWidget = RepaintBoundary(
-child: Container(
-alignment: Alignment.center,
-width: _bannerAd!.size.width.toDouble(),
-height: _bannerAd!.size.height.toDouble(),
-decoration: BoxDecoration(
-color: Colors.transparent,
-borderRadius: BorderRadius.circular(4),
-),
-child: ClipRRect(
-borderRadius: BorderRadius.circular(4),
-child: AdWidget(ad: _bannerAd!),
-),
-),
-);
-_currentBannerAdKey = adKey;
-}
-return _cachedBannerWidget!;
-}
+    if (_cachedBannerWidget == null || _currentBannerAdKey != adKey) {
+      _cachedBannerWidget = RepaintBoundary(
+        child: Container(
+          alignment: Alignment.center,
+          width: _bannerAd!.size.width.toDouble(),
+          height: _bannerAd!.size.height.toDouble(),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: AdWidget(ad: _bannerAd!),
+          ),
+        ),
+      );
+      _currentBannerAdKey = adKey;
+    }
+    return _cachedBannerWidget!;
+  }
+
 // Build a performant placeholder for the ad
-Widget _buildPlaceholderAd() {
-return RepaintBoundary(
-child: Container(
-alignment: Alignment.center,
-width: 320, // Standard banner width
-height: 50, // Standard banner height
-decoration: BoxDecoration(
-color: Colors.grey.shade100,
-border: Border.all(color: Colors.grey.shade300, width: 0.5),
-borderRadius: BorderRadius.circular(4),
-),
-child: AnimatedOpacity(
-opacity: 0.6,
-duration: const Duration(milliseconds: 1000),
-child: Row(
-mainAxisAlignment: MainAxisAlignment.center,
-children: [
-SizedBox(
-width: 12,
-height: 12,
-child: CircularProgressIndicator(
-strokeWidth: 1.5,
-valueColor:
-AlwaysStoppedAnimation<Color>(Colors.grey.shade500),
-),
-),
-const SizedBox(width: 8),
-Text(
-'Loading ad...',
-style: TextStyle(
-fontSize: 11,
-color: Colors.grey.shade600,
-fontWeight: FontWeight.w400,
-),
-),
-],
-),
-),
-),
-);
-}
+  Widget _buildPlaceholderAd() {
+    return RepaintBoundary(
+      child: Container(
+        alignment: Alignment.center,
+        width: 320, // Standard banner width
+        height: 50, // Standard banner height
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          border: Border.all(color: Colors.grey.shade300, width: 0.5),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: AnimatedOpacity(
+          opacity: 0.6,
+          duration: const Duration(milliseconds: 1000),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.grey.shade500),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Loading ad...',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 // Show interstitial ad
-Future<bool> showInterstitialAd() async {
-if (kIsWeb ||
-!shouldShowAds ||
-!canShowInterstitialAd ||
-_interstitialAd == null ||
-_disposed) {
-return false;
-}
-try {
-await _interstitialAd!.show();
-_lastInterstitialAdTime = DateTime.now();
-_classificationsSinceLastAd = 0;
-return true;
-} catch (e) {
-WasteAppLogger.severe('Error showing interstitial ad: $e');
-return false;
-}
-}
+  Future<bool> showInterstitialAd() async {
+    if (kIsWeb ||
+        !shouldShowAds ||
+        !canShowInterstitialAd ||
+        _interstitialAd == null ||
+        _disposed) {
+      return false;
+    }
+    try {
+      await _interstitialAd!.show();
+      _lastInterstitialAdTime = DateTime.now();
+      _classificationsSinceLastAd = 0;
+      return true;
+    } catch (e) {
+      WasteAppLogger.severe('Error showing interstitial ad: $e');
+      return false;
+    }
+  }
+
 // TODO: Implement reward ad functionality
 // Future<bool> showRewardAd() async {
 //   // Implementation for reward ads
 //   return false;
 // }
 // Track classification completion
-void trackClassificationCompleted() {
-if (_disposed) return;
-_classificationsSinceLastAd++;
+  void trackClassificationCompleted() {
+    if (_disposed) return;
+    _classificationsSinceLastAd++;
 // If approaching threshold, preload the ad
-if (_classificationsSinceLastAd >= 3 &&
-_interstitialAd == null &&
-!_isInterstitialAdLoading) {
-_loadInterstitialAd();
-}
-}
+    if (_classificationsSinceLastAd >= 3 &&
+        _interstitialAd == null &&
+        !_isInterstitialAdLoading) {
+      _loadInterstitialAd();
+    }
+  }
+
 // Check if interstitial should be shown
-bool shouldShowInterstitial() {
-return !_disposed && _classificationsSinceLastAd >= 5 && shouldShowAds;
-}
+  bool shouldShowInterstitial() {
+    return !_disposed && _classificationsSinceLastAd >= 5 && shouldShowAds;
+  }
+
 // FIXED: Set context methods with post-frame callbacks to prevent build errors
-void setInClassificationFlow(bool value) {
-if (_disposed) return;
-if (_isInClassificationFlow != value) {
-_isInClassificationFlow = value;
+  void setInClassificationFlow(bool value) {
+    if (_disposed) return;
+    if (_isInClassificationFlow != value) {
+      _isInClassificationFlow = value;
 // Use post-frame callback to avoid calling notifyListeners during build
-WidgetsBinding.instance.addPostFrameCallback((_) {
-if (mounted) {
-notifyListeners();
-}
-});
-}
-}
-void setInEducationalContent(bool value) {
-if (_disposed) return;
-if (_isInEducationalContent != value) {
-_isInEducationalContent = value;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          notifyListeners();
+        }
+      });
+    }
+  }
+
+  void setInEducationalContent(bool value) {
+    if (_disposed) return;
+    if (_isInEducationalContent != value) {
+      _isInEducationalContent = value;
 // Use post-frame callback to avoid calling notifyListeners during build
-WidgetsBinding.instance.addPostFrameCallback((_) {
-if (mounted) {
-notifyListeners();
-}
-});
-}
-}
-void setInSettings(bool value) {
-if (_disposed) return;
-if (_isInSettings != value) {
-_isInSettings = value;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          notifyListeners();
+        }
+      });
+    }
+  }
+
+  void setInSettings(bool value) {
+    if (_disposed) return;
+    if (_isInSettings != value) {
+      _isInSettings = value;
 // Use post-frame callback to avoid calling notifyListeners during build
-WidgetsBinding.instance.addPostFrameCallback((_) {
-if (mounted) {
-notifyListeners();
-}
-});
-}
-}
-@override
-void dispose() {
-if (_disposed) return;
-_disposed = true;
-_interstitialAd?.dispose();
-_bannerAd?.dispose();
-_cachedBannerWidget = null;
-_currentBannerAdKey = null;
-super.dispose();
-}
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          notifyListeners();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_disposed) return;
+    _disposed = true;
+    _interstitialAd?.dispose();
+    _bannerAd?.dispose();
+    _cachedBannerWidget = null;
+    _currentBannerAdKey = null;
+    super.dispose();
+  }
+
 // Method to refresh banner ad (creates a new ad instance)
-void refreshBannerAd() {
-if (_disposed || kIsWeb) return;
+  void refreshBannerAd() {
+    if (_disposed || kIsWeb) return;
 // Dispose current ad and clear cache
-_bannerAd?.dispose();
-_bannerAd = null;
-_cachedBannerWidget = null;
-_currentBannerAdKey = null;
+    _bannerAd?.dispose();
+    _bannerAd = null;
+    _cachedBannerWidget = null;
+    _currentBannerAdKey = null;
 // Load a new banner ad
-_loadBannerAd();
-}
+    _loadBannerAd();
+  }
 }
 /*
 TODO: ADMOB SETUP CHECKLIST

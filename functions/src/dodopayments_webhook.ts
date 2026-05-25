@@ -165,6 +165,55 @@ async function revokePremiumAccess(uid: string): Promise<void> {
   functions.logger.info('Premium access revoked via DodoPayments webhook', { uid });
 }
 
+async function creditTokenPurchase(
+  uid: string,
+  event: DodoWebhookEvent,
+): Promise<void> {
+  const db = admin.firestore();
+  const tokens = parseInt(event.data.metadata?.tokens ?? '0', 10);
+  if (tokens <= 0) {
+    functions.logger.warn('Token purchase event has invalid token count', {
+      uid,
+      tokens: event.data.metadata?.tokens,
+    });
+    return;
+  }
+
+  const packId = event.data.metadata?.pack_id ?? 'unknown';
+  const userRef = db.collection('users').doc(uid);
+  const nowIso = new Date().toISOString();
+
+  await db.runTransaction(async (tx) => {
+    const userSnap = await tx.get(userRef);
+    const userData = userSnap.exists ? (userSnap.data() ?? {}) : {};
+
+    const walletRaw = (userData.tokenWallet && typeof userData.tokenWallet === 'object')
+      ? { ...userData.tokenWallet as Record<string, unknown> }
+      : { balance: 50, totalEarned: 50, totalSpent: 0 };
+
+    const currentBalance = Number(walletRaw.balance ?? 0);
+    const totalEarned = Number(walletRaw.totalEarned ?? 0);
+
+    const updatedWallet = {
+      ...walletRaw,
+      balance: currentBalance + tokens,
+      totalEarned: totalEarned + tokens,
+      lastUpdated: nowIso,
+    };
+
+    tx.set(userRef, {
+      tokenWallet: updatedWallet,
+      lastActive: nowIso,
+    }, { merge: true });
+  });
+
+  functions.logger.info('Token purchase credited via DodoPayments webhook', {
+    uid,
+    tokens,
+    packId,
+  });
+}
+
 async function recordSubscription(event: DodoWebhookEvent, uid: string): Promise<void> {
   const db = admin.firestore();
   const subId = event.data.subscription_id;
@@ -275,11 +324,16 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
       return;
     }
 
+    const productType = event.data.metadata?.product_type;
+
     switch (event.type) {
       case 'payment.succeeded':
-      case 'subscription.active':
-        await grantPremiumAccess(uid, event);
-        await recordSubscription(event, uid);
+        if (productType === 'token_pack') {
+          await creditTokenPurchase(uid, event);
+        } else {
+          await grantPremiumAccess(uid, event);
+          await recordSubscription(event, uid);
+        }
         break;
 
       case 'subscription.cancelled':

@@ -1,59 +1,78 @@
 # Privacy Policy
 
-_Last updated: May 2025_
+_Last updated: May 25, 2026_
 
-Thank you for using the ReLoop ("the App"). Your privacy is important to us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application.
+This Privacy Policy explains how ReLoop ("the App") collects, uses, and protects information when you use the app.
 
-## 1. Information We Collect
+## 1. Data We Collect
 
-### a. Personal Data
-- **Account Information:** If you sign in with Google or other providers, we collect your name, email address, and profile picture.
-- **Device Information:** Device model, OS version, and unique device identifiers.
+### Account and identity data
+- Google sign-in data (name, email, profile photo) when you choose Google sign-in.
+- Firebase account identifiers (including anonymous guest auth identifiers).
 
-### b. Usage Data
-- **App Usage:** Features used, screens viewed, and actions taken within the app.
-- **Crash Reports:** Diagnostic and crash data via Firebase Crashlytics.
-- **Analytics:** Aggregated, anonymized usage statistics via Firebase Analytics.
+### App and diagnostics data
+- Device and app metadata needed for reliability and compatibility.
+- Crash and performance telemetry through Firebase Crashlytics and Firebase Performance.
+- Feature and configuration telemetry through Firebase Remote Config and app analytics events.
 
-### c. Media Data
-- **Images:** Photos you capture or upload for waste classification are processed for classification and may be stored temporarily for analytics or improvement purposes.
+### Classification and content data
+- Images you capture or upload for waste classification.
+- Classification results, corrections, history, and related metadata.
+- Optional user-generated content in community/family features.
 
-### d. Camera Access and Permissions
-- **Camera Permission:** The app requests access to your device's camera (android.permission.CAMERA) solely to allow you to capture photos for waste classification.
-- **How Camera Data is Used:** Images captured using the camera are only used for the purpose of classifying waste and providing you with results. These images are not shared with third parties and are not stored beyond what is necessary for classification and app improvement (such as anonymized analytics or user feedback, if you opt in).
-- **No Background or Unauthorized Use:** The camera is only activated when you choose to take a photo within the app. The app does not access your camera in the background or without your explicit action.
+### Monetization data
+- Token usage metadata for AI actions.
+- Ad-related request/impression metadata via Google Mobile Ads (when ads are enabled).
+- Purchase/subscription metadata used for premium entitlement and billing reconciliation.
 
-## 2. How We Use Your Information
-- To provide and improve app functionality.
-- To personalize your experience (e.g., gamification, dashboard).
-- To analyze usage and improve features.
-- To detect and fix bugs or crashes.
-- To comply with legal obligations.
+## 2. How We Use Data
+- Provide core classification features and disposal guidance.
+- Enforce security, abuse prevention, quota/rate limits, and app integrity checks.
+- Store history, sync user data, and support recovery across devices.
+- Improve quality using corrections and aggregated operational signals.
+- Operate monetization (ads, premium/subscriptions, token accounting).
 
-## 3. Sharing Your Information
-- **Third-Party Services:** We use Firebase (Google) for authentication, analytics, and crash reporting. Data may be processed by Google according to their privacy policies.
-- **No Sale of Data:** We do not sell your personal information to third parties.
-- **Legal Requirements:** We may disclose information if required by law or to protect our rights.
+## 3. Services and Processors
+Depending on enabled features/build config, data may be processed via:
+- Firebase Authentication, Firestore, Cloud Functions, Cloud Storage, Remote Config, Crashlytics, Performance, Messaging, and App Check.
+- AI providers used by secured backend classification routes.
+- Google Mobile Ads for ad delivery and measurement.
+- Payment/subscription providers for checkout, billing events, and entitlement state.
 
-## 4. Data Security
-We use industry-standard security measures to protect your data. However, no method of transmission or storage is 100% secure.
+We do not sell your personal data.
 
-## 5. Your Rights
-- **Access & Correction:** You may request access to or correction of your personal data.
-- **Deletion:** You may request deletion of your account and associated data by contacting us.
-- **Opt-Out:** You may opt out of analytics and crash reporting in the app settings (if available).
+## 4. Camera, Media, and Permissions
+- Camera access is used only when you actively capture an image.
+- The app does not activate camera capture in background.
+- Uploaded images are processed for classification and related app functions.
 
-## 6. Children's Privacy
-The app is not intended for children under 13. We do not knowingly collect data from children under 13.
+## 5. Security and Integrity
+- Sensitive AI/provider access is routed through backend services in production modes.
+- App integrity checks (for supported platforms) and authenticated access are used to reduce abuse.
+- We apply reasonable technical safeguards, but no system is perfectly secure.
 
-## 7. Changes to This Policy
-We may update this Privacy Policy from time to time. Changes will be posted in the app and/or on our website.
+## 6. Retention, Export, and Deletion
+- Local data may remain on your device until you remove it or clear app data.
+- Cloud-linked data is retained as needed for app operation, security, billing, and legal compliance.
+- In-app data export/deletion tools and account-related deletion paths are provided where available.
+- Some records may be retained for fraud/security and legal obligations.
 
-## 8. Contact Us
-If you have questions or requests regarding your privacy, please contact:
+## 7. Your Choices
+- You can choose guest or signed-in usage paths (feature availability may differ).
+- You can manage available consent/privacy settings in-app.
+- You can request account/data deletion via support contact below.
+
+## 8. Children
+The app is not directed to children under 13 unless explicitly stated for a dedicated child-safe mode with required controls and consents.
+
+## 9. Changes
+We may update this policy to reflect product, legal, or infrastructure changes. Updated versions will be posted in-app and/or linked support channels.
+
+## 10. Contact
+For privacy requests or questions:
 
 **Email:** founder@psrstech.com
 
 ---
 
-_This document is provided for informational purposes and does not constitute legal advice. Please consult legal counsel for compliance with applicable laws._
+_This document is informational and not legal advice. Please consult legal counsel for regulatory compliance requirements in your jurisdictions._

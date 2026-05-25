@@ -1145,6 +1145,7 @@ enum NudgeType {
   dailyGoal,
   categoryAchievement,
   streakMilestone,
+  pointsMilestone,
   challengeNearComplete,
 }
 

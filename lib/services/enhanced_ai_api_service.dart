@@ -89,6 +89,8 @@ class EnhancedAiApiService {
         BackendProxyProvider.isEnabled;
   }
 
+  bool get isBackendRoutingEnabled => _backendRoutingEnabled;
+
   bool get _backendRoutingFailClosed {
     if (_backendFailClosedOverride != null) return _backendFailClosedOverride!;
     return kReleaseMode || ProductionSafetyConfig.useBackendAiInRelease;
@@ -614,7 +616,7 @@ class EnhancedAiApiService {
     final response = await _geminiClient.post<Map<String, dynamic>>(
       endpoint: 'models/$model:generateContent',
       data: requestData,
-      queryParameters: {'key': ApiConfig.apiKey},
+      headers: {'x-goog-api-key': ApiConfig.apiKey},
       operationId: 'gemini_waste_analysis',
       timeout: const Duration(minutes: 2),
     );
@@ -748,7 +750,7 @@ Analyze this waste item image and provide a JSON response with:
         'itemName':
             jsonData['item_name'] ?? jsonData['itemName'] ?? 'Unknown Item',
         'category': jsonData['category'] ?? 'Unknown',
-        'subcategory': jsonData['subcategory'],
+        'subCategory': jsonData['subcategory'],
         'confidence': jsonData['confidence'],
         'explanation': jsonData['explanation'] ?? '',
         'disposalInstructions': jsonData['disposal_instructions'] ??
@@ -809,7 +811,7 @@ Analyze this waste item image and provide a JSON response with:
         'itemName':
             jsonData['item_name'] ?? jsonData['itemName'] ?? 'Unknown Item',
         'category': jsonData['category'] ?? 'Unknown',
-        'subcategory': jsonData['subcategory'],
+        'subCategory': jsonData['subcategory'],
         'confidence': jsonData['confidence'],
         'explanation': jsonData['explanation'] ?? '',
         'disposalInstructions': jsonData['disposal_instructions'] ??
@@ -862,7 +864,7 @@ Analyze this waste item image and provide a JSON response with:
         'itemName':
             jsonData['item_name'] ?? jsonData['itemName'] ?? 'Unknown Item',
         'category': jsonData['category'] ?? 'Unknown',
-        'subcategory': jsonData['subcategory'],
+        'subCategory': jsonData['subcategory'],
         'confidence': jsonData['confidence'],
         'explanation': jsonData['explanation'] ?? '',
         'disposalInstructions': jsonData['disposal_instructions'] ??

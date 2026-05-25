@@ -199,7 +199,7 @@ class TokenService extends ChangeNotifier {
     );
   }
 
-  /// Load wallet from storage with integrity verification
+  /// Load wallet from storage with integrity verification and cross-device sync
   Future<TokenWallet> _loadWallet() async {
     final userProfile = await _storageService.getCurrentUserProfile();
     final userId = userProfile?.id ?? 'anonymous';
@@ -229,13 +229,68 @@ class TokenService extends ChangeNotifier {
 
       _cachedWallet = wallet;
       notifyListeners();
+
+      // Pull wallet from Firestore for cross-device sync
+      await _syncWalletFromFirestore(userId);
+
       return _cachedWallet!;
+    }
+
+    // No local wallet — try pull from Firestore first before creating new
+    if (userId != 'anonymous') {
+      final synced = await _syncWalletFromFirestore(userId);
+      if (synced) return _cachedWallet!;
     }
 
     // Create new wallet for new users
     final newWallet = TokenWallet.newUser();
     await _saveWallet(newWallet);
     return newWallet;
+  }
+
+  /// Pulls wallet from Firestore and merges if remote is newer.
+  /// Returns true if a remote wallet was found and applied.
+  Future<bool> _syncWalletFromFirestore(String userId) async {
+    try {
+      final remoteProfile =
+          await _cloudStorageService.fetchUserProfileFromFirestore(userId);
+      if (remoteProfile?.tokenWallet == null) return false;
+
+      final remoteWallet = remoteProfile!.tokenWallet!;
+      final localWallet = _cachedWallet;
+
+      if (localWallet == null ||
+          remoteWallet.lastUpdated.isAfter(localWallet.lastUpdated)) {
+        WasteAppLogger.info('Cross-device sync: applying remote wallet', context: {
+          'userId': userId,
+          'remoteBalance': remoteWallet.balance,
+          'localBalance': localWallet?.balance,
+          'remoteUpdated': remoteWallet.lastUpdated.toIso8601String(),
+          'localUpdated': localWallet?.lastUpdated.toIso8601String(),
+        });
+
+        _cachedWallet = remoteWallet;
+        notifyListeners();
+
+        // Persist the synced wallet locally
+        final localProfile = await _storageService.getCurrentUserProfile();
+        if (localProfile != null) {
+          final updated = localProfile.copyWith(
+            tokenWallet: remoteWallet,
+            lastActive: DateTime.now(),
+          );
+          await _storageService.saveUserProfile(updated);
+        }
+
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      WasteAppLogger.warning('Cross-device wallet sync failed', error: e,
+          context: {'userId': userId});
+      return false;
+    }
   }
 
   String? _readIntegrityHash(String userId) {
