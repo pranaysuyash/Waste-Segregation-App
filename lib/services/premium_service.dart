@@ -11,6 +11,26 @@ import '../utils/waste_app_logger.dart';
 import 'firestore_schema_registry.dart';
 import 'remote_config_service.dart';
 
+/// Entitlement projection from server — the ONLY authoritative source.
+///
+/// Client-side Hive is a cache. Never grant durable entitlement from Hive.
+/// Never write `subscriptionTier` or `billing.entitlements` to Firestore from
+/// the client. The server (webhook / Cloud Function) is the sole writer.
+enum EntitlementState {
+  /// No entitlement known. Fail closed for all premium operations.
+  unknown,
+
+  /// Entitlement active on the server. Safe to unlock features.
+  active,
+
+  /// Entitlement expired or revoked on the server. No premium access.
+  expired,
+}
+
+// Future states for grace-period and pending-verification detection can be
+// added here once the subscription lifecycle fields (currentPeriodEnd,
+// graceEnd) are surfaced from the server-side subscription record.
+
 enum PremiumTier {
   free,
   premium,
@@ -18,9 +38,7 @@ enum PremiumTier {
 }
 
 class PremiumService extends ChangeNotifier {
-  // Constructor now initializes immediately
   PremiumService() {
-    // Ensure initialization happens early
     initialize();
   }
   static const String _premiumBoxName = 'premium_features';
@@ -32,6 +50,18 @@ class PremiumService extends ChangeNotifier {
   bool _isInitialized = false;
   bool _isInitializing = false;
   Future<void>? _initializationFuture;
+
+  // --- Server-authoritative entitlement state ---
+  EntitlementState _entitlementState = EntitlementState.unknown;
+  DateTime? _lastServerVerification;
+  StreamSubscription<DocumentSnapshot>? _entitlementSubscription;
+
+  /// The ONLY authoritative entitlement state — read from Firestore
+  /// server projection, never from local Hive alone.
+  EntitlementState get entitlementState => _entitlementState;
+
+  /// Timestamp of last successful server verification.
+  DateTime? get lastServerVerification => _lastServerVerification;
 
   bool get isInitialized => _isInitialized;
 
@@ -54,7 +84,6 @@ class PremiumService extends ChangeNotifier {
 
   Future<void> _doInitialize() async {
     try {
-      // Check if the box is already open
       if (Hive.isBoxOpen(_premiumBoxName)) {
         _premiumBox = Hive.box<bool>(_premiumBoxName);
       } else {
@@ -63,14 +92,10 @@ class PremiumService extends ChangeNotifier {
       _isInitialized = true;
       _migrateLegacyPremiumSignal();
 
-      // Boot-time Firestore sync: if the user already has premium in Hive
-      // (from a purchase made before this sync path existed), push the tier to
-      // Firestore so the server-side spendUserTokens guard sees 'premium'
-      // without waiting for a new purchase or restore event.
-      // Fire-and-forget — Hive is always authoritative client-side.
-      if (hasActivePremiumPlan()) {
-        unawaited(_syncTierToFirestore(true));
-      }
+      // COMMIT-6: Start observing the server-authoritative entitlement.
+      // The client NEVER writes subscriptionTier or billing to Firestore.
+      // The server (webhook / Cloud Function) is the sole writer.
+      _startEntitlementListener();
 
       // Opt-in only: do not implicitly grant premium in debug/test runs.
       if (kDebugMode && _enableDebugAutoSeed) {
@@ -82,7 +107,6 @@ class PremiumService extends ChangeNotifier {
       WasteAppLogger.severe('Error initializing premium service',
           error: e,
           context: {'service': 'premium', 'action': 'attempt_recovery'});
-      // Try to recover by creating the box
       try {
         if (!Hive.isBoxOpen(_premiumBoxName)) {
           await Hive.deleteBoxFromDisk(_premiumBoxName);
@@ -91,9 +115,7 @@ class PremiumService extends ChangeNotifier {
           _premiumBox = Hive.box<bool>(_premiumBoxName);
         }
         _isInitialized = true;
-        if (hasActivePremiumPlan()) {
-          unawaited(_syncTierToFirestore(true));
-        }
+        _startEntitlementListener();
         notifyListeners();
       } catch (e) {
         WasteAppLogger.severe(
@@ -107,18 +129,109 @@ class PremiumService extends ChangeNotifier {
     }
   }
 
-  // Safe check for premium feature that handles initialization issues
+  // --- Server-authoritative entitlement listener ---
+
+  /// Observes `billing.entitlements.pro_subscription` on the user's Firestore
+  /// document. This is the ONLY source of truth for premium state.
+  ///
+  /// Local Hive flags are a UI cache only — they control which widgets are
+  /// visible but never gate server-side paid operations (tokens, API calls).
+  void _startEntitlementListener() {
+    _entitlementSubscription?.cancel();
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      WasteAppLogger.info(
+        'Entitlement listener skipped: no authenticated user.',
+      );
+      _entitlementState = EntitlementState.unknown;
+      return;
+    }
+
+    final userRef = FirebaseFirestore.instance
+        .collection(FirestoreCollections.users)
+        .doc(uid);
+
+    _entitlementSubscription = userRef.snapshots().listen(
+      (snapshot) {
+        if (!snapshot.exists) {
+          _entitlementState = EntitlementState.unknown;
+          _lastServerVerification = null;
+          _syncLocalCacheFromServer(false);
+          notifyListeners();
+          return;
+        }
+
+        final data = snapshot.data()!;
+        final billing = data['billing'] as Map<String, dynamic>?;
+        final entitlements =
+            billing?['entitlements'] as Map<String, dynamic>?;
+        final isProActive = entitlements?['pro_subscription'] == true;
+
+        final previousState = _entitlementState;
+        _entitlementState =
+            isProActive ? EntitlementState.active : EntitlementState.expired;
+        _lastServerVerification = DateTime.now();
+
+        // Sync the local Hive cache to match server state (UI only).
+        _syncLocalCacheFromServer(isProActive);
+
+        if (previousState != _entitlementState) {
+          WasteAppLogger.info(
+            'Server entitlement state changed',
+            context: {
+              'previous': previousState.name,
+              'current': _entitlementState.name,
+            },
+          );
+        }
+        notifyListeners();
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        WasteAppLogger.severe(
+          'Entitlement listener error — falling back to unknown (fail closed)',
+          error: error,
+          stackTrace: stackTrace,
+        );
+        _entitlementState = EntitlementState.unknown;
+        _lastServerVerification = null;
+        notifyListeners();
+      },
+    );
+  }
+
+  /// Sync local Hive cache to match server projection. This is a UI cache
+  /// only — server-side guards must NEVER trust these Hive values.
+  void _syncLocalCacheFromServer(bool isPremium) {
+    if (_premiumBox == null) return;
+    _premiumBox!.put(proSubscriptionEntitlement, isPremium);
+    _premiumBox!.put(legacyPremiumSignal, isPremium);
+    for (final feature in PremiumFeature.features) {
+      _premiumBox!.put(feature.id, isPremium);
+    }
+  }
+
+  // NOTE: If re-authentication support is added in the future, call
+  // _startEntitlementListener() after auth state changes to re-subscribe
+  // to the correct user's entitlement document.
+
+  /// Premium feature check — reads from local Hive cache (UI only).
+  /// Server-side guards must NEVER trust this value.
   bool isPremiumFeature(String featureId) {
     if (_premiumBox == null) return false;
     return _premiumBox!.get(featureId) ?? false;
   }
 
-  /// Canonical premium-plan entitlement for pricing and plan-level behavior.
-  /// Falls back to legacy signal for backward compatibility with old data.
+  /// Canonical premium-plan entitlement.
+  ///
+  /// COMMIT-6: This now checks the server-authoritative entitlement state
+  /// instead of local Hive flags. The Hive flags are a UI cache synced from
+  /// the server listener, but the authoritative check is the entitlement state.
+  ///
+  /// Returns `true` only when the server confirms the entitlement is active.
+  /// Fail closed: returns `false` for unknown or expired states.
   bool hasActivePremiumPlan() {
-    if (_premiumBox == null) return false;
-    return (_premiumBox!.get(proSubscriptionEntitlement) ?? false) ||
-        (_premiumBox!.get(legacyPremiumSignal) ?? false);
+    return _entitlementState == EntitlementState.active;
   }
 
   PremiumTier getCurrentTier() {
@@ -152,6 +265,8 @@ class PremiumService extends ChangeNotifier {
     if (_premiumBox == null) return;
     if (!_isKnownFeature(featureId)) return;
 
+    // COMMIT-6: Local Hive write only — UI cache for widget rendering.
+    // Server-side guards must NEVER trust these Hive values.
     await _premiumBox!.put(featureId, isPremium);
 
     // Keep canonical entitlement in sync when legacy signal is toggled on.
@@ -159,16 +274,9 @@ class PremiumService extends ChangeNotifier {
       await _premiumBox!.put(proSubscriptionEntitlement, true);
     }
 
-    // Propagate tier change to Firestore so the server-side spendUserTokens
-    // guard can verify discounts without trusting the client.
-    //
-    // - proSubscriptionEntitlement set/cleared → sync directly
-    // - legacyPremiumSignal set to true       → also elevates to premium
-    if (featureId == proSubscriptionEntitlement) {
-      unawaited(_syncTierToFirestore(isPremium));
-    } else if (featureId == legacyPremiumSignal && isPremium) {
-      unawaited(_syncTierToFirestore(true));
-    }
+    // COMMIT-6: REMOVED _syncTierToFirestore call.
+    // The client must never write subscriptionTier or billing to Firestore.
+    // Server (webhook / Cloud Function) is the sole writer.
 
     notifyListeners();
   }
@@ -210,56 +318,16 @@ class PremiumService extends ChangeNotifier {
     if (!_isInitialized) await initialize();
     if (_premiumBox == null) return;
 
+    // COMMIT-6: Clear local cache only. Server-side state is not affected.
+    // The entitlement listener will re-sync from server projection.
     await _premiumBox!.clear();
-    // Propagate revocation to Firestore so the server-side guard enforces
-    // free-tier caps immediately after a reset (dev/debug/support action).
-    unawaited(_syncTierToFirestore(false));
     notifyListeners();
-  }
-
-  /// Writes the server-authoritative subscription tier to Firestore so that
-  /// Cloud Functions (e.g. `spendUserTokens`) can verify it without trusting
-  /// any client-supplied values.
-  ///
-  /// Fire-and-forget: a Firestore failure is logged but never surfaces to the
-  /// caller — the local Hive entitlement is always the source of truth for
-  /// client-side feature gates, while Firestore is the source of truth for
-  /// server-side enforcement.
-  Future<void> _syncTierToFirestore(bool isPremium) async {
-    try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null || uid.isEmpty) {
-        WasteAppLogger.info(
-          'subscriptionTier Firestore sync skipped: no authenticated user.',
-        );
-        return;
-      }
-      final tier = isPremium ? 'premium' : 'free';
-      await FirebaseFirestore.instance
-          .collection(FirestoreCollections.users)
-          .doc(uid)
-          .set(
-            {UsersSchema.subscriptionTierField: tier},
-            SetOptions(merge: true),
-          );
-      WasteAppLogger.info(
-        'subscriptionTier synced to Firestore',
-        context: {'tier': tier},
-      );
-    } catch (e, s) {
-      WasteAppLogger.warning(
-        'Failed to sync subscriptionTier to Firestore (non-fatal); '
-        'server-side token guard will default to free tier until next sync.',
-        error: e,
-        stackTrace: s,
-        context: {'isPremium': isPremium},
-      );
-    }
   }
 
   // Initialize test features for development environment
   void _initTestFeatures() {
-    // Enable one premium feature for testing
+    // COMMIT-6: Debug/test mode sets local cache only.
+    // Server state is unaffected. The entitlement listener will re-sync.
     if (_premiumBox != null && _premiumBox!.isEmpty) {
       _premiumBox!.put(proSubscriptionEntitlement, true);
       _premiumBox!.put(legacyPremiumSignal, true);
@@ -271,10 +339,9 @@ class PremiumService extends ChangeNotifier {
     final hasPlan = _premiumBox!.get(proSubscriptionEntitlement) ?? false;
     final hasLegacy = _premiumBox!.get(legacyPremiumSignal) ?? false;
     if (!hasPlan && hasLegacy) {
+      // COMMIT-6: Local migration only. No Firestore write from client.
+      // The entitlement listener will reconcile with server state.
       _premiumBox!.put(proSubscriptionEntitlement, true);
-      // Ensure the Firestore tier is brought in sync for users who are being
-      // migrated from the legacy signal so the server-side guard sees 'premium'.
-      unawaited(_syncTierToFirestore(true));
     }
   }
 
@@ -293,5 +360,12 @@ class PremiumService extends ChangeNotifier {
     return PremiumFeature.features.any((feature) => feature.id == featureId) ||
         featureId == proSubscriptionEntitlement ||
         featureId == legacyPremiumSignal;
+  }
+
+  @override
+  void dispose() {
+    _entitlementSubscription?.cancel();
+    _entitlementSubscription = null;
+    super.dispose();
   }
 }

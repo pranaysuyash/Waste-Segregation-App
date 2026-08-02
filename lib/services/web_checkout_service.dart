@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -15,7 +14,7 @@ class WebCheckoutService extends ChangeNotifier {
   bool _isCreatingSession = false;
   bool _isAwaitingPayment = false;
   String? _errorMessage;
-  StreamSubscription<DocumentSnapshot>? _billingSub;
+  StreamSubscription<void>? _billingSub;
 
   bool get isCreatingSession => _isCreatingSession;
   bool get isAwaitingPayment => _isAwaitingPayment;
@@ -49,7 +48,7 @@ class WebCheckoutService extends ChangeNotifier {
       _isAwaitingPayment = true;
       notifyListeners();
 
-      _listenForBillingUpdate(uid);
+      _startEntitlementPoll();
 
       final uri = Uri.parse(checkoutUrl);
       final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -69,29 +68,43 @@ class WebCheckoutService extends ChangeNotifier {
     }
   }
 
-  void _listenForBillingUpdate(String uid) {
+  /// Poll the server-authoritative entitlement state from PremiumService
+  /// after initiating checkout. The PremiumService entitlement listener
+  /// already observes billing.entitlements.pro_subscription in real time,
+  /// so this is a lightweight poll rather than a second Firestore subscription.
+  void _startEntitlementPoll() {
     _billingSub?.cancel();
 
-    final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
-    _billingSub = userRef.snapshots().listen((snapshot) {
-      if (!snapshot.exists) return;
+    final startTime = DateTime.now();
+    const pollTimeout = Duration(minutes: 5);
 
-      final data = snapshot.data()!;
-      final billing = data['billing'] as Map<String, dynamic>?;
-      final entitlements = billing?['entitlements'] as Map<String, dynamic>?;
-      final isPremium = entitlements?['pro_subscription'] == true;
-
-      if (isPremium) {
-        _premiumService.setPremiumPlanEntitlement(true);
+    _billingSub = Stream.periodic(const Duration(seconds: 2)).listen(
+      (_) {
+        if (_premiumService.entitlementState == EntitlementState.active) {
+          _isAwaitingPayment = false;
+          _billingSub?.cancel();
+          _billingSub = null;
+          notifyListeners();
+        } else if (DateTime.now().difference(startTime) > pollTimeout) {
+          _errorMessage = 'Payment verification timed out. Please check your subscription status.';
+          _isAwaitingPayment = false;
+          _billingSub?.cancel();
+          _billingSub = null;
+          notifyListeners();
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        _errorMessage = 'Payment verification failed. Please try again.';
         _isAwaitingPayment = false;
         _billingSub?.cancel();
         _billingSub = null;
         notifyListeners();
-      }
-    });
+      },
+    );
   }
 
-  void cancelAwaitingPayment() {
+  /// Public API for external callers to cancel the payment flow.
+  void cancelPayment() {
     _isAwaitingPayment = false;
     _billingSub?.cancel();
     _billingSub = null;

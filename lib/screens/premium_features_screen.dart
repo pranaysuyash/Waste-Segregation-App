@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/premium_feature.dart';
@@ -453,6 +454,13 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
 
     if (webCheckout == null) return const SizedBox.shrink();
 
+    // COMMIT-7: Hide external checkout on iOS where Apple requires IAP for
+    // digital functionality. Only show on Android (with alternative billing
+    // programme enrolment) and web.
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return const SizedBox.shrink();
+    }
+
     if (webCheckout.isAwaitingPayment) {
       return Column(
         children: [
@@ -479,7 +487,7 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
           ),
           const SizedBox(height: 8),
           TextButton(
-            onPressed: () => webCheckout.cancelAwaitingPayment(),
+            onPressed: () => webCheckout.cancelPayment(),
             child: const Text('Cancel'),
           ),
         ],
@@ -517,7 +525,7 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
         ],
         const SizedBox(height: 8),
         Text(
-          'Pay online with credit/debit card, UPI, or net banking. No app store required.',
+          'Pay online with credit/debit card, UPI, or net banking.',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
         ),

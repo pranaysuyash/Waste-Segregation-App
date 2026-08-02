@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import { DodoPayments } from 'dodopayments';
 import { shouldEnforceCallableAppCheck } from './helpers';
+import { resolveProduct, resolveReturnUrl, isProductEligibleForPlatform } from './product_catalogue';
 
 const asiaSouth1 = functions.region('asia-south1');
 
@@ -12,16 +13,20 @@ const getDodoClient = (): DodoPayments => {
   return new DodoPayments({ bearerToken: apiKey });
 };
 
-const DEFAULT_PRODUCT_ID = process.env.DODO_PREMIUM_PRODUCT_ID ?? '';
-
 interface CreateCheckoutSessionData {
+  /** Logical SKU from the product catalogue. Client cannot submit raw provider product IDs. */
   product_id?: string;
+  /** Return URL key (must be in server allowlist). */
   return_url?: string;
+  /** Client platform for eligibility check. */
+  platform?: string;
 }
 
 interface CreateCheckoutSessionResponse {
   session_id: string;
   checkout_url: string;
+  product_label: string;
+  entitlement: string;
 }
 
 export const createCheckoutSession = asiaSouth1.https.onCall(async (data: CreateCheckoutSessionData, context): Promise<CreateCheckoutSessionResponse> => {
@@ -40,23 +45,38 @@ export const createCheckoutSession = asiaSouth1.https.onCall(async (data: Create
   const email = context.auth.token?.email as string | undefined;
   const name = context.auth.token?.name as string | undefined;
 
-  const productId = data?.product_id || DEFAULT_PRODUCT_ID;
-  if (!productId) {
+  // --- Server catalogue validation ---
+  // Default to the canonical premium subscription if no SKU provided.
+  const logicalSku = data?.product_id || 'waste_premium_monthly';
+
+  const product = resolveProduct(logicalSku);
+
+  // Only subscription products can go through the premium checkout.
+  if (product.productType !== 'subscription') {
     throw new functions.https.HttpsError(
       'invalid-argument',
-      'Missing product_id. Set DODO_PREMIUM_PRODUCT_ID env var or pass product_id in data.',
+      `Product ${logicalSku} is not a subscription. Use createTokenPurchaseSession for token packs.`,
     );
   }
 
-  const returnUrl = data?.return_url ||
-    'https://waste-segregation-app-df523.web.app/premium/success';
+  // Platform eligibility check.
+  const platform = data?.platform ?? 'web';
+  if (!isProductEligibleForPlatform(product, platform)) {
+    throw new functions.https.HttpsError(
+      'failed-precondition',
+      `Product ${logicalSku} is not available on ${platform}.`,
+    );
+  }
+
+  // Resolve return URL from server allowlist.
+  const returnUrl = resolveReturnUrl(data?.return_url);
 
   const client = getDodoClient();
 
   const session = await client.checkoutSessions.create({
     product_cart: [
       {
-        product_id: productId,
+        product_id: product.dodoProductId,
         quantity: 1,
       },
     ],
@@ -64,6 +84,7 @@ export const createCheckoutSession = asiaSouth1.https.onCall(async (data: Create
     return_url: returnUrl,
     metadata: {
       firebase_uid: uid,
+      logical_sku: logicalSku,
       source: 'waste_segregation_app',
     },
   });
@@ -71,11 +92,14 @@ export const createCheckoutSession = asiaSouth1.https.onCall(async (data: Create
   functions.logger.info('DodoPayments checkout session created', {
     uid,
     sessionId: session.session_id,
-    productId,
+    logicalSku,
+    dodoProductId: product.dodoProductId,
   });
 
   return {
     session_id: session.session_id,
     checkout_url: session.checkout_url ?? '',
+    product_label: product.label,
+    entitlement: product.entitlement,
   };
 });

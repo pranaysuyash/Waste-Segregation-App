@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import { DodoPayments } from 'dodopayments';
 import { shouldEnforceCallableAppCheck } from './helpers';
+import { resolveProduct, resolveReturnUrl, isProductEligibleForPlatform } from './product_catalogue';
 
 const asiaSouth1 = functions.region('asia-south1');
 
@@ -12,15 +13,13 @@ const getDodoClient = (): DodoPayments => {
   return new DodoPayments({ bearerToken: apiKey });
 };
 
-const TOKEN_PACKS: Record<string, { tokens: number; label: string }> = {
-  'token_pack_small': { tokens: 25, label: 'Small Pack' },
-  'token_pack_medium': { tokens: 100, label: 'Medium Pack' },
-  'token_pack_large': { tokens: 500, label: 'Large Pack' },
-};
-
 interface CreateTokenPurchaseData {
+  /** Logical SKU from the product catalogue (e.g. token_pack_small). */
   pack_id: string;
+  /** Return URL key (must be in server allowlist). */
   return_url?: string;
+  /** Client platform for eligibility check. */
+  platform?: string;
 }
 
 interface CreateTokenPurchaseResponse {
@@ -47,30 +46,42 @@ export const createTokenPurchaseSession = asiaSouth1.https.onCall(
     const email = context.auth.token?.email as string | undefined;
     const name = context.auth.token?.name as string | undefined;
 
+    // --- Server catalogue validation ---
     const packId = data?.pack_id;
     if (!packId) {
       throw new functions.https.HttpsError(
         'invalid-argument',
-        'Missing pack_id. Options: token_pack_small, token_pack_medium, token_pack_large',
+        'Missing pack_id. Must be a logical SKU from the product catalogue.',
       );
     }
 
-    const pack = TOKEN_PACKS[packId];
-    if (!pack) {
+    const product = resolveProduct(packId);
+
+    // Only token_pack products can go through token purchase.
+    if (product.productType !== 'token_pack') {
       throw new functions.https.HttpsError(
         'invalid-argument',
-        `Unknown pack_id: ${packId}. Options: ${Object.keys(TOKEN_PACKS).join(', ')}`,
+        `Product ${packId} is not a token pack. Use createCheckoutSession for subscriptions.`,
       );
     }
 
-    const returnUrl = data?.return_url ||
-      'https://waste-segregation-app-df523.web.app/wallet';
+    // Platform eligibility check.
+    const platform = data?.platform ?? 'web';
+    if (!isProductEligibleForPlatform(product, platform)) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        `Product ${packId} is not available on ${platform}.`,
+      );
+    }
+
+    // Resolve return URL from server allowlist.
+    const returnUrl = resolveReturnUrl(data?.return_url);
 
     const client = getDodoClient();
     const session = await client.checkoutSessions.create({
       product_cart: [
         {
-          product_id: packId,
+          product_id: product.dodoProductId,
           quantity: 1,
         },
       ],
@@ -78,9 +89,9 @@ export const createTokenPurchaseSession = asiaSouth1.https.onCall(
       return_url: returnUrl,
       metadata: {
         firebase_uid: uid,
+        logical_sku: packId,
         product_type: 'token_pack',
-        pack_id: packId,
-        tokens: String(pack.tokens),
+        tokens: String(product.tokens),
         source: 'waste_segregation_app',
       },
     });
@@ -88,15 +99,15 @@ export const createTokenPurchaseSession = asiaSouth1.https.onCall(
     functions.logger.info('Token purchase session created', {
       uid,
       sessionId: session.session_id,
-      packId,
-      tokens: pack.tokens,
+      logicalSku: packId,
+      tokens: product.tokens,
     });
 
     return {
       session_id: session.session_id,
       checkout_url: session.checkout_url ?? '',
-      tokens: pack.tokens,
-      pack_label: pack.label,
+      tokens: product.tokens,
+      pack_label: product.label,
     };
   },
 );
