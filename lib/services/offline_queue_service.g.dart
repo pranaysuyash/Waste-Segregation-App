@@ -19,7 +19,9 @@ class DeadLetterClassificationAdapter
     };
     return DeadLetterClassification(
       id: fields[0] as String,
-      imageBytes: fields[1] as Uint8List,
+      imageRefPath: fields[1] as String,
+      imageRefHash: fields[12] as String,
+      imageRefByteLength: fields[13] as int,
       region: fields[2] as String,
       queuedAt: fields[3] as DateTime,
       failedAt: fields[6] as DateTime,
@@ -27,17 +29,24 @@ class DeadLetterClassificationAdapter
       lastError: fields[5] as String,
       userId: fields[7] as String?,
       imageName: fields[8] as String?,
-    );
+      expiresAt: fields[9] as DateTime?,
+      consentVersion: fields[10] as String?,
+      failureType: fields[11] as String?,
+    )..legacyImageBytes = fields[14] as Uint8List?;
   }
 
   @override
   void write(BinaryWriter writer, DeadLetterClassification obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.imageBytes)
+      ..write(obj.imageRefPath)
+      ..writeByte(12)
+      ..write(obj.imageRefHash)
+      ..writeByte(13)
+      ..write(obj.imageRefByteLength)
       ..writeByte(2)
       ..write(obj.region)
       ..writeByte(3)
@@ -51,7 +60,15 @@ class DeadLetterClassificationAdapter
       ..writeByte(7)
       ..write(obj.userId)
       ..writeByte(8)
-      ..write(obj.imageName);
+      ..write(obj.imageName)
+      ..writeByte(9)
+      ..write(obj.expiresAt)
+      ..writeByte(10)
+      ..write(obj.consentVersion)
+      ..writeByte(11)
+      ..write(obj.failureType)
+      ..writeByte(14)
+      ..write(obj.legacyImageBytes);
   }
 
   @override
@@ -77,23 +94,32 @@ class QueuedClassificationAdapter extends TypeAdapter<QueuedClassification> {
     };
     return QueuedClassification(
       id: fields[0] as String,
-      imageBytes: fields[1] as Uint8List,
+      imageRefPath: fields[1] as String,
+      imageRefHash: fields[10] as String,
+      imageRefByteLength: fields[11] as int,
       region: fields[2] as String,
       queuedAt: fields[3] as DateTime,
       retryCount: fields[4] as int,
       userId: fields[5] as String?,
       imageName: fields[6] as String?,
-    );
+      expiresAt: fields[7] as DateTime?,
+      consentVersion: fields[8] as String?,
+      purpose: fields[9] as String,
+    )..legacyImageBytes = fields[12] as Uint8List?;
   }
 
   @override
   void write(BinaryWriter writer, QueuedClassification obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.imageBytes)
+      ..write(obj.imageRefPath)
+      ..writeByte(10)
+      ..write(obj.imageRefHash)
+      ..writeByte(11)
+      ..write(obj.imageRefByteLength)
       ..writeByte(2)
       ..write(obj.region)
       ..writeByte(3)
@@ -103,7 +129,15 @@ class QueuedClassificationAdapter extends TypeAdapter<QueuedClassification> {
       ..writeByte(5)
       ..write(obj.userId)
       ..writeByte(6)
-      ..write(obj.imageName);
+      ..write(obj.imageName)
+      ..writeByte(7)
+      ..write(obj.expiresAt)
+      ..writeByte(8)
+      ..write(obj.consentVersion)
+      ..writeByte(9)
+      ..write(obj.purpose)
+      ..writeByte(12)
+      ..write(obj.legacyImageBytes);
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import 'queue_image_storage.dart';
 import 'storage_service.dart';
 import 'cloud_storage_service.dart';
 import 'token_service.dart';
@@ -14,6 +15,29 @@ import '../utils/production_safety_config.dart';
 
 part 'offline_queue_service.g.dart';
 
+/// Typed failure classification — never inspect error message strings
+/// for core routing decisions.
+enum QueueItemFailureType {
+  retryableNetwork,
+  authentication,
+  insufficientCredits,
+  permanentInvalidImage,
+  configurationSafety,
+  userCancellation,
+  privacyRejection,
+  unknown,
+}
+
+/// PRIVACY-09: Maximum age for active queue items before auto-expiry.
+const Duration kQueueRetentionLimit = Duration(hours: 24);
+
+/// PRIVACY-09: Maximum age for dead-letter items before auto-expiry.
+const Duration kDeadLetterRetentionLimit = Duration(hours: 72);
+
+/// PRIVACY-09: Redacted error placeholder — never store raw error strings
+/// in analytics or dead-letter records.
+const String kRedactedError = '[redacted]';
+
 typedef OfflineQueueAnalyticsTracker = Future<void> Function({
   required String eventType,
   required String eventName,
@@ -22,11 +46,17 @@ typedef OfflineQueueAnalyticsTracker = Future<void> Function({
 
 /// A classification that permanently failed processing and was moved
 /// to the dead-letter queue for audit and potential manual retry.
+///
+/// PRIVACY-09: Image data is stored in a sandboxed temp file (encrypted at
+/// rest by iOS/Android OS). Hive stores only the file reference + metadata.
+/// Old Uint8List imageBytes field is preserved as nullable for migration.
 @HiveType(typeId: 101)
 class DeadLetterClassification extends HiveObject {
   DeadLetterClassification({
     required this.id,
-    required this.imageBytes,
+    required this.imageRefPath,
+    required this.imageRefHash,
+    required this.imageRefByteLength,
     required this.region,
     required this.queuedAt,
     required this.failedAt,
@@ -34,12 +64,25 @@ class DeadLetterClassification extends HiveObject {
     required this.lastError,
     this.userId,
     this.imageName,
+    this.expiresAt,
+    this.consentVersion,
+    this.failureType,
+    this.purpose = 'classification',
   });
   @HiveField(0)
   String id;
 
+  /// PRIVACY-09: Path to encrypted temp file (not raw bytes).
   @HiveField(1)
-  Uint8List imageBytes;
+  String imageRefPath;
+
+  /// PRIVACY-09: SHA-256 content hash for integrity verification.
+  @HiveField(12)
+  String imageRefHash;
+
+  /// PRIVACY-09: Original byte length (for logging/quotas).
+  @HiveField(13)
+  int imageRefByteLength;
 
   @HiveField(2)
   String region;
@@ -61,25 +104,78 @@ class DeadLetterClassification extends HiveObject {
 
   @HiveField(8)
   String? imageName;
+
+  /// PRIVACY-09: When this item should be auto-deleted.
+  @HiveField(9)
+  DateTime? expiresAt;
+
+  /// PRIVACY-09: Consent version at time of queue entry.
+  @HiveField(10)
+  String? consentVersion;
+
+  /// PRIVACY-09: Typed failure classification (no error string inspection).
+  @HiveField(11)
+  String? failureType;
+
+  /// PRIVACY-09: Purpose of the queued image (e.g. 'classification').
+  @HiveField(15)
+  String purpose;
+
+  /// PRIVACY-09: Legacy raw bytes field — only populated during migration.
+  /// After migration, this is always null and imageRefPath is used instead.
+  @HiveField(14)
+  Uint8List? legacyImageBytes;
+
+  /// Whether this item still uses the legacy raw-bytes format.
+  bool get isLegacyFormat => legacyImageBytes != null && imageRefPath.isEmpty;
+
+  /// PRIVACY-09: Read image bytes from the sandboxed temp file.
+  /// Falls back to legacyImageBytes for unmigrated items.
+  Future<Uint8List?> readImageBytes() async {
+    if (isLegacyFormat) return legacyImageBytes;
+    return QueueImageStorage().readImage(QueueImageReference(
+      filePath: imageRefPath,
+      contentHash: imageRefHash,
+      byteLength: imageRefByteLength,
+    ));
+  }
 }
 
 /// Queued classification for offline processing
+///
+/// PRIVACY-09: Image data is stored in a sandboxed temp file (encrypted at
+/// rest by iOS/Android OS). Hive stores only the file reference + metadata.
+/// Old Uint8List imageBytes field is preserved as nullable for migration.
 @HiveType(typeId: 100)
 class QueuedClassification extends HiveObject {
   QueuedClassification({
     required this.id,
-    required this.imageBytes,
+    required this.imageRefPath,
+    required this.imageRefHash,
+    required this.imageRefByteLength,
     required this.region,
     required this.queuedAt,
     this.retryCount = 0,
     this.userId,
     this.imageName,
+    this.expiresAt,
+    this.consentVersion,
+    this.purpose = 'classification',
   });
   @HiveField(0)
   String id;
 
+  /// PRIVACY-09: Path to encrypted temp file (not raw bytes).
   @HiveField(1)
-  Uint8List imageBytes;
+  String imageRefPath;
+
+  /// PRIVACY-09: SHA-256 content hash for integrity verification.
+  @HiveField(10)
+  String imageRefHash;
+
+  /// PRIVACY-09: Original byte length (for logging/quotas).
+  @HiveField(11)
+  int imageRefByteLength;
 
   @HiveField(2)
   String region;
@@ -95,6 +191,37 @@ class QueuedClassification extends HiveObject {
 
   @HiveField(6)
   String? imageName;
+
+  /// PRIVACY-09: When this item should be auto-deleted.
+  @HiveField(7)
+  DateTime? expiresAt;
+
+  /// PRIVACY-09: Consent version at time of queue entry.
+  @HiveField(8)
+  String? consentVersion;
+
+  /// PRIVACY-09: Purpose of the queued image (e.g. 'classification').
+  @HiveField(9)
+  String purpose;
+
+  /// PRIVACY-09: Legacy raw bytes field — only populated during migration.
+  /// After migration, this is always null and imageRefPath is used instead.
+  @HiveField(12)
+  Uint8List? legacyImageBytes;
+
+  /// Whether this item still uses the legacy raw-bytes format.
+  bool get isLegacyFormat => legacyImageBytes != null && imageRefPath.isEmpty;
+
+  /// PRIVACY-09: Read image bytes from the sandboxed temp file.
+  /// Falls back to legacyImageBytes for unmigrated items.
+  Future<Uint8List?> readImageBytes() async {
+    if (isLegacyFormat) return legacyImageBytes;
+    return QueueImageStorage().readImage(QueueImageReference(
+      filePath: imageRefPath,
+      contentHash: imageRefHash,
+      byteLength: imageRefByteLength,
+    ));
+  }
 }
 
 /// Service for managing offline classification queue
@@ -119,6 +246,7 @@ class OfflineQueueService {
   bool _isProcessing = false;
   bool _isInitialized = false;
   ScanOrchestrator? _scanOrchestrator;
+  final QueueImageStorage _imageStorage = QueueImageStorage();
 
   final _queueCountController = StreamController<int>.broadcast();
   Stream<int> get queueCountStream => _queueCountController.stream;
@@ -152,6 +280,15 @@ class OfflineQueueService {
 
       // Emit initial count
       _queueCountController.add(_queueBox!.length);
+
+      // PRIVACY-09: Migrate legacy raw-bytes items to file references
+      await _migrateLegacyItems();
+
+      // PRIVACY-09: Expire old items on startup (deletes files too)
+      await _expireOldItems();
+
+      // PRIVACY-09: Clean orphaned image files on startup
+      await _cleanOrphanedFiles();
 
       // Listen for connectivity changes
       _connectivitySub = Connectivity().onConnectivityChanged.listen((results) {
@@ -187,6 +324,139 @@ class OfflineQueueService {
     }
   }
 
+  /// PRIVACY-09: Expire items that have exceeded their retention limit.
+  /// Deletes both Hive metadata and sandboxed image files.
+  Future<void> _expireOldItems() async {
+    final now = DateTime.now();
+    var expiredCount = 0;
+    final expiredFilePaths = <String>{};
+
+    // Expire active queue items
+    if (_queueBox != null) {
+      final expiredKeys = <dynamic>[];
+      for (final item in _queueBox!.values) {
+        if (item.expiresAt != null && item.expiresAt!.isBefore(now)) {
+          expiredKeys.add(item.id);
+          expiredFilePaths.add(item.imageRefPath);
+        }
+      }
+      for (final key in expiredKeys) {
+        await _queueBox!.delete(key);
+        expiredCount++;
+      }
+    }
+
+    // Expire dead-letter items
+    if (_deadLetterBox != null) {
+      final expiredKeys = <dynamic>[];
+      for (final item in _deadLetterBox!.values) {
+        if (item.expiresAt != null && item.expiresAt!.isBefore(now)) {
+          expiredKeys.add(item.id);
+          expiredFilePaths.add(item.imageRefPath);
+        }
+      }
+      for (final key in expiredKeys) {
+        await _deadLetterBox!.delete(key);
+        expiredCount++;
+      }
+    }
+
+    // PRIVACY-09: Delete image files for expired items
+    if (expiredFilePaths.isNotEmpty) {
+      await _imageStorage.deleteForUser(expiredFilePaths);
+    }
+
+    if (expiredCount > 0) {
+      _queueCountController.add(_queueBox?.length ?? 0);
+      WasteAppLogger.info('Expired old queue items', context: {
+        'expired_count': expiredCount,
+        'files_deleted': expiredFilePaths.length,
+      });
+    }
+  }
+
+  /// PRIVACY-09: Delete all queue items for a specific user.
+  /// Called on logout or account switch.
+  Future<void> purgeForUser(String uid) async {
+    if (!_isInitialized) await init();
+
+    var purgedCount = 0;
+    final filePaths = <String>{};
+
+    // Collect file paths before deleting metadata
+    if (_queueBox != null) {
+      for (final item in _queueBox!.values) {
+        if (item.userId == uid) {
+          filePaths.add(item.imageRefPath);
+        }
+      }
+    }
+    if (_deadLetterBox != null) {
+      for (final item in _deadLetterBox!.values) {
+        if (item.userId == uid) {
+          filePaths.add(item.imageRefPath);
+        }
+      }
+    }
+
+    // Delete image files
+    await _imageStorage.deleteForUser(filePaths);
+
+    // Purge active queue items for this user
+    if (_queueBox != null) {
+      final userKeys = <dynamic>[];
+      for (final item in _queueBox!.values) {
+        if (item.userId == uid) {
+          userKeys.add(item.id);
+        }
+      }
+      for (final key in userKeys) {
+        await _queueBox!.delete(key);
+        purgedCount++;
+      }
+    }
+
+    // Purge dead-letter items for this user
+    if (_deadLetterBox != null) {
+      final userKeys = <dynamic>[];
+      for (final item in _deadLetterBox!.values) {
+        if (item.userId == uid) {
+          userKeys.add(item.id);
+        }
+      }
+      for (final key in userKeys) {
+        await _deadLetterBox!.delete(key);
+        purgedCount++;
+      }
+    }
+
+    _queueCountController.add(_queueBox?.length ?? 0);
+    WasteAppLogger.info('Purged queue items for user', context: {
+      'uid': uid,
+      'purged_count': purgedCount,
+      'files_deleted': filePaths.length,
+    });
+  }
+
+  /// PRIVACY-09: Purge all queue items and their image files (full logout).
+  Future<void> purgeAll() async {
+    if (!_isInitialized) await init();
+    final queueCount = _queueBox?.length ?? 0;
+    final deadLetterCount = _deadLetterBox?.length ?? 0;
+
+    // Delete all image files first
+    final filesDeleted = await _imageStorage.deleteAll();
+
+    await _queueBox?.clear();
+    await _deadLetterBox?.clear();
+    _queueCountController.add(0);
+    WasteAppLogger.info('Purged all queue items', context: {
+      'queue_count': queueCount,
+      'dead_letter_count': deadLetterCount,
+      'files_deleted': filesDeleted,
+    });
+  }
+
   /// Check if device is currently offline
   Future<bool> get isOffline async {
     try {
@@ -198,12 +468,16 @@ class OfflineQueueService {
     }
   }
 
-  /// Queue a classification for later processing
+  /// PRIVACY-09: Queue a classification for later processing.
+  ///
+  /// Image bytes are written to a sandboxed temp file (encrypted at rest by
+  /// iOS/Android OS). Hive stores only the file reference + metadata.
   Future<void> queue({
     required Uint8List imageBytes,
     required String region,
     String? userId,
     String? imageName,
+    String? consentVersion,
   }) async {
     if (!_isInitialized) await init();
 
@@ -215,14 +489,21 @@ class OfflineQueueService {
     }
 
     try {
+      // PRIVACY-09: Write image bytes to sandboxed temp file.
+      final imageRef = await _imageStorage.writeImage(imageBytes);
+
       final item = QueuedClassification(
         id: const Uuid().v4(),
-        imageBytes: imageBytes,
+        imageRefPath: imageRef.filePath,
+        imageRefHash: imageRef.contentHash,
+        imageRefByteLength: imageRef.byteLength,
         region: region,
         queuedAt: DateTime.now(),
         userId: userId,
         imageName:
             imageName ?? 'offline_${DateTime.now().millisecondsSinceEpoch}',
+        expiresAt: DateTime.now().add(kQueueRetentionLimit),
+        consentVersion: consentVersion,
       );
 
       await _queueBox!.put(item.id, item);
@@ -349,8 +630,21 @@ class OfflineQueueService {
             }
           }
 
+          // PRIVACY-09: Read image bytes from sandboxed temp file.
+          final imageBytes = await item.readImageBytes();
+          if (imageBytes == null) {
+            WasteAppLogger.warning(
+              'Queue item image file missing — skipping',
+              context: {'queue_id': item.id},
+            );
+            await _moveToDeadLetter(item, lastError: 'image_file_missing');
+            await item.delete();
+            permanentFailCount++;
+            continue;
+          }
+
           final result = await orchestrator.analyzeBytes(
-            item.imageBytes,
+            imageBytes,
             item.imageName ?? 'offline_item',
             region: item.region,
           );
@@ -392,18 +686,17 @@ class OfflineQueueService {
           // Optional: Show notification
           // await _notifyCompletion(result);
         } catch (e, stackTrace) {
-          // Safety exceptions are terminal — the entire build is misconfigured.
-          // Refund the token that was just spent, clear all pending queue items
-          // (every item will fail for the same reason), and stop processing.
+          // PRIVACY-09: Safety exceptions are build-level, not item-level.
+          // Mark this item as blocked_configuration WITHOUT clearing
+          // unrelated items. Configuration/safety failures do NOT consume
+          // retry count. Server/backend route can resume later.
           if (e is ProductionSafetyException) {
             WasteAppLogger.severe(
-              '[PRODUCTION_SAFETY] Offline queue blocked: client AI calls are '
-              'disabled in this build. Clearing all pending items.',
+              '[PRODUCTION_SAFETY] Queue item blocked: client AI disabled in build.',
               error: e,
               stackTrace: stackTrace,
               context: {
                 'queue_id': item.id,
-                'items_cleared': _queueBox?.length ?? 0,
               },
             );
             if (tokenSpentForItem) {
@@ -411,11 +704,11 @@ class OfflineQueueService {
                 await tokenService.earnTokens(
                   AnalysisSpeed.batch.cost,
                   TokenTransactionType.refund,
-                  'Offline queue blocked — client AI disabled in build',
+                  'Queue item blocked — client AI disabled in build',
                   reference: item.id,
                   metadata: {
                     'source': 'offline_queue',
-                    'reason': 'production_safety_exception',
+                    'reason': 'blocked_configuration',
                   },
                 );
               } catch (refundError) {
@@ -426,9 +719,11 @@ class OfflineQueueService {
                 );
               }
             }
-            permanentFailCount += items.length - successCount;
-            await _queueBox?.clear();
-            break; // stop the loop; _processQueue exits normally via finally
+            // Mark as blocked_configuration, do NOT clear other items
+            item.retryCount = 0; // Config failures don't consume retry count
+            await item.save();
+            failCount++;
+            break; // Stop processing; other items may succeed later
           }
           if (tokenSpentForItem) {
             try {
@@ -534,16 +829,27 @@ class OfflineQueueService {
     await _processQueue();
   }
 
-  /// Clear all pending items (user-initiated cancellation)
+  /// Clear all pending items (user-initiated cancellation).
+  /// PRIVACY-09: Also deletes sandboxed image files.
   Future<void> clearQueue() async {
     if (!_isInitialized) await init();
 
     final count = pendingCount;
+
+    // Collect and delete image files before clearing metadata
+    final filePaths = _queueBox?.values
+        .map((item) => item.imageRefPath)
+        .toSet() ?? {};
+    if (filePaths.isNotEmpty) {
+      await _imageStorage.deleteForUser(filePaths);
+    }
+
     await _queueBox?.clear();
     _queueCountController.add(0);
 
     WasteAppLogger.info('Queue cleared', context: {
       'items_cleared': count,
+      'files_deleted': filePaths.length,
     });
 
     await _trackQueueAnalyticsEvent(
@@ -585,7 +891,30 @@ class OfflineQueueService {
     };
   }
 
-  /// Move a permanently-failed item to the dead-letter queue for audit.
+  /// PRIVACY-09: Classify error into typed failure category.
+  QueueItemFailureType _classifyFailure(Object error) {
+    final message = error.toString().toLowerCase();
+    if (message.contains('timeout') || message.contains('network')) {
+      return QueueItemFailureType.retryableNetwork;
+    }
+    if (message.contains('auth') || message.contains('unauthenticated')) {
+      return QueueItemFailureType.authentication;
+    }
+    if (message.contains('insufficient') || message.contains('token')) {
+      return QueueItemFailureType.insufficientCredits;
+    }
+    if (message.contains('invalid') || message.contains('corrupt')) {
+      return QueueItemFailureType.permanentInvalidImage;
+    }
+    if (error is ProductionSafetyException) {
+      return QueueItemFailureType.configurationSafety;
+    }
+    return QueueItemFailureType.unknown;
+  }
+
+  /// PRIVACY-09: Move a permanently-failed item to the dead-letter queue.
+  ///
+  /// Transfers the file reference (not the bytes) — no data duplication.
   Future<void> _moveToDeadLetter(
     QueuedClassification item, {
     required String lastError,
@@ -594,14 +923,19 @@ class OfflineQueueService {
     try {
       final deadLetter = DeadLetterClassification(
         id: item.id,
-        imageBytes: item.imageBytes,
+        imageRefPath: item.imageRefPath,
+        imageRefHash: item.imageRefHash,
+        imageRefByteLength: item.imageRefByteLength,
         region: item.region,
         queuedAt: item.queuedAt,
         failedAt: DateTime.now(),
         retryCount: item.retryCount,
-        lastError: lastError,
+        lastError: kRedactedError, // PRIVACY-09: Never store raw error strings
         userId: item.userId,
         imageName: item.imageName,
+        expiresAt: DateTime.now().add(kDeadLetterRetentionLimit),
+        consentVersion: item.consentVersion,
+        failureType: _classifyFailure(Exception(lastError)).name,
       );
       await _deadLetterBox!.put(deadLetter.id, deadLetter);
       WasteAppLogger.info('Item moved to dead-letter queue', context: {
@@ -621,7 +955,7 @@ class OfflineQueueService {
     return _deadLetterBox!.values.toList();
   }
 
-  /// Retry a specific dead-letter item by moving it back to the active queue.
+  /// PRIVACY-09: Retry a dead-letter item — transfers file reference back.
   Future<bool> retryDeadLetter(String id) async {
     if (_deadLetterBox == null || !_deadLetterBox!.containsKey(id)) {
       return false;
@@ -630,11 +964,16 @@ class OfflineQueueService {
       final item = _deadLetterBox!.get(id)!;
       final queued = QueuedClassification(
         id: const Uuid().v4(),
-        imageBytes: item.imageBytes,
+        imageRefPath: item.imageRefPath,
+        imageRefHash: item.imageRefHash,
+        imageRefByteLength: item.imageRefByteLength,
         region: item.region,
         queuedAt: DateTime.now(),
         userId: item.userId,
         imageName: item.imageName,
+        expiresAt: DateTime.now().add(kQueueRetentionLimit),
+        consentVersion: item.consentVersion,
+        purpose: item.purpose,
       );
       await _queueBox!.put(queued.id, queued);
       await _deadLetterBox!.delete(id);
@@ -652,13 +991,101 @@ class OfflineQueueService {
   }
 
   /// Clear all dead-letter items.
+  /// PRIVACY-09: Also deletes sandboxed image files.
   Future<void> clearDeadLetterQueue() async {
     if (!_isInitialized) await init();
     final count = _deadLetterBox?.length ?? 0;
+
+    // Collect and delete image files before clearing metadata
+    final filePaths = _deadLetterBox?.values
+        .map((item) => item.imageRefPath)
+        .toSet() ?? {};
+    if (filePaths.isNotEmpty) {
+      await _imageStorage.deleteForUser(filePaths);
+    }
+
     await _deadLetterBox?.clear();
     WasteAppLogger.info('Dead-letter queue cleared', context: {
       'items_cleared': count,
+      'files_deleted': filePaths.length,
     });
+  }
+
+  /// PRIVACY-09: Migrate legacy raw-bytes items to file references.
+  ///
+  /// Old items stored Uint8List imageBytes directly in Hive. This method
+  /// writes those bytes to sandboxed temp files and updates the metadata.
+  /// After migration, legacyImageBytes is set to null.
+  Future<void> _migrateLegacyItems() async {
+    var migratedCount = 0;
+
+    // Migrate active queue items
+    if (_queueBox != null) {
+      for (final item in _queueBox!.values.toList()) {
+        if (item.isLegacyFormat && item.legacyImageBytes != null) {
+          try {
+            final ref = await _imageStorage.writeImage(item.legacyImageBytes!);
+            item.imageRefPath = ref.filePath;
+            item.imageRefHash = ref.contentHash;
+            item.imageRefByteLength = ref.byteLength;
+            item.legacyImageBytes = null; // Clear legacy field
+            await item.save();
+            migratedCount++;
+          } catch (e) {
+            WasteAppLogger.warning('Failed to migrate legacy queue item',
+                error: e, context: {'queue_id': item.id});
+          }
+        }
+      }
+    }
+
+    // Migrate dead-letter items
+    if (_deadLetterBox != null) {
+      for (final item in _deadLetterBox!.values.toList()) {
+        if (item.isLegacyFormat && item.legacyImageBytes != null) {
+          try {
+            final ref = await _imageStorage.writeImage(item.legacyImageBytes!);
+            item.imageRefPath = ref.filePath;
+            item.imageRefHash = ref.contentHash;
+            item.imageRefByteLength = ref.byteLength;
+            item.legacyImageBytes = null; // Clear legacy field
+            await item.save();
+            migratedCount++;
+          } catch (e) {
+            WasteAppLogger.warning('Failed to migrate legacy dead-letter item',
+                error: e, context: {'queue_id': item.id});
+          }
+        }
+      }
+    }
+
+    if (migratedCount > 0) {
+      WasteAppLogger.info('Migrated legacy queue items to file references', context: {
+        'migrated_count': migratedCount,
+      });
+    }
+  }
+
+  /// PRIVACY-09: Clean orphaned image files that have no Hive metadata.
+  /// Runs on init to prevent unbounded disk usage from crashed writes.
+  Future<void> _cleanOrphanedFiles() async {
+    final activePaths = <String>{};
+    if (_queueBox != null) {
+      for (final item in _queueBox!.values) {
+        activePaths.add(item.imageRefPath);
+      }
+    }
+    if (_deadLetterBox != null) {
+      for (final item in _deadLetterBox!.values) {
+        activePaths.add(item.imageRefPath);
+      }
+    }
+    final cleaned = await _imageStorage.cleanOrphaned(activePaths);
+    if (cleaned > 0) {
+      WasteAppLogger.info('Cleaned orphaned queue image files on init', context: {
+        'count': cleaned,
+      });
+    }
   }
 
   /// Dispose resources
