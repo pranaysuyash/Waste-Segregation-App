@@ -314,12 +314,42 @@ service cloud.firestore {
     match /analytics_events/{eventId} {
       allow create: if request.auth != null;
       allow read, update, delete: if false; // Admin/Cloud Functions only
-    }
-    
-    // ============================================================
-    // SECTION 10: Admin collections
+    }    // ============================================================
+    // SECTION 10: Society policies
     // ============================================================
 
+    // Society policy overrides — rules that sit as a delta layer on top of
+    // the base city plugin. Readable by all authenticated users for proximity
+    // detection. Write access: owner-only for create, owner-or-admin for
+    // update. The `isVerified` field is admin-only (server-authoritative).
+    // Deleted by owner or admin only.
+    match /society_policies/{societyId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.societyId == societyId
+        && request.resource.data.keys().hasAll([
+          'societyId', 'societyName', 'basePluginId', 'overrides', 'createdBy'
+        ])
+        && request.resource.data.societyId is string
+        && request.resource.data.societyName is string
+        && request.resource.data.basePluginId is string
+        && request.resource.data.overrides is list
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if request.auth != null
+        && (resource.data.keys().hasAny(['createdBy'])
+            ? resource.data.createdBy == request.auth.uid
+            : true)
+        && !societyVerifyFieldChanged(resource.data, request.resource.data);
+      allow delete: if request.auth != null
+        && (resource.data.keys().hasAny(['createdBy'])
+            ? resource.data.createdBy == request.auth.uid
+            : isAdmin());
+    }
+
+    // ============================================================
+    // SECTION 11: Admin collections
+    // ============================================================
+    
     match /admin/{document=**} {
       allow read, write: if false;
     }
@@ -790,6 +820,14 @@ service cloud.firestore {
         && levelValid
         && weeklyValid
         && monthlyValid;
+    }
+
+    // --- Society policy validation ---
+    // The isVerified, verifiedById, verifiedByName, verifiedAt fields are
+    // server-authoritative. Only admins (or Cloud Functions) may set them.
+    function societyVerifyFieldChanged(oldData, newData) {
+      let verifyFields = ['isVerified', 'verifiedById', 'verifiedByName', 'verifiedAt'];
+      return newData.keys().hasAny(verifyFields) && !isAdmin();
     }
 
     function isAdmin() {

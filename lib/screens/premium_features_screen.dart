@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/premium_feature.dart';
@@ -12,6 +11,7 @@ import '../utils/constants.dart';
 import '../utils/routes.dart';
 import '../utils/developer_config.dart';
 import '../providers/app_providers.dart';
+import '../services/storefront_eligibility_service.dart';
 
 class PremiumFeaturesScreen extends ConsumerStatefulWidget {
   const PremiumFeaturesScreen({super.key});
@@ -23,6 +23,7 @@ class PremiumFeaturesScreen extends ConsumerStatefulWidget {
 class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
   bool _showTestOptions = false;
   WebCheckoutService? _webCheckoutService;
+  final StorefrontEligibilityService _storefrontEligibility = StorefrontEligibilityService();
 
   @override
   void didChangeDependencies() {
@@ -222,6 +223,7 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
             spacing: 8,
             runSpacing: 4,
             children: PremiumFeature.features
+                .where((f) => f.sellable)
                 .map((f) => _buildFeatureBadge(context, f.title))
                 .toList(),
           ),
@@ -454,10 +456,14 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
 
     if (webCheckout == null) return const SizedBox.shrink();
 
-    // COMMIT-7: Hide external checkout on iOS where Apple requires IAP for
-    // digital functionality. Only show on Android (with alternative billing
-    // programme enrolment) and web.
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
+    // COMMIT-7: Use storefront eligibility service to determine if external
+    // checkout is available. This enforces store compliance:
+    // - iOS: Apple requires IAP (hidden unless entitled)
+    // - Android: Requires alternative billing programme enrolment
+    // - Web/Desktop: Always available
+    // The server catalogue's eligiblePlatforms is the authoritative source
+    // for product-level eligibility; this provides client-side platform gating.
+    if (!_storefrontEligibility.isExternalCheckoutAvailable) {
       return const SizedBox.shrink();
     }
 

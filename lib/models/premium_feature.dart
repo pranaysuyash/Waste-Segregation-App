@@ -6,6 +6,7 @@ class PremiumFeature {
     required this.icon,
     required this.route,
     this.isEnabled = false,
+    this.sellable = true,
   });
 
   factory PremiumFeature.fromJson(Map<String, dynamic> json) {
@@ -16,14 +17,21 @@ class PremiumFeature {
       icon: json['icon'] as String,
       route: json['route'] as String,
       isEnabled: json['isEnabled'] as bool? ?? false,
+      sellable: json['sellable'] as bool? ?? true,
     );
   }
+
+  /// Whether this feature is currently implemented and ready to sell.
+  /// Features where the backing service returns placeholder output
+  /// (e.g. FakeLocalClassifier for offline/classification) are marked
+  /// sellable:false so they don't appear in premium marketing.
   final String id;
   final String title;
   final String description;
   final String icon;
   final String route;
   final bool isEnabled;
+  final bool sellable;
 
   Map<String, dynamic> toJson() {
     return {
@@ -33,6 +41,7 @@ class PremiumFeature {
       'icon': icon,
       'route': route,
       'isEnabled': isEnabled,
+      'sellable': sellable,
     };
   }
 
@@ -50,6 +59,7 @@ class PremiumFeature {
       description: 'Identify multiple objects in a single image',
       icon: 'category',
       route: '/premium',
+      sellable: false, // Not yet implemented — FakeLocalClassifier returns null
     ),
     PremiumFeature(
       id: 'theme_customization',
@@ -64,6 +74,7 @@ class PremiumFeature {
       description: 'Classify waste items without an internet connection',
       icon: 'devices',
       route: '/settings/offline',
+      sellable: false, // Not yet implemented — FakeLocalClassifier returns null
     ),
     PremiumFeature(
       id: 'advanced_analytics',

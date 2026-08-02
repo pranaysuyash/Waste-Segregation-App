@@ -50,8 +50,11 @@ class PricingABTestServiceNotifier
   }
 
   /// Initialize the service
-  Future<void> initialize({String testId = 'pricing_ab_v1'}) async {
-    await _service.initialize(testId: testId);
+  Future<void> initialize({
+    String testId = 'pricing_ab_v1',
+    String? userId,
+  }) async {
+    await _service.initialize(testId: testId, userId: userId);
   }
 
   /// Track pricing screen viewed

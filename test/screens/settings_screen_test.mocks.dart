@@ -111,6 +111,13 @@ class _FakeStorageService_4 extends _i1.SmartFake
 /// See the documentation for Mockito's code generation for more information.
 class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
   @override
+  _i7.EntitlementState get entitlementState => (super.noSuchMethod(
+        Invocation.getter(#entitlementState),
+        returnValue: _i7.EntitlementState.unknown,
+        returnValueForMissingStub: _i7.EntitlementState.unknown,
+      ) as _i7.EntitlementState);
+
+  @override
   bool get isInitialized => (super.noSuchMethod(
         Invocation.getter(#isInitialized),
         returnValue: false,
@@ -253,6 +260,15 @@ class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
       ) as _i8.Future<void>);
 
   @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
@@ -266,15 +282,6 @@ class MockPremiumService extends _i1.Mock implements _i7.PremiumService {
         Invocation.method(
           #removeListener,
           [listener],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void dispose() => super.noSuchMethod(
-        Invocation.method(
-          #dispose,
-          [],
         ),
         returnValueForMissingStub: null,
       );

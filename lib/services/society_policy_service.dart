@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:waste_segregation_app/models/society_policy_override.dart';
 import 'package:waste_segregation_app/services/firestore_schema_registry.dart';
@@ -105,8 +107,18 @@ class SocietyPolicyService {
   }
 
   /// Verify a society's policy (sets isVerified = true).
+  ///
+  /// PRIVACY-06: This method is deprecated for client-side use.
+  /// The `isVerified` field is server-authoritative — Firestore rules reject
+  /// non-admin writes to verification fields. Use Cloud Functions or the
+  /// admin SDK to verify society policies.
+  @Deprecated('Server-authoritative: use Cloud Functions or admin SDK')
   Future<void> verifySocietyPolicy(
       String societyId, String verifiedById, String verifiedByName) async {
+    WasteAppLogger.warning(
+      'verifySocietyPolicy called from client — will fail unless caller is admin',
+      context: {'societyId': societyId, 'caller': verifiedById},
+    );
     await updateSocietyPolicy(societyId, {
       'isVerified': true,
       'verifiedById': verifiedById,
@@ -117,24 +129,27 @@ class SocietyPolicyService {
 
   double _kmToDeg(double km) => km / 111.0;
 
+  double _toRad(double deg) => deg * pi / 180.0;
+
+  /// PRIVACY-06: Haversine formula using dart:math for accurate results.
+  /// The previous implementation used broken Taylor-series approximations
+  /// (y/x for atan2, first-order sin/cos) that produced incorrect distances.
   bool _isWithinRadius(
       SocietyPolicyOverride society, double lat, double lng, double radiusKm) {
     if (society.locationLat == null || society.locationLng == null) return false;
-    const earthRadius = 6371.0;
+    const earthRadius = 6371.0; // km
     final dLat = _toRad(lat - society.locationLat!);
     final dLng = _toRad(lng - society.locationLng!);
-    final a = _sin(dLat / 2) * _sin(dLat / 2) +
-        _cos(_toRad(society.locationLat!)) *
-            _cos(_toRad(lat)) *
-            _sin(dLng / 2) *
-            _sin(dLng / 2);
-    final c = 2 * _atan2(_sqrt(a), _sqrt(1 - a));
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_toRad(society.locationLat!)) *
+            cos(_toRad(lat)) *
+            sin(dLng / 2) *
+            sin(dLng / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return earthRadius * c <= radiusKm;
   }
 
-  double _toRad(double deg) => deg * 3.141592653589793 / 180.0;
-  double _sin(double v) => v - (v * v * v) / 6;
-  double _cos(double v) => 1 - (v * v) / 2;
-  double _sqrt(double v) => v < 0 ? 0 : v > 1 ? 1 : v;
-  double _atan2(double y, double x) => y / x;
+  // PRIVACY-06: Use dart:math for accurate trigonometric calculations.
+  // The previous implementation used Taylor-series approximations that
+  // produced incorrect results for large angles and edge cases.
 }

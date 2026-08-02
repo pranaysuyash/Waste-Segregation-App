@@ -124,7 +124,7 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
   @override
   void write(BinaryWriter writer, WasteClassification obj) {
     writer
-      ..writeByte(100)
+      ..writeByte(101)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)

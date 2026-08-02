@@ -315,11 +315,13 @@ class PremiumService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Returns sellable features that are currently enabled for this user.
+  /// Non-sellable features are excluded — they are not ready to market.
   List<PremiumFeature> getPremiumFeatures() {
     if (_premiumBox == null) return [];
 
     return PremiumFeature.features
-        .where((feature) => isPremiumFeature(feature.id))
+        .where((feature) => feature.sellable && isPremiumFeature(feature.id))
         .map((feature) => PremiumFeature(
               id: feature.id,
               title: feature.title,
@@ -331,11 +333,16 @@ class PremiumService extends ChangeNotifier {
         .toList();
   }
 
+  /// Returns sellable features that are NOT yet enabled for this user.
+  /// Non-sellable features are excluded — they are not ready to market.
+  /// Only sellable features appear in the upgrade prompt.
   List<PremiumFeature> getComingSoonFeatures() {
-    if (_premiumBox == null) return PremiumFeature.features;
+    if (_premiumBox == null) {
+      return PremiumFeature.features.where((f) => f.sellable).toList();
+    }
 
     return PremiumFeature.features
-        .where((feature) => !isPremiumFeature(feature.id))
+        .where((feature) => feature.sellable && !isPremiumFeature(feature.id))
         .toList();
   }
 

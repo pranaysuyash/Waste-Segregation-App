@@ -3,9 +3,12 @@ import 'dart:typed_data';
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:waste_segregation_app/services/offline_queue_service.dart';
+
+const _kPathProviderChannel = 'plugins.flutter.io/path_provider';
 
 class _OfflineConnectivityPlatform extends ConnectivityPlatform {
   _OfflineConnectivityPlatform();
@@ -26,6 +29,17 @@ void main() {
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
+    // PRIVACY-09: Mock path_provider for QueueImageStorage temp directory
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel(_kPathProviderChannel),
+      (MethodCall methodCall) async {
+        if (methodCall.method == 'getTemporaryDirectory') {
+          return '/tmp/test_queue_images';
+        }
+        return null;
+      },
+    );
     Hive.init('.');
     originalPlatform = ConnectivityPlatform.instance;
     ConnectivityPlatform.instance = _OfflineConnectivityPlatform();
@@ -82,7 +96,9 @@ void main() {
       expect(pending.single.region, 'BBMP');
       expect(pending.single.userId, 'user-1');
       expect(pending.single.imageName, 'glass-bottle.jpg');
-      expect(pending.single.imageBytes, imageBytes);
+      // PRIVACY-09: imageBytes is now stored as a file reference, not raw bytes
+      expect(pending.single.imageRefPath, isNotEmpty);
+      expect(pending.single.imageRefByteLength, equals(imageBytes.length));
       expect(analyticsEvents, hasLength(1));
       expect(analyticsEvents.single['eventName'], 'queued_offline');
     });

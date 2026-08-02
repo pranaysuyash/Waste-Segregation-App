@@ -2,7 +2,7 @@
 
 ## ReLoop Documentation Structure
 
-_Last Updated: August 1, 2026_
+_Last Updated: August 2, 2026_
 
 This document provides a comprehensive index to all project documentation, now properly organized in the `docs/` folder for better maintainability and navigation.
 
@@ -130,7 +130,7 @@ Use this map when you need to know **what's still being figured out** vs what's 
 ### `/docs/reference/` - Reference Documentation
 
 - **END_USER_README.md** - Complete end-user documentation and project overview
-- **[CONTEXT.md](../CONTEXT.md)** — Domain glossary defining canonical terminology for the ReLoop project (WasteClassification, AnalysisSource, ClassificationLayer, SocietyPolicyOverride, etc.). All code and docs should use these terms consistently.
+- **[../CONTEXT.md](../CONTEXT.md)** — Domain glossary defining canonical terminology for the ReLoop project (WasteClassification, AnalysisSource, ClassificationLayer, SocietyPolicyOverride, etc.). All code and docs should use these terms consistently.
 
 ### `/docs/services/` - Service Documentation
 

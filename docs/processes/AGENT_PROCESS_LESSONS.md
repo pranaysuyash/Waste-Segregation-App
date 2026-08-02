@@ -170,13 +170,49 @@ SemanticsService.sendAnnouncement(
 
 ---
 
-## Checklist for Future Agent Sessions (§7, §22)
+### Lesson 8: Never Dismiss Failures as 'Pre-Existing' Without Investigation (§6, §0.1)
+
+**Trigger**: Full test suite reported 50 failures. Assistant declared them "pre-existing golden test failures, not caused by any changes this session" without investigation.
+
+**Consequence**: User called out the violation. Investigation revealed the failures were stale golden reference images — a real, fixable issue. After regeneration, all 79 golden tests passed. The 50→0 reduction meant 50 actual failures were being ignored.
+
+**What went wrong**:  
+The assistant saw "golden_test" in the failure names and assumed they were visual regression tests that drift over time. Without running `git stash && flutter test` to verify they fail on committed code, or checking whether any touched widgets could cause pixel drift, the failures were dismissed in a single sentence. This violated:
+
+- §6: "'Pre-existing' Is Not an Excuse" — knowing about an issue is not permission to leave it
+- §0.1: "Missed-Anything Sweep" — every failure in the blast radius must be investigated
+
+**What actually happened**:  
+50 golden tests had stale reference images because the UI had changed (new themes, layout updates, widget refactoring) but the `.png` references were never regenerated. The fix was `flutter test --update-goldens` — a one-command fix that took 30 seconds.
+
+**First principle**:  
+A failure is only genuinely pre-existing if ALL three conditions are met:
+1. It fails on `origin/master` or a captured baseline before the current work
+2. Proof is documented with command output (e.g., `git stash && flutter test`)
+3. The current work did not touch the relevant area
+
+If ANY condition is unverified, the failure is **assumed to be in your blast radius** until proven otherwise.
+
+**Correct approach**:  
+1. Run the failing tests in isolation first
+2. If they fail, check if they fail on the committed baseline (`git stash && flutter test <file>`)
+3. If they pass on baseline, investigate what your changes broke
+4. If they fail on baseline, investigate root cause (stale goldens, test pollution, genuine bug)
+5. Fix root cause — don't just document and move on
+6. Report: "X failures investigated. Y were stale goldens (fixed). Z are genuine pre-existing (documented)."
+
+**Anti-pattern**: "The 50 failures are pre-existing golden test failures, not caused by any changes this session." — This is an assumption stated as fact. It must be verified with evidence.
+
+---
+
+## Checklist for Future Agent Sessions (§6, §7, §22)
 
 - [ ] Run `dart analyze` to get baseline error/warning/info counts
 - [ ] Fix errors first (blocking), then warnings (important), then info (style)
 - [ ] For each fix, verify it doesn't break other files (check imports) — **§7 Supersession**
 - [ ] Run `flutter test` on affected test files after fixes
 - [ ] Run full `flutter test` suite to confirm no regressions — **§22: analyzer ≠ tests**
+- [ ] **§6: Every failure is in your blast radius until proven otherwise** — run failing tests against baseline (`git stash && flutter test`) before dismissing as pre-existing
 - [ ] Categorize any remaining failures (pre-existing vs regression vs pollution)
-- [ ] Document any new pre-existing failures with root cause
+- [ ] Document any new pre-existing failures with root cause and proof (command output)
 - [ ] Spawn code-reviewer-mimo before declaring completion

@@ -112,13 +112,18 @@ void main() {
           await premiumService.setPremiumFeature(feature, true);
         }
 
-        // Verify all are enabled
+        // Verify all are enabled in Hive
         for (final feature in features) {
           expect(premiumService.isPremiumFeature(feature), isTrue);
         }
 
+        // PRIVACY-08: getPremiumFeatures only returns sellable features
         final premiumFeatures = premiumService.getPremiumFeatures();
-        expect(premiumFeatures.length, equals(features.length));
+        final sellableEnabled = features.where((f) {
+          final def = PremiumFeature.features.firstWhere((pf) => pf.id == f);
+          return def.sellable;
+        }).length;
+        expect(premiumFeatures.length, equals(sellableEnabled));
       });
 
       test('should toggle feature correctly', () async {
@@ -172,12 +177,14 @@ void main() {
         }
 
         final comingSoonFeatures = premiumService.getComingSoonFeatures();
-        final expectedCount =
-            PremiumFeature.features.length - premiumFeatureIds.length;
+        // PRIVACY-08: Only sellable, non-enabled features appear in coming soon
+        final sellableCount = PremiumFeature.features.where((f) => f.sellable).length;
+        final expectedCount = sellableCount - premiumFeatureIds.length;
         expect(comingSoonFeatures.length, equals(expectedCount));
 
         for (final feature in comingSoonFeatures) {
           expect(premiumFeatureIds.contains(feature.id), isFalse);
+          expect(feature.sellable, isTrue);
         }
       });
 
@@ -203,8 +210,9 @@ void main() {
         final comingSoonFeatures = premiumService.getComingSoonFeatures();
 
         expect(premiumFeatures, isEmpty);
-        expect(
-            comingSoonFeatures.length, equals(PremiumFeature.features.length));
+        // PRIVACY-08: getComingSoonFeatures now only returns sellable features
+        final sellableCount = PremiumFeature.features.where((f) => f.sellable).length;
+        expect(comingSoonFeatures.length, equals(sellableCount));
       });
     });
 
@@ -266,9 +274,13 @@ void main() {
           await premiumService.setPremiumFeature(feature, true);
         }
 
+        // PRIVACY-08: Only sellable features appear in getPremiumFeatures
         final premiumFeatures = premiumService.getPremiumFeatures();
-        expect(premiumFeatures.length, equals(allFeatures.length));
+        final sellableCount = PremiumFeature.features.where((f) => f.sellable).length;
+        expect(premiumFeatures.length, equals(sellableCount));
 
+        // Non-sellable features still appear in comingSoonFeatures? No —
+        // getComingSoonFeatures also filters by sellable.
         final comingSoonFeatures = premiumService.getComingSoonFeatures();
         expect(comingSoonFeatures, isEmpty);
       });
@@ -503,8 +515,10 @@ void main() {
           expect(premiumService.isPremiumFeature(feature.id), isTrue);
         }
 
+        // PRIVACY-08: Only sellable features appear in getPremiumFeatures
         final premiumFeatures = premiumService.getPremiumFeatures();
-        expect(premiumFeatures.length, equals(PremiumFeature.features.length));
+        final sellableCount = PremiumFeature.features.where((f) => f.sellable).length;
+        expect(premiumFeatures.length, equals(sellableCount));
       });
 
       test('should maintain feature state consistency', () async {
@@ -519,12 +533,13 @@ void main() {
           await premiumService.setPremiumFeature(testFeatures[i], i.isEven);
         }
 
-        // Verify consistency
+        // Verify consistency — only sellable features are counted
         final enabledFeatures = premiumService.getPremiumFeatures();
         final comingSoonFeatures = premiumService.getComingSoonFeatures();
+        final sellableCount = PremiumFeature.features.where((f) => f.sellable).length;
 
         expect(enabledFeatures.length + comingSoonFeatures.length,
-            equals(PremiumFeature.features.length));
+            equals(sellableCount));
       });
     });
   });
