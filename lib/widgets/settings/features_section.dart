@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/app_providers.dart';
 import '../../services/premium_service.dart';
 import '../../utils/routes.dart';
 import '../../l10n/app_localizations.dart';
@@ -19,8 +20,9 @@ class FeaturesSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SettingsSectionHeader(title: t.featuresSection),
-        Consumer<PremiumService>(
-          builder: (context, premiumService, child) {
+        Consumer(
+          builder: (context, ref, child) {
+            final premiumService = ref.watch(premiumServiceProvider);
             final isUnlocked = premiumService.isPremiumFeature('offline_mode');
             return SettingTile(
               icon: Icons.offline_bolt,
@@ -53,8 +55,9 @@ class FeaturesSection extends StatelessWidget {
           subtitle: t.analyticsSubtitle,
           onTap: () => _navigateToAnalytics(context),
         ),
-        Consumer<PremiumService>(
-          builder: (context, premiumService, child) {
+        Consumer(
+          builder: (context, ref, child) {
+            final premiumService = ref.watch(premiumServiceProvider);
             final isUnlocked =
                 premiumService.isPremiumFeature('advanced_analytics');
             return SettingTile(

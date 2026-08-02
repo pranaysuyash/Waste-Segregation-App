@@ -771,7 +771,9 @@ class StorageService {
       if (filterOptions.materialTypes != null &&
           filterOptions.materialTypes!.isNotEmpty) {
         if (classification.materials == null ||
-            classification.materials!.isEmpty) return false;
+            classification.materials!.isEmpty) {
+          return false;
+        }
         final matchesMaterial = filterOptions.materialTypes!.any(
             (materialType) => classification.materials!
                 .any((m) => m.toLowerCase() == materialType.toLowerCase()));

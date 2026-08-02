@@ -1,7 +1,48 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/services/local_guidelines_plugin.dart';
 import 'package:waste_segregation_app/services/local_policy_engine.dart';
+import 'package:waste_segregation_app/services/society_policy_service.dart';
+import 'package:waste_segregation_app/models/society_policy_override.dart';
+
+class MockFirebaseFirestore extends Mock implements FirebaseFirestore {
+  @override
+  CollectionReference<Map<String, dynamic>> collection(String path) =>
+      super.noSuchMethod(
+        Invocation.method(#collection, [path]),
+        returnValue: MockCollectionReference<Map<String, dynamic>>(),
+        returnValueForMissingStub: MockCollectionReference<Map<String, dynamic>>(),
+      ) as CollectionReference<Map<String, dynamic>>;
+}
+
+class MockCollectionReference<T extends Object?> extends Mock
+    implements CollectionReference<T> {
+  @override
+  Future<QuerySnapshot<T>> get([GetOptions? options]) => super.noSuchMethod(
+        Invocation.method(#get, [options]),
+        returnValue: Future.value(MockQuerySnapshot<T>()),
+        returnValueForMissingStub: Future.value(MockQuerySnapshot<T>()),
+      ) as Future<QuerySnapshot<T>>;
+}
+
+class MockQuerySnapshot<T> extends Mock implements QuerySnapshot<T> {
+  @override
+  List<QueryDocumentSnapshot<T>> get docs => [];
+}
+
+class _FakeSocietyPolicyService extends SocietyPolicyService {
+  _FakeSocietyPolicyService(this.policyOverride)
+      : super(firestore: MockFirebaseFirestore());
+
+  final SocietyPolicyOverride? policyOverride;
+
+  @override
+  Future<SocietyPolicyOverride?> getSocietyPolicy(String societyId) async {
+    return policyOverride;
+  }
+}
 
 void main() {
   group('LocalPolicyEngine', () {
@@ -73,25 +114,28 @@ void main() {
       expect(decision.evaluatedAt, isA<DateTime>());
     });
 
-    test('rule-driven evaluator marks hazardous item without special disposal',
-        () async {
-      final risky = baseClassification.copyWith(
-        requiresSpecialDisposal: false,
-      );
+    test(
+      'rule-driven evaluator marks hazardous item without special disposal',
+      () async {
+        final risky = baseClassification.copyWith(
+          requiresSpecialDisposal: false,
+        );
 
-      final decision = await engine.applyPolicy(
-        classification: risky,
-        region: 'Bangalore, IN',
-      );
+        final decision = await engine.applyPolicy(
+          classification: risky,
+          region: 'Bangalore, IN',
+        );
 
-      expect(decision.policyApplied, isTrue);
-      expect(decision.complianceStatus, equals('violation'));
-      expect(
-        decision.violations
-            .any((v) => v.contains('bbmp_hazardous_special_disposal')),
-        isTrue,
-      );
-    });
+        expect(decision.policyApplied, isTrue);
+        expect(decision.complianceStatus, equals('violation'));
+        expect(
+          decision.violations.any(
+            (v) => v.contains('bbmp_hazardous_special_disposal'),
+          ),
+          isTrue,
+        );
+      },
+    );
 
     test('safetyOverrideAlways triggers regardless of ML flags', () async {
       final item = baseClassification.copyWith(
@@ -107,76 +151,85 @@ void main() {
 
       expect(decision.policyApplied, isTrue);
       expect(
-        decision.violations
-            .any((v) => v.contains('bbmp_hazardous_safety_override')),
-        isTrue,
-      );
-    });
-
-    test('confidence gating demotes violations to warnings below threshold',
-        () async {
-      final item = baseClassification.copyWith(
-        itemName: 'Motor Oil',
-        requiresSpecialDisposal: false,
-        confidence: 0.60,
-      );
-
-      final decision = await engine.applyPolicy(
-        classification: item,
-        region: 'Bangalore, IN',
-      );
-
-      expect(decision.policyApplied, isTrue);
-      expect(decision.complianceStatus, equals('requires_attention'));
-      expect(
-        decision.warnings
-            .any((v) => v.contains('bbmp_hazardous_special_disposal')),
+        decision.violations.any(
+          (v) => v.contains('bbmp_hazardous_safety_override'),
+        ),
         isTrue,
       );
     });
 
     test(
-        'confidence gating keeps safetyOverrideAlways as violation at ≥0.70',
-        () async {
-      final item = baseClassification.copyWith(
-        itemName: 'Motor Oil',
-        requiresSpecialDisposal: false,
-        confidence: 0.75,
-      );
+      'confidence gating demotes violations to warnings below threshold',
+      () async {
+        final item = baseClassification.copyWith(
+          itemName: 'Motor Oil',
+          requiresSpecialDisposal: false,
+          confidence: 0.60,
+        );
 
-      final decision = await engine.applyPolicy(
-        classification: item,
-        region: 'Bangalore, IN',
-      );
+        final decision = await engine.applyPolicy(
+          classification: item,
+          region: 'Bangalore, IN',
+        );
 
-      expect(decision.policyApplied, isTrue);
-      expect(
-        decision.violations
-            .any((v) => v.contains('bbmp_hazardous_safety_override')),
-        isTrue,
-      );
-    });
+        expect(decision.policyApplied, isTrue);
+        expect(decision.complianceStatus, equals('requires_attention'));
+        expect(
+          decision.warnings.any(
+            (v) => v.contains('bbmp_hazardous_special_disposal'),
+          ),
+          isTrue,
+        );
+      },
+    );
 
-    test('confidence gating demotes safetyOverrideAlways to warning at <0.70',
-        () async {
-      final item = baseClassification.copyWith(
-        itemName: 'Motor Oil',
-        requiresSpecialDisposal: false,
-        confidence: 0.60,
-      );
+    test(
+      'confidence gating keeps safetyOverrideAlways as violation at ≥0.70',
+      () async {
+        final item = baseClassification.copyWith(
+          itemName: 'Motor Oil',
+          requiresSpecialDisposal: false,
+          confidence: 0.75,
+        );
 
-      final decision = await engine.applyPolicy(
-        classification: item,
-        region: 'Bangalore, IN',
-      );
+        final decision = await engine.applyPolicy(
+          classification: item,
+          region: 'Bangalore, IN',
+        );
 
-      expect(decision.policyApplied, isTrue);
-      expect(
-        decision.warnings
-            .any((v) => v.contains('bbmp_hazardous_safety_override')),
-        isTrue,
-      );
-    });
+        expect(decision.policyApplied, isTrue);
+        expect(
+          decision.violations.any(
+            (v) => v.contains('bbmp_hazardous_safety_override'),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'confidence gating demotes safetyOverrideAlways to warning at <0.70',
+      () async {
+        final item = baseClassification.copyWith(
+          itemName: 'Motor Oil',
+          requiresSpecialDisposal: false,
+          confidence: 0.60,
+        );
+
+        final decision = await engine.applyPolicy(
+          classification: item,
+          region: 'Bangalore, IN',
+        );
+
+        expect(decision.policyApplied, isTrue);
+        expect(
+          decision.warnings.any(
+            (v) => v.contains('bbmp_hazardous_safety_override'),
+          ),
+          isTrue,
+        );
+      },
+    );
 
     test('applies policy for Pune region', () async {
       final decision = await engine.applyPolicy(
@@ -220,19 +273,28 @@ void main() {
     });
 
     test('applies policy for Ahmedabad', () async {
-      final d = await engine.applyPolicy(classification: baseClassification, region: 'Ahmedabad, IN');
+      final d = await engine.applyPolicy(
+        classification: baseClassification,
+        region: 'Ahmedabad, IN',
+      );
       expect(d.policyApplied, isTrue);
       expect(d.pluginId, equals('amc_ahmedabad'));
     });
 
     test('applies policy for Indore', () async {
-      final d = await engine.applyPolicy(classification: baseClassification, region: 'Indore, IN');
+      final d = await engine.applyPolicy(
+        classification: baseClassification,
+        region: 'Indore, IN',
+      );
       expect(d.policyApplied, isTrue);
       expect(d.pluginId, equals('imc_indore'));
     });
 
     test('applies policy for Chandigarh', () async {
-      final d = await engine.applyPolicy(classification: baseClassification, region: 'Chandigarh, IN');
+      final d = await engine.applyPolicy(
+        classification: baseClassification,
+        region: 'Chandigarh, IN',
+      );
       expect(d.policyApplied, isTrue);
       expect(d.pluginId, equals('mcc_chandigarh'));
     });
@@ -258,25 +320,43 @@ void main() {
         ('Chandigarh, IN', 'mcc_chandigarh'),
       ];
       for (final (region, expectedId) in cities) {
-        final d = await engine.applyPolicy(classification: baseClassification, region: region);
+        final d = await engine.applyPolicy(
+          classification: baseClassification,
+          region: region,
+        );
         expect(d.policyApplied, isTrue, reason: '$region should resolve');
-        expect(d.pluginId, equals(expectedId), reason: '$region should map to $expectedId');
-        expect(d.rulePack, isNotNull, reason: '$region should have a rule pack');
-        expect(d.rulePack!.rules, isNotEmpty, reason: '$region should have rules');
+        expect(
+          d.pluginId,
+          equals(expectedId),
+          reason: '$region should map to $expectedId',
+        );
+        expect(
+          d.rulePack,
+          isNotNull,
+          reason: '$region should have a rule pack',
+        );
+        expect(
+          d.rulePack!.rules,
+          isNotEmpty,
+          reason: '$region should have rules',
+        );
       }
     });
 
-    test('provenance fields present in decision with high confidence', () async {
-      final decision = await engine.applyPolicy(
-        classification: baseClassification,
-        region: 'Bangalore, IN',
-      );
+    test(
+      'provenance fields present in decision with high confidence',
+      () async {
+        final decision = await engine.applyPolicy(
+          classification: baseClassification,
+          region: 'Bangalore, IN',
+        );
 
-      expect(decision.pluginId, isNotNull);
-      expect(decision.guidelinesVersion, isNotNull);
-      expect(decision.rulePackId, isNotNull);
-      expect(decision.confidenceGated, isFalse);
-    });
+        expect(decision.pluginId, isNotNull);
+        expect(decision.guidelinesVersion, isNotNull);
+        expect(decision.rulePackId, isNotNull);
+        expect(decision.confidenceGated, isFalse);
+      },
+    );
 
     test('confidenceGated is true when confidence < 0.70', () async {
       final lowConf = baseClassification.copyWith(confidence: 0.50);
@@ -288,5 +368,90 @@ void main() {
 
       expect(decision.confidenceGated, isTrue);
     });
+
+    test('policy is skipped below 0.50 with fallback metadata', () async {
+      final lowConf = baseClassification.copyWith(confidence: 0.49);
+
+      final decision = await engine.applyPolicy(
+        classification: lowConf,
+        region: 'Bangalore, IN',
+      );
+
+      expect(decision.policyApplied, isFalse);
+      expect(decision.confidenceState, equals('not_applied'));
+      expect(
+        decision.warnings,
+        contains(
+          'Confidence below 0.50: municipal policy checks were skipped.',
+        ),
+      );
+      expect(decision.violations, isEmpty);
+    });
+
+    test('society override adds layer and flags conflicts', () async {
+      final override = SocietyPolicyOverride(
+        societyId: 'sb_001',
+        societyName: 'Green Habitat',
+        basePluginId: 'bbmp_bangalore',
+        overrides: [
+          const RuleOverride(
+            categoryKey: 'hazardous_waste',
+            overrideType: RuleOverrideType.binColor,
+            value: 'Pink Bin',
+            description: 'Custom society bin color.',
+          ),
+        ],
+      );
+
+      final decision = await engine.applyPolicy(
+        classification: baseClassification,
+        region: 'Bangalore, IN',
+        societyId: 'sb_001',
+        societyPolicyService: _FakeSocietyPolicyService(override),
+      );
+
+      expect(decision.policyApplied, isTrue);
+      expect(decision.societyId, equals('sb_001'));
+      expect(decision.societyName, equals('Green Habitat'));
+      expect(decision.societyOverrides, isNotEmpty);
+      expect(decision.societyConflicts, isNotEmpty);
+      expect(
+        decision.classification.localRegulations?['bin'],
+        equals('Pink Bin'),
+      );
+    });
+
+    test(
+      'society mismatch does not apply overrides but records conflict',
+      () async {
+        final override = SocietyPolicyOverride(
+          societyId: 'sb_002',
+          societyName: 'Wrong Match Society',
+          basePluginId: 'bmc_mumbai',
+          overrides: const [
+            RuleOverride(
+              categoryKey: 'hazardous_waste',
+              overrideType: RuleOverrideType.binColor,
+              value: 'Blue',
+            ),
+          ],
+        );
+
+        final decision = await engine.applyPolicy(
+          classification: baseClassification,
+          region: 'Bangalore, IN',
+          societyId: 'sb_002',
+          societyPolicyService: _FakeSocietyPolicyService(override),
+        );
+
+        expect(decision.policyApplied, isTrue);
+        expect(decision.societyConflicts, isNotEmpty);
+        expect(decision.societyOverrides, isEmpty);
+        expect(
+          decision.societyConflicts.first,
+          contains('does not match resolved plugin'),
+        );
+      },
+    );
   });
 }

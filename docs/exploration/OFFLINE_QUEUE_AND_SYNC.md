@@ -30,6 +30,25 @@ Stored in Hive:
 - `userId`: user ID
 - `imageName`: filename
 
+### Dead-letter queue (`DeadLetterClassification`)
+
+Permanently failed items (retryCount >= 3) are moved to a separate Hive box before deletion:
+
+- `id`: original queued item ID
+- `imageBytes`: the captured image (preserved for manual retry)
+- `region`: user's region
+- `queuedAt`: when originally queued
+- `failedAt`: when moved to dead-letter
+- `retryCount`: number of retries before failure
+- `lastError`: the error that caused the final failure
+- `userId`: user ID
+- `imageName`: filename
+
+Stored in Hive box `classification_dead_letter` (typeId: 101). Separate from the active queue to prevent dead-letter operations from blocking queue processing.
+
+API: `getDeadLetterItems()`, `retryDeadLetter(id)`, `clearDeadLetterQueue()`.
+UI: `_DeadLetterDialog` in `ImpactDashboardScreen` — tappable dead-letter count opens dialog with per-item error details, retry, delete, and clear-all actions.
+
 ### Flow
 
 ```

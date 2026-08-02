@@ -259,7 +259,6 @@ class ModelSelectionService {
   WasteClassification _markCloudPrimary(WasteClassification result) {
     return result.copyWith(
       analysisSource: WasteClassification.analysisSourceCloudPrimary,
-      analysisFallbackReason: null,
       modelSelectionStrategy: strategy.name,
     );
   }
@@ -267,7 +266,6 @@ class ModelSelectionService {
   WasteClassification _markLocalExperimental(WasteClassification result) {
     return result.copyWith(
       analysisSource: WasteClassification.analysisSourceLocalExperimental,
-      analysisFallbackReason: null,
       modelSelectionStrategy: strategy.name,
     );
   }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:waste_segregation_app/services/user_consent_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
 import 'legal_document_screen.dart';
+import '../providers/app_providers.dart';
 
-class ConsentDialogScreen extends StatelessWidget {
+class ConsentDialogScreen extends ConsumerWidget {
   const ConsentDialogScreen({
     super.key,
     required this.onConsent,
@@ -14,7 +14,7 @@ class ConsentDialogScreen extends StatelessWidget {
   final VoidCallback onDecline;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -133,7 +133,7 @@ class ConsentDialogScreen extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: () async {
                               final consentService =
-                                  context.read<UserConsentService>();
+                                  ref.read(userConsentServiceProvider);
                               await consentService.recordAllConsents();
                               onConsent();
                             },

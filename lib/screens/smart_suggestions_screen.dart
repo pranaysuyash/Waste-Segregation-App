@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/smart_suggestions_service.dart';
-import '../services/storage_service.dart';
 import '../services/offline_queue_service.dart';
+import '../providers/app_providers.dart';
 
 /// Track 4: Smart Suggestions Screen
 /// Displays personalized suggestions based on user behavior and offline queue data
-class SmartSuggestionsScreen extends StatefulWidget {
+class SmartSuggestionsScreen extends ConsumerStatefulWidget {
   const SmartSuggestionsScreen({super.key});
 
   @override
-  State<SmartSuggestionsScreen> createState() => _SmartSuggestionsScreenState();
+  ConsumerState<SmartSuggestionsScreen> createState() => _SmartSuggestionsScreenState();
 }
 
-class _SmartSuggestionsScreenState extends State<SmartSuggestionsScreen> {
+class _SmartSuggestionsScreenState extends ConsumerState<SmartSuggestionsScreen> {
   List<SmartSuggestion> _suggestions = [];
   bool _isLoading = true;
 
@@ -29,10 +29,8 @@ class _SmartSuggestionsScreenState extends State<SmartSuggestionsScreen> {
     });
 
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
-      final queueService =
-          Provider.of<OfflineQueueService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
+      final queueService = OfflineQueueService();
       final suggestionsService =
           SmartSuggestionsService(storageService, queueService);
 

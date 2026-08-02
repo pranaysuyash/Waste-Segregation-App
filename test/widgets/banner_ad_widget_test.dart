@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/widgets/banner_ad_widget.dart';
 import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import '../test_config/plugin_mock_setup.dart';
 import '../test_config/test_app_wrapper.dart';
 
@@ -73,14 +74,13 @@ void main() {
       double? height,
       bool showAtBottom = false,
     }) {
-      return MaterialApp(
-        home: MultiProvider(
-          providers: [
-            ChangeNotifierProvider<AdService>.value(value: mockAdService),
-            ChangeNotifierProvider<PremiumService>.value(
-                value: mockPremiumService),
-          ],
-          child: Scaffold(
+      return ProviderScope(
+        overrides: [
+          adServiceProvider.overrideWithValue(mockAdService),
+          premiumServiceProvider.overrideWithValue(mockPremiumService),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
             body: showAtBottom
                 ? Stack(
                     children: [
@@ -95,6 +95,7 @@ void main() {
                     height: height ?? 50,
                     showAtBottom: showAtBottom,
                   ),
+            ),
           ),
         ),
       );

@@ -30,6 +30,11 @@ class CityPolicyData {
     required this.regulations,
     required this.helpline,
     required this.sourceUrl,
+    this.localName,
+    this.trustTier = 'T0',
+    this.sourceTitle,
+    this.lastVerified,
+    this.nextReviewDue,
     this.subcategoryOverrides = const {},
     this.specialPrograms = const {},
     this.penaltyInfo,
@@ -47,6 +52,11 @@ class CityPolicyData {
   final Map<String, Map<String, String>> regulations;
   final String helpline;
   final String sourceUrl;
+  final String? localName;
+  final String trustTier;
+  final String? sourceTitle;
+  final String? lastVerified;
+  final String? nextReviewDue;
   final Map<String, Map<String, dynamic>> subcategoryOverrides;
   final Map<String, String> specialPrograms;
   final String? penaltyInfo;
@@ -828,7 +838,6 @@ class CityPolicyData {
     authorityName: 'Ahmedabad Municipal Corporation',
     region: 'Ahmedabad, IN',
     guidelinesVersion: 'AMC-2025.1',
-    governanceStage: 'draft',
     owningTeam: 'india_city_ops',
     helpline: 'Not available',
     sourceUrl: 'https://ahmedabadcity.gov.in',
@@ -862,7 +871,6 @@ class CityPolicyData {
     authorityName: 'Surat Municipal Corporation',
     region: 'Surat, IN',
     guidelinesVersion: 'SMC-2025.1',
-    governanceStage: 'draft',
     owningTeam: 'india_city_ops',
     helpline: 'Not available',
     sourceUrl: 'https://www.suratmunicipal.gov.in',
@@ -896,7 +904,6 @@ class CityPolicyData {
     authorityName: 'Jaipur Municipal Corporation',
     region: 'Jaipur, IN',
     guidelinesVersion: 'JMC-2025.1',
-    governanceStage: 'draft',
     owningTeam: 'india_city_ops',
     helpline: 'Not available',
     sourceUrl: 'https://jaipurmc.org',
@@ -930,7 +937,6 @@ class CityPolicyData {
     authorityName: 'Lucknow Municipal Corporation',
     region: 'Lucknow, IN',
     guidelinesVersion: 'LMC-2025.1',
-    governanceStage: 'draft',
     owningTeam: 'india_city_ops',
     helpline: '6389200005',
     sourceUrl: 'https://lmc.up.nic.in',
@@ -968,7 +974,6 @@ class CityPolicyData {
     authorityName: 'Nagpur Municipal Corporation',
     region: 'Nagpur, IN',
     guidelinesVersion: 'NMC-2025.1',
-    governanceStage: 'draft',
     owningTeam: 'india_city_ops',
     helpline: '8275036200 (SWM Deputy Commissioner)',
     sourceUrl: 'https://nmcnagpur.gov.in',
@@ -1006,7 +1011,6 @@ class CityPolicyData {
     authorityName: 'Indore Municipal Corporation',
     region: 'Indore, IN',
     guidelinesVersion: 'IMC-2025.1',
-    governanceStage: 'draft',
     owningTeam: 'india_city_ops',
     helpline: 'Not available',
     sourceUrl: 'https://imcindore.mp.gov.in',
@@ -1045,7 +1049,6 @@ class CityPolicyData {
     authorityName: 'Bhopal Municipal Corporation',
     region: 'Bhopal, IN',
     guidelinesVersion: 'BMC-BHOPAL-2025.1',
-    governanceStage: 'draft',
     owningTeam: 'india_city_ops',
     helpline: 'Not available',
     sourceUrl: 'https://www.bmconline.gov.in',
@@ -1083,7 +1086,6 @@ class CityPolicyData {
     authorityName: 'Coimbatore City Municipal Corporation',
     region: 'Coimbatore, IN',
     guidelinesVersion: 'CCMC-2025.1',
-    governanceStage: 'draft',
     owningTeam: 'india_city_ops',
     helpline: 'Not available',
     sourceUrl: 'https://www.ccmc.gov.in',
@@ -1117,7 +1119,6 @@ class CityPolicyData {
     authorityName: 'Kochi Municipal Corporation',
     region: 'Kochi, IN',
     guidelinesVersion: 'COCHIN-2025.1',
-    governanceStage: 'draft',
     owningTeam: 'india_city_ops',
     helpline: 'Not available',
     sourceUrl: 'https://kochicorporation.lsgkerala.gov.in',
@@ -1154,7 +1155,6 @@ class CityPolicyData {
     authorityName: 'Municipal Corporation Chandigarh',
     region: 'Chandigarh, IN',
     guidelinesVersion: 'MCC-2025.1',
-    governanceStage: 'draft',
     owningTeam: 'india_city_ops',
     helpline: '14420',
     sourceUrl: 'https://mcchandigarh.gov.in',

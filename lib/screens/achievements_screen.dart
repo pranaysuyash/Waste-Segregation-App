@@ -1,16 +1,14 @@
-// import 'dart:math' as math;
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gamification.dart';
-import '../services/gamification_service.dart';
 import '../utils/constants.dart';
 import '../widgets/profile_summary_card.dart';
 import '../widgets/advanced_ui/achievement_celebration.dart';
-import '../providers/points_engine_provider.dart';
+import '../providers/app_providers.dart';
 import '../utils/waste_app_logger.dart';
 
-class AchievementsScreen extends StatefulWidget {
+class AchievementsScreen extends ConsumerStatefulWidget {
   const AchievementsScreen({
     super.key,
     this.initialTabIndex = 0,
@@ -18,10 +16,10 @@ class AchievementsScreen extends StatefulWidget {
   final int initialTabIndex;
 
   @override
-  State<AchievementsScreen> createState() => _AchievementsScreenState();
+  ConsumerState<AchievementsScreen> createState() => _AchievementsScreenState();
 }
 
-class _AchievementsScreenState extends State<AchievementsScreen>
+class _AchievementsScreenState extends ConsumerState<AchievementsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -51,7 +49,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     }
 
     // Capture provider values synchronously to avoid using BuildContext after awaits
-    final pointsEngine = context.read<PointsEngineProvider>().pointsEngine;
+    final pointsEngine = ref.read(pointsEngineProvider);
 
     try {
 
@@ -129,7 +127,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         });
       }
 
-      await context.read<PointsEngineProvider>().pointsEngine.refresh();
+      await ref.read(pointsEngineProvider).refresh();
     } catch (e) {
       WasteAppLogger.severe('Error occurred',
           context: {'service': 'screen', 'file': 'achievements_screen'});
@@ -195,10 +193,10 @@ class _AchievementsScreenState extends State<AchievementsScreen>
         ),
         body: Stack(
           children: [
-            Builder(
-              builder: (context) {
-                final pointsProvider = context.watch<PointsEngineProvider>();
-                final profile = pointsProvider.pointsEngine.currentProfile;
+            Consumer(
+              builder: (context, ref, child) {
+                final pointsEngine = ref.watch(pointsEngineProvider);
+                final profile = pointsEngine.currentProfile;
 
 
                 // Show loading state
@@ -646,10 +644,8 @@ class _AchievementsScreenState extends State<AchievementsScreen>
     Future<void> claimReward() async {
       try {
         // Use PointsEngine for atomic achievement claiming
-        final pointsEngineProvider =
-            Provider.of<PointsEngineProvider>(context, listen: false);
-        await pointsEngineProvider.pointsEngine
-            .claimAchievementReward(achievement.id);
+        final engine = ref.read(pointsEngineProvider);
+        await engine.claimAchievementReward(achievement.id);
 
         // Refresh the profile data
         if (mounted) {
@@ -962,8 +958,7 @@ class _AchievementsScreenState extends State<AchievementsScreen>
                           // Generate new random challenges for the user
                           try {
                             final gamificationService =
-                                Provider.of<GamificationService>(context,
-                                    listen: false);
+                                ref.read(gamificationServiceProvider);
                             final profile =
                                 await gamificationService.getProfile();
 

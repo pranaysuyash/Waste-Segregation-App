@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
-import '../services/premium_service.dart';
+import '../providers/app_providers.dart';
 import '../utils/dialog_helper.dart';
 import '../utils/routes.dart';
 import 'settings/premium_feature_visuals.dart';
@@ -21,8 +21,9 @@ class PremiumSegmentationToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<PremiumService>(
-      builder: (context, premiumService, child) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final premiumService = ref.watch(premiumServiceProvider);
         final hasAdvancedSegmentation =
             premiumService.isPremiumFeature('advanced_segmentation');
         final t = AppLocalizations.of(context)!;

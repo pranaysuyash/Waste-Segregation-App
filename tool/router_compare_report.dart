@@ -68,9 +68,9 @@ void main(List<String> args) {
       disagreement[entry.key] = categories.length;
     }
     final safety = entry.value
-        .where((e) => (e['predictedCategory'] == 'Hazardous Waste' ||
+        .where((e) => e['predictedCategory'] == 'Hazardous Waste' ||
             e['predictedCategory'] == 'Medical Waste' ||
-            e['predictedCategory'] == 'E-Waste'))
+            e['predictedCategory'] == 'E-Waste')
         .map((e) => '${e['provider'] ?? 'unknown'}')
         .toList();
     if (safety.isNotEmpty && safety.length != entry.value.length) {
@@ -80,7 +80,7 @@ void main(List<String> args) {
       for (var j = i + 1; j < entry.value.length; j += 1) {
         final a = entry.value[i];
         final b = entry.value[j];
-        final pair = ('${a['provider']}|${b['provider']}').split('|')..sort();
+        final pair = '${a['provider']}|${b['provider']}'.split('|')..sort();
         final key = '${pair[0]}__${pair[1]}';
         if ('${a['predictedCategory']}' != '${b['predictedCategory']}') {
           providerPairDisagreement[key] =

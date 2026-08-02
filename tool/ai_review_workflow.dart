@@ -62,7 +62,7 @@ List<Map<String, dynamic>> _readJsonl(String path) {
 void _writeJsonl(String path, List<Map<String, dynamic>> rows) {
   final file = File(path);
   file.parent.createSync(recursive: true);
-  file.writeAsStringSync(rows.map(jsonEncode).join('\n') + '\n');
+  file.writeAsStringSync('${rows.map(jsonEncode).join('\n')}\n');
 }
 
 void _exportTemplate(String inputPath, String outputPath) {

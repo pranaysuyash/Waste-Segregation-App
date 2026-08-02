@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -238,6 +239,7 @@ class DisposalInstructionsService {
   }) async {
     const maxRetries = 3;
     const baseDelay = Duration(seconds: 1);
+    final random = Random();
 
     final requestBody = {
       'materialId': materialId,
@@ -245,6 +247,7 @@ class DisposalInstructionsService {
       if (category != null) 'category': category,
       if (subcategory != null) 'subcategory': subcategory,
       'lang': lang,
+      'region': 'Bangalore BBMP',
     };
 
     for (var attempt = 0; attempt <= maxRetries; attempt++) {
@@ -273,15 +276,16 @@ class DisposalInstructionsService {
               context: {
                 'material_id': materialId,
                 'attempt': attempt + 1,
-                'response_length': response.body.length
+                'response_length': response.body.length,
               });
-          final data = json.decode(response.body) as Map<String, dynamic>;
+          final decoded = json.decode(response.body) as Map<String, dynamic>;
+          final payload = _unwrapApiEnvelope(decoded);
           return DisposalInstructionResolution(
-            instructions: _parseCloudFunctionResponse(data),
+            instructions: _parseCloudFunctionResponse(payload),
             source: 'cloud_function',
             cacheKey: materialId,
-            confidence: _extractConfidence(data),
-            explanation: _extractExplanation(data),
+            confidence: _extractConfidence(payload),
+            explanation: _extractExplanation(payload),
           );
         } else if (response.statusCode == 503) {
           // Server is temporarily unavailable - check for retry-after header
@@ -293,15 +297,16 @@ class DisposalInstructionsService {
           }
 
           if (attempt < maxRetries) {
-            // Calculate delay: use retry-after header if provided, otherwise exponential backoff
+            // Calculate delay: use retry-after header if provided, otherwise exponential backoff with jitter
+            final jitterMs = random.nextInt(1000);
             final delay = retryAfterSeconds > 0
-                ? Duration(seconds: retryAfterSeconds)
+                ? Duration(seconds: retryAfterSeconds, milliseconds: jitterMs)
                 : Duration(
                     seconds: baseDelay.inSeconds *
-                        (1 << attempt)); // Exponential backoff: 1s, 2s, 4s
+                        (1 << attempt), milliseconds: jitterMs); // Exponential backoff + jitter
 
             WasteAppLogger.warning(
-                'Disposal instructions API returned 503, error: retrying');
+                'Disposal instructions API returned 503, error: retrying in ${delay.inMilliseconds}ms');
 
             await Future.delayed(delay);
             continue; // Retry the request
@@ -341,9 +346,10 @@ class DisposalInstructionsService {
 
         // Handle other exceptions (network errors, timeouts, etc.)
         if (attempt < maxRetries) {
-          final delay = Duration(seconds: baseDelay.inSeconds * (1 << attempt));
+          final jitterMs = random.nextInt(1000);
+          final delay = Duration(seconds: baseDelay.inSeconds * (1 << attempt), milliseconds: jitterMs);
           WasteAppLogger.warning(
-              'Disposal instructions API call failed with exception, retrying',
+              'Disposal instructions API call failed with exception, retrying in ${delay.inMilliseconds}ms',
               error: e,
               stackTrace: stackTrace);
           await Future.delayed(delay);
@@ -381,6 +387,13 @@ class DisposalInstructionsService {
       estimatedTime: data['estimatedTime'],
       hasUrgentTimeframe: data['hasUrgentTimeframe'] ?? false,
     );
+  }
+
+  Map<String, dynamic> _unwrapApiEnvelope(Map<String, dynamic> data) {
+    if (data['success'] is bool && data['data'] is Map) {
+      return Map<String, dynamic>.from(data['data'] as Map);
+    }
+    return data;
   }
 
   double? _extractConfidence(Map<String, dynamic> data) {

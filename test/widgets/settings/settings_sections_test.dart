@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/models/premium_feature.dart';
@@ -154,9 +155,9 @@ void main() {
     testWidgets('shows loading then feedback toggle and timeframe',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<StorageService>(create: (_) => _FakeStorageService()),
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(_FakeStorageService()),
           ],
           child: _createApp(const FeedbackSettingsSection()),
         ),
@@ -179,11 +180,10 @@ void main() {
     testWidgets('renders privacy & consent toggles',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<StorageService>(create: (_) => MockStorageService()),
-            Provider<CloudStorageService>(
-                create: (_) => MockCloudStorageService()),
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(MockStorageService()),
+            cloudStorageServiceProvider.overrideWithValue(MockCloudStorageService()),
           ],
           child: _createApp(const PrivacySection()),
         ),
@@ -203,11 +203,9 @@ void main() {
     testWidgets('renders developer options with feature toggles',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider<PremiumService>(
-              create: (_) => _FakePremiumService(),
-            ),
+        ProviderScope(
+          overrides: [
+            premiumServiceProvider.overrideWithValue(_FakePremiumService()),
           ],
           child: _createApp(
             const SingleChildScrollView(
@@ -231,11 +229,9 @@ void main() {
     testWidgets('hides developer options when showDeveloperOptions is false',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider<PremiumService>(
-              create: (_) => _FakePremiumService(),
-            ),
+        ProviderScope(
+          overrides: [
+            premiumServiceProvider.overrideWithValue(_FakePremiumService()),
           ],
           child: _createApp(
             const DeveloperSection(showDeveloperOptions: false),

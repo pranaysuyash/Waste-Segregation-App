@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/models/premium_feature.dart';
@@ -78,9 +79,9 @@ class FakePremiumService extends ChangeNotifier implements PremiumService {
 }
 
 Widget buildTestApp(FakePremiumService premiumService) {
-  return MultiProvider(
-    providers: [
-      ChangeNotifierProvider<PremiumService>.value(value: premiumService),
+  return ProviderScope(
+    overrides: [
+      premiumServiceProvider.overrideWithValue(premiumService),
     ],
     child: MaterialApp(
       localizationsDelegates: const [
@@ -172,10 +173,10 @@ Widget buildTestAppWithIap({
   required FakePremiumService premiumService,
   required FakePurchaseService purchaseService,
 }) {
-  return MultiProvider(
-    providers: [
-      ChangeNotifierProvider<PremiumService>.value(value: premiumService),
-      ChangeNotifierProvider<PurchaseService>.value(value: purchaseService),
+  return ProviderScope(
+    overrides: [
+      premiumServiceProvider.overrideWithValue(premiumService),
+      purchaseServiceProvider.overrideWithValue(purchaseService),
     ],
     child: MaterialApp(
       localizationsDelegates: const [
@@ -453,9 +454,9 @@ void main() {
           (tester) async {
         final premiumService = FakePremiumService();
 
-        await tester.pumpWidget(MultiProvider(
-          providers: [
-            ChangeNotifierProvider<PremiumService>.value(value: premiumService),
+        await tester.pumpWidget(ProviderScope(
+          overrides: [
+            premiumServiceProvider.overrideWithValue(premiumService),
           ],
           child: MaterialApp(
             localizationsDelegates: const [

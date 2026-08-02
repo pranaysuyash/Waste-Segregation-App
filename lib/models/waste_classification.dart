@@ -69,6 +69,15 @@ class WasteClassification extends HiveObject {
     this.commonUses,
     this.alternativeOptions,
     this.localRegulations,
+    this.taxonomyVersion,
+    this.taxonomyFamilyId,
+    this.taxonomyCategoryId,
+    this.taxonomyFamilyLabel,
+    this.taxonomyCategoryLabel,
+    this.taxonomySource,
+    this.taxonomyMethod,
+    this.taxonomyConfidence,
+    this.taxonomyMatchedSignal,
     // Enhanced AI Analysis v2.0 additional fields
     this.waterPollutionLevel,
     this.soilContaminationRisk,
@@ -291,6 +300,17 @@ class WasteClassification extends HiveObject {
       localRegulations: json['localRegulations'] != null
           ? Map<String, String>.from(json['localRegulations'])
           : null,
+      taxonomyVersion: json['taxonomyVersion']?.toString(),
+      taxonomyFamilyId: json['taxonomyFamilyId']?.toString(),
+      taxonomyCategoryId: json['taxonomyCategoryId']?.toString(),
+      taxonomyFamilyLabel: json['taxonomyFamilyLabel']?.toString(),
+      taxonomyCategoryLabel: json['taxonomyCategoryLabel']?.toString(),
+      taxonomySource: json['taxonomySource']?.toString(),
+      taxonomyMethod: json['taxonomyMethod']?.toString(),
+      taxonomyConfidence: json['taxonomyConfidence'] is num
+          ? (json['taxonomyConfidence'] as num).toDouble()
+          : double.tryParse(json['taxonomyConfidence']?.toString() ?? ''),
+      taxonomyMatchedSignal: json['taxonomyMatchedSignal']?.toString(),
       waterPollutionLevel: json['waterPollutionLevel'],
       soilContaminationRisk: json['soilContaminationRisk'],
       biodegradabilityDays: json['biodegradabilityDays'],
@@ -517,6 +537,25 @@ class WasteClassification extends HiveObject {
   /// City-specific regulations (key-value pairs)
   @HiveField(71)
   final Map<String, String>? localRegulations;
+
+  @HiveField(104)
+  final String? taxonomyVersion;
+  @HiveField(105)
+  final String? taxonomyFamilyId;
+  @HiveField(106)
+  final String? taxonomyCategoryId;
+  @HiveField(107)
+  final String? taxonomyFamilyLabel;
+  @HiveField(108)
+  final String? taxonomyCategoryLabel;
+  @HiveField(109)
+  final String? taxonomySource;
+  @HiveField(110)
+  final String? taxonomyMethod;
+  @HiveField(111)
+  final double? taxonomyConfidence;
+  @HiveField(112)
+  final String? taxonomyMatchedSignal;
 
   // Enhanced AI Analysis v2.0 - Additional Environmental Data Points
   /// Water pollution impact level (1-5 scale)
@@ -1060,6 +1099,15 @@ class WasteClassification extends HiveObject {
       'commonUses': commonUses,
       'alternativeOptions': alternativeOptions,
       'localRegulations': localRegulations,
+      'taxonomyVersion': taxonomyVersion,
+      'taxonomyFamilyId': taxonomyFamilyId,
+      'taxonomyCategoryId': taxonomyCategoryId,
+      'taxonomyFamilyLabel': taxonomyFamilyLabel,
+      'taxonomyCategoryLabel': taxonomyCategoryLabel,
+      'taxonomySource': taxonomySource,
+      'taxonomyMethod': taxonomyMethod,
+      'taxonomyConfidence': taxonomyConfidence,
+      'taxonomyMatchedSignal': taxonomyMatchedSignal,
       'waterPollutionLevel': waterPollutionLevel,
       'soilContaminationRisk': soilContaminationRisk,
       'biodegradabilityDays': biodegradabilityDays,
@@ -1176,6 +1224,15 @@ class WasteClassification extends HiveObject {
     List<String>? commonUses,
     List<String>? alternativeOptions,
     Map<String, String>? localRegulations,
+    String? taxonomyVersion,
+    String? taxonomyFamilyId,
+    String? taxonomyCategoryId,
+    String? taxonomyFamilyLabel,
+    String? taxonomyCategoryLabel,
+    String? taxonomySource,
+    String? taxonomyMethod,
+    double? taxonomyConfidence,
+    String? taxonomyMatchedSignal,
     int? waterPollutionLevel,
     int? soilContaminationRisk,
     int? biodegradabilityDays,
@@ -1279,6 +1336,15 @@ class WasteClassification extends HiveObject {
       commonUses: commonUses ?? this.commonUses,
       alternativeOptions: alternativeOptions ?? this.alternativeOptions,
       localRegulations: localRegulations ?? this.localRegulations,
+      taxonomyVersion: taxonomyVersion ?? this.taxonomyVersion,
+      taxonomyFamilyId: taxonomyFamilyId ?? this.taxonomyFamilyId,
+      taxonomyCategoryId: taxonomyCategoryId ?? this.taxonomyCategoryId,
+      taxonomyFamilyLabel: taxonomyFamilyLabel ?? this.taxonomyFamilyLabel,
+      taxonomyCategoryLabel: taxonomyCategoryLabel ?? this.taxonomyCategoryLabel,
+      taxonomySource: taxonomySource ?? this.taxonomySource,
+      taxonomyMethod: taxonomyMethod ?? this.taxonomyMethod,
+      taxonomyConfidence: taxonomyConfidence ?? this.taxonomyConfidence,
+      taxonomyMatchedSignal: taxonomyMatchedSignal ?? this.taxonomyMatchedSignal,
       waterPollutionLevel: waterPollutionLevel ?? this.waterPollutionLevel,
       soilContaminationRisk:
           soilContaminationRisk ?? this.soilContaminationRisk,

@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../services/google_drive_service.dart';
 import '../utils/constants.dart';
 import '../widgets/navigation_wrapper.dart';
 import 'onboarding_screen.dart';
 import '../utils/firebase_gate.dart';
+import '../providers/app_providers.dart';
 
-class AuthScreen extends StatefulWidget {
+class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
 
   @override
-  State<AuthScreen> createState() => _AuthScreenState();
+  ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _AuthScreenState extends ConsumerState<AuthScreen> {
   bool _isLoading = false;
 
   Future<void> _signInWithGoogle(BuildContext context) async {
@@ -40,8 +40,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
-      final googleDriveService =
-          Provider.of<GoogleDriveService>(context, listen: false);
+      final googleDriveService = ref.read(googleDriveServiceProvider);
 
       final user = await googleDriveService.signIn();
 

@@ -36,7 +36,6 @@ class TokenWallet {
       totalEarned: 50,
       totalSpent: 0,
       lastUpdated: DateTime.now(),
-      schemaVersion: currentSchemaVersion,
     );
   }
 

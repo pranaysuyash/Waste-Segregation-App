@@ -332,6 +332,25 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
       ) as _i8.Future<void>);
 
   @override
+  _i8.Future<Map<String, int>> migrateLocalIdentity({
+    required String? fromUserId,
+    required String? toUserId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #migrateLocalIdentity,
+          [],
+          {
+            #fromUserId: fromUserId,
+            #toUserId: toUserId,
+          },
+        ),
+        returnValue: _i8.Future<Map<String, int>>.value(<String, int>{}),
+        returnValueForMissingStub:
+            _i8.Future<Map<String, int>>.value(<String, int>{}),
+      ) as _i8.Future<Map<String, int>>);
+
+  @override
   _i8.Future<void> updateTrainingConsent(
           _i11.TrainingConsent? trainingConsent) =>
       (super.noSuchMethod(
@@ -1599,6 +1618,26 @@ class MockAnalyticsService extends _i1.Mock implements _i17.AnalyticsService {
       ) as _i8.Future<List<Map<String, dynamic>>>);
 
   @override
+  _i8.Future<Map<String, dynamic>> getFamilyDashboardAnalyticsSummary({
+    String? familyId,
+    int? windowDays = 28,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getFamilyDashboardAnalyticsSummary,
+          [],
+          {
+            #familyId: familyId,
+            #windowDays: windowDays,
+          },
+        ),
+        returnValue:
+            _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+        returnValueForMissingStub:
+            _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i8.Future<Map<String, dynamic>>);
+
+  @override
   _i8.Future<Map<String, dynamic>> getComprehensiveAnalytics({
     required String? userId,
     DateTime? startDate,
@@ -1977,6 +2016,17 @@ class MockCloudStorageService extends _i1.Mock
           Invocation.getter(#localStorageService),
         ),
       ) as _i4.StorageService);
+
+  @override
+  _i8.Future<_i11.UserProfile?> fetchUserProfileFromFirestore(String? userId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchUserProfileFromFirestore,
+          [userId],
+        ),
+        returnValue: _i8.Future<_i11.UserProfile?>.value(),
+        returnValueForMissingStub: _i8.Future<_i11.UserProfile?>.value(),
+      ) as _i8.Future<_i11.UserProfile?>);
 
   @override
   _i8.Future<void> saveUserProfileToFirestore(

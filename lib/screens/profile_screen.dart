@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
-import '../services/storage_service.dart';
-import '../services/gamification_service.dart';
 import '../utils/constants.dart';
 import '../widgets/profile_summary_card.dart';
+import '../providers/app_providers.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late Future<_ProfileData> _profileFuture;
 
   @override
@@ -25,9 +24,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<_ProfileData> _loadData() async {
-    final storageService = Provider.of<StorageService>(context, listen: false);
-    final gamificationService =
-        Provider.of<GamificationService>(context, listen: false);
+    final storageService = ref.read(storageServiceProvider);
+    final gamificationService = ref.read(gamificationServiceProvider);
 
     // Ensure points haven't fallen behind classifications
     await gamificationService.syncClassificationPoints();

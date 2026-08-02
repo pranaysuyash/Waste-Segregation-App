@@ -506,8 +506,18 @@ class TokenService extends ChangeNotifier {
     String? reference,
     Map<String, dynamic>? metadata,
   }) async {
+    final newBalance = wallet.balance - amount;
+    if (newBalance < 0) {
+      WasteAppLogger.severe('CRITICAL: Negative balance prevented', context: {
+        'component': 'token_service',
+        'current_balance': wallet.balance,
+        'amount': amount,
+      });
+      throw Exception('Critical error: Transaction would result in negative balance.');
+    }
+
     final newWallet = wallet.copyWith(
-      balance: wallet.balance - amount,
+      balance: newBalance,
       totalSpent: wallet.totalSpent + amount,
       lastUpdated: DateTime.now(),
     );
@@ -571,6 +581,10 @@ class TokenService extends ChangeNotifier {
           today.year != wallet.lastConversionDate!.year;
 
       final newConversionsUsed = isNewDay ? 1 : wallet.dailyConversionsUsed + 1;
+
+      if (newConversionsUsed > maxDailyConversions) {
+        throw Exception('Strict constraint: Daily conversion limit exceeded.');
+      }
 
       // Calculate new wallet state
       final newWallet = wallet.copyWith(

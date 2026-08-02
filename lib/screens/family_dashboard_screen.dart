@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/enhanced_family.dart' as family_models;
 import '../models/user_profile.dart' as user_profile_models;
 import '../models/shared_waste_classification.dart';
@@ -18,8 +18,9 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../services/cooperative_mechanics_service.dart';
 import '../utils/time_ago.dart';
 import '../widgets/family/cooperative_section.dart';
+import '../providers/app_providers.dart';
 
-class FamilyDashboardScreen extends StatefulWidget {
+class FamilyDashboardScreen extends ConsumerStatefulWidget {
   const FamilyDashboardScreen({
     super.key,
     this.showAppBar = true,
@@ -35,10 +36,10 @@ class FamilyDashboardScreen extends StatefulWidget {
   final CooperativeMechanicsService? cooperativeMechanicsService;
 
   @override
-  State<FamilyDashboardScreen> createState() => _FamilyDashboardScreenState();
+  ConsumerState<FamilyDashboardScreen> createState() => _FamilyDashboardScreenState();
 }
 
-class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
+class _FamilyDashboardScreenState extends ConsumerState<FamilyDashboardScreen> {
   late FirebaseFamilyService _familyService;
   late CooperativeMechanicsService _coopService;
   String? _familyId;
@@ -76,7 +77,7 @@ class _FamilyDashboardScreenState extends State<FamilyDashboardScreen> {
     if (injected != null) {
       return injected;
     }
-    return Provider.of<StorageService>(context, listen: false);
+    return ref.read(storageServiceProvider);
   }
 
   AnalyticsService? _resolveAnalyticsService() {

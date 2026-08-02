@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/filter_options.dart';
+import '../models/waste_classification.dart';
 import '../utils/ui_consistency_utils.dart';
 
 /// Enhanced History Filter Dialog with improved visual hierarchy and spacing
@@ -534,7 +535,7 @@ class _EnhancedHistoryFilterDialogState
                 _tempFilters = _tempFilters.copyWith(sortNewestFirst: value);
               });
             },
-            activeColor: Theme.of(context).colorScheme.primary,
+            activeThumbColor: Theme.of(context).colorScheme.primary,
           ),
         ),
       ],

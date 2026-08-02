@@ -3,10 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mocktail/mocktail.dart' as mt;
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import 'package:waste_segregation_app/providers/points_engine_provider.dart';
 import 'package:waste_segregation_app/screens/waste_dashboard_screen.dart';
 import 'package:waste_segregation_app/services/points_engine.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
@@ -28,20 +28,6 @@ class FakePointsEngine extends mt.Fake implements PointsEngine {
   Future<void> refresh() async {}
 }
 
-class FakePointsEngineProvider extends ChangeNotifier
-    implements PointsEngineProvider {
-  FakePointsEngineProvider(this._engine);
-
-  final PointsEngine _engine;
-
-  @override
-  PointsEngine get pointsEngine => _engine;
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-}
 
 WasteClassification buildClassification(
   String itemName,
@@ -106,11 +92,10 @@ void main() {
       when(storageService.getAllClassifications()).thenAnswer((_) async => []);
 
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<StorageService>.value(value: storageService),
-            ChangeNotifierProvider<GamificationService>.value(
-                value: gamificationService),
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(storageService),
+            gamificationServiceProvider.overrideWithValue(gamificationService),
           ],
           child: const MaterialApp(home: WasteDashboardScreen()),
         ),
@@ -134,8 +119,7 @@ void main() {
             hoursAgo: 4, recyclable: true),
       ];
       final profile = buildProfile();
-      final pointsProvider =
-          FakePointsEngineProvider(FakePointsEngine(profile));
+      final fakeEngine = FakePointsEngine(profile);
 
       when(gamificationService.syncGamificationData()).thenAnswer((_) async {});
       when(gamificationService.syncWeeklyStatsWithClassifications())
@@ -144,13 +128,11 @@ void main() {
           .thenAnswer((_) async => classifications);
 
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<StorageService>.value(value: storageService),
-            ChangeNotifierProvider<GamificationService>.value(
-                value: gamificationService),
-            ChangeNotifierProvider<PointsEngineProvider>.value(
-                value: pointsProvider),
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(storageService),
+            gamificationServiceProvider.overrideWithValue(gamificationService),
+            pointsEngineProvider.overrideWithValue(fakeEngine),
           ],
           child: const MaterialApp(home: WasteDashboardScreen()),
         ),

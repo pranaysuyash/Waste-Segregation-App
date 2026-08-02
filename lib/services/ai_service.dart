@@ -32,6 +32,7 @@ import 'package:waste_segregation_app/services/parsers/ai_response_parser.dart';
 import 'package:waste_segregation_app/services/prompts/classification_prompts.dart';
 import 'package:waste_segregation_app/services/classification_result_processor.dart';
 import 'package:waste_segregation_app/services/ai_usage_accounting_service.dart';
+import 'package:waste_segregation_app/services/recycling_taxonomy_service.dart';
 
 /// Service for analyzing waste items using AI models (OpenAI and Gemini).
 ///
@@ -93,6 +94,7 @@ class AiService {
     OpenAiProviderClient? openAiProvider,
     GeminiProviderClient? geminiProvider,
     AiProviderRouter? router,
+    RecyclingTaxonomyService? recyclingTaxonomyService,
   }) {
     // Resolve each dependency exactly once so field instances and sub-service
     // instances are identical (no duplicate default creations).
@@ -104,6 +106,8 @@ class AiService {
     final resolvedLocalPolicyEngine =
         localPolicyEngine ?? const LocalPolicyEngine();
     final resolvedDio = dioClient ?? Dio();
+    final resolvedTaxonomyService =
+        recyclingTaxonomyService ?? RecyclingTaxonomyService();
     final resolvedOpenAiBaseUrl = openAiBaseUrl ?? ApiConfig.openAiBaseUrl;
     final resolvedOpenAiApiKey = openAiApiKey ?? ApiConfig.openAiApiKey;
     final resolvedGeminiBaseUrl = geminiBaseUrl ?? ApiConfig.geminiBaseUrl;
@@ -129,6 +133,7 @@ class AiService {
       openAiProvider: openAiProvider,
       geminiProvider: geminiProvider,
       router: router,
+      recyclingTaxonomyService: resolvedTaxonomyService,
     );
   }
 
@@ -146,18 +151,19 @@ class AiService {
     required this.pricingService,
     required this.guardrailService,
     required this.errorHandler,
-    required this.localPolicyEngine,
-    required this.cachingEnabled,
-    required this.defaultRegion,
-    required this.defaultLanguage,
-    required ClassificationProvider? backendProxy,
-    required OpenAiProviderClient? openAiProvider,
-    required GeminiProviderClient? geminiProvider,
-    required Future<String> Function(Uint8List bytes, String imageName)?
-        saveWebImageOverride,
-    required EnhancedImageService imageService,
-    required Dio dioClient,
-    AiProviderRouter? router,
+        required this.localPolicyEngine,
+        required this.cachingEnabled,
+        required this.defaultRegion,
+        required this.defaultLanguage,
+        required ClassificationProvider? backendProxy,
+        required OpenAiProviderClient? openAiProvider,
+        required GeminiProviderClient? geminiProvider,
+        required Future<String> Function(Uint8List bytes, String imageName)?
+            saveWebImageOverride,
+        required EnhancedImageService imageService,
+        required Dio dioClient,
+        AiProviderRouter? router,
+        required RecyclingTaxonomyService recyclingTaxonomyService,
   })  : _openAiProvider = openAiProvider,
         _geminiProvider = geminiProvider,
         _backendProxy = backendProxy,
@@ -173,6 +179,7 @@ class AiService {
           promptVersion: AiService.promptVersion,
           schemaVersion: AiService.schemaVersion,
           localGuidelinesVersion: AiService.localGuidelinesVersion,
+          taxonomyService: recyclingTaxonomyService,
         ),
         _usageAccounting = AiUsageAccountingService(
           pricingService: pricingService,
@@ -806,8 +813,9 @@ class AiService {
       );
     } catch (e, s) {
       if (e is ProductionSafetyException) rethrow;
-      if (e is AiFailure && AiProviderRouter.isTerminalFailureKind(e.kind))
+      if (e is AiFailure && AiProviderRouter.isTerminalFailureKind(e.kind)) {
         rethrow;
+      }
 
       if (retryCount < maxRetries) {
         final waitTime = Duration(
@@ -952,8 +960,9 @@ class AiService {
       );
     } catch (e, s) {
       if (e is ProductionSafetyException) rethrow;
-      if (e is AiFailure && AiProviderRouter.isTerminalFailureKind(e.kind))
+      if (e is AiFailure && AiProviderRouter.isTerminalFailureKind(e.kind)) {
         rethrow;
+      }
 
       if (retryCount < maxRetries) {
         final waitTime = Duration(
@@ -1441,8 +1450,9 @@ class AiService {
       );
     } catch (e, s) {
       if (e is ProductionSafetyException) rethrow;
-      if (e is AiFailure && AiProviderRouter.isTerminalFailureKind(e.kind))
+      if (e is AiFailure && AiProviderRouter.isTerminalFailureKind(e.kind)) {
         rethrow;
+      }
       WasteAppLogger.severe(
         'Correction flow failed',
         error: e,

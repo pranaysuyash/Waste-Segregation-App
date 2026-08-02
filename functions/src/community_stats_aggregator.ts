@@ -24,6 +24,7 @@
 
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { respondWithApiError, respondWithApiSuccess } from './helpers';
 
 const firestore = admin.firestore();
 
@@ -227,7 +228,7 @@ export const aggregateCommunityStatsHttp = functions
   .https.onRequest(async (req, res) => {
     // Only allow POST requests
     if (req.method !== 'POST') {
-      res.status(405).json({ error: 'Method not allowed' });
+      respondWithApiError(res, 405, 'METHOD_NOT_ALLOWED', 'Method not allowed');
       return;
     }
 
@@ -252,8 +253,7 @@ export const aggregateCommunityStatsHttp = functions
 
       await statsRef.set(statsData);
 
-      res.status(200).json({
-        success: true,
+      respondWithApiSuccess(res, 200, {
         stats: statsData,
         feedItemsProcessed: stats.feedItemsProcessed,
         durationMs,
@@ -263,9 +263,14 @@ export const aggregateCommunityStatsHttp = functions
         'Error in aggregateCommunityStatsHttp:',
         error,
       );
-      res.status(500).json({
-        error: 'Failed to aggregate community stats',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      respondWithApiError(
+        res,
+        500,
+        'INTERNAL_COMMUNITY_STATS_FAILURE',
+        'Failed to aggregate community stats',
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
     }
   });

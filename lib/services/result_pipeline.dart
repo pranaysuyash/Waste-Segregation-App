@@ -112,13 +112,14 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
     WasteClassification classification, {
     bool force = false,
     bool autoAnalyze = false,
+    bool manageLifecycle = true,
   }) async {
     final classificationId = classification.id;
 
     // State machine guard: prevent duplicate pipeline runs.
     // After the first successful transition to saving, subsequent calls
     // will fail the transition guard (saving → saving is not allowed).
-    if (!force && _stateMachine != null) {
+    if (manageLifecycle && !force && _stateMachine != null) {
       final sm = _stateMachine;
       final cs = sm.current;
       if (cs != ClassificationState.classificationSucceeded &&
@@ -170,12 +171,13 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         WasteAppLogger.info('Duplicate classification short-circuited',
             context: {
               'classificationId': classificationId,
-              'duplicateClassificationId':
-                  saveResult.duplicateClassificationId,
+              'duplicateClassificationId': saveResult.duplicateClassificationId,
               'contentHash': saveResult.contentHash,
               'service': 'ResultPipeline',
             });
-        _stateMachine?.tryTransitionTo(ClassificationState.synced);
+        if (manageLifecycle) {
+          _stateMachine?.tryTransitionTo(ClassificationState.synced);
+        }
         state = const ResultPipelineState(isSaved: true);
         return;
       }
@@ -217,8 +219,17 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       final settings = await _storageService.getSettings();
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
 
+      // Local persistence is complete before any optional remote work begins.
+      // Keep this transition ahead of syncing so the lifecycle reflects the
+      // actual durable boundary: saving -> saved -> syncing -> synced.
+      if (manageLifecycle) {
+        _stateMachine?.tryTransitionTo(ClassificationState.saved);
+      }
+
       if (isGoogleSyncEnabled) {
-        _stateMachine?.tryTransitionTo(ClassificationState.syncing);
+        if (manageLifecycle) {
+          _stateMachine?.tryTransitionTo(ClassificationState.syncing);
+        }
         WasteAppLogger.info('Syncing to cloud', context: {
           'classificationId': classificationId,
           'stage': 'cloud_sync',
@@ -231,10 +242,14 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
           processGamification: false, // Already processed
         );
         await _gamificationService.saveProfile(newProfile);
-        _stateMachine?.tryTransitionTo(ClassificationState.synced);
+        if (manageLifecycle) {
+          _stateMachine?.tryTransitionTo(ClassificationState.synced);
+        }
       } else {
         // Sync disabled — skip directly to synced.
-        _stateMachine?.tryTransitionTo(ClassificationState.synced);
+        if (manageLifecycle) {
+          _stateMachine?.tryTransitionTo(ClassificationState.synced);
+        }
       }
 
       // Stage 4: Community post (if opted-in)
@@ -265,9 +280,6 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
       // Stage 5: Maybe show interstitial ad
       _maybeShowInterstitial();
 
-      // Mark saved in the state machine
-      _stateMachine?.tryTransitionTo(ClassificationState.saved);
-
       // Update state with results
       state = state.copyWith(
         isProcessing: false,
@@ -285,9 +297,11 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
             'service': 'ResultPipeline',
           });
     } catch (error, stackTrace) {
-      _stateMachine?.tryTransitionTo(
-        ClassificationState.failedRetryable,
-      );
+      if (manageLifecycle) {
+        _stateMachine?.tryTransitionTo(
+          ClassificationState.failedRetryable,
+        );
+      }
       WasteAppLogger.severe('Classification processing pipeline failed',
           error: error,
           stackTrace: stackTrace,
@@ -391,9 +405,9 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
   /// a pre-save state (`classificationSucceeded`, `policyApplied`, or
   /// `awaitingUserConfirmation`), or when `force` is true.
   Future<void> saveClassificationOnly(WasteClassification classification,
-      {bool force = false}) async {
+      {bool force = false, bool manageLifecycle = true}) async {
     // State machine guard: reject if no classification is in-flight.
-    if (!force && _stateMachine != null) {
+    if (manageLifecycle && !force && _stateMachine != null) {
       final sm = _stateMachine;
       final cs = sm.current;
       if (cs != ClassificationState.classificationSucceeded &&
@@ -426,7 +440,10 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         force: force,
       );
       if (saveResult.wasDuplicate) {
-        _stateMachine?.tryTransitionTo(ClassificationState.synced);
+        if (manageLifecycle) {
+          _stateMachine?.tryTransitionTo(ClassificationState.saved);
+          _stateMachine?.tryTransitionTo(ClassificationState.synced);
+        }
         state = const ResultPipelineState(isSaved: true);
         WasteAppLogger.info('Duplicate classification save skipped', context: {
           'classificationId': classification.id,
@@ -441,7 +458,10 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         captureSource: 'manual_save',
       );
 
-      _stateMachine?.tryTransitionTo(ClassificationState.synced);
+      if (manageLifecycle) {
+        _stateMachine?.tryTransitionTo(ClassificationState.saved);
+        _stateMachine?.tryTransitionTo(ClassificationState.synced);
+      }
       state = state.copyWith(isSaved: true);
 
       WasteAppLogger.info('Classification saved manually', context: {
@@ -449,7 +469,9 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         'service': 'ResultPipeline',
       });
     } catch (e, stackTrace) {
-      _stateMachine?.tryTransitionTo(ClassificationState.failedRetryable);
+      if (manageLifecycle) {
+        _stateMachine?.tryTransitionTo(ClassificationState.failedRetryable);
+      }
       final error = 'Error saving: ${ErrorHandler.getUserFriendlyMessage(e)}';
       WasteAppLogger.severe('Failed to save classification',
           error: e,
@@ -613,8 +635,8 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
         await _gamificationService.addPoints(action, customPoints: points);
         // Track accuracy achievement for corrections
         if (isCorrection) {
-          await _gamificationService
-              .updateAchievementProgress(AchievementType.accuracyChampion, 1);
+          await _gamificationService.updateAchievementProgress(
+              AchievementType.accuracyChampion, 1);
         }
       } catch (e) {
         WasteAppLogger.warning('Feedback points award failed', error: e);
@@ -857,10 +879,6 @@ class ResultPipeline extends StateNotifier<ResultPipelineState> {
   }
 }
 
-// Community service provider (if not already defined elsewhere)
-final communityServiceProvider =
-    Provider<CommunityService>((ref) => CommunityService());
-
 /// Provider for the ResultPipeline
 final resultPipelineProvider =
     StateNotifierProvider<ResultPipeline, ResultPipelineState>((ref) {
@@ -871,8 +889,7 @@ final resultPipelineProvider =
   final adService = ref.read(adServiceProvider);
   final analyticsService = ref.read(analyticsServiceProvider);
   final trainingDataService = ref.read(trainingDataServiceProvider);
-  final stateMachine =
-      ref.read(classificationStateMachineProvider.notifier);
+  final stateMachine = ref.read(classificationStateMachineProvider.notifier);
 
   return ResultPipeline(
     storageService,

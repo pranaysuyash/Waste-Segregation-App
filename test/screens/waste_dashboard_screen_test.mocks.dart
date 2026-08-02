@@ -139,6 +139,23 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
       ) as _i6.Future<void>);
 
   @override
+  _i6.Future<Map<String, int>> migrateLocalIdentity({
+    required String? fromUserId,
+    required String? toUserId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #migrateLocalIdentity,
+          [],
+          {
+            #fromUserId: fromUserId,
+            #toUserId: toUserId,
+          },
+        ),
+        returnValue: _i6.Future<Map<String, int>>.value(<String, int>{}),
+      ) as _i6.Future<Map<String, int>>);
+
+  @override
   _i6.Future<void> updateTrainingConsent(
           _i7.TrainingConsent? trainingConsent) =>
       (super.noSuchMethod(

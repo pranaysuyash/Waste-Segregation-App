@@ -156,7 +156,7 @@ class BackendProxyProvider implements ClassificationProvider {
     }
 
     // Normalise keys to String (Firebase sometimes returns Map<Object?,Object?>).
-    final Map<String, dynamic> responseMap =
+    final responseMap =
         _normaliseMap(data.cast<Object?, Object?>());
 
     final classificationRaw = responseMap['classification'];
@@ -170,11 +170,11 @@ class BackendProxyProvider implements ClassificationProvider {
     }
 
     final classificationMap =
-        _normaliseMap((classificationRaw as Map<Object?, Object?>));
+        _normaliseMap(classificationRaw as Map<Object?, Object?>);
 
     // meta is optional — used for logging / debugging
     final meta = responseMap['meta'] != null
-        ? _normaliseMap((responseMap['meta'] as Map<Object?, Object?>))
+        ? _normaliseMap(responseMap['meta'] as Map<Object?, Object?>)
         : <String, dynamic>{};
 
     final usedProvider = meta['provider'] as String? ?? 'backend';

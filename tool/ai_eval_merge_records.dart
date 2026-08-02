@@ -37,7 +37,7 @@ void main(List<String> args) {
 
   final outFile = File(out);
   outFile.parent.createSync(recursive: true);
-  outFile.writeAsStringSync(merged.map(jsonEncode).join('\n') + '\n');
+  outFile.writeAsStringSync('${merged.map(jsonEncode).join('\n')}\n');
   stdout.writeln('Merged ${merged.length} rows -> $out');
 }
 

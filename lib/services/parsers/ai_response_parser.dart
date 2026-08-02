@@ -191,6 +191,7 @@ class AiResponseParser {
       final disposalInstructions =
           parseDisposalInstructions(jsonContent['disposalInstructions']);
       final alternatives = parseAlternatives(jsonContent['alternatives']);
+      final taxonomyPayload = _readTaxonomyPayload(jsonContent);
 
       var itemName = safeStringParse(jsonContent['itemName']) ?? '';
 
@@ -343,6 +344,19 @@ class AiResponseParser {
             parseStringListSafely(jsonContent['alternativeOptions']),
         localRegulations:
             parseStringMapSafely(jsonContent['localRegulations']),
+        taxonomyVersion: taxonomyPayload['taxonomyVersion'],
+        taxonomyFamilyId: taxonomyPayload['taxonomyFamilyId'],
+        taxonomyCategoryId: taxonomyPayload['taxonomyCategoryId'],
+        taxonomyFamilyLabel: taxonomyPayload['taxonomyFamilyLabel'],
+        taxonomyCategoryLabel: taxonomyPayload['taxonomyCategoryLabel'],
+        taxonomySource:
+            taxonomyPayload['taxonomySource'] ?? 'ai_response_parser',
+        taxonomyMethod: taxonomyPayload['taxonomyMethod'] ?? 'response_payload',
+        taxonomyConfidence: _parseTaxonomyConfidence(
+          taxonomyPayload['taxonomyConfidence'],
+        ),
+        taxonomyMatchedSignal:
+            taxonomyPayload['taxonomyMatchedSignal']?.toString(),
         waterPollutionLevel: parseInt(jsonContent['waterPollutionLevel']),
         soilContaminationRisk: parseInt(jsonContent['soilContaminationRisk']),
         biodegradabilityDays: parseInt(jsonContent['biodegradabilityDays']),
@@ -415,6 +429,36 @@ class AiResponseParser {
       return Map<String, String>.fromEntries(value.entries
           .map((e) => MapEntry(e.key.toString(), e.value.toString())));
     }
+    return null;
+  }
+
+  static Map<String, dynamic> _readTaxonomyPayload(
+    Map<String, dynamic> jsonContent,
+  ) {
+    final taxonomyObject = jsonContent['taxonomy'];
+    if (taxonomyObject is Map) {
+      return taxonomyObject
+          .map((key, value) => MapEntry(key.toString(), value))
+          .cast<String, dynamic>();
+    }
+
+    return <String, dynamic>{
+      'taxonomyVersion': jsonContent['taxonomyVersion'],
+      'taxonomyFamilyId': jsonContent['taxonomyFamilyId'],
+      'taxonomyCategoryId': jsonContent['taxonomyCategoryId'],
+      'taxonomyFamilyLabel': jsonContent['taxonomyFamilyLabel'],
+      'taxonomyCategoryLabel': jsonContent['taxonomyCategoryLabel'],
+      'taxonomyMethod': jsonContent['taxonomyMethod'],
+      'taxonomySource': jsonContent['taxonomySource'],
+      'taxonomyMatchedSignal': jsonContent['taxonomyMatchedSignal'],
+      'taxonomyConfidence': jsonContent['taxonomyConfidence'],
+    };
+  }
+
+  static double? _parseTaxonomyConfidence(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
     return null;
   }
 

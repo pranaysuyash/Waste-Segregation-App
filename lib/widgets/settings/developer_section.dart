@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
-import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/services/classification_migration_service.dart';
 import 'package:waste_segregation_app/services/firebase_cleanup_service.dart';
 import 'package:waste_segregation_app/utils/developer_config.dart';
@@ -14,7 +14,7 @@ import 'package:waste_segregation_app/utils/dialog_helper.dart';
 import 'package:waste_segregation_app/utils/routes.dart';
 
 /// Developer options section for settings screen (debug builds only)
-class DeveloperSection extends StatelessWidget {
+class DeveloperSection extends ConsumerWidget {
   const DeveloperSection({
     super.key,
     required this.showDeveloperOptions,
@@ -23,7 +23,7 @@ class DeveloperSection extends StatelessWidget {
   final bool showDeveloperOptions;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (!DeveloperConfig.canShowDeveloperOptions || !showDeveloperOptions) {
       return const SizedBox.shrink();
     }
@@ -36,7 +36,7 @@ class DeveloperSection extends StatelessWidget {
         const SizedBox(height: 16),
         _buildDevToolTiles(context),
         const SizedBox(height: 16),
-        _buildDangerousActions(context),
+        _buildDangerousActions(context, ref),
       ],
     );
   }
@@ -53,8 +53,9 @@ class DeveloperSection extends StatelessWidget {
             Text(t.developerOptions,
                 style: SettingsTheme.developerModeTitle(context)),
             const Spacer(),
-            Consumer<PremiumService>(
-              builder: (context, premiumService, child) {
+            Consumer(
+              builder: (context, ref, child) {
+                final premiumService = ref.watch(premiumServiceProvider);
                 return TextButton(
                   onPressed: () => _resetAllPremiumFeatures(
                     context,
@@ -75,8 +76,9 @@ class DeveloperSection extends StatelessWidget {
 
   Widget _buildFeatureToggles(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    return Consumer<PremiumService>(
-      builder: (context, premiumService, child) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final premiumService = ref.watch(premiumServiceProvider);
         return Column(
           children: [
             _buildTestModeFeature(
@@ -148,7 +150,7 @@ class DeveloperSection extends StatelessWidget {
     );
   }
 
-  Widget _buildDangerousActions(BuildContext context) {
+  Widget _buildDangerousActions(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
     return Column(
       children: [
@@ -181,7 +183,7 @@ class DeveloperSection extends StatelessWidget {
           icon: Icons.update,
           label: t.migrateOldClassifications,
           color: SettingsTheme.successColor,
-          onPressed: () => _runClassificationMigration(context),
+          onPressed: () => _runClassificationMigration(context, ref),
         ),
       ],
     );
@@ -285,11 +287,11 @@ class DeveloperSection extends StatelessWidget {
     });
   }
 
-  Future<void> _runClassificationMigration(BuildContext context) async {
+  Future<void> _runClassificationMigration(BuildContext context, WidgetRef ref) async {
     try {
       final t = AppLocalizations.of(context)!;
-      final storageService = context.read<StorageService>();
-      final cloudStorageService = context.read<CloudStorageService>();
+      final storageService = ref.read(storageServiceProvider);
+      final cloudStorageService = ref.read(cloudStorageServiceProvider);
       final migrationService = ClassificationMigrationService(
         storageService,
         cloudStorageService,

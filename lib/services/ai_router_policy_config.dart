@@ -10,22 +10,6 @@ class AiRouterPolicyConfig {
     required this.enforceSafetyEscalation,
   });
 
-  final String policyPackVersion;
-  final double localAcceptanceThreshold;
-  final double localEscalationThreshold;
-  final double localSafetyThreshold;
-  final bool blockCacheOnRuleVersionChange;
-  final bool enforceSafetyEscalation;
-
-  static const AiRouterPolicyConfig defaults = AiRouterPolicyConfig(
-    policyPackVersion: 'router-policy-v1',
-    localAcceptanceThreshold: 0.85,
-    localEscalationThreshold: 0.70,
-    localSafetyThreshold: 0.97,
-    blockCacheOnRuleVersionChange: true,
-    enforceSafetyEscalation: true,
-  );
-
   factory AiRouterPolicyConfig.fromJsonString(String raw) {
     if (raw.trim().isEmpty) return defaults;
     try {
@@ -54,5 +38,21 @@ class AiRouterPolicyConfig {
       return defaults;
     }
   }
+
+  final String policyPackVersion;
+  final double localAcceptanceThreshold;
+  final double localEscalationThreshold;
+  final double localSafetyThreshold;
+  final bool blockCacheOnRuleVersionChange;
+  final bool enforceSafetyEscalation;
+
+  static const AiRouterPolicyConfig defaults = AiRouterPolicyConfig(
+    policyPackVersion: 'router-policy-v1',
+    localAcceptanceThreshold: 0.85,
+    localEscalationThreshold: 0.70,
+    localSafetyThreshold: 0.97,
+    blockCacheOnRuleVersionChange: true,
+    enforceSafetyEscalation: true,
+  );
 }
 

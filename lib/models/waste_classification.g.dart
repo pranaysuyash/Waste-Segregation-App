@@ -77,6 +77,15 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       commonUses: (fields[69] as List?)?.cast<String>(),
       alternativeOptions: (fields[70] as List?)?.cast<String>(),
       localRegulations: (fields[71] as Map?)?.cast<String, String>(),
+      taxonomyVersion: fields[104] as String?,
+      taxonomyFamilyId: fields[105] as String?,
+      taxonomyCategoryId: fields[106] as String?,
+      taxonomyFamilyLabel: fields[107] as String?,
+      taxonomyCategoryLabel: fields[108] as String?,
+      taxonomySource: fields[109] as String?,
+      taxonomyMethod: fields[110] as String?,
+      taxonomyConfidence: fields[111] as double?,
+      taxonomyMatchedSignal: fields[112] as String?,
       waterPollutionLevel: fields[72] as int?,
       soilContaminationRisk: fields[73] as int?,
       biodegradabilityDays: fields[74] as int?,
@@ -115,7 +124,7 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
   @override
   void write(BinaryWriter writer, WasteClassification obj) {
     writer
-      ..writeByte(92)
+      ..writeByte(100)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -236,6 +245,24 @@ class WasteClassificationAdapter extends TypeAdapter<WasteClassification> {
       ..write(obj.alternativeOptions)
       ..writeByte(71)
       ..write(obj.localRegulations)
+      ..writeByte(104)
+      ..write(obj.taxonomyVersion)
+      ..writeByte(105)
+      ..write(obj.taxonomyFamilyId)
+      ..writeByte(106)
+      ..write(obj.taxonomyCategoryId)
+      ..writeByte(107)
+      ..write(obj.taxonomyFamilyLabel)
+      ..writeByte(108)
+      ..write(obj.taxonomyCategoryLabel)
+      ..writeByte(109)
+      ..write(obj.taxonomySource)
+      ..writeByte(110)
+      ..write(obj.taxonomyMethod)
+      ..writeByte(111)
+      ..write(obj.taxonomyConfidence)
+      ..writeByte(112)
+      ..write(obj.taxonomyMatchedSignal)
       ..writeByte(72)
       ..write(obj.waterPollutionLevel)
       ..writeByte(73)

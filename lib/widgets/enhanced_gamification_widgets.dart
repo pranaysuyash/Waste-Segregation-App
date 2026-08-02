@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/constants.dart';
 import '../utils/waste_theme.dart';
 import '../models/gamification.dart';
 import '../utils/animation_helpers.dart';
 import '../utils/waste_app_logger.dart';
-import 'package:provider/provider.dart';
-import '../services/gamification_service.dart';
+import '../providers/app_providers.dart';
 
 /// Enhanced version of the points indicator with animations and level-up effects
 class EnhancedPointsIndicator extends StatefulWidget {
@@ -1265,7 +1265,7 @@ class EnhancedChallengeCard extends StatelessWidget {
 }
 
 /// Enhanced points indicator that shows lifetime points including archived data
-class LifetimePointsIndicator extends StatelessWidget {
+class LifetimePointsIndicator extends ConsumerWidget {
   const LifetimePointsIndicator({
     super.key,
     required this.points,
@@ -1277,7 +1277,7 @@ class LifetimePointsIndicator extends StatelessWidget {
   final bool showLifetimePoints;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1309,7 +1309,7 @@ class LifetimePointsIndicator extends StatelessWidget {
             const SizedBox(width: 6),
             if (showLifetimePoints)
               FutureBuilder<int>(
-                future: Provider.of<GamificationService>(context, listen: false)
+                future: ref.read(gamificationServiceProvider)
                     .getTotalLifetimePoints(),
                 builder: (context, snapshot) {
                   final lifetimePoints = snapshot.data ?? points.total;
@@ -1354,13 +1354,12 @@ class LifetimePointsIndicator extends StatelessWidget {
 }
 
 /// Widget to show archived points history
-class ArchivedPointsHistoryWidget extends StatelessWidget {
+class ArchivedPointsHistoryWidget extends ConsumerWidget {
   const ArchivedPointsHistoryWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final gamificationService =
-        Provider.of<GamificationService>(context, listen: false);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gamificationService = ref.read(gamificationServiceProvider);
 
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: gamificationService.getArchivedPointsHistory(),

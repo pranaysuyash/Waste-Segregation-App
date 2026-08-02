@@ -7,6 +7,7 @@ import * as path from 'path';
 import {
   asiaSouth1, corsHandler, shouldEnforceHttpAppCheck, verifyHttpAppCheck,
   getBearerToken, getRateLimitConfig, enforceRateLimit, getClientIp,
+  respondWithApiError, respondWithApiSuccess,
 } from './helpers';
 
 interface DisposalRequest {
@@ -51,10 +52,15 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
       if (shouldEnforceHttpAppCheck()) {
         const appCheckValid = await verifyHttpAppCheck(req);
         if (!appCheckValid) {
-          res.status(401).json({
-            error: 'Unauthorized: valid App Check token required',
-            hint: 'Attach x-firebase-appcheck header from a Firebase App Check enabled client.',
-          });
+          respondWithApiError(
+            res,
+            401,
+            'AUTH_APP_CHECK_MISSING',
+            'Unauthorized: valid App Check token required',
+            {
+              hint: 'Attach x-firebase-appcheck header from a Firebase App Check enabled client.',
+            },
+          );
           return;
         }
       }
@@ -64,29 +70,39 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
       if (requireAuth && !allowAnonymous) {
         const token = getBearerToken(req.headers.authorization);
         if (!token) {
-          res.status(401).json({
-            error: 'Unauthorized: Bearer token required',
-            hint: 'Set ALLOW_ANONYMOUS_DISPOSAL=true only for controlled environments.',
-          });
+          respondWithApiError(
+            res,
+            401,
+            'AUTH_TOKEN_MISSING',
+            'Unauthorized: Bearer token required',
+            {
+              hint: 'Set ALLOW_ANONYMOUS_DISPOSAL=true only for controlled environments.',
+            },
+          );
           return;
         }
         try {
           await admin.auth().verifyIdToken(token);
         } catch {
-          res.status(401).json({ error: 'Unauthorized: invalid token' });
+          respondWithApiError(res, 401, 'AUTH_TOKEN_INVALID', 'Unauthorized: invalid token');
           return;
         }
       }
 
       if (req.method !== 'POST') {
-        res.status(405).json({ error: 'Method not allowed' });
+        respondWithApiError(res, 405, 'METHOD_NOT_ALLOWED', 'Method not allowed');
         return;
       }
 
       const { materialId, material, category, subcategory, lang = 'en' }: DisposalRequest = req.body;
 
       if (!materialId || !material) {
-        res.status(400).json({ error: 'Missing required fields: materialId, material' });
+        respondWithApiError(
+          res,
+          400,
+          'VALIDATION_ERROR',
+          'Missing required fields: materialId, material',
+        );
         return;
       }
 
@@ -98,11 +114,17 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
         windowSeconds: Math.max(1, rateLimitConfig.windowSeconds),
       });
       if (rateLimitState.retryAfterSeconds > 0) {
-        res.setHeader('Retry-After', String(rateLimitState.retryAfterSeconds));
-        res.status(429).json({
-          error: 'Rate limit exceeded',
-          retryAfterSeconds: rateLimitState.retryAfterSeconds,
-        });
+        respondWithApiError(
+          res,
+          429,
+          'RATE_LIMIT_EXCEEDED',
+          'Rate limit exceeded',
+          {
+            maxRequests: rateLimitConfig.disposalMax,
+            remaining: 0,
+          },
+          rateLimitState.retryAfterSeconds,
+        );
         return;
       }
 
@@ -112,7 +134,22 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
 
       if (cachedDoc.exists) {
         functions.logger.info('Returning cached disposal instructions', { materialId });
-        res.json(cachedDoc.data());
+        const cachedData = cachedDoc.data();
+        if (cachedData) {
+          respondWithApiSuccess(res, 200, {
+            ...cachedData,
+            source: cachedData.source ?? 'cache_firestore',
+            cached: true,
+          });
+          return;
+        }
+
+        respondWithApiError(
+          res,
+          500,
+          'SERVER_CACHE_CORRUPT',
+          'Cached disposal instructions are invalid.',
+        );
         return;
       }
 
@@ -183,12 +220,16 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
         language: lang,
         generatedAt: FieldValue.serverTimestamp(),
         modelUsed: disposalModel,
+        source: 'openai',
         version: '1.0',
+        cached: false,
       };
 
       await cacheRef.set(result);
       functions.logger.info('Generated and cached disposal instructions', { materialId });
-      res.json(result);
+      respondWithApiSuccess(res, 200, {
+        ...result,
+      });
     } catch (error: any) {
       functions.logger.error('Error generating disposal instructions', { error });
 
@@ -203,12 +244,18 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
 
       if (isRetryableError) {
         functions.logger.info('Retryable error detected, returning 503 with retry-after');
-        res.status(503).json({
-          error: 'Service temporarily unavailable',
-          retryAfter: 30,
-          fallback: true,
-          code: 'retryable_error',
-        });
+        respondWithApiError(
+          res,
+          503,
+          'SERVICE_UNAVAILABLE',
+          'Service temporarily unavailable',
+          {
+            code: 'retryable_error',
+            retryAfter: 30,
+            fallback: true,
+          },
+          30,
+        );
         return;
       }
 
@@ -234,7 +281,11 @@ export const generateDisposal = asiaSouth1.https.onRequest(async (req, res) => {
         error: 'AI generation failed, using fallback instructions',
       };
 
-      res.status(200).json(fallbackInstructions);
+      respondWithApiSuccess(res, 200, {
+        ...fallbackInstructions,
+        source: 'fallback',
+        cached: false,
+      });
     }
   });
 });

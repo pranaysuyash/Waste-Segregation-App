@@ -8,8 +8,7 @@ import 'package:waste_segregation_app/services/gamification_service.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/services/analytics_service.dart';
 import 'package:waste_segregation_app/services/community_service.dart';
-import 'package:waste_segregation_app/providers/theme_provider.dart';
-import 'package:waste_segregation_app/providers/points_engine_provider.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import '../mocks/mock_services.dart';
 
 class TestAppWrapper extends StatelessWidget {
@@ -102,17 +101,3 @@ Future<void> cleanupHiveAfterTesting() async {
   await Hive.deleteFromDisk();
   await Hive.close();
 }
-
-// Provider definitions for dependency injection
-final aiServiceProvider =
-    Provider<AiService>((ref) => throw UnimplementedError());
-final storageServiceProvider =
-    Provider<StorageService>((ref) => throw UnimplementedError());
-final gamificationServiceProvider =
-    Provider<GamificationService>((ref) => throw UnimplementedError());
-final premiumServiceProvider =
-    Provider<PremiumService>((ref) => throw UnimplementedError());
-final analyticsServiceProvider =
-    Provider<AnalyticsService>((ref) => throw UnimplementedError());
-final communityServiceProvider =
-    Provider<CommunityService>((ref) => throw UnimplementedError());

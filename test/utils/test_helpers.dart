@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart' as up;
 import 'package:waste_segregation_app/models/gamification.dart';
@@ -14,6 +14,7 @@ import 'package:waste_segregation_app/services/analytics_service.dart';
 import 'package:waste_segregation_app/services/community_service.dart';
 import 'package:waste_segregation_app/services/firebase_family_service.dart';
 import 'package:waste_segregation_app/services/cache_service.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:mockito/mockito.dart';
 
 /// Comprehensive test utilities for the ReLoop
@@ -356,17 +357,11 @@ class TestHelpers {
     bool includeMockProviders = true,
   }) {
     if (includeMockProviders) {
-      return MultiProvider(
-        providers: [
-          Provider<AiService>(create: (_) => MockAiService()),
-          Provider<StorageService>(create: (_) => MockStorageService()),
-          Provider<GamificationService>(
-              create: (_) => MockGamificationService()),
-          Provider<AnalyticsService>(create: (_) => MockAnalyticsService()),
-          Provider<CommunityService>(create: (_) => MockCommunityService()),
-          Provider<FirebaseFamilyService>(
-              create: (_) => MockFirebaseFamilyService()),
-          Provider<CacheService>(create: (_) => MockCacheService()),
+      return ProviderScope(
+        overrides: [
+          storageServiceProvider.overrideWithValue(MockStorageService()),
+          gamificationServiceProvider.overrideWithValue(MockGamificationService()),
+          communityServiceProvider.overrideWithValue(MockCommunityService()),
         ],
         child: MaterialApp(
           theme: theme,

@@ -105,3 +105,17 @@ Usage:
 ```bash
 dart run tool/ai_review_dashboard.dart --input build/reports/ai_review/updated_candidates.jsonl --out-json build/reports/ai_review/dashboard.json --out-md build/reports/ai_review/dashboard.md
 ```
+
+## 11) `check_policy_sources.dart`
+Monitors policy source URLs for drift using ETag + SHA-256 hash and updates
+`tools/policy_source_manifest.json`.
+
+Usage:
+
+```bash
+dart run tools/check_policy_sources.dart
+```
+
+Inputs/outputs:
+- Manifest: `tools/policy_source_manifest.json`
+- Report: `build/reports/policy_source_check/latest.json`

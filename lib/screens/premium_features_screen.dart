@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/premium_feature.dart';
 import '../services/premium_service.dart';
 import '../services/purchase_service.dart';
@@ -9,16 +10,16 @@ import '../utils/dialog_helper.dart';
 import '../utils/constants.dart';
 import '../utils/routes.dart';
 import '../utils/developer_config.dart';
-import 'package:provider/provider.dart';
+import '../providers/app_providers.dart';
 
-class PremiumFeaturesScreen extends StatefulWidget {
+class PremiumFeaturesScreen extends ConsumerStatefulWidget {
   const PremiumFeaturesScreen({super.key});
 
   @override
-  State<PremiumFeaturesScreen> createState() => _PremiumFeaturesScreenState();
+  ConsumerState<PremiumFeaturesScreen> createState() => _PremiumFeaturesScreenState();
 }
 
-class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
+class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
   bool _showTestOptions = false;
   WebCheckoutService? _webCheckoutService;
 
@@ -26,7 +27,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _webCheckoutService ??= WebCheckoutService(
-      Provider.of<PremiumService>(context, listen: false),
+      ref.read(premiumServiceProvider),
     )..addListener(_onWebCheckoutChange);
   }
 
@@ -86,7 +87,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
   }
 
   Widget _buildDeveloperTestOptions(BuildContext context) {
-    final premiumService = Provider.of<PremiumService>(context);
+    final premiumService = ref.read(premiumServiceProvider);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
@@ -155,7 +156,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
           ),
           Switch(
             value: isEnabled,
-            activeColor: AppTheme.primaryColor,
+            activeThumbColor: AppTheme.primaryColor,
             onChanged: (value) async {
               await premiumService.setPremiumFeature(feature.id, value);
             },
@@ -248,7 +249,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
   }
 
   Widget _buildComingSoonFeatures(BuildContext context) {
-    final premiumService = Provider.of<PremiumService>(context);
+    final premiumService = ref.read(premiumServiceProvider);
     final comingSoonFeatures = premiumService.getComingSoonFeatures();
 
     if (comingSoonFeatures.isEmpty) {
@@ -276,7 +277,7 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
   }
 
   Widget _buildPremiumFeatures(BuildContext context) {
-    final premiumService = Provider.of<PremiumService>(context);
+    final premiumService = ref.read(premiumServiceProvider);
     final premiumFeatures = premiumService.getPremiumFeatures();
 
     if (premiumFeatures.isEmpty) {
@@ -327,11 +328,11 @@ class _PremiumFeaturesScreenState extends State<PremiumFeaturesScreen> {
   Widget _buildPurchaseSection(BuildContext context) {
     PurchaseService? purchaseService;
     try {
-      purchaseService = Provider.of<PurchaseService>(context);
-    } on ProviderNotFoundException {
+      purchaseService = ref.read(purchaseServiceProvider);
+    } catch (_) {
       purchaseService = null;
     }
-    final premiumService = Provider.of<PremiumService>(context);
+    final premiumService = ref.read(premiumServiceProvider);
     final hasPremium = premiumService.hasActivePremiumPlan();
 
     return Padding(

@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { Webhook } from 'standardwebhooks';
+import { respondWithApiError, respondWithApiSuccess } from './helpers';
 
 const asiaSouth1 = functions.region('asia-south1');
 
@@ -259,14 +260,19 @@ async function recordSubscription(event: DodoWebhookEvent, uid: string): Promise
 export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) => {
   try {
     if (req.method !== 'POST') {
-      res.status(405).json({ error: 'Method not allowed' });
+      respondWithApiError(res, 405, 'METHOD_NOT_ALLOWED', 'Method not allowed');
       return;
     }
 
     const webhookSecret = process.env.DODO_WEBHOOK_SECRET;
     if (!webhookSecret) {
       functions.logger.error('DODO_WEBHOOK_SECRET not configured');
-      res.status(500).json({ error: 'Webhook secret not configured' });
+      respondWithApiError(
+        res,
+        500,
+        'WEBHOOK_SECRET_MISSING',
+        'Webhook secret not configured',
+      );
       return;
     }
 
@@ -275,7 +281,12 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
     const webhookSignature = req.headers['webhook-signature'] as string;
 
     if (!webhookId || !webhookTimestamp || !webhookSignature) {
-      res.status(400).json({ error: 'Missing required webhook headers' });
+      respondWithApiError(
+        res,
+        400,
+        'WEBHOOK_HEADERS_MISSING',
+        'Missing required webhook headers',
+      );
       return;
     }
 
@@ -293,7 +304,12 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
       event = JSON.parse(payload as string) as DodoWebhookEvent;
     } catch (verifyError) {
       functions.logger.error('Webhook signature verification failed', { verifyError });
-      res.status(401).json({ error: 'Invalid webhook signature' });
+      respondWithApiError(
+        res,
+        401,
+        'WEBHOOK_SIGNATURE_INVALID',
+        'Invalid webhook signature',
+      );
       return;
     }
 
@@ -304,7 +320,7 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
     const existingEvent = await eventRef.get();
     if (existingEvent.exists) {
       functions.logger.info('Duplicate webhook event, skipping', { webhookId });
-      res.status(200).json({ status: 'duplicate' });
+      respondWithApiSuccess(res, 200, { status: 'duplicate' });
       return;
     }
 
@@ -320,7 +336,10 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
         eventType: event.type,
         webhookId,
       });
-      res.status(200).json({ status: 'accepted', warning: 'No firebase_uid in metadata' });
+      respondWithApiSuccess(res, 200, {
+        status: 'accepted',
+        warning: 'No firebase_uid in metadata',
+      });
       return;
     }
 
@@ -353,9 +372,17 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
         functions.logger.info('Unhandled webhook event type', { type: (event as any).type });
     }
 
-    res.status(200).json({ status: 'accepted' });
+    respondWithApiSuccess(res, 200, { status: 'accepted' });
   } catch (error: any) {
     functions.logger.error('Webhook processing error', { error });
-    res.status(500).json({ error: 'Webhook processing failed' });
+    respondWithApiError(
+      res,
+      500,
+      'INTERNAL_WEBHOOK_PROCESSING_FAILED',
+      'Webhook processing failed',
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
   }
 });

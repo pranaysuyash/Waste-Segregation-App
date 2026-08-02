@@ -1,21 +1,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import 'package:waste_segregation_app/models/classification_state.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import '../services/ai_service.dart';
 import '../services/instant_analysis_flow_coordinator.dart';
 import '../utils/ai_error_messages.dart';
 import '../widgets/analysis_progress_view.dart';
 import '../screens/result_screen_wrapper.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import '../providers/scan_orchestrator_provider.dart';
 
 /// Screen that performs instant analysis without showing review screen.
-class InstantAnalysisScreen extends StatefulWidget {
+class InstantAnalysisScreen extends ConsumerStatefulWidget {
   const InstantAnalysisScreen({
     super.key,
     required this.image,
@@ -23,10 +23,11 @@ class InstantAnalysisScreen extends StatefulWidget {
   final XFile image;
 
   @override
-  State<InstantAnalysisScreen> createState() => _InstantAnalysisScreenState();
+  ConsumerState<InstantAnalysisScreen> createState() =>
+      _InstantAnalysisScreenState();
 }
 
-class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
+class _InstantAnalysisScreenState extends ConsumerState<InstantAnalysisScreen> {
   static const InstantAnalysisFlowCoordinator _flowCoordinator =
       InstantAnalysisFlowCoordinator();
   ClassificationState _state = ClassificationState.idle;
@@ -57,7 +58,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
     });
 
     try {
-      final aiService = Provider.of<AiService>(context, listen: false);
+      final scanOrchestrator = ref.read(scanOrchestratorProvider);
       late final WasteClassification result;
 
       if (kIsWeb) {
@@ -65,13 +66,13 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
         if (bytes.isEmpty) {
           throw Exception('Failed to read image data - empty bytes');
         }
-        result = await aiService.analyzeWebImage(bytes, widget.image.name);
+        result = await scanOrchestrator.analyzeBytes(bytes, widget.image.name);
       } else {
         final file = File(widget.image.path);
         if (!await file.exists()) {
           throw Exception('Image file does not exist: ${widget.image.path}');
         }
-        result = await aiService.analyzeImage(file);
+        result = await scanOrchestrator.analyzeFile(file);
       }
 
       if (!_isCancelled && mounted) {
@@ -135,8 +136,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
   }
 
   void _cancelAnalysis() {
-    final aiService = Provider.of<AiService>(context, listen: false);
-    aiService.cancelAnalysis();
+    ref.read(scanOrchestratorProvider).cancel();
 
     setState(() {
       _state = ClassificationState.cancelled;
@@ -159,8 +159,7 @@ class _InstantAnalysisScreenState extends State<InstantAnalysisScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _isAnalyzing ||
-              _state == ClassificationState.failedRetryable
+      body: _isAnalyzing || _state == ClassificationState.failedRetryable
           ? AnalysisProgressView(
               state: _state,
               imageName: widget.image.name,

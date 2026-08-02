@@ -3,13 +3,12 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/filter_options.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../screens/result_screen_wrapper.dart';
 import '../services/storage_service.dart';
-import '../services/cloud_storage_service.dart';
 import '../utils/constants.dart';
 import '../utils/waste_theme.dart';
 import '../utils/error_handler.dart';
@@ -18,10 +17,11 @@ import '../widgets/animations/enhanced_loading_states.dart';
 import '../widgets/animations/empty_state_animations.dart';
 import '../services/analytics_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import '../providers/app_providers.dart';
 
 // ignore_for_file: cascade_invocations
 
-class HistoryScreen extends StatefulWidget {
+class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({
     super.key,
     this.filterCategory,
@@ -31,10 +31,10 @@ class HistoryScreen extends StatefulWidget {
   final String? filterSubcategory;
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
+class _HistoryScreenState extends ConsumerState<HistoryScreen> with RestorationMixin {
   FilterOptions _filterOptions = FilterOptions.empty();
 
   int _currentPage = 0;
@@ -94,7 +94,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
   void initState() {
     super.initState();
     try {
-      _analyticsService = Provider.of<AnalyticsService>(context, listen: false);
+      _analyticsService = ref.read(analyticsServiceProvider);
     } catch (_) {
       _analyticsService = AnalyticsService(
         StorageService(),
@@ -159,7 +159,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
     try {
       final storageService =
-          Provider.of<StorageService>(context, listen: false);
+          ref.read(storageServiceProvider);
 
       final settings = await storageService.getSettings();
       final isGoogleSyncEnabled = settings['isGoogleSyncEnabled'] ?? false;
@@ -169,8 +169,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
       final List<WasteClassification> allClassifications;
       if (isGoogleSyncEnabled) {
         if (!mounted) return;
-        final cloudStorageService =
-            Provider.of<CloudStorageService>(context, listen: false);
+        final cloudStorageService = ref.read(cloudStorageServiceProvider);
         allClassifications = await cloudStorageService
             .getAllClassificationsWithCloudSync(isGoogleSyncEnabled);
       } else {
@@ -234,7 +233,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
 
     try {
       final storageService =
-          Provider.of<StorageService>(context, listen: false);
+          ref.read(storageServiceProvider);
 
       final nextPage = _currentPage + 1;
       final moreClassifications =
@@ -494,7 +493,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<SortField>(
-                      value: _filterOptions.sortBy,
+                      initialValue: _filterOptions.sortBy,
                       decoration: const InputDecoration(
                         labelText: 'Sort by',
                         border: OutlineInputBorder(),
@@ -538,7 +537,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
                             Navigator.of(context).pop();
                             _changeSorting(_filterOptions.sortBy, value);
                           },
-                          activeColor: AppTheme.primaryColor,
+                          activeThumbColor: AppTheme.primaryColor,
                         ),
                       ],
                     ),
@@ -607,7 +606,7 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
       });
 
       final storageService =
-          Provider.of<StorageService>(context, listen: false);
+          ref.read(storageServiceProvider);
       final csvContent = await storageService.exportClassificationsToCSV(
         filterOptions: _filterOptions,
       );
@@ -965,8 +964,9 @@ class _HistoryScreenState extends State<HistoryScreen> with RestorationMixin {
     var count = 0;
     if (_activeFilterChip != 'All') count++;
     if (_searchController.text.isNotEmpty) count++;
-    if (_filterOptions.startDate != null || _filterOptions.endDate != null)
+    if (_filterOptions.startDate != null || _filterOptions.endDate != null) {
       count++;
+    }
     return count;
   }
 

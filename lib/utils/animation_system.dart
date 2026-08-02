@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart' show MediaQuery;
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/widgets.dart' show MediaQuery;
 
 /// Centralized animation system for consistent animations throughout the app
 class AnimationSystem {

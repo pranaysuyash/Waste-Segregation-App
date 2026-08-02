@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart' as provider_pkg;
 import 'package:waste_segregation_app/models/educational_content.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/providers/app_providers.dart'
     as app_providers;
-import 'package:waste_segregation_app/providers/points_engine_provider.dart';
 import 'package:waste_segregation_app/screens/achievements_screen.dart';
 import 'package:waste_segregation_app/screens/content_detail_screen.dart';
 import 'package:waste_segregation_app/screens/educational_content_screen.dart';
@@ -143,52 +141,38 @@ void main() {
       nearMilestoneNudge: nearMilestoneNudge,
     );
 
-    return provider_pkg.MultiProvider(
-      providers: [
-        provider_pkg.ChangeNotifierProvider<AdService>(
-          create: (_) => AdService(),
-        ),
-        provider_pkg.Provider<EducationalContentService>(
-          create: (_) => educationalService,
-        ),
-        provider_pkg.ChangeNotifierProvider<PointsEngineProvider>(
-          create: (_) => PointsEngineProvider(
-            FakeStorageService(),
-            CloudStorageService(FakeStorageService()),
-          ),
-        ),
-        provider_pkg.Provider<AnalyticsService>(
-          create: (_) => AnalyticsService(
+    return ProviderScope(
+      overrides: [
+        adServiceProvider.overrideWithValue(AdService()),
+        educationalContentServiceProvider.overrideWithValue(educationalService),
+        analyticsServiceProvider.overrideWithValue(
+          AnalyticsService(
             FakeStorageService(),
             enableFirestore: false,
           ),
         ),
+        app_providers.profileProvider
+            .overrideWith((ref) async => profile ?? mockProfile),
+        app_providers.userProfileProvider
+            .overrideWith((ref) async => userProfile ?? mockUserProfile),
+        app_providers.classificationsProvider.overrideWith((ref) async {
+          if (classificationsError) {
+            throw Exception('boom');
+          }
+          return classifications;
+        }),
+        app_providers.educationalContentServiceProvider
+            .overrideWith((ref) => educationalService),
+        app_providers.gamificationServiceProvider
+            .overrideWithValue(gamificationService),
       ],
-      child: ProviderScope(
-        overrides: [
-          app_providers.profileProvider
-              .overrideWith((ref) async => profile ?? mockProfile),
-          app_providers.userProfileProvider
-              .overrideWith((ref) async => userProfile ?? mockUserProfile),
-          app_providers.classificationsProvider.overrideWith((ref) async {
-            if (classificationsError) {
-              throw Exception('boom');
-            }
-            return classifications;
-          }),
-          app_providers.educationalContentServiceProvider
-              .overrideWith((ref) => educationalService),
-          app_providers.gamificationServiceProvider
-              .overrideWithValue(gamificationService),
-        ],
-        child: MaterialApp(
-          navigatorObservers: navigatorObservers,
-          routes: {
-            Routes.settings: (_) =>
-                const Scaffold(body: Text('Settings Screen')),
-          },
-          home: const home.HomeScreen(),
-        ),
+      child: MaterialApp(
+        navigatorObservers: navigatorObservers,
+        routes: {
+          Routes.settings: (_) =>
+              const Scaffold(body: Text('Settings Screen')),
+        },
+        home: const home.HomeScreen(),
       ),
     );
   }

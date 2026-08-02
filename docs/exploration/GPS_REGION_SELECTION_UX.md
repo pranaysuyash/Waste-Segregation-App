@@ -2,7 +2,8 @@
 
 **Decision this unblocks**: Whether the "set your city" flow needs to be built before or after the first multi-city plugin ships.
 
-**Status**: Design Concept (2026-05-22)
+**Status**: Design concept with partial production implementation.
+**Update (2026-06-01)**: Home-region storage and region-resolution provider are wired into settings and the main capture flow. Scan-time region is now resolved from a canonical preference-backed service; manual onboarding remains a separate UX pass.
 **Related**: REGION_RULES_AND_CITY_EXPANSION_MAP.md §14
 
 ---
@@ -71,3 +72,12 @@ Supported cities: Bangalore, Chennai, Delhi, Hyderabad, Kolkata, Mumbai, Pune
 - The region string passed to `LocalPolicyEngine.applyPolicy()` should be the **resolved city name** (e.g. "Mumbai, IN"), not a raw GPS coordinate.
 - Region selection should be a Riverpod provider so the policy engine and UI reactively update when the user changes region.
 - For the initial ship, manual selection (Option B) is sufficient and requires no new permissions. GPS integration (Option C) can follow in a subsequent release.
+
+## 2026-06-01 Execution State
+
+- [x] Implement `RegionPreferenceProvider` and canonical `RegionResolutionService` contract (home, scan-time).
+- [x] Implement RegionPreference-based settings edit flow for region.
+- [ ] Add onboarding manual region selector (first-launch picker)
+- [ ] Add permission-safe GPS fallback path with explicit "manual override" behavior.
+- [ ] Emit `region.provider`, `region.boundaryConflict`, and `region.fallbackUsed` telemetry.
+- [ ] Add result-card copy when GPS conflicts with stored city: "Rules for X applied from scan-time region Y".

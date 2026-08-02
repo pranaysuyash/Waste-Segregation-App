@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart'; // Added for DateFormat
 // import 'package:path_provider/path_provider.dart'; // Unused
-import '../services/storage_service.dart';
 // import '../services/google_drive_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/share_service.dart'; // Added for ShareService
 // import '../utils/constants.dart';
 import '../utils/app_version.dart'; // For AppVersion.displayVersion
+import '../providers/app_providers.dart';
 // import '../utils/design_system.dart'; // Unused
 // import '../utils/enhanced_animations.dart'; // Unused
 // import '../utils/performance_monitor.dart'; // Unused
@@ -18,14 +18,14 @@ import 'package:flutter/foundation.dart' show kIsWeb; // Keep kIsWeb
 
 /// Data Export Screen
 /// Allows users to export their classification history in various formats
-class DataExportScreen extends StatefulWidget {
+class DataExportScreen extends ConsumerStatefulWidget {
   const DataExportScreen({super.key});
 
   @override
-  State<DataExportScreen> createState() => _DataExportScreenState();
+  ConsumerState<DataExportScreen> createState() => _DataExportScreenState();
 }
 
-class _DataExportScreenState extends State<DataExportScreen> {
+class _DataExportScreenState extends ConsumerState<DataExportScreen> {
   bool _isLoading = true;
   bool _isExporting = false;
   List<WasteClassification> _classifications = [];
@@ -44,7 +44,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
   }
 
   Future<void> _loadData() async {
-    final storage = Provider.of<StorageService>(context, listen: false);
+    final storage = ref.read(storageServiceProvider);
     final classifications = await storage.getAllClassifications();
 
     setState(() {
@@ -158,7 +158,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
                                 fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<DateRange>(
-                          value: _selectedDateRange,
+                          initialValue: _selectedDateRange,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'Select date range',
@@ -354,10 +354,9 @@ class _DataExportScreenState extends State<DataExportScreen> {
 
       if (_includeAnalytics) {
         row.addAll([
-          _escapeCsvField(item.confidence != null
+          '${_escapeCsvField(item.confidence != null
                   ? (item.confidence! * 100).toStringAsFixed(1)
-                  : 'N/A') +
-              '%',
+                  : 'N/A')}%',
           _escapeCsvField(item.subCategory ?? 'N/A'),
           _escapeCsvField(item.materials?.join(', ') ?? 'N/A'),
           _escapeCsvField(item.modelVersion ?? 'N/A'),

@@ -3,11 +3,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:waste_segregation_app/services/cloud_storage_service.dart';
-import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/services/training_data_service.dart';
 import 'package:waste_segregation_app/services/user_consent_service.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
@@ -15,14 +14,14 @@ import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/widgets/settings/setting_tile.dart';
 import 'package:waste_segregation_app/widgets/settings/settings_theme.dart';
 
-class PrivacySection extends StatefulWidget {
+class PrivacySection extends ConsumerStatefulWidget {
   const PrivacySection({super.key});
 
   @override
-  State<PrivacySection> createState() => _PrivacySectionState();
+  ConsumerState<PrivacySection> createState() => _PrivacySectionState();
 }
 
-class _PrivacySectionState extends State<PrivacySection> {
+class _PrivacySectionState extends ConsumerState<PrivacySection> {
   bool _isLeaderboardOptOut = false;
   bool _isTrainingConsentEnabled = false;
   bool _isTrainingConsentLoading = true;
@@ -43,8 +42,7 @@ class _PrivacySectionState extends State<PrivacySection> {
 
   Future<void> _loadLeaderboardOptOut() async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       final userProfile = await storageService.getCurrentUserProfile();
       if (mounted) {
         setState(() {
@@ -61,10 +59,8 @@ class _PrivacySectionState extends State<PrivacySection> {
 
   Future<void> _toggleLeaderboardOptOut(bool value) async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
-      final cloudStorageService =
-          Provider.of<CloudStorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
+      final cloudStorageService = ref.read(cloudStorageServiceProvider);
 
       final userProfile = await storageService.getCurrentUserProfile();
       if (userProfile == null) {
@@ -112,7 +108,7 @@ class _PrivacySectionState extends State<PrivacySection> {
 
   Future<void> _loadTrainingConsent() async {
     try {
-      final storage = Provider.of<StorageService>(context, listen: false);
+      final storage = ref.read(storageServiceProvider);
       final profile = await storage.getCurrentUserProfile();
       if (mounted) {
         setState(() {
@@ -131,7 +127,7 @@ class _PrivacySectionState extends State<PrivacySection> {
   }
 
   Future<void> _toggleTrainingConsent(bool enabled) async {
-    final storage = Provider.of<StorageService>(context, listen: false);
+      final storage = ref.read(storageServiceProvider);
     final service = TrainingDataService(storageService: storage);
 
     if (!enabled && mounted) {
@@ -243,7 +239,7 @@ class _PrivacySectionState extends State<PrivacySection> {
   Future<void> _exportMyData() async {
     setState(() => _isExporting = true);
     try {
-      final storage = Provider.of<StorageService>(context, listen: false);
+    final storage = ref.read(storageServiceProvider);
       final jsonData = await storage.exportUserData();
       final parsed = jsonDecode(jsonData);
       final wrapped = {

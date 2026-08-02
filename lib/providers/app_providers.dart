@@ -3,17 +3,26 @@ import 'package:waste_segregation_app/models/educational_content.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/providers/theme_provider.dart';
 import 'package:waste_segregation_app/services/ad_service.dart';
 import 'package:waste_segregation_app/services/ai_service.dart';
 import 'package:waste_segregation_app/services/analytics_consent_manager.dart';
 import 'package:waste_segregation_app/services/analytics_schema_validator.dart';
 import 'package:waste_segregation_app/services/analytics_service.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
+import 'package:waste_segregation_app/services/community_service.dart';
+import 'package:waste_segregation_app/services/educational_content_analytics_service.dart';
 import 'package:waste_segregation_app/services/educational_content_service.dart';
 import 'package:waste_segregation_app/services/gamification_service.dart';
+import 'package:waste_segregation_app/services/google_drive_service.dart';
+import 'package:waste_segregation_app/services/haptic_settings_service.dart';
+import 'package:waste_segregation_app/services/navigation_settings_service.dart';
 import 'package:waste_segregation_app/services/points_engine.dart';
+import 'package:waste_segregation_app/services/premium_service.dart';
+import 'package:waste_segregation_app/services/purchase_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/training_data_service.dart';
+import 'package:waste_segregation_app/services/user_consent_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/utils/firebase_gate.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
@@ -21,6 +30,10 @@ import 'cost_management_providers.dart';
 
 /// Central provider declarations for all services
 /// This eliminates duplicate provider declarations across the app
+
+/// Theme provider for app-wide theming
+final themeProvider =
+    ChangeNotifierProvider<ThemeProvider>((ref) => ThemeProvider());
 
 /// Storage service provider - single source of truth
 final storageServiceProvider =
@@ -173,3 +186,42 @@ final aiServiceProvider = Provider<AiService>((ref) {
     errorHandler: errorHandler,
   );
 });
+
+/// Educational content analytics service provider
+final educationalContentAnalyticsServiceProvider =
+    Provider<EducationalContentAnalyticsService>((ref) =>
+        EducationalContentAnalyticsService());
+
+/// Google Drive service provider
+final googleDriveServiceProvider = Provider<GoogleDriveService>((ref) {
+  final storageService = ref.read(storageServiceProvider);
+  return GoogleDriveService(storageService);
+});
+
+/// Premium service provider
+final premiumServiceProvider = Provider<PremiumService>((ref) =>
+    PremiumService());
+
+/// Purchase service provider
+final purchaseServiceProvider = Provider<PurchaseService>((ref) {
+  final premiumService = ref.read(premiumServiceProvider);
+  return PurchaseService(premiumService);
+});
+
+/// Navigation settings service provider
+final navigationSettingsServiceProvider =
+    Provider<NavigationSettingsService>((ref) =>
+        NavigationSettingsService());
+
+/// Haptic settings service provider
+final hapticSettingsServiceProvider =
+    Provider<HapticSettingsService>((ref) =>
+        HapticSettingsService());
+
+/// Community service provider
+final communityServiceProvider = Provider<CommunityService>((ref) =>
+    CommunityService());
+
+/// User consent service provider
+final userConsentServiceProvider = Provider<UserConsentService>((ref) =>
+    UserConsentService());

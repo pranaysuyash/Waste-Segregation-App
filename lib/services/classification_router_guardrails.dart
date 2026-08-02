@@ -21,12 +21,6 @@ class ClassificationRouterGuardrails {
     this.enforceSafetyEscalation = true,
   });
 
-  final double localAcceptanceThreshold;
-  final double localEscalationThreshold;
-  final double localSafetyThreshold;
-  final bool blockCacheOnRuleVersionChange;
-  final bool enforceSafetyEscalation;
-
   factory ClassificationRouterGuardrails.fromPolicy(
     AiRouterPolicyConfig config,
   ) {
@@ -38,6 +32,12 @@ class ClassificationRouterGuardrails {
       enforceSafetyEscalation: config.enforceSafetyEscalation,
     );
   }
+
+  final double localAcceptanceThreshold;
+  final double localEscalationThreshold;
+  final double localSafetyThreshold;
+  final bool blockCacheOnRuleVersionChange;
+  final bool enforceSafetyEscalation;
 
   static const Set<String> alwaysEscalateCategories = <String>{
     'Hazardous Waste',

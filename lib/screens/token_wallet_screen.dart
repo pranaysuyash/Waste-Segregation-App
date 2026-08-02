@@ -242,7 +242,7 @@ class TokenWalletScreen extends ConsumerWidget {
       WasteAppLogger.severe('Wallet import failed', error: e);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Restore failed - invalid wallet data')),
+          const SnackBar(content: Text('Restore failed - invalid wallet data')),
         );
       }
     }

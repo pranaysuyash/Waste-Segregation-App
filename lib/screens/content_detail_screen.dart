@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/educational_content.dart';
 import '../services/educational_content_service.dart';
 import '../utils/constants.dart';
 import '../utils/waste_theme.dart';
 import 'quiz_screen.dart';
 import 'package:video_player/video_player.dart';
+import '../providers/app_providers.dart';
 
-class ContentDetailScreen extends StatefulWidget {
+class ContentDetailScreen extends ConsumerStatefulWidget {
   const ContentDetailScreen({
     super.key,
     required this.contentId,
@@ -17,18 +18,17 @@ class ContentDetailScreen extends StatefulWidget {
   final String contentId;
 
   @override
-  State<ContentDetailScreen> createState() => _ContentDetailScreenState();
+  ConsumerState<ContentDetailScreen> createState() => _ContentDetailScreenState();
 }
 
-class _ContentDetailScreenState extends State<ContentDetailScreen> {
+class _ContentDetailScreenState extends ConsumerState<ContentDetailScreen> {
   EducationalContentService? _educationalService;
   bool _trackedContentView = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _educationalService ??=
-        Provider.of<EducationalContentService>(context, listen: false);
+    _educationalService ??= ref.read(educationalContentServiceProvider);
     if (!_trackedContentView) {
       final content = _educationalService!.getContentById(widget.contentId);
       if (content != null) {
@@ -47,8 +47,8 @@ class _ContentDetailScreenState extends State<ContentDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final educationalService =
-        _educationalService ?? Provider.of<EducationalContentService>(context);
-    final content = educationalService.getContentById(widget.contentId);
+        _educationalService ?? ref.read(educationalContentServiceProvider);
+    final content = educationalService!.getContentById(widget.contentId);
 
     if (content == null) {
       return Scaffold(

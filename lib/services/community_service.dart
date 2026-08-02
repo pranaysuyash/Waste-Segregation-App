@@ -173,14 +173,14 @@ class CommunityService {
         );
       }
 
-      return CommunityStatsConsistencyReport(
-        canonicalStats: const CommunityStats(
+      return const CommunityStatsConsistencyReport(
+        canonicalStats: CommunityStats(
           totalUsers: 0,
           totalClassifications: 0,
           totalPoints: 0,
         ),
         storedStats: null,
-        discrepancies: const [],
+        discrepancies: [],
         isInSync: true,
         repaired: false,
         repairAttempted: false,
@@ -195,7 +195,7 @@ class CommunityService {
     );
 
     final isInSync = discrepancies.isEmpty;
-    bool repaired = false;
+    var repaired = false;
 
     if (!isInSync && repairDrift && kDebugMode) {
       await _writeCommunityStats(computedStats, reason: 'reconcile');

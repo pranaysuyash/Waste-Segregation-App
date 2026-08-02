@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart' as provider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
@@ -12,6 +11,7 @@ import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
 import 'package:waste_segregation_app/models/filter_options.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 
 /// Mock Storage Service for testing
 class MockStorageService extends StorageService {
@@ -163,13 +163,3 @@ Widget createTestApp({
     overrides: overrides,
   );
 }
-
-// Provider definitions for testing
-final storageServiceProvider =
-    Provider<StorageService>((ref) => MockStorageService());
-final cloudStorageServiceProvider =
-    Provider<CloudStorageService>((ref) => MockCloudStorageService());
-final gamificationServiceProvider =
-    Provider<GamificationService>((ref) => MockGamificationService());
-final communityServiceProvider =
-    Provider<CommunityService>((ref) => MockCommunityService());

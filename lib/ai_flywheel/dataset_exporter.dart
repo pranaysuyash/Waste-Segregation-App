@@ -130,7 +130,7 @@ class DatasetExporter {
       eligible.add(c);
     }
 
-    eligible.sort((a, b) => ('${a['candidateId']}').compareTo('${b['candidateId']}'));
+    eligible.sort((a, b) => '${a['candidateId']}'.compareTo('${b['candidateId']}'));
 
     final out = Directory(outputDir);
     out.createSync(recursive: true);

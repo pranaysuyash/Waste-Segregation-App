@@ -3,9 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
-import 'package:waste_segregation_app/services/gamification_service.dart' show GamificationService;
-import 'package:waste_segregation_app/services/community_service.dart';
-import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/services/enhanced_storage_service.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/services/enhanced_image_service.dart';
@@ -132,7 +129,7 @@ class FirebaseCleanupService {
 
   Future<void> _wipeCloudAndFirestoreCache(String uid) async {
     WasteAppLogger.info('🔥 Wiping all Firestore documents for user: $uid');
-    final batch = _firestore.batch();
+    final docsToDelete = <DocumentReference>[];
 
     // Delete user-specific documents from various collections
     for (final collectionName in _userCollections) {
@@ -141,7 +138,7 @@ class FirebaseCleanupService {
           .where('userId', isEqualTo: uid)
           .get();
       for (final doc in snapshot.docs) {
-        batch.delete(doc.reference);
+        docsToDelete.add(doc.reference);
       }
       WasteAppLogger.info(
           '  - Found and staged ${snapshot.size} docs for deletion in "$collectionName"');
@@ -153,7 +150,7 @@ class FirebaseCleanupService {
         final docRef = _firestore.collection(collectionName).doc(uid);
         final docSnapshot = await docRef.get();
         if (docSnapshot.exists) {
-          batch.delete(docRef);
+          docsToDelete.add(docRef);
           WasteAppLogger.info(
               '  - Staged deletion for doc "$uid" in "$collectionName"');
         }
@@ -174,7 +171,7 @@ class FirebaseCleanupService {
               .get();
 
           for (final doc in subcollectionSnapshot.docs) {
-            batch.delete(doc.reference);
+            docsToDelete.add(doc.reference);
           }
           WasteAppLogger.info(
               '  - Found and staged ${subcollectionSnapshot.size} docs for deletion in "users/$uid/classifications"');
@@ -188,13 +185,27 @@ class FirebaseCleanupService {
     // Delete user from global collections
     for (final collectionName in _globalCollections) {
       final docRef = _firestore.collection(collectionName).doc(uid);
-      batch.delete(docRef);
+      docsToDelete.add(docRef);
       WasteAppLogger.info(
           '  - Staged deletion for doc "$uid" in "$collectionName"');
     }
 
-    await batch.commit();
-    WasteAppLogger.info('✅ Batch delete committed to Firestore.');
+    // Commit in chunks of 500 (Firestore limit)
+    const chunkSize = 500;
+    for (var i = 0; i < docsToDelete.length; i += chunkSize) {
+      final batch = _firestore.batch();
+      final end = (i + chunkSize < docsToDelete.length) ? i + chunkSize : docsToDelete.length;
+      final chunk = docsToDelete.sublist(i, end);
+      
+      for (final ref in chunk) {
+        batch.delete(ref);
+      }
+      
+      await batch.commit();
+      WasteAppLogger.info('✅ Batch delete committed (${chunk.length} documents).');
+    }
+    
+    WasteAppLogger.info('✅ All batch deletes committed to Firestore. Total: ${docsToDelete.length} documents.');
 
     // Crucially, clear the local persistence to prevent re-hydration
     await _firestore.clearPersistence();
@@ -202,30 +213,33 @@ class FirebaseCleanupService {
   }
 
   Future<void> _resetLocalHive() async {
-    WasteAppLogger.info('🔥 Resetting local Hive storage...');
-    await Hive.close();
-    for (final boxName in _hiveBoxesToNuke) {
-      try {
-        await Hive.deleteBoxFromDisk(boxName);
-        WasteAppLogger.info('  - Deleted box: $boxName');
-      } catch (e) {
-        WasteAppLogger.info(
-            '  - Could not delete box $boxName (may not exist): $e');
+    WasteAppLogger.info('🔥 Resetting local Hive storage by clearing boxes...');
+    try {
+      for (final boxName in _hiveBoxesToNuke) {
+        try {
+          if (Hive.isBoxOpen(boxName)) {
+            final box = Hive.box(boxName);
+            await box.clear();
+            WasteAppLogger.info('  - Cleared open box: $boxName');
+          } else {
+            // If the box isn't open, we can safely delete it from disk
+            await Hive.deleteBoxFromDisk(boxName);
+            WasteAppLogger.info('  - Deleted closed box: $boxName');
+          }
+        } catch (e) {
+          WasteAppLogger.info(
+              '  - Could not clear/delete box $boxName: $e');
+        }
       }
+      WasteAppLogger.info('✅ All Hive boxes cleared or deleted.');
+
+      // We no longer need to close Hive or re-initialize core services 
+      // because we just cleared the contents of the open boxes.
+      // This prevents 'Box has already been closed' errors in the UI.
+    } catch (e) {
+      WasteAppLogger.severe('❌ Failed to clean local Hive boxes: $e');
+      rethrow;
     }
-    WasteAppLogger.info('✅ All Hive boxes deleted from disk.');
-
-    // Re-initialize essential services to get the app back into a usable state
-    WasteAppLogger.info('🔄 Re-initializing core services...');
-    final storageService = EnhancedStorageService();
-    final gamificationService = GamificationService(
-        storageService, CloudStorageService(storageService));
-    final communityService = CommunityService();
-
-    await StorageService.initializeHive();
-    await gamificationService.initGamification();
-    await communityService.initCommunity();
-    WasteAppLogger.info('✅ Core services re-initialized.');
   }
 
   Future<void> _clearSharedPrefs() async {

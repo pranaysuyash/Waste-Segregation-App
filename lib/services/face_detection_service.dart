@@ -72,7 +72,7 @@ class FaceDetectionService {
       final w = face.bounds.width.toInt().clamp(1, decoded.width - x);
       final h = face.bounds.height.toInt().clamp(1, decoded.height - y);
 
-      _pixelate(decoded, x, y, w, h, blockSize: 10);
+      _pixelate(decoded, x, y, w, h);
       blurred++;
     }
 

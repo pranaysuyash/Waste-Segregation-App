@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
@@ -83,22 +84,16 @@ void main() {
     });
 
     Widget wrap() {
-      return MultiProvider(
-        providers: [
-          ChangeNotifierProvider<PremiumService>.value(value: premiumService),
-          Provider<StorageService>.value(value: storageService),
-          ChangeNotifierProvider<AdService>.value(value: adService),
-          ChangeNotifierProvider<AnalyticsService>.value(
-            value: analyticsService,
-          ),
-          Provider<GoogleDriveService>.value(value: googleDriveService),
-          Provider<CloudStorageService>.value(value: cloudStorageService),
-          ChangeNotifierProvider<NavigationSettingsService>.value(
-            value: navigationSettingsService,
-          ),
-          ChangeNotifierProvider<HapticSettingsService>.value(
-            value: hapticSettingsService,
-          ),
+      return ProviderScope(
+        overrides: [
+          premiumServiceProvider.overrideWithValue(premiumService),
+          storageServiceProvider.overrideWithValue(storageService),
+          adServiceProvider.overrideWithValue(adService),
+          analyticsServiceProvider.overrideWithValue(analyticsService),
+          googleDriveServiceProvider.overrideWithValue(googleDriveService),
+          cloudStorageServiceProvider.overrideWithValue(cloudStorageService),
+          navigationSettingsServiceProvider.overrideWithValue(navigationSettingsService),
+          hapticSettingsServiceProvider.overrideWithValue(hapticSettingsService),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,

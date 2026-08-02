@@ -40,10 +40,9 @@ class PerformanceOptimizer {
     EdgeInsets? padding,
   }) {
     return ListView.builder(
-      controller: controller,
+      cacheExtent: 500, controller: controller,
       padding: padding,
-      itemCount: items.length,
-      cacheExtent: 500, // Pre-cache items for smooth scrolling
+      itemCount: items.length, // Pre-cache items for smooth scrolling
       itemBuilder: (context, index) {
         if (index >= items.length) return const SizedBox.shrink();
         return itemBuilder(context, items[index], index);

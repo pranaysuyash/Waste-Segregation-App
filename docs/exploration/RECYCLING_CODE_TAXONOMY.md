@@ -1,7 +1,7 @@
 # Recycling Code Taxonomy
 
-**Status**: Exploration doc
-**Last Updated**: 2026-05-25
+**Status**: Implementation-Ready (Phase 1 complete, phase 2 in progress)
+**Last Updated**: 2026-06-01
 **Category**: Data & Standards / Disposal Knowledge
 **Parent**: [EXPLORATION_TOPICS.md](../EXPLORATION_TOPICS.md#a22-recycling-code-taxonomy-)
 **Related**: Region-Aware Rulesets (#4), Disposal Reasoning Stage (#3), EU Digital Product Passport (A23), Deterministic Classifier (G1)
@@ -24,6 +24,21 @@ Currently the taxonomy is implicit (defined in prompts and model training data, 
 4. **Versioning** — what happens when a city reclassifies a category or the EU updates its code system?
 5. **Cross-walk tables** — how does a label in one taxonomy (e.g., "PP #5" from visual classification) map to the same label in the rules corpus taxonomy?
 6. **GTIN/barcode → material mapping** — can the app resolve a barcode to a material classification?
+
+## Implementation Status (2026-06-01)
+
+- Added taxonomy fields to the core `WasteClassification` model and added persistence wiring.
+- Implemented parser support for optional taxonomy hints from provider payloads (`taxonomy*` and `taxonomy` object).
+- Added service-level taxonomy resolution with canonical provenance written into `localRegulations`.
+- Made taxonomy catalog loader path-robust and added fallback to embedded static JSON if assets are unavailable.
+
+## Future Exploration / Growth Map
+
+- Long-term: GTIN/UPC direct resolver and confidence-aware override strategy.
+- Long-term: bilingual and regional synonym packs for taxonomy tokenization.
+- Long-term: policy/taxonomy contradiction experiments and auto-override prompts for uncertainty.
+- Long-term: taxonomy version telemetry dashboards (resolution coverage, confidence drift, unknown family rate).
+- Long-term: user-facing evidence panel for resolved taxonomy + rule source rationale.
 
 ---
 
@@ -193,3 +208,28 @@ Maintain mapping tables between:
 - Should the taxonomy be an internal-only tool, or should parts of it be exposed to users (e.g., showing RIC codes on result cards)?
 - How should the app handle material claims from manufacturers that may be misleading (e.g., "compostable" plastic that isn't home-compostable)?
 - When EU DPP rollout reaches consumer products, should the app prioritise DPP resolver integration over vision-based classification for labelled items?
+
+## Addendum: packaged canonical catalog (2026-08-01)
+
+The implementation now loads the versioned catalog from
+`lib/data/recycling_taxonomy.json`, declared in `pubspec.yaml`. The runtime
+resolver does not maintain a second embedded production catalog. Tests may
+inject a compact JSON fixture through `fallbackJsonOverride`; this is a test
+seam, not a production fallback.
+
+If the asset cannot be loaded, the resolver logs the failure and returns an
+explicit unresolved result with `source: taxonomy_unavailable` and
+`method: asset_missing`. The classification itself remains available, but no
+taxonomy claim is attached.
+
+### Anything else?
+
+Yes. Asset packaging is part of the taxonomy contract. A valid JSON file that
+is not in the Flutter asset manifest is not a usable application data source.
+
+## Addendum: taxonomy status is user-visible (2026-08-02)
+
+Taxonomy resolution is now surfaced in the result decision summary. A missing
+taxonomy asset or low-confidence classification cannot appear as an ordinary
+local disposal instruction. The user is told to review or confirm the action,
+while the existing correction loop remains the recovery path.

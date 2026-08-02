@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/ad_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/visual_feedback_service.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/routes.dart';
 import '../utils/developer_config.dart';
+import '../providers/app_providers.dart';
 
 import '../widgets/settings/settings_widgets.dart';
 
@@ -13,14 +13,14 @@ import '../widgets/settings/settings_widgets.dart';
 /// This is the production route target for `Routes.settings`. It composes the
 /// extracted settings sections, keeps route wiring centralized, and moves the
 /// settings-side ad-state updates out of build-time work.
-class EnhancedSettingsScreen extends StatefulWidget {
+class EnhancedSettingsScreen extends ConsumerStatefulWidget {
   const EnhancedSettingsScreen({super.key});
 
   @override
-  State<EnhancedSettingsScreen> createState() => _EnhancedSettingsScreenState();
+  ConsumerState<EnhancedSettingsScreen> createState() => _EnhancedSettingsScreenState();
 }
 
-class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
+class _EnhancedSettingsScreenState extends ConsumerState<EnhancedSettingsScreen> {
   bool _showDeveloperOptions = false;
 
   @override
@@ -33,7 +33,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen> {
   void _initializeServices() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<AdService>()
+        ref.read(adServiceProvider)
           ..setInClassificationFlow(false)
           ..setInEducationalContent(false)
           ..setInSettings(true);

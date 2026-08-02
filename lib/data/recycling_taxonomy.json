@@ -1,0 +1,352 @@
+{
+  "version": "recycling-taxonomy-v1.0.0",
+  "effectiveDate": "2026-06-01",
+  "revision": "1.0.0",
+  "families": [
+    {
+      "id": "plastic",
+      "name": "Plastic",
+      "aliases": ["plastic", "plastics"]
+    },
+    {
+      "id": "glass",
+      "name": "Glass",
+      "aliases": ["glass", "glassware"]
+    },
+    {
+      "id": "paper",
+      "name": "Paper & Cardboard",
+      "aliases": ["paper", "paperboard", "cardboard"]
+    },
+    {
+      "id": "metal",
+      "name": "Metal",
+      "aliases": ["metal", "metals"]
+    },
+    {
+      "id": "organic",
+      "name": "Organic",
+      "aliases": ["organic", "bio", "biowaste", "wet"]
+    },
+    {
+      "id": "eewaste",
+      "name": "E-Waste",
+      "aliases": ["ewaste", "electronic waste", "electronic", "e-waste"]
+    },
+    {
+      "id": "hazardous",
+      "name": "Hazardous",
+      "aliases": ["hazardous", "chemical", "hazard"]
+    },
+    {
+      "id": "textile",
+      "name": "Textiles",
+      "aliases": ["textile", "fabric", "clothing"]
+    },
+    {
+      "id": "special",
+      "name": "Special & Other",
+      "aliases": ["special", "other", "composite", "mixed"]
+    }
+  ],
+  "categories": [
+    {
+      "id": "plastic.pet",
+      "name": "PET #1",
+      "familyId": "plastic",
+      "ricCodes": ["1", "pet"],
+      "aliases": ["pet", "pet bottle", "pet bottles", "water bottle", "soda bottle", "soft drink bottle", "food jar", "r1"],
+      "signals": {
+        "packagingTags": ["en:pet", "en:pet-bottle"],
+        "categoryTags": ["en:beverages", "en:packaged-foods"],
+        "keywords": ["pet", "1", "plastic bottle"]
+      },
+      "defaults": {
+        "recyclability": "potentially recyclable",
+        "material": "polyethylene terephthalate"
+      }
+    },
+    {
+      "id": "plastic.hdpe",
+      "name": "HDPE #2",
+      "familyId": "plastic",
+      "ricCodes": ["2", "hdpe"],
+      "aliases": ["hdpe", "high-density polyethylene", "milk jug", "detergent bottle", "milk jug", "shampoo bottle"],
+      "signals": {
+        "packagingTags": ["en:hdpe", "en:high-density-polyethylene"],
+        "categoryTags": ["en:packaged-foods", "en:home-care", "en:household-cleaners"],
+        "keywords": ["hdpe", "2", "milk jug", "detergent", "shampoo"]
+      },
+      "defaults": {
+        "recyclability": "highly recyclable",
+        "material": "high-density polyethylene"
+      }
+    },
+    {
+      "id": "plastic.pvc",
+      "name": "PVC #3",
+      "familyId": "plastic",
+      "ricCodes": ["3", "pvc"],
+      "aliases": ["pvc", "polyvinyl chloride", "pipe", "flexible tube", "medical tubing"],
+      "signals": {
+        "packagingTags": ["en:pvc", "en:polyvinyl-chloride"],
+        "categoryTags": ["en:building-materials", "en:pipes"],
+        "keywords": ["pvc", "3", "pipe"]
+      },
+      "defaults": {
+        "recyclability": "locally restricted",
+        "material": "polyvinyl chloride"
+      }
+    },
+    {
+      "id": "plastic.ldpe",
+      "name": "LDPE #4",
+      "familyId": "plastic",
+      "ricCodes": ["4", "ldpe"],
+      "aliases": ["ldpe", "low-density polyethylene", "plastic bag", "shrink wrap", "squeeze bottle", "plastic film"],
+      "signals": {
+        "packagingTags": ["en:ldpe", "en:low-density-polyethylene"],
+        "categoryTags": ["en:food-bags", "en:snack-food-packaging"],
+        "keywords": ["ldpe", "4", "plastic bag", "film"]
+      },
+      "defaults": {
+        "recyclability": "varies",
+        "material": "low-density polyethylene"
+      }
+    },
+    {
+      "id": "plastic.pp",
+      "name": "PP #5",
+      "familyId": "plastic",
+      "ricCodes": ["5", "pp"],
+      "aliases": ["pp", "polypropylene", "yogurt container", "medicine bottle", "food container", "straw", "cup", "caps"],
+      "signals": {
+        "packagingTags": ["en:pp", "en:polypropylene", "en:propelene"],
+        "categoryTags": ["en:food-containers", "en:medical-items"],
+        "keywords": ["pp", "5", "yogurt", "container"]
+      },
+      "defaults": {
+        "recyclability": "improving",
+        "material": "polypropylene"
+      }
+    },
+    {
+      "id": "plastic.ps",
+      "name": "PS #6",
+      "familyId": "plastic",
+      "ricCodes": ["6", "ps", "styrofoam", "eps"],
+      "aliases": ["polystyrene", "styrofoam", "thermocol", "takeout container", "foam cup", "foam"],
+      "signals": {
+        "packagingTags": ["en:ps", "en:eps", "en:polystyrene"],
+        "categoryTags": ["en:packaging", "en:takeout-food"],
+        "keywords": ["ps", "6", "styrofoam", "foam"]
+      },
+      "defaults": {
+        "recyclability": "contextual",
+        "material": "polystyrene"
+      }
+    },
+    {
+      "id": "plastic.other",
+      "name": "Other / Mixed #7",
+      "familyId": "plastic",
+      "ricCodes": ["7", "other", "pc", "pp-co-polymer", "ppc"],
+      "aliases": ["other plastics", "mixed plastic", "bioplastic", "multilayer"],
+      "signals": {
+        "packagingTags": ["en:other-plastics", "en:multilayer-material", "en:bioplastic"],
+        "categoryTags": ["en:other-packaging"],
+        "keywords": ["7", "mixed plastic", "multilayer", "bioplastic"]
+      },
+      "defaults": {
+        "recyclability": "facility dependent",
+        "material": "mixed plastic"
+      }
+    },
+    {
+      "id": "glass.clear",
+      "name": "Glass (Code 70)",
+      "familyId": "glass",
+      "ricCodes": ["70", "clear-glass"],
+      "aliases": ["clear glass", "transparent glass", "glass bottle"],
+      "signals": {
+        "packagingTags": ["en:glass", "en:clear-glass"],
+        "categoryTags": ["en:glass-bottles", "en:beverages"],
+        "keywords": ["clear glass", "glass", "70"]
+      },
+      "defaults": {
+        "recyclability": "recyclable",
+        "material": "soda-lime glass"
+      }
+    },
+    {
+      "id": "glass.green",
+      "name": "Green Glass (Code 71)",
+      "familyId": "glass",
+      "ricCodes": ["71", "green-glass"],
+      "aliases": ["green glass", "bottle green", "green wine bottle"],
+      "signals": {
+        "packagingTags": ["en:green-glass"],
+        "categoryTags": ["en:beverages", "en:wine"],
+        "keywords": ["green glass", "71"]
+      },
+      "defaults": {
+        "recyclability": "recyclable",
+        "material": "green-tinted glass"
+      }
+    },
+    {
+      "id": "glass.brown",
+      "name": "Brown Glass (Code 72)",
+      "familyId": "glass",
+      "ricCodes": ["72", "brown-glass"],
+      "aliases": ["brown glass", "amber glass", "beer bottle", "brown bottle"],
+      "signals": {
+        "packagingTags": ["en:brown-glass", "en:amber-glass"],
+        "categoryTags": ["en:beverages"],
+        "keywords": ["brown glass", "72"]
+      },
+      "defaults": {
+        "recyclability": "recyclable",
+        "material": "amber-tinted glass"
+      }
+    },
+    {
+      "id": "paper.cardboard",
+      "name": "Cardboard / Paper Packaging",
+      "familyId": "paper",
+      "ricCodes": ["paper", "cardboard", "occ"],
+      "aliases": ["cardboard", "paper box", "paper carton", "book paper", "corrugated"],
+      "signals": {
+        "packagingTags": ["en:paper", "en:cardboard", "en:paperboard"],
+        "categoryTags": ["en:paper", "en:packaging"],
+        "keywords": ["cardboard", "paper", "occ", "book"]
+      },
+      "defaults": {
+        "recyclability": "high",
+        "material": "cellulosic fiber"
+      }
+    },
+    {
+      "id": "metal.aluminum",
+      "name": "Aluminium",
+      "familyId": "metal",
+      "ricCodes": ["alu", "al", "aluminum", "aluminium"],
+      "aliases": ["aluminium", "aluminum", "aluminum can", "aluminium can"],
+      "signals": {
+        "packagingTags": ["en:aluminium", "en:aluminum"],
+        "categoryTags": ["en:beverages", "en:beverage-cans"],
+        "keywords": ["aluminium", "aluminum", "can"]
+      },
+      "defaults": {
+        "recyclability": "high",
+        "material": "aluminium"
+      }
+    },
+    {
+      "id": "metal.steel",
+      "name": "Tin/Steel",
+      "familyId": "metal",
+      "ricCodes": ["steel", "tin", "can-steel", "tin-can"],
+      "aliases": ["tin can", "steel can", "metal tin", "tin/tin-coated"],
+      "signals": {
+        "packagingTags": ["en:steel", "en:tin", "en:steel-can"],
+        "categoryTags": ["en:food-containers", "en:cans"],
+        "keywords": ["steel", "tin", "steel can", "tin can"]
+      },
+      "defaults": {
+        "recyclability": "high",
+        "material": "steel"
+      }
+    },
+    {
+      "id": "organic.wet",
+      "name": "Wet / Organic Waste",
+      "familyId": "organic",
+      "ricCodes": ["wet", "organic", "bio", "food"],
+      "aliases": ["wet waste", "organic waste", "food waste", "kitchen waste", "fruit", "vegetable", "food", "meat", "dairy"],
+      "signals": {
+        "packagingTags": ["en:beverages", "en:food"],
+        "categoryTags": ["en:foods", "en:fruits", "en:vegetables", "en:meats"],
+        "keywords": ["wet waste", "organic", "food", "fruit", "veg", "kitchen"]
+      },
+      "defaults": {
+        "recyclability": "non-recyclable",
+        "material": "organic"
+      }
+    },
+    {
+      "id": "eewaste.general",
+      "name": "General E-Waste",
+      "familyId": "eewaste",
+      "ricCodes": ["ewaste", "weee", "electronics"],
+      "aliases": ["electronics", "electronic item", "ewaste", "ewaste item", "electronic waste", "phone", "charger", "router"],
+      "signals": {
+        "packagingTags": ["en:electronics", "en:gadgets"],
+        "categoryTags": ["en:electronics", "en:technology"],
+        "keywords": ["electronic", "phone", "electronics", "ewaste"]
+      },
+      "defaults": {
+        "recyclability": "special collection",
+        "material": "electronics"
+      }
+    },
+    {
+      "id": "hazard.battery",
+      "name": "Battery",
+      "familyId": "hazardous",
+      "ricCodes": ["battery"],
+      "aliases": ["battery", "cell", "lithium battery", "alkaline battery", "button battery"],
+      "signals": {
+        "packagingTags": ["en:batteries", "en:battery"],
+        "categoryTags": ["en:batteries"],
+        "keywords": ["battery", "AA", "lithium", "button", "alkaline"]
+      },
+      "defaults": {
+        "recyclability": "hazardous collection",
+        "material": "battery"
+      }
+    },
+    {
+      "id": "hazard.chemical",
+      "name": "Chemical / Paint",
+      "familyId": "hazardous",
+      "ricCodes": ["chemical", "paint", "solvent"],
+      "aliases": ["chemical", "paint", "solvent", "pesticide", "cleaning chemical", "acid"],
+      "signals": {
+        "packagingTags": ["en:chemicals", "en:paint", "en:cleaners"],
+        "categoryTags": ["en:household-cleaners", "en:agrochemicals", "en:paint"],
+        "keywords": ["chemical", "paint", "solvent", "acid", "cleaner"]
+      },
+      "defaults": {
+        "recyclability": "hazardous collection",
+        "material": "chemicals"
+      }
+    },
+    {
+      "id": "hazard.medical",
+      "name": "Medical",
+      "familyId": "hazardous",
+      "ricCodes": ["medical", "clinical", "pharma", "pharmaceutical"],
+      "aliases": ["medical", "pharmaceutical", "syringe", "sharps", "prescription", "medicine"],
+      "signals": {
+        "packagingTags": ["en:health", "en:medicine", "en:medical"],
+        "categoryTags": ["en:health", "en:pharma"],
+        "keywords": ["medical", "pharmaceutical", "syringe", "sharps"]
+      },
+      "defaults": {
+        "recyclability": "hazardous pathway",
+        "material": "medical materials"
+      }
+    }
+  ],
+  "fallbackCategoryIds": {
+    "dry": "plastic.other",
+    "dry waste": "plastic.other",
+    "wet": "organic.wet",
+    "wet waste": "organic.wet",
+    "hazardous": "hazard.chemical",
+    "hazardous waste": "hazard.chemical",
+    "medical": "hazard.medical",
+    "medical waste": "hazard.medical"
+  }
+}

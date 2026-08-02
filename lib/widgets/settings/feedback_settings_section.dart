@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
-import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/widgets/settings/setting_tile.dart';
 import 'package:waste_segregation_app/widgets/settings/settings_theme.dart';
 
-class FeedbackSettingsSection extends StatefulWidget {
+class FeedbackSettingsSection extends ConsumerStatefulWidget {
   const FeedbackSettingsSection({super.key});
 
   @override
-  State<FeedbackSettingsSection> createState() =>
+  ConsumerState<FeedbackSettingsSection> createState() =>
       _FeedbackSettingsSectionState();
 }
 
-class _FeedbackSettingsSectionState extends State<FeedbackSettingsSection> {
+class _FeedbackSettingsSectionState extends ConsumerState<FeedbackSettingsSection> {
   bool _isLoading = true;
   bool _allowHistoryFeedback = true;
   int _feedbackTimeframeDays = 7;
@@ -27,8 +27,7 @@ class _FeedbackSettingsSectionState extends State<FeedbackSettingsSection> {
 
   Future<void> _loadSettings() async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       final settings = await storageService.getSettings();
       if (!mounted) return;
       setState(() {
@@ -47,8 +46,7 @@ class _FeedbackSettingsSectionState extends State<FeedbackSettingsSection> {
 
   Future<void> _toggleHistoryFeedback(bool value) async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       final settings = await storageService.getSettings();
       await storageService.saveSettings(
         isDarkMode: settings['isDarkMode'] ?? false,
@@ -68,8 +66,7 @@ class _FeedbackSettingsSectionState extends State<FeedbackSettingsSection> {
 
   Future<void> _updateFeedbackTimeframe(int value) async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       final settings = await storageService.getSettings();
       await storageService.saveSettings(
         isDarkMode: settings['isDarkMode'] ?? false,

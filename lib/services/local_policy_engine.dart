@@ -1,6 +1,8 @@
 import 'package:waste_segregation_app/models/waste_classification.dart';
+import 'package:waste_segregation_app/models/society_policy_override.dart';
 import 'package:waste_segregation_app/services/local_guidelines_plugin.dart';
 import 'package:waste_segregation_app/services/local_policy_rule_packs.dart';
+import 'package:waste_segregation_app/services/society_policy_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 
 /// Versioned policy pack metadata for provenance and rollout tracking.
@@ -16,9 +18,12 @@ class LocalPolicyRulePack {
     required this.categories,
     required this.rules,
     this.sourceUrl,
+    this.sourceTitle,
     this.helpline,
     this.lastVerified,
     this.nextReviewDue,
+    this.trustTier,
+    this.localName,
   });
 
   final String rulePackId;
@@ -31,9 +36,12 @@ class LocalPolicyRulePack {
   final List<String> categories;
   final List<LocalPolicyRule> rules;
   final String? sourceUrl;
+  final String? sourceTitle;
   final String? helpline;
   final String? lastVerified;
   final String? nextReviewDue;
+  final String? trustTier;
+  final String? localName;
 }
 
 /// Canonical compliance result produced before policy mutations are applied.
@@ -105,8 +113,9 @@ class LocalPolicyComplianceEvaluator {
     }
 
     final categoryKey = _toCategoryKey(classification.category);
-    final categoryRules =
-        rulePack.rules.where((rule) => rule.categoryKey == categoryKey);
+    final categoryRules = rulePack.rules.where(
+      (rule) => rule.categoryKey == categoryKey,
+    );
 
     for (final rule in categoryRules) {
       final passed = _evaluateRule(rule, classification);
@@ -140,14 +149,12 @@ class LocalPolicyComplianceEvaluator {
   /// Resolves the effective severity of a plugin-level violation, applying
   /// confidence gating.
   ///
-  /// Plugin violations come from [LocalGuidelinesPlugin.validateCompliance]
-  /// and are based on the plugin's deterministic rules applied to ML-sourced
-  /// fields. When confidence is low, those ML-sourced fields may be wrong,
-  /// so violations are demoted to warnings.
+  /// < 0.50  -> treated as low confidence path elsewhere; evaluator still
+  ///           returns warnings only for a safe fallback.
+  ///   >=0.50 -> apply warning demotion rules below.
   ///
-  ///   ≥ 0.70  — full enforcement
-  ///   0.50–0.69 — demoted to warning
-  ///   < 0.50  — demoted to warning
+  ///   0.50–0.69  — violations become warnings
+  ///   ≥0.70      — full enforcement
   LocalPolicyRuleSeverity _resolvePluginViolationSeverity(
     String violation,
     double confidence,
@@ -159,33 +166,15 @@ class LocalPolicyComplianceEvaluator {
   /// Resolves the effective severity of a rule-pack rule, applying confidence
   /// gating.
   ///
-  /// Rules with check type `safetyOverrideAlways` are held to a higher
-  /// standard — they remain violations at ≥0.70 but demote below that.
-  ///
-  ///   ≥ 0.90  — full enforcement per rule
-  ///   0.70–0.89 — safetyOverrideAlways stays violation; others stay as-is
-  ///   0.50–0.69 — all violations demoted to warning
-  ///   < 0.50  — all violations demoted to warning
+  /// - >= 0.90  — full enforcement per rule
+  /// - 0.70–0.89 — keep configured severity (safety overrides preserved)
+  /// - < 0.70 — all rule failures are warnings when policy is applied
   LocalPolicyRuleSeverity _resolveRuleSeverity(
     LocalPolicyRule rule,
     double confidence,
   ) {
     if (confidence >= 0.90) return rule.severity;
-
-    if (confidence >= 0.70) {
-      if (rule.checkType == LocalPolicyRuleCheckType.safetyOverrideAlways) {
-        return rule.severity;
-      }
-      return rule.severity;
-    }
-
-    if (confidence >= 0.50) {
-      if (rule.checkType == LocalPolicyRuleCheckType.safetyOverrideAlways) {
-        return LocalPolicyRuleSeverity.warning;
-      }
-      return LocalPolicyRuleSeverity.warning;
-    }
-
+    if (confidence >= 0.70) return rule.severity;
     return LocalPolicyRuleSeverity.warning;
   }
 
@@ -230,10 +219,21 @@ class LocalPolicyDecision {
     this.warnings = const <String>[],
     this.recommendations = const <String>[],
     this.sourceUrl,
+    this.sourceTitle,
     this.helpline,
     this.lastVerified,
+    this.nextReviewDue,
+    this.trustTier,
+    this.localName,
     this.confidenceGated = false,
+    this.confidenceState,
+    this.societyId,
+    this.societyName,
+    this.societyConflictCount = 0,
+    this.societyConflicts = const <String>[],
+    this.societyOverrides = const <String>[],
     this.originalSeverity,
+    this.ruleOverridesApplied = const <String>[],
   });
 
   final WasteClassification classification;
@@ -251,10 +251,31 @@ class LocalPolicyDecision {
 
   // Provenance card fields
   final String? sourceUrl;
+  final String? sourceTitle;
   final String? helpline;
   final String? lastVerified;
+  final String? nextReviewDue;
+  final String? trustTier;
+  final String? localName;
   final bool confidenceGated;
+  final String? confidenceState;
+  final String? societyId;
+  final String? societyName;
+  final int societyConflictCount;
+  final List<String> societyConflicts;
+  final List<String> societyOverrides;
+  final List<String> ruleOverridesApplied;
   final String? originalSeverity;
+}
+
+class _SocietyRuleLayerResult {
+  const _SocietyRuleLayerResult({
+    required this.classification,
+    required this.societyDecision,
+  });
+
+  final WasteClassification classification;
+  final SocietyAwareDecision societyDecision;
 }
 
 /// Canonical policy engine that routes classification outputs through
@@ -265,8 +286,8 @@ class LocalPolicyEngine {
         const LocalPolicyComplianceEvaluator(),
     LocalPolicyRulePackRegistry rulePackRegistry =
         const LocalPolicyRulePackRegistry(),
-  })  : _complianceEvaluator = complianceEvaluator,
-        _rulePackRegistry = rulePackRegistry;
+  }) : _complianceEvaluator = complianceEvaluator,
+       _rulePackRegistry = rulePackRegistry;
 
   final LocalPolicyComplianceEvaluator _complianceEvaluator;
   final LocalPolicyRulePackRegistry _rulePackRegistry;
@@ -275,11 +296,14 @@ class LocalPolicyEngine {
     required WasteClassification classification,
     required String region,
     String? societyId,
+    SocietyPolicyService? societyPolicyService,
   }) async {
     final plugin = LocalGuidelinesManager.getPluginForRegion(region);
     if (plugin == null) {
-      WasteAppLogger.info('No local policy plugin matched region',
-          context: {'region': region});
+      WasteAppLogger.info(
+        'No local policy plugin matched region',
+        context: {'region': region},
+      );
       return LocalPolicyDecision(
         classification: classification,
         policyApplied: false,
@@ -288,44 +312,143 @@ class LocalPolicyEngine {
     }
 
     final rulePack = _buildRulePack(plugin);
+    final confidence = classification.confidence ?? 1.0;
+    final confidenceState = _confidenceState(confidence);
+    final shouldApplyPolicy = confidence >= 0.50;
+    final isConfidenceGated = confidence >= 0.50 && confidence < 0.70;
+
+    if (!shouldApplyPolicy) {
+      return LocalPolicyDecision(
+        classification: classification,
+        policyApplied: false,
+        evaluatedAt: DateTime.now(),
+        pluginId: plugin.pluginId,
+        authorityName: plugin.authorityName,
+        guidelinesVersion: plugin.guidelinesVersion,
+        rulePackId: rulePack.rulePackId,
+        rulePack: rulePack,
+        sourceUrl: rulePack.sourceUrl,
+        sourceTitle: rulePack.sourceTitle,
+        helpline: rulePack.helpline,
+        lastVerified: rulePack.lastVerified,
+        nextReviewDue: rulePack.nextReviewDue,
+        trustTier: rulePack.trustTier,
+        localName: rulePack.localName,
+        confidenceGated: true,
+        confidenceState: confidenceState,
+        warnings: const [
+          'Confidence below 0.50: municipal policy checks were skipped.',
+        ],
+      );
+    }
+
     final compliance = _complianceEvaluator.evaluate(
       plugin: plugin,
       classification: classification,
       rulePack: rulePack,
     );
+
     final updated = await plugin.applyLocalGuidelines(classification);
+    final appliedSocietyResult = await _applySocietyOverrides(
+      baseClassification: updated,
+      societyId: societyId,
+      plugin: plugin,
+      categoryKey: _toCategoryKey(updated.category),
+      service: societyPolicyService,
+    );
+    final policyClassification = appliedSocietyResult.classification;
 
-    final confidence = classification.confidence ?? 1.0;
-    final isConfidenceGated = confidence < 0.70;
+    final warnings = [...compliance.warnings];
+    final violations = [...compliance.violations];
 
-    if (societyId != null) {
-      WasteAppLogger.info('Applying policy with society override',
-          context: {'societyId': societyId, 'region': region});
+    if (isConfidenceGated) {
+      warnings.addAll(
+        violations
+            .where((violation) => !violation.contains('[confidence_gated]'))
+            .map((violation) => '[confidence_gated] $violation'),
+      );
+      warnings.addAll(appliedSocietyResult.societyDecision.conflicts);
+      violations.clear();
+    } else {
+      violations.addAll(const <String>[]);
+      warnings.addAll(appliedSocietyResult.societyDecision.conflicts);
     }
 
-    return LocalPolicyDecision(
-      classification: updated,
+    final freshnessWarnings = _freshnessWarnings(rulePack);
+    if (freshnessWarnings.isNotEmpty) {
+      warnings.addAll(freshnessWarnings);
+    }
+
+    String status;
+    if (violations.isNotEmpty) {
+      status = 'violation';
+    } else if (warnings.isNotEmpty) {
+      status = 'requires_attention';
+    } else {
+      status = 'compliant';
+    }
+
+    final policyDecision = LocalPolicyDecision(
+      classification: policyClassification,
       policyApplied: true,
       evaluatedAt: DateTime.now(),
       pluginId: plugin.pluginId,
       authorityName: plugin.authorityName,
       guidelinesVersion: plugin.guidelinesVersion,
       rulePackId: rulePack.rulePackId,
-      complianceStatus: compliance.status,
+      complianceStatus: status,
       rulePack: rulePack,
-      violations: compliance.violations,
-      warnings: compliance.warnings,
+      violations: _dedupeAndSort(violations),
+      warnings: _dedupeAndSort(warnings),
       recommendations: compliance.recommendations,
       sourceUrl: rulePack.sourceUrl,
+      sourceTitle: rulePack.sourceTitle,
       helpline: rulePack.helpline,
       lastVerified: rulePack.lastVerified,
+      nextReviewDue: rulePack.nextReviewDue,
+      trustTier: rulePack.trustTier,
+      localName: rulePack.localName,
       confidenceGated: isConfidenceGated,
+      confidenceState: confidenceState,
+      societyId: appliedSocietyResult.societyDecision.society?.societyId,
+      societyName: appliedSocietyResult.societyDecision.society?.societyName,
+      societyConflictCount:
+          appliedSocietyResult.societyDecision.conflicts.length,
+      societyConflicts: appliedSocietyResult.societyDecision.conflicts,
+      societyOverrides: appliedSocietyResult.societyDecision.appliedOverrides
+          .map(
+            (override) =>
+                '${override.categoryKey}:${override.overrideType.name}=${override.value}',
+          )
+          .toList(),
+      ruleOverridesApplied: appliedSocietyResult
+          .societyDecision
+          .appliedOverrides
+          .map(
+            (override) =>
+                '${override.categoryKey}:${override.overrideType.name}',
+          )
+          .toList(),
     );
+
+    if (societyId != null) {
+      WasteAppLogger.info(
+        'Applied policy with society override',
+        context: {
+          'societyId': societyId,
+          'region': region,
+          'societyConflicts': policyDecision.societyConflictCount,
+        },
+      );
+    }
+
+    return policyDecision;
   }
 
   LocalPolicyRulePack _buildRulePack(LocalGuidelinesPlugin plugin) {
     final categories = plugin.getColorCoding().keys.toList()..sort();
     final definition = _rulePackRegistry.getPackForPlugin(plugin.pluginId);
+    final cityData = plugin.cityData;
     return LocalPolicyRulePack(
       rulePackId: '${plugin.pluginId}:${plugin.guidelinesVersion}',
       pluginId: plugin.pluginId,
@@ -336,6 +459,282 @@ class LocalPolicyEngine {
       owningTeam: definition.owningTeam,
       categories: categories,
       rules: definition.rules,
+      sourceUrl: cityData?.sourceUrl,
+      sourceTitle: cityData?.sourceTitle,
+      helpline: cityData?.helpline,
+      lastVerified: cityData?.lastVerified,
+      nextReviewDue: cityData?.nextReviewDue,
+      trustTier: cityData?.trustTier,
+      localName: cityData?.localName,
     );
+  }
+
+  String _confidenceState(double confidence) {
+    if (confidence < 0.50) return 'not_applied';
+    if (confidence < 0.70) return 'warning_only';
+    if (confidence < 0.90) return 'full_softened';
+    return 'full';
+  }
+
+  List<String> _freshnessWarnings(LocalPolicyRulePack rulePack) {
+    if (rulePack.nextReviewDue == null) {
+      return const <String>[];
+    }
+
+    final reviewDate = DateTime.tryParse(rulePack.nextReviewDue!);
+    if (reviewDate == null) {
+      return const <String>[
+        '[freshness] Policy source review date is missing or malformed.',
+      ];
+    }
+
+    if (DateTime.now().isAfter(reviewDate)) {
+      return <String>[
+        '[freshness] Policy source is overdue for review since '
+            '${rulePack.nextReviewDue}.',
+      ];
+    }
+
+    return const <String>[];
+  }
+
+  List<String> _dedupeAndSort(Iterable<String> source) {
+    final values = <String>{};
+    final deduped = <String>[];
+    for (final value in source) {
+      if (values.add(value)) {
+        deduped.add(value);
+      }
+    }
+    deduped.sort();
+    return deduped;
+  }
+
+  Future<_SocietyRuleLayerResult> _applySocietyOverrides({
+    required WasteClassification baseClassification,
+    required String? societyId,
+    required LocalGuidelinesPlugin plugin,
+    required String categoryKey,
+    required SocietyPolicyService? service,
+  }) async {
+    if (societyId == null) {
+      return _SocietyRuleLayerResult(
+        classification: baseClassification,
+        societyDecision: const SocietyAwareDecision(
+          society: null,
+          appliedOverrides: <RuleOverride>[],
+          conflicts: <String>[],
+        ),
+      );
+    }
+
+    final resolvedService = service ?? SocietyPolicyService();
+    final societyPolicy = await resolvedService.getSocietyPolicy(societyId);
+    if (societyPolicy == null) {
+      return _SocietyRuleLayerResult(
+        classification: baseClassification,
+        societyDecision: const SocietyAwareDecision(
+          society: null,
+          appliedOverrides: <RuleOverride>[],
+          conflicts: <String>[],
+        ),
+      );
+    }
+
+    if (societyPolicy.basePluginId != plugin.pluginId) {
+      return _SocietyRuleLayerResult(
+        classification: baseClassification,
+        societyDecision: SocietyAwareDecision(
+          society: societyPolicy,
+          appliedOverrides: const <RuleOverride>[],
+          conflicts: [
+            'Society profile basePluginId (${societyPolicy.basePluginId}) does not '
+                'match resolved plugin (${plugin.pluginId}).',
+          ],
+        ),
+      );
+    }
+
+    final applicableOverrides = societyPolicy.overrides
+        .where((override) => override.categoryKey == categoryKey)
+        .toList();
+
+    if (applicableOverrides.isEmpty) {
+      return _SocietyRuleLayerResult(
+        classification: baseClassification,
+        societyDecision: SocietyAwareDecision(
+          society: societyPolicy,
+          appliedOverrides: const <RuleOverride>[],
+          conflicts: const <String>[],
+        ),
+      );
+    }
+
+    var updated = baseClassification;
+    final conflicts = <String>[];
+    final regulations = Map<String, String>.from(
+      updated.localRegulations ?? const <String, String>{},
+    );
+
+    final cityColor = plugin.getColorCoding();
+    final citySchedule = plugin.getCollectionSchedule();
+    final cityDisposal = plugin.getLocalDisposalInstructions(
+      baseClassification.category,
+      baseClassification.subCategory,
+    );
+
+    for (final override in applicableOverrides) {
+      switch (override.overrideType) {
+        case RuleOverrideType.binColor:
+          final cityValue = cityColor[categoryKey];
+          if (cityValue != null && !_safeEquals(cityValue, override.value)) {
+            conflicts.add(
+              'City bin guidance conflicts with society bin override '
+              '($cityValue vs ${override.value}).',
+            );
+          }
+          regulations['bin'] = override.value;
+          break;
+
+        case RuleOverrideType.collectionFrequency:
+          final cityFrequency = citySchedule[categoryKey]?['frequency'];
+          if (cityFrequency != null &&
+              !_safeEquals(cityFrequency, override.value)) {
+            conflicts.add(
+              'City collection frequency conflicts with society override '
+              '($cityFrequency vs ${override.value}).',
+            );
+          }
+          regulations['collection_frequency'] = override.value;
+          break;
+
+        case RuleOverrideType.disposalMethod:
+          final cityDisposalMethod = cityDisposal?['primaryMethod'];
+          if (cityDisposalMethod != null &&
+              !_safeEquals(cityDisposalMethod, override.value)) {
+            conflicts.add(
+              'City disposal method conflicts with society override '
+              '($cityDisposalMethod vs ${override.value}).',
+            );
+          }
+          updated = _overrideDisposalMethod(updated, override.value);
+          regulations['disposal_method_override'] = override.value;
+          break;
+
+        case RuleOverrideType.collectionLocation:
+          final cityLocation = cityDisposal?['location'];
+          if (cityLocation != null &&
+              !_safeEquals(cityLocation, override.value)) {
+            conflicts.add(
+              'City collection location conflicts with society override '
+              '($cityLocation vs ${override.value}).',
+            );
+          }
+          updated = _overrideDisposalLocation(updated, override.value);
+          regulations['collection_location_override'] = override.value;
+          break;
+
+        case RuleOverrideType.bannedItem:
+          if (updated.visualFeatures.any(
+            (feature) => _safeEquals(feature, override.value),
+          )) {
+            conflicts.add(
+              'Visual content contains item banned by society policy: '
+              '${override.value}.',
+            );
+          }
+          final banned = _appendPipeSeparatedValue(
+            existing: regulations['society_banned_items'],
+            value: override.value,
+          );
+          regulations['society_banned_items'] = banned;
+          break;
+
+        case RuleOverrideType.customInstruction:
+          final instructions = _appendPipeSeparatedValue(
+            existing: regulations['society_custom_instructions'],
+            value: override.value,
+          );
+          regulations['society_custom_instructions'] = instructions;
+          break;
+      }
+    }
+
+    updated = updated.copyWith(localRegulations: regulations);
+
+    return _SocietyRuleLayerResult(
+      classification: updated,
+      societyDecision: SocietyAwareDecision(
+        society: societyPolicy,
+        appliedOverrides: applicableOverrides,
+        conflicts: conflicts,
+      ),
+    );
+  }
+
+  bool _safeEquals(String a, String b) {
+    return a.trim().toLowerCase() == b.trim().toLowerCase();
+  }
+
+  String _appendPipeSeparatedValue({
+    required String? existing,
+    required String value,
+  }) {
+    final parts = existing
+        ?.split('|')
+        .map((v) => v.trim())
+        .where((v) => v.isNotEmpty)
+        .toSet();
+
+    if (parts == null || parts.isEmpty) {
+      return value;
+    }
+    parts.add(value);
+    return parts.join('|');
+  }
+
+  WasteClassification _overrideDisposalMethod(
+    WasteClassification classification,
+    String disposalMethod,
+  ) {
+    final sourceInstructions = classification.disposalInstructions;
+    final nextInstructions = DisposalInstructions(
+      primaryMethod: disposalMethod,
+      steps: sourceInstructions.steps,
+      timeframe: sourceInstructions.timeframe,
+      location: sourceInstructions.location,
+      warnings: sourceInstructions.warnings,
+      tips: sourceInstructions.tips,
+      recyclingInfo: sourceInstructions.recyclingInfo,
+      estimatedTime: sourceInstructions.estimatedTime,
+      hasUrgentTimeframe: sourceInstructions.hasUrgentTimeframe,
+    );
+    return classification.copyWith(
+      disposalMethod: disposalMethod,
+      disposalInstructions: nextInstructions,
+    );
+  }
+
+  WasteClassification _overrideDisposalLocation(
+    WasteClassification classification,
+    String location,
+  ) {
+    final sourceInstructions = classification.disposalInstructions;
+    final nextInstructions = DisposalInstructions(
+      primaryMethod: sourceInstructions.primaryMethod,
+      steps: sourceInstructions.steps,
+      timeframe: sourceInstructions.timeframe,
+      location: location,
+      warnings: sourceInstructions.warnings,
+      tips: sourceInstructions.tips,
+      recyclingInfo: sourceInstructions.recyclingInfo,
+      estimatedTime: sourceInstructions.estimatedTime,
+      hasUrgentTimeframe: sourceInstructions.hasUrgentTimeframe,
+    );
+    return classification.copyWith(disposalInstructions: nextInstructions);
+  }
+
+  String _toCategoryKey(String category) {
+    return category.toLowerCase().replaceAll(' ', '_');
   }
 }

@@ -117,6 +117,23 @@ class MockStorageService extends _i1.Mock implements _i4.StorageService {
       ) as _i5.Future<void>);
 
   @override
+  _i5.Future<Map<String, int>> migrateLocalIdentity({
+    required String? fromUserId,
+    required String? toUserId,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #migrateLocalIdentity,
+          [],
+          {
+            #fromUserId: fromUserId,
+            #toUserId: toUserId,
+          },
+        ),
+        returnValue: _i5.Future<Map<String, int>>.value(<String, int>{}),
+      ) as _i5.Future<Map<String, int>>);
+
+  @override
   _i5.Future<void> updateTrainingConsent(
           _i6.TrainingConsent? trainingConsent) =>
       (super.noSuchMethod(
@@ -602,6 +619,16 @@ class MockCloudStorageService extends _i1.Mock
           Invocation.getter(#localStorageService),
         ),
       ) as _i4.StorageService);
+
+  @override
+  _i5.Future<_i6.UserProfile?> fetchUserProfileFromFirestore(String? userId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #fetchUserProfileFromFirestore,
+          [userId],
+        ),
+        returnValue: _i5.Future<_i6.UserProfile?>.value(),
+      ) as _i5.Future<_i6.UserProfile?>);
 
   @override
   _i5.Future<void> saveUserProfileToFirestore(

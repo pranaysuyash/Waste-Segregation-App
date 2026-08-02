@@ -12,6 +12,13 @@ import '../utils/waste_app_logger.dart';
 import 'package:uuid/uuid.dart';
 import 'firestore_schema_registry.dart';
 
+typedef BatchImageUploadFn = Future<String> Function(
+  BatchAnalysisRequest request,
+  CloudStorageService cloudStorage,
+);
+typedef BatchCallableFn = Future<Map<String, dynamic>> Function(String imagePath);
+typedef BatchJobUpdatesFn = Stream<Map<String, dynamic>?> Function(String jobId);
+
 /// Represents a queued image analysis request
 class BatchAnalysisRequest {
   BatchAnalysisRequest({
@@ -56,11 +63,17 @@ class BatchingService {
     VisionModelConfig? config,
     CloudStorageService? cloudStorageService,
     StorageService? storageService,
+    BatchImageUploadFn? imageUploadOverride,
+    BatchCallableFn? callableOverride,
+    BatchJobUpdatesFn? jobUpdatesOverride,
   })  : _config = config ?? VisionModelConfig.batchCloud(),
         _pendingRequests = <BatchAnalysisRequest>[],
         _processingTimer = null,
         _cloudStorageService = cloudStorageService,
-        _storageService = storageService ?? StorageService();
+        _storageService = storageService ?? StorageService(),
+        _imageUploadOverride = imageUploadOverride,
+        _callableOverride = callableOverride,
+        _jobUpdatesOverride = jobUpdatesOverride;
 
   final VisionModelConfig _config;
   final List<BatchAnalysisRequest> _pendingRequests;
@@ -68,7 +81,10 @@ class BatchingService {
   bool _isProcessing = false;
   final CloudStorageService? _cloudStorageService;
   final StorageService _storageService;
-  final Map<String, StreamSubscription<DocumentSnapshot>> _jobSubscriptions = {};
+  final Map<String, StreamSubscription<Map<String, dynamic>?>> _jobSubscriptions = {};
+  final BatchImageUploadFn? _imageUploadOverride;
+  final BatchCallableFn? _callableOverride;
+  final BatchJobUpdatesFn? _jobUpdatesOverride;
 
   /// Queue an image for batch analysis
   ///
@@ -226,18 +242,10 @@ class BatchingService {
     await tempFile.writeAsBytes(request.imageBytes);
 
     try {
-      final imagePath = await cloudStorage.uploadImageForBatchProcessing(
-        tempFile,
-        request.userId!,
-      );
-
-      final callable = FirebaseFunctions.instanceFor(region: 'asia-south1')
-          .httpsCallable('createBatchAiJob');
-      final response = await callable.call(<String, dynamic>{
-        'imageUrl': imagePath,
-      });
-
-      final payload = Map<String, dynamic>.from(response.data as Map);
+      final imagePath = await (_imageUploadOverride?.call(request, cloudStorage) ??
+          cloudStorage.uploadImageForBatchProcessing(tempFile, request.userId!));
+      final payload = await (_callableOverride?.call(imagePath) ??
+          _invokeCreateBatchAiJob(imagePath));
       final success = payload['success'] == true;
       final jobId = (payload['jobId'] as String?)?.trim() ?? '';
 
@@ -251,24 +259,52 @@ class BatchingService {
       });
 
       return jobId;
+    } on FirebaseFunctionsException catch (e, s) {
+      WasteAppLogger.warning(
+        'createBatchAiJob callable rejected request',
+        error: e,
+        stackTrace: s,
+        context: {
+          'code': e.code,
+          'message': e.message,
+          'requestId': request.id,
+        },
+      );
+      throw Exception(
+        'createBatchAiJob failed (${e.code}): ${e.message ?? 'unknown error'}',
+      );
     } finally {
-      if (await tempFile.exists()) {
+      try {
         await tempFile.delete();
+      } on FileSystemException {
+        // Best-effort temp cleanup: file may already be removed.
       }
     }
+  }
+
+  Future<Map<String, dynamic>> _invokeCreateBatchAiJob(String imagePath) async {
+    final callable = FirebaseFunctions.instanceFor(region: 'asia-south1')
+        .httpsCallable('createBatchAiJob');
+    final response = await callable.call(<String, dynamic>{
+      'imageUrl': imagePath,
+    });
+    return Map<String, dynamic>.from(response.data as Map);
   }
 
   /// Listens on Firestore ai_jobs/{jobId} for the analysis result
   void _listenForJobResult(
       BatchAnalysisRequest request, String jobId) {
-    final subscription = FirebaseFirestore.instance
-        .collection(FirestoreCollections.aiJobs)
-        .doc(jobId)
-        .snapshots()
-        .listen((snapshot) {
-      if (!snapshot.exists) return;
+    final updatesStream = _jobUpdatesOverride?.call(jobId) ??
+        FirebaseFirestore.instance
+            .collection(FirestoreCollections.aiJobs)
+            .doc(jobId)
+            .snapshots()
+            .map((snapshot) => snapshot.exists ? snapshot.data() : null);
 
-      final data = snapshot.data();
+    // ignore: cancel_subscriptions
+    final subscription = updatesStream
+        .listen((snapshot) {
+      final data = snapshot;
       if (data == null) return;
 
       final status = (data['status'] as String?) ?? '';

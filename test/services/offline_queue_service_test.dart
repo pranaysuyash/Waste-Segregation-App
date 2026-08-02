@@ -74,6 +74,7 @@ void main() {
         'totalQueued': 1,
         'processed': 0,
         'pending': 1,
+        'deadLetter': 0,
       });
 
       final pending = queueService.getPendingItems();
@@ -103,6 +104,7 @@ void main() {
         'totalQueued': 0,
         'processed': 0,
         'pending': 0,
+        'deadLetter': 0,
       });
       expect(analyticsEvents, hasLength(2));
       expect(analyticsEvents.last['eventName'], 'queue_cleared');

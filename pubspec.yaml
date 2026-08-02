@@ -144,3 +144,4 @@ flutter:
     - assets/icons/
     - assets/docs/
     - assets/models/ # TFLite model files (download separately)
+    - lib/data/recycling_taxonomy.json

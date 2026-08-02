@@ -1,6 +1,6 @@
 # Token Economy Phase 2-6 Implementation TODO
 
-**Status Update**: Phase 4 complete (HMAC, backup/restore, audit logging). Phase 5: Remote Config pricing, cost guardrails, freemium gating, and daily scan limit enforcement are done. Gaps: cross-device sync is one-way push (not bidirectional), token purchase storefront not built, batch processing returns placeholder results (OpenAI Batch API not integrated). Phase 6: TokenService and WalletEncryption unit tests exist and pass; integration, performance, security, and UAT tests still needed.
+**Status Update**: Phase 4 complete (HMAC, backup/restore, audit logging). Phase 5: Remote Config pricing, cost guardrails, freemium gating, daily scan limit enforcement, and real Firebase batch callable path are in place. Gaps: cross-device sync is one-way push (not bidirectional) and token purchase storefront is not built. Phase 6: TokenService and WalletEncryption unit tests exist and pass; integration, performance, security, and UAT tests still needed.
 
 ## Phase 4: Security & Infrastructure
 - [x] Implement Firestore security rules for wallet data protection

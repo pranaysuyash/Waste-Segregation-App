@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/community_feed.dart';
 import '../services/community_service.dart';
 import '../services/moderation_service.dart';
-import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import '../widgets/modern_ui/modern_cards.dart';
 import 'package:flutter/foundation.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import '../providers/app_providers.dart';
 
-class CommunityScreen extends StatefulWidget {
+class CommunityScreen extends ConsumerStatefulWidget {
   const CommunityScreen({super.key, this.showAppBar = true});
   final bool showAppBar;
 
   @override
-  State<CommunityScreen> createState() => _CommunityScreenState();
+  ConsumerState<CommunityScreen> createState() => _CommunityScreenState();
 }
 
-class _CommunityScreenState extends State<CommunityScreen>
+class _CommunityScreenState extends ConsumerState<CommunityScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
   List<CommunityFeedItem> _feedItems = [];
@@ -79,14 +79,8 @@ class _CommunityScreenState extends State<CommunityScreen>
     });
 
     try {
-      final storageService = Provider.of<StorageService>(
-        context,
-        listen: false,
-      );
-      final communityService = Provider.of<CommunityService>(
-        context,
-        listen: false,
-      );
+      final storageService = ref.read(storageServiceProvider);
+      final communityService = ref.read(communityServiceProvider);
       final userProfile = await storageService.getCurrentUserProfile();
 
       if (userProfile != null) {
@@ -324,8 +318,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                   ],
                 ),
               ),
-              Expanded(
-                flex: 0,
+              Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
@@ -766,10 +759,7 @@ class _CommunityScreenState extends State<CommunityScreen>
       })> _fetchCommunitySnapshot({
     required bool runDriftCheck,
   }) async {
-    final communityService = Provider.of<CommunityService>(
-      context,
-      listen: false,
-    );
+    final communityService = ref.read(communityServiceProvider);
 
     await communityService.initCommunity();
 

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/models/filter_options.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/screens/history_screen.dart';
@@ -97,17 +98,13 @@ void main() {
       )).thenAnswer((_) async => [testClassification]);
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: MultiProvider(
-            providers: [
-              Provider<StorageService>.value(value: mockStorageService),
-              Provider<CloudStorageService>.value(
-                  value: mockCloudStorageService),
-              ChangeNotifierProvider<AnalyticsService>.value(
-                  value: mockAnalyticsService),
-            ],
-            child: const HistoryScreen(),
-          ),
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(mockStorageService),
+            cloudStorageServiceProvider.overrideWithValue(mockCloudStorageService),
+            analyticsServiceProvider.overrideWithValue(mockAnalyticsService),
+          ],
+          child: const MaterialApp(home: HistoryScreen()),
         ),
       );
 
@@ -158,17 +155,13 @@ void main() {
       });
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: MultiProvider(
-            providers: [
-              Provider<StorageService>.value(value: mockStorageService),
-              Provider<CloudStorageService>.value(
-                  value: mockCloudStorageService),
-              ChangeNotifierProvider<AnalyticsService>.value(
-                  value: mockAnalyticsService),
-            ],
-            child: const HistoryScreen(),
-          ),
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(mockStorageService),
+            cloudStorageServiceProvider.overrideWithValue(mockCloudStorageService),
+            analyticsServiceProvider.overrideWithValue(mockAnalyticsService),
+          ],
+          child: const MaterialApp(home: HistoryScreen()),
         ),
       );
 

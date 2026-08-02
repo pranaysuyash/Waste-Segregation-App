@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/cached_classification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
@@ -6,6 +7,8 @@ import 'package:waste_segregation_app/services/classification_result_processor.d
 import 'package:waste_segregation_app/services/local_policy_engine.dart';
 import 'package:waste_segregation_app/services/providers/ai_provider_response.dart';
 import 'package:waste_segregation_app/services/cache_service.dart';
+import 'package:waste_segregation_app/services/recycling_taxonomy_service.dart';
+import 'package:waste_segregation_app/services/society_policy_service.dart';
 
 // ---------------------------------------------------------------------------
 // Fakes
@@ -35,6 +38,7 @@ class _FakePolicyEngine extends LocalPolicyEngine {
     required WasteClassification classification,
     required String region,
     String? societyId,
+    SocietyPolicyService? societyPolicyService,
   }) async {
     if (!policyApplied) {
       return LocalPolicyDecision(
@@ -106,6 +110,7 @@ class _FakeCacheService extends ClassificationCacheService {
     String? contentHash,
     int? imageSize,
     String? entryImageHash,
+    Uint8List? imageData,
   }) async {
     _cacheKeys.add(cacheKey);
     _store[cacheKey] = CachedClassification.fromClassification(
@@ -234,6 +239,9 @@ ClassificationResultProcessor _defaultProcessor({
     promptVersion: _testPromptVersion,
     schemaVersion: _testSchemaVersion,
     localGuidelinesVersion: _testGuidelinesVersion,
+    taxonomyService: RecyclingTaxonomyService(
+      fallbackJsonOverride: '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
+    ),
   );
 }
 
@@ -330,6 +338,7 @@ void main() {
           promptVersion: _testPromptVersion,
           schemaVersion: _testSchemaVersion,
           localGuidelinesVersion: _testGuidelinesVersion,
+          taxonomyService: RecyclingTaxonomyService(),
         );
 
         await processor.process(
@@ -353,6 +362,7 @@ void main() {
           promptVersion: _testPromptVersion,
           schemaVersion: _testSchemaVersion,
           localGuidelinesVersion: _testGuidelinesVersion,
+          taxonomyService: RecyclingTaxonomyService(),
         );
 
         await processor.process(
@@ -375,6 +385,7 @@ void main() {
           promptVersion: _testPromptVersion,
           schemaVersion: _testSchemaVersion,
           localGuidelinesVersion: _testGuidelinesVersion,
+          taxonomyService: RecyclingTaxonomyService(),
         );
 
         await processor.process(
@@ -398,6 +409,7 @@ void main() {
           promptVersion: _testPromptVersion,
           schemaVersion: _testSchemaVersion,
           localGuidelinesVersion: _testGuidelinesVersion,
+          taxonomyService: RecyclingTaxonomyService(),
         );
 
         await processor.process(
@@ -450,6 +462,9 @@ void main() {
           promptVersion: _testPromptVersion,
           schemaVersion: _testSchemaVersion,
           localGuidelinesVersion: _testGuidelinesVersion,
+          taxonomyService: RecyclingTaxonomyService(
+            fallbackJsonOverride: '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
+          ),
         );
 
         final result = await processor.process(
@@ -483,6 +498,9 @@ void main() {
           promptVersion: _testPromptVersion,
           schemaVersion: _testSchemaVersion,
           localGuidelinesVersion: _testGuidelinesVersion,
+          taxonomyService: RecyclingTaxonomyService(
+            fallbackJsonOverride: '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
+          ),
         );
 
         final result = await processor.process(
@@ -527,6 +545,9 @@ void main() {
           promptVersion: _testPromptVersion,
           schemaVersion: _testSchemaVersion,
           localGuidelinesVersion: _testGuidelinesVersion,
+          taxonomyService: RecyclingTaxonomyService(
+            fallbackJsonOverride: '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
+          ),
         );
 
         expect(processor, isNotNull);

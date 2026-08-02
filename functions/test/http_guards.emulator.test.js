@@ -123,18 +123,20 @@ test('testOpenAI enforces admin token and returns minimal payload for admin', as
   });
   const deniedBody = await deniedRes.json();
   assert.equal(deniedRes.status, 403);
-  assert.equal(deniedBody.error, 'Forbidden: admin token required');
+  assert.equal(deniedBody.success, false);
+  assert.equal(deniedBody.error.message, 'Forbidden: admin token required');
 
   const adminRes = await fetch(`${FUNCTIONS_BASE}/testOpenAI`, {
     headers: { Authorization: `Bearer ${adminToken}` },
   });
   const adminBody = await adminRes.json();
   assert.equal(adminRes.status, 200);
-  assert.equal(adminBody.status, 'ok');
-  assert.equal(typeof adminBody.openaiConfigured, 'boolean');
-  assert.equal(typeof adminBody.timestamp, 'string');
-  assert.equal('keySource' in adminBody, false);
-  assert.equal('keyLength' in adminBody, false);
+  assert.equal(adminBody.success, true);
+  assert.equal(adminBody.data.status, 'ok');
+  assert.equal(typeof adminBody.data.openaiConfigured, 'boolean');
+  assert.equal(typeof adminBody.data.timestamp, 'string');
+  assert.equal('keySource' in adminBody.data, false);
+  assert.equal('keyLength' in adminBody.data, false);
 });
 
 test('generateDisposal rejects missing token and accepts authenticated request through auth gate', async () => {
@@ -152,7 +154,8 @@ test('generateDisposal rejects missing token and accepts authenticated request t
   });
   const noTokenBody = await noTokenRes.json();
   assert.equal(noTokenRes.status, 401);
-  assert.match(noTokenBody.error, /Bearer token required/);
+  assert.equal(noTokenBody.success, false);
+  assert.match(noTokenBody.error.message, /Bearer token required/);
 
   const authedRes = await fetch(`${FUNCTIONS_BASE}/generateDisposal`, {
     method: 'GET',
@@ -160,7 +163,8 @@ test('generateDisposal rejects missing token and accepts authenticated request t
   });
   const authedBody = await authedRes.json();
   assert.equal(authedRes.status, 405);
-  assert.equal(authedBody.error, 'Method not allowed');
+  assert.equal(authedBody.success, false);
+  assert.equal(authedBody.error.message, 'Method not allowed');
 });
 
 test('spendUserTokens callable enforces auth and deducts from wallet server-side', async () => {

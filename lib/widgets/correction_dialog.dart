@@ -442,7 +442,7 @@ class _CorrectionDialogState extends ConsumerState<CorrectionDialog> {
                     ? 'Submitting...'
                     : _userConfirmed == true
                         ? 'Confirm'
-                        : 'Submit Correction'),
+                        : 'Re-analyse with my correction'),
               ),
             ],
           ),

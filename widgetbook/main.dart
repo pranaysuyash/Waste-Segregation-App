@@ -71,7 +71,6 @@ import 'package:waste_segregation_app/widgets/premium_feature_card.dart';
 import 'package:waste_segregation_app/widgets/premium_segmentation_toggle.dart';
 import 'package:waste_segregation_app/widgets/data_migration_dialog.dart';
 import 'package:waste_segregation_app/models/premium_feature.dart';
-import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/widgets/gamification_widgets.dart';
 import 'package:waste_segregation_app/widgets/dashboard_widgets.dart';
@@ -105,6 +104,8 @@ import 'package:waste_segregation_app/widgets/multi_item_region_review.dart';
 import 'package:waste_segregation_app/models/detected_waste_region.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
 import 'package:waste_segregation_app/widgets/waste_components/waste_components.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 
 void main() {
   runApp(const WidgetbookApp());
@@ -340,7 +341,7 @@ WidgetbookCategory _componentCategory() {
                         ModernCard(
                           child: Container(
                             width: double.infinity,
-                            padding: EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: primary.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(radius),
@@ -703,15 +704,15 @@ WidgetbookCategory _componentCategory() {
                                 label: 'Surface',
                                 color: scheme.surface,
                               ),
-                              _ColorSwatch(
+                              const _ColorSwatch(
                                 label: 'Success',
                                 color: AppTheme.successColor,
                               ),
-                              _ColorSwatch(
+                              const _ColorSwatch(
                                 label: 'Warning',
                                 color: AppTheme.warningColor,
                               ),
-                              _ColorSwatch(
+                              const _ColorSwatch(
                                 label: 'Error',
                                 color: AppTheme.errorColor,
                               ),
@@ -2083,7 +2084,7 @@ WidgetbookCategory _componentCategory() {
               WidgetbookUseCase(
                 name: 'ErrorRecoveryWidget',
                 builder: (context) => _surface(
-                  ErrorRecoveryWidget(onRetry: _noop),
+                  const ErrorRecoveryWidget(onRetry: _noop),
                 ),
               ),
               WidgetbookUseCase(
@@ -2162,7 +2163,7 @@ WidgetbookCategory _componentCategory() {
               WidgetbookUseCase(
                 name: 'NetworkErrorHandler',
                 builder: (context) => _surface(
-                  SizedBox(
+                  const SizedBox(
                     height: 280,
                     child: NetworkErrorHandler(onRetry: _noop),
                   ),
@@ -2293,7 +2294,7 @@ WidgetbookCategory _componentCategory() {
               WidgetbookUseCase(
                 name: 'CaptureButton',
                 builder: (context) => _surface(
-                  CaptureButton(
+                  const CaptureButton(
                     type: CaptureButtonType.camera,
                     onPressed: _noop,
                   ),
@@ -2453,7 +2454,6 @@ WidgetbookCategory _componentCategory() {
                     builder: (context) => _surface(
                       const OfflineQueueStatusCard(
                         pendingCount: 5,
-                        lastSyncAttempt: null,
                       ),
                     ),
                   ),
@@ -2527,10 +2527,10 @@ WidgetbookCategory _componentCategory() {
               WidgetbookUseCase(
                 name: 'ResponsiveDialog',
                 builder: (context) => _surface(
-                  ResponsiveDialog(
+                  const ResponsiveDialog(
                     title: 'Confirm Action',
-                    content: const Text('Apply this change to your settings?'),
-                    actions: const [
+                    content: Text('Apply this change to your settings?'),
+                    actions: [
                       TextButton(onPressed: _noop, child: Text('Cancel')),
                       ElevatedButton(onPressed: _noop, child: Text('Apply')),
                     ],
@@ -2561,10 +2561,12 @@ WidgetbookCategory _componentCategory() {
               WidgetbookUseCase(
                 name: 'PremiumSegmentationToggle',
                 builder: (context) => _surface(
-                  ChangeNotifierProvider(
-                    create: (_) => PremiumService(),
-                    child: const PremiumSegmentationToggle(value: false),
-                  ),
+                    ProviderScope(
+                      overrides: [
+                        premiumServiceProvider.overrideWithValue(PremiumService()),
+                      ],
+                      child: const PremiumSegmentationToggle(value: false),
+                    ),
                 ),
               ),
             ],
@@ -2775,7 +2777,7 @@ WidgetbookCategory _componentCategory() {
               WidgetbookUseCase(
                 name: 'PulsingScanButton',
                 builder: (context) => _surface(
-                  PulsingScanButton(onPressed: _noop),
+                  const PulsingScanButton(onPressed: _noop),
                 ),
               ),
               WidgetbookUseCase(
@@ -2836,7 +2838,7 @@ WidgetbookCategory _componentCategory() {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      ClassificationFeedback(category: 'Dry Waste'),
+                      const ClassificationFeedback(category: 'Dry Waste'),
                       const SizedBox(height: 8),
                       ChallengeCompletedPopup(challenge: _sampleChallenge()),
                       const SizedBox(height: 8),
@@ -2857,14 +2859,14 @@ WidgetbookCategory _componentCategory() {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      InteractiveTag(
+                      const InteractiveTag(
                         text: 'Recyclable',
                         color: Colors.green,
                         action: TagAction.info,
                       ),
                       const SizedBox(height: 8),
-                      InteractiveTagCollection(
-                        tags: const [
+                      const InteractiveTagCollection(
+                        tags: [
                           TagData(
                             text: 'Dry',
                             color: Colors.blue,
@@ -2923,8 +2925,8 @@ WidgetbookCategory _componentCategory() {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CommunityFeedPreview(
-                        activities: const [
+                      const CommunityFeedPreview(
+                        activities: [
                           CommunityActivity(
                             userName: 'Alex',
                             action: 'sorted 5 items',
@@ -3220,10 +3222,10 @@ class _TokenPlaygroundCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Wrap(
+            const Wrap(
               spacing: 12,
               runSpacing: 12,
-              children: const [
+              children: [
                 _SemanticSwatch(label: 'Success', color: AppTheme.successColor),
                 _SemanticSwatch(label: 'Warning', color: AppTheme.warningColor),
                 _SemanticSwatch(label: 'Error', color: AppTheme.errorColor),
@@ -3363,7 +3365,7 @@ class _ColorSwatch extends StatelessWidget {
                 ),
           ),
           Text(
-            '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
+            '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: isLight ? Colors.black87 : Colors.black54,
                 ),
@@ -3409,7 +3411,7 @@ class _SemanticSwatch extends StatelessWidget {
                 ),
           ),
           Text(
-            '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
+            '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: isLight ? Colors.black87 : Colors.black54,
                 ),
@@ -3594,7 +3596,7 @@ List<Widget> _referenceCoverageOnlyWidgets() {
     PerformanceMonitoringDashboard(
       modelService: ModelSelectionService(aiService: AiService()),
     ),
-    AnimatedTabController(length: 2, builder: _tabBuilder),
+    const AnimatedTabController(length: 2, builder: _tabBuilder),
     EnhancedReanalysisWidget(classification: _sampleClassification()),
     PerItemResultCard(
       region: DetectedWasteRegion(
@@ -3657,7 +3659,7 @@ Challenge _sampleChallenge() {
 }
 
 Achievement _sampleAchievement() {
-  return Achievement(
+  return const Achievement(
     id: 'achievement-1',
     title: 'Recycling Rookie',
     description: 'Complete your first successful classifications.',

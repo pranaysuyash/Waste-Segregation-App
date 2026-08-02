@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/test_helper.dart';
@@ -253,14 +254,11 @@ Widget _buildSettingTileStates() {
 }
 
 Widget _buildSettingsSections(ThemeMode themeMode) {
-  return MultiProvider(
-    providers: [
-      Provider<GoogleDriveService>(create: (_) => _FakeGoogleDriveService()),
-      ChangeNotifierProvider<HapticSettingsService>(
-          create: (_) => _FakeHapticSettingsService()),
-      ChangeNotifierProvider<PremiumService>(
-        create: (_) => _FakePremiumService(),
-      ),
+  return ProviderScope(
+    overrides: [
+      googleDriveServiceProvider.overrideWithValue(_FakeGoogleDriveService()),
+      hapticSettingsServiceProvider.overrideWithValue(_FakeHapticSettingsService()),
+      premiumServiceProvider.overrideWithValue(_FakePremiumService()),
     ],
     child: createTestWidget(
       child: Scaffold(

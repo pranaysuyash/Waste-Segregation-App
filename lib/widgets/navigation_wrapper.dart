@@ -2,11 +2,8 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../services/premium_service.dart';
-import '../services/ad_service.dart';
-import '../services/navigation_settings_service.dart';
 import '../screens/home_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/educational_content_screen.dart';
@@ -19,15 +16,16 @@ import '../widgets/platform_camera.dart';
 import '../utils/capture_image_options.dart';
 import '../utils/constants.dart';
 import '../utils/permission_handler.dart';
+import '../services/navigation_settings_service.dart';
 import '../models/user_profile.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/gamification.dart';
 import '../widgets/advanced_ui/achievement_celebration.dart';
-import '../providers/points_engine_provider.dart';
+import '../providers/app_providers.dart';
 import '../utils/waste_app_logger.dart';
 
 /// Main navigation wrapper that manages the bottom navigation and screen switching
-class MainNavigationWrapper extends StatefulWidget {
+class MainNavigationWrapper extends ConsumerStatefulWidget {
   const MainNavigationWrapper({
     super.key,
     this.isGuestMode = false,
@@ -37,10 +35,10 @@ class MainNavigationWrapper extends StatefulWidget {
   final UserProfile? userProfile;
 
   @override
-  State<MainNavigationWrapper> createState() => _MainNavigationWrapperState();
+  ConsumerState<MainNavigationWrapper> createState() => _MainNavigationWrapperState();
 }
 
-class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
+class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
   int _currentIndex = 0;
   late PageController _pageController;
 
@@ -65,9 +63,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   /// Initialize global popup listeners for points and achievements
   void _initializePopupListeners() {
     try {
-      final pointsEngineProvider =
-          Provider.of<PointsEngineProvider>(context, listen: false);
-      final pointsEngine = pointsEngineProvider.pointsEngine;
+      final pointsEngine = ref.read(pointsEngineProvider);
 
       // Listen for points earned events
       _pointsEarnedSub = pointsEngine.earnedStream.listen((delta) {
@@ -439,7 +435,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   // Handle classification result
   void _handleClassificationResult(dynamic result) {
     if (result != null && result is WasteClassification) {
-      final adService = Provider.of<AdService>(context, listen: false);
+      final adService = ref.read(adServiceProvider);
       adService.trackClassificationCompleted();
 
       if (adService.shouldShowInterstitial()) {
@@ -510,8 +506,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
-    return Consumer<NavigationSettingsService>(
-      builder: (context, navSettings, child) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final navSettings = ref.watch(navigationSettingsServiceProvider);
         final showGlobalScanFab = navSettings.fabEnabled && _currentIndex == 2;
 
         if (width >= 1024) {
@@ -574,9 +571,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               ? Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (!Provider.of<PremiumService>(context)
+                    if (!ref.watch(premiumServiceProvider)
                         .isPremiumFeature('remove_ads'))
-                      Provider.of<AdService>(context).getBannerAd(),
+                      ref.read(adServiceProvider).getBannerAd(),
                     _buildBottomNav(navSettings),
                   ],
                 )

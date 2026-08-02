@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/services/navigation_settings_service.dart';
 import 'package:waste_segregation_app/widgets/navigation_wrapper.dart';
 import 'package:waste_segregation_app/widgets/settings/settings_theme.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 
-class NavigationDemoScreen extends StatelessWidget {
+class NavigationDemoScreen extends ConsumerWidget {
   const NavigationDemoScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final navSettings = ref.watch(navigationSettingsServiceProvider);
+    final currentStyle = navSettings.navigationStyle;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Navigation Styles Demo'),
@@ -52,55 +55,50 @@ class NavigationDemoScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppTheme.paddingLarge * 2),
                 Expanded(
-                  child: Consumer<NavigationSettingsService>(
-                    builder: (context, navSettings, child) {
-                      final currentStyle = navSettings.navigationStyle;
-                      return ListView(
-                        children: [
-                          _buildNavigationStyleCard(
-                            context,
-                            title: 'Glassmorphism Style',
-                            description:
-                                'Modern iOS/Android style with glass effect and smooth animations',
-                            icon: Icons.blur_on,
-                            color: Colors.blue,
-                            style: 'glassmorphism',
-                            examples:
-                                'Used by: Spotify, Instagram, iOS Control Center',
-                            isSelected: currentStyle == 'glassmorphism',
-                            navSettings: navSettings,
-                          ),
-                          const SizedBox(height: AppTheme.paddingRegular),
-                          _buildNavigationStyleCard(
-                            context,
-                            title: 'Material 3 Design',
-                            description:
-                                'Google\'s latest Material Design with elevated surfaces and bold colors',
-                            icon: Icons.design_services,
-                            color: Colors.green,
-                            style: 'material3',
-                            examples:
-                                'Used by: Google apps, Android 12+, Material You',
-                            isSelected: currentStyle == 'material3',
-                            navSettings: navSettings,
-                          ),
-                          const SizedBox(height: AppTheme.paddingRegular),
-                          _buildNavigationStyleCard(
-                            context,
-                            title: 'Floating Navigation',
-                            description:
-                                'Elevated floating bar with rounded corners and subtle shadows',
-                            icon: Icons.fiber_manual_record,
-                            color: Colors.purple,
-                            style: 'floating',
-                            examples:
-                                'Used by: Discord, Figma, Modern productivity apps',
-                            isSelected: currentStyle == 'floating',
-                            navSettings: navSettings,
-                          ),
-                        ],
-                      );
-                    },
+                  child: ListView(
+                    children: [
+                      _buildNavigationStyleCard(
+                        context,
+                        title: 'Glassmorphism Style',
+                        description:
+                            'Modern iOS/Android style with glass effect and smooth animations',
+                        icon: Icons.blur_on,
+                        color: Colors.blue,
+                        style: 'glassmorphism',
+                        examples:
+                            'Used by: Spotify, Instagram, iOS Control Center',
+                        isSelected: currentStyle == 'glassmorphism',
+                        navSettings: navSettings,
+                      ),
+                      const SizedBox(height: AppTheme.paddingRegular),
+                      _buildNavigationStyleCard(
+                        context,
+                        title: 'Material 3 Design',
+                        description:
+                            'Google\'s latest Material Design with elevated surfaces and bold colors',
+                        icon: Icons.design_services,
+                        color: Colors.green,
+                        style: 'material3',
+                        examples:
+                            'Used by: Google apps, Android 12+, Material You',
+                        isSelected: currentStyle == 'material3',
+                        navSettings: navSettings,
+                      ),
+                      const SizedBox(height: AppTheme.paddingRegular),
+                      _buildNavigationStyleCard(
+                        context,
+                        title: 'Floating Navigation',
+                        description:
+                            'Elevated floating bar with rounded corners and subtle shadows',
+                        icon: Icons.fiber_manual_record,
+                        color: Colors.purple,
+                        style: 'floating',
+                        examples:
+                            'Used by: Discord, Figma, Modern productivity apps',
+                        isSelected: currentStyle == 'floating',
+                        navSettings: navSettings,
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: AppTheme.paddingLarge),

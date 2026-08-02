@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import { DodoPayments } from 'dodopayments';
+import { shouldEnforceCallableAppCheck } from './helpers';
 
 const asiaSouth1 = functions.region('asia-south1');
 
@@ -9,21 +10,6 @@ const getDodoClient = (): DodoPayments => {
     throw new Error('DODO_PAYMENTS_API_KEY not configured');
   }
   return new DodoPayments({ bearerToken: apiKey });
-};
-
-const parseBoolEnv = (value: string | undefined, fallback = false): boolean => {
-  if (value == null) return fallback;
-  const normalized = value.trim().toLowerCase();
-  return ['true', '1', 'yes', 'on'].includes(normalized);
-};
-
-const shouldEnforceCallableAppCheck = (): boolean => {
-  const requireAppCheck = parseBoolEnv(process.env.REQUIRE_APPCHECK_CALLABLE, false);
-  if (!requireAppCheck) return false;
-  if (process.env.FUNCTIONS_EMULATOR === 'true') {
-    return parseBoolEnv(process.env.ENFORCE_APPCHECK_IN_EMULATOR, false);
-  }
-  return true;
 };
 
 const TOKEN_PACKS: Record<string, { tokens: number; label: string }> = {

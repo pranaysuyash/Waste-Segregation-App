@@ -1199,6 +1199,107 @@ class CommunityReportsSchema {
   ];
 }
 
+class CommunityContributionSchema {
+  static const String collection = FirestoreCollections.userContributions;
+
+  static const List<SchemaField> fields = [
+    SchemaField(
+      name: 'userId',
+      type: 'String',
+      classification: FieldClassification.pii,
+      description: 'UID of contributor',
+    ),
+    SchemaField(
+      name: 'facilityId',
+      type: 'String?',
+      classification: FieldClassification.system,
+      required: false,
+      description: 'Optional facility reference for facility-scoped edits',
+    ),
+    SchemaField(
+      name: 'contributionType',
+      type: 'String',
+      classification: FieldClassification.userContent,
+      description: 'ContributionType enum string (e.g. NEW_FACILITY)',
+    ),
+    SchemaField(
+      name: 'suggestedData',
+      type: 'Map<String, dynamic>',
+      classification: FieldClassification.userContent,
+      description: 'Proposed data changes, keyed by section',
+    ),
+    SchemaField(
+      name: 'userNotes',
+      type: 'String?',
+      classification: FieldClassification.userContent,
+      required: false,
+    ),
+    SchemaField(
+      name: 'photoUrls',
+      type: 'List<String>?',
+      classification: FieldClassification.userContent,
+      required: false,
+    ),
+    SchemaField(
+      name: 'timestamp',
+      type: 'Timestamp',
+      classification: FieldClassification.system,
+      description: 'Client submission timestamp',
+    ),
+    SchemaField(
+      name: 'status',
+      type: 'String',
+      classification: FieldClassification.system,
+      description: 'PENDING_REVIEW | APPROVED_INTEGRATED | REJECTED | NEEDS_MORE_INFO',
+    ),
+    SchemaField(
+      name: 'reviewNotes',
+      type: 'String?',
+      classification: FieldClassification.userContent,
+      required: false,
+    ),
+    SchemaField(
+      name: 'reviewerId',
+      type: 'String?',
+      classification: FieldClassification.pii,
+      required: false,
+      description: 'Reviewer UID if reviewed',
+    ),
+    SchemaField(
+      name: 'reviewTimestamp',
+      type: 'Timestamp?',
+      classification: FieldClassification.system,
+      required: false,
+    ),
+    SchemaField(
+      name: 'upvotes',
+      type: 'int',
+      classification: FieldClassification.system,
+    ),
+    SchemaField(
+      name: 'downvotes',
+      type: 'int',
+      classification: FieldClassification.system,
+    ),
+  ];
+
+  static const List<String> modelFieldNames = <String>[
+    'userId',
+    'facilityId',
+    'contributionType',
+    'suggestedData',
+    'userNotes',
+    'photoUrls',
+    'timestamp',
+    'status',
+    'reviewNotes',
+    'reviewerId',
+    'reviewTimestamp',
+    'upvotes',
+    'downvotes',
+  ];
+}
+
 /// Validates that a data map conforms to the expected schema for a collection.
 ///
 /// This is the runtime validation layer that catches schema drift before
@@ -1299,6 +1400,8 @@ class FirestoreSchemaValidator {
         return TrainingLabelsSchema.fields;
       case FirestoreCollections.trainingDatasetVersions:
         return TrainingDatasetVersionsSchema.fields;
+      case FirestoreCollections.userContributions:
+        return CommunityContributionSchema.fields;
       default:
         return null;
     }

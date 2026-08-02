@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
-import 'package:waste_segregation_app/providers/points_engine_provider.dart';
 import 'package:waste_segregation_app/screens/achievements_screen.dart';
 import 'package:waste_segregation_app/services/points_engine.dart';
 import 'package:waste_segregation_app/utils/constants.dart';

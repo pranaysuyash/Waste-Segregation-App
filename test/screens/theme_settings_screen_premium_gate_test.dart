@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/models/premium_feature.dart';
-import 'package:waste_segregation_app/providers.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/screens/theme_settings_screen.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/utils/routes.dart';
@@ -122,7 +122,8 @@ void main() {
       final context = tester.element(find.byType(ThemeSettingsScreen));
       final t = AppLocalizations.of(context)!;
 
-      final semanticsNode = tester.getSemantics(find.text(t.themeCustomization));
+      final semanticsNode =
+          tester.getSemantics(find.text(t.themeCustomization));
       expect(semanticsNode.label, t.themeCustomization);
       expect(
         semanticsNode.value,
@@ -151,7 +152,8 @@ void main() {
     }
   });
 
-  testWidgets('premium tier shows unlocked active state for theme customization',
+  testWidgets(
+      'premium tier shows unlocked active state for theme customization',
       (tester) async {
     final premiumService =
         _FakePremiumService(features: const {'theme_customization': true});
@@ -164,7 +166,8 @@ void main() {
       final context = tester.element(find.byType(ThemeSettingsScreen));
       final t = AppLocalizations.of(context)!;
 
-      final semanticsNode = tester.getSemantics(find.text(t.themeCustomization));
+      final semanticsNode =
+          tester.getSemantics(find.text(t.themeCustomization));
       expect(semanticsNode.label, t.themeCustomization);
       expect(
         semanticsNode.value,

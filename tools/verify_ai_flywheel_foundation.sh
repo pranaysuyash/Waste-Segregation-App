@@ -47,11 +47,11 @@ dart run tool/ai_review_dashboard.dart --input build/reports/ai_review/updated_c
 echo "[8/11] Seed coverage report"
 dart run tool/ai_eval_seed_coverage_report.dart --input test/fixtures/ai_eval/golden_cases.jsonl --out build/reports/ai_eval/seed_coverage_report.json
 
-echo "[9/11] Evidence summary"
-dart run tool/ai_flywheel_evidence_summary.dart --out build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md
-
-echo "[10/11] Acceptance report"
+echo "[9/11] Acceptance report"
 dart run tool/ai_flywheel_acceptance_report.dart --out build/reports/ai_flywheel/acceptance_report.json
+
+echo "[10/11] Evidence summary"
+dart run tool/ai_flywheel_evidence_summary.dart --out build/reports/ai_flywheel/FINAL_EVIDENCE_SUMMARY.md
 
 echo "[11/11] Verification complete"
 echo "Artifacts:"

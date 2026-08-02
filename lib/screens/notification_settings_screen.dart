@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
 
-import '../services/storage_service.dart';
+import '../providers/app_providers.dart';
 
-class NotificationSettingsScreen extends StatefulWidget {
+class NotificationSettingsScreen extends ConsumerStatefulWidget {
   const NotificationSettingsScreen({super.key});
 
   @override
-  State<NotificationSettingsScreen> createState() =>
+  ConsumerState<NotificationSettingsScreen> createState() =>
       _NotificationSettingsScreenState();
 }
 
 class _NotificationSettingsScreenState
-    extends State<NotificationSettingsScreen> {
+    extends ConsumerState<NotificationSettingsScreen> {
   bool _notificationsEnabled = true;
   bool _educationalEnabled = true;
   bool _gamificationEnabled = true;
@@ -28,7 +28,7 @@ class _NotificationSettingsScreenState
 
   Future<void> _loadSettings() async {
     try {
-      final storage = Provider.of<StorageService>(context, listen: false);
+      final storage = ref.read(storageServiceProvider);
       final settings = await storage.getSettings();
       if (mounted) {
         setState(() {
@@ -48,7 +48,7 @@ class _NotificationSettingsScreenState
 
   Future<void> _saveSettings() async {
     try {
-      final storage = Provider.of<StorageService>(context, listen: false);
+      final storage = ref.read(storageServiceProvider);
       final settings = await storage.getSettings();
       await storage.saveSettings(
         isDarkMode: settings['isDarkMode'] ?? false,

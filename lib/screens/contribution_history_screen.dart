@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_contribution.dart';
 import '../utils/constants.dart';
-import '../services/storage_service.dart';
-import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../utils/firebase_gate.dart';
 import '../services/firestore_schema_registry.dart';
+import '../providers/app_providers.dart';
 
-class ContributionHistoryScreen extends StatefulWidget {
+class ContributionHistoryScreen extends ConsumerStatefulWidget {
   const ContributionHistoryScreen({super.key});
 
   @override
-  State<ContributionHistoryScreen> createState() =>
+  ConsumerState<ContributionHistoryScreen> createState() =>
       _ContributionHistoryScreenState();
 }
 
-class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
+class _ContributionHistoryScreenState extends ConsumerState<ContributionHistoryScreen> {
   String? _currentUserId;
 
   @override
@@ -29,7 +29,7 @@ class _ContributionHistoryScreenState extends State<ContributionHistoryScreen> {
 
   Future<void> _loadCurrentUserId() async {
     try {
-      final storage = context.read<StorageService>();
+      final storage = ref.read(storageServiceProvider);
       final profile = await storage.getCurrentUserProfile();
       if (!mounted) return;
       setState(() {

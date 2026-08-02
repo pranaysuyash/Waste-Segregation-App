@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/detected_waste_region.dart';
 import 'package:waste_segregation_app/models/multi_item_classification_result.dart';
@@ -23,9 +22,11 @@ import '../models/token_wallet.dart';
 import '../models/classification_state.dart';
 import '../providers/ai_job_providers.dart';
 import '../providers/app_providers.dart';
+import '../providers/scan_orchestrator_provider.dart';
 import '../providers/classification_pipeline_providers.dart';
 import '../providers/classification_state_provider.dart';
 import '../providers/token_providers.dart';
+import '../providers/region_preference_provider.dart';
 import '../services/image_quality_gate.dart';
 import '../services/layer0_router.dart';
 import '../services/local_classifier_service.dart';
@@ -36,7 +37,6 @@ import 'job_queue_screen.dart';
 import 'zero_balance_sheet.dart';
 import '../utils/waste_app_logger.dart';
 import '../utils/ai_error_messages.dart';
-import '../services/premium_service.dart';
 import '../widgets/manual_region_selector.dart';
 import 'combined_result_screen.dart';
 
@@ -245,6 +245,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
   void _initializeQueueListener() {
     final queueService = OfflineQueueService();
+    queueService.configureScanOrchestrator(ref.read(scanOrchestratorProvider));
     _queueCountSubscription = queueService.queueCountStream.listen((count) {
       if (mounted) {
         setState(() {
@@ -500,9 +501,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   }
 
   void _cancelAnalysis() {
-    // Cancel the AI service analysis.
-    final aiService = ref.read(aiServiceProvider);
-    aiService.cancelAnalysis();
+    ref.read(scanOrchestratorProvider).cancel();
 
     _setClassificationState(ClassificationState.cancelled);
 
@@ -680,13 +679,13 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   }
 
   Future<void> _queueAnalysisOffline(Uint8List imageBytes) async {
+    final region = ref.read(regionPreferenceProvider);
     _setClassificationState(ClassificationState.queuedOffline);
     setState(() {
       _analysisErrorMessage = null;
     });
     final queueService = OfflineQueueService();
     final userProfile = ref.read(userProfileProvider).value;
-    const region = 'auto'; // Default region for offline queue
     final imageName = _imageFile?.path.split('/').last ??
         _xFile?.name ??
         'captured_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -753,13 +752,14 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
   /// and the result screen was shown. Stores the Layer 0 result in
   /// [_lastLayer0Result] for offline hint fallback.
   Future<bool> _tryLocalClassification(Uint8List imageBytes) async {
+    final region = ref.read(regionPreferenceProvider);
     _setClassificationState(ClassificationState.localClassifying);
     _lastLayer0Result = null;
 
     final pipeline = ref.read(classificationPipelineProvider);
     final result = await pipeline.tryLocalWithHint(
       imageBytes: imageBytes,
-      region: 'Bangalore, IN',
+      region: region,
     );
 
     _lastLayer0Result = result.layer0Result;
@@ -777,6 +777,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     Layer0Result layer0Result,
     Uint8List imageBytes,
   ) async {
+    final region = ref.read(regionPreferenceProvider);
     if (layer0Result.decision != Layer0Decision.hint) return false;
 
     final pipeline = ref.read(classificationPipelineProvider);
@@ -787,7 +788,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             confidence: layer0Result.barcodeResult?.confidence ?? 0.0,
             modelVersion: 'layer0_hint',
           ),
-      region: 'Bangalore, IN',
+      region: region,
     );
 
     final hintClassification = hintWc.copyWith(
@@ -819,8 +820,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
 
     await _refreshGuardrailMode(showUserNotice: true);
 
+    final resolvedRegion = ref.read(regionPreferenceProvider);
+
     // Phase 0: Token economy kill switch and telemetry
     final tokenService = ref.read(tokenServiceProvider);
+    final scanOrchestrator = ref.read(scanOrchestratorProvider);
     await tokenService.initialize();
 
     // Log the user's intent (regardless of enforcement state)
@@ -831,7 +835,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     );
 
     // Check affordability (always allows when enforcement is off, blocks when on)
-    final premiumService = context.read<PremiumService>();
+    final premiumService = ref.read(premiumServiceProvider);
     final isPremiumUser = premiumService.hasActivePremiumPlan();
     final effectiveCost = tokenService.getAnalysisCost(
       _selectedSpeed,
@@ -977,7 +981,6 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
     _setClassificationState(ClassificationState.cloudClassifying);
     try {
       // _stateMachine is already cloudClassifying — analysis in flight
-      final aiService = ref.read(aiServiceProvider);
       late WasteClassification classification;
       if (kIsWeb) {
         if (_xFile != null) {
@@ -1027,10 +1030,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             final selectedBounds =
                 _selectedSegments.map((i) => _segments[i]).toList();
             if (_selectedSpeed == AnalysisSpeed.instant) {
-              final results = await aiService.analyzeImageRegions(
+              final results = await scanOrchestrator.analyzeRegions(
                 imageBytes,
                 _xFile!.name,
                 selectedBounds,
+                region: resolvedRegion,
               );
               classification = results.isNotEmpty
                   ? results.first
@@ -1046,9 +1050,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
             }
           } else {
             if (_selectedSpeed == AnalysisSpeed.instant) {
-              classification = await aiService.analyzeWebImage(
+              classification = await scanOrchestrator.analyzeBytes(
                 imageBytes,
                 _xFile!.name,
+                region: resolvedRegion,
               );
             } else {
               await _createBatchJobWeb(imageBytes, _xFile!.name);
@@ -1073,18 +1078,20 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
           if (_useSegmentation && _selectedSegments.isNotEmpty) {
             final selectedBounds =
                 _selectedSegments.map((i) => _segments[i]).toList();
-            final results = await aiService.analyzeImageRegions(
+            final results = await scanOrchestrator.analyzeRegions(
               _webImageBytes!,
               'uploaded_image.jpg',
               selectedBounds,
+              region: resolvedRegion,
             );
             classification = results.isNotEmpty
                 ? results.first
                 : WasteClassification.fallback('uploaded_image.jpg');
           } else {
-            classification = await aiService.analyzeWebImage(
+            classification = await scanOrchestrator.analyzeBytes(
               _webImageBytes!,
               'uploaded_image.jpg',
+              region: resolvedRegion,
             );
           }
           WasteAppLogger.info(
@@ -1114,10 +1121,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               if (_selectedSpeed == AnalysisSpeed.instant) {
                 final bytes = await _imageFile!.readAsBytes();
                 final imageName = _imageFile!.path.split('/').last;
-                final results = await aiService.analyzeImageRegions(
+                final results = await scanOrchestrator.analyzeRegions(
                   bytes,
                   imageName,
                   selectedBounds,
+                  region: resolvedRegion,
                 );
                 classification = results.isNotEmpty
                     ? results.first
@@ -1133,7 +1141,10 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
               }
             } else {
               if (_selectedSpeed == AnalysisSpeed.instant) {
-                classification = await aiService.analyzeImage(_imageFile!);
+                classification = await scanOrchestrator.analyzeFile(
+                  _imageFile!,
+                  region: resolvedRegion,
+                );
               } else {
                 await _createBatchJob(
                   imageFile: _imageFile!,
@@ -1165,7 +1176,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       }
 
       if (_selectedSpeed == AnalysisSpeed.instant &&
-          !aiService.isBackendRoutingEnabled) {
+          !scanOrchestrator.isBackendRoutingEnabled) {
         await tokenService.spendAnalysisTokens(
           _selectedSpeed,
           isPremiumUser: isPremiumUser,
@@ -2018,7 +2029,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
       final tokenService = ref.read(tokenServiceProvider);
       await tokenService.initialize();
 
-      final premiumService = context.read<PremiumService>();
+      final premiumService = ref.read(premiumServiceProvider);
       final isPremiumUser = premiumService.hasActivePremiumPlan();
 
       if (!tokenService.canAffordAnalysisWithPricing(
@@ -2042,7 +2053,7 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         return;
       }
 
-      final aiService = ref.read(aiServiceProvider);
+      final scanOrchestrator = ref.read(scanOrchestratorProvider);
       final regions = List<NormalizedBoundingBox>.from(_selectedRegions);
 
       Uint8List imageBytes;
@@ -2061,10 +2072,11 @@ class _ImageCaptureScreenState extends ConsumerState<ImageCaptureScreen>
         throw Exception('No image available');
       }
 
-      final results = await aiService.analyzeImageRegions(
+      final results = await scanOrchestrator.analyzeRegions(
         imageBytes,
         imageName,
         regions.map((r) => r.toBoundsMap()).toList(),
+        region: ref.read(regionPreferenceProvider),
       );
 
       if (!mounted) return;

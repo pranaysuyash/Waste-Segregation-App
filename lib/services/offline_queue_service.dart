@@ -3,10 +3,10 @@ import 'package:hive/hive.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
-import 'enhanced_ai_api_service.dart';
 import 'storage_service.dart';
 import 'cloud_storage_service.dart';
 import 'token_service.dart';
+import 'scan_orchestrator.dart';
 import '../models/token_wallet.dart';
 import 'analytics_service.dart';
 import '../utils/waste_app_logger.dart';
@@ -19,6 +19,49 @@ typedef OfflineQueueAnalyticsTracker = Future<void> Function({
   required String eventName,
   Map<String, dynamic> parameters,
 });
+
+/// A classification that permanently failed processing and was moved
+/// to the dead-letter queue for audit and potential manual retry.
+@HiveType(typeId: 101)
+class DeadLetterClassification extends HiveObject {
+  DeadLetterClassification({
+    required this.id,
+    required this.imageBytes,
+    required this.region,
+    required this.queuedAt,
+    required this.failedAt,
+    required this.retryCount,
+    required this.lastError,
+    this.userId,
+    this.imageName,
+  });
+  @HiveField(0)
+  String id;
+
+  @HiveField(1)
+  Uint8List imageBytes;
+
+  @HiveField(2)
+  String region;
+
+  @HiveField(3)
+  DateTime queuedAt;
+
+  @HiveField(4)
+  int retryCount;
+
+  @HiveField(5)
+  String lastError;
+
+  @HiveField(6)
+  DateTime failedAt;
+
+  @HiveField(7)
+  String? userId;
+
+  @HiveField(8)
+  String? imageName;
+}
 
 /// Queued classification for offline processing
 @HiveType(typeId: 100)
@@ -71,25 +114,41 @@ class OfflineQueueService {
   static OfflineQueueAnalyticsTracker? analyticsTrackerOverride;
 
   Box<QueuedClassification>? _queueBox;
+  Box<DeadLetterClassification>? _deadLetterBox;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   bool _isProcessing = false;
   bool _isInitialized = false;
+  ScanOrchestrator? _scanOrchestrator;
 
   final _queueCountController = StreamController<int>.broadcast();
   Stream<int> get queueCountStream => _queueCountController.stream;
+
+  /// Bind queued work to the same scan composition as foreground work.
+  ///
+  /// The queue intentionally has no independent AI fallback. If this is not
+  /// configured, queued work remains pending rather than being processed with
+  /// different persistence and policy semantics.
+  void configureScanOrchestrator(ScanOrchestrator orchestrator) {
+    _scanOrchestrator = orchestrator;
+  }
 
   /// Initialize the service - call once at app startup
   Future<void> init() async {
     if (_isInitialized) return;
 
     try {
-      // Register adapter if not already registered
+      // Register adapters if not already registered
       if (!Hive.isAdapterRegistered(100)) {
         Hive.registerAdapter(QueuedClassificationAdapter());
+      }
+      if (!Hive.isAdapterRegistered(101)) {
+        Hive.registerAdapter(DeadLetterClassificationAdapter());
       }
 
       _queueBox =
           await Hive.openBox<QueuedClassification>('classification_queue');
+      _deadLetterBox = await Hive.openBox<DeadLetterClassification>(
+          'classification_dead_letter');
 
       // Emit initial count
       _queueCountController.add(_queueBox!.length);
@@ -204,14 +263,23 @@ class OfflineQueueService {
 
     _isProcessing = true;
 
+    final orchestrator = _scanOrchestrator;
+    if (orchestrator == null) {
+      WasteAppLogger.warning(
+        'Offline queue paused because the canonical scan orchestrator is not configured',
+        context: {'service': 'offline_queue'},
+      );
+      _isProcessing = false;
+      return;
+    }
+
     WasteAppLogger.info('Processing offline queue', context: {
       'pending_items': _queueBox!.length,
     });
 
     final startTime = DateTime.now();
     final items = _queueBox!.values.toList();
-    final enhancedAiService = EnhancedAiApiService();
-    final backendRoutingEnabled = enhancedAiService.isBackendRoutingEnabled;
+    final backendRoutingEnabled = orchestrator.isBackendRoutingEnabled;
     final tokenService =
         TokenService(StorageService(), CloudStorageService(StorageService()));
     await tokenService.initialize();
@@ -281,9 +349,9 @@ class OfflineQueueService {
             }
           }
 
-          final result = await enhancedAiService.analyzeWasteImage(
-            imageBytes: item.imageBytes,
-            imageName: item.imageName ?? 'offline_item',
+          final result = await orchestrator.analyzeBytes(
+            item.imageBytes,
+            item.imageName ?? 'offline_item',
             region: item.region,
           );
 
@@ -301,8 +369,15 @@ class OfflineQueueService {
             }
           }
 
-          // Save to local storage
-          await StorageService().saveClassification(result);
+          // Complete through the canonical result pipeline so queued scans
+          // receive the same policy, taxonomy, deduplication, gamification,
+          // training, analytics, and optional sync side effects as foreground
+          // scans.
+          await orchestrator.complete(
+            result,
+            autoAnalyze: true,
+            manageLifecycle: false,
+          );
 
           // Remove from queue
           await item.delete();
@@ -391,7 +466,8 @@ class OfflineQueueService {
           );
 
           if (item.retryCount >= 3) {
-            // Give up after 3 retries
+            // Give up after 3 retries — move to dead-letter queue for audit
+            await _moveToDeadLetter(item, lastError: e.toString());
             await item.delete();
             permanentFailCount++;
 
@@ -492,18 +568,97 @@ class OfflineQueueService {
         'totalQueued': 0,
         'processed': 0,
         'pending': 0,
+        'deadLetter': 0,
       };
     }
 
     // Note: We only track pending items in the queue box
     // Processed items are removed from the queue
     final pending = _queueBox!.length;
+    final deadLetter = _deadLetterBox?.length ?? 0;
 
     return {
       'totalQueued': pending, // Only pending items remain in queue
       'processed': 0, // Processed items are removed
       'pending': pending,
+      'deadLetter': deadLetter,
     };
+  }
+
+  /// Move a permanently-failed item to the dead-letter queue for audit.
+  Future<void> _moveToDeadLetter(
+    QueuedClassification item, {
+    required String lastError,
+  }) async {
+    if (_deadLetterBox == null) return;
+    try {
+      final deadLetter = DeadLetterClassification(
+        id: item.id,
+        imageBytes: item.imageBytes,
+        region: item.region,
+        queuedAt: item.queuedAt,
+        failedAt: DateTime.now(),
+        retryCount: item.retryCount,
+        lastError: lastError,
+        userId: item.userId,
+        imageName: item.imageName,
+      );
+      await _deadLetterBox!.put(deadLetter.id, deadLetter);
+      WasteAppLogger.info('Item moved to dead-letter queue', context: {
+        'queue_id': item.id,
+        'retry_count': item.retryCount,
+        'error': lastError,
+      });
+    } catch (e) {
+      WasteAppLogger.warning('Failed to move item to dead-letter queue',
+          error: e, context: {'queue_id': item.id});
+    }
+  }
+
+  /// Get all dead-letter items for audit / manual retry.
+  List<DeadLetterClassification> getDeadLetterItems() {
+    if (!_isInitialized || _deadLetterBox == null) return [];
+    return _deadLetterBox!.values.toList();
+  }
+
+  /// Retry a specific dead-letter item by moving it back to the active queue.
+  Future<bool> retryDeadLetter(String id) async {
+    if (_deadLetterBox == null || !_deadLetterBox!.containsKey(id)) {
+      return false;
+    }
+    try {
+      final item = _deadLetterBox!.get(id)!;
+      final queued = QueuedClassification(
+        id: const Uuid().v4(),
+        imageBytes: item.imageBytes,
+        region: item.region,
+        queuedAt: DateTime.now(),
+        userId: item.userId,
+        imageName: item.imageName,
+      );
+      await _queueBox!.put(queued.id, queued);
+      await _deadLetterBox!.delete(id);
+      _queueCountController.add(_queueBox!.length);
+      WasteAppLogger.info('Dead-letter item retried', context: {
+        'dead_letter_id': id,
+        'new_queue_id': queued.id,
+      });
+      return true;
+    } catch (e) {
+      WasteAppLogger.warning('Failed to retry dead-letter item',
+          error: e, context: {'dead_letter_id': id});
+      return false;
+    }
+  }
+
+  /// Clear all dead-letter items.
+  Future<void> clearDeadLetterQueue() async {
+    if (!_isInitialized) await init();
+    final count = _deadLetterBox?.length ?? 0;
+    await _deadLetterBox?.clear();
+    WasteAppLogger.info('Dead-letter queue cleared', context: {
+      'items_cleared': count,
+    });
   }
 
   /// Dispose resources

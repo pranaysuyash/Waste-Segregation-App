@@ -5,9 +5,8 @@ import 'package:mockito/mockito.dart';
 import 'package:waste_segregation_app/models/gamification.dart';
 import 'package:waste_segregation_app/models/filter_options.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
-import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart'
-    show AlternativeClassification;
+    show DisposalInstructions, WasteClassification;
 import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/providers/disposal_instructions_provider.dart';
 import 'package:waste_segregation_app/screens/result_screen.dart';
@@ -205,6 +204,7 @@ void main() {
 
       await tester.pump(const Duration(milliseconds: 200));
       expect(find.text('Plastic Bottle'), findsOneWidget);
+      expect(find.text('Recommended next step'), findsOneWidget);
 
       // Allow staggered list timers/animations to complete so the test binding
       // doesn't report pending timers.
@@ -223,7 +223,8 @@ void main() {
           points: UserPoints(total: 10),
         ),
       );
-      when(storageService.getAllClassifications()).thenAnswer((_) async => const []);
+      when(storageService.getAllClassifications())
+          .thenAnswer((_) async => const []);
 
       final classification = _classification().copyWith(
         analysisSource: WasteClassification.analysisSourceLocalExperimental,
@@ -403,7 +404,7 @@ void main() {
         final gamificationService = MockGamificationService();
         final storageService = MockStorageService();
 
-        final nudge = NearMilestoneNudge(
+        const nudge = NearMilestoneNudge(
           type: NudgeType.dailyGoal,
           title: 'Almost there!',
           message: '1 more scan today to reach your daily goal of 5 scans',

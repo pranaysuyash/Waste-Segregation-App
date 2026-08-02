@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:waste_segregation_app/services/classification_pipeline.dart' show ClassificationPipeline;
 import 'package:waste_segregation_app/services/confidence_calibration_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 

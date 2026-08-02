@@ -2,7 +2,7 @@
 
 **Purpose**: Living document tracking research areas for the ReLoop
 **Status**: Active — continuously updated as the project evolves
-**Last Updated**: 2026-05-25
+**Last Updated**: 2026-06-01
 **Sibling docs**:
 - [EXPLORATION_FRONTIER.md](EXPLORATION_FRONTIER.md) — high-ambition / "boil the ocean" frontier bets
 - [EXPLORATION_ROADMAP_WHILE_BUILDING.md](EXPLORATION_ROADMAP_WHILE_BUILDING.md) — what to explore in parallel with shipping
@@ -301,9 +301,9 @@ This explicitly decouples "understanding the image" from "telling the user what 
 
 ### 2. Classification Confidence & Uncertainty 🟡
 
-**Status**: Seed — current code surfaces a confidence score but does not formally model uncertainty.
+**Status**: Progress — `ModelRoutingScreen` now surfaces rawConfidence, calibratedConfidence, qualityScore, qualityReasons, needsReview per classification with per-layer breakdowns. The `ConfidenceCalibrationService` applies category-level overrides. No formal uncertainty model or user-facing "ambiguous state" UI yet.
 
-**Overview**: The user needs to know "the app is unsure — please confirm" vs "this is plastic, here's how to dispose". Today there's no calibrated uncertainty layer or explicit "ambiguous" state.
+**Overview**: The user needs to know "the app is unsure — please confirm" vs "this is plastic, here's how to dispose". Today the data is collected in all 15 routing/quality fields and visible in the routing dashboard, but no user-facing ambiguous state exists.
 
 **Key questions**:
 
@@ -339,20 +339,23 @@ This explicitly decouples "understanding the image" from "telling the user what 
 
 ### 4. Region-Aware Rulesets 🔴
 
-**Status**: Implementation delivered 2026-05-22. 7 city plugins live, `CityPolicyData` helper, `safetyOverride` check type, confidence gating, society override model, and city research playbook all built.
+**Status**: Implementation delivered 2026-05-22 and expanded 2026-06-01. Core policy runtime now includes confidence-state semantics, provenance metadata, and society-conflict telemetry in-policy.
 
-**Overview**: India-first (BBMP), with global ambitions. The "right answer" depends on city/municipality/building rules. The app now has seven city plugins (BBMP production, BMC/MCD/PMC/GHMC/GCC/KMC pilot), a data-driven `CityPolicyData` helper that reduces new-city cost to data + tests, a `safetyOverrideAlways` check type for safety-critical rules, confidence gating that demotes enforcement when ML confidence is low, and a `SocietyPolicyOverride` model for apartment-society-level rule deltas.
+**Overview**: India-first (BBMP), with global ambitions. The "right answer" depends on city/municipality/building rules. The app now has runtime coverage for multiple cities (`local_policy_engine` tests currently assert 17 resolved region mappings), a `CityPolicyData` helper that reduces new-city cost to data + tests, a `safetyOverrideAlways` check type for safety-critical rules, confidence gating with four explicit policy states, and a `SocietyPolicyOverride` model for apartment-society-level rule deltas.
 
 **Code anchors**:
 - `lib/services/city_policy_data.dart` — data-driven city config with pre-built instances for 7 cities
 - `lib/services/local_policy_engine.dart` — `safetyOverrideAlways` check type, confidence gating, provenance fields
-- `lib/services/local_guidelines_plugin.dart` — refactored BBMP retains custom compliance; all other cities use `CityDataPluginMixin`
+- `lib/services/local_guidelines_plugin.dart` — city metadata exposure via `cityData` and standardized plugin API for provenance
 - `lib/services/local_policy_rule_packs.dart` — 7 city rule packs with safety override rules
 - `lib/models/society_policy_override.dart` — society-level override model with Firestore-ready serialization
+- `lib/services/city_policy_data.dart` — provenance fields in city metadata (`sourceTitle`, `localName`, `trustTier`, `lastVerified`, `nextReviewDue`)
+- `lib/widgets/result_screen/policy_provenance_card.dart` — policy output explainer that surfaces governance provenance and conflicts
+- `test/services/local_policy_engine_test.dart` — low-confidence skip, society override, and mismatch/conflict coverage
 
 **Key questions**:
-- All answered; focus shifted to execution.
-- Answered: minimum data contract, society interaction, ML confidence gating.
+- Answered: minimum data contract, society interaction, provenance path, ML confidence gating.
+- Open: source freshness automation; region-resolution UX implementation; city-source governance dashboard for stale/fallback/society-conflict metrics.
 
 **Deliverable**: `docs/exploration/REGION_RULES_AND_CITY_EXPANSION_MAP.md` (2026-05-22).
 
@@ -362,15 +365,15 @@ This explicitly decouples "understanding the image" from "telling the user what 
 
 ### 4a. Global Municipal Policy Engine 🔴
 
-**Status**: Active build track (2026-05-20 onward). 7 cities live, data-driven plugin architecture shipped.
+**Status**: Active build track (2026-05-20 onward). 2026-06-01 update adds confidence-banded policy application, policy-source freshness warnings, and society conflict telemetry.
 
-**Overview**: Policy correctness must scale beyond one city. The canonical policy engine + rule-pack registry surface is now augmented with a `CityPolicyData` helper that makes adding a new city a data-entry-plus-tests exercise. Seven cities are live (BBMP production, BMC/MCD/PMC/GHMC/GCC/KMC pilot). `safetyOverrideAlways` check type ensures deterministic safety-critical rules. Confidence gating prevents strong enforcement when ML confidence is low.
+**Overview**: Policy correctness must scale beyond one city. The canonical policy engine + rule-pack registry surface now includes confidence-banded policy enforcement, source provenance from city metadata, and society delta layer telemetry. `safetyOverrideAlways` remains the deterministic safety-critical guardrail; `LocalPolicyEngine` now tracks source freshness + override conflict signals into persisted `localRegulations`.
 
 **Key questions**:
 
 - Answered: plugin contract, minimum fields, promotion gates, rollout strategy.
-- Open: source freshness monitoring (design concept documented in `docs/exploration/SOURCE_FRESHNESS_MONITORING.md`).
-- Open: GPS region selection UX (design concept in `docs/exploration/GPS_REGION_SELECTION_UX.md`).
+- Open: source freshness automation (design concept documented in `docs/exploration/SOURCE_FRESHNESS_MONITORING.md`).
+- Open: GPS region selection UX and override flow (design concept in `docs/exploration/GPS_REGION_SELECTION_UX.md`).
 
 **Current code anchors**:
 
@@ -1251,7 +1254,7 @@ Current model self-reported confidence is an uncalibrated signal — the model's
 
 **Category**: UX & Engagement / On-Device & Edge
 
-**Status**: Complete — Tier 2 fully implemented. `OfflineDegradationTier` enum, `OfflineResultBanner` widget, `tryLocalWithHint()` pipeline method, `isOfflineHint` field on WasteClassification, result screen banner integration, hint reconciliation in offline queue processor. Plan archived at `docs/planning/G6_OFFLINE_DEGRADATION_UX_PLAN.md`.
+**Status**: Complete — Tier 2 fully implemented. `OfflineDegradationTier` enum, `OfflineResultBanner` widget, `tryLocalWithHint()` pipeline method, `isOfflineHint` field on WasteClassification, result screen banner integration, hint reconciliation in offline queue processor. Dead-letter queue (`DeadLetterClassification`, Hive typeId 101) with full programmatic API (`getDeadLetterItems`, `retryDeadLetter`, `clearDeadLetterQueue`) and UI (`_DeadLetterDialog` in `ImpactDashboardScreen` with retry/delete/clear all). Plan archived at `docs/planning/G6_OFFLINE_DEGRADATION_UX_PLAN.md`.
 
 **Overview**: There are three distinct offline states with different UX needs:
 
@@ -1283,7 +1286,7 @@ All NOW-phase and NEXT-phase exploration docs completed:
 | Doc | Track | Status |
 |-----|-------|--------|
 | [AI Cost Telemetry & Guardrails](exploration/AI_COST_TELEMETRY_AND_GUARDRAILS.md) | N1 | Complete — cost model, gaps, per-tier caps |
-| [Offline Queue & Sync Contract](exploration/OFFLINE_QUEUE_AND_SYNC.md) | N2 | Complete — contract, gaps, 6 acceptance tests |
+| [Offline Queue & Sync Contract](exploration/OFFLINE_QUEUE_AND_SYNC.md) | N2 | Complete — contract, gaps, 6 acceptance tests, dead-letter queue (typeId 101) with retry/clear UI |
 | [Privacy / Photo PII](exploration/PRIVACY_PHOTO_PII.md) | N3 | Complete — gap analysis, remediation plan |
 | [Data Retention & PII Strategy](exploration/DATA_RETENTION_AND_PII_STRATEGY.md) | N3 | Complete — retention policies, PII inventory |
 | [Onboarding & Activation](exploration/ONBOARDING_AND_ACTIVATION.md) | N4 | Complete — funnel analysis, onboarding flow |

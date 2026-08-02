@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/services/training_data_service.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 
-class TrainingReviewQueueScreen extends StatefulWidget {
+class TrainingReviewQueueScreen extends ConsumerStatefulWidget {
   const TrainingReviewQueueScreen({super.key});
 
   @override
-  State<TrainingReviewQueueScreen> createState() =>
+  ConsumerState<TrainingReviewQueueScreen> createState() =>
       _TrainingReviewQueueScreenState();
 }
 
-class _TrainingReviewQueueScreenState extends State<TrainingReviewQueueScreen> {
+class _TrainingReviewQueueScreenState extends ConsumerState<TrainingReviewQueueScreen> {
   static const List<String> _reviewStatuses = <String>[
     'unreviewed',
     'approved',
@@ -28,7 +28,7 @@ class _TrainingReviewQueueScreenState extends State<TrainingReviewQueueScreen> {
   List<TrainingReviewCandidate> _items = const [];
 
   Future<TrainingDataService> _service() async {
-    final storage = Provider.of<StorageService>(context, listen: false);
+    final storage = ref.read(storageServiceProvider);
     return TrainingDataService(storageService: storage);
   }
 
@@ -101,7 +101,7 @@ class _TrainingReviewQueueScreenState extends State<TrainingReviewQueueScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: DropdownButtonFormField<String>(
-              value: _selectedFilter,
+              initialValue: _selectedFilter,
               decoration: const InputDecoration(
                 labelText: 'Review Status Filter',
                 border: OutlineInputBorder(),

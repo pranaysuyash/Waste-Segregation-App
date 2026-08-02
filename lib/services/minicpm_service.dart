@@ -33,8 +33,7 @@ class MiniCpmService {
   }
 
   String? get _effectiveApiKey =>
-      apiKey ?? const String.fromEnvironment('MINICPM_API_KEY',
-          defaultValue: '');
+      apiKey ?? const String.fromEnvironment('MINICPM_API_KEY');
 
   Future<WasteClassification> classifyCrop(
     Uint8List cropBytes,

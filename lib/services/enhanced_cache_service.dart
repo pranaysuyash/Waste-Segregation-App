@@ -11,6 +11,13 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../utils/waste_app_logger.dart';
 
 /// Enhanced cache service with LRU eviction, size limits, and image compression
+///
+/// @Deprecated('Use ClassificationCacheService instead')
+/// This service has zero production usage — all cache consumers use
+/// ClassificationCacheService (aliased as CacheService). The image
+/// compression feature was never wired into any production path.
+/// Kept in-tree for reference only; will be removed in a future release.
+@Deprecated('Use ClassificationCacheService (cache_service.dart) instead')
 class EnhancedCacheService {
   EnhancedCacheService({
     int? maxCacheSize,

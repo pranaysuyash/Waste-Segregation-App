@@ -694,7 +694,28 @@ You are a waste classification API for $region. Output valid JSON only.
   "recyclable": boolean,
   "steps": ["max 3 steps"],
   "requires_special_dropoff": boolean,
-  "explanation": "one sentence"
+  "explanation": "one sentence",
+  "waterPollutionLevel": 1,
+  "soilContaminationRisk": 1,
+  "biodegradabilityDays": 100,
+  "recyclingEfficiency": 50,
+  "manufacturingEnergyFootprint": 0.5,
+  "transportationFootprint": 0.1,
+  "endOfLifeCost": "High",
+  "circularEconomyPotential": ["Reuse"],
+  "generatesMicroplastics": false,
+  "humanToxicityLevel": 1,
+  "wildlifeImpactSeverity": 1,
+  "resourceScarcity": "Common",
+  "disposalCostEstimate": 1.5,
+  "bbmpComplianceStatus": "Compliant",
+  "co2Impact": 0.5,
+  "decompositionTime": "100 years",
+  "properEquipment": ["Gloves"],
+  "materials": ["Plastic"],
+  "commonUses": ["Packaging"],
+  "alternativeOptions": ["Paper"],
+  "hazardLevel": 1
 }
 Rules for $region: Pizza boxes with grease=Organic(Green), Styrofoam=Reject(Black), Batteries=Hazardous(Red)+special dropoff.
 Language: $language
@@ -747,6 +768,7 @@ Analyze this waste item image and provide a JSON response with:
 
       // Build a complete classification JSON for fromJson factory
       final classificationJson = {
+        ...jsonData,
         'itemName':
             jsonData['item_name'] ?? jsonData['itemName'] ?? 'Unknown Item',
         'category': jsonData['category'] ?? 'Unknown',
@@ -808,6 +830,7 @@ Analyze this waste item image and provide a JSON response with:
 
       // Build a complete classification JSON for fromJson factory
       final classificationJson = {
+        ...jsonData,
         'itemName':
             jsonData['item_name'] ?? jsonData['itemName'] ?? 'Unknown Item',
         'category': jsonData['category'] ?? 'Unknown',
@@ -861,6 +884,7 @@ Analyze this waste item image and provide a JSON response with:
 
       final jsonData = json.decode(content) as Map<String, dynamic>;
       final classificationJson = {
+        ...jsonData,
         'itemName':
             jsonData['item_name'] ?? jsonData['itemName'] ?? 'Unknown Item',
         'category': jsonData['category'] ?? 'Unknown',

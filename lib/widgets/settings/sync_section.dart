@@ -1,23 +1,23 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
-import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/services/cloud_storage_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import 'package:waste_segregation_app/widgets/settings/setting_tile.dart';
 import 'package:waste_segregation_app/widgets/settings/settings_theme.dart';
 
-class SyncSection extends StatefulWidget {
+class SyncSection extends ConsumerStatefulWidget {
   const SyncSection({super.key});
 
   @override
-  State<SyncSection> createState() => _SyncSectionState();
+  ConsumerState<SyncSection> createState() => _SyncSectionState();
 }
 
-class _SyncSectionState extends State<SyncSection> {
+class _SyncSectionState extends ConsumerState<SyncSection> {
   bool _isGoogleSyncEnabled = true;
   DateTime? _lastCloudSync;
   bool _isLoading = true;
@@ -30,8 +30,7 @@ class _SyncSectionState extends State<SyncSection> {
 
   Future<void> _loadGoogleSyncSetting() async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       final settings = await storageService.getSettings();
       final lastSync = await storageService.getLastCloudSync();
       if (mounted) {
@@ -52,10 +51,8 @@ class _SyncSectionState extends State<SyncSection> {
   Future<void> _toggleGoogleSync(bool value) async {
     final t = AppLocalizations.of(context)!;
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
-      final cloudStorageService =
-          Provider.of<CloudStorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
+      final cloudStorageService = ref.read(cloudStorageServiceProvider);
 
       final currentSettings = await storageService.getSettings();
       if (!mounted) return;
@@ -132,10 +129,8 @@ class _SyncSectionState extends State<SyncSection> {
         ),
       ));
 
-      final cloudStorageService =
-          Provider.of<CloudStorageService>(context, listen: false);
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final cloudStorageService = ref.read(cloudStorageServiceProvider);
+      final storageService = ref.read(storageServiceProvider);
       final syncedCount =
           await cloudStorageService.syncAllLocalClassificationsToCloud();
 
@@ -185,8 +180,7 @@ class _SyncSectionState extends State<SyncSection> {
         ),
       ));
 
-      final cloudStorageService =
-          Provider.of<CloudStorageService>(context, listen: false);
+      final cloudStorageService = ref.read(cloudStorageServiceProvider);
       final downloadedCount = await cloudStorageService.syncCloudToLocal();
 
       if (mounted) {

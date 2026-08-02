@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/ad_service.dart';
-import '../services/premium_service.dart';
-
-class BannerAdWidget extends StatelessWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/app_providers.dart';
+class BannerAdWidget extends ConsumerWidget {
   const BannerAdWidget({
     super.key,
     this.height = 50,
@@ -13,9 +11,9 @@ class BannerAdWidget extends StatelessWidget {
   final bool showAtBottom;
 
   @override
-  Widget build(BuildContext context) {
-    final adService = Provider.of<AdService>(context);
-    final premiumService = Provider.of<PremiumService>(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final adService = ref.watch(adServiceProvider);
+    final premiumService = ref.watch(premiumServiceProvider);
 
     // Update ad service with premium status
     adService.setPremiumStatus(premiumService.hasActivePremiumPlan());

@@ -178,11 +178,11 @@ class _EducationalContentScreenState
                         ),
                         child: TextField(
                           controller: _searchController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             hintText: 'Search...',
-                            prefixIcon: const Icon(Icons.search),
+                            prefixIcon: Icon(Icons.search),
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(),
+                            contentPadding: EdgeInsets.symmetric(),
                           ),
                           onChanged: (value) {
                             setState(() {
@@ -247,7 +247,6 @@ class _EducationalContentScreenState
                         },
                         items: const [
                           DropdownMenuItem<ContentLevel?>(
-                            value: null,
                             child: Text('All Levels'),
                           ),
                           DropdownMenuItem<ContentLevel?>(

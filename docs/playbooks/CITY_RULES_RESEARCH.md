@@ -144,14 +144,28 @@ Once research is complete, create a `static const` entry in `lib/services/city_p
 
 Before submitting a city plugin PR:
 
-- [ ] All 10 required `CityPolicyData` fields populated
-- [ ] At least 1 source URL documented for the data
-- [ ] Rule pack in `local_policy_rule_packs.dart` created with ≥4 rules
-- [ ] Safety override rules included for hazardous and medical categories
-- [ ] Region alias added in `LocalGuidelinesManager._regionAliases`
-- [ ] Plugin registered in `LocalGuidelinesManager.initializeDefaultPlugins()`
-- [ ] Routing test added in `local_guidelines_manager_routing_test.dart`
-- [ ] Rule pack test added in `local_policy_rule_packs_test.dart`
-- [ ] Policy engine integration test added in `local_policy_engine_test.dart`
-- [ ] `flutter test` passes for all policy tests
-- [ ] This playbook followed; research sources archived in the PR description
+**Update (2026-06-01)**: The current implementation now enforces:
+
+- [x] City-level provenance metadata flow: source title/url, trust tier, last verified, and review due.
+- [x] Confidence banding with hard fail-open fallback for low-confidence scans.
+- [x] Society override layering with conflict detection and explanation payloads.
+- [x] Persistence of provenance + override metadata into classification localRegulations.
+- [x] Data-to-code bridge started: `CityPolicyData` helper plus pre-built entries for seven cities.
+
+- [ ] All 10 required `CityPolicyData` fields completed before `pilot` and all `mandatory` fields before `production`.
+- [ ] At least 1 source URL documented for each city, with effective date and jurisdiction mapping.
+- [ ] Rule pack in `local_policy_rule_packs.dart` created with ≥4 rules and a deterministic versioning tag.
+- [ ] Safety override rules included for hazardous and medical categories in all new cities.
+- [ ] Region alias additions kept synchronized with `LocalGuidelinesManager._regionAliases`.
+- [ ] Plugin registration remains centralized in `LocalGuidelinesManager.initializeDefaultPlugins()`.
+- [ ] Routing test added in `local_guidelines_manager_routing_test.dart` for each added city.
+- [ ] Rule pack test added in `local_policy_rule_packs_test.dart`.
+- [ ] Policy engine integration test added in `local_policy_engine_test.dart` for confidence conflict and stale-source behavior.
+- [ ] New city pipeline requires `flutter test` pass for policy-related suites before merge.
+- [ ] Research sources and verification notes archived in PR description under "City Sources".
+
+## 2026-06-01 long-term add-ons
+
+- Add evidence capture script output for source-change logs and review due history.
+- Add city-ops owner field in each proposal (`owner`, `last_reviewed_by`, `next_reviewer`).
+- Add rule-pack provenance changelog artifact (semver + source doc hash).

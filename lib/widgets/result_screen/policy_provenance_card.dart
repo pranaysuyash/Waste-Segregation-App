@@ -7,19 +7,30 @@ import 'package:waste_segregation_app/services/local_policy_engine.dart';
 /// Shows which authority's rules were used, version info, source, helpline,
 /// and whether the result was confidence-gated.
 class PolicyProvenanceCard extends StatelessWidget {
-  const PolicyProvenanceCard({
-    super.key,
-    required this.decision,
-  });
+  const PolicyProvenanceCard({super.key, required this.decision});
 
   final LocalPolicyDecision decision;
 
   @override
   Widget build(BuildContext context) {
-    if (!decision.policyApplied) return const SizedBox.shrink();
+    if (!decision.policyApplied && decision.pluginId == null) {
+      return const SizedBox.shrink();
+    }
 
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final confidenceState =
+        decision.confidenceState ??
+        (decision.policyApplied ? 'full' : 'not_applied');
+
+    final confidenceStateLabel =
+        {
+          'not_applied': 'Low-confidence fallback',
+          'warning_only': 'Warning-only policy',
+          'full_softened': 'Full policy with softened path',
+          'full': 'Full policy checks',
+        }[confidenceState] ??
+        confidenceState;
 
     return Card(
       elevation: 0,
@@ -43,8 +54,10 @@ class PolicyProvenanceCard extends StatelessWidget {
                 const Spacer(),
                 if (decision.confidenceGated)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.amber.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(4),
@@ -57,22 +70,64 @@ class PolicyProvenanceCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: cs.primaryContainer.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    confidenceStateLabel,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: cs.onPrimaryContainer,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             _provenanceRow(context, 'Authority', decision.authorityName ?? '—'),
+            if (decision.localName != null)
+              _provenanceRow(context, 'Source', decision.localName!),
             if (decision.guidelinesVersion != null)
-              _provenanceRow(
-                  context, 'Version', decision.guidelinesVersion!),
+              _provenanceRow(context, 'Version', decision.guidelinesVersion!),
             if (decision.helpline != null && decision.helpline!.isNotEmpty)
               _provenanceRow(context, 'Helpline', decision.helpline!),
             if (decision.complianceStatus != null)
               _provenanceRow(
-                  context, 'Compliance', _complianceLabel(decision.complianceStatus!, cs)),
+                context,
+                'Compliance',
+                _complianceLabel(decision.complianceStatus!, cs),
+              ),
+            if (decision.trustTier != null)
+              _provenanceRow(context, 'Trust', decision.trustTier!),
+            if (decision.sourceTitle != null)
+              _provenanceRow(context, 'Source', decision.sourceTitle!),
             if (decision.lastVerified != null)
               _provenanceRow(context, 'Verified', decision.lastVerified!),
             if (decision.rulePackId != null)
               _provenanceRow(context, 'Rule Pack', decision.rulePackId!),
+            if (decision.nextReviewDue != null)
+              _provenanceRow(context, 'Review', decision.nextReviewDue!),
+            if (decision.societyName != null)
+              _provenanceRow(context, 'Society', decision.societyName!),
+            if (decision.societyOverrides.isNotEmpty)
+              _provenanceRow(
+                context,
+                'Society Overrides',
+                decision.societyOverrides.join(', '),
+              ),
+            if (decision.societyConflicts.isNotEmpty)
+              _provenanceRow(
+                context,
+                'Conflicts',
+                decision.societyConflicts.join(' | '),
+              ),
             const SizedBox(height: 4),
             InkWell(
               onTap: () => _showSourceDetail(context),
@@ -117,12 +172,7 @@ class PolicyProvenanceCard extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
+          Expanded(child: Text(value, style: theme.textTheme.bodySmall)),
         ],
       ),
     );
@@ -175,9 +225,10 @@ class PolicyProvenanceCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 '• Safety-critical rules (hazardous, medical) always apply\n'
-                '• Low-confidence ML results show softer warnings\n'
+                '• High-risk confidence has policy confidence bands: full, softened, skip\n'
                 '• Every rule has a version ID for auditability\n'
-                '• Society-specific overrides are layered on top',
+                '• Source freshness and trust-tier are shown for source hygiene\n'
+                '• Society-specific overrides are layered and conflict-aware',
                 style: theme.textTheme.bodySmall?.copyWith(height: 1.5),
               ),
             ],

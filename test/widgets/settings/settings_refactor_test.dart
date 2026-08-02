@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/models/premium_feature.dart';
@@ -113,14 +114,11 @@ void main() {
 
   group('Settings Refactor Tests', () {
     Widget createTestWidget(Widget child) {
-      return MultiProvider(
-        providers: [
-          Provider<GoogleDriveService>(
-              create: (_) => _FakeGoogleDriveService()),
-          ChangeNotifierProvider<HapticSettingsService>(
-              create: (_) => _FakeHapticSettingsService()),
-          ChangeNotifierProvider<PremiumService>(
-              create: (_) => _FakePremiumService()),
+      return ProviderScope(
+        overrides: [
+          googleDriveServiceProvider.overrideWithValue(_FakeGoogleDriveService()),
+          hapticSettingsServiceProvider.overrideWithValue(_FakeHapticSettingsService()),
+          premiumServiceProvider.overrideWithValue(_FakePremiumService()),
         ],
         child: MaterialApp(
           localizationsDelegates: const [

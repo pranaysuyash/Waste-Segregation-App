@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' hide Family;
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/enhanced_family.dart' hide UserRole;
 import '../models/family_invitation.dart' show InvitationMethod;
 import '../models/user_profile.dart' show UserRole;
 import '../services/firebase_family_service.dart';
-import '../services/storage_service.dart';
 import '../utils/constants.dart';
+import '../providers/app_providers.dart';
 
-class FamilyInviteScreen extends StatefulWidget {
+class FamilyInviteScreen extends ConsumerStatefulWidget {
   const FamilyInviteScreen({
     super.key,
     required this.family,
@@ -18,10 +18,10 @@ class FamilyInviteScreen extends StatefulWidget {
   final Family family;
 
   @override
-  State<FamilyInviteScreen> createState() => _FamilyInviteScreenState();
+  ConsumerState<FamilyInviteScreen> createState() => _FamilyInviteScreenState();
 }
 
-class _FamilyInviteScreenState extends State<FamilyInviteScreen>
+class _FamilyInviteScreenState extends ConsumerState<FamilyInviteScreen>
     with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -50,8 +50,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
 
   Future<void> _generateInviteLink() async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       final currentUser = await storageService.getCurrentUserProfile();
       if (currentUser == null) {
         throw Exception('User not found');
@@ -511,8 +510,7 @@ class _FamilyInviteScreenState extends State<FamilyInviteScreen>
 
     try {
       // Get current user ID
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       final currentUser = await storageService.getCurrentUserProfile();
 
       if (currentUser == null) {

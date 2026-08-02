@@ -88,7 +88,8 @@ class WasteCategoryPieChart extends StatelessWidget {
                                 sectionIndex < data.length) {
                               final item = data[sectionIndex];
                               final percentage = (item.value / total) * 100;
-                              SemanticsService.announce(
+                              SemanticsService.sendAnnouncement(
+                                View.of(context),
                                 '${item.label}: ${item.value.toInt()} items, ${percentage.toStringAsFixed(1)} percent',
                                 TextDirection.ltr,
                               );
@@ -133,7 +134,8 @@ class WasteCategoryPieChart extends StatelessWidget {
       return '${item.label}: ${item.value.toInt()} items, ${percentage.toStringAsFixed(1)} percent';
     }).join('. ');
 
-    SemanticsService.announce(
+    SemanticsService.sendAnnouncement(
+      View.of(context),
       'Detailed breakdown: $announcement',
       TextDirection.ltr,
     );
@@ -232,7 +234,8 @@ class TopSubcategoriesBarChart extends StatelessWidget {
 
                               final item = sortedData[groupIndex];
                               // Announce touched bar for accessibility
-                              SemanticsService.announce(
+                              SemanticsService.sendAnnouncement(
+                                View.of(context),
                                 '${item.label}: ${rod.toY.toInt()} items',
                                 TextDirection.ltr,
                               );
@@ -374,7 +377,8 @@ class TopSubcategoriesBarChart extends StatelessWidget {
         .map((item) => '${item.label}: ${item.value.toInt()} items')
         .join('. ');
 
-    SemanticsService.announce(
+    SemanticsService.sendAnnouncement(
+      View.of(context),
       'Detailed breakdown: $announcement',
       TextDirection.ltr,
     );
@@ -509,7 +513,8 @@ class WeeklyItemsChart extends StatelessWidget {
 
                               final item = data[groupIndex];
                               // Announce touched bar for accessibility
-                              SemanticsService.announce(
+                              SemanticsService.sendAnnouncement(
+                                View.of(context),
                                 '${item.label}: ${rod.toY.toInt()} items',
                                 TextDirection.ltr,
                               );
@@ -641,7 +646,8 @@ class WeeklyItemsChart extends StatelessWidget {
         .map((item) => '${item.label}: ${item.value.toInt()} items')
         .join('. ');
 
-    SemanticsService.announce(
+    SemanticsService.sendAnnouncement(
+      View.of(context),
       'Weekly breakdown: $announcement',
       TextDirection.ltr,
     );

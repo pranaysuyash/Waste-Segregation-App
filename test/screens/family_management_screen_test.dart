@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/models/enhanced_family.dart'
     as family_models;
 import 'package:waste_segregation_app/models/family_invitation.dart'
@@ -94,10 +95,9 @@ void main() {
           .thenAnswer((_) => Stream.value(const []));
 
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<FirebaseFamilyService>.value(value: familyService),
-            Provider<StorageService>.value(value: storageService),
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(storageService),
           ],
           child: MaterialApp(home: FamilyManagementScreen(family: family)),
         ),

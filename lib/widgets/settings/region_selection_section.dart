@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/local_guidelines_plugin.dart';
+import '../../providers/region_preference_provider.dart';
 import 'setting_tile.dart';
 import 'settings_section_header.dart';
 import 'settings_section_spacer.dart';
@@ -9,29 +12,19 @@ import 'settings_section_spacer.dart';
 /// Shows the currently selected city and allows the user to pick from
 /// all registered city plugins. The selection is used by the policy engine
 /// to apply city-specific disposal rules.
-class RegionSelectionSection extends StatefulWidget {
+class RegionSelectionSection extends ConsumerStatefulWidget {
   const RegionSelectionSection({super.key});
 
   @override
-  State<RegionSelectionSection> createState() => _RegionSelectionSectionState();
+  ConsumerState<RegionSelectionSection> createState() =>
+      _RegionSelectionSectionState();
 }
 
-class _RegionSelectionSectionState extends State<RegionSelectionSection> {
-  String _selectedRegion = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadRegion();
-  }
-
-  void _loadRegion() {
-    setState(() {
-      _selectedRegion = 'Bangalore, IN';
-    });
-  }
-
+class _RegionSelectionSectionState
+    extends ConsumerState<RegionSelectionSection> {
   List<_CityOption> _getAvailableCities() {
+    LocalGuidelinesManager.initializeDefaultPlugins();
+
     final pluginIds = [
       ('bbmp_bangalore', 'Bangalore', 'BBMP'),
       ('bmc_mumbai', 'Mumbai', 'BMC'),
@@ -67,9 +60,8 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
   @override
   Widget build(BuildContext context) {
     final cities = _getAvailableCities();
-    final currentCity = _selectedRegion.isNotEmpty
-        ? cities.where((c) => c.region == _selectedRegion).firstOrNull
-        : null;
+    final currentRegion = ref.watch(regionPreferenceProvider);
+    final currentCity = cities.where((c) => c.region == currentRegion).firstOrNull;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,6 +84,8 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
   }
 
   void _showCityPicker(BuildContext context, List<_CityOption> cities) {
+    final currentRegion = ref.read(regionPreferenceProvider);
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -135,7 +129,7 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
               itemCount: cities.length,
               itemBuilder: (context, index) {
                 final city = cities[index];
-                final isSelected = city.region == _selectedRegion;
+                final isSelected = city.region == currentRegion;
                 return ListTile(
                   leading: Icon(
                     isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
@@ -145,14 +139,15 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
                   ),
                   title: Text(city.cityName),
                   subtitle: Text('${city.authority} — ${city.region}'),
-                  trailing: city.available
-                      ? null
-                      : const Icon(Icons.hourglass_empty, size: 16),
+                  trailing:
+                      city.available ? null : const Icon(Icons.hourglass_empty, size: 16),
                   selected: isSelected,
                   onTap: () {
-                    setState(() {
-                      _selectedRegion = city.region;
-                    });
+                    unawaited(
+                      ref
+                          .read(regionPreferenceProvider.notifier)
+                          .setRegion(city.region),
+                    );
                     Navigator.of(ctx).pop();
                   },
                 );

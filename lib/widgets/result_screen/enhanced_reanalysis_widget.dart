@@ -1,15 +1,12 @@
 import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../services/visual_feedback_service.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import '../../services/ai_service.dart';
-import '../../services/analytics_service.dart';
-import '../../services/haptic_settings_service.dart';
+import '../../providers/app_providers.dart';
 
-/// Enhanced re-analysis widget with better UI hooks and user experience
-class EnhancedReanalysisWidget extends StatefulWidget {
+class EnhancedReanalysisWidget extends ConsumerStatefulWidget {
   const EnhancedReanalysisWidget({
     super.key,
     required this.classification,
@@ -25,11 +22,11 @@ class EnhancedReanalysisWidget extends StatefulWidget {
   final Function(WasteClassification)? onReanalysisCompleted;
 
   @override
-  State<EnhancedReanalysisWidget> createState() =>
+  ConsumerState<EnhancedReanalysisWidget> createState() =>
       _EnhancedReanalysisWidgetState();
 }
 
-class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
+class _EnhancedReanalysisWidgetState extends ConsumerState<EnhancedReanalysisWidget>
     with SingleTickerProviderStateMixin {
   bool _isReanalyzing = false;
   late AnimationController _animationController;
@@ -323,10 +320,8 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
   }
 
   void _triggerReanalysis() async {
-    final analyticsService =
-        Provider.of<AnalyticsService>(context, listen: false);
-    final hapticService =
-        Provider.of<HapticSettingsService>(context, listen: false);
+    final analyticsService = ref.read(analyticsServiceProvider);
+    final hapticService = ref.read(hapticSettingsServiceProvider);
 
     // Track re-analysis event (fire-and-forget — do not block UI on analytics)
     unawaited(analyticsService
@@ -394,13 +389,13 @@ class _EnhancedReanalysisWidgetState extends State<EnhancedReanalysisWidget>
   }
 
   void _cancelReanalysis() {
-    Provider.of<AiService>(context, listen: false).cancelAnalysis();
+    ref.read(aiServiceProvider).cancelAnalysis();
 
     setState(() {
       _isReanalyzing = false;
     });
 
-    unawaited(Provider.of<AnalyticsService>(context, listen: false)
+    unawaited(ref.read(analyticsServiceProvider)
         .trackUserAction('reanalysis_cancelled'));
   }
 

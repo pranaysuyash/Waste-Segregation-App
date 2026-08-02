@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/models/vision_model_config.dart';
 import 'package:waste_segregation_app/services/enhanced_storage_service.dart';
@@ -7,16 +7,17 @@ import 'package:waste_segregation_app/services/model_download_service.dart';
 import 'package:waste_segregation_app/utils/constants.dart';
 import 'package:waste_segregation_app/utils/design_system.dart';
 import 'package:waste_segregation_app/utils/enhanced_animations.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 
-class OfflineModeSettingsScreen extends StatefulWidget {
+class OfflineModeSettingsScreen extends ConsumerStatefulWidget {
   const OfflineModeSettingsScreen({super.key});
 
   @override
-  State<OfflineModeSettingsScreen> createState() =>
+  ConsumerState<OfflineModeSettingsScreen> createState() =>
       _OfflineModeSettingsScreenState();
 }
 
-class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
+class _OfflineModeSettingsScreenState extends ConsumerState<OfflineModeSettingsScreen> {
   bool _offlineEnabled = false;
   bool _autoDownloadModels = true;
   bool _compressImages = true;
@@ -44,7 +45,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
-    final storage = Provider.of<EnhancedStorageService>(context, listen: false);
+    final storage = ref.read(storageServiceProvider) as EnhancedStorageService;
     final settings =
         await storage.get<Map<String, dynamic>>('offline_settings') ??
             <String, dynamic>{};
@@ -68,7 +69,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
   }
 
   Future<void> _saveSettings() async {
-    final storage = Provider.of<EnhancedStorageService>(context, listen: false);
+    final storage = ref.read(storageServiceProvider) as EnhancedStorageService;
     await storage.store('offline_settings', {
       'enabled': _offlineEnabled,
       'auto_download': _autoDownloadModels,
@@ -169,7 +170,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                       subtitle: Text(
                         _offlineEnabled ? t.offlineEnabled : t.offlineDisabled,
                       ),
-                      activeColor: WasteAppDesignSystem.primaryGreen,
+                      activeThumbColor: WasteAppDesignSystem.primaryGreen,
                     ),
                   ],
                 ),
@@ -235,7 +236,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                         },
                         title: Text(t.autoDownloadUpdates),
                         subtitle: Text(t.autoDownloadSubtitle),
-                        activeColor: WasteAppDesignSystem.primaryGreen,
+                        activeThumbColor: WasteAppDesignSystem.primaryGreen,
                       ),
                       SwitchListTile(
                         value: _compressImages,
@@ -247,7 +248,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                         },
                         title: Text(t.compressImages),
                         subtitle: Text(t.compressSubtitle),
-                        activeColor: WasteAppDesignSystem.primaryGreen,
+                        activeThumbColor: WasteAppDesignSystem.primaryGreen,
                       ),
                       SwitchListTile(
                         value: _storageOptimization,
@@ -259,7 +260,7 @@ class _OfflineModeSettingsScreenState extends State<OfflineModeSettingsScreen> {
                         },
                         title: Text(t.storageOptimization),
                         subtitle: Text(t.storageSubtitle),
-                        activeColor: WasteAppDesignSystem.primaryGreen,
+                        activeThumbColor: WasteAppDesignSystem.primaryGreen,
                       ),
                     ],
                   ),

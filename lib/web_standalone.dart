@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'services/storage_service.dart';
-import 'providers/theme_provider.dart';
+import 'providers/app_providers.dart';
 import 'utils/constants.dart';
 import 'utils/waste_app_logger.dart';
 import 'widgets/responsive_text.dart';
@@ -44,10 +44,9 @@ void main() async {
 
     // Use the Flutter runApp function
     runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => ThemeProvider()),
-          Provider<StorageService>.value(value: storageService),
+      ProviderScope(
+        overrides: [
+          storageServiceProvider.overrideWithValue(storageService),
         ],
         child: const WasteSegregationWebApp(),
       ),

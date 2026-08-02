@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/models/community_feed.dart';
 import 'package:waste_segregation_app/models/filter_options.dart';
 import 'package:waste_segregation_app/models/user_profile.dart';
@@ -103,10 +104,10 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<StorageService>.value(value: storageService),
-            Provider<CommunityService>.value(value: communityService),
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(storageService),
+            communityServiceProvider.overrideWithValue(communityService),
           ],
           child: const MaterialApp(home: CommunityScreen()),
         ),
@@ -146,10 +147,10 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<StorageService>.value(value: storageService),
-            Provider<CommunityService>.value(value: communityService),
+        ProviderScope(
+          overrides: [
+            storageServiceProvider.overrideWithValue(storageService),
+            communityServiceProvider.overrideWithValue(communityService),
           ],
           child: const MaterialApp(home: CommunityScreen()),
         ),

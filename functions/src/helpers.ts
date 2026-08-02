@@ -4,6 +4,34 @@ import { FieldValue } from 'firebase-admin/firestore';
 import cors from 'cors';
 import { getQuotaConfig } from './rate_limit_config';
 
+export type ApiVersion = string;
+
+export interface ApiErrorPayload {
+  code: string;
+  message: string;
+  request_id: string;
+  details?: Record<string, unknown>;
+  retry_after_seconds?: number;
+}
+
+export interface ApiResponseEnvelope<T> {
+  success: true;
+  data: T;
+  request_id: string;
+  version: ApiVersion;
+  timestamp: string;
+}
+
+export interface ApiFailureEnvelope {
+  success: false;
+  error: ApiErrorPayload;
+  request_id: string;
+  version: ApiVersion;
+  timestamp: string;
+}
+
+export type ApiHttpEnvelope<T> = ApiResponseEnvelope<T> | ApiFailureEnvelope;
+
 export const asiaSouth1 = functions.region('asia-south1');
 
 export const corsHandler = cors({ origin: true });
@@ -21,6 +49,82 @@ export const parseBoolEnv = (value: string | undefined, fallback = false): boole
   if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
   if (['false', '0', 'no', 'off'].includes(normalized)) return false;
   return fallback;
+};
+
+const getApiVersion = (): ApiVersion => process.env.FUNCTIONS_API_VERSION ?? 'v1';
+
+const newRequestId = (): string => {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+};
+
+const nowIso = (): string => new Date().toISOString();
+
+const sanitizeErrorDetails = (
+  details?: Record<string, unknown>,
+): Record<string, unknown> | undefined => {
+  if (!details) return undefined;
+  return Object.fromEntries(
+    Object.entries(details)
+      .filter(([, value]) =>
+        ['string', 'number', 'boolean'].includes(typeof value) || value === null
+      ),
+  );
+};
+
+export const respondWithApiError = (
+  res: functions.Response,
+  statusCode: number,
+  code: string,
+  message: string,
+  details?: Record<string, unknown>,
+  retryAfterSeconds?: number,
+): void => {
+  const requestId = newRequestId();
+  res.setHeader('x-request-id', requestId);
+  res.setHeader('x-api-version', getApiVersion());
+
+  if (statusCode === 429 && retryAfterSeconds && retryAfterSeconds > 0) {
+    res.setHeader('Retry-After', String(retryAfterSeconds));
+    res.setHeader('X-RateLimit-Limit', String(details?.['maxRequests'] ?? ''));
+    res.setHeader('X-RateLimit-Remaining', String(details?.['remaining'] ?? '0'));
+    res.setHeader('X-RateLimit-Reset', String(retryAfterSeconds));
+  }
+
+  const payload: ApiFailureEnvelope = {
+    success: false,
+    error: {
+      code,
+      message,
+      request_id: requestId,
+      details: sanitizeErrorDetails(details),
+      retry_after_seconds: retryAfterSeconds,
+    },
+    request_id: requestId,
+    version: getApiVersion(),
+    timestamp: nowIso(),
+  };
+
+  res.status(statusCode).json(payload);
+};
+
+export const respondWithApiSuccess = <T>(
+  res: functions.Response,
+  statusCode: number,
+  data: T,
+): void => {
+  const requestId = newRequestId();
+  res.setHeader('x-request-id', requestId);
+  res.setHeader('x-api-version', getApiVersion());
+
+  const payload: ApiResponseEnvelope<T> = {
+    success: true,
+    data,
+    request_id: requestId,
+    version: getApiVersion(),
+    timestamp: nowIso(),
+  };
+
+  res.status(statusCode).json(payload);
 };
 
 export const isProductionRuntime = (): boolean => {

@@ -10,6 +10,8 @@ import {
   getBearerToken, getRateLimitConfig, enforceRateLimit,
   bumpOpsMetric, isProductionRuntime,
   validateAppCheckProductionGuardrails,
+  respondWithApiError,
+  respondWithApiSuccess,
 } from './helpers';
 
 // Re-export all module functions
@@ -64,30 +66,34 @@ const verifyAdminHttpRequest = async (req: functions.Request): Promise<boolean> 
 
 // Health check endpoint
 export const healthCheck = asiaSouth1.https.onRequest((req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  respondWithApiSuccess(res, 200, {
+    status: 'ok',
+    endpoint: 'healthCheck',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Test endpoint to verify OpenAI configuration
 export const testOpenAI = asiaSouth1.https.onRequest((req, res) => {
   const diagnosticsEnabled = process.env.ENABLE_DIAGNOSTIC_ENDPOINTS === 'true';
   if (!diagnosticsEnabled) {
-    res.status(403).json({ error: 'Diagnostics disabled' });
+    respondWithApiError(res, 403, 'DIAGNOSTICS_DISABLED', 'Diagnostics disabled');
     return;
   }
 
   verifyAdminHttpRequest(req).then((isAdmin) => {
     if (!isAdmin) {
-      res.status(403).json({ error: 'Forbidden: admin token required' });
+      respondWithApiError(res, 403, 'AUTH_ADMIN_REQUIRED', 'Forbidden: admin token required');
       return;
     }
     const apiKey = getOpenAiApiKey();
-    res.json({
-      status: 'ok',
+    respondWithApiSuccess(res, 200, {
       openaiConfigured: !!apiKey,
-      timestamp: new Date().toISOString()
+      endpoint: 'testOpenAI',
+      timestamp: new Date().toISOString(),
     });
   }).catch(() => {
-    res.status(500).json({ error: 'Failed to verify request' });
+    respondWithApiError(res, 500, 'INTERNAL_AUTH_VERIFICATION_FAILURE', 'Failed to verify request');
   });
 });
 
@@ -1184,6 +1190,11 @@ export {
  */
 export const getBatchStats = asiaSouth1.https.onRequest(async (req, res) => {
   return corsHandler(req, res, async () => {
+    if (req.method !== 'GET') {
+      respondWithApiError(res, 405, 'METHOD_NOT_ALLOWED', 'Method not allowed');
+      return;
+    }
+
     try {
       const db = admin.firestore();
 
@@ -1204,11 +1215,19 @@ export const getBatchStats = asiaSouth1.https.onRequest(async (req, res) => {
         timestamp: new Date().toISOString(),
       };
 
-      res.json(stats);
+      respondWithApiSuccess(res, 200, stats);
 
     } catch (error) {
       functions.logger.error('Error getting batch stats', { error });
-      res.status(500).json({ error: 'Failed to get batch statistics' });
+      respondWithApiError(
+        res,
+        500,
+        'INTERNAL_BATCH_STATS_FAILURE',
+        'Failed to get batch statistics',
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
     }
   });
 });

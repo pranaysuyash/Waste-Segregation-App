@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
-import 'package:provider/single_child_widget.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/models/premium_feature.dart';
 import 'package:waste_segregation_app/services/haptic_settings_service.dart';
@@ -149,17 +149,13 @@ Widget _buildApp({
   NavigationSettingsService? navigationSettingsService,
   PremiumService? premiumService,
 }) {
-  final providers = <SingleChildWidget>[
+  final overrides = <Override>[
     if (hapticSettingsService != null)
-      ChangeNotifierProvider<HapticSettingsService>.value(
-        value: hapticSettingsService,
-      ),
+      hapticSettingsServiceProvider.overrideWithValue(hapticSettingsService),
     if (navigationSettingsService != null)
-      ChangeNotifierProvider<NavigationSettingsService>.value(
-        value: navigationSettingsService,
-      ),
+      navigationSettingsServiceProvider.overrideWithValue(navigationSettingsService),
     if (premiumService != null)
-      ChangeNotifierProvider<PremiumService>.value(value: premiumService),
+      premiumServiceProvider.overrideWithValue(premiumService),
   ];
 
   final app = MaterialApp(
@@ -174,12 +170,12 @@ Widget _buildApp({
     home: Scaffold(body: child),
   );
 
-  if (providers.isEmpty) {
+  if (overrides.isEmpty) {
     return app;
   }
 
-  return MultiProvider(
-    providers: providers,
+  return ProviderScope(
+    overrides: overrides,
     child: app,
   );
 }

@@ -1,16 +1,9 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { parseBoolEnv, respondWithApiError, respondWithApiSuccess } from './helpers';
 
 const asiaSouth1 = functions.region('asia-south1');
-
-const parseBoolEnv = (value: string | undefined, fallback = false): boolean => {
-  if (value == null) return fallback;
-  const normalized = value.trim().toLowerCase();
-  if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
-  if (['false', '0', 'no', 'off'].includes(normalized)) return false;
-  return fallback;
-};
 
 const getNested = (obj: unknown, path: string[]): unknown => {
   let current: unknown = obj;
@@ -338,64 +331,77 @@ const verifyAdminHttpRequest = async (req: functions.Request): Promise<boolean> 
  */
 export const getClassifyReservationDashboard = asiaSouth1.https.onRequest(async (req, res) => {
   if (req.method !== 'GET') {
-    res.status(405).json({ error: 'Method not allowed' });
+    respondWithApiError(res, 405, 'METHOD_NOT_ALLOWED', 'Method not allowed');
     return;
   }
 
   const diagnosticsEnabled = parseBoolEnv(process.env.ENABLE_DIAGNOSTIC_ENDPOINTS, false);
   if (!diagnosticsEnabled) {
-    res.status(403).json({ error: 'Diagnostics disabled' });
+    respondWithApiError(res, 403, 'DIAGNOSTICS_DISABLED', 'Diagnostics disabled');
     return;
   }
 
-  const isAdmin = await verifyAdminHttpRequest(req);
-  if (!isAdmin) {
-    res.status(403).json({ error: 'Forbidden: admin token required' });
-    return;
-  }
-
-  const db = admin.firestore();
-  const staleMinutes = Number(process.env.CLASSIFY_RESERVATION_STALE_MINUTES ?? '30');
-  const staleThresholdMs = Date.now() - Math.max(1, staleMinutes) * 60_000;
-
-  const [reservedSnap, consumedSnap, refundedSnap, monitorSnap] = await Promise.all([
-    db.collection('classify_token_reservations').where('status', '==', 'reserved').limit(1000).get(),
-    db.collection('classify_token_reservations').where('status', '==', 'consumed').limit(1000).get(),
-    db.collection('classify_token_reservations').where('status', '==', 'refunded').limit(1000).get(),
-    db.collection('ops_monitoring').doc('classify_reservation_reconciliation').get(),
-  ]);
-
-  let staleReserved = 0;
-  reservedSnap.docs.forEach((doc) => {
-    const data = doc.data();
-    const reservedAtIso = timestampToIso(data.reservedAt) ?? timestampToIso(data.reservedAtIso);
-    if (!reservedAtIso) return;
-    const reservedAtMs = Date.parse(reservedAtIso);
-    if (!Number.isNaN(reservedAtMs) && reservedAtMs <= staleThresholdMs) {
-      staleReserved += 1;
+  try {
+    const isAdmin = await verifyAdminHttpRequest(req);
+    if (!isAdmin) {
+      respondWithApiError(res, 403, 'AUTH_ADMIN_REQUIRED', 'Forbidden: admin token required');
+      return;
     }
-  });
 
-  const totalFinalized = consumedSnap.size + refundedSnap.size;
-  const refundRate = totalFinalized > 0
-    ? Number((refundedSnap.size / totalFinalized).toFixed(4))
-    : 0;
+    const db = admin.firestore();
+    const staleMinutes = Number(process.env.CLASSIFY_RESERVATION_STALE_MINUTES ?? '30');
+    const staleThresholdMs = Date.now() - Math.max(1, staleMinutes) * 60_000;
 
-  const monitorData = monitorSnap.exists ? monitorSnap.data() : null;
+    const [reservedSnap, consumedSnap, refundedSnap, monitorSnap] = await Promise.all([
+      db.collection('classify_token_reservations').where('status', '==', 'reserved').limit(1000).get(),
+      db.collection('classify_token_reservations').where('status', '==', 'consumed').limit(1000).get(),
+      db.collection('classify_token_reservations').where('status', '==', 'refunded').limit(1000).get(),
+      db.collection('ops_monitoring').doc('classify_reservation_reconciliation').get(),
+    ]);
 
-  res.json({
-    generatedAtIso: new Date().toISOString(),
-    staleMinutesThreshold: Math.max(1, staleMinutes),
-    counts: {
-      reserved: reservedSnap.size,
-      consumed: consumedSnap.size,
-      refunded: refundedSnap.size,
-      staleReserved,
-      totalFinalized,
-    },
-    rates: {
-      refundRate,
-    },
-    monitoring: monitorData ?? null,
-  });
+    let staleReserved = 0;
+    reservedSnap.docs.forEach((doc) => {
+      const data = doc.data();
+      const reservedAtIso = timestampToIso(data.reservedAt) ?? timestampToIso(data.reservedAtIso);
+      if (!reservedAtIso) return;
+      const reservedAtMs = Date.parse(reservedAtIso);
+      if (!Number.isNaN(reservedAtMs) && reservedAtMs <= staleThresholdMs) {
+        staleReserved += 1;
+      }
+    });
+
+    const totalFinalized = consumedSnap.size + refundedSnap.size;
+    const refundRate = totalFinalized > 0
+      ? Number((refundedSnap.size / totalFinalized).toFixed(4))
+      : 0;
+
+    const monitorData = monitorSnap.exists ? monitorSnap.data() : null;
+
+    respondWithApiSuccess(res, 200, {
+      generatedAtIso: new Date().toISOString(),
+      staleMinutesThreshold: Math.max(1, staleMinutes),
+      counts: {
+        reserved: reservedSnap.size,
+        consumed: consumedSnap.size,
+        refunded: refundedSnap.size,
+        staleReserved,
+        totalFinalized,
+      },
+      rates: {
+        refundRate,
+      },
+      monitoring: monitorData ?? null,
+    });
+  } catch (error) {
+    functions.logger.error('getClassifyReservationDashboard: failed', { error });
+    respondWithApiError(
+      res,
+      500,
+      'INTERNAL_DASHBOARD_FAILURE',
+      'Failed to fetch classify reservation dashboard',
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
+  }
 });

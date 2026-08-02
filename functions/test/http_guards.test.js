@@ -49,7 +49,8 @@ test('generateDisposal blocks unauthenticated POST when auth required', async ()
     .send({ materialId: 'm-1', material: 'paper' });
 
   assert.equal(res.status, 401);
-  assert.match(res.body.error, /Bearer token required/);
+  assert.equal(res.body.success, false);
+  assert.match(res.body.error.message, /Bearer token required/);
 });
 
 test('generateDisposal blocks invalid bearer token when auth required', async () => {
@@ -68,7 +69,8 @@ test('generateDisposal blocks invalid bearer token when auth required', async ()
 
   restoreAuth();
   assert.equal(res.status, 401);
-  assert.match(res.body.error, /invalid token/);
+  assert.equal(res.body.success, false);
+  assert.match(res.body.error.message, /invalid token/);
 });
 
 test('testOpenAI returns 403 when diagnostics are disabled', async () => {
@@ -78,7 +80,8 @@ test('testOpenAI returns 403 when diagnostics are disabled', async () => {
   const res = await request(app).get('/');
 
   assert.equal(res.status, 403);
-  assert.equal(res.body.error, 'Diagnostics disabled');
+  assert.equal(res.body.success, false);
+  assert.equal(res.body.error.message, 'Diagnostics disabled');
 });
 
 test('testOpenAI returns 403 for non-admin token when diagnostics enabled', async () => {
@@ -93,7 +96,8 @@ test('testOpenAI returns 403 for non-admin token when diagnostics enabled', asyn
 
   restoreAuth();
   assert.equal(res.status, 403);
-  assert.equal(res.body.error, 'Forbidden: admin token required');
+  assert.equal(res.body.success, false);
+  assert.equal(res.body.error.message, 'Forbidden: admin token required');
 });
 
 test('generateDisposal allows authenticated request to reach method guard', async () => {
@@ -109,7 +113,8 @@ test('generateDisposal allows authenticated request to reach method guard', asyn
 
   restoreAuth();
   assert.equal(res.status, 405);
-  assert.equal(res.body.error, 'Method not allowed');
+  assert.equal(res.body.success, false);
+  assert.equal(res.body.error.message, 'Method not allowed');
 });
 
 test('testOpenAI returns minimal success payload for admin token when enabled', async () => {
@@ -125,9 +130,11 @@ test('testOpenAI returns minimal success payload for admin token when enabled', 
 
   restoreAuth();
   assert.equal(res.status, 200);
-  assert.equal(res.body.status, 'ok');
-  assert.equal(res.body.openaiConfigured, true);
-  assert.ok(typeof res.body.timestamp === 'string' && res.body.timestamp.length > 0);
-  assert.equal('keySource' in res.body, false);
-  assert.equal('keyLength' in res.body, false);
+  assert.equal(res.body.success, true);
+  assert.equal(res.body.data.openaiConfigured, true);
+  assert.equal(res.body.data.endpoint, 'testOpenAI');
+  assert.equal(typeof res.body.data.timestamp, 'string');
+  assert.ok(res.body.data.timestamp.length > 0);
+  assert.equal('keySource' in res.body.data, false);
+  assert.equal('keyLength' in res.body.data, false);
 });

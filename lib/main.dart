@@ -10,7 +10,6 @@ import 'package:flutter/rendering.dart'
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode, kReleaseMode;
 import 'package:firebase_app_check/firebase_app_check.dart';
@@ -71,8 +70,6 @@ import 'utils/waste_app_logger.dart';
 import 'utils/analytics_route_observer.dart';
 import 'utils/frame_performance_monitor.dart';
 import 'utils/firebase_gate.dart';
-import 'providers/theme_provider.dart';
-import 'providers/points_engine_provider.dart';
 import 'services/cloud_storage_service.dart';
 import 'providers/app_providers.dart';
 
@@ -422,7 +419,6 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
     await FirebaseAppCheck.instance
         .activate(
           appleProvider: AppleProvider.appAttest,
-          androidProvider: AndroidProvider.playIntegrity,
         )
         .timeout(const Duration(seconds: 10));
     WasteAppLogger.debug('BOOT: App Check activated for production modes');
@@ -653,227 +649,195 @@ class _WasteSegregationAppState extends State<WasteSegregationApp> {
         storageServiceProvider.overrideWithValue(widget.storageService),
         cloudStorageServiceProvider
             .overrideWith((ref) => CloudStorageService(widget.storageService)),
+        aiServiceProvider.overrideWithValue(widget.aiService),
+        analyticsServiceProvider.overrideWithValue(widget.analyticsService),
+        educationalContentAnalyticsServiceProvider
+            .overrideWithValue(widget.educationalContentAnalyticsService),
+        educationalContentServiceProvider
+            .overrideWithValue(widget.educationalContentService),
+        gamificationServiceProvider
+            .overrideWithValue(widget.gamificationService),
+        premiumServiceProvider.overrideWithValue(widget.premiumService),
+        purchaseServiceProvider.overrideWithValue(widget.purchaseService),
+        adServiceProvider.overrideWithValue(widget.adService),
+        googleDriveServiceProvider.overrideWithValue(widget.googleDriveService),
+        navigationSettingsServiceProvider
+            .overrideWithValue(widget.navigationSettingsService),
+        hapticSettingsServiceProvider
+            .overrideWithValue(widget.hapticSettingsService),
+        communityServiceProvider.overrideWithValue(widget.communityService),
+        userConsentServiceProvider.overrideWithValue(widget.userConsentService),
       ],
-      child: MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => ThemeProvider()),
-          Provider<StorageService>.value(value: widget.storageService),
-          Provider<AiService>.value(value: widget.aiService),
-          ChangeNotifierProvider<AnalyticsService>.value(
-              value: widget.analyticsService),
-          ChangeNotifierProvider<EducationalContentAnalyticsService>.value(
-              value: widget.educationalContentAnalyticsService),
-          Provider<GoogleDriveService>.value(value: widget.googleDriveService),
-          Provider<EducationalContentService>.value(
-              value: widget.educationalContentService),
-          ChangeNotifierProvider<GamificationService>.value(
-              value: widget.gamificationService),
-          ChangeNotifierProvider<PremiumService>.value(
-              value: widget.premiumService),
-          ChangeNotifierProvider<PurchaseService>.value(
-              value: widget.purchaseService),
-          ChangeNotifierProvider<AdService>.value(value: widget.adService),
-          ChangeNotifierProvider<NavigationSettingsService>.value(
-              value: widget.navigationSettingsService),
-          ChangeNotifierProvider<HapticSettingsService>.value(
-              value: widget.hapticSettingsService),
-          Provider<CommunityService>.value(value: widget.communityService),
-          Provider<UserConsentService>.value(value: widget.userConsentService),
-          Provider(
-              create: (context) =>
-                  CloudStorageService(context.read<StorageService>())),
-          ChangeNotifierProvider(
-            create: (context) => PointsEngineProvider(
-              context.read<StorageService>(),
-              context.read<CloudStorageService>(),
-            ),
-          ),
-        ],
-        child: Consumer<ThemeProvider>(
-          builder: (context, themeProvider, child) {
-            return DynamicColorBuilder(
-              builder: (lightDynamic, darkDynamic) {
-                final lightScheme = lightDynamic ??
-                    ColorScheme.fromSeed(seedColor: AppTheme.seedColor);
-                final darkScheme = darkDynamic ??
-                    ColorScheme.fromSeed(
-                        seedColor: AppTheme.seedColor,
-                        brightness: Brightness.dark);
+      child: riverpod.Consumer(
+        builder: (context, ref, child) {
+          final themeProv = ref.watch(themeProvider);
+          final analyticsService = ref.read(analyticsServiceProvider);
+          return DynamicColorBuilder(
+            builder: (lightDynamic, darkDynamic) {
+              final lightScheme = lightDynamic ??
+                  ColorScheme.fromSeed(seedColor: AppTheme.seedColor);
+              final darkScheme = darkDynamic ??
+                  ColorScheme.fromSeed(
+                      seedColor: AppTheme.seedColor,
+                      brightness: Brightness.dark);
 
-                return MaterialApp(
-                  navigatorKey: navigatorKey,
-                  title: AppStrings.appName,
-                  debugShowCheckedModeBanner: false,
-                  theme: AppTheme.fromScheme(lightScheme),
-                  darkTheme: AppTheme.fromScheme(darkScheme),
-                  highContrastTheme: AppTheme.highContrastTheme,
-                  highContrastDarkTheme: AppTheme.highContrastDarkTheme,
-                  themeMode: themeProvider.themeMode,
-                  localizationsDelegates:
-                      AppLocalizations.localizationsDelegates,
-                  supportedLocales: AppLocalizations.supportedLocales,
-                  navigatorObservers: [analyticsRouteObserver],
-                  builder: (context, child) {
-                    final mediaQuery = MediaQuery.of(context);
-                    final currentScale = mediaQuery.textScaler.scale(1.0);
-                    final clampedScale = currentScale.clamp(1.0, 2.0);
-                    final childWidget = child ?? const SizedBox.shrink();
-                    final mediaWrapped = MediaQuery(
-                      data: mediaQuery.copyWith(
-                        textScaler: TextScaler.linear(clampedScale),
-                      ),
-                      child: childWidget,
-                    );
+              return MaterialApp(
+                navigatorKey: navigatorKey,
+                title: AppStrings.appName,
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.fromScheme(lightScheme),
+                darkTheme: AppTheme.fromScheme(darkScheme),
+                highContrastTheme: AppTheme.highContrastTheme,
+                highContrastDarkTheme: AppTheme.highContrastDarkTheme,
+                themeMode: themeProv.themeMode,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                navigatorObservers: [analyticsRouteObserver],
+                builder: (context, child) {
+                  final mediaQuery = MediaQuery.of(context);
+                  final currentScale = mediaQuery.textScaler.scale(1.0);
+                  final clampedScale = currentScale.clamp(1.0, 2.0);
+                  final childWidget = child ?? const SizedBox.shrink();
+                  final mediaWrapped = MediaQuery(
+                    data: mediaQuery.copyWith(
+                      textScaler: TextScaler.linear(clampedScale),
+                    ),
+                    child: childWidget,
+                  );
 
-                    if (kDebugMode) {
-                      // Debug overlay showing quick init statuses
-                      const openAiKey =
-                          String.fromEnvironment('OPENAI_API_KEY');
-                      const geminiKey =
-                          String.fromEnvironment('GEMINI_API_KEY');
-                      final hasApiKeys =
-                          openAiKey.isNotEmpty || geminiKey.isNotEmpty;
+                  if (kDebugMode) {
+                    // Debug overlay showing quick init statuses
+                    const openAiKey = String.fromEnvironment('OPENAI_API_KEY');
+                    const geminiKey = String.fromEnvironment('GEMINI_API_KEY');
+                    final hasApiKeys =
+                        openAiKey.isNotEmpty || geminiKey.isNotEmpty;
 
-                      var hasConsent = false;
-                      try {
-                        final uc = Provider.of<UserConsentService>(
-                          context,
-                          listen: false,
-                        );
-                        hasConsent = uc.hasAllRequiredConsents;
-                      } catch (_) {}
+                    var hasConsent = false;
+                    try {
+                      final uc = ref.read(userConsentServiceProvider);
+                      hasConsent = uc.hasAllRequiredConsents;
+                    } catch (_) {}
 
-                      var firebaseOk = false;
-                      try {
-                        firebaseOk = Firebase.apps.isNotEmpty;
-                      } catch (_) {}
+                    var firebaseOk = false;
+                    try {
+                      firebaseOk = Firebase.apps.isNotEmpty;
+                    } catch (_) {}
 
-                      var openHiveBoxes = 0;
-                      try {
-                        openHiveBoxes = HiveBoxManager.instance.openBoxCount;
-                      } catch (_) {}
+                    var openHiveBoxes = 0;
+                    try {
+                      openHiveBoxes = HiveBoxManager.instance.openBoxCount;
+                    } catch (_) {}
 
-                      const showInitOverlay =
-                          bool.fromEnvironment('SHOW_INIT_STATUS_OVERLAY');
+                    const showInitOverlay =
+                        bool.fromEnvironment('SHOW_INIT_STATUS_OVERLAY');
 
-                      if (showInitOverlay) {
-                        return Stack(
-                          children: [
-                            mediaWrapped,
-                            Positioned(
-                              top: 40,
-                              right: 12,
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.black87,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Init Status',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      'Firebase: ${firebaseOk ? '✓' : '✗'}',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                    Text(
-                                      'Hive boxes: $openHiveBoxes',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                    Text(
-                                      'Consent: ${hasConsent ? '✓' : '✗'}',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                    Text(
-                                      'API Keys: ${hasApiKeys ? '✓' : '✗'}',
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
+                    if (showInitOverlay) {
+                      return Stack(
+                        children: [
+                          mediaWrapped,
+                          Positioned(
+                            top: 40,
+                            right: 12,
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.black87,
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                            )
-                          ],
-                        );
-                      }
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Init Status',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Firebase: ${firebaseOk ? '✓' : '✗'}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  Text(
+                                    'Hive boxes: $openHiveBoxes',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  Text(
+                                    'Consent: ${hasConsent ? '✓' : '✗'}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  Text(
+                                    'API Keys: ${hasApiKeys ? '✓' : '✗'}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      );
                     }
+                  }
 
-                    return mediaWrapped;
-                  },
-                  routes: {
-                    Routes.settings: (context) =>
-                        const EnhancedSettingsScreen(),
-                    Routes.auth: (context) => const AuthScreen(),
-                    '/history': (context) => const HistoryScreen(),
-                    '/achievements': (context) => const AchievementsScreen(),
-                    '/educational': (context) =>
-                        const EducationalContentScreen(),
-                    Routes.wasteDashboard: (context) =>
-                        const WasteDashboardScreen(),
-                    Routes.premium: (context) => const PremiumFeaturesScreen(),
-                    Routes.premiumFeatures: (context) =>
-                        const PremiumFeaturesScreen(),
-                    Routes.premiumFeaturesHyphen: (context) =>
-                        const PremiumFeaturesScreen(),
-                    '/token-wallet': (context) => const TokenWalletScreen(),
-                    Routes.dataExport: (context) => const DataExportScreen(),
-                    Routes.offlineModeSettings: (context) =>
-                        const OfflineModeSettingsScreen(),
-                    Routes.themeSettings: (context) =>
-                        const ThemeSettingsScreen(),
-                    Routes.notificationSettings: (context) =>
-                        const NotificationSettingsScreen(),
-                    Routes.navigationDemo: (context) =>
-                        const NavigationDemoScreen(),
-                    Routes.modernUIShowcase: (context) =>
-                        const ModernUIShowcaseScreen(),
-                    Routes.trainingReviewQueue: (context) =>
-                        const TrainingReviewQueueScreen(),
-                    Routes.modelRouting: (context) =>
-                        const ModelRoutingScreen(),
-                    Routes.gamificationAnalytics: (context) =>
-                        GamificationAnalyticsScreen(
-                          analyticsService: GamificationAnalyticsService(
-                            analyticsService:
-                                context.read<AnalyticsService>(),
-                          ),
+                  return mediaWrapped;
+                },
+                routes: {
+                  Routes.settings: (context) => const EnhancedSettingsScreen(),
+                  Routes.auth: (context) => const AuthScreen(),
+                  '/history': (context) => const HistoryScreen(),
+                  '/achievements': (context) => const AchievementsScreen(),
+                  '/educational': (context) => const EducationalContentScreen(),
+                  Routes.wasteDashboard: (context) =>
+                      const WasteDashboardScreen(),
+                  Routes.premium: (context) => const PremiumFeaturesScreen(),
+                  Routes.premiumFeatures: (context) =>
+                      const PremiumFeaturesScreen(),
+                  Routes.premiumFeaturesHyphen: (context) =>
+                      const PremiumFeaturesScreen(),
+                  '/token-wallet': (context) => const TokenWalletScreen(),
+                  Routes.dataExport: (context) => const DataExportScreen(),
+                  Routes.offlineModeSettings: (context) =>
+                      const OfflineModeSettingsScreen(),
+                  Routes.themeSettings: (context) =>
+                      const ThemeSettingsScreen(),
+                  Routes.notificationSettings: (context) =>
+                      const NotificationSettingsScreen(),
+                  Routes.navigationDemo: (context) =>
+                      const NavigationDemoScreen(),
+                  Routes.modernUIShowcase: (context) =>
+                      const ModernUIShowcaseScreen(),
+                  Routes.trainingReviewQueue: (context) =>
+                      const TrainingReviewQueueScreen(),
+                  Routes.modelRouting: (context) => const ModelRoutingScreen(),
+                  Routes.gamificationAnalytics: (context) =>
+                      GamificationAnalyticsScreen(
+                        analyticsService: GamificationAnalyticsService(
+                          analyticsService: analyticsService,
                         ),
-                    '/disposal-facilities': (context) =>
-                        const DisposalFacilitiesScreen(),
-                    '/impact-dashboard': (context) =>
-                        const ImpactDashboardScreen(),
-                    '/smart-suggestions': (context) =>
-                        const SmartSuggestionsScreen(),
-                    Routes.privacyPolicy: (context) =>
-                        const LegalDocumentScreen(
-                          title: 'Privacy Policy',
-                          assetPath: 'assets/docs/privacy_policy.md',
-                        ),
-                    Routes.termsOfService: (context) =>
-                        const LegalDocumentScreen(
-                          title: 'Terms of Service',
-                          assetPath: 'assets/docs/terms_of_service.md',
-                        ),
-                  },
-                  home: kDebugMode && _forceDebugHome
-                      ? const _DebugHome()
-                      : _buildInitialHome(context),
-                );
-              },
-            );
-          },
-        ),
+                      ),
+                  '/disposal-facilities': (context) =>
+                      const DisposalFacilitiesScreen(),
+                  '/impact-dashboard': (context) =>
+                      const ImpactDashboardScreen(),
+                  '/smart-suggestions': (context) =>
+                      const SmartSuggestionsScreen(),
+                  Routes.privacyPolicy: (context) => const LegalDocumentScreen(
+                        title: 'Privacy Policy',
+                        assetPath: 'assets/docs/privacy_policy.md',
+                      ),
+                  Routes.termsOfService: (context) => const LegalDocumentScreen(
+                        title: 'Terms of Service',
+                        assetPath: 'assets/docs/terms_of_service.md',
+                      ),
+                },
+                home: kDebugMode && _forceDebugHome
+                    ? const _DebugHome()
+                    : _buildInitialHome(context),
+              );
+            },
+          );
+        },
       ),
     );
   }

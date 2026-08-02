@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:provider/provider.dart';
-import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
-import '../services/gamification_service.dart';
 import '../models/gamification.dart';
 import '../widgets/waste_chart_widgets.dart';
-import '../providers/points_engine_provider.dart';
+import '../providers/app_providers.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../widgets/modern_ui/modern_cards.dart';
@@ -21,14 +19,14 @@ import '../utils/design_system.dart';
 
 enum _ChartTimescale { daily, weekly }
 
-class WasteDashboardScreen extends StatefulWidget {
+class WasteDashboardScreen extends ConsumerStatefulWidget {
   const WasteDashboardScreen({super.key});
 
   @override
-  State<WasteDashboardScreen> createState() => _WasteDashboardScreenState();
+  ConsumerState<WasteDashboardScreen> createState() => _WasteDashboardScreenState();
 }
 
-class _WasteDashboardScreenState extends State<WasteDashboardScreen>
+class _WasteDashboardScreenState extends ConsumerState<WasteDashboardScreen>
     with SingleTickerProviderStateMixin {
   // Classification data
   late List<WasteClassification> _classifications = [];
@@ -69,8 +67,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
 
     try {
       // Try to refresh gamification, but don't block analytics if it fails
-      final gamificationService =
-          Provider.of<GamificationService>(context, listen: false);
+      final gamificationService = ref.read(gamificationServiceProvider);
       try {
         await gamificationService.syncGamificationData();
         await gamificationService.syncWeeklyStatsWithClassifications();
@@ -79,8 +76,7 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
       }
 
       // Get the real data from storage service
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       final classifications = await storageService.getAllClassifications();
 
       // Process the classifications to generate statistics
@@ -1226,9 +1222,10 @@ class _WasteDashboardScreenState extends State<WasteDashboardScreen>
   }
 
   Widget _buildGamificationSection() {
-    return Consumer<PointsEngineProvider>(
-      builder: (context, pointsProvider, child) {
-        final profile = pointsProvider.pointsEngine.currentProfile;
+    return Consumer(
+      builder: (context, ref, child) {
+        final pointsEngine = ref.watch(pointsEngineProvider);
+        final profile = pointsEngine.currentProfile;
 
         if (profile == null) {
           return const Card(

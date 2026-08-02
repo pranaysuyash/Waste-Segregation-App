@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../services/visual_feedback_service.dart';
 import '../models/classification_state.dart';
 import '../models/gamification.dart';
 import '../services/result_pipeline.dart';
-import '../services/haptic_settings_service.dart';
 import '../services/analytics_service.dart';
 import '../services/ai_service.dart';
 import '../providers/app_providers.dart';
+import '../providers/scan_orchestrator_provider.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/image_capture_screen.dart';
 import '../screens/disposal_facilities_screen.dart';
@@ -19,6 +18,7 @@ import '../screens/waste_dashboard_screen.dart';
 import '../widgets/result_screen/result_header.dart';
 import '../utils/ai_error_messages.dart';
 import '../widgets/result_screen/disposal_accordion.dart';
+import '../widgets/result_screen/disposal_decision_card.dart';
 import '../widgets/result_screen/action_row.dart';
 import '../widgets/result_screen/points_popup.dart';
 import '../widgets/result_screen/achievement_wrapper.dart';
@@ -138,12 +138,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
   Future<void> _processClassification({bool force = false}) async {
     try {
-      final pipeline = ref.read(resultPipelineProvider.notifier);
-      await pipeline.processClassification(
-        _classification,
-        autoAnalyze: widget.autoAnalyze,
-        force: force,
-      );
+      await ref.read(scanOrchestratorProvider).complete(
+            _classification,
+            autoAnalyze: widget.autoAnalyze,
+            force: force,
+          );
     } catch (error, stackTrace) {
       WasteAppLogger.severe(
         'Failed to process classification in pipeline',
@@ -362,8 +361,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                             // Offline result banner (Layer 0 hint while offline)
                             if (_classification.isOfflineHint)
                               OfflineResultBanner(
-                                isAccepted: _classification.classificationLayer ==
-                                    'layer0_deterministic',
+                                isAccepted:
+                                    _classification.classificationLayer ==
+                                        'layer0_deterministic',
                               ),
 
                             // Needs-review banner (clarificationNeeded or fallback)
@@ -396,7 +396,15 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                               const SizedBox(height: 24),
                             ],
 
-                            // Disposal Instructions Accordion
+                            // Actionable disposal decision, followed by detail.
+                            DisposalDecisionCard(
+                              classification: _classification,
+                              onCorrect: _handleCorrection,
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Detailed disposal instructions
                             DisposalAccordion(
                               classification: _classification,
                             ),
@@ -416,9 +424,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                               EducationCardWidget(
                                 card: _educationCard!,
                                 onDismiss: _dismissEducationCard,
-                                onLearnMore: _educationCard!.extendedBody != null
-                                    ? _openMiniLesson
-                                    : null,
+                                onLearnMore:
+                                    _educationCard!.extendedBody != null
+                                        ? _openMiniLesson
+                                        : null,
                               ),
                             ],
 
@@ -1128,8 +1137,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
 
   Future<void> _handleSave() async {
     try {
-      final pipeline = ref.read(resultPipelineProvider.notifier);
-      await pipeline.saveClassificationOnly(_classification);
+      await ref.read(scanOrchestratorProvider).saveOnly(_classification);
       _triggerHapticFeedback();
 
       if (mounted) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/app_providers.dart';
 import '../../services/google_drive_service.dart';
 import '../../services/firebase_cleanup_service.dart';
 import '../../services/storage_service.dart';
@@ -21,8 +22,9 @@ class AccountSection extends StatelessWidget {
       children: [
         SettingsSectionHeader(title: t.accountSection),
 
-        Consumer<GoogleDriveService>(
-          builder: (context, googleDriveService, child) {
+        Consumer(
+          builder: (context, ref, child) {
+            final googleDriveService = ref.watch(googleDriveServiceProvider);
             return FutureBuilder<bool>(
               future: googleDriveService.isSignedIn(),
               builder: (context, snapshot) {

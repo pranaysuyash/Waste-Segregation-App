@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io' as io;
+import 'dart:typed_data';
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:image/image.dart' as img;
 import 'package:waste_segregation_app/models/cached_classification.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/services/ai_service.dart' show AiService;
@@ -49,13 +52,35 @@ class ClassificationCacheService {
   /// Constructor
   ClassificationCacheService({
     int? maxCacheSize,
-  }) : _maxCacheSize = maxCacheSize ?? 1000;
+    double compressionQuality = 0.8,
+    int maxImageDimension = 1024,
+  })  : _maxCacheSize = maxCacheSize ?? 1000,
+        _compressionQuality = compressionQuality.clamp(0.1, 1.0),
+        _maxImageDimension = maxImageDimension;
 
   /// Hive box for storing cached classifications
   late Box<String> _cacheBox;
 
+  /// Hive box for storing compressed image data alongside cache entries.
+  /// Keyed by the same [cacheKey] as the classification entry.
+  late Box<Uint8List> _imageBox;
+
   /// Maximum number of cache entries (default: 1000)
   final int _maxCacheSize;
+
+  /// JPEG compression quality (0.0–1.0). Default: 0.8.
+  final double _compressionQuality;
+
+  /// Maximum image dimension in pixels. Images exceeding this are downsized
+  /// proportionally. Default: 1024.
+  final int _maxImageDimension;
+
+  /// In-memory compression result cache to avoid re-compressing the same
+  /// input within a short window. Cleared after 5 minutes of inactivity.
+  final Map<String, Uint8List> _compressionCache = {};
+
+  /// Timer that clears [_compressionCache] after 5 minutes of inactivity.
+  Timer? _compressionCleanupTimer;
 
   /// Whether the cache has been initialized
   bool _isInitialized = false;
@@ -83,8 +108,9 @@ class ClassificationCacheService {
     if (_isInitialized) return;
 
     try {
-      // Open the cache box
+      // Open the cache box and image box
       _cacheBox = await Hive.openBox<String>(StorageKeys.cacheBox);
+      _imageBox = await Hive.openBox<Uint8List>('classification_images');
 
       // Load existing cache entries into LRU map
       _loadLruMapFromCache();
@@ -375,6 +401,7 @@ class ClassificationCacheService {
     String? contentHash,
     int? imageSize,
     String? entryImageHash,
+    Uint8List? imageData,
   }) async {
     try {
       if (!_isInitialized) {
@@ -402,6 +429,24 @@ class ClassificationCacheService {
             });
       }
 
+      // Auto-compress and store image data if provided
+      int? compressedImageSize;
+      if (imageData != null) {
+        final compressionResult =
+            await _compressAndStoreImage(cacheKey: cacheKey, imageData: imageData);
+        if (compressionResult != null) {
+          compressedImageSize = compressionResult['compressedSize'] as int?;
+          final originalSize = compressionResult['originalSize'] as int? ?? 0;
+          final ratio = compressionResult['compressionRatio'] as double? ?? 1.0;
+          _updateAverageCompressionRatio(ratio);
+          if (originalSize > 0) {
+            _statistics['bytesSaved'] =
+                ((_statistics['bytesSaved'] ?? 0) + (originalSize - (compressedImageSize ?? originalSize)))
+                    .clamp(0, double.infinity);
+          }
+        }
+      }
+
       // Create cache entry with the raw image hash stored inside
       // so similarity scanning can compare against it regardless of
       // the Hive key format.
@@ -409,7 +454,7 @@ class ClassificationCacheService {
         storedImageHash,
         classification,
         contentHash: contentHash,
-        imageSize: imageSize,
+        imageSize: imageSize ?? compressedImageSize,
       );
 
       // Manage cache size (evict oldest entries if needed)
@@ -423,9 +468,10 @@ class ClassificationCacheService {
 
       // Update statistics
       _statistics['size'] = _cacheBox.length;
-      if (imageSize != null) {
+      final trackedSize = imageSize ?? compressedImageSize;
+      if (trackedSize != null) {
         _statistics['bytesSaved'] =
-            (_statistics['bytesSaved'] ?? 0) + imageSize;
+            (_statistics['bytesSaved'] ?? 0) + trackedSize;
       }
 
       WasteAppLogger.cacheEvent('cache_store', 'classification',
@@ -475,6 +521,7 @@ class ClassificationCacheService {
       final entry = _deserializeEntry(key);
       final size = entry?.imageSize ?? 0;
       await _cacheBox.delete(key);
+      await _imageBox.delete(key);
       _lruMap.remove(key);
       if (size > 0) {
         _statistics['bytesSaved'] =
@@ -503,7 +550,10 @@ class ClassificationCacheService {
       final previousSize = _cacheBox.length;
 
       await _cacheBox.clear();
+      await _imageBox.clear();
       _lruMap.clear();
+      _compressionCache.clear();
+      _compressionCleanupTimer?.cancel();
 
       // Reset statistics
       _statistics['hits'] = 0;
@@ -550,6 +600,7 @@ class ClassificationCacheService {
 
       for (final key in keysToRemove) {
         await _cacheBox.delete(key);
+        await _imageBox.delete(key);
         _lruMap.remove(key);
       }
       _statistics['size'] = _cacheBox.length;
@@ -570,6 +621,185 @@ class ClassificationCacheService {
         'max_age_days': maxAge.inDays
       });
       return 0;
+    }
+  }
+
+  /// Retrieve compressed image data by cache key.
+  /// Returns null when the key has no stored image.
+  Uint8List? getCachedImage(String cacheKey) {
+    try {
+      if (!_isInitialized) return null;
+      return _imageBox.get(cacheKey);
+    } catch (e) {
+      WasteAppLogger.warning('cache_get_image_error', error: e, context: {
+        'key': _previewHash(cacheKey),
+        'action': 'return_null',
+      });
+      return null;
+    }
+  }
+
+  /// Store image data alongside a classification entry.
+  ///
+  /// The image is automatically compressed (resized + JPEG) before storage.
+  /// Returns a map with compression metadata or null on failure.
+  Future<Map<String, dynamic>?> storeImage(
+    String cacheKey,
+    Uint8List imageData,
+  ) async {
+    return _compressAndStoreImage(
+      cacheKey: cacheKey,
+      imageData: imageData,
+    );
+  }
+
+  /// Store image data from a file path.
+  Future<Map<String, dynamic>?> storeImageFromPath(
+    String cacheKey,
+    String imagePath,
+  ) async {
+    return _compressAndStoreImage(
+      cacheKey: cacheKey,
+      imagePath: imagePath,
+    );
+  }
+
+  /// Compress and persist image data to the image box.
+  Future<Map<String, dynamic>?> _compressAndStoreImage({
+    required String cacheKey,
+    String? imagePath,
+    Uint8List? imageData,
+  }) async {
+    try {
+      final result = await _compressImage(
+        imagePath: imagePath,
+        imageData: imageData,
+      );
+      if (result == null) return null;
+
+      final compressed = result['compressed'] as Uint8List;
+      await _imageBox.put(cacheKey, compressed);
+
+      return {
+        'compressedSize': compressed.length,
+        'originalSize': result['originalSize'],
+        'compressionRatio': result['originalSize'] > 0
+            ? compressed.length / result['originalSize']
+            : 1.0,
+      };
+    } catch (e) {
+      WasteAppLogger.warning('cache_store_image_error', error: e, context: {
+        'key': _previewHash(cacheKey),
+      });
+      return null;
+    }
+  }
+
+  /// Compress image data for efficient storage.
+  ///
+  /// Accepts either [imagePath] (file on disk) or [imageData] (in-memory bytes).
+  /// Returns a map with 'compressed' (Uint8List), 'originalSize' (int), and
+  /// 'compressedSize' (int), or null on failure.
+  Future<Map<String, dynamic>?> _compressImage({
+    String? imagePath,
+    Uint8List? imageData,
+  }) async {
+    try {
+      Uint8List originalData;
+
+      if (imagePath != null) {
+        final file = io.File(imagePath);
+        if (!await file.exists()) return null;
+        originalData = await file.readAsBytes();
+      } else if (imageData != null) {
+        originalData = imageData;
+      } else {
+        return null;
+      }
+
+      final originalSize = originalData.length;
+
+      // Check compression cache first
+      final cacheKey = originalData.hashCode.toString();
+      if (_compressionCache.containsKey(cacheKey)) {
+        final cached = _compressionCache[cacheKey]!;
+        return {
+          'compressed': cached,
+          'originalSize': originalSize,
+          'compressedSize': cached.length,
+        };
+      }
+
+      // Decode image
+      var image = img.decodeImage(originalData);
+      if (image == null) return null;
+
+      // Resize if too large
+      if (image.width > _maxImageDimension ||
+          image.height > _maxImageDimension) {
+        final aspectRatio = image.width / image.height;
+        int newWidth, newHeight;
+
+        if (image.width > image.height) {
+          newWidth = _maxImageDimension;
+          newHeight = (_maxImageDimension / aspectRatio).round();
+        } else {
+          newHeight = _maxImageDimension;
+          newWidth = (_maxImageDimension * aspectRatio).round();
+        }
+
+        image = img.copyResize(image, width: newWidth, height: newHeight);
+      }
+
+      // Compress as JPEG
+      final compressedData = img.encodeJpg(
+        image,
+        quality: (_compressionQuality * 100).round(),
+      );
+
+      // Cache the compression result temporarily
+      _compressionCache[cacheKey] = compressedData;
+      _scheduleCompressionCleanup();
+
+      return {
+        'compressed': compressedData,
+        'originalSize': originalSize,
+        'compressedSize': compressedData.length,
+      };
+    } catch (e) {
+      WasteAppLogger.warning('Image compression failed', error: e, context: {
+        'service': 'classification_cache',
+        'image_path':
+            imagePath?.substring(imagePath.length > 20 ? imagePath.length - 20 : 0),
+        'has_image_data': imageData != null,
+      });
+      return null;
+    }
+  }
+
+  /// Schedule compression cache cleanup after 5 minutes of inactivity.
+  void _scheduleCompressionCleanup() {
+    _compressionCleanupTimer?.cancel();
+    _compressionCleanupTimer = Timer(const Duration(minutes: 5), () {
+      _compressionCache.clear();
+    });
+  }
+
+  /// Update average compression ratio statistic.
+  void _updateAverageCompressionRatio(double newRatio) {
+    final currentAvg = _statistics['averageCompressionRatio'];
+    final currentAvgDouble =
+        currentAvg is double ? currentAvg : 0.0;
+    final totalRequests = _statistics['totalRequests'];
+    final totalRequestsInt =
+        totalRequests is int ? totalRequests : 0;
+
+    if (totalRequestsInt <= 1) {
+      _statistics['averageCompressionRatio'] = newRatio;
+    } else {
+      _statistics['averageCompressionRatio'] =
+          (currentAvgDouble * (totalRequestsInt - 1) + newRatio) /
+              totalRequestsInt;
     }
   }
 
@@ -600,6 +830,12 @@ class ClassificationCacheService {
     } else {
       stats['bytesSavedFormatted'] = '$bytesSaved bytes';
     }
+
+    // Compression statistics
+    final compressionRatio = stats['averageCompressionRatio'];
+    stats['averageCompressionRatio'] =
+        compressionRatio is double ? compressionRatio : 0.0;
+    stats['compressedImagesCount'] = _imageBox.length;
 
     // Count hash types by inspecting stored entry imageHash
     var pHashCount = 0;

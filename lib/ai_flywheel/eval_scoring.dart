@@ -8,7 +8,7 @@ class EvalScoring {
         .any((alt) => alt['category'] == p.category);
     final mustNotViolation = c.mustNot.contains(p.category);
     final safetyCriticalFailure = c.safetyCritical && !strictPass && !acceptableAlternativePass;
-    final localRuleMismatch = (c.localRuleId != null && p.localRuleId != null && c.localRuleId != p.localRuleId);
+    final localRuleMismatch = c.localRuleId != null && p.localRuleId != null && c.localRuleId != p.localRuleId;
     final localRuleFailure = c.localRuleCritical && (mustNotViolation || localRuleMismatch);
 
     var multiItemFailure = false;
@@ -25,7 +25,7 @@ class EvalScoring {
 
     final overconfidentWrong = (p.confidence ?? 0) >= 0.8 && !strictPass && !acceptableAlternativePass;
     final underconfidentCorrect = (p.confidence ?? 1) < 0.5 && (strictPass || acceptableAlternativePass);
-    final policyOverclaim = (c.region.toLowerCase().contains('unknown') && p.localRuleId != null);
+    final policyOverclaim = c.region.toLowerCase().contains('unknown') && p.localRuleId != null;
 
     return EvalCaseOutcome(
       caseId: c.id,

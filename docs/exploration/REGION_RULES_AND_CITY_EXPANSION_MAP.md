@@ -13,7 +13,45 @@
 - All metros converge on identical SWM rules → city plugin abstraction is over-engineering.
 - A national SWM framework harmonises rules before we ship → shift to state-level plugins.
 
-**Status**: Active Research (2026-05-22)
+**Status**: Active research with partial implementation completed.
+**Update (2026-06-01)**: Core implementation now covers confidence states, provenance fields, safety override semantics, society conflict telemetry, and persistence of policy metadata in local regulations. Remaining work is operational scale-out (cities >10), source automation, and region-resolution UX.
+
+## 2026-06-01 Completion Snapshot
+
+- ✅ City provenance metadata surfaced in `LocalPolicyDecision` (source URL/title, trust tier, last verified, next review due)
+- ✅ Confidence banding implemented with explicit states:
+  - `not_applied` below 0.50
+  - `warning_only` 0.50–0.69
+  - `full_softened` 0.70–0.89
+  - `full` 0.90+
+- ✅ Local guideline plugin metadata path for city source trust and review freshness is now used when building rule packs.
+- ✅ Society overlay layer integrated with conflict detection and provenance fields (`societyOverrides`, `societyConflicts`, conflict summaries).
+- ✅ Freshness warning surfaced when `nextReviewDue` has passed.
+- ✅ Deterministic provenance + metadata write-through now persists in classification local regulations.
+
+## Still-open (long-term)
+
+- [x] Replace hardcoded review metadata with deterministic `PolicySource` fields in city metadata and emit staleness warnings when stale.
+- [ ] Replace hardcoded `nextReviewDue` in city data with centralized source-of-truth config + manifest-driven manifest refresh cadence.
+- [x] Replace hardcoded `nextReviewDue` in city data with manifest-driven source checks and persistence.
+- [ ] Add governance dashboard for policy drift/conflict telemetry (society conflict rate, fallback rate, freshness warnings).
+- [ ] Expand city set rollout with a no-regression harness per added region.
+
+## 2026-06-01 Long-Term Exploration Additions
+
+- ✅ Provenance contract shipped end-to-end: rule pack -> policy decision -> result metadata -> policy provenance card.
+- ✅ Confidence-state behavior now explicit across four bands and persisted even when policy is skipped.
+- ✅ Society override semantics now include conflict capture and conflict-aware metadata.
+
+### Remaining frontier work (next release)
+
+- [x] **Source governance posture**: hardcode policy source and trust metadata is now surfaced in metadata card + decision payload.
+- [ ] **Source governance automation**: introduce shared policy-source manifest and hash-based change detection before adding more than 7 additional cities.
+- [ ] **Policy QA scaffolding**: expand tests from unit-only to region-fidelity fixture suites (fallback/conflict/staleness scenarios).
+- [ ] **Region resolution architecture**: move `region` from free-form caller strings to a dedicated region provider with manual override and GPS fallback contract.
+- [x] **Region resolution architecture**: move `region` from free-form caller strings to shared preference-backed `RegionPreferenceService` and Riverpod provider.
+- [ ] **Telemetric governance views**: create internal report slices for confidence-state distribution, stale-source warnings, and society conflict rates.
+
 **Links**: EXPLORATION_TOPICS.md#4 (Region-Aware Rulesets), EXPLORATION_TOPICS.md#4a (Global Municipal Policy Engine), EXPLORATION_TOPICS.md#F (Locality & Civic Waste Intelligence), GLOBAL_MUNICIPAL_POLICY_ENGINE.md
 
 ---
@@ -649,25 +687,34 @@ The ML-to-category mapping is a deterministic lookup table (not a prompt) so tha
 ## 14. Open Questions
 
 1. **Source freshness**: Who monitors municipal website changes and triggers rule pack updates? A manual process per city requires N city-watchers. Automated diff monitoring on municipal PDFs is technically possible but fragile.
+   - **Status 2026-06-01**: partially answered in-engine via stale warnings + next-review metadata; automation remains [ ].
 
-2. **Enforcement reality vs published rules**: Many cities have published rules that differ from actual collection practice. Should the app surface "official rule" or "what actually happens"? The current proposal: show both. "Official BBMP rule: Green Bin. Reported reality in your ward: mixed collection."
+2. **Enforcement reality vs published rules**: Many cities have published rules that differ from actual collection practice. Should the app surface "official rule" or "what actually happens"?
+   - **Status 2026-06-01**: unanswered policy choice. Current safe default remains official guidance + confidence-aware warnings where municipal metadata is stale.
+   - **Long-term option**: add ward-reported reality layer (user/community signal) behind explicit confidence marker.
 
 3. **GPS vs manual region selection**: If GPS is off, denied, or inaccurate at ward boundaries, how does the user choose their region? A manual "Set your city" screen is the fallback, but ward-level rules add complexity.
+   - **Status 2026-06-01**: design complete; implementation still pending.
 
 4. **Plugin maintenance burden**: With 15+ cities, each requiring periodic rule review, who owns the India city-ops function? A dedicated team or a community-contribution model with moderation?
+   - **Status 2026-06-01**: unresolved. Current model needs explicit owners and escalation rules before next 7-city expansion.
 
-5. **Cross-border users**: Users who live in one city and work in another will generate scans in different jurisdictions. Should the policy engine use scan-location (GPS) or home-location (profile)? Current proposal: per-scan GPS, with an option to set a home default.
+5. **Cross-border users**: Users who live in one city and work in another will generate scans in different jurisdictions. Should the policy engine use scan-location (GPS) or home-location (profile)?
+   - **Status 2026-06-01**: partially resolved in design (`scan-location by preference`), but not implemented in app-level region provider flow.
 
 6. **How to test city plugins without visiting each city**: Synthetic test data for each city's rules. Ward-level test fixtures that exercise collection-schedule edge cases. But real validation requires in-city testing.
+   - **Status 2026-06-01**: in-progress. Unit and engine test coverage exists; region-fidelity + real-world validation fixtures still pending.
 
 ---
 
 ## 15. Recommended Next Actions
 
-1. **Prototype `CityPolicyData` helper class** that provides fallback implementations for all plugin methods, reducing new-city cost to data entry + test writing.
-2. **Build Pune plugin** as the test case for data-driven city expansion (medium difficulty, well-documented rules). Ship to `pilot`. Measure time from scaffold to pilot.
-3. **Flesh out the society override layer** — Firestore schema, society registration flow, override application in the policy engine.
-4. **Add confidence gating** to `LocalPolicyEngine.applyPolicy()` so it reads `classification.confidence` and adjusts severity accordingly.
-5. **Ship provenance card** in the result screen — tap to see "BBMP 2024.1 | Source: BBMP SWM By-law | Last verified: 2025-01-15".
-6. **Add `LocalPolicyRuleCheckType.safetyOverride`** — a check type that always escalates to `violation` regardless of confidence when the category is hazardous/medical. This is the deterministic safety floor.
-7. **Document city research playbook** under `docs/playbooks/CITY_RULES_RESEARCH.md` — how to find the right municipal documents, what fields to fill, who to contact.
+1. [x] **Prototype `CityPolicyData` helper class** that provides fallback implementations for plugin methods, reducing new-city cost to data entry + tests.
+2. [x] **Build Pune plugin** as the test case for data-driven city expansion (medium difficulty, well-documented rules). Ship to `pilot`. Measure time from scaffold to pilot.
+3. [ ] **Flesh out the society override flow** — Firestore schema, society registration, and override application in the policy engine.
+4. [x] **Add confidence gating** to `LocalPolicyEngine.applyPolicy()` so it reads `classification.confidence` and adjusts severity accordingly.
+5. [x] **Ship provenance card** in the result screen with `source`, `trust`, `last verified`, and `next review due`.
+6. [x] **Add `LocalPolicyRuleCheckType.safetyOverride`** — a check type that always escalates to `violation` regardless of confidence when the category is hazardous/medical.
+7. [x] **Document city research playbook** under `docs/playbooks/CITY_RULES_RESEARCH.md` with required source and verification workflow.
+8. [ ] **Move region resolution out of raw caller strings** and into a dedicated region provider contract with manual override + GPS fallback.
+9. [ ] **Create governance-facing dashboard slices** for freshness warnings, fallback events, and society conflicts.

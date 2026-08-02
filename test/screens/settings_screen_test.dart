@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:waste_segregation_app/providers/app_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waste_segregation_app/l10n/app_localizations.dart';
 import 'package:waste_segregation_app/screens/enhanced_settings_screen.dart';
@@ -56,20 +57,16 @@ void main() {
 
       when(hapticSettingsService.enabled).thenReturn(true);
 
-      return MultiProvider(
-        providers: [
-          ChangeNotifierProvider<PremiumService>.value(value: premiumService),
-          Provider<StorageService>.value(value: storageService),
-          ChangeNotifierProvider<AdService>.value(value: adService),
-          ChangeNotifierProvider<AnalyticsService>.value(
-              value: MockAnalyticsService()),
-          Provider<GoogleDriveService>.value(value: MockGoogleDriveService()),
-          Provider<CloudStorageService>.value(
-              value: MockCloudStorageService()),
-          ChangeNotifierProvider<NavigationSettingsService>.value(
-              value: navigationSettingsService),
-          ChangeNotifierProvider<HapticSettingsService>.value(
-              value: hapticSettingsService),
+      return ProviderScope(
+        overrides: [
+          premiumServiceProvider.overrideWithValue(premiumService),
+          storageServiceProvider.overrideWithValue(storageService),
+          adServiceProvider.overrideWithValue(adService),
+          analyticsServiceProvider.overrideWithValue(MockAnalyticsService()),
+          googleDriveServiceProvider.overrideWithValue(MockGoogleDriveService()),
+          cloudStorageServiceProvider.overrideWithValue(MockCloudStorageService()),
+          navigationSettingsServiceProvider.overrideWithValue(navigationSettingsService),
+          hapticSettingsServiceProvider.overrideWithValue(hapticSettingsService),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,

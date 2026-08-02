@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -112,6 +113,7 @@ class MockClassificationCacheService extends Mock
     String? contentHash,
     int? imageSize,
     String? entryImageHash,
+    Uint8List? imageData,
   }) async {
     _mockCache[imageHash] = CachedClassification.fromClassification(
       entryImageHash ?? imageHash,

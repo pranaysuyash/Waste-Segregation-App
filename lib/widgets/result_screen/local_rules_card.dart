@@ -12,10 +12,17 @@ class LocalRulesCard extends StatelessWidget {
   final WasteClassification classification;
 
   static bool hasLocalRules(WasteClassification c) {
-    return (c.localRegulations?.isNotEmpty == true) ||
+    final hasDisplayableRegulations = c.localRegulations?.entries.any(
+          (entry) =>
+              !_isTaxonomyMetadata(entry.key) && entry.value.trim().isNotEmpty,
+        ) ==
+        true;
+    return hasDisplayableRegulations ||
         (c.bbmpComplianceStatus?.isNotEmpty == true) ||
         (c.localGuidelinesReference?.isNotEmpty == true);
   }
+
+  static bool _isTaxonomyMetadata(String key) => key.startsWith('taxonomy_');
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +166,7 @@ class LocalRulesCard extends StatelessWidget {
     }
 
     for (final entry in raw.entries) {
+      if (_isTaxonomyMetadata(entry.key)) continue;
       if (consumed.contains(entry.key) || entry.value.trim().isEmpty) continue;
       ordered.add(MapEntry(
           labelMap[entry.key] ?? _humanizeKey(entry.key), entry.value.trim()));

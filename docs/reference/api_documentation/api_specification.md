@@ -236,6 +236,47 @@ Re-runs analysis with the provider NOT used initially. Used for low-confidence r
 
 The error handler is not used standalone; callers go through `executeWithErrorHandling`.
 
+
+## 6. Firebase Functions HTTP Contract (Current)
+
+**File(s):**
+- `functions/src/helpers.ts`
+- `functions/src/disposal.ts`
+- `functions/src/community_stats_aggregator.ts`
+- `functions/src/dodopayments_webhook.ts`
+- `functions/src/index.ts`
+- `functions/src/ops_hardening.ts`
+
+All HTTP endpoints should use the shared API envelope helpers:
+- `respondWithApiSuccess(res, statusCode, data)`
+- `respondWithApiError(res, statusCode, code, message, details?, retryAfterSeconds?)`
+
+### Envelope shape
+
+`success: true` responses include:
+- `success: true`
+- `data: T`
+- `request_id: string`
+- `version: "v1" | string`
+- `timestamp: string` (ISO 8601)
+
+Error responses include:
+- `success: false`
+- `error.code: string`
+- `error.message: string`
+- `error.request_id: string`
+- `error.details?: Record<string, unknown>`
+
+### Documented HTTP endpoints
+
+| Endpoint | Verb | Success response |
+|----------|------|------------------|
+| `/generateDisposal` | `POST` | `{ success: true, data: { disposal, material? ... }, ... }` |
+| `/testOpenAI` | `GET` | `{ success: true, data: { openaiConfigured, endpoint, timestamp }, ... }` |
+| `/aggregateCommunityStatsHttp` | `POST` | `{ success: true, data: { stats, feedItemsProcessed, durationMs }, ... }` |
+| `/getClassifyReservationDashboard` | `GET` | `{ success: true, data: { generatedAtIso, counts, rates, monitoring }, ... }` |
+| `/dodopaymentsWebhook` | `POST` | `{ success: true, data: { status, warning? }, ... }` |
+| `/getBatchStats` | `GET` | `{ success: true, data: { queued, processing, completed, failed, total, timestamp }, ... }` |
 ---
 
 ## 5. Resilient Network Service
@@ -523,6 +564,87 @@ API keys are managed through `RemoteConfigService` (Firebase Remote Config) — 
 
 - **OpenAI:** `api_key` / `openai_api_key` remote config key
 - **Gemini:** `gemini_api_key` remote config key
+
+---
+
+## 13. Firebase Functions HTTP Contract (2026-06-17 API-pattern Alignment)
+
+### Endpoints covered by this alignment
+
+- `functions/src/disposal.ts` (`generateDisposal`)
+
+### Why this contract exists
+
+`generateDisposal` previously emitted mixed raw response shapes across success/error paths, which reduced operability and made retry behavior difficult to reason about. The endpoint now follows a shared pattern:
+
+- envelope response (`success`, `data`, `request_id`, `version`, `timestamp`)
+- explicit and stable HTTP status mapping
+- consistent retry metadata (`Retry-After`, `X-RateLimit-*`)
+
+### Canonical payload
+
+**Success (HTTP 200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "materialId": "plastic_bottle",
+    "material": "plastic bottle",
+    "primaryMethod": "Recycling",
+    "steps": ["..."],
+    "source": "openai",
+    "cached": false
+  },
+  "request_id": "k1a9h2...",
+  "version": "v1",
+  "timestamp": "2026-06-17T10:24:00.000Z"
+}
+```
+
+**Error (HTTP 429 example):**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Rate limit exceeded",
+    "request_id": "k1a9h2...",
+    "details": { "maxRequests": 20, "remaining": 0 },
+    "retry_after_seconds": 30
+  },
+  "request_id": "k1a9h2...",
+  "version": "v1",
+  "timestamp": "2026-06-17T10:24:02.000Z"
+}
+```
+
+### Shared helper usage
+
+**File:** `functions/src/helpers.ts`
+
+- Added exported reusable contract helpers:
+  - `ApiResponseEnvelope<T>`
+  - `ApiFailureEnvelope`
+  - `respondWithApiSuccess`
+  - `respondWithApiError`
+- Refactored callable files to remove duplicated App Check env parser implementations:
+  - `functions/src/create_checkout_session.ts`
+  - `functions/src/create_token_purchase.ts`
+
+### Client compatibility note
+
+**File:** `lib/services/disposal_instructions_service.dart`
+
+The disposal client now unwraps envelope responses via `_unwrapApiEnvelope` while still supporting legacy raw payloads. This ensures:
+
+- operational consistency for telemetry/debugging
+- no runtime breakage of existing parsing logic in offline or older client versions
+
+### Future expansion guidance
+
+Apply the same contract to additional Firebase HTTP functions (`createCheckout`, `createTokenPurchase`, `disposal`, etc.) only by extending existing route handlers and by reusing shared helpers, rather than adding `route-v2` or duplicate endpoints.
 
 ---
 

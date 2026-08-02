@@ -1,23 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import '../models/enhanced_family.dart';
 import '../models/user_profile.dart';
-import '../services/analytics_service.dart';
 import '../services/firebase_family_service.dart';
-import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import 'family_dashboard_screen.dart';
+import '../providers/app_providers.dart';
 
-class FamilyCreationScreen extends StatefulWidget {
+class FamilyCreationScreen extends ConsumerStatefulWidget {
   const FamilyCreationScreen({super.key});
 
   @override
-  State<FamilyCreationScreen> createState() => _FamilyCreationScreenState();
+  ConsumerState<FamilyCreationScreen> createState() => _FamilyCreationScreenState();
 }
 
-class _FamilyCreationScreenState extends State<FamilyCreationScreen> {
+class _FamilyCreationScreenState extends ConsumerState<FamilyCreationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _familyNameController = TextEditingController();
   final _familyService = FirebaseFamilyService();
@@ -270,8 +269,7 @@ class _FamilyCreationScreenState extends State<FamilyCreationScreen> {
     });
 
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       final currentUser = await storageService.getCurrentUserProfile();
 
       if (currentUser == null) {
@@ -298,10 +296,7 @@ class _FamilyCreationScreenState extends State<FamilyCreationScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => FamilyDashboardScreen(
-                analyticsService: Provider.of<AnalyticsService>(
-                  context,
-                  listen: false,
-                ),
+                analyticsService: ref.read(analyticsServiceProvider),
               ),
             ),
           ),

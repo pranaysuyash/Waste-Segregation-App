@@ -79,7 +79,6 @@ class OfflineClassificationService {
       return OfflineClassificationResult(
         classification: localResult,
         tier: tier,
-        needsCloudVerification: false,
       );
     }
 

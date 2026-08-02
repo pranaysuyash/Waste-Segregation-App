@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
-import '../../services/premium_service.dart';
+import '../../providers/app_providers.dart';
 import '../../utils/routes.dart';
 import '../../utils/dialog_helper.dart';
-import '../../services/haptic_settings_service.dart';
-import 'setting_tile.dart';
 import 'premium_feature_visuals.dart';
+import 'setting_tile.dart';
 import 'settings_theme.dart';
 
 /// App-level settings section for settings screen
@@ -16,8 +15,9 @@ class AppSettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    return Consumer<PremiumService>(
-      builder: (context, premiumService, child) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final premiumService = ref.watch(premiumServiceProvider);
         final hasThemeCustomization =
             premiumService.isPremiumFeature('theme_customization');
         final hasOfflineMode = premiumService.isPremiumFeature('offline_mode');
@@ -139,8 +139,9 @@ class AppSettingsSection extends StatelessWidget {
                       benefit: t.exportDataSubtitle,
                     ),
             ),
-            Consumer<HapticSettingsService>(
-              builder: (context, hapticSettings, child) {
+            Consumer(
+              builder: (context, ref, child) {
+                final hapticSettings = ref.watch(hapticSettingsServiceProvider);
                 return SettingToggleTile(
                   icon: Icons.vibration,
                   iconColor: Colors.orange,

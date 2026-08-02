@@ -135,10 +135,10 @@ class OnDeviceSegmentationBackend extends SegmentationBackend {
     // This is a real, zero-cost segmentation heuristic. It works on any
     // image without any ML model. When real YOLO/MobileSAM weights are
     // loaded this is bypassed by YoloSegmentationBackend/MobileSamBackend.
-    final gridCols = 3;
-    final gridRows = 2;
-    final cellWidth = 1.0 / gridCols;
-    final cellHeight = 1.0 / gridRows;
+    const gridCols = 3;
+    const gridRows = 2;
+    const cellWidth = 1.0 / gridCols;
+    const cellHeight = 1.0 / gridRows;
     final regions = <DetectedWasteRegion>[];
 
     // Compute simple edge score per cell using byte-level variance
@@ -175,9 +175,9 @@ class OnDeviceSegmentationBackend extends SegmentationBackend {
       for (var c = 0; c < gridCols; c++) {
         double sum = 0, sumSq = 0;
         var count = 0;
-        final rowStart = (r * imageBytes.length ~/ gridRows);
+        final rowStart = r * imageBytes.length ~/ gridRows;
         final rowEnd = ((r + 1) * imageBytes.length ~/ gridRows).clamp(0, imageBytes.length);
-        final colStart = (c * bytesPerRow ~/ gridCols);
+        final colStart = c * bytesPerRow ~/ gridCols;
         final colEnd = ((c + 1) * bytesPerRow ~/ gridCols).clamp(0, bytesPerRow);
 
         for (var y = rowStart; y < rowEnd && y < imageBytes.length; y += sampleStep) {

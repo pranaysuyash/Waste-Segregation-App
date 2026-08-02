@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
-import '../../services/premium_service.dart';
+import '../../providers/app_providers.dart';
 import '../../utils/routes.dart';
 import 'premium_feature_visuals.dart';
 import 'setting_tile.dart';
@@ -14,8 +14,9 @@ class PremiumSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    return Consumer<PremiumService>(
-      builder: (context, premiumService, child) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final premiumService = ref.watch(premiumServiceProvider);
         final hasPremiumPlan = premiumService.hasActivePremiumPlan();
 
         return Column(

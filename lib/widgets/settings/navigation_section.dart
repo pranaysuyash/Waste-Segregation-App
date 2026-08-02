@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/app_providers.dart';
 import '../../services/navigation_settings_service.dart';
 import '../../widgets/animations/settings_animations.dart';
 import 'settings_theme.dart';
@@ -18,8 +19,9 @@ class NavigationSection extends StatelessWidget {
         SettingsSectionHeader(title: t.navigationSection),
         Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Consumer<NavigationSettingsService>(
-            builder: (context, navSettings, child) {
+          child: Consumer(
+            builder: (context, ref, child) {
+              final navSettings = ref.watch(navigationSettingsServiceProvider);
               return ExpansionTile(
                 leading: Container(
                   padding: const EdgeInsets.all(8),

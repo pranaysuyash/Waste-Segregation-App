@@ -12,6 +12,7 @@ abstract class LocalGuidelinesPlugin {
   String get authorityName;
   String get guidelinesVersion;
   String get region;
+  CityPolicyData? get cityData => null;
 
   Future<WasteClassification> applyLocalGuidelines(
       WasteClassification classification);
@@ -28,6 +29,7 @@ abstract class LocalGuidelinesPlugin {
 /// Subclasses only need to provide [cityData] and optionally override
 /// [validateCompliance] for city-specific logic. Everything else delegates.
 mixin CityDataPluginMixin on LocalGuidelinesPlugin {
+  @override
   CityPolicyData get cityData;
 
   @override
@@ -84,7 +86,10 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
   @override
   String get region => cityData.region;
 
-  static const CityPolicyData cityData = CityPolicyData.bbmp;
+  static const CityPolicyData _cityData = CityPolicyData.bbmp;
+
+  @override
+  CityPolicyData get cityData => _cityData;
 
   @override
   Future<WasteClassification> applyLocalGuidelines(

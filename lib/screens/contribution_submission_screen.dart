@@ -3,15 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import '../models/disposal_location.dart';
 import '../models/user_contribution.dart';
 import '../utils/constants.dart';
 import '../utils/error_handler.dart';
 import '../utils/firebase_gate.dart';
-import '../utils/waste_app_logger.dart';
-import '../services/firestore_schema_registry.dart';
 import '../utils/capture_image_options.dart';
+import '../services/community_contribution_service.dart';
 
 class ContributionSubmissionScreen extends StatefulWidget {
   const ContributionSubmissionScreen({
@@ -49,6 +47,7 @@ class _ContributionSubmissionScreenState
   final List<File> _selectedImages = [];
   final ImagePicker _imagePicker = ImagePicker();
   bool _isSubmitting = false;
+  final _contributionService = CommunityContributionService();
 
   @override
   void initState() {
@@ -840,60 +839,6 @@ class _ContributionSubmissionScreenState
     });
   }
 
-  /// Uploads contribution photos to Firebase Storage and returns download URLs
-  Future<List<String>> _uploadContributionPhotos(
-    List<File> images,
-    String userId,
-  ) async {
-    final photoUrls = <String>[];
-    final storage = FirebaseStorage.instance;
-
-    for (var i = 0; i < images.length; i++) {
-      try {
-        final imageFile = images[i];
-        final imageBytes = await imageFile.readAsBytes();
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final fileName = 'contribution_${timestamp}_$i.jpg';
-        final path = 'contribution_photos/$userId/$fileName';
-
-        // Create storage reference
-        final ref = storage.ref().child(path);
-
-        // Upload with metadata
-        final metadata = SettableMetadata(
-          contentType: 'image/jpeg',
-          customMetadata: {
-            'userId': userId,
-            'purpose': 'facility_contribution',
-            'uploadedAt': DateTime.now().toIso8601String(),
-          },
-        );
-
-        // Upload the file
-        final uploadTask = ref.putData(imageBytes, metadata);
-        final snapshot = await uploadTask;
-
-        // Get the download URL
-        final downloadUrl = await snapshot.ref.getDownloadURL();
-        photoUrls.add(downloadUrl);
-      } catch (e) {
-        // Log error but continue with other images
-        WasteAppLogger.warning('Error uploading photo $i', error: e);
-        // Optionally show a snackbar to user
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to upload photo ${i + 1}'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      }
-    }
-
-    return photoUrls;
-  }
-
   Future<void> _submitContribution() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -916,39 +861,39 @@ class _ContributionSubmissionScreenState
     });
 
     try {
-      // Get current user ID from Firebase Auth
       final currentUser = FirebaseAuth.instance.currentUser;
-      final userId = currentUser?.uid ?? 'anonymous';
-
-      // Upload photos to Firebase Storage if any
-      var photoUrls = <String>[];
-      if (_selectedImages.isNotEmpty) {
+      final userId = currentUser?.uid;
+      if (userId == null) {
         if (!mounted) return;
+        setState(() {
+          _isSubmitting = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Uploading photos...'),
-            backgroundColor: Colors.blue,
+            content: Text('Please sign in to submit contributions.'),
+            backgroundColor: Colors.orange,
           ),
         );
-
-        try {
-          photoUrls = await _uploadContributionPhotos(_selectedImages, userId);
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Photo upload failed: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          // Continue with submission even if photo upload fails
-          photoUrls = [];
-        }
+        return;
       }
 
       // Prepare suggested data based on contribution type
       final suggestedData = _prepareSuggestedData();
+      final hasAtLeastOneContentField = suggestedData.isNotEmpty;
+      final hasNotes = _userNotesController.text.trim().isNotEmpty;
+      if (!hasAtLeastOneContentField && !_selectedImages.isNotEmpty && !hasNotes) {
+        if (!mounted) return;
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please provide correction details before submitting.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
 
       // Create contribution
       final contribution = UserContribution(
@@ -959,19 +904,35 @@ class _ContributionSubmissionScreenState
         userNotes: _userNotesController.text.trim().isEmpty
             ? null
             : _userNotesController.text.trim(),
-        photoUrls: photoUrls.isEmpty ? null : photoUrls,
         timestamp: Timestamp.now(),
         status: ContributionStatus.pendingReview,
       );
 
-      // Submit to Firestore (TODO: Implement cloud function call)
-      await _submitToFirestore(contribution);
+      if (_selectedImages.isNotEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Uploading photos and submitting contribution...'),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+
+      final result = await _contributionService.submitContribution(
+        contribution: contribution,
+        photos: _selectedImages,
+      );
+
+      final uploadNotice = result.failedPhotoUploads > 0
+          ? ' (${result.uploadedPhotos} uploaded, ${result.failedPhotoUploads} failed)'
+          : '';
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-                'Contribution submitted successfully! It will be reviewed by our team.'),
+              'Contribution submitted successfully! It will be reviewed by our team.$uploadNotice',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -1058,9 +1019,4 @@ class _ContributionSubmissionScreenState
     // Add a fallback or error if not all paths return a value.
   }
 
-  Future<void> _submitToFirestore(UserContribution contribution) async {
-    await FirebaseFirestore.instance
-        .collection(FirestoreCollections.userContributions)
-        .add(contribution.toJson());
-  }
 }

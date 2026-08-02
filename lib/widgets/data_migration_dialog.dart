@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/storage_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/app_providers.dart';
 import '../utils/constants.dart';
 
-class DataMigrationDialog extends StatefulWidget {
+class DataMigrationDialog extends ConsumerStatefulWidget {
   const DataMigrationDialog({
     super.key,
     required this.guestDataCount,
@@ -13,11 +13,11 @@ class DataMigrationDialog extends StatefulWidget {
   final VoidCallback? onMigrationComplete;
 
   @override
-  State<DataMigrationDialog> createState() => _DataMigrationDialogState();
+  ConsumerState<DataMigrationDialog> createState() => _DataMigrationDialogState();
 
   /// Show the migration dialog if there's guest data to migrate
   static Future<void> showIfNeeded(BuildContext context) async {
-    final storageService = Provider.of<StorageService>(context, listen: false);
+    final storageService = ProviderScope.containerOf(context).read(storageServiceProvider);
     final guestDataCount = await storageService.getGuestDataMigrationCount();
 
     if (guestDataCount > 0 && context.mounted) {
@@ -36,7 +36,7 @@ class DataMigrationDialog extends StatefulWidget {
   }
 }
 
-class _DataMigrationDialogState extends State<DataMigrationDialog> {
+class _DataMigrationDialogState extends ConsumerState<DataMigrationDialog> {
   bool _isMigrating = false;
   bool _migrationComplete = false;
   int _migratedCount = 0;
@@ -185,8 +185,7 @@ class _DataMigrationDialogState extends State<DataMigrationDialog> {
     });
 
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       final migratedCount =
           await storageService.migrateGuestDataToCurrentUser();
 

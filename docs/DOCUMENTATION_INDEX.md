@@ -2,7 +2,7 @@
 
 ## ReLoop Documentation Structure
 
-_Last Updated: May 20, 2026_
+_Last Updated: August 1, 2026_
 
 This document provides a comprehensive index to all project documentation, now properly organized in the `docs/` folder for better maintainability and navigation.
 
@@ -39,6 +39,12 @@ The research-and-exploration layer (what we still need to _learn_ to build well)
 - **[exploration/ARCHIVE.md](exploration/ARCHIVE.md)** — Killed / superseded exploration topics (skeleton, no entries yet).
 - **[brainstorm_exploration_map_2026-05-19.md](brainstorm_exploration_map_2026-05-19.md)** — Wide-open-brainstorm pressure test of the map; shrink recommendations rejected, additive changes accepted.
 - **[EXPLORATION_MAP_SETUP_SUMMARY_2026-05-19.md](EXPLORATION_MAP_SETUP_SUMMARY_2026-05-19.md)** — Baseline summary of the map setup, brainstorm decision, and code+industry scan pass. Read this first to resume exploration work.
+- **[exploration/COMPETITOR_LANDSCAPE_2026-08-01.md](exploration/COMPETITOR_LANDSCAPE_2026-08-01.md)** — Comprehensive competitor and similar landscape analysis covering 9 competitors across 4 categories (AI sorting, Indian waste management, adjacent products, gamification), market trends, regulatory framework, and strategic recommendations.
+- **[exploration/COMPETITOR_PRICING_STRATEGIES_2026-08-01.md](exploration/COMPETITOR_PRICING_STRATEGIES_2026-08-01.md)** — Competitor pricing strategies research covering hardware lease, marketplace commission, freemium, transactional, and token economy models with recommendations for ReLoop monetization.
+- **[exploration/MARKETING_PSYCHOLOGY_ANALYSIS_2026-08-01.md](exploration/MARKETING_PSYCHOLOGY_ANALYSIS_2026-08-01.md)** — Marketing psychology analysis applying 50+ mental models across gamification, waste segregation nudges, competitive positioning, go-to-market strategy, and India-specific behavioral insights.
+- **[exploration/RELOOP_SWOT_ANALYSIS_2026-08-01.md](exploration/RELOOP_SWOT_ANALYSIS_2026-08-01.md)** — SWOT analysis for ReLoop based on competitor landscape research, covering strengths, weaknesses, opportunities, threats, and strategic implications.
+- **[exploration/RELOOP_SWOT_EXECUTIVE_SUMMARY.md](exploration/RELOOP_SWOT_EXECUTIVE_SUMMARY.md)** — One-page executive summary of SWOT analysis for stakeholder presentations, with competitive landscape, revenue model gap, priority actions, and risk matrix.
+- **[exploration/DOMAIN_MODEL_RELATIONSHIPS.md](exploration/DOMAIN_MODEL_RELATIONSHIPS.md)** — Visual relationship diagram showing how WasteClassification, LocalPolicyDecision, SocietyPolicyOverride, and CityPlugin connect across classification, policy, and society layers.
 
 Use this map when you need to know **what's still being figured out** vs what's already decided.
 
@@ -109,11 +115,13 @@ Use this map when you need to know **what's still being figured out** vs what's 
 - **FINAL_ACTION_PLAN_COMPLETE.md** - Comprehensive implementation summary and next steps
 - **COMPREHENSIVE_TASK_MATRIX.md** - Master planning sheet with all tasks organized by category and priority
 - **INTEGRATED_DEVELOPMENT_ROADMAP.md** - Unified roadmap integrating task matrix with user/admin management plan
+- **[PRICING_VALIDATION_AB_TEST_PLAN.md](PRICING_VALIDATION_AB_TEST_PLAN.md)** — A/B test plan for validating three pricing models (freemium+tokens, freemium+society, refined token economy) with statistical methodology, implementation plan, and success criteria.
 
 ### `/docs/processes/` - Development Processes
 
 - **MANUAL_COMMIT_INSTRUCTIONS.md** - Manual commit procedures when git fails
 - **GITHUB_TODO_INTEGRATION.md** - GitHub integration and TODO tracking
+- **AGENT_PROCESS_LESSONS.md** - Durable agent process lessons (analyzer pitfalls, test pollution, Firebase mocks, Flutter deprecation, motto_v4 §7/§22 compliance). Append new dated sections at the bottom.
 
 ### `/docs/project/` - Project Overview
 
@@ -122,6 +130,7 @@ Use this map when you need to know **what's still being figured out** vs what's 
 ### `/docs/reference/` - Reference Documentation
 
 - **END_USER_README.md** - Complete end-user documentation and project overview
+- **[CONTEXT.md](../CONTEXT.md)** — Domain glossary defining canonical terminology for the ReLoop project (WasteClassification, AnalysisSource, ClassificationLayer, SocietyPolicyOverride, etc.). All code and docs should use these terms consistently.
 
 ### `/docs/services/` - Service Documentation
 
@@ -146,6 +155,7 @@ Use this map when you need to know **what's still being figured out** vs what's 
 - **PHASE0_FILE_AUDIT_2026-05-20.md** - Current-state file audit with risk matrix and ownership mapping
 - **BACKEND_PLATFORM_AND_MONEY_STRATEGY_2026-05-20.md** - Backend, monetization, and operational readiness review
 - **BACKEND_PLATFORM_AND_MONEY_STRATEGY_2026-05-21.md** - Current-scenario update with the 2026 Firebase core + Cloud Run compute-lane + Cloudflare edge recommendation
+- **APP_IMPROVEMENT_OPPORTUNITIES_2026-06-13.md** - Broad first-principles inventory of product, UI/UX, infra, trust, and docs opportunities
 
 ### `/docs/summaries/` - Summary Documents
 
@@ -161,6 +171,8 @@ Use this map when you need to know **what's still being figured out** vs what's 
 
 - **DESIGN_DECISIONS.md** - Architecture decisions and design rationale
 - **CLOUD_STORAGE_CORRECTION_AND_ADMIN_DATA_STRATEGY.md** - Cloud storage architecture
+- **[adr/ADR-004-society-policy-override-layer.md](adr/ADR-004-society-policy-override-layer.md)** — ADR for the Society Policy Override layer architecture (additive deltas, conflict detection, confidence gating).
+- **[adr/ADR-005-multi-layer-classification-pipeline.md](adr/ADR-005-multi-layer-classification-pipeline.md)** — ADR for the 4-layer classification pipeline architecture (barcode → on-device → cloud cheap → cloud strong).
 
 ### `/docs/technical/development/` - Development Documentation
 

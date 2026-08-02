@@ -101,7 +101,7 @@ interface ReportPayload {
   data: FamilyDashboardReportDoc;
 }
 
-const firestore = admin.firestore();
+const firestoreDb = (): admin.firestore.Firestore => admin.firestore();
 
 function encodeFamilyId(familyId: string): string {
   return encodeURIComponent(familyId);
@@ -550,7 +550,7 @@ async function fetchAllSnapshotEvents(): Promise<RawAnalyticsEventDoc[]> {
   let lastDoc: QueryDocumentSnapshot | null = null;
 
   while (true) {
-    let query = firestore
+    let query = firestoreDb()
       .collection(ANALYTICS_COLLECTION)
       .where('eventName', '==', SNAPSHOT_EVENT_NAME)
       .orderBy(admin.firestore.FieldPath.documentId())
@@ -618,7 +618,7 @@ function aggregateSnapshotEvents(events: RawAnalyticsEventDoc[]): AggregationSta
 async function persistReports(payloads: ReportPayload[]): Promise<void> {
   for (const payload of payloads) {
     const shouldDelete = payload.data.snapshotCount === 0;
-    const docRef = firestore.collection(REPORT_COLLECTION).doc(payload.docId);
+    const docRef = firestoreDb().collection(REPORT_COLLECTION).doc(payload.docId);
     if (shouldDelete) {
       await docRef.delete().catch(() => undefined);
       continue;
@@ -632,7 +632,7 @@ async function cleanupStaleDailyReports(cutoffDayKey: string): Promise<number> {
   let lastDoc: QueryDocumentSnapshot | null = null;
 
   while (true) {
-    let query = firestore
+    let query = firestoreDb()
       .collection(REPORT_COLLECTION)
       .where('reportType', '==', 'daily')
       .orderBy(admin.firestore.FieldPath.documentId())
@@ -653,7 +653,7 @@ async function cleanupStaleDailyReports(cutoffDayKey: string): Promise<number> {
     });
 
     if (staleDocs.length > 0) {
-      const batch = firestore.batch();
+      const batch = firestoreDb().batch();
       staleDocs.forEach((doc: any) => batch.delete(doc.ref));
       await batch.commit();
       deleted += staleDocs.length;
@@ -673,7 +673,7 @@ async function cleanupAllFamilyDashboardReports(): Promise<number> {
   let lastDoc: QueryDocumentSnapshot | null = null;
 
   while (true) {
-    let query = firestore
+    let query = firestoreDb()
       .collection(REPORT_COLLECTION)
       .orderBy(admin.firestore.FieldPath.documentId())
       .limit(BATCH_SIZE);
@@ -687,7 +687,7 @@ async function cleanupAllFamilyDashboardReports(): Promise<number> {
       break;
     }
 
-    const batch = firestore.batch();
+    const batch = firestoreDb().batch();
     snapshot.docs.forEach((doc: QueryDocumentSnapshot) => batch.delete(doc.ref));
     await batch.commit();
     deleted += snapshot.size;

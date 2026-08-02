@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/enhanced_family.dart' as family_models;
 import '../models/user_profile.dart' as user_models;
 import '../models/family_invitation.dart' as invitation_models;
 import '../models/user_profile.dart' as user_profile_models;
 import '../services/firebase_family_service.dart';
-import '../services/storage_service.dart';
 import '../utils/constants.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
+import '../providers/app_providers.dart';
 
-class FamilyManagementScreen extends StatefulWidget {
+class FamilyManagementScreen extends ConsumerStatefulWidget {
   const FamilyManagementScreen({
     super.key,
     required this.family,
@@ -20,10 +20,10 @@ class FamilyManagementScreen extends StatefulWidget {
   final FirebaseFamilyService? familyService;
 
   @override
-  State<FamilyManagementScreen> createState() => _FamilyManagementScreenState();
+  ConsumerState<FamilyManagementScreen> createState() => _FamilyManagementScreenState();
 }
 
-class _FamilyManagementScreenState extends State<FamilyManagementScreen>
+class _FamilyManagementScreenState extends ConsumerState<FamilyManagementScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   user_models.UserProfile? _currentUser;
@@ -36,14 +36,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
   @override
   void initState() {
     super.initState();
-    _familyService = widget.familyService ??
-        (() {
-          try {
-            return context.read<FirebaseFamilyService>();
-          } catch (_) {
-            return FirebaseFamilyService();
-          }
-        })();
+    _familyService = widget.familyService ?? FirebaseFamilyService();
     _currentFamily = widget.family;
     _bindFamilyStreams(widget.family.id);
     _tabController = TabController(length: 3, vsync: this);
@@ -73,8 +66,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
 
   Future<void> _loadInitialUserData() async {
     try {
-      final storageService =
-          Provider.of<StorageService>(context, listen: false);
+      final storageService = ref.read(storageServiceProvider);
       _currentUser = await storageService.getCurrentUserProfile();
       if (mounted) {
         setState(() {});
@@ -612,7 +604,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen>
                 const SizedBox(height: AppTheme.paddingRegular),
                 DropdownButtonFormField<family_models.UserRole>(
                   decoration: const InputDecoration(labelText: 'Assign Role'),
-                  value: roleToAssign,
+                  initialValue: roleToAssign,
                   items: family_models.UserRole.values
                       .map((family_models.UserRole role) {
                     return DropdownMenuItem<family_models.UserRole>(
