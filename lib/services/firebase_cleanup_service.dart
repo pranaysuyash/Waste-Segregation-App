@@ -62,6 +62,9 @@ class FirebaseCleanupService {
     StorageKeys.familiesBox,
     StorageKeys.invitationsBox,
     StorageKeys.classificationFeedbackBox,
+    // PRIVACY-02: compressed captured-image stores must be purged too.
+    StorageKeys.classificationImagesBox,
+    StorageKeys.enhancedCacheImagesBox,
   ];
 
   /// Performs a complete data wipe for the current user, providing a "fresh install" experience.

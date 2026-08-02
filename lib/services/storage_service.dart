@@ -1241,6 +1241,27 @@ class StorageService {
         await cacheBox.clear();
       }
 
+      // PRIVACY-02: Also purge compressed captured-image stores on full reset.
+      for (final boxName in [
+        StorageKeys.classificationImagesBox,
+        StorageKeys.enhancedCacheImagesBox,
+      ]) {
+        try {
+          if (Hive.isBoxOpen(boxName)) {
+            await Hive.box<Uint8List>(boxName).clear();
+            WasteAppLogger.info('image box cleared during user-data reset',
+                context: {'box': boxName});
+          } else {
+            await Hive.deleteBoxFromDisk(boxName);
+            WasteAppLogger.info('image box deleted during user-data reset',
+                context: {'box': boxName});
+          }
+        } catch (e) {
+          WasteAppLogger.severe('Error clearing image box during reset',
+              error: e, context: {'box': boxName});
+        }
+      }
+
       // Clear SharedPreferences (theme, user consent, etc.) with proper error handling
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -1630,6 +1651,50 @@ class StorageService {
     } catch (e) {
       WasteAppLogger.severe('Error occurred',
           context: {'service': 'storage', 'file': 'storage_service'});
+    }
+  }
+
+  /// PRIVACY-02: Purge expired local history images no longer referenced by
+  /// any saved classification.
+  ///
+  /// Gathers every local image path a saved classification still points to
+  /// (`imageUrl` / `imageRelativePath` / `thumbnailRelativePath`) and
+  /// delegates to [EnhancedImageService.purgeExpiredLocalImages], which
+  /// deletes unreferenced files in the permanent `images/` directory that are
+  /// older than the retention window. Referenced images are never touched —
+  /// they are removed with their classification record or on account deletion.
+  ///
+  /// Returns the number of files deleted.
+  Future<int> purgeExpiredLocalImages() async {
+    try {
+      // Gather referenced paths from all saved classifications.
+      final classifications = await getAllClassifications();
+      final referencedPaths = <String>{};
+
+      for (final classification in classifications) {
+        if (classification.imageUrl != null &&
+            classification.imageUrl!.isNotEmpty) {
+          referencedPaths.add(classification.imageUrl!);
+        }
+        if (classification.imageRelativePath != null &&
+            classification.imageRelativePath!.isNotEmpty) {
+          referencedPaths.add(classification.imageRelativePath!);
+        }
+        if (classification.thumbnailRelativePath != null &&
+            classification.thumbnailRelativePath!.isNotEmpty) {
+          referencedPaths.add(classification.thumbnailRelativePath!);
+        }
+      }
+
+      // Create image service instance and delegate retention purge.
+      final imageService = EnhancedImageService();
+      return await imageService.purgeExpiredLocalImages(
+        referencedPaths: referencedPaths,
+      );
+    } catch (e) {
+      WasteAppLogger.severe('Error occurred',
+          context: {'service': 'storage', 'file': 'storage_service'});
+      return 0;
     }
   }
 

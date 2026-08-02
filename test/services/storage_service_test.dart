@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:waste_segregation_app/models/cached_classification.dart';
@@ -30,6 +34,8 @@ WasteClassification _classification({String itemName = 'Plastic Bottle'}) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late StorageService storageService;
 
   setUpAll(() async {
@@ -113,6 +119,65 @@ void main() {
       await storageService.clearClassifications();
 
       expect(classificationsBox.isOpen, isFalse);
+    });
+
+    test('purgeExpiredLocalImages keeps referenced and deletes expired only',
+        () async {
+      // Route the app documents directory to a temp dir so the purge runs
+      // against real files (mirrors enhanced_image_service_test setup).
+      final testDocDir = Directory.systemTemp.createTempSync('storage_purge_');
+      const channel = MethodChannel('plugins.flutter.io/path_provider');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        if (call.method == 'getApplicationDocumentsDirectory') {
+          return testDocDir.path;
+        }
+        return null;
+      });
+
+      // Open the boxes the facade reads (getAllClassifications + profile).
+      await Hive.openBox(StorageKeys.userBox);
+      final classificationsBox =
+          await Hive.openBox(StorageKeys.classificationsBox);
+      await classificationsBox.clear(); // deterministic referenced-set
+
+      final imagesDir = Directory('${testDocDir.path}/images');
+      await imagesDir.create(recursive: true);
+
+      // Referenced image — old mtime but referenced by a saved classification.
+      final referencedFile = File('${imagesDir.path}/referenced_uuid.jpg');
+      await referencedFile.writeAsBytes(Uint8List.fromList([1, 2, 3]));
+      referencedFile.setLastModifiedSync(
+          DateTime.now().subtract(const Duration(days: 120)));
+
+      // Unreferenced image — old mtime, no classification points to it.
+      final orphanFile = File('${imagesDir.path}/orphan_uuid.jpg');
+      await orphanFile.writeAsBytes(Uint8List.fromList([4, 5, 6]));
+      orphanFile.setLastModifiedSync(
+          DateTime.now().subtract(const Duration(days: 120)));
+
+      // Save a classification referencing only the first file.
+      final classification =
+          _classification().copyWith(imageUrl: referencedFile.path);
+      await classificationsBox
+          .put('c1', jsonEncode(classification.toJson()));
+
+      try {
+        await storageService.purgeExpiredLocalImages();
+
+        // Referenced file survives; expired orphan is purged.
+        expect(referencedFile.existsSync(), isTrue,
+            reason: 'referenced image must never be purged');
+        expect(orphanFile.existsSync(), isFalse,
+            reason: 'unreferenced image older than retention must be purged');
+      } finally {
+        testDocDir.deleteSync(recursive: true);
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
+      }
     });
   });
 }

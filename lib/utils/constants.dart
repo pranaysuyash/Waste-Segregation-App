@@ -51,6 +51,13 @@ class StorageKeys {
 
   /// Box for caching image classification results by hash
   static const String cacheBox = 'cacheBox';
+
+  /// PRIVACY-02: Hive box holding compressed classification images.
+  static const String classificationImagesBox = 'classification_images';
+
+  /// PRIVACY-02: Hive box holding compressed images for the enhanced cache.
+  static const String enhancedCacheImagesBox = 'enhanced_cache_images';
+
   static const String gamificationBox = 'gamificationBox';
   static const String familiesBox = 'familiesBox';
   static const String invitationsBox = 'invitationsBox';

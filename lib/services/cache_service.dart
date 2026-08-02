@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:image/image.dart' as img;
@@ -50,11 +51,17 @@ String _rawPhashPrefix(String key) {
 ///     [_rawPhashPrefix] when the key is composite.
 class ClassificationCacheService {
   /// Constructor
+  ///
+  /// [maxImageBytes] caps the total compressed-image bytes stored in the
+  /// image box (PRIVACY-02). When exceeded, the oldest LRU entries (cache
+  /// entry + image together) are evicted until the box fits the budget.
   ClassificationCacheService({
     int? maxCacheSize,
+    int? maxImageBytes,
     double compressionQuality = 0.8,
     int maxImageDimension = 1024,
   })  : _maxCacheSize = maxCacheSize ?? 1000,
+        _maxImageBytes = maxImageBytes ?? _defaultMaxImageBytes,
         _compressionQuality = compressionQuality.clamp(0.1, 1.0),
         _maxImageDimension = maxImageDimension;
 
@@ -67,6 +74,15 @@ class ClassificationCacheService {
 
   /// Maximum number of cache entries (default: 1000)
   final int _maxCacheSize;
+
+  /// PRIVACY-02: Maximum total compressed-image bytes in the image box.
+  /// Default: 256 MB. Enforced via LRU eviction of whole entries.
+  static const _defaultMaxImageBytes = 256 * 1024 * 1024;
+  final int _maxImageBytes;
+
+  /// PRIVACY-02: Running total of bytes currently stored in [_imageBox],
+  /// maintained on store/delete/clear and recomputed on [initialize].
+  int _imageBytesTotal = 0;
 
   /// JPEG compression quality (0.0–1.0). Default: 0.8.
   final double _compressionQuality;
@@ -114,6 +130,12 @@ class ClassificationCacheService {
 
       // Load existing cache entries into LRU map
       _loadLruMapFromCache();
+
+      // PRIVACY-02: Recompute tracked image bytes and enforce the byte budget
+      // on startup so an oversized image box is trimmed to fit immediately.
+      _imageBytesTotal = _imageBox.values
+          .fold<int>(0, (sum, bytes) => sum + (bytes.length));
+      await _enforceImageByteBudget();
 
       // Update initial statistics
       _statistics['size'] = _cacheBox.length;
@@ -520,9 +542,7 @@ class ClassificationCacheService {
     for (final key in keysToRemove) {
       final entry = _deserializeEntry(key);
       final size = entry?.imageSize ?? 0;
-      await _cacheBox.delete(key);
-      await _imageBox.delete(key);
-      _lruMap.remove(key);
+      await _removeEntry(key);
       if (size > 0) {
         _statistics['bytesSaved'] =
             ((_statistics['bytesSaved'] ?? 0) - size).clamp(0, double.infinity);
@@ -554,6 +574,7 @@ class ClassificationCacheService {
       _lruMap.clear();
       _compressionCache.clear();
       _compressionCleanupTimer?.cancel();
+      _imageBytesTotal = 0;
 
       // Reset statistics
       _statistics['hits'] = 0;
@@ -599,9 +620,7 @@ class ClassificationCacheService {
       }
 
       for (final key in keysToRemove) {
-        await _cacheBox.delete(key);
-        await _imageBox.delete(key);
-        _lruMap.remove(key);
+        await _removeEntry(key);
       }
       _statistics['size'] = _cacheBox.length;
 
@@ -621,6 +640,62 @@ class ClassificationCacheService {
         'max_age_days': maxAge.inDays
       });
       return 0;
+    }
+  }
+
+  /// PRIVACY-02: Enforce the total compressed-image byte budget.
+  ///
+  /// While the running [_imageBytesTotal] exceeds [_maxImageBytes], evict the
+  /// oldest LRU entries (cache entry + image together) so the box fits the
+  /// budget. Exposed publicly so app lifecycle maintenance can trim an
+  /// oversized box even when no new store triggers eviction.
+  @visibleForTesting
+  Future<void> enforceImageByteBudget() => _enforceImageByteBudget();
+
+  /// PRIVACY-02: Delete one cache entry together with its stored image,
+  /// keeping [_imageBytesTotal] and the LRU map consistent.
+  Future<void> _removeEntry(String key) async {
+    final image = _imageBox.get(key);
+    if (image != null) {
+      final decrement = image.length > _imageBytesTotal
+          ? _imageBytesTotal
+          : image.length;
+      _imageBytesTotal -= decrement;
+    }
+    await _cacheBox.delete(key);
+    await _imageBox.delete(key);
+    _lruMap.remove(key);
+  }
+
+  /// PRIVACY-02: Evict oldest entries until image bytes fit the budget.
+  Future<void> _enforceImageByteBudget() async {
+    if (_imageBytesTotal <= _maxImageBytes) return;
+
+    final keysToEvict = <String>[];
+    var total = _imageBytesTotal;
+    for (final key in _lruMap.keys.toList()) {
+      if (total <= _maxImageBytes) break;
+      final image = _imageBox.get(key);
+      if (image == null) continue;
+      total -= image.length;
+      keysToEvict.add(key);
+    }
+
+    final imageBytesBefore = _imageBytesTotal;
+    for (final key in keysToEvict) {
+      await _removeEntry(key);
+    }
+    _statistics['size'] = _cacheBox.length;
+
+    if (keysToEvict.isNotEmpty) {
+      WasteAppLogger.cacheEvent('cache_image_byte_budget_eviction',
+          'classification',
+          context: {
+            'entries_evicted': keysToEvict.length,
+            'image_bytes_before': imageBytesBefore,
+            'image_bytes_after': _imageBytesTotal,
+            'max_image_bytes': _maxImageBytes,
+          });
     }
   }
 
@@ -679,6 +754,9 @@ class ClassificationCacheService {
 
       final compressed = result['compressed'] as Uint8List;
       await _imageBox.put(cacheKey, compressed);
+      _imageBytesTotal += compressed.length;
+      // PRIVACY-02: A single oversized store must not blow past the budget.
+      await _enforceImageByteBudget();
 
       return {
         'compressedSize': compressed.length,
@@ -836,6 +914,9 @@ class ClassificationCacheService {
     stats['averageCompressionRatio'] =
         compressionRatio is double ? compressionRatio : 0.0;
     stats['compressedImagesCount'] = _imageBox.length;
+    // PRIVACY-02: total compressed image bytes (budget tracking)
+    stats['imageBytes'] = _imageBytesTotal;
+    stats['maxImageBytes'] = _maxImageBytes;
 
     // Count hash types by inspecting stored entry imageHash
     var pHashCount = 0;

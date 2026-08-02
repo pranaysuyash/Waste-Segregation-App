@@ -288,6 +288,9 @@ class _AppBootstrapperState extends State<_AppBootstrapper> {
         await _runInitStep('Migrations', () async {
           await storageService.migrateImagePathsToRelative();
           await storageService.migrateThumbnails();
+          // PRIVACY-02: Enforce local history-image retention (purge expired
+          // unreferenced captures) at boot alongside the other migrations.
+          await storageService.purgeExpiredLocalImages();
         });
       }
 

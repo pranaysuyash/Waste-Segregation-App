@@ -402,6 +402,72 @@ class EnhancedImageService {
         context: {'dirs_deleted': deletedDirs});
   }
 
+  /// PRIVACY-02: Retention contract for local history images.
+  ///
+  /// Images saved to the permanent `images/` directory are retained while a
+  /// saved classification still references them (history display depends on
+  /// them). Unreferenced/orphaned files — e.g. captures whose classification
+  /// never completed — are purged once they are older than [olderThan].
+  static const Duration localImageRetention = Duration(days: 90);
+
+  /// PRIVACY-02: Purge unreferenced local history images older than
+  /// [olderThan].
+  ///
+  /// [referencedPaths] must contain every local path a saved classification
+  /// still points to (from `imageUrl` / `imageRelativePath` /
+  /// `thumbnailRelativePath`). Files in the `images/` directory whose basename
+  /// is not referenced and whose modified time is older than the retention
+  /// window are deleted. Referenced images are never touched here — they are
+  /// removed with their classification record or on account deletion.
+  ///
+  /// Returns the number of files deleted.
+  Future<int> purgeExpiredLocalImages({
+    required Set<String> referencedPaths,
+    Duration olderThan = localImageRetention,
+  }) async {
+    if (kIsWeb) return 0;
+
+    final dir = await getApplicationDocumentsDirectory();
+    final imagesDir = Directory(p.join(dir.path, _imagesDirName));
+    if (!await imagesDir.exists()) return 0;
+
+    // Normalize references to basenames so absolute paths, relative paths and
+    // data URLs all match against the directory listing.
+    final referencedBasenames = referencedPaths
+        .map((path) => p.basename(path))
+        .where((name) => name.isNotEmpty)
+        .toSet();
+
+    final now = DateTime.now();
+    var removedCount = 0;
+
+    await for (final entity in imagesDir.list()) {
+      if (entity is! File) continue;
+      final basename = p.basename(entity.path);
+      if (referencedBasenames.contains(basename)) continue;
+
+      try {
+        final stat = await entity.stat();
+        if (now.difference(stat.modified) <= olderThan) continue;
+
+        await entity.delete();
+        removedCount++;
+      } catch (e) {
+        WasteAppLogger.severe('history_image_delete_failed',
+            context: {'filename': basename}, error: e);
+      }
+    }
+
+    if (removedCount > 0) {
+      WasteAppLogger.info('expired_history_images_purged', context: {
+        'removed_count': removedCount,
+        'older_than_days': olderThan.inDays,
+        'referenced_count': referencedBasenames.length,
+      });
+    }
+    return removedCount;
+  }
+
   /// Remove app-owned temp image files older than the specified duration.
   /// Only cleans files in an app-specific subdirectory to avoid affecting
   /// other app/plugin temp files.
