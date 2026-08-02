@@ -54,35 +54,43 @@ typedef OfflineQueueAnalyticsTracker = Future<void> Function({
 class DeadLetterClassification extends HiveObject {
   DeadLetterClassification({
     required this.id,
-    required this.imageRefPath,
-    required this.imageRefHash,
-    required this.imageRefByteLength,
     required this.region,
     required this.queuedAt,
     required this.failedAt,
     required this.retryCount,
     required this.lastError,
+    this.imageBytes,
+    this.imageRefPath,
+    this.imageRefHash,
+    this.imageRefByteLength,
     this.userId,
     this.imageName,
     this.expiresAt,
     this.consentVersion,
     this.failureType,
-    this.purpose = 'classification',
+    this.purpose,
   });
   @HiveField(0)
   String id;
 
-  /// PRIVACY-09: Path to encrypted temp file (not raw bytes).
+  /// PRIVACY-09: Legacy raw bytes — field index 1 is preserved from the
+  /// pre-migration schema (legacy records stored Uint8List here).
+  /// Null for new items; populated only on unmigrated legacy records.
   @HiveField(1)
-  String imageRefPath;
+  Uint8List? imageBytes;
+
+  /// PRIVACY-09: Path to encrypted temp file (not raw bytes).
+  /// Nullable so legacy records (which predate this field) read safely.
+  @HiveField(9)
+  String? imageRefPath;
 
   /// PRIVACY-09: SHA-256 content hash for integrity verification.
-  @HiveField(12)
-  String imageRefHash;
+  @HiveField(10)
+  String? imageRefHash;
 
   /// PRIVACY-09: Original byte length (for logging/quotas).
-  @HiveField(13)
-  int imageRefByteLength;
+  @HiveField(11)
+  int? imageRefByteLength;
 
   @HiveField(2)
   String region;
@@ -106,37 +114,38 @@ class DeadLetterClassification extends HiveObject {
   String? imageName;
 
   /// PRIVACY-09: When this item should be auto-deleted.
-  @HiveField(9)
+  @HiveField(12)
   DateTime? expiresAt;
 
   /// PRIVACY-09: Consent version at time of queue entry.
-  @HiveField(10)
+  @HiveField(13)
   String? consentVersion;
 
   /// PRIVACY-09: Typed failure classification (no error string inspection).
-  @HiveField(11)
+  @HiveField(14)
   String? failureType;
 
   /// PRIVACY-09: Purpose of the queued image (e.g. 'classification').
   @HiveField(15)
-  String purpose;
-
-  /// PRIVACY-09: Legacy raw bytes field — only populated during migration.
-  /// After migration, this is always null and imageRefPath is used instead.
-  @HiveField(14)
-  Uint8List? legacyImageBytes;
+  String? purpose;
 
   /// Whether this item still uses the legacy raw-bytes format.
-  bool get isLegacyFormat => legacyImageBytes != null && imageRefPath.isEmpty;
+  ///
+  /// Keyed on [imageBytes] alone (not ref-path emptiness): an item that was
+  /// partially migrated (bytes still set after a failed save) must still be
+  /// picked up by migration/age-expiry rather than silently evading both.
+  bool get isLegacyFormat => imageBytes != null;
 
   /// PRIVACY-09: Read image bytes from the sandboxed temp file.
-  /// Falls back to legacyImageBytes for unmigrated items.
+  /// Falls back to imageBytes for unmigrated legacy items.
   Future<Uint8List?> readImageBytes() async {
-    if (isLegacyFormat) return legacyImageBytes;
+    if (isLegacyFormat) return imageBytes;
+    final path = imageRefPath;
+    if (path == null || path.isEmpty) return null;
     return QueueImageStorage().readImage(QueueImageReference(
-      filePath: imageRefPath,
-      contentHash: imageRefHash,
-      byteLength: imageRefByteLength,
+      filePath: path,
+      contentHash: imageRefHash ?? '',
+      byteLength: imageRefByteLength ?? 0,
     ));
   }
 }
@@ -150,32 +159,40 @@ class DeadLetterClassification extends HiveObject {
 class QueuedClassification extends HiveObject {
   QueuedClassification({
     required this.id,
-    required this.imageRefPath,
-    required this.imageRefHash,
-    required this.imageRefByteLength,
     required this.region,
     required this.queuedAt,
+    this.imageBytes,
+    this.imageRefPath,
+    this.imageRefHash,
+    this.imageRefByteLength,
     this.retryCount = 0,
     this.userId,
     this.imageName,
     this.expiresAt,
     this.consentVersion,
-    this.purpose = 'classification',
+    this.purpose,
   });
   @HiveField(0)
   String id;
 
-  /// PRIVACY-09: Path to encrypted temp file (not raw bytes).
+  /// PRIVACY-09: Legacy raw bytes — field index 1 is preserved from the
+  /// pre-migration schema (legacy records stored Uint8List here).
+  /// Null for new items; populated only on unmigrated legacy records.
   @HiveField(1)
-  String imageRefPath;
+  Uint8List? imageBytes;
+
+  /// PRIVACY-09: Path to encrypted temp file (not raw bytes).
+  /// Nullable so legacy records (which predate this field) read safely.
+  @HiveField(7)
+  String? imageRefPath;
 
   /// PRIVACY-09: SHA-256 content hash for integrity verification.
-  @HiveField(10)
-  String imageRefHash;
+  @HiveField(8)
+  String? imageRefHash;
 
   /// PRIVACY-09: Original byte length (for logging/quotas).
-  @HiveField(11)
-  int imageRefByteLength;
+  @HiveField(9)
+  int? imageRefByteLength;
 
   @HiveField(2)
   String region;
@@ -193,33 +210,34 @@ class QueuedClassification extends HiveObject {
   String? imageName;
 
   /// PRIVACY-09: When this item should be auto-deleted.
-  @HiveField(7)
+  @HiveField(10)
   DateTime? expiresAt;
 
   /// PRIVACY-09: Consent version at time of queue entry.
-  @HiveField(8)
+  @HiveField(11)
   String? consentVersion;
 
   /// PRIVACY-09: Purpose of the queued image (e.g. 'classification').
-  @HiveField(9)
-  String purpose;
-
-  /// PRIVACY-09: Legacy raw bytes field — only populated during migration.
-  /// After migration, this is always null and imageRefPath is used instead.
   @HiveField(12)
-  Uint8List? legacyImageBytes;
+  String? purpose;
 
   /// Whether this item still uses the legacy raw-bytes format.
-  bool get isLegacyFormat => legacyImageBytes != null && imageRefPath.isEmpty;
+  ///
+  /// Keyed on [imageBytes] alone (not ref-path emptiness): an item that was
+  /// partially migrated (bytes still set after a failed save) must still be
+  /// picked up by migration/age-expiry rather than silently evading both.
+  bool get isLegacyFormat => imageBytes != null;
 
   /// PRIVACY-09: Read image bytes from the sandboxed temp file.
-  /// Falls back to legacyImageBytes for unmigrated items.
+  /// Falls back to imageBytes for unmigrated legacy items.
   Future<Uint8List?> readImageBytes() async {
-    if (isLegacyFormat) return legacyImageBytes;
+    if (isLegacyFormat) return imageBytes;
+    final path = imageRefPath;
+    if (path == null || path.isEmpty) return null;
     return QueueImageStorage().readImage(QueueImageReference(
-      filePath: imageRefPath,
-      contentHash: imageRefHash,
-      byteLength: imageRefByteLength,
+      filePath: path,
+      contentHash: imageRefHash ?? '',
+      byteLength: imageRefByteLength ?? 0,
     ));
   }
 }
@@ -239,6 +257,16 @@ class OfflineQueueService {
 
   @visibleForTesting
   static OfflineQueueAnalyticsTracker? analyticsTrackerOverride;
+
+  /// PRIVACY-09: Test hook to run the legacy raw-bytes → file-reference
+  /// migration outside of [init] (init already runs it). Mirrors the
+  /// [analyticsTrackerOverride] test seam pattern.
+  @visibleForTesting
+  Future<void> runLegacyMigrationForTesting() => _migrateLegacyItems();
+
+  /// PRIVACY-09: Test hook to run retention expiry outside of [init].
+  @visibleForTesting
+  Future<void> runExpiryForTesting() => _expireOldItems();
 
   Box<QueuedClassification>? _queueBox;
   Box<DeadLetterClassification>? _deadLetterBox;
@@ -326,6 +354,11 @@ class OfflineQueueService {
 
   /// PRIVACY-09: Expire items that have exceeded their retention limit.
   /// Deletes both Hive metadata and sandboxed image files.
+  ///
+  /// Legacy raw-bytes items whose migration failed have no [expiresAt].
+  /// They are still expired by age ([queuedAt]/[failedAt] vs the retention
+  /// limit) so a failed migration degrades into expiry rather than leaving
+  /// raw image bytes in Hive forever.
   Future<void> _expireOldItems() async {
     final now = DateTime.now();
     var expiredCount = 0;
@@ -335,9 +368,14 @@ class OfflineQueueService {
     if (_queueBox != null) {
       final expiredKeys = <dynamic>[];
       for (final item in _queueBox!.values) {
-        if (item.expiresAt != null && item.expiresAt!.isBefore(now)) {
+        final pastExpiry =
+            item.expiresAt != null && item.expiresAt!.isBefore(now);
+        final legacyTooOld = item.isLegacyFormat &&
+            now.difference(item.queuedAt) > kQueueRetentionLimit;
+        if (pastExpiry || legacyTooOld) {
           expiredKeys.add(item.id);
-          expiredFilePaths.add(item.imageRefPath);
+          final path = item.imageRefPath;
+          if (path != null && path.isNotEmpty) expiredFilePaths.add(path);
         }
       }
       for (final key in expiredKeys) {
@@ -350,9 +388,14 @@ class OfflineQueueService {
     if (_deadLetterBox != null) {
       final expiredKeys = <dynamic>[];
       for (final item in _deadLetterBox!.values) {
-        if (item.expiresAt != null && item.expiresAt!.isBefore(now)) {
+        final pastExpiry =
+            item.expiresAt != null && item.expiresAt!.isBefore(now);
+        final legacyTooOld = item.isLegacyFormat &&
+            now.difference(item.failedAt) > kDeadLetterRetentionLimit;
+        if (pastExpiry || legacyTooOld) {
           expiredKeys.add(item.id);
-          expiredFilePaths.add(item.imageRefPath);
+          final path = item.imageRefPath;
+          if (path != null && path.isNotEmpty) expiredFilePaths.add(path);
         }
       }
       for (final key in expiredKeys) {
@@ -387,14 +430,16 @@ class OfflineQueueService {
     if (_queueBox != null) {
       for (final item in _queueBox!.values) {
         if (item.userId == uid) {
-          filePaths.add(item.imageRefPath);
+          final path = item.imageRefPath;
+          if (path != null && path.isNotEmpty) filePaths.add(path);
         }
       }
     }
     if (_deadLetterBox != null) {
       for (final item in _deadLetterBox!.values) {
         if (item.userId == uid) {
-          filePaths.add(item.imageRefPath);
+          final path = item.imageRefPath;
+          if (path != null && path.isNotEmpty) filePaths.add(path);
         }
       }
     }
@@ -838,8 +883,10 @@ class OfflineQueueService {
 
     // Collect and delete image files before clearing metadata
     final filePaths = _queueBox?.values
-        .map((item) => item.imageRefPath)
-        .toSet() ?? {};
+            .map((item) => item.imageRefPath)
+            .whereType<String>()
+            .toSet() ??
+        {};
     if (filePaths.isNotEmpty) {
       await _imageStorage.deleteForUser(filePaths);
     }
@@ -923,6 +970,7 @@ class OfflineQueueService {
     try {
       final deadLetter = DeadLetterClassification(
         id: item.id,
+        imageBytes: item.imageBytes, // Preserve bytes for legacy items
         imageRefPath: item.imageRefPath,
         imageRefHash: item.imageRefHash,
         imageRefByteLength: item.imageRefByteLength,
@@ -936,6 +984,7 @@ class OfflineQueueService {
         expiresAt: DateTime.now().add(kDeadLetterRetentionLimit),
         consentVersion: item.consentVersion,
         failureType: _classifyFailure(Exception(lastError)).name,
+        purpose: item.purpose,
       );
       await _deadLetterBox!.put(deadLetter.id, deadLetter);
       WasteAppLogger.info('Item moved to dead-letter queue', context: {
@@ -964,6 +1013,7 @@ class OfflineQueueService {
       final item = _deadLetterBox!.get(id)!;
       final queued = QueuedClassification(
         id: const Uuid().v4(),
+        imageBytes: item.imageBytes, // Preserve bytes for legacy items
         imageRefPath: item.imageRefPath,
         imageRefHash: item.imageRefHash,
         imageRefByteLength: item.imageRefByteLength,
@@ -998,8 +1048,10 @@ class OfflineQueueService {
 
     // Collect and delete image files before clearing metadata
     final filePaths = _deadLetterBox?.values
-        .map((item) => item.imageRefPath)
-        .toSet() ?? {};
+            .map((item) => item.imageRefPath)
+            .whereType<String>()
+            .toSet() ??
+        {};
     if (filePaths.isNotEmpty) {
       await _imageStorage.deleteForUser(filePaths);
     }
@@ -1013,22 +1065,26 @@ class OfflineQueueService {
 
   /// PRIVACY-09: Migrate legacy raw-bytes items to file references.
   ///
-  /// Old items stored Uint8List imageBytes directly in Hive. This method
+  /// Old items stored Uint8List imageBytes at field index 1. This method
   /// writes those bytes to sandboxed temp files and updates the metadata.
-  /// After migration, legacyImageBytes is set to null.
+  /// After migration, imageBytes is set to null. Legacy records also have no
+  /// expiry metadata, so an expiry is assigned here to honour the retention
+  /// contract (24h active queue / 72h dead-letter).
   Future<void> _migrateLegacyItems() async {
     var migratedCount = 0;
 
     // Migrate active queue items
     if (_queueBox != null) {
       for (final item in _queueBox!.values.toList()) {
-        if (item.isLegacyFormat && item.legacyImageBytes != null) {
+        if (item.isLegacyFormat) {
           try {
-            final ref = await _imageStorage.writeImage(item.legacyImageBytes!);
+            final ref = await _imageStorage.writeImage(item.imageBytes!);
             item.imageRefPath = ref.filePath;
             item.imageRefHash = ref.contentHash;
             item.imageRefByteLength = ref.byteLength;
-            item.legacyImageBytes = null; // Clear legacy field
+            item.imageBytes = null; // Clear legacy field
+            // PRIVACY-09: Legacy records have no expiry — assign now.
+            item.expiresAt ??= DateTime.now().add(kQueueRetentionLimit);
             await item.save();
             migratedCount++;
           } catch (e) {
@@ -1042,13 +1098,15 @@ class OfflineQueueService {
     // Migrate dead-letter items
     if (_deadLetterBox != null) {
       for (final item in _deadLetterBox!.values.toList()) {
-        if (item.isLegacyFormat && item.legacyImageBytes != null) {
+        if (item.isLegacyFormat) {
           try {
-            final ref = await _imageStorage.writeImage(item.legacyImageBytes!);
+            final ref = await _imageStorage.writeImage(item.imageBytes!);
             item.imageRefPath = ref.filePath;
             item.imageRefHash = ref.contentHash;
             item.imageRefByteLength = ref.byteLength;
-            item.legacyImageBytes = null; // Clear legacy field
+            item.imageBytes = null; // Clear legacy field
+            // PRIVACY-09: Legacy records have no expiry — assign now.
+            item.expiresAt ??= DateTime.now().add(kDeadLetterRetentionLimit);
             await item.save();
             migratedCount++;
           } catch (e) {
@@ -1060,9 +1118,10 @@ class OfflineQueueService {
     }
 
     if (migratedCount > 0) {
-      WasteAppLogger.info('Migrated legacy queue items to file references', context: {
-        'migrated_count': migratedCount,
-      });
+      WasteAppLogger.info('Migrated legacy queue items to file references',
+          context: {
+            'migrated_count': migratedCount,
+          });
     }
   }
 
@@ -1072,19 +1131,22 @@ class OfflineQueueService {
     final activePaths = <String>{};
     if (_queueBox != null) {
       for (final item in _queueBox!.values) {
-        activePaths.add(item.imageRefPath);
+        final path = item.imageRefPath;
+        if (path != null && path.isNotEmpty) activePaths.add(path);
       }
     }
     if (_deadLetterBox != null) {
       for (final item in _deadLetterBox!.values) {
-        activePaths.add(item.imageRefPath);
+        final path = item.imageRefPath;
+        if (path != null && path.isNotEmpty) activePaths.add(path);
       }
     }
     final cleaned = await _imageStorage.cleanOrphaned(activePaths);
     if (cleaned > 0) {
-      WasteAppLogger.info('Cleaned orphaned queue image files on init', context: {
-        'count': cleaned,
-      });
+      WasteAppLogger.info('Cleaned orphaned queue image files on init',
+          context: {
+            'count': cleaned,
+          });
     }
   }
 

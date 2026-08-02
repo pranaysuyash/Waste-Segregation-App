@@ -29,10 +29,16 @@ This violates the principle of data minimisation and creates unnecessary privacy
 
 ### 3. Encryption / Key Strategy
 
-- Use AES-256-GCM with a per-app key derived from `flutter_secure_storage`.
-- Key is stored in the platform keystore (iOS Keychain / Android Keystore).
-- Each queue item gets a unique IV; IV is stored alongside the encrypted file reference in Hive.
-- Key is destroyed on logout (platform keystore handles this).
+- Queue images live in sandboxed temp files in the app's container. On iOS and
+  Android these containers are encrypted at rest by the OS (hardware-backed
+  data protection / file-based encryption), which is the shipped strategy in
+  `QueueImageStorage`.
+- App-level AES-256-GCM (per-app key in `flutter_secure_storage`, per-item IV)
+  is **deferred** until an explicit stronger-than-OS requirement exists; the
+  storage service documents this as a follow-up hook. This ADR tracks the
+  shipped decision, not the aspirational one.
+- Files are deleted on queue completion, expiry, logout, and orphan cleanup.
+  No key material is stored in Hive.
 
 ### 4. Logout / Account-Switch Behaviour
 
@@ -66,6 +72,39 @@ This violates the principle of data minimisation and creates unnecessary privacy
 - On service init, scan the encrypted temp directory for files older than 72 hours.
 - Delete orphaned files that have no corresponding Hive metadata entry.
 - Log the count of cleaned orphan files for diagnostics.
+
+### 9. Failed Migration Degrades to Expiry (not Immortality)
+
+- Legacy raw-bytes records carry no `expiresAt` (added after they were written).
+- If the one-time migration to file references fails (e.g. temp-dir write error),
+  the item stays in legacy raw-bytes format. It MUST NOT linger indefinitely.
+- `_expireOldItems` therefore also expires legacy-format items by age:
+  active queue compares `queuedAt` to the 24h limit, dead-letter compares
+  `failedAt` to the 72h limit — even when `expiresAt` is null.
+- Hard deletion is chosen over moving to dead-letter because a dead-letter move
+  would re-store the raw bytes in Hive, re-creating the exact exposure this
+  ADR exists to eliminate.
+
+### 10. Backward-Compatibility Schema Generations
+
+- **Gen 1 (pre-migration, shipped):** `Uint8List imageBytes` at Hive field
+  index 1 — the raw-bytes exposure this ADR exists to eliminate.
+- **Gen 2 (intermediate, never released):** commit `b33b0616` (2026-08-02)
+  briefly wrote `String imageRefPath` at field 1, `imageRefHash` at 12 and
+  `imageRefByteLength` at 13. It was corrected the same day by the
+  backward-compat fix below **before any release, tag, or store build**
+  contained it. Records written under Gen 2 would be unreadable by Gen 3
+  (field-1 type flip String→Uint8List, field 12/13 remapped); no such records
+  exist because the schema never shipped.
+- **Gen 3 (current):** restores `Uint8List? imageBytes` at field 1 so
+  pre-migration (Gen 1) records read correctly, and moves file-reference
+  fields to higher indices (`imageRefPath` 9, `imageRefHash` 10,
+  `imageRefByteLength` 11 for dead-letter; 7/8/9 for active queue), all
+  nullable. `isLegacyFormat` keys on `imageBytes` alone so partially-migrated
+  items (bytes still set after a failed file save) are picked up by
+  migration/age-expiry rather than evading both.
+- Migration assigns `expiresAt` to legacy records (24h active / 72h
+  dead-letter) so unmigrated items honour the retention contract.
 
 ### 7. Consent / Purpose Binding
 

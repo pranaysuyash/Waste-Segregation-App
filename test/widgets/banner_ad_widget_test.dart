@@ -97,8 +97,7 @@ void main() {
                   ),
             ),
           ),
-        ),
-      );
+        );
     }
 
     group('Widget Initialization', () {
