@@ -55,6 +55,7 @@ class PremiumService extends ChangeNotifier {
   EntitlementState _entitlementState = EntitlementState.unknown;
   DateTime? _lastServerVerification;
   StreamSubscription<DocumentSnapshot>? _entitlementSubscription;
+  StreamSubscription<User?>? _authSubscription;
 
   /// The ONLY authoritative entitlement state — read from Firestore
   /// server projection, never from local Hive alone.
@@ -95,7 +96,8 @@ class PremiumService extends ChangeNotifier {
       // COMMIT-6: Start observing the server-authoritative entitlement.
       // The client NEVER writes subscriptionTier or billing to Firestore.
       // The server (webhook / Cloud Function) is the sole writer.
-      _startEntitlementListener();
+      // Also listen for auth state changes to re-subscribe on logout/re-login.
+      _startAuthStateListener();
 
       // Opt-in only: do not implicitly grant premium in debug/test runs.
       if (kDebugMode && _enableDebugAutoSeed) {
@@ -211,9 +213,32 @@ class PremiumService extends ChangeNotifier {
     }
   }
 
-  // NOTE: If re-authentication support is added in the future, call
-  // _startEntitlementListener() after auth state changes to re-subscribe
-  // to the correct user's entitlement document.
+  /// Subscribe to auth state changes to re-subscribe the entitlement listener
+  /// when the user logs in/out. Prevents observing the wrong user's document.
+  /// Called automatically from _doInitialize(); also handles the case where
+  /// the user is already logged in at subscription time.
+  void _startAuthStateListener() {
+    _authSubscription?.cancel();
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((user) {
+      _entitlementSubscription?.cancel();
+      _entitlementSubscription = null;
+
+      if (user == null) {
+        _entitlementState = EntitlementState.unknown;
+        _lastServerVerification = null;
+        _syncLocalCacheFromServer(false);
+        notifyListeners();
+      } else {
+        _startEntitlementListener();
+      }
+    });
+
+    // Handle already-logged-in case: authStateChanges only fires on changes,
+    // not the current state. Explicitly check and subscribe now.
+    if (FirebaseAuth.instance.currentUser != null) {
+      _startEntitlementListener();
+    }
+  }
 
   /// Premium feature check — reads from local Hive cache (UI only).
   /// Server-side guards must NEVER trust this value.
@@ -364,6 +389,8 @@ class PremiumService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
+    _authSubscription = null;
     _entitlementSubscription?.cancel();
     _entitlementSubscription = null;
     super.dispose();
