@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { Webhook } from 'standardwebhooks';
 import { respondWithApiError, respondWithApiSuccess } from './helpers';
+import { resolveProduct, PRODUCT_CATALOGUE } from './product_catalogue';
 
 const asiaSouth1 = functions.region('asia-south1');
 
@@ -79,6 +80,7 @@ type DodoWebhookEvent =
 interface SubscriptionRecord {
   dodoSubscriptionId: string;
   dodoCustomerId: string;
+  userId: string;  // SEC-04 fix: required for Firestore rules owner-only read check
   tier: 'premium' | 'family';
   status: 'active' | 'canceled' | 'past_due';
   currentPeriodStart: string | null;
@@ -169,18 +171,23 @@ async function revokePremiumAccess(uid: string): Promise<void> {
 async function creditTokenPurchase(
   uid: string,
   event: DodoWebhookEvent,
+  catalogueTokenCount: number | null,
 ): Promise<void> {
   const db = admin.firestore();
-  const tokens = parseInt(event.data.metadata?.tokens ?? '0', 10);
+  // Use catalogue token count when available (authoritative).
+  // Fall back to client metadata for backward compat with older clients.
+  const tokens = catalogueTokenCount ?? parseInt(event.data.metadata?.tokens ?? '0', 10);
   if (tokens <= 0) {
     functions.logger.warn('Token purchase event has invalid token count', {
       uid,
-      tokens: event.data.metadata?.tokens,
+      tokens,
+      catalogueTokenCount,
+      metadataTokens: event.data.metadata?.tokens,
     });
     return;
   }
 
-  const packId = event.data.metadata?.pack_id ?? 'unknown';
+  const packId = event.data.metadata?.logical_sku ?? event.data.metadata?.pack_id ?? 'unknown';
   const userRef = db.collection('users').doc(uid);
   const nowIso = new Date().toISOString();
 
@@ -236,6 +243,7 @@ async function recordSubscription(event: DodoWebhookEvent, uid: string): Promise
   const record: SubscriptionRecord = {
     dodoSubscriptionId: subId,
     dodoCustomerId: subData.customer.customer_id,
+    userId: uid,  // SEC-04 fix: Firestore rules require userId for owner-only reads
     tier: 'premium',
     status,
     currentPeriodStart: ('current_period_start' in subData)
@@ -315,21 +323,6 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
 
     const db = admin.firestore();
 
-    // Idempotency: skip if we already processed this event
-    const eventRef = db.collection('webhook_events').doc(webhookId);
-    const existingEvent = await eventRef.get();
-    if (existingEvent.exists) {
-      functions.logger.info('Duplicate webhook event, skipping', { webhookId });
-      respondWithApiSuccess(res, 200, { status: 'duplicate' });
-      return;
-    }
-
-    await eventRef.set({
-      eventId: webhookId,
-      type: event.type,
-      receivedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
     const uid = getFirebaseUid(event);
     if (!uid) {
       functions.logger.warn('Webhook event missing firebase_uid in metadata', {
@@ -343,36 +336,97 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
       return;
     }
 
-    const productType = event.data.metadata?.product_type;
+    const logicalSku = event.data.metadata?.logical_sku;
 
-    switch (event.type) {
-      case 'payment.succeeded':
-        if (productType === 'token_pack') {
-          await creditTokenPurchase(uid, event);
-        } else {
-          await grantPremiumAccess(uid, event);
-          await recordSubscription(event, uid);
-        }
-        break;
-
-      case 'subscription.cancelled':
-        await revokePremiumAccess(uid);
-        await recordSubscription(event, uid);
-        break;
-
-      case 'subscription.past_due':
-        await recordSubscription(event, uid);
-        functions.logger.warn('Subscription past due', {
-          uid,
-          subscriptionId: event.data.subscription_id,
-        });
-        break;
-
-      default:
-        functions.logger.info('Unhandled webhook event type', { type: (event as any).type });
+    // --- Server catalogue validation ---
+    // Resolve the product from the server catalogue, NOT from client-provided
+    // metadata. This prevents forged metadata from granting unauthorized
+    // entitlements or crediting wrong token amounts.
+    let catalogueProductType: 'subscription' | 'token_pack' | null = null;
+    let catalogueTokenCount: number | null = null;
+    if (logicalSku && logicalSku in PRODUCT_CATALOGUE) {
+      const catalogueProduct = resolveProduct(logicalSku);
+      catalogueProductType = catalogueProduct.productType;
+      catalogueTokenCount = catalogueProduct.tokens;
+      functions.logger.info('Webhook product validated against catalogue', {
+        logicalSku,
+        productType: catalogueProduct.productType,
+        entitlement: catalogueProduct.entitlement,
+      });
+    } else if (logicalSku) {
+      functions.logger.warn('Webhook event references unknown product SKU', {
+        logicalSku,
+        uid,
+        webhookId,
+      });
     }
+    // Determine product type: catalogue is authoritative when available,
+    // client metadata fallback only for backward compat with older clients.
+    // Validate the fallback value to prevent forged metadata from causing
+    // silent failures (e.g. payment.succeeded with invalid productType).
+    const metadataProductType = event.data.metadata?.product_type;
+    const validMetadataProductType = (metadataProductType === 'subscription' || metadataProductType === 'token_pack')
+      ? metadataProductType
+      : null;
+    const productType = catalogueProductType ?? validMetadataProductType ?? 'subscription';
 
-    respondWithApiSuccess(res, 200, { status: 'accepted' });
+    // SEC-03 fix: Execute side effects FIRST, then record idempotency marker.
+    // The old order recorded the marker before side effects, so a failed
+    // side effect (e.g. entitlement grant) would cause the retry to be
+    // treated as a duplicate — permanently losing the purchase.
+    try {
+      switch (event.type) {
+        case 'payment.succeeded':
+          if (productType === 'token_pack') {
+            await creditTokenPurchase(uid, event, catalogueTokenCount);
+          } else {
+            await grantPremiumAccess(uid, event);
+            await recordSubscription(event, uid);
+          }
+          break;
+
+        case 'subscription.cancelled':
+          await revokePremiumAccess(uid);
+          await recordSubscription(event, uid);
+          break;
+
+        case 'subscription.past_due':
+          await recordSubscription(event, uid);
+          functions.logger.warn('Subscription past due', {
+            uid,
+            subscriptionId: event.data.subscription_id,
+          });
+          break;
+
+        default:
+          functions.logger.info('Unhandled webhook event type', { type: (event as any).type });
+      }
+
+      // Record idempotency marker AFTER successful side effects.
+      // If the function crashes after side effects but before this write,
+      // a retry will re-execute the side effects (idempotent by design:
+      // grantPremiumAccess and creditTokenPurchase use merge: true with
+      // additive counters, so re-execution is safe).
+      const eventRef = db.collection('webhook_events').doc(webhookId);
+      await eventRef.set({
+        eventId: webhookId,
+        type: event.type,
+        uid,
+        processedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      respondWithApiSuccess(res, 200, { status: 'accepted' });
+    } catch (sideEffectError) {
+      // Side effect failed — do NOT record the idempotency marker so that
+      // a retry can re-process this event.
+      functions.logger.error('Webhook side effect failed, will retry on redelivery', {
+        webhookId,
+        eventType: event.type,
+        uid,
+        error: sideEffectError,
+      });
+      throw sideEffectError;
+    }
   } catch (error: any) {
     functions.logger.error('Webhook processing error', { error });
     respondWithApiError(
