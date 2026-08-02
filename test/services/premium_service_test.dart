@@ -72,15 +72,20 @@ void main() {
         final premiumFeatures = premiumService.getPremiumFeatures();
         final comingSoonFeatures = premiumService.getComingSoonFeatures();
 
+        // TASK-08: getPremiumFeatures + getComingSoonFeatures only cover
+        // sellable features — non-sellable (not ready to market) features
+        // are excluded from both lists.
+        final sellableCount =
+            PremiumFeature.features.where((f) => f.sellable).length;
+
         // In debug mode, some test features might be enabled
         if (kDebugMode) {
           // Verify at least some features exist
           expect(premiumFeatures.length + comingSoonFeatures.length,
-              equals(PremiumFeature.features.length));
+              equals(sellableCount));
         } else {
           expect(premiumFeatures, isEmpty);
-          expect(comingSoonFeatures.length,
-              equals(PremiumFeature.features.length));
+          expect(comingSoonFeatures.length, equals(sellableCount));
         }
       });
 
@@ -217,23 +222,43 @@ void main() {
     });
 
     group('Revenue Critical Tests', () {
-      test('should expose canonical premium entitlement', () async {
+      test('should not grant canonical entitlement from client writes',
+          () async {
+        // COMMIT-6: entitlement is server-authoritative. With no authenticated
+        // user / server projection (unit test), state is unknown → fail closed.
+        // Make the precondition explicit so this test fails loudly if a future
+        // test setup ever starts seeding a server projection.
+        expect(
+          premiumService.entitlementState,
+          EntitlementState.unknown,
+        );
         expect(premiumService.hasActivePremiumPlan(), isFalse);
+
+        // Client-side writes only update the local UI cache — they must NOT
+        // grant the canonical entitlement (P0 trust-boundary property).
         await premiumService.setPremiumFeature(
             PremiumService.proSubscriptionEntitlement, true);
-        expect(premiumService.hasActivePremiumPlan(), isTrue);
+        expect(
+          premiumService.isPremiumFeature(
+              PremiumService.proSubscriptionEntitlement),
+          isTrue,
+        );
+        expect(premiumService.hasActivePremiumPlan(), isFalse);
       });
 
       test('should migrate legacy remove_ads signal into premium entitlement',
           () async {
-        expect(premiumService.hasActivePremiumPlan(), isFalse);
         await premiumService.setPremiumFeature('remove_ads', true);
-        expect(premiumService.hasActivePremiumPlan(), isTrue);
+        // Hive-level migration still promotes the legacy signal into the
+        // entitlement cache flag (UI rendering uses this cache).
         expect(
           premiumService
               .isPremiumFeature(PremiumService.proSubscriptionEntitlement),
           isTrue,
         );
+        // COMMIT-6: the canonical entitlement check fails closed until the
+        // server projection confirms — local signals alone never grant it.
+        expect(premiumService.hasActivePremiumPlan(), isFalse);
       });
 
       test('should handle remove_ads feature for revenue model', () async {
@@ -250,12 +275,18 @@ void main() {
       test('should track premium feature adoption', () async {
         const features = ['remove_ads', 'theme_customization', 'offline_mode'];
 
-        // Simulate user purchasing features one by one
-        for (var i = 0; i < features.length; i++) {
-          await premiumService.setPremiumFeature(features[i], true);
+        // Simulate user purchasing features one by one. getPremiumFeatures only
+        // counts sellable features — offline_mode (sellable:false) is excluded.
+        var sellableEnabled = 0;
+        for (final feature in features) {
+          await premiumService.setPremiumFeature(feature, true);
+
+          final featureDef =
+              PremiumFeature.features.firstWhere((f) => f.id == feature);
+          if (featureDef.sellable) sellableEnabled++;
 
           final enabledCount = premiumService.getPremiumFeatures().length;
-          expect(enabledCount, equals(i + 1));
+          expect(enabledCount, equals(sellableEnabled));
         }
       });
 
