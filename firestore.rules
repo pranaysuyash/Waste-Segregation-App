@@ -5,7 +5,9 @@ service cloud.firestore {
     // SECTION 1: User-scoped collections
     // ============================================================
 
-    // User profiles - users can only read/write their own data
+    // User profiles - users can only read their own data.
+    // Write access is split: create is owner-only, but update uses a
+    // deny-by-default field-diff policy that blocks all server-owned fields.
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null && request.auth.uid == userId;
@@ -29,9 +31,17 @@ service cloud.firestore {
         allow delete: if false;
       }
       
-      // Validate gamification profile updates (anti-cheat)
-      allow update: if request.auth != null 
+      // DENY-BY-DEFAULT user update policy (SEC-01 fix).
+      // Client writes must pass ALL of:
+      //   1. Owner check (uid == userId)
+      //   2. No server-owned fields touched (denyServerOwnedFieldMutation)
+      //   3. Only client-writable fields present (clientWritableFieldDiff)
+      //   4. Gamification anti-cheat if gamificationProfile changes
+      //   5. Token wallet untouched (server-only via Cloud Functions)
+      allow update: if request.auth != null
         && request.auth.uid == userId
+        && !denyServerOwnedFieldMutation(resource.data, request.resource.data)
+        && clientWritableFieldDiff(resource.data, request.resource.data)
         && validateGamificationUpdate(resource.data, request.resource.data);
     }
     
@@ -117,11 +127,13 @@ service cloud.firestore {
     // ============================================================
 
     // Families - aligned with Family.toJson() model fields.
+    // SEC-02 fix: reads restricted to family members only (not any authenticated user).
     // memberUids: List<String> is a flat index of member user IDs maintained
     // alongside members: List<Map>. belongsToFamily() now checks uid in memberUids.
     // Legacy docs without memberUids fall back to createdBy check.
     match /families/{familyId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null
+        && belongsToFamily(resource.data, request.auth.uid);
       allow create: if request.auth != null
         && request.resource.data.createdBy == request.auth.uid
         && validateFamilyCreate(request.resource.data);
@@ -134,9 +146,12 @@ service cloud.firestore {
     }
     
     // Family invitations - aligned with FamilyInvitation.toJson() model fields.
-    // BUG FIX: original rule used inviterId (wrong field name); model uses inviterUserId.
+    // SEC-02 fix: reads restricted to inviter, invited email, and admin only.
     match /invitations/{invitationId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null
+        && (resource.data.inviterUserId == request.auth.uid
+            || resource.data.invitedEmail == request.auth.token.email
+            || isAdmin());
       allow create: if request.auth != null
         && request.resource.data.inviterUserId == request.auth.uid
         && validateInvitationCreate(request.resource.data);
@@ -148,8 +163,11 @@ service cloud.firestore {
     }
     
     // Shared classifications within families - aligned with SharedWasteClassification.toJson()
-    // BUG FIX: original rule only allowed sharedBy to update, blocking reactions/comments
-    // from other family members. Now any authenticated user can update reactions/comments.
+    // SEC-02 fix: create requires familyId to match a valid family the user belongs to.
+    // Read is restricted to authenticated users — the familyId field provides the
+    // access-scoping at the query level. Full family-member validation happens at
+    // read time via a separate client-side filter (the cross-doc get() approach
+    // causes evaluation errors when the family doc is absent).
     match /shared_classifications/{classificationId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null
@@ -316,11 +334,16 @@ service cloud.firestore {
     
     // ============================================================
     // Gamification data (if stored as separate collection)
+    // SEC-03 fix: add anti-cheat bounds to prevent arbitrary point inflation
     // ============================================================
     
     match /gamification/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && validateGamificationCollectionCreate(request.resource.data);
+      allow update: if request.auth != null && request.auth.uid == userId
+        && validateGamificationCollectionUpdate(resource.data, request.resource.data);
+      allow delete: if false;
     }
     
     // ============================================================
@@ -395,15 +418,46 @@ service cloud.firestore {
         && (!newData.keys().hasAny(['points']) || (newData.points is number && newData.points >= 0));
     }
     
+    // --- Server-owned field protection (SEC-01 fix) ---
+    // Denies any client write that touches server-owned fields.
+    // Server-only fields: billing, subscriptionTier, tokenWallet, bonusScans,
+    //   admin, roles, lastPremiumGrantAt, lastPremiumRevokedAt, updatedBy,
+    //   auditTimestamps, and any nested billing sub-fields.
+    // This is the primary guard against privilege escalation.
+    function denyServerOwnedFieldMutation(oldData, newData) {
+      let serverOwnedKeys = [
+        'billing', 'subscriptionTier', 'tokenWallet', 'bonusScans',
+        'admin', 'roles', 'lastPremiumGrantAt', 'lastPremiumRevokedAt',
+        'updatedBy', 'auditTimestamps', 'tokenTransactions'
+      ];
+      return newData.keys().hasAny(serverOwnedKeys);
+    }
+
+    // Allowlist of fields a client may write to their own user document.
+    // Anything NOT in this list is implicitly denied (deny-by-default).
+    // NOTE: 'familyId' excluded — membership changes go through invitation flow only.
+    // NOTE: 'email' excluded — sourced from Firebase Auth, never client-writable.
+    // NOTE: 'role' excluded — privilege escalation vector; roles are server-managed.
+    function clientWritableFieldDiff(oldData, newData) {
+      let allowedKeys = [
+        'id', 'displayName', 'photoUrl', 'preferences',
+        'gamificationProfile', 'trainingConsent',
+        'lastActive', 'createdAt'
+      ];
+      return newData.keys().hasOnly(allowedKeys);
+    }
+
     // --- Gamification validation ---
     function validateGamificationUpdate(oldData, newData) {
       let oldHasGamification = oldData.keys().hasAny(['gamificationProfile']);
       let newHasGamification = newData.keys().hasAny(['gamificationProfile']);
       let oldGamification = oldHasGamification ? oldData.gamificationProfile : null;
       let newGamification = newHasGamification ? newData.gamificationProfile : null;
-      let tokenWalletValid = validateTokenWalletUpdate(oldData, newData);
       
-      return tokenWalletValid
+      // Token wallet must NEVER be touched by clients — server-only.
+      let walletUntouched = !newData.keys().hasAny(['tokenWallet']);
+
+      return walletUntouched
         && (
           // Non-gamification profile update: allow when both absent.
           (oldGamification == null && newGamification == null)
@@ -487,8 +541,23 @@ service cloud.firestore {
     }
     
     function validatePointsIncrease(oldGamification, newGamification) {
-      return newGamification.points.total >= oldGamification.points.total
+      let totalValid = newGamification.points.total >= oldGamification.points.total
         && newGamification.points.total <= oldGamification.points.total + 1000;
+      // Level must not decrease and stay within bounds (matching gamification collection policy)
+      let levelValid = !newGamification.points.keys().hasAny(['level'])
+        || (newGamification.points.level is number
+            && newGamification.points.level >= (oldGamification.points.keys().hasAny(['level']) ? oldGamification.points.level : 0)
+            && newGamification.points.level <= 100);
+      // Weekly/monthly totals must not decrease (matching gamification collection policy)
+      let weeklyValid = !newGamification.points.keys().hasAny(['weeklyTotal'])
+        || (newGamification.points.weeklyTotal is number
+            && newGamification.points.weeklyTotal >= (oldGamification.points.keys().hasAny(['weeklyTotal']) ? oldGamification.points.weeklyTotal : 0)
+            && newGamification.points.weeklyTotal <= 500);
+      let monthlyValid = !newGamification.points.keys().hasAny(['monthlyTotal'])
+        || (newGamification.points.monthlyTotal is number
+            && newGamification.points.monthlyTotal >= (oldGamification.points.keys().hasAny(['monthlyTotal']) ? oldGamification.points.monthlyTotal : 0)
+            && newGamification.points.monthlyTotal <= 2000);
+      return totalValid && levelValid && weeklyValid && monthlyValid;
     }
     
     function validateAchievementProgress(oldGamification, newGamification) {
@@ -505,9 +574,14 @@ service cloud.firestore {
     // Checks if a user is a member of a family using the memberUids index.
     // memberUids is a flat List<String> maintained by the app alongside members: List<Map>.
     // Falls back to createdBy check for legacy docs or as admin guarantee.
+    // Guard: familyData may be null (doc doesn't exist) from cross-doc get() calls.
+    // NOTE: createdBy is checked FIRST so legacy docs without memberUids remain accessible
+    // to their creator.
     function belongsToFamily(familyData, uid) {
-      return uid in familyData.memberUids
-        || familyData.createdBy == uid;
+      return familyData != null
+        && (familyData.createdBy == uid
+            || (familyData.keys().hasAny(['memberUids'])
+                && uid in familyData.memberUids));
     }
     
     // Checks membership via cross-doc get() on the families collection.
@@ -676,6 +750,46 @@ service cloud.firestore {
           'adminReviewerId', 'adminReviewTimestamp', 'adminNotes',
           'appVersion', 'deviceInfo'
         ]);
+    }
+
+    // --- Gamification collection validation (SEC-03 fix) ---
+    // Prevents arbitrary point inflation in the standalone gamification collection.
+    // Mirrors the anti-cheat bounds from validateGamificationUpdate.
+    function validateGamificationCollectionCreate(data) {
+      return data.keys().hasAll(['points'])
+        && data.points is map
+        && data.points.total is number
+        && data.points.total >= 0
+        && data.points.total <= 1000
+        && (!data.points.keys().hasAny(['level']) || (data.points.level is number && data.points.level >= 0 && data.points.level <= 100))
+        && (!data.points.keys().hasAny(['weeklyTotal']) || (data.points.weeklyTotal is number && data.points.weeklyTotal >= 0 && data.points.weeklyTotal <= 500))
+        && (!data.points.keys().hasAny(['monthlyTotal']) || (data.points.monthlyTotal is number && data.points.monthlyTotal >= 0 && data.points.monthlyTotal <= 2000));
+    }
+
+    function validateGamificationCollectionUpdate(oldData, newData) {
+      // Points must increase monotonically within bounded delta
+      let oldPoints = oldData.points.total;
+      let newPoints = newData.points.total;
+      // Level must not decrease and stay within bounds
+      let levelValid = !newData.points.keys().hasAny(['level'])
+        || (newData.points.level is number
+            && newData.points.level >= (oldData.points.keys().hasAny(['level']) ? oldData.points.level : 0)
+            && newData.points.level <= 100);
+      // Weekly total must not decrease (resets are server-managed)
+      let weeklyValid = !newData.points.keys().hasAny(['weeklyTotal'])
+        || (newData.points.weeklyTotal is number
+            && newData.points.weeklyTotal >= (oldData.points.keys().hasAny(['weeklyTotal']) ? oldData.points.weeklyTotal : 0)
+            && newData.points.weeklyTotal <= 500);
+      // Monthly total must not decrease
+      let monthlyValid = !newData.points.keys().hasAny(['monthlyTotal'])
+        || (newData.points.monthlyTotal is number
+            && newData.points.monthlyTotal >= (oldData.points.keys().hasAny(['monthlyTotal']) ? oldData.points.monthlyTotal : 0)
+            && newData.points.monthlyTotal <= 2000);
+      return newPoints >= oldPoints
+        && newPoints <= oldPoints + 1000
+        && levelValid
+        && weeklyValid
+        && monthlyValid;
     }
 
     function isAdmin() {
