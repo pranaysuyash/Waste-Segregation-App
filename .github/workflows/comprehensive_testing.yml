@@ -23,8 +23,15 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
         
-      - name: Generate code
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Generate code (then verify no tracked-file drift)
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          # CI must not silently mutate tracked generated files.
+          if git status --porcelain | grep -q '\.g\.dart'; then
+            echo "::error::Generated .g.dart files are out of date — run build_runner locally and commit the results."
+            git status --porcelain | grep '\.g\.dart' | head -20
+            exit 1
+          fi
         
       - name: Run unit tests
         run: flutter test --coverage
@@ -50,8 +57,14 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
         
-      - name: Generate code
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Generate code (then verify no tracked-file drift)
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          if git status --porcelain | grep -q '\.g\.dart'; then
+            echo "::error::Generated .g.dart files are out of date — commit them before pushing."
+            git status --porcelain | grep '\.g\.dart' | head -20
+            exit 1
+          fi
         
       - name: Run navigation tests
         run: flutter test test/widgets/navigation_test.dart --reporter=expanded
@@ -85,10 +98,16 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
         
-      - name: Generate code
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Generate code (then verify no tracked-file drift)
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          if git status --porcelain | grep -q '\.g\.dart'; then
+            echo "::error::Generated .g.dart files are out of date — commit them before pushing."
+            git status --porcelain | grep '\.g\.dart' | head -20
+            exit 1
+          fi
         
-      - name: Run golden tests
+      - name: Run golden tests (read-only — no --update-goldens)
         run: flutter test test/golden/ --update-goldens=false
         
       - name: Upload golden test failures
@@ -117,8 +136,14 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
         
-      - name: Generate code
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Generate code (then verify no tracked-file drift)
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          if git status --porcelain | grep -q '\.g\.dart'; then
+            echo "::error::Generated .g.dart files are out of date — commit them before pushing."
+            git status --porcelain | grep '\.g\.dart' | head -20
+            exit 1
+          fi
         
       - name: Start iOS Simulator
         run: |
@@ -151,8 +176,14 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
         
-      - name: Generate code
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Generate code (then verify no tracked-file drift)
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          if git status --porcelain | grep -q '\.g\.dart'; then
+            echo "::error::Generated .g.dart files are out of date — commit them before pushing."
+            git status --porcelain | grep '\.g\.dart' | head -20
+            exit 1
+          fi
         
       - name: Run Flutter analyze
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
@@ -194,8 +225,14 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
         
-      - name: Generate code
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Generate code (then verify no tracked-file drift)
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          if git status --porcelain | grep -q '\.g\.dart'; then
+            echo "::error::Generated .g.dart files are out of date — commit them before pushing."
+            git status --porcelain | grep '\.g\.dart' | head -20
+            exit 1
+          fi
         
       - name: Run performance tests
         run: flutter test test/performance/ --reporter=expanded

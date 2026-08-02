@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  # 1. Static analysis & overflow detection
+  # 1. Static analysis & format gate (non-mutating, baseline-policed)
   analyze:
     runs-on: ubuntu-latest
     steps:
@@ -18,13 +18,31 @@ jobs:
           channel: 'stable'
       - name: Install dependencies
         run: flutter pub get
-      - name: Dart & Flutter analyze
+      - name: Case-sensitive path check (Docs/ vs docs/ collision only)
         run: |
-          flutter analyze --no-fatal-warnings --no-fatal-infos
-          # Skip overflow check for now as it's causing false positives
-          # dart tool/check_overflows.dart lib/widgets/modern_ui/modern_cards.dart
+          # The commit gate itself writes Docs/reviews/motto_review.md (capital D),
+          # so the check must flag a true COLLISION (the same relative path under
+          # both Docs/ and docs/) rather than any capital-D path.
+          COLLISIONS=""
+          for p in $(git ls-files | grep -E '(^|/)Docs/' || true); do
+            lower="${p#Docs/}"
+            lower="docs/${lower}"
+            if git ls-files --error-unmatch "$lower" >/dev/null 2>&1; then
+              COLLISIONS="$COLLISIONS $p"
+            fi
+          done
+          if [ -n "$COLLISIONS" ]; then
+            echo "::error::Case-colliding tracked paths found under both Docs/ and docs/:"
+            echo "$COLLISIONS" | tr ' ' '\n' | head -20
+            exit 1
+          fi
+          echo "OK: no Docs/ vs docs/ case collisions."
+      - name: Analyzer debt gate (errors+warnings blocking, infos capped)
+        run: bash tools/check_analyzer_baseline.sh
+      - name: Format debt gate (net-new debt fails)
+        run: bash tools/check_format_baseline.sh
 
-  # 2. Firestore + Storage security rules tests
+  # 2. Firestore + Storage security rules tests (Node 22, matches Functions)
   firebase_rules:
     needs: analyze
     runs-on: ubuntu-latest
@@ -33,7 +51,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: |
             firestore-rules-test/package-lock.json
@@ -59,6 +77,34 @@ jobs:
       - name: Run all tests
         run: flutter test --coverage --test-randomize-ordering-seed random
 
+  # 3b. Firebase Functions gate (Node 22)
+  functions:
+    needs: analyze
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: functions/package-lock.json
+      - name: Install Functions dependencies
+        run: npm ci
+      - name: Install Firebase CLI (for emulator tests)
+        run: npm install -g firebase-tools
+      - name: Lint + typecheck Functions
+        run: npm run lint
+      - name: Build Functions
+        run: npm run build
+      - name: Run Functions unit tests
+        run: npm test
+      - name: Run Functions emulator tests (http-guards, training-data)
+        run: npm run test:emulator
+
   # 3. Golden tests
   golden:
     needs: test
@@ -69,14 +115,23 @@ jobs:
         with:
           flutter-version: '3.32.2'
           channel: 'stable'
-      - name: Ensure golden_toolkit is added
+      # CI must never mutate tracked files (RELEASE-PROOF-01).
+      # golden_toolkit is committed in pubspec.yaml; verify, don't add.
+      - name: Verify golden_toolkit is committed (no pubspec mutation)
         run: |
-          grep -q "golden_toolkit:" pubspec.yaml || (
-            echo "Adding missing golden_toolkit dependency"
-            flutter pub add --dev golden_toolkit
-          )
+          grep -q "golden_toolkit:" pubspec.yaml || {
+            echo "::error::golden_toolkit missing from pubspec.yaml — commit it, CI will not run 'flutter pub add'."
+            exit 1
+          }
+          echo "golden_toolkit present in pubspec.yaml."
       - name: Install dependencies
         run: flutter pub get
+      - name: Verify no tracked-file drift after pub get
+        run: |
+          git diff --exit-code pubspec.yaml pubspec.lock || {
+            echo "::error::pub get modified tracked files — commit pubspec.lock before pushing."
+            exit 1
+          }
       - name: Run golden tests
         run: flutter test --tags=golden
 
@@ -99,7 +154,7 @@ jobs:
         if: failure()
         run: echo "::error::Visual diff failures detected in Storybook"
 
-  # 5. Eval harness — detect regressions in offline mode
+  # 5. Eval harness — detect regressions in offline mode (safety-blocking)
   eval:
     needs: analyze
     runs-on: ubuntu-latest
@@ -111,67 +166,28 @@ jobs:
           python-version: '3.12'
       - name: Run offline eval
         run: |
+          mkdir -p build/reports/eval
           python3 scripts/eval/run_classification_eval.py \
             --mode offline \
             --golden eval/classification/golden/golden_cases_v1.jsonl \
             --fixtures eval/classification/fixtures/provider_outputs_v1.jsonl \
-            --output eval/classification/reports/ci_eval_report.json
-      - name: Check eval gate — regression detection against router_v1 baseline
+            --output build/reports/eval/ci_eval_report.json
+      - name: Check eval gate — safety failures are blocking
         run: |
-          REPORT="eval/classification/reports/ci_eval_report.json"
-          echo "=== Eval Report ==="
-          OUTPUT=$(python3 -c "
-import json, sys
-with open('$REPORT') as f:
-    r = json.load(f)
-print(f'Golden cases: {r[\"golden_case_count\"]}')
-print(f'Providers:    {r[\"providers_evaluated\"]}')
-print(f'Errors:       {len(r[\"errors\"])}')
-
-# Known baselines from golden set v1 (router_v1 = best provider)
-BASELINE_STRICT_RATE = 0.9444
-
-for entry in r['ranking']:
-    print(f'  #{entry[\"rank\"]} {entry[\"provider_key\"]}/{entry[\"model\"]}  '
-          f'strict={entry[\"strict_pass_rate\"]}  '
-          f'safety_failures={entry[\"safety_failures\"]}  '
-          f'must_not_violations={entry[\"must_not_violations\"]}')
-
-if r['errors']:
-    print('Errors:')
-    for e in r['errors']:
-        print(f'  {e}')
-    print('FAIL: Eval harness errors detected — BLOCKING')
-    exit(1)
-
-best = r['ranking'][0] if r['ranking'] else None
-if not best:
-    print('FAIL: No providers evaluated — BLOCKING')
-    exit(1)
-
-regression = BASELINE_STRICT_RATE - best['strict_pass_rate']
-print(f'')
-print(f'GATE: best_strict={best[\"strict_pass_rate\"]} baseline={BASELINE_STRICT_RATE} regression={regression:.4f}')
-print(f'      best_safety_failures={best[\"safety_failures\"]} best_must_not_violations={best[\"must_not_violations\"]}')
-
-# Detect regression: if the best provider drops more than 5 points from baseline
-if regression > 0.05:
-    print(f'FAIL: Strict pass rate regressed by {regression*100:.1f} points — BLOCKING')
-    exit(1)
-
-print('PASS: No significant regression detected')
-" 2>&1)
-          echo "$OUTPUT"
-      - name: Upload eval report
+          # Gate logic lives in tools/check_eval_gate.py (RELEASE-PROOF-01 Commit 4).
+          # Hard gates: harness errors, no providers, safety_failures>0,
+          # must_not_violations>0, strict-rate regression >5 points.
+          python3 tools/check_eval_gate.py build/reports/eval/ci_eval_report.json
+      - name: Upload eval report (artifact, not tracked source)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ci-eval-report
-          path: eval/classification/reports/ci_eval_report.json
+          path: build/reports/eval/ci_eval_report.json
 
   # 6. Auto-merge on success
   automerge:
-    needs: [ analyze, firebase_rules, test, golden, storybook, eval ]
+    needs: [ analyze, firebase_rules, functions, test, golden, storybook, eval ]
     if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
