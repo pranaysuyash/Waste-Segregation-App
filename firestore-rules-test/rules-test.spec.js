@@ -236,12 +236,16 @@ describe('Firestore Rules Tests', () => {
   });
 
   // ============================================================
-  // 10b. Shared classifications create succeeds
+  // 10b. Shared classifications create succeeds (C-07: subcollection under
+  // families/{familyId}/ — requires the family doc to exist and the caller to
+  // be a member).
   // ============================================================
   it('shared_classifications create with required fields succeeds', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
+    // Seed the family first: user-1 is createdBy AND in memberUids.
+    await db.collection('families').doc('family-1').set(familyData);
     await assertSucceeds(
-      db.collection('shared_classifications').doc('sc-1').set(sharedClassificationData)
+      db.collection('families').doc('family-1').collection('shared_classifications').doc('sc-1').set(sharedClassificationData)
     );
   });
 
@@ -286,7 +290,7 @@ describe('Firestore Rules Tests', () => {
   it('unauthenticated user cannot write to shared_classifications', async () => {
     const db = testEnv.unauthenticatedContext().firestore();
     await assertFails(
-      db.collection('shared_classifications').doc('sc-1').set(sharedClassificationData)
+      db.collection('families').doc('family-1').collection('shared_classifications').doc('sc-1').set(sharedClassificationData)
     );
   });
 
@@ -332,7 +336,38 @@ describe('Firestore Rules Tests', () => {
   });
 
   // ============================================================
-  // 11b. Community stats is read-only for users
+  // 11b. Disposal instructions are read-only for authenticated users
+  // (coverage parity preserved when the legacy embedded firestore_rules_test
+  // workflow was deleted — this is the canonical home for that assertion).
+  // ============================================================
+  it('disposal_instructions read succeeds for authenticated user', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await assertSucceeds(
+      db.collection('disposal_instructions').doc('apple').get()
+    );
+  });
+
+  it('disposal_instructions write fails for authenticated user', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await assertFails(
+      db.collection('disposal_instructions').doc('apple').set({
+        steps: ['Step 1'],
+        primaryMethod: 'Compost',
+      })
+    );
+  });
+
+  it('disposal_instructions write fails for unauthenticated user', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(
+      db.collection('disposal_instructions').doc('apple').set({
+        steps: ['Step 1'],
+      })
+    );
+  });
+
+  // ============================================================
+  // 11c. Community stats is read-only for users
   // ============================================================
   it('community_stats is read-only for authenticated users', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();

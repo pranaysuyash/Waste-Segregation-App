@@ -47,8 +47,9 @@ typedef OfflineQueueAnalyticsTracker = Future<void> Function({
 /// A classification that permanently failed processing and was moved
 /// to the dead-letter queue for audit and potential manual retry.
 ///
-/// PRIVACY-09: Image data is stored in a sandboxed temp file (encrypted at
-/// rest by iOS/Android OS). Hive stores only the file reference + metadata.
+/// PRIVACY-09: For new items, image data is stored in an OS-sandbox-protected
+/// temp file. Hive stores only the file reference, SHA-256 content hash, byte
+/// length, and queue metadata.
 /// Old Uint8List imageBytes field is preserved as nullable for migration.
 @HiveType(typeId: 101)
 class DeadLetterClassification extends HiveObject {
@@ -79,7 +80,7 @@ class DeadLetterClassification extends HiveObject {
   @HiveField(1)
   Uint8List? imageBytes;
 
-  /// PRIVACY-09: Path to encrypted temp file (not raw bytes).
+  /// PRIVACY-09: Path to an OS-sandbox-protected temp file (not raw bytes).
   /// Nullable so legacy records (which predate this field) read safely.
   @HiveField(9)
   String? imageRefPath;
@@ -152,8 +153,9 @@ class DeadLetterClassification extends HiveObject {
 
 /// Queued classification for offline processing
 ///
-/// PRIVACY-09: Image data is stored in a sandboxed temp file (encrypted at
-/// rest by iOS/Android OS). Hive stores only the file reference + metadata.
+/// PRIVACY-09: For new items, image data is stored in an OS-sandbox-protected
+/// temp file. Hive stores only the file reference, SHA-256 content hash, byte
+/// length, and queue metadata.
 /// Old Uint8List imageBytes field is preserved as nullable for migration.
 @HiveType(typeId: 100)
 class QueuedClassification extends HiveObject {
@@ -181,7 +183,7 @@ class QueuedClassification extends HiveObject {
   @HiveField(1)
   Uint8List? imageBytes;
 
-  /// PRIVACY-09: Path to encrypted temp file (not raw bytes).
+  /// PRIVACY-09: Path to an OS-sandbox-protected temp file (not raw bytes).
   /// Nullable so legacy records (which predate this field) read safely.
   @HiveField(7)
   String? imageRefPath;
@@ -515,8 +517,8 @@ class OfflineQueueService {
 
   /// PRIVACY-09: Queue a classification for later processing.
   ///
-  /// Image bytes are written to a sandboxed temp file (encrypted at rest by
-  /// iOS/Android OS). Hive stores only the file reference + metadata.
+  /// Image bytes are written to an OS-sandbox-protected temp file. Hive stores
+  /// only the file reference, SHA-256 content hash, byte length, and metadata.
   Future<void> queue({
     required Uint8List imageBytes,
     required String region,
@@ -1066,7 +1068,8 @@ class OfflineQueueService {
   /// PRIVACY-09: Migrate legacy raw-bytes items to file references.
   ///
   /// Old items stored Uint8List imageBytes at field index 1. This method
-  /// writes those bytes to sandboxed temp files and updates the metadata.
+  /// writes those bytes to OS-sandbox-protected temp files and updates the
+  /// metadata.
   /// After migration, imageBytes is set to null. Legacy records also have no
   /// expiry metadata, so an expiry is assigned here to honour the retention
   /// contract (24h active queue / 72h dead-letter).

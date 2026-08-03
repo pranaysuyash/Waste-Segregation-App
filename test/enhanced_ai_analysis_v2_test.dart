@@ -2,6 +2,74 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'package:waste_segregation_app/services/local_guidelines_plugin.dart';
 
+Map<String, EnvironmentalMetricEvidence> _buildImpactEvidence({
+  double co2 = 2.5,
+  double waterPollution = 2,
+  double soilContamination = 2,
+  double humanToxicity = 1,
+  double wildlifeImpact = 4,
+  double confidence = 0.88,
+}) {
+  return {
+    'co2_avoidance': EnvironmentalMetricEvidence(
+      metricId: 'co2_avoidance',
+      value: co2,
+      unit: 'kgCO2e',
+      confidence: confidence,
+      methodologyVersion: 'WARM-v16',
+      geography: 'IN-KA',
+      scenario: 'recycle_vs_landfill',
+      decisionSupported: 'recycling_guidance',
+      userExplanation: 'Evidence-backed estimate',
+      sources: const ['EPA WARM'],
+    ),
+    'water_pollution': EnvironmentalMetricEvidence(
+      metricId: 'water_pollution',
+      value: waterPollution,
+      unit: '1-5 score',
+      confidence: confidence,
+      methodologyVersion: 'WARM-v16',
+      geography: 'IN-KA',
+      scenario: 'recycle_vs_landfill',
+      decisionSupported: 'recycling_guidance',
+      userExplanation: 'Evidence-backed estimate',
+    ),
+    'soil_contamination_risk': EnvironmentalMetricEvidence(
+      metricId: 'soil_contamination_risk',
+      value: soilContamination,
+      unit: '1-5 score',
+      confidence: confidence,
+      methodologyVersion: 'WARM-v16',
+      geography: 'IN-KA',
+      scenario: 'recycle_vs_landfill',
+      decisionSupported: 'recycling_guidance',
+      userExplanation: 'Evidence-backed estimate',
+    ),
+    'human_toxicity': EnvironmentalMetricEvidence(
+      metricId: 'human_toxicity',
+      value: humanToxicity,
+      unit: '1-5 score',
+      confidence: confidence,
+      methodologyVersion: 'WARM-v16',
+      geography: 'IN-KA',
+      scenario: 'recycle_vs_landfill',
+      decisionSupported: 'recycling_guidance',
+      userExplanation: 'Evidence-backed estimate',
+    ),
+    'wildlife_impact': EnvironmentalMetricEvidence(
+      metricId: 'wildlife_impact',
+      value: wildlifeImpact,
+      unit: '1-5 score',
+      confidence: confidence,
+      methodologyVersion: 'WARM-v16',
+      geography: 'IN-KA',
+      scenario: 'recycle_vs_landfill',
+      decisionSupported: 'recycling_guidance',
+      userExplanation: 'Evidence-backed estimate',
+    ),
+  };
+}
+
 void main() {
   group('Enhanced AI Analysis v2.0', () {
     late WasteClassification testClassification;
@@ -49,6 +117,7 @@ void main() {
         wildlifeImpactSeverity: 4,
         resourceScarcity: 'common',
         disposalCostEstimate: 2.50,
+        environmentalImpactEvidence: _buildImpactEvidence(),
       );
     });
 
@@ -149,6 +218,14 @@ void main() {
         expect(
             enhanced.localGuidelinesVersion, equals(plugin.guidelinesVersion));
         expect(enhanced.localRegulations, isNotEmpty);
+        expect(
+          enhanced.localRegulations?['collection_frequency'],
+          equals('alternate_days'),
+        );
+        expect(
+          enhanced.localRegulations?['policy_source_status'],
+          equals('unverified'),
+        );
       });
     });
 
@@ -227,10 +304,13 @@ void main() {
           localGuidelinesReference: 'BBMP-2024-plastic',
           confidence: 0.98,
           // Add more environmental data
-          waterPollutionLevel: 4,
-          soilContaminationRisk: 4,
-          humanToxicityLevel: 2,
-          wildlifeImpactSeverity: 5,
+          environmentalImpactEvidence: _buildImpactEvidence(
+            co2: 2.5,
+            waterPollution: 4,
+            soilContamination: 4,
+            humanToxicity: 2,
+            wildlifeImpact: 5,
+          ),
         );
 
         final points = maximal.calculatePoints();
@@ -242,13 +322,14 @@ void main() {
     group('Environmental Impact Scoring', () {
       test('should score low-impact items correctly', () {
         final lowImpact = testClassification.copyWith(
-          co2Impact: 0.5,
-          waterPollutionLevel: 1,
-          soilContaminationRisk: 1,
           recyclability: 'fully recyclable',
-          generatesMicroplastics: false,
-          humanToxicityLevel: 1,
-          wildlifeImpactSeverity: 1,
+          environmentalImpactEvidence: _buildImpactEvidence(
+            co2: 0.5,
+            waterPollution: 1,
+            soilContamination: 1,
+            humanToxicity: 1,
+            wildlifeImpact: 1,
+          ),
         );
 
         final score = lowImpact.getEnvironmentalImpactScore();
@@ -257,13 +338,14 @@ void main() {
 
       test('should score high-impact items correctly', () {
         final highImpact = testClassification.copyWith(
-          co2Impact: 15.0,
-          waterPollutionLevel: 5,
-          soilContaminationRisk: 5,
           recyclability: 'not recyclable',
-          generatesMicroplastics: true,
-          humanToxicityLevel: 5,
-          wildlifeImpactSeverity: 5,
+          environmentalImpactEvidence: _buildImpactEvidence(
+            co2: 15.0,
+            waterPollution: 5,
+            soilContamination: 5,
+            humanToxicity: 5,
+            wildlifeImpact: 5,
+          ),
         );
 
         final score = highImpact.getEnvironmentalImpactScore();

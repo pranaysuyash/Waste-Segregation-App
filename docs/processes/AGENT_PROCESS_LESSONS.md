@@ -205,6 +205,30 @@ If ANY condition is unverified, the failure is **assumed to be in your blast rad
 
 ---
 
+## Session: 2026-08-02 — Hive Schema Migration (Task 09 Backward-Compat)
+
+### Lesson 1: Never Change the Type at an Existing @HiveField Index (§21 Code Is Evidence, ADR-First)
+
+**Trigger**: Task 09 offline-queue storage migration (commit `b33b0616`) changed `@HiveField(1)` from `Uint8List imageBytes` to `String imageRefPath` — reusing the same index with a different type.
+
+**Consequence**: Gen-2 records written under that schema became unreadable by the corrected schema (field-1 type flip String→Uint8List, fields 12/13 remapped). It never reached production (b33b0616 never shipped, no tags or release evidence reference it), but a code review caught it as a silent data-loss trap: anyone who ran the app between `b33b0616` and the fix would have lost queued records.
+
+**What happened**: Hive generated adapters read fields with strict casts (`fields[1] as Uint8List?`). Reusing an index for a different type means legacy records either crash on read (cast failure) or silently misread (a string treated as a file path). The migration commit kept `imageRefPath` at field 1 where `imageBytes` used to live, breaking every pre-migration record.
+
+**First principle** (§21 Code Is Evidence, §12 ADR-First): Hive field indices are part of the persisted binary contract — changing a type at an existing index is a breaking schema change, not a refactor.
+
+**Correct approach**:
+1. **Keep old fields at their original indices** — legacy bytes stay at field 1
+2. **Append new fields at new, higher indices**, made nullable so pre-migration records (which lack them) read safely
+3. **Key `isLegacyFormat` on a positive signal** (`imageBytes != null`), not a negative one (`imageRefPath.isEmpty`) — a partially-migrated item (bytes still set after a failed file save) must be picked up by migration/expiry, not evade both
+4. **Assign missing metadata during migration** — legacy records predate `expiresAt`, so migration assigns it (24h active / 72h dead-letter) to honour the retention contract
+5. **Write round-trip tests through the real generated adapters** (`box.put` → `box.get`) simulating legacy records with only the old fields populated
+6. **Document schema generations in the ADR** — Gen-1/2/3 layouts and any never-shipped incompatibility window, so the decision is explicit (ADR-0006 §10)
+
+**Anti-pattern**: Reusing an existing `@HiveField(n)` index with a new type "because the old field is being replaced anyway." The old records don't know they've been replaced — they will be read with the new type and crash or corrupt.
+
+---
+
 ## Checklist for Future Agent Sessions (§6, §7, §22)
 
 - [ ] Run `dart analyze` to get baseline error/warning/info counts
@@ -216,3 +240,4 @@ If ANY condition is unverified, the failure is **assumed to be in your blast rad
 - [ ] Categorize any remaining failures (pre-existing vs regression vs pollution)
 - [ ] Document any new pre-existing failures with root cause and proof (command output)
 - [ ] Spawn code-reviewer-mimo before declaring completion
+- [ ] **Hive schema changes**: never change the type at an existing `@HiveField` index — keep old fields in place, append new nullable indices, key legacy-detection on a positive signal, and document schema generations in the ADR (§21, ADR-first)

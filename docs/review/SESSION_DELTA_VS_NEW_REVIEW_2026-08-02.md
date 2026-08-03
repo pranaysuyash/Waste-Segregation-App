@@ -4,6 +4,10 @@
 >
 > **New review baseline:** `e48a66bd` (remote HEAD)
 > **Session work:** Uncommitted changes on top of `712ceb4c`
+>
+> **⚠️ SUPERSEDED (status refresh):** The status tables below reflect the state before
+> Tasks 02/06/08/09 were committed. For the verified current status of every round-3
+> finding, see **[ROUND3_AUDIT_SCORECARD_2026-08-02.md](ROUND3_AUDIT_SCORECARD_2026-08-02.md)**.
 
 ---
 

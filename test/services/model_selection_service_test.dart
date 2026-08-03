@@ -15,6 +15,7 @@ class _ThrowingBatchingService extends BatchingService {
   @override
   Future<WasteClassification> queueAnalysis({
     required File imageFile,
+    String? userId,
     String? region,
     String? instructionsLang,
   }) {

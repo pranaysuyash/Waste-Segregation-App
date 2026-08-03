@@ -42,6 +42,9 @@ void main() {
               localRegulations: const {
                 'policy_rule_pack_id': 'bbmp-v1',
                 'policy_local_name': 'BBMP local rules',
+                'collection_frequency': 'alternate_days',
+                'collection_time_window': '6:00 AM - 9:00 AM',
+                'collection_notes': 'Check bin lining',
               },
             ),
           ),
@@ -49,11 +52,18 @@ void main() {
       ),
     );
 
-    expect(find.text('Recommended next step'), findsOneWidget);
+    expect(find.text('Complete this item now'), findsOneWidget);
     expect(find.text('Recycle'), findsOneWidget);
     expect(find.text('Actionable'), findsOneWidget);
     expect(find.text('BBMP local rules'), findsOneWidget);
+    expect(find.textContaining('Collection notes'), findsOneWidget);
+    expect(find.text('Check bin lining'), findsOneWidget);
     expect(find.text('Empty and rinse'), findsOneWidget);
+    expect(find.textContaining('Collection window'), findsOneWidget);
+    expect(
+        find.textContaining(
+            'frequency: Alternate days · time: 6:00 AM - 9:00 AM'),
+        findsOneWidget);
     expect(find.text('Review first'), findsNothing);
   });
 
@@ -92,7 +102,7 @@ void main() {
 
     expect(find.text('Review first'), findsOneWidget);
     expect(
-      find.textContaining('taxonomy could not be resolved'),
+      find.textContaining('High-risk or uncertain item'),
       findsOneWidget,
     );
   });

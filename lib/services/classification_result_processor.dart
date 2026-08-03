@@ -161,6 +161,15 @@ class ClassificationResultProcessor {
     if (decision.localName != null) {
       baseRegulations['policy_local_name'] = decision.localName!;
     }
+    if (decision.technicalStatus.isNotEmpty) {
+      baseRegulations['policy_technical_status'] = decision.technicalStatus;
+    }
+    if (decision.sourceStatus.isNotEmpty) {
+      baseRegulations['policy_source_status'] = decision.sourceStatus;
+    }
+    if (decision.authorityStatus.isNotEmpty) {
+      baseRegulations['policy_authority_status'] = decision.authorityStatus;
+    }
     if (decision.lastVerified != null) {
       baseRegulations['policy_last_verified'] = decision.lastVerified!;
     }
@@ -174,12 +183,12 @@ class ClassificationResultProcessor {
       baseRegulations['policy_source_url'] = decision.sourceUrl!;
     }
     if (decision.warnings.isNotEmpty) {
-      baseRegulations['policy_warning_count'] = decision.warnings.length
-          .toString();
+      baseRegulations['policy_warning_count'] =
+          decision.warnings.length.toString();
     }
     if (decision.violations.isNotEmpty) {
-      baseRegulations['policy_violation_count'] = decision.violations.length
-          .toString();
+      baseRegulations['policy_violation_count'] =
+          decision.violations.length.toString();
     }
     if (decision.societyId != null) {
       baseRegulations['policy_society_id'] = decision.societyId!;
@@ -187,32 +196,28 @@ class ClassificationResultProcessor {
     if (decision.societyName != null) {
       baseRegulations['policy_society_name'] = decision.societyName!;
     }
-    baseRegulations['policy_confidence_state'] =
-        decision.confidenceState ??
+    baseRegulations['policy_confidence_state'] = decision.confidenceState ??
         (decision.policyApplied ? 'full' : 'not_applied');
-    baseRegulations['policy_society_override_count'] = decision
-        .societyConflictCount
-        .toString();
+    baseRegulations['policy_society_override_count'] =
+        decision.societyConflictCount.toString();
     if (decision.societyConflicts.isNotEmpty) {
-      baseRegulations['policy_society_conflicts'] = decision.societyConflicts
-          .join('|');
+      baseRegulations['policy_society_conflicts'] =
+          decision.societyConflicts.join('|');
     }
     if (decision.societyOverrides.isNotEmpty) {
-      baseRegulations['policy_society_overrides'] = decision.societyOverrides
-          .join('|');
+      baseRegulations['policy_society_overrides'] =
+          decision.societyOverrides.join('|');
     }
     if (decision.ruleOverridesApplied.isNotEmpty) {
-      baseRegulations['policy_society_rule_overrides'] = decision
-          .ruleOverridesApplied
-          .join('|');
+      baseRegulations['policy_society_rule_overrides'] =
+          decision.ruleOverridesApplied.join('|');
     }
     if (decision.recommendations.isNotEmpty) {
-      baseRegulations['policy_recommendations'] = decision.recommendations
-          .take(3)
-          .join(' | ');
+      baseRegulations['policy_recommendations'] =
+          decision.recommendations.take(3).join(' | ');
     }
-    baseRegulations['policy_evaluated_at'] = decision.evaluatedAt
-        .toIso8601String();
+    baseRegulations['policy_evaluated_at'] =
+        decision.evaluatedAt.toIso8601String();
 
     return classification.copyWith(
       localRegulations: baseRegulations,

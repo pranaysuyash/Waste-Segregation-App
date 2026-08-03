@@ -226,42 +226,98 @@ describe('Family rules', () => {
     );
   });
 
-  // --- Shared classifications create ---
-  it('authenticated user can create shared classification with sharedBy matching auth', async () => {
+  // --- Shared classifications create (C-07: subcollection under families/{familyId}/) ---
+  it('family member can create shared classification with sharedBy matching auth', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
+    await db.collection('families').doc('family-1').set(validFamily);
     await assertSucceeds(
-      db.collection('shared_classifications').doc('shared-1').set(validSharedClassification)
+      db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').set(validSharedClassification)
+    );
+  });
+
+  it('non-member cannot create shared classification', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await db.collection('families').doc('family-1').set(validFamily);
+    const db2 = testEnv.authenticatedContext('user-2').firestore(); // not a member
+    await assertFails(
+      db2.collection('families').doc('family-1').collection('shared_classifications').doc('shared-2').set(validSharedClassification)
     );
   });
 
   it('shared classification create fails if sharedBy does not match auth', async () => {
-    const db = testEnv.authenticatedContext('user-2').firestore();
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    // user-2 IS a member; the failure must be the sharedBy mismatch, not membership
+    await db.collection('families').doc('family-1').set({ ...validFamily, memberUids: ['user-1', 'user-2'] });
+    const db2 = testEnv.authenticatedContext('user-2').firestore();
     await assertFails(
-      db.collection('shared_classifications').doc('shared-2').set({ ...validSharedClassification, sharedBy: 'user-1' })
+      db2.collection('families').doc('family-1').collection('shared_classifications').doc('shared-2').set({ ...validSharedClassification, sharedBy: 'user-1' })
+    );
+  });
+
+  it('shared classification create fails if familyId does not match parent family', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await db.collection('families').doc('family-1').set(validFamily);
+    await assertFails(
+      db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-wrong-family').set({ ...validSharedClassification, familyId: 'family-other' })
     );
   });
 
   it('shared classification create fails with missing required fields', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
+    await db.collection('families').doc('family-1').set(validFamily);
     await assertFails(
-      db.collection('shared_classifications').doc('shared-bad').set({ sharedBy: 'user-1', familyId: 'f1' })
+      db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-bad').set({ sharedBy: 'user-1', familyId: 'family-1' })
     );
   });
 
   it('shared classification create fails with unknown unsafe field', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
+    await db.collection('families').doc('family-1').set(validFamily);
     await assertFails(
-      db.collection('shared_classifications').doc('shared-unsafe').set({ ...validSharedClassification, maliciousField: 'bad' })
+      db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-unsafe').set({ ...validSharedClassification, maliciousField: 'bad' })
+    );
+  });
+
+  // --- Shared classifications read (C-07: membership-enforced) ---
+  it('family member can read shared classification', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await db.collection('families').doc('family-1').set(validFamily);
+    await db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').set(validSharedClassification);
+    await assertSucceeds(
+      db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').get()
+    );
+  });
+
+  it('non-member cannot read shared classification', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await db.collection('families').doc('family-1').set(validFamily);
+    await db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').set(validSharedClassification);
+    const db2 = testEnv.authenticatedContext('user-2').firestore(); // not a member
+    await assertFails(
+      db2.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').get()
     );
   });
 
   // --- Shared classifications update (reactions/comments) ---
-  it('authenticated user can update shared classification (add reaction)', async () => {
+  it('family member can update shared classification (add reaction)', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
-    await db.collection('shared_classifications').doc('shared-1').set(validSharedClassification);
-    const db2 = testEnv.authenticatedContext('user-2').firestore();
+    await db.collection('families').doc('family-1').set({ ...validFamily, memberUids: ['user-1', 'user-2'] });
+    await db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').set(validSharedClassification);
+    const db2 = testEnv.authenticatedContext('user-2').firestore(); // member
     await assertSucceeds(
-      db2.collection('shared_classifications').doc('shared-1').update({
+      db2.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').update({
+        reactions: [{ userId: 'user-2', displayName: 'User 2', type: 'like', timestamp: new Date().toISOString() }]
+      })
+    );
+  });
+
+  it('non-member cannot update shared classification', async () => {
+    const db = testEnv.authenticatedContext('user-1').firestore();
+    await db.collection('families').doc('family-1').set(validFamily);
+    await db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').set(validSharedClassification);
+    const db2 = testEnv.authenticatedContext('user-2').firestore(); // not a member
+    await assertFails(
+      db2.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').update({
         reactions: [{ userId: 'user-2', displayName: 'User 2', type: 'like', timestamp: new Date().toISOString() }]
       })
     );
@@ -269,35 +325,39 @@ describe('Family rules', () => {
 
   it('shared classification update cannot change sharedBy', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
-    await db.collection('shared_classifications').doc('shared-1').set(validSharedClassification);
+    await db.collection('families').doc('family-1').set(validFamily);
+    await db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').set(validSharedClassification);
     await assertFails(
-      db.collection('shared_classifications').doc('shared-1').update({ sharedBy: 'user-2' })
+      db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').update({ sharedBy: 'user-2' })
     );
   });
 
   it('shared classification update cannot change familyId', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
-    await db.collection('shared_classifications').doc('shared-1').set(validSharedClassification);
+    await db.collection('families').doc('family-1').set(validFamily);
+    await db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').set(validSharedClassification);
     await assertFails(
-      db.collection('shared_classifications').doc('shared-1').update({ familyId: 'different-family' })
+      db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').update({ familyId: 'different-family' })
     );
   });
 
   // --- Shared classifications delete ---
   it('sharedBy user can delete shared classification', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
-    await db.collection('shared_classifications').doc('shared-1').set(validSharedClassification);
+    await db.collection('families').doc('family-1').set(validFamily);
+    await db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').set(validSharedClassification);
     await assertSucceeds(
-      db.collection('shared_classifications').doc('shared-1').delete()
+      db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').delete()
     );
   });
 
-  it('non-sharer cannot delete shared classification', async () => {
+  it('non-sharer member cannot delete shared classification', async () => {
     const db = testEnv.authenticatedContext('user-1').firestore();
-    await db.collection('shared_classifications').doc('shared-1').set(validSharedClassification);
-    const db2 = testEnv.authenticatedContext('user-2').firestore();
+    await db.collection('families').doc('family-1').set({ ...validFamily, memberUids: ['user-1', 'user-2'] });
+    await db.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').set(validSharedClassification);
+    const db2 = testEnv.authenticatedContext('user-2').firestore(); // member but not the sharer
     await assertFails(
-      db2.collection('shared_classifications').doc('shared-1').delete()
+      db2.collection('families').doc('family-1').collection('shared_classifications').doc('shared-1').delete()
     );
   });
 

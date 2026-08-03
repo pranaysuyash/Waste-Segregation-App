@@ -1,9 +1,13 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
 import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:waste_segregation_app/services/offline_queue_service.dart';
 
 const _kPathProviderChannel = 'plugins.flutter.io/path_provider';
@@ -105,6 +109,10 @@ void main() {
       expect(migrated.imageBytes, isNull);
       expect(migrated.imageRefPath, isNotNull);
       expect(migrated.imageRefPath, isNotEmpty);
+      expect(
+        migrated.imageRefHash,
+        equals(sha256.convert(legacyBytes).toString()),
+      );
       expect(migrated.imageRefByteLength, equals(legacyBytes.length));
       expect(migrated.expiresAt, isNotNull);
       expect(await migrated.readImageBytes(), equals(legacyBytes));
@@ -143,6 +151,10 @@ void main() {
       expect(migrated.imageBytes, isNull);
       expect(migrated.imageRefPath, isNotNull);
       expect(migrated.imageRefPath, isNotEmpty);
+      expect(
+        migrated.imageRefHash,
+        equals(sha256.convert(legacyBytes).toString()),
+      );
       expect(migrated.imageRefByteLength, equals(legacyBytes.length));
       expect(migrated.expiresAt, isNotNull);
       expect(await migrated.readImageBytes(), equals(legacyBytes));
@@ -225,7 +237,8 @@ void main() {
       expect(await queued.readImageBytes(), equals(legacyBytes));
     });
 
-    test('queue stores a classification and emits analytics', () async {
+    test('queue stores temp-file reference metadata and emits analytics',
+        () async {
       final imageBytes = Uint8List.fromList([1, 2, 3, 4]);
 
       await queueService.queue(
@@ -248,23 +261,43 @@ void main() {
       expect(pending.single.region, 'BBMP');
       expect(pending.single.userId, 'user-1');
       expect(pending.single.imageName, 'glass-bottle.jpg');
-      // PRIVACY-09: imageBytes is now stored as a file reference, not raw bytes
-      expect(pending.single.imageRefPath, isNotNull);
-      expect(pending.single.imageRefPath, isNotEmpty);
-      expect(pending.single.imageRefByteLength, equals(imageBytes.length));
-      expect(pending.single.isLegacyFormat, isFalse);
+      // PRIVACY-09: new queue items keep image bytes in an OS-sandbox-protected
+      // temp file; Hive retains only the file reference and integrity metadata.
+      final queuedItem = pending.single;
+      final imagePath = queuedItem.imageRefPath!;
+      final tempDirectory = await getTemporaryDirectory();
+      expect(imagePath, startsWith('${tempDirectory.path}/queue_images/'));
+      expect(queuedItem.imageRefHash,
+          equals(sha256.convert(imageBytes).toString()));
+      expect(queuedItem.imageRefByteLength, equals(imageBytes.length));
+      expect(queuedItem.imageBytes, isNull);
+      expect(queuedItem.isLegacyFormat, isFalse);
+      final queueImage = File(imagePath);
+      expect(await queueImage.exists(), isTrue);
+      expect(await queueImage.readAsBytes(), equals(imageBytes));
       expect(analyticsEvents, hasLength(1));
       expect(analyticsEvents.single['eventName'], 'queued_offline');
     });
 
     test('clearQueue removes pending items and emits analytics', () async {
+      const imageName = 'queued-item.jpg';
+      final imageBytes = Uint8List.fromList([9, 8, 7]);
+
       await queueService.queue(
-        imageBytes: Uint8List.fromList([9, 8, 7]),
+        imageBytes: imageBytes,
         region: 'Test Region',
-        imageName: 'queued-item.jpg',
+        imageName: imageName,
       );
 
       expect(queueService.pendingCount, 1);
+      final queuedPath = queueService
+          .getPendingItems()
+          .singleWhere((item) => item.imageName == imageName,
+              orElse: () => throw StateError('queued item missing'))
+          .imageRefPath;
+      expect(queuedPath, isNotNull);
+      final queuedFile = File(queuedPath!);
+      expect(await queuedFile.exists(), isTrue);
 
       await queueService.clearQueue();
 
@@ -278,6 +311,7 @@ void main() {
       });
       expect(analyticsEvents, hasLength(2));
       expect(analyticsEvents.last['eventName'], 'queue_cleared');
+      expect(await queuedFile.exists(), isFalse);
     });
   });
 }

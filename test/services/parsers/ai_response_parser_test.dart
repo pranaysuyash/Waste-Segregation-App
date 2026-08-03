@@ -12,8 +12,7 @@ void main() {
 
     test('extracts JSON from code block with extra text', () {
       final raw = 'Here is the result:\n```json\n{"itemName": "bottle"}\n```';
-      expect(
-          AiResponseParser.cleanJsonString(raw), '{"itemName": "bottle"}');
+      expect(AiResponseParser.cleanJsonString(raw), '{"itemName": "bottle"}');
     });
 
     test('extracts JSON without code block using curly braces', () {
@@ -146,13 +145,11 @@ void main() {
     });
 
     test('converts list of values', () {
-      expect(AiResponseParser.parseStringListSafely(['a', 'b']),
-          ['a', 'b']);
+      expect(AiResponseParser.parseStringListSafely(['a', 'b']), ['a', 'b']);
     });
 
     test('parses JSON array string', () {
-      expect(
-          AiResponseParser.parseStringListSafely('["a", "b"]'), ['a', 'b']);
+      expect(AiResponseParser.parseStringListSafely('["a", "b"]'), ['a', 'b']);
     });
 
     test('splits comma-separated string', () {
@@ -196,11 +193,8 @@ void main() {
     });
 
     test('parses List input', () {
-      final result = AiResponseParser.parseDisposalInstructions([
-        'Recycle',
-        'Clean first',
-        'Sort by type'
-      ]);
+      final result = AiResponseParser.parseDisposalInstructions(
+          ['Recycle', 'Clean first', 'Sort by type']);
       expect(result.primaryMethod, 'Recycle');
       expect(result.steps.length, 3);
     });
@@ -347,7 +341,8 @@ void main() {
         'choices': [
           {
             'message': {
-              'content': '```json\n{"itemName": "Can", "category": "Dry Waste"}\n```'
+              'content':
+                  '```json\n{"itemName": "Can", "category": "Dry Waste"}\n```'
             }
           }
         ]
@@ -366,6 +361,98 @@ void main() {
 
       expect(result.itemName, 'Can');
       expect(result.category, 'Dry Waste');
+    });
+
+    test(
+        'prefers environmentalImpactEvidence and ignores legacy environmental fields',
+        () {
+      final responseData = {
+        'choices': [
+          {
+            'message': {
+              'content': jsonEncode({
+                'itemName': 'Water Bottle',
+                'category': 'Dry Waste',
+                'co2Impact': 12.0,
+                'waterPollutionLevel': 5,
+                'environmentalImpactEvidence': {
+                  'co2_avoidance': {
+                    'metricId': 'co2_avoidance',
+                    'value': 0.45,
+                    'unit': 'kgCO2e',
+                    'evidenceLevel': 'authoritative_database',
+                    'sources': ['EPA WARM'],
+                    'inputSignals': {
+                      'scenario': 'recycle_vs_landfill',
+                    },
+                    'methodologyVersion': 'WARM-v16',
+                    'geography': 'IN-KA',
+                    'scenario': 'local_route',
+                    'decisionSupported': 'household_disposal',
+                    'userExplanation': 'Verified estimate',
+                    'confidence': 0.91,
+                  }
+                }
+              })
+            }
+          }
+        ]
+      };
+
+      final result = AiResponseParser.processResponse(
+        responseData,
+        '/images/bottle.jpg',
+        'Bangalore, IN',
+        'en',
+        null,
+        null,
+        provider: 'openai',
+        model: 'gpt-4',
+      );
+
+      expect(result.environmentalImpactEvidence, isNotNull);
+      expect(result.environmentalImpactEvidence?['co2_avoidance']?.value, 0.45);
+      expect(result.co2Impact, isNull);
+      expect(
+          result.getEnvironmentalMetricDisplayValue(
+              metricKeys: const ['co2_avoidance']),
+          contains('0.45 kgCO2e'));
+      expect(result.waterPollutionLevel, isNull);
+    });
+
+    test('falls back to legacy environmental scalars when evidence is absent',
+        () {
+      final responseData = {
+        'choices': [
+          {
+            'message': {
+              'content': jsonEncode({
+                'itemName': 'Disposable Cup',
+                'category': 'Dry Waste',
+                'co2Impact': 3.2,
+                'waterPollutionLevel': 4,
+                'soilContaminationRisk': 2,
+              })
+            }
+          }
+        ]
+      };
+
+      final result = AiResponseParser.processResponse(
+        responseData,
+        '/images/cup.jpg',
+        'Bangalore, IN',
+        'en',
+        null,
+        null,
+        provider: 'openai',
+        model: 'gpt-4',
+      );
+
+      expect(result.co2Impact, 3.2);
+      expect(result.waterPollutionLevel, 4);
+      expect(result.soilContaminationRisk, 2);
+      expect(result.environmentalImpactEvidence, isNull);
     });
   });
 }

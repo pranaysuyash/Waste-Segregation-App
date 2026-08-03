@@ -23,6 +23,13 @@ class _FakePremiumService extends ChangeNotifier implements PremiumService {
   Future<void> initialize() async {}
 
   @override
+  EntitlementState get entitlementState =>
+      hasActivePremiumPlan() ? EntitlementState.active : EntitlementState.expired;
+
+  @override
+  DateTime? get lastServerVerification => null;
+
+  @override
   bool isPremiumFeature(String featureId) => _features[featureId] ?? false;
 
   @override

@@ -46,7 +46,7 @@ class DisposalDecisionCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Recommended next step',
+                    'Complete this item now',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -78,6 +78,23 @@ class DisposalDecisionCard extends StatelessWidget {
                 value: decision.firstStep!,
               ),
             ],
+            if (decision.collectionWindow != null) ...[
+              const SizedBox(height: 12),
+              _DetailRow(
+                icon: Icons.schedule,
+                label: 'Collection window',
+                value: decision.collectionWindow!,
+              ),
+            ],
+            if (decision.collectionNotes != null &&
+                decision.collectionNotes!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _DetailRow(
+                icon: Icons.event_note_outlined,
+                label: 'Collection notes',
+                value: decision.collectionNotes!,
+              ),
+            ],
             const SizedBox(height: 12),
             _DetailRow(
               icon: decision.hasLocalPolicy
@@ -86,6 +103,30 @@ class DisposalDecisionCard extends StatelessWidget {
               label: decision.hasLocalPolicy ? 'Local basis' : 'Guidance basis',
               value: decision.source,
             ),
+            if (decision.authorityStatus != null) ...[
+              const SizedBox(height: 12),
+              _DetailRow(
+                icon: Icons.verified_user_outlined,
+                label: 'Authority status',
+                value: decision.authorityStatus!,
+              ),
+            ],
+            if (decision.sourceStatus != null) ...[
+              const SizedBox(height: 12),
+              _DetailRow(
+                icon: Icons.source_outlined,
+                label: 'Source status',
+                value: decision.sourceStatus!,
+              ),
+            ],
+            if (decision.governanceStage != null) ...[
+              const SizedBox(height: 12),
+              _DetailRow(
+                icon: Icons.track_changes_outlined,
+                label: 'Policy governance',
+                value: decision.governanceStage!,
+              ),
+            ],
             if (decision.needsVerification) ...[
               const SizedBox(height: 12),
               Text(
@@ -117,6 +158,10 @@ class DisposalDecisionCard extends StatelessWidget {
     final regulations =
         classification.localRegulations ?? const <String, String>{};
     final confidence = classification.confidence ?? 0.0;
+    final isHighRiskAction = classification.requiresSpecialDisposal == true ||
+        classification.riskLevel?.toLowerCase().contains('high') == true ||
+        classification.category.toLowerCase() == 'hazardous waste' ||
+        classification.category.toLowerCase() == 'medical waste';
     final taxonomyUnavailable =
         classification.taxonomySource == 'taxonomy_unavailable' ||
             classification.taxonomyMethod == 'asset_missing';
@@ -137,24 +182,85 @@ class DisposalDecisionCard extends StatelessWidget {
     final source = hasLocalPolicy
         ? (authority?.isNotEmpty == true ? authority! : classification.region)
         : 'General disposal guidance';
+    final collectionWindow = _formatCollectionWindow(regulations);
+    final collectionNotes = regulations['collection_notes']?.trim();
+    final authorityStatus = _titleCaseStatus(
+      regulations['policy_authority_status'],
+    );
+    final sourceStatus = _titleCaseStatus(
+      regulations['policy_source_status'],
+    );
+    final governanceStage = regulations['policy_governance_stage']?.trim();
 
-    final caution = taxonomyUnavailable
-        ? 'The material taxonomy could not be resolved. Confirm this action with your local waste authority before disposal.'
+    final caution = isHighRiskAction || taxonomyUnavailable || confidence < 0.6
+        ? 'High-risk or uncertain item: verify with local disposal rules before handoff.'
         : confidence < 0.7 || classification.clarificationNeeded == true
-            ? 'The scan is uncertain. Confirm the item or correct the result before acting on this recommendation.'
-            : 'No local rule pack was applied. Confirm local collection rules if this item is unusual or hazardous.';
+            ? 'The scan is uncertain. Confirm the item or correct the result before acting.'
+            : 'No local rule pack was applied. Confirm local collection rules if this item is unusual.';
 
     return _DisposalDecision(
       action: action.isEmpty ? 'Check local disposal guidance' : action,
       context: hasLocalPolicy
-          ? 'For ${classification.region}, using the available local rule context.'
+          ? 'For ${classification.region}, apply local rule-backed guidance.'
           : 'For ${classification.region}, using general guidance only.',
       firstStep: firstStep.isEmpty ? null : firstStep,
+      collectionWindow: collectionWindow,
+      collectionNotes: collectionNotes,
       source: source,
+      authorityStatus: authorityStatus,
+      sourceStatus: sourceStatus,
+      governanceStage: governanceStage,
       hasLocalPolicy: hasLocalPolicy,
-      needsVerification: needsVerification || !hasLocalPolicy,
+      needsVerification:
+          needsVerification || !hasLocalPolicy || isHighRiskAction,
       caution: caution,
     );
+  }
+
+  static String? _formatCollectionWindow(Map<String, String> regulations) {
+    final frequency = regulations['collection_frequency']?.trim();
+    final timeWindow = regulations['collection_time_window']?.trim();
+    final parts = <String>[];
+    if (frequency != null && frequency.isNotEmpty) {
+      parts.add('frequency: ${_humanizeFrequency(frequency)}');
+    }
+    if (timeWindow != null && timeWindow.isNotEmpty) {
+      parts.add('time: $timeWindow');
+    }
+    if (parts.isEmpty) return null;
+    return parts.join(' · ');
+  }
+
+  static String _humanizeFrequency(String value) {
+    switch (value.toLowerCase().trim()) {
+      case 'daily':
+        return 'Daily';
+      case 'alternate_days':
+      case 'alternate':
+        return 'Alternate days';
+      case 'twice_weekly':
+      case 'twice-a-week':
+      case 'two_times_week':
+        return 'Twice weekly';
+      case 'weekly':
+        return 'Weekly';
+      case 'monthly':
+        return 'Monthly';
+      default:
+        return value;
+    }
+  }
+
+  static String? _titleCaseStatus(String? raw) {
+    if (raw == null) return null;
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return null;
+
+    return trimmed
+        .split(RegExp(r'[_\-\s]+'))
+        .where((part) => part.isNotEmpty)
+        .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+        .join(' ');
   }
 }
 
@@ -238,7 +344,12 @@ class _DisposalDecision {
     required this.action,
     required this.context,
     required this.firstStep,
+    required this.collectionWindow,
+    required this.collectionNotes,
     required this.source,
+    required this.authorityStatus,
+    required this.sourceStatus,
+    required this.governanceStage,
     required this.hasLocalPolicy,
     required this.needsVerification,
     required this.caution,
@@ -247,7 +358,12 @@ class _DisposalDecision {
   final String action;
   final String context;
   final String? firstStep;
+  final String? collectionWindow;
+  final String? collectionNotes;
   final String source;
+  final String? authorityStatus;
+  final String? sourceStatus;
+  final String? governanceStage;
   final bool hasLocalPolicy;
   final bool needsVerification;
   final String caution;

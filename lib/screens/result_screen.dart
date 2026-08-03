@@ -39,6 +39,7 @@ import '../screens/mini_lesson_screen.dart';
 import '../config/debug_config.dart';
 import '../utils/design_system.dart';
 import '../widgets/analysis_progress_view.dart';
+import '../utils/constants.dart';
 
 /// ResultScreen — Canonical result screen implementation.
 ///
@@ -90,6 +91,16 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   WasteEducationCard? _educationCard;
   final EducationCardEngine _educationEngine = EducationCardEngine();
 
+  // Completion + handover tracking state
+  _CompletionOutcome _completionOutcome = _CompletionOutcome.notRecorded;
+  final TextEditingController _completionNotesController =
+      TextEditingController();
+  String? _lastCompletionRecordedAt;
+  bool _followUpRequired = false;
+  String? _followUpPolicyKey;
+  String? _followUpAction;
+  List<_CompletionPickupOption> _persistedPickupOptions = const [];
+
   @override
   void initState() {
     super.initState();
@@ -121,6 +132,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
       _processClassification();
       _trackScreenView();
       _selectEducationCard();
+      if (widget.showActions) {
+        _loadCompletionState();
+      }
 
       // Check retroactive gamification for existing classifications
       if (!widget.showActions && !widget.autoAnalyze) {
@@ -133,6 +147,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   void dispose() {
     _fadeController.dispose();
     _slideController.dispose();
+    _completionNotesController.dispose();
     super.dispose();
   }
 
@@ -402,6 +417,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                               onCorrect: _handleCorrection,
                             ),
 
+                            if (widget.showActions) ...[
+                              const SizedBox(height: 16),
+                              _buildCompletionTracker(context),
+                            ],
+
                             const SizedBox(height: 16),
 
                             // Detailed disposal instructions
@@ -564,6 +584,536 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
     );
   }
 
+  Widget _buildCompletionTracker(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final windowText = _collectionWindowSummary();
+
+    return Card(
+      elevation: 0,
+      color: cs.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.checklist, color: cs.primary, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Completion handover',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (_isHighRiskCompletion) ...[
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: cs.errorContainer.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.all(10),
+                child: Text(
+                  'High-risk item: confirm special disposal rules before final handoff.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: cs.onErrorContainer,
+                    height: 1.35,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+            if (windowText != null) ...[
+              Text(
+                'Collection hint: $windowText',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            DropdownButtonFormField<_CompletionOutcome>(
+              initialValue: _completionOutcome,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Completion status',
+                isDense: true,
+              ),
+              items: _CompletionOutcome.values
+                  .map(
+                    (option) => DropdownMenuItem<_CompletionOutcome>(
+                      value: option,
+                      child: Text(option.label),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() => _completionOutcome = value);
+              },
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _completionNotesController,
+              maxLines: 2,
+              onChanged: (_) {},
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                labelText: 'Notes (optional)',
+                hintText: 'e.g., pickup booked for Saturday 5:00 PM',
+              ),
+            ),
+            const SizedBox(height: 10),
+            _buildCompletionFollowUp(context),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => unawaited(_saveCompletionOutcome()),
+                child: const Text('Save completion status'),
+              ),
+            ),
+            if (_lastCompletionRecordedAt != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Last recorded: $_lastCompletionRecordedAt',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool get _isHighRiskCompletion {
+    final category = _classification.category.toLowerCase();
+    return _classification.requiresSpecialDisposal == true ||
+        category == 'hazardous waste' ||
+        category == 'medical waste' ||
+        (_classification.riskLevel?.toLowerCase().contains('high') == true);
+  }
+
+  String? _collectionWindowSummary() {
+    final regulations =
+        _classification.localRegulations ?? const <String, String>{};
+    final frequency = regulations['collection_frequency']?.trim();
+    final timeWindow = regulations['collection_time_window']?.trim();
+    final societyPickupWindow = regulations['society_pickup_window']?.trim();
+    final notes = regulations['collection_notes']?.trim();
+
+    final parts = <String>[];
+    if (frequency != null && frequency.isNotEmpty) {
+      parts.add('frequency: $frequency');
+    }
+    if (timeWindow != null && timeWindow.isNotEmpty) {
+      parts.add('time: $timeWindow');
+    }
+
+    if (parts.isEmpty &&
+        societyPickupWindow != null &&
+        societyPickupWindow.isNotEmpty) {
+      parts.add('pickup window: $societyPickupWindow');
+    }
+
+    if (parts.isEmpty) return null;
+    if (notes != null && notes.isNotEmpty) {
+      parts.add('notes: $notes');
+    }
+
+    return parts.join(' · ');
+  }
+
+  Widget _buildCompletionFollowUp(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final options = _completionPickupOptions();
+    final followUpRequired =
+        _followUpRequired || _completionOutcome == _CompletionOutcome.blocked;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Alternative pickup options',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Choose a policy-backed route if routine collection is unavailable.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 6),
+        if (options.isEmpty)
+          Text(
+            'No alternative pickup option is recorded for this item. Verify the local policy source before following up.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
+            ),
+          )
+        else
+          RadioGroup<String>(
+            groupValue: _followUpPolicyKey,
+            onChanged: (value) {
+              if (value == null) return;
+              final option = options.firstWhere(
+                (candidate) => candidate.policyKey == value,
+              );
+              setState(() {
+                _followUpPolicyKey = option.policyKey;
+                _followUpAction = option.title;
+                _followUpRequired = true;
+              });
+            },
+            child: Column(
+              children: options
+                  .map(
+                    (option) => RadioListTile<String>(
+                      key: Key(
+                        'completion_pickup_option_${option.policyKey}',
+                      ),
+                      value: option.policyKey,
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      title: Text(option.title),
+                      subtitle: Text(option.detail),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        const SizedBox(height: 6),
+        FilledButton.icon(
+          key: const Key('completion_follow_up_open_facilities'),
+          onPressed: () {
+            setState(() {
+              _followUpRequired = true;
+              _followUpPolicyKey = 'facility_lookup';
+              _followUpAction = 'Find nearby disposal facilities';
+            });
+            _handleFindFacility();
+          },
+          icon: const Icon(Icons.location_on),
+          label: const Text('Find facilities for this item/material'),
+        ),
+        if (options.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              'This app provides facility guidance when local policy does not match pickup availability.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+          ),
+        CheckboxListTile(
+          key: const Key('completion_follow_up_checkbox'),
+          value: followUpRequired,
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          title: const Text('Follow-up required'),
+          subtitle: Text(
+            _completionOutcome == _CompletionOutcome.blocked
+                ? 'Blocked status keeps this follow-up open until the route is confirmed.'
+                : 'Keep this item visible in completion history until the next step is handled.',
+          ),
+          onChanged: _completionOutcome == _CompletionOutcome.blocked
+              ? null
+              : (value) {
+                  setState(() {
+                    _followUpRequired = value ?? false;
+                    if (!_followUpRequired) {
+                      _followUpPolicyKey = null;
+                      _followUpAction = null;
+                    }
+                  });
+                },
+        ),
+        if (_followUpAction != null && _followUpPolicyKey != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 2),
+            child: Text(
+              'Next step: $_followUpAction',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: cs.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  List<_CompletionPickupOption> _completionPickupOptions() {
+    final regulations =
+        _classification.localRegulations ?? const <String, String>{};
+    final options = <_CompletionPickupOption>[];
+
+    void addOption({
+      required String policyKey,
+      required String title,
+      required String? detail,
+    }) {
+      final trimmedDetail = detail?.trim();
+      if (trimmedDetail == null || trimmedDetail.isEmpty) return;
+      if (options.any((option) => option.policyKey == policyKey)) return;
+      options.add(
+        _CompletionPickupOption(
+          policyKey: policyKey,
+          title: title,
+          detail: trimmedDetail,
+        ),
+      );
+    }
+
+    final schedule = _collectionWindowSummary();
+    if (schedule != null) {
+      final schedulePolicyKey = <String>[
+        'collection_frequency',
+        'collection_time_window',
+        'society_pickup_window',
+      ].firstWhere(
+        (key) => regulations[key]?.trim().isNotEmpty == true,
+        orElse: () => 'collection_frequency',
+      );
+      addOption(
+        policyKey: schedulePolicyKey,
+        title: 'Scheduled collection',
+        detail: schedule,
+      );
+    }
+
+    final area = regulations['policy_pickup_area']?.trim();
+    final zone = regulations['policy_pickup_zone']?.trim();
+    addOption(
+      policyKey: area?.isNotEmpty == true
+          ? 'policy_pickup_area'
+          : 'policy_pickup_zone',
+      title: 'Pickup area',
+      detail: [
+        if (area?.isNotEmpty == true) area,
+        if (zone?.isNotEmpty == true) 'Zone: $zone',
+      ].join(' · '),
+    );
+    addOption(
+      policyKey: 'policy_pickup_collector',
+      title: 'Contact the collector',
+      detail: regulations['policy_pickup_collector'],
+    );
+    addOption(
+      policyKey: 'policy_helpline',
+      title: 'Contact the local authority',
+      detail: regulations['policy_helpline'],
+    );
+
+    final locationKey = <String>[
+      'collection_location',
+      'society_collection_location',
+      'location',
+    ].firstWhere(
+      (key) => regulations[key]?.trim().isNotEmpty == true,
+      orElse: () => '',
+    );
+    addOption(
+      policyKey: locationKey.isNotEmpty ? locationKey : 'disposal_location',
+      title: 'Drop-off / facility',
+      detail: locationKey.isNotEmpty
+          ? regulations[locationKey]
+          : _classification.disposalInstructions.location,
+    );
+
+    for (final option in _persistedPickupOptions) {
+      addOption(
+        policyKey: option.policyKey,
+        title: option.title,
+        detail: option.detail,
+      );
+    }
+
+    return options;
+  }
+
+  Map<String, String> _completionPolicySnapshot() {
+    final regulations =
+        _classification.localRegulations ?? const <String, String>{};
+    final snapshot = <String, String>{};
+    for (final entry in regulations.entries) {
+      final key = entry.key.trim();
+      final value = entry.value.trim();
+      if (key.isNotEmpty && value.isNotEmpty) {
+        snapshot[key] = value;
+      }
+    }
+    return snapshot;
+  }
+
+  Future<void> _loadCompletionState() async {
+    final storageService = ref.read(storageServiceProvider);
+    final profile = await storageService.getCurrentUserProfile();
+    if (profile == null) return;
+
+    final rawMap =
+        profile.preferences?[UserPreferenceKeys.disposalCompletionHistory]
+            as Map<dynamic, dynamic>?;
+    final rawOutcome = rawMap?[_classification.id];
+    if (rawOutcome is! Map) return;
+
+    final outcomeValue = rawOutcome['status'];
+    final outcome = _CompletionOutcome.fromValue(outcomeValue);
+    if (outcome == null) return;
+
+    final notes = rawOutcome['notes'];
+    final recordedAt = rawOutcome['recordedAt'];
+    final followUp = rawOutcome['followUp'];
+    final pickupOptions = rawOutcome['pickupOptions'];
+    final storedFollowUp = followUp is Map
+        ? Map<String, dynamic>.from(followUp)
+        : const <String, dynamic>{};
+    final storedPickupOptions = pickupOptions is List
+        ? pickupOptions
+            .whereType<Map>()
+            .map(_CompletionPickupOption.fromMap)
+            .whereType<_CompletionPickupOption>()
+            .toList()
+        : const <_CompletionPickupOption>[];
+
+    if (!mounted) return;
+    setState(() {
+      _completionOutcome = outcome;
+      _followUpRequired = storedFollowUp['required'] == true ||
+          rawOutcome['followUpRequired'] == true ||
+          outcome == _CompletionOutcome.blocked;
+      _followUpPolicyKey = storedFollowUp['policyKey']?.toString() ??
+          rawOutcome['followUpPolicyKey']?.toString();
+      _followUpAction = storedFollowUp['action']?.toString() ??
+          rawOutcome['followUpAction']?.toString();
+      _persistedPickupOptions = storedPickupOptions;
+      if (notes is String) {
+        _completionNotesController.text = notes;
+      }
+      if (recordedAt is String) {
+        _lastCompletionRecordedAt = recordedAt;
+      }
+    });
+  }
+
+  Future<void> _saveCompletionOutcome() async {
+    final storageService = ref.read(storageServiceProvider);
+    final profile = await storageService.getCurrentUserProfile();
+    if (profile == null) return;
+
+    final preferences = Map<String, dynamic>.from(profile.preferences ?? {});
+    final raw = preferences[UserPreferenceKeys.disposalCompletionHistory];
+    final history = <String, dynamic>{};
+    if (raw is Map) {
+      for (final entry in raw.entries) {
+        if (entry.key == null) continue;
+        if (entry.value is Map) {
+          history[entry.key.toString()] =
+              Map<String, dynamic>.from(entry.value as Map);
+        }
+      }
+    }
+
+    final existingRecord = history[_classification.id];
+    final policySnapshot = <String, String>{};
+    if (existingRecord is Map && existingRecord['policySnapshot'] is Map) {
+      for (final entry in (existingRecord['policySnapshot'] as Map).entries) {
+        final key = entry.key.toString().trim();
+        final value = entry.value.toString().trim();
+        if (key.isNotEmpty && value.isNotEmpty) {
+          policySnapshot[key] = value;
+        }
+      }
+    }
+    policySnapshot.addAll(_completionPolicySnapshot());
+
+    final now = DateTime.now().toIso8601String();
+    final followUpRequired =
+        _followUpRequired || _completionOutcome == _CompletionOutcome.blocked;
+    final pickupOptions = _completionPickupOptions();
+    history[_classification.id] = {
+      'status': _completionOutcome.persistenceValue,
+      'notes': _completionNotesController.text.trim(),
+      'recordedAt': now,
+      'category': _classification.category,
+      'region': _classification.region,
+      'requiresSpecialDisposal': _classification.requiresSpecialDisposal,
+      'itemName': _classification.itemName,
+      'policySnapshot': policySnapshot,
+      'pickupOptions': pickupOptions.map((option) => option.toMap()).toList(),
+      'followUp': {
+        'required': followUpRequired,
+        'policyKey': _followUpPolicyKey,
+        'action': _followUpAction,
+        'recordedAt': now,
+      },
+    };
+
+    preferences[UserPreferenceKeys.disposalCompletionHistory] = history;
+    preferences[UserPreferenceKeys.disposalCompletionLast] = {
+      'classificationId': _classification.id,
+      'status': _completionOutcome.persistenceValue,
+      'recordedAt': now,
+      'notes': _completionNotesController.text.trim(),
+      'followUpRequired': followUpRequired,
+      'followUpPolicyKey': _followUpPolicyKey,
+      'followUpAction': _followUpAction,
+    };
+
+    try {
+      await storageService.saveUserProfile(
+        profile.copyWith(preferences: preferences),
+      );
+      if (!mounted) return;
+      setState(() => _lastCompletionRecordedAt = now);
+
+      unawaited(
+        _analyticsService.trackUserAction(
+          'disposal_completion_recorded',
+          parameters: {
+            'classification_id': _classification.id,
+            'outcome': _completionOutcome.persistenceValue,
+            'region': _classification.region,
+            'category': _classification.category,
+            'high_risk': _isHighRiskCompletion,
+            'notes_present': _completionNotesController.text.trim().isNotEmpty,
+          },
+        ),
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Completion status saved.'),
+          backgroundColor: Colors.green,
+          duration: Duration(milliseconds: 900),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save completion status: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   /// Low-confidence warning banner with re-analyze action.
   /// Re-analysis in-progress banner.
   Widget _buildReanalysisBanner(BuildContext context) {
@@ -644,9 +1194,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                 parameters: {
                   'original_confidence': _classification.confidence.toString(),
                   'category': _classification.category,
+                  'item': _classification.itemName,
                 },
               );
-              Navigator.of(context).pop();
+              _handleReanalyze();
             },
             icon: Icon(Icons.refresh, size: 18, color: Colors.orange.shade800),
             label: Text(
@@ -922,9 +1473,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   }
 
   String? _buildRewardImpactLabel() {
-    final co2 = _classification.co2Impact;
-    if (co2 == null || co2 <= 0) return null;
-    return '${co2.toStringAsFixed(1)}kg CO2 impact handled';
+    final co2ImpactText = _classification.getEnvironmentalMetricDisplayValue(
+      metricKeys: const ['co2_avoidance'],
+      minConfidence: 0.55,
+    );
+    if (co2ImpactText == null) return null;
+    return '$co2ImpactText CO2 impact handled';
   }
 
   /// Trigger haptic feedback
@@ -1230,12 +1784,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   Widget _buildImpactReveal(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final impact = _classification.getEnvironmentalImpactScore().clamp(
-          1.0,
-          10.0,
-        );
-    final eco = (10.0 - impact).clamp(0.0, 10.0);
-    final progress = eco / 10.0;
+    final hasVerifiedImpact =
+        _classification.hasVerifiedEnvironmentalImpactScoreInput;
+    final impact = hasVerifiedImpact
+        ? _classification.getEnvironmentalImpactScore().clamp(1.0, 10.0)
+        : null;
+    final eco = hasVerifiedImpact ? (10.0 - impact!).clamp(0.0, 10.0) : 0.0;
+    final progress = hasVerifiedImpact ? eco / 10.0 : 0.0;
     final color = _impactProgressColor(eco);
 
     return Card(
@@ -1280,13 +1835,22 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          eco.toStringAsFixed(1),
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        if (impact == null) ...[
+                          const Icon(Icons.help_outline, size: 28),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Unverified',
+                            style: theme.textTheme.labelMedium,
                           ),
-                        ),
-                        Text('eco score', style: theme.textTheme.labelSmall),
+                        ] else ...[
+                          Text(
+                            eco.toStringAsFixed(1),
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text('eco score', style: theme.textTheme.labelSmall),
+                        ],
                       ],
                     ),
                   ],
@@ -1300,6 +1864,15 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
               'CO2 impact',
               _formatCo2Impact(_classification),
             ),
+            if (_formatCo2ImpactEvidence(_classification) != null) ...[
+              const SizedBox(height: 8),
+              _buildInfoRow(
+                context,
+                Icons.verified_outlined,
+                'CO2 evidence',
+                _formatCo2ImpactEvidence(_classification)!,
+              ),
+            ],
             _buildInfoRow(
               context,
               Icons.timelapse,
@@ -1979,16 +2552,26 @@ class _ResultScreenState extends ConsumerState<ResultScreen>
   }
 
   String _formatCo2Impact(WasteClassification c) {
-    final impact = c.co2Impact;
-    if (impact == null) return 'Unknown';
-    if (impact <= 0) return 'Low';
-    return '${impact.toStringAsFixed(1)} kg';
+    final impact = c.getEnvironmentalMetricDisplayValue(
+      metricKeys: const ['co2_avoidance'],
+      minConfidence: 0.55,
+    );
+    if (impact == null) return 'Unverified impact';
+    return impact;
+  }
+
+  String? _formatCo2ImpactEvidence(WasteClassification c) {
+    final summary = c.getEnvironmentalMetricEvidenceSummary(
+      metricKeys: const ['co2_avoidance'],
+      minConfidence: 0.55,
+    );
+    return summary;
   }
 
   String _formatDecompositionTime(WasteClassification c) {
-    final value = c.decompositionTime;
-    if (value == null || value.trim().isEmpty) return 'Unknown';
-    return value;
+    final value = c.decompositionTime?.trim();
+    if (value == null || value.isEmpty) return 'Unknown';
+    return 'Legacy estimate: $value';
   }
 
   String _formatRecyclability(WasteClassification c) {
@@ -2072,4 +2655,63 @@ class _SnapshotItem {
   final String label;
   final String value;
   final IconData icon;
+}
+
+class _CompletionPickupOption {
+  const _CompletionPickupOption({
+    required this.policyKey,
+    required this.title,
+    required this.detail,
+  });
+
+  final String policyKey;
+  final String title;
+  final String detail;
+
+  Map<String, dynamic> toMap() => {
+        'policyKey': policyKey,
+        'title': title,
+        'detail': detail,
+      };
+
+  static _CompletionPickupOption? fromMap(Map<dynamic, dynamic> raw) {
+    final policyKey = raw['policyKey']?.toString().trim();
+    final title = raw['title']?.toString().trim();
+    final detail = raw['detail']?.toString().trim();
+    if (policyKey == null ||
+        policyKey.isEmpty ||
+        title == null ||
+        title.isEmpty ||
+        detail == null ||
+        detail.isEmpty) {
+      return null;
+    }
+    return _CompletionPickupOption(
+      policyKey: policyKey,
+      title: title,
+      detail: detail,
+    );
+  }
+}
+
+enum _CompletionOutcome {
+  notRecorded('not_recorded', 'Not recorded'),
+  prepared('prepared', 'Prepared for disposal'),
+  pickupBooked('pickup_booked', 'Pickup booked'),
+  handedOff('handed_off', 'Handed off'),
+  completed('completed', 'Completed'),
+  blocked('blocked', 'Blocked / requires follow-up');
+
+  const _CompletionOutcome(this.persistenceValue, this.label);
+
+  final String persistenceValue;
+  final String label;
+
+  static _CompletionOutcome? fromValue(Object? value) {
+    if (value is! String) return null;
+    for (final option in _CompletionOutcome.values) {
+      if (option.persistenceValue == value) return option;
+    }
+    return null;
+  }
 }

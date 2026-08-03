@@ -7,15 +7,14 @@ import 'package:uuid/uuid.dart';
 
 import '../utils/waste_app_logger.dart';
 
-/// PRIVACY-09: Manages encrypted temp file storage for offline queue images.
+/// PRIVACY-09: Manages offline queue image files in the app's OS sandbox.
 ///
-/// Raw image bytes are never stored in Hive. Instead, images are written to
-/// sandboxed temp files and Hive stores only the file reference + metadata.
+/// For new queue items, raw image bytes are not stored in Hive. Instead, images
+/// are written to OS-sandbox-protected temporary files and Hive stores only the
+/// file reference, SHA-256 content hash, byte length, and queue metadata.
 ///
-/// On iOS/Android, the app sandbox is already encrypted at rest by the OS
-/// (hardware-backed keystore). This provides encryption without app-level
-/// crypto dependencies. If stronger app-level encryption is needed later,
-/// add the `cryptography` package and wrap file writes with AES-256-GCM.
+/// Legacy raw-byte records are migrated by the queue service before their bytes
+/// are cleared from Hive.
 class QueueImageStorage {
   factory QueueImageStorage() => _instance;
   QueueImageStorage._();
@@ -153,10 +152,11 @@ class QueueImageStorage {
   }
 }
 
-/// PRIVACY-09: Reference to an encrypted temp file stored on disk.
+/// PRIVACY-09: Reference to an OS-sandbox-protected temp file stored on disk.
 ///
 /// Stored in Hive instead of raw image bytes. The actual image data is in the
-/// app sandbox (encrypted at rest by iOS/Android OS).
+/// OS-sandbox-protected temp file; Hive retains only this reference and its
+/// integrity metadata.
 class QueueImageReference {
   const QueueImageReference({
     required this.filePath,
@@ -164,7 +164,7 @@ class QueueImageReference {
     required this.byteLength,
   });
 
-  /// Absolute path to the encrypted temp file.
+  /// Absolute path to the OS-sandbox-protected temp file.
   final String filePath;
 
   /// SHA-256 content hash for integrity verification.

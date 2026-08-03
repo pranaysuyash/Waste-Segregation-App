@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data' show BytesBuilder;
 import 'package:crypto/crypto.dart';
 
 const String manifestPath = 'tools/policy_source_manifest.json';

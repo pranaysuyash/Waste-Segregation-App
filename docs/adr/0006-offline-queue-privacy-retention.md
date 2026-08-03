@@ -7,7 +7,7 @@
 
 ## Context
 
-The offline classification queue stores raw user-provided image bytes (potentially containing faces, personal items, location metadata) in Hive local storage with no retention limit, no consent binding, and no expiry mechanism. The dead-letter queue duplicates these raw bytes. A single `ProductionSafetyException` clears the entire queue indiscriminately.
+Before this decision, the offline classification queue stored raw user-provided image bytes (potentially containing faces, personal items, location metadata) in Hive local storage with no retention limit, no consent binding, and no expiry mechanism. The dead-letter queue duplicated these raw bytes. A single `ProductionSafetyException` cleared the entire queue indiscriminately.
 
 This violates the principle of data minimisation and creates unnecessary privacy exposure for a feature that may never complete.
 
@@ -21,29 +21,25 @@ This violates the principle of data minimisation and creates unnecessary privacy
 
 ### 2. Raw Image Retention
 
-- **Raw image bytes are NOT stored in Hive metadata boxes.**
-- Images are written to encrypted temporary files in the app's sandboxed documents directory.
-- Hive stores only: encrypted file reference, content hash, metadata.
-- On queue completion or expiry, the encrypted file is deleted.
-- On dead-letter expiry, the encrypted file is deleted.
+- **Newly queued and migrated items do NOT store raw image bytes in Hive
+  metadata boxes.** Legacy records may retain bytes until startup migration or
+  age-based expiry handles them.
+- Images are written to temporary files under the app's OS sandbox.
+- Hive stores only: temp-file reference, SHA-256 content hash, byte length, and queue metadata.
+- On queue completion or expiry, the temp file is deleted.
+- On dead-letter expiry, the temp file is deleted.
 
-### 3. Encryption / Key Strategy
+### 3. Storage Protection
 
-- Queue images live in sandboxed temp files in the app's container. On iOS and
-  Android these containers are encrypted at rest by the OS (hardware-backed
-  data protection / file-based encryption), which is the shipped strategy in
-  `QueueImageStorage`.
-- App-level AES-256-GCM (per-app key in `flutter_secure_storage`, per-item IV)
-  is **deferred** until an explicit stronger-than-OS requirement exists; the
-  storage service documents this as a follow-up hook. This ADR tracks the
-  shipped decision, not the aspirational one.
+- Queue images live in temporary files under the app's OS sandbox. The shipped
+  strategy is platform-protected temp-file handling with Hive metadata-only
+  persistence.
 - Files are deleted on queue completion, expiry, logout, and orphan cleanup.
-  No key material is stored in Hive.
 
 ### 4. Logout / Account-Switch Behaviour
 
-- On logout: delete all active queue items and their encrypted files.
-- On account switch: delete all active queue items and their encrypted files.
+- On logout: delete all active queue items and their temp files.
+- On account switch: delete all active queue items and their temp files.
 - Dead-letter items are deleted on logout (they contain image data).
 - Queue processing is paused during account switch.
 
@@ -69,7 +65,7 @@ This violates the principle of data minimisation and creates unnecessary privacy
 
 ### 8. Orphaned File Cleanup
 
-- On service init, scan the encrypted temp directory for files older than 72 hours.
+- On service init, scan the OS-sandbox-protected temp directory for files older than 72 hours.
 - Delete orphaned files that have no corresponding Hive metadata entry.
 - Log the count of cleaned orphan files for diagnostics.
 
@@ -122,17 +118,16 @@ This violates the principle of data minimisation and creates unnecessary privacy
 
 ### Negative
 - Migration cost for existing queue items (one-time)
-- Slight increase in storage complexity (encrypted temp files)
-- Platform keystore dependency
+- Slight increase in storage complexity (sandboxed temp-file indirection)
 
 ### Risks
-- If the platform keystore is wiped (factory reset), encrypted files become unreadable — acceptable since they're temporary.
-- If the app crashes between writing the encrypted file and updating Hive metadata, orphaned files may accumulate — mitigated by a cleanup sweep on init.
+- If the app crashes between writing the temp file and updating Hive metadata,
+  orphaned files may accumulate — mitigated by a cleanup sweep on init.
 
 ## Implementation
 
 - **Commit 1:** ADR (this document)
-- **Commit 2:** Storage migration — move image bytes to encrypted file references
+- **Commit 2:** Storage migration — move image bytes to sandboxed temp-file references
 - **Commit 3:** Failure classification — typed failures, no error string inspection
 - **Commit 4:** Safe configuration failure — blocked_configuration state, don't clear queue
 - **Commit 5:** Deletion and user controls — auto-expiry, logout purge, redacted errors

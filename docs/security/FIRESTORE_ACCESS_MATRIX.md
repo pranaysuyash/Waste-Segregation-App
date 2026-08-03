@@ -28,6 +28,7 @@
 |---|---|---|---|---|---|---|---|
 | `subscriptions/{subId}` | **Restricted** | Owner (by `userId` field) | Server (webhook) | Server (webhook) | All fields — no client write | Permanent | SEC-T7-09, SEC-T7-10 |
 | `webhook_events/{eventId}` | **Restricted** | — (no client access) | Server (webhook) | Server (webhook) | All fields | Long-term | — |
+| `billing_events/{eventId}` | **Restricted** | — (no client access) | Server (webhook) | Server (webhook) | All fields | Long-term | C-09/C-10: atomic idempotency gate keyed on provider transaction ID (`event.data.id`) |
 | `token_spend_ledger/{txId}` | **Restricted** | — (no client access) | Server (spendUserTokens) | — | All fields | Permanent | — |
 
 ## AI & Batch Processing
@@ -58,7 +59,7 @@
 |---|---|---|---|---|---|---|---|
 | `families/{familyId}` | Confidential | Members + owner | Owner (create) | Owner/admin (role-gated) | — | Permanent | SEC-T3-01 to SEC-T3-05 |
 | `invitations/{invitationId}` | **Restricted** | Inviter + invited email + admin | Inviter | Inviter + invited (by email) | `respondedAt` | Transient | SEC-T3-06 to SEC-T3-08 |
-| `shared_classifications/{id}` | Confidential | Family members | Family member | Family members (reactions/comments only) | — | Long-term | SEC-T3-09 to SEC-T3-11 |
+| `families/{familyId}/shared_classifications/{id}` | Confidential | **Family members only** (C-07: moved to subcollection so membership is enforced by rules) | Family member | Family members (reactions/comments only) | — | Long-term | SEC-T3-09 to SEC-T3-11 |
 | `family_stats/{familyId}` | Internal | Per visibility setting | Family member | Family member | — | Long-term | — |
 
 ## Classification Feedback
@@ -182,8 +183,12 @@ users/{uid} — client may write ONLY:
 | SEC-T3-02 | SEC-02 | families | Non-owner/admin cannot update family |
 | SEC-T3-03 | SEC-02 | invitations | Non-invited cannot read invitation |
 | SEC-T3-04 | SEC-02 | invitations | Non-inviter cannot create invitation |
-| SEC-T3-05 | SEC-02 | shared_classifications | Non-family-member cannot read shared classification |
-| SEC-T3-06 | SEC-02 | shared_classifications | Non-family-member cannot create shared classification |
+| SEC-T3-05 | SEC-02 | families | Family update restricted to owner/admin (role-gated) |
+| SEC-T3-06 | SEC-02 | invitations | Non-inviter cannot create invitation |
+| SEC-T3-09 | SEC-02 | families/{familyId}/shared_classifications | Create requires familyId matching parent family |
+| SEC-T3-09b | SEC-02 | families/{familyId}/shared_classifications | Non-member cannot create shared classification |
+| SEC-T3-10 | SEC-02 | families/{familyId}/shared_classifications | Family member can read shared classification |
+| SEC-T3-11 | SEC-02 | families/{familyId}/shared_classifications | Non-member cannot read shared classification |
 | SEC-T3-07 | SEC-02 | family_stats | Non-public: non-member cannot read |
 | SEC-T3-08 | SEC-02 | family_stats | Public: any auth user can read |
 | SEC-T7-01 | SEC-03 | leaderboard_allTime | User cannot write another user's leaderboard entry |

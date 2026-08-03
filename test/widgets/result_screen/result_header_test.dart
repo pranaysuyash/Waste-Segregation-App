@@ -109,7 +109,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check if environmental impact is shown
-      expect(find.text('−3g CO₂e'), findsOneWidget);
+      expect(find.text('Impact estimate unavailable'), findsOneWidget);
     });
 
     testWidgets('shows confidence bar animation', (tester) async {

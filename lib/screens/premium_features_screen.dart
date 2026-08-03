@@ -17,13 +17,15 @@ class PremiumFeaturesScreen extends ConsumerStatefulWidget {
   const PremiumFeaturesScreen({super.key});
 
   @override
-  ConsumerState<PremiumFeaturesScreen> createState() => _PremiumFeaturesScreenState();
+  ConsumerState<PremiumFeaturesScreen> createState() =>
+      _PremiumFeaturesScreenState();
 }
 
 class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
   bool _showTestOptions = false;
   WebCheckoutService? _webCheckoutService;
-  final StorefrontEligibilityService _storefrontEligibility = StorefrontEligibilityService();
+  StorefrontEligibilityService? _storefrontEligibility;
+  PremiumService? _premiumService;
 
   @override
   void didChangeDependencies() {
@@ -31,9 +33,21 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
     _webCheckoutService ??= WebCheckoutService(
       ref.read(premiumServiceProvider),
     )..addListener(_onWebCheckoutChange);
+    final premiumService = ref.read(premiumServiceProvider);
+    if (!identical(_premiumService, premiumService)) {
+      _premiumService?.removeListener(_onPremiumServiceChange);
+      _premiumService = premiumService..addListener(_onPremiumServiceChange);
+    }
+    // Read from the composition root — never hard-construct a Firebase-
+    // dependent service inline (testable, single instance per scope).
+    _storefrontEligibility ??= ref.read(storefrontEligibilityServiceProvider);
   }
 
   void _onWebCheckoutChange() {
+    if (mounted) setState(() {});
+  }
+
+  void _onPremiumServiceChange() {
     if (mounted) setState(() {});
   }
 
@@ -41,6 +55,7 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
   void dispose() {
     _webCheckoutService?.removeListener(_onWebCheckoutChange);
     _webCheckoutService?.dispose();
+    _premiumService?.removeListener(_onPremiumServiceChange);
     super.dispose();
   }
 
@@ -358,7 +373,8 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
             ),
           ] else ...[
             // IAP purchase option
-            if (purchaseService != null) _buildIapPurchase(context, premiumService, purchaseService),
+            if (purchaseService != null)
+              _buildIapPurchase(context, premiumService, purchaseService),
 
             const SizedBox(height: 16),
 
@@ -369,7 +385,8 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
                   Expanded(child: Divider(color: Colors.grey.shade300)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('or', style: TextStyle(color: Colors.grey.shade500)),
+                    child: Text('or',
+                        style: TextStyle(color: Colors.grey.shade500)),
                   ),
                   Expanded(child: Divider(color: Colors.grey.shade300)),
                 ],
@@ -385,7 +402,8 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
     );
   }
 
-  Widget _buildIapPurchase(BuildContext context, PremiumService premiumService, PurchaseService purchaseService) {
+  Widget _buildIapPurchase(BuildContext context, PremiumService premiumService,
+      PurchaseService purchaseService) {
     final product = purchaseService.premiumProduct;
 
     final buttonLabel = purchaseService.isProcessingPurchase
@@ -406,11 +424,20 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
                   if (!mounted) return;
                   if (premiumService.hasActivePremiumPlan()) {
                     messenger.showSnackBar(
-                      const SnackBar(content: Text('Premium unlocked successfully.')),
+                      const SnackBar(
+                          content: Text('Premium unlocked successfully.')),
                     );
                   } else if (purchaseService.errorMessage != null) {
                     messenger.showSnackBar(
                       SnackBar(content: Text(purchaseService.errorMessage!)),
+                    );
+                  } else {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Purchase submitted. Premium activates after server confirmation.',
+                        ),
+                      ),
                     );
                   }
                 },
@@ -435,6 +462,14 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
                     messenger.showSnackBar(
                       SnackBar(content: Text(purchaseService.errorMessage!)),
                     );
+                  } else {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Restore submitted. Premium activates after server confirmation.',
+                        ),
+                      ),
+                    );
                   }
                 },
           child: const Text('Restore Purchases'),
@@ -451,7 +486,8 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
     );
   }
 
-  Widget _buildDodoPaymentsButton(BuildContext context, PremiumService premiumService) {
+  Widget _buildDodoPaymentsButton(
+      BuildContext context, PremiumService premiumService) {
     final webCheckout = _webCheckoutService;
 
     if (webCheckout == null) return const SizedBox.shrink();
@@ -463,7 +499,8 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
     // - Web/Desktop: Always available
     // The server catalogue's eligiblePlatforms is the authoritative source
     // for product-level eligibility; this provides client-side platform gating.
-    if (!_storefrontEligibility.isExternalCheckoutAvailable) {
+    final eligibility = _storefrontEligibility;
+    if (eligibility == null || !eligibility.isExternalCheckoutAvailable) {
       return const SizedBox.shrink();
     }
 
@@ -504,14 +541,19 @@ class _PremiumFeaturesScreenState extends ConsumerState<PremiumFeaturesScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ElevatedButton.icon(
-          onPressed: webCheckout.isCreatingSession ? null : () => webCheckout.startCheckout(),
+          onPressed: webCheckout.isCreatingSession
+              ? null
+              : () => webCheckout.startCheckout(),
           icon: webCheckout.isCreatingSession
               ? const SizedBox(
-                  width: 20, height: 20,
+                  width: 20,
+                  height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.public),
-          label: Text(webCheckout.isCreatingSession ? 'Creating checkout...' : 'Pay with Card / UPI'),
+          label: Text(webCheckout.isCreatingSession
+              ? 'Creating checkout...'
+              : 'Pay with Card / UPI'),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF6C63FF),
             foregroundColor: Colors.white,

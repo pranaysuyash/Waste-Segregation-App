@@ -22,6 +22,16 @@ P1. Blocks society/BWG pilot.
 
 Keep the useful society-override abstraction while preventing private operational preferences from replacing statutory or safety guidance.
 
+## Feedback-driven implementation update (from 2026-08-02)
+
+- `LocalPolicyEngine.applyPolicy` no longer skips municipal policy entirely below the old 0.50 threshold.
+- A confidence band now gates severity only:
+  - < 0.70: warnings for non-safety outcomes
+  - ≥ 0.70: normal severity
+- Safety-critical municipal categories/visual signals stay as violations even at low confidence.
+- Society overrides for city safety fields (bin color, collection frequency, disposal method, collection location) are now blocked when they weaken high-risk municipal guidance.
+- A new conservative-warning message is added whenever policy is confidence-gated.
+
 ## Current contradictions
 
 ADR says society rules are additive and cannot weaken city safety.
@@ -164,6 +174,12 @@ Never tell an end user to choose between statutory safety and society preference
 - geospatial discovery is standard or removed;
 - Firestore rules support the intended roles;
 - conflicts stop unsafe mutation rather than merely logging it.
+
+### Follow-up from this feedback cycle
+
+- Still open: full immutable server-published society policy version tables.
+- Still open: complete authority ladder mapping for facility > city > society with explicit exception fields.
+- Still open: end-to-end server checks so clients cannot weaken safety by local config state.
 
 ## Anything else?
 

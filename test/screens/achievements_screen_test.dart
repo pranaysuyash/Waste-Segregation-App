@@ -23,21 +23,6 @@ class FakePointsEngine extends Fake implements PointsEngine {
   Future<void> refresh() async {}
 }
 
-class FakePointsEngineProvider extends ChangeNotifier
-    implements PointsEngineProvider {
-  FakePointsEngineProvider(this._engine);
-
-  final PointsEngine _engine;
-
-  @override
-  PointsEngine get pointsEngine => _engine;
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-}
-
 void main() {
   group('AchievementsScreen', () {
     testWidgets('renders with a populated profile', (tester) async {
@@ -46,14 +31,11 @@ void main() {
         streaks: const {},
         points: const UserPoints(),
       );
-      final pointsEngineProvider =
-          FakePointsEngineProvider(FakePointsEngine(profile));
 
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider<PointsEngineProvider>.value(
-                value: pointsEngineProvider),
+        ProviderScope(
+          overrides: [
+            pointsEngineProvider.overrideWithValue(FakePointsEngine(profile)),
           ],
           child: const MaterialApp(home: AchievementsScreen()),
         ),

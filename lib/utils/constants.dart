@@ -95,6 +95,8 @@ class UserPreferenceKeys {
   /// When `true`, the user's display name and photo are anonymized on the
   /// leaderboard. The privacy guard in CloudStorageService reads this key.
   static const String leaderboardOptOut = 'leaderboardOptOut';
+  static const String disposalCompletionHistory = 'disposalCompletionHistory';
+  static const String disposalCompletionLast = 'disposalCompletionLast';
 }
 
 // App Theme Constants

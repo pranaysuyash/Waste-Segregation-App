@@ -39,18 +39,19 @@ class PremiumSegmentationToggle extends StatelessWidget {
           hint: hasAdvancedSegmentation
               ? featureBenefit
               : t.upgradeToUse(featureLabel),
-          child: Container(
-            decoration: BoxDecoration(
-              color: hasAdvancedSegmentation
-                  ? Colors.blue.shade50
-                  : Colors.grey.shade100,
+          child: Material(
+            color: hasAdvancedSegmentation
+                ? Colors.blue.shade50
+                : Colors.grey.shade100,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
+              side: BorderSide(
                 color: hasAdvancedSegmentation
                     ? Colors.blue.shade200
                     : Colors.grey.shade300,
               ),
             ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
                 SwitchListTile(

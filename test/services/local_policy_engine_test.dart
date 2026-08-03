@@ -13,7 +13,8 @@ class MockFirebaseFirestore extends Mock implements FirebaseFirestore {
       super.noSuchMethod(
         Invocation.method(#collection, [path]),
         returnValue: MockCollectionReference<Map<String, dynamic>>(),
-        returnValueForMissingStub: MockCollectionReference<Map<String, dynamic>>(),
+        returnValueForMissingStub:
+            MockCollectionReference<Map<String, dynamic>>(),
       ) as CollectionReference<Map<String, dynamic>>;
 }
 
@@ -99,6 +100,45 @@ void main() {
         decision.complianceStatus,
         isIn(<String>['compliant', 'requires_attention', 'violation']),
       );
+      expect(decision.householdWasteStream, equals('special_care_waste'));
+      expect(decision.sourceStatus, isNotEmpty);
+      expect(decision.authorityStatus, isNotEmpty);
+      expect(
+        decision.classification.localRegulations?['collection_frequency'],
+        isNotNull,
+      );
+      expect(
+        decision.classification.localRegulations?['collection_time_window'],
+        isNotNull,
+      );
+      expect(
+        decision.classification.localRegulations?['policy_authority_status'],
+        isNotNull,
+      );
+    });
+
+    test('classifies legacy hazardous category into SWM special-care stream',
+        () async {
+      final decision = await engine.applyPolicy(
+        classification:
+            baseClassification.copyWith(category: 'Hazardous Waste'),
+        region: 'Bangalore, IN',
+      );
+      expect(decision.householdWasteStream, equals('special_care_waste'));
+    });
+
+    test('maps wet and dry categories to stable stream keys', () async {
+      final wet = await engine.applyPolicy(
+        classification: baseClassification.copyWith(category: 'Wet Waste'),
+        region: 'Bangalore, IN',
+      );
+      final dry = await engine.applyPolicy(
+        classification: baseClassification.copyWith(category: 'Dry Waste'),
+        region: 'Bangalore, IN',
+      );
+
+      expect(wet.householdWasteStream, equals('wet_waste'));
+      expect(dry.householdWasteStream, equals('dry_waste'));
     });
 
     test('returns unchanged classification for unsupported regions', () async {
@@ -158,30 +198,73 @@ void main() {
       );
     });
 
-    test(
-      'confidence gating demotes violations to warnings below threshold',
-      () async {
-        final item = baseClassification.copyWith(
-          itemName: 'Motor Oil',
-          requiresSpecialDisposal: false,
-          confidence: 0.60,
-        );
+    test('safety-critical violations remain violations at low confidence',
+        () async {
+      final item = baseClassification.copyWith(
+        itemName: 'Motor Oil',
+        requiresSpecialDisposal: false,
+        confidence: 0.60,
+      );
 
-        final decision = await engine.applyPolicy(
-          classification: item,
-          region: 'Bangalore, IN',
-        );
+      final decision = await engine.applyPolicy(
+        classification: item,
+        region: 'Bangalore, IN',
+      );
 
-        expect(decision.policyApplied, isTrue);
-        expect(decision.complianceStatus, equals('requires_attention'));
-        expect(
-          decision.warnings.any(
-            (v) => v.contains('bbmp_hazardous_special_disposal'),
-          ),
-          isTrue,
-        );
-      },
-    );
+      expect(decision.policyApplied, isTrue);
+      expect(decision.complianceStatus, equals('violation'));
+      expect(
+        decision.violations.any(
+          (v) => v.contains('bbmp_hazardous_special_disposal'),
+        ),
+        isTrue,
+      );
+      expect(
+        decision.warnings.any(
+          (v) => v.contains('bbmp_hazardous_special_disposal'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('low confidence degrades ordinary non-safety policy to warning-only',
+        () async {
+      final item = baseClassification.copyWith(
+        itemName: 'Wet Waste Cup',
+        explanation: 'Wet waste with removable packaging residue',
+        category: 'Wet Waste',
+        subCategory: 'Cup',
+        visualFeatures: const ['cup', 'water', 'leaf'],
+        isCompostable: false,
+        requiresSpecialDisposal: false,
+        disposalMethod: 'landfill',
+        disposalInstructions: baseClassification.disposalInstructions.copyWith(
+          primaryMethod: 'landfill',
+        ),
+        confidence: 0.60,
+      );
+
+      final decision = await engine.applyPolicy(
+        classification: item,
+        region: 'Bangalore, IN',
+      );
+
+      expect(decision.policyApplied, isTrue);
+      expect(decision.complianceStatus, equals('requires_attention'));
+      expect(decision.violations, isEmpty);
+      expect(
+        decision.warnings.any(
+          (v) => v.contains(
+              'Wet waste should not go to landfill - must be composted'),
+        ),
+        isTrue,
+      );
+      expect(
+        decision.warnings,
+        contains(
+            'Low-confidence classification: municipal policy is conservative.'),
+      );
+    });
 
     test(
       'confidence gating keeps safetyOverrideAlways as violation at ≥0.70',
@@ -207,29 +290,33 @@ void main() {
       },
     );
 
-    test(
-      'confidence gating demotes safetyOverrideAlways to warning at <0.70',
-      () async {
-        final item = baseClassification.copyWith(
-          itemName: 'Motor Oil',
-          requiresSpecialDisposal: false,
-          confidence: 0.60,
-        );
+    test('safety override remains active as violation at low confidence',
+        () async {
+      final item = baseClassification.copyWith(
+        itemName: 'Motor Oil',
+        requiresSpecialDisposal: false,
+        confidence: 0.60,
+      );
 
-        final decision = await engine.applyPolicy(
-          classification: item,
-          region: 'Bangalore, IN',
-        );
+      final decision = await engine.applyPolicy(
+        classification: item,
+        region: 'Bangalore, IN',
+      );
 
-        expect(decision.policyApplied, isTrue);
-        expect(
-          decision.warnings.any(
-            (v) => v.contains('bbmp_hazardous_safety_override'),
-          ),
-          isTrue,
-        );
-      },
-    );
+      expect(decision.policyApplied, isTrue);
+      expect(
+        decision.violations.any(
+          (v) => v.contains('bbmp_hazardous_safety_override'),
+        ),
+        isTrue,
+      );
+      expect(
+        decision.warnings.any(
+          (v) => v.contains('bbmp_hazardous_safety_override'),
+        ),
+        isFalse,
+      );
+    });
 
     test('applies policy for Pune region', () async {
       final decision = await engine.applyPolicy(
@@ -369,7 +456,8 @@ void main() {
       expect(decision.confidenceGated, isTrue);
     });
 
-    test('policy is skipped below 0.50 with fallback metadata', () async {
+    test('policy still applies below 0.50 with conservative warnings',
+        () async {
       final lowConf = baseClassification.copyWith(confidence: 0.49);
 
       final decision = await engine.applyPolicy(
@@ -377,34 +465,38 @@ void main() {
         region: 'Bangalore, IN',
       );
 
-      expect(decision.policyApplied, isFalse);
-      expect(decision.confidenceState, equals('not_applied'));
+      expect(decision.policyApplied, isTrue);
+      expect(decision.confidenceState, equals('warning_only'));
       expect(
         decision.warnings,
         contains(
-          'Confidence below 0.50: municipal policy checks were skipped.',
+          'Low-confidence classification: municipal policy is conservative.',
         ),
       );
-      expect(decision.violations, isEmpty);
+      expect(decision.violations, isNotEmpty);
     });
 
-    test('society override adds layer and flags conflicts', () async {
+    test('society override adds layer and stores society keys', () async {
       final override = SocietyPolicyOverride(
         societyId: 'sb_001',
         societyName: 'Green Habitat',
         basePluginId: 'bbmp_bangalore',
         overrides: [
           const RuleOverride(
-            categoryKey: 'hazardous_waste',
+            categoryKey: 'dry_waste',
             overrideType: RuleOverrideType.binColor,
-            value: 'Pink Bin',
+            value: 'Blue Bin/Bag',
             description: 'Custom society bin color.',
           ),
         ],
       );
 
       final decision = await engine.applyPolicy(
-        classification: baseClassification,
+        classification: baseClassification.copyWith(
+          category: 'Dry Waste',
+          subCategory: 'Bottle',
+          requiresSpecialDisposal: false,
+        ),
         region: 'Bangalore, IN',
         societyId: 'sb_001',
         societyPolicyService: _FakeSocietyPolicyService(override),
@@ -414,12 +506,360 @@ void main() {
       expect(decision.societyId, equals('sb_001'));
       expect(decision.societyName, equals('Green Habitat'));
       expect(decision.societyOverrides, isNotEmpty);
-      expect(decision.societyConflicts, isNotEmpty);
+      expect(decision.societyConflicts, isEmpty);
       expect(
-        decision.classification.localRegulations?['bin'],
-        equals('Pink Bin'),
+        decision.classification.localRegulations?['society_bin_alias'],
+        equals('Blue Bin/Bag'),
       );
     });
+
+    test('low-confidence society overrides are skipped unless user confirms',
+        () async {
+      final override = SocietyPolicyOverride(
+        societyId: 'sb_002',
+        societyName: 'Low Confidence Society',
+        basePluginId: 'bbmp_bangalore',
+        overrides: const [
+          RuleOverride(
+            categoryKey: 'dry_waste',
+            overrideType: RuleOverrideType.customInstruction,
+            value: 'Use separate collection room.',
+          ),
+        ],
+      );
+
+      final skipped = await engine.applyPolicy(
+        classification: baseClassification.copyWith(
+          category: 'Dry Waste',
+          subCategory: 'Bottle',
+          requiresSpecialDisposal: false,
+          confidence: 0.65,
+          userConfirmed: false,
+        ),
+        region: 'Bangalore, IN',
+        societyId: 'sb_002',
+        societyPolicyService: _FakeSocietyPolicyService(override),
+      );
+
+      expect(skipped.societyOverrides, isEmpty);
+      expect(
+        skipped.classification.localRegulations?['society_custom_instructions'],
+        isNull,
+      );
+
+      final applied = await engine.applyPolicy(
+        classification: baseClassification.copyWith(
+          category: 'Dry Waste',
+          subCategory: 'Bottle',
+          requiresSpecialDisposal: false,
+          confidence: 0.65,
+          userConfirmed: true,
+        ),
+        region: 'Bangalore, IN',
+        societyId: 'sb_002',
+        societyPolicyService: _FakeSocietyPolicyService(override),
+      );
+
+      expect(applied.societyOverrides, isNotEmpty);
+      expect(
+        applied.classification.localRegulations?['society_custom_instructions'],
+        contains('Use separate collection room.'),
+      );
+    });
+
+    test('dry + battery at low confidence remains safety violation', () async {
+      final item = baseClassification.copyWith(
+        itemName: 'AA Battery',
+        category: 'Dry Waste',
+        subCategory: 'Bottle',
+        explanation: 'Dry battery in a bottle cap',
+        visualFeatures: const ['dry', 'battery'],
+        confidence: 0.60,
+        requiresSpecialDisposal: false,
+        hasUrgentTimeframe: false,
+      );
+
+      final decision = await engine.applyPolicy(
+        classification: item,
+        region: 'Bangalore, IN',
+      );
+
+      expect(decision.complianceStatus, equals('violation'));
+      expect(
+        decision.violations.any(
+          (v) => v.contains('[safety_floor] Special-care handling is required'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('special care alias variants become safety critical', () async {
+      final item = baseClassification.copyWith(
+        itemName: 'Wipes',
+        category: 'Special-Care waste',
+        subCategory: 'Neon',
+        explanation: 'Special care handling pack',
+        visualFeatures: const ['soft-pack'],
+        confidence: 0.55,
+        requiresSpecialDisposal: false,
+      );
+
+      final decision = await engine.applyPolicy(
+        classification: item,
+        region: 'Bangalore, IN',
+      );
+
+      expect(
+        decision.violations.any(
+          (v) => v.contains('[safety_floor] Special-care handling is required'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('plural safety signals become safety critical', () async {
+      final item = baseClassification.copyWith(
+        itemName: 'Old Batteries',
+        category: 'Dry Waste',
+        subCategory: 'Electronics',
+        explanation: 'Used batteries and other chemicals',
+        visualFeatures: const ['batteries', 'chemicals'],
+        confidence: 0.60,
+        requiresSpecialDisposal: false,
+      );
+
+      final decision = await engine.applyPolicy(
+        classification: item,
+        region: 'Bangalore, IN',
+      );
+
+      expect(
+        decision.violations.any(
+          (v) => v.contains('[safety_floor] Special-care handling is required'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('safety alias plurals become safety critical', () async {
+      final item = baseClassification.copyWith(
+        itemName: 'Old Medicines',
+        category: 'Dry Waste',
+        subCategory: 'Household Items',
+        explanation: 'Leftover medicines and glass ampoules with syringes',
+        visualFeatures: const ['medicines', 'ampoules', 'syringes'],
+        confidence: 0.60,
+        requiresSpecialDisposal: false,
+      );
+
+      final decision = await engine.applyPolicy(
+        classification: item,
+        region: 'Bangalore, IN',
+      );
+
+      expect(
+        decision.violations.any(
+          (v) => v.contains('[safety_floor] Special-care handling is required'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('society conflicts do not mutate municipal guidance fields', () async {
+      final baseline = await engine.applyPolicy(
+        classification: baseClassification.copyWith(
+          category: 'Dry Waste',
+          subCategory: 'Bottle',
+          requiresSpecialDisposal: false,
+        ),
+        region: 'Bangalore, IN',
+      );
+      final baselineBin = baseline.classification.localRegulations?['bin'];
+
+      final override = SocietyPolicyOverride(
+        societyId: 'sb_004',
+        societyName: 'Conflicting Society',
+        basePluginId: 'bbmp_bangalore',
+        overrides: const [
+          RuleOverride(
+            categoryKey: 'dry_waste',
+            overrideType: RuleOverrideType.binColor,
+            value: 'Pink Bin',
+          ),
+          RuleOverride(
+            categoryKey: 'dry_waste',
+            overrideType: RuleOverrideType.collectionFrequency,
+            value: 'monthly',
+          ),
+          RuleOverride(
+            categoryKey: 'dry_waste',
+            overrideType: RuleOverrideType.disposalMethod,
+            value: 'Hand delivery only',
+          ),
+          RuleOverride(
+            categoryKey: 'dry_waste',
+            overrideType: RuleOverrideType.collectionLocation,
+            value: 'Basement',
+          ),
+        ],
+      );
+
+      final decision = await engine.applyPolicy(
+        classification: baseClassification.copyWith(
+          category: 'Dry Waste',
+          subCategory: 'Bottle',
+          requiresSpecialDisposal: false,
+        ),
+        region: 'Bangalore, IN',
+        societyId: 'sb_004',
+        societyPolicyService: _FakeSocietyPolicyService(override),
+      );
+
+      expect(decision.classification.localRegulations?['bin'],
+          equals(baselineBin));
+      expect(
+        decision.classification.localRegulations?['society_bin_alias'],
+        isNull,
+      );
+      expect(
+        decision.classification.localRegulations?['society_pickup_window'],
+        isNull,
+      );
+      expect(
+        decision.classification.localRegulations?['society_disposal_method'],
+        isNull,
+      );
+      expect(
+        decision
+            .classification.localRegulations?['society_collection_location'],
+        isNull,
+      );
+      expect(decision.societyOverrides, isEmpty);
+      expect(decision.ruleOverridesApplied, isEmpty);
+      expect(
+        decision.societyConflicts.any(
+          (conflict) => conflict.contains('conflicts with society'),
+        ),
+        isTrue,
+      );
+    });
+
+    test(
+      'high-risk society overrides that weaken city safety guidance are blocked',
+      () async {
+        final override = SocietyPolicyOverride(
+          societyId: 'sb_003',
+          societyName: 'High Risk Society',
+          basePluginId: 'bbmp_bangalore',
+          overrides: const [
+            RuleOverride(
+              categoryKey: 'hazardous_waste',
+              overrideType: RuleOverrideType.disposalMethod,
+              value: 'Dry Bin',
+            ),
+          ],
+        );
+
+        final decision = await engine.applyPolicy(
+          classification: baseClassification,
+          region: 'Bangalore, IN',
+          societyId: 'sb_003',
+          societyPolicyService: _FakeSocietyPolicyService(override),
+        );
+
+        expect(decision.policyApplied, isTrue);
+        expect(
+          decision.societyConflicts.any(
+            (conflict) => conflict.contains(
+                'City disposal method conflicts with society override'),
+          ),
+          isTrue,
+        );
+        expect(
+          decision.classification.localRegulations?.containsKey(
+            'society_disposal_method',
+          ),
+          isFalse,
+        );
+        expect(decision.societyOverrides, isEmpty);
+        expect(decision.ruleOverridesApplied, isEmpty);
+      },
+    );
+
+    test(
+      'municipal guidance gaps block high-impact society overrides',
+      () async {
+        final override = SocietyPolicyOverride(
+          societyId: 'sb_005',
+          societyName: 'Missing Guidance Society',
+          basePluginId: 'bbmp_bangalore',
+          overrides: const [
+            RuleOverride(
+              categoryKey: 'special_care_waste',
+              overrideType: RuleOverrideType.binColor,
+              value: 'Green Bin',
+            ),
+            RuleOverride(
+              categoryKey: 'special_care_waste',
+              overrideType: RuleOverrideType.collectionFrequency,
+              value: 'daily',
+            ),
+            RuleOverride(
+              categoryKey: 'special_care_waste',
+              overrideType: RuleOverrideType.disposalMethod,
+              value: 'Special pickup',
+            ),
+            RuleOverride(
+              categoryKey: 'special_care_waste',
+              overrideType: RuleOverrideType.collectionLocation,
+              value: 'Society basement',
+            ),
+          ],
+        );
+
+        final decision = await engine.applyPolicy(
+          classification: baseClassification.copyWith(
+            category: 'Special Care Waste',
+            subCategory: 'Unknown',
+            requiresSpecialDisposal: false,
+          ),
+          region: 'Bangalore, IN',
+          societyId: 'sb_005',
+          societyPolicyService: _FakeSocietyPolicyService(override),
+        );
+
+        expect(decision.societyOverrides, isEmpty);
+        expect(
+          decision.ruleOverridesApplied,
+          isEmpty,
+          reason:
+              'No overrides should apply when municipal guidance is missing',
+        );
+        expect(
+          decision.classification.localRegulations?['society_bin_alias'],
+          isNull,
+        );
+        expect(
+          decision.classification.localRegulations?['society_pickup_window'],
+          isNull,
+        );
+        expect(
+          decision.classification.localRegulations?['society_disposal_method'],
+          isNull,
+        );
+        expect(
+          decision
+              .classification.localRegulations?['society_collection_location'],
+          isNull,
+        );
+        expect(decision.societyConflicts, isNotEmpty);
+        expect(
+          decision.societyConflicts
+              .any((conflict) => conflict.contains('unavailable')),
+          isTrue,
+        );
+      },
+    );
 
     test(
       'society mismatch does not apply overrides but records conflict',

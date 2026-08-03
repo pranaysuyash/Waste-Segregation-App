@@ -18,6 +18,30 @@ import 'local_guidelines_plugin.dart';
 ///   // override validateCompliance only if city-specific logic needed
 /// }
 /// ```
+class CommunityOperationNotice {
+  const CommunityOperationNotice({
+    required this.title,
+    required this.summary,
+    required this.noticeType,
+    this.whenLabel,
+    this.zone,
+    this.location,
+    this.collector,
+    this.confidence = 'unknown',
+    this.lastUpdated,
+  });
+
+  final String title;
+  final String summary;
+  final String noticeType;
+  final String? whenLabel;
+  final String? zone;
+  final String? location;
+  final String? collector;
+  final String confidence;
+  final String? lastUpdated;
+}
+
 class CityPolicyData {
   const CityPolicyData({
     required this.pluginId,
@@ -37,8 +61,13 @@ class CityPolicyData {
     this.nextReviewDue,
     this.subcategoryOverrides = const {},
     this.specialPrograms = const {},
+    this.communityNotices = const [],
+    this.scheduleExceptions = const [],
+    this.pickupZones = const {},
     this.penaltyInfo,
     this.governanceStage = 'draft',
+    this.sourceStatus = 'unverified',
+    this.authorityStatus = 'unknown',
     this.owningTeam = 'policy_platform',
   });
 
@@ -59,12 +88,16 @@ class CityPolicyData {
   final String? nextReviewDue;
   final Map<String, Map<String, dynamic>> subcategoryOverrides;
   final Map<String, String> specialPrograms;
+  final List<CommunityOperationNotice> communityNotices;
+  final List<CommunityOperationNotice> scheduleExceptions;
+  final Map<String, String> pickupZones;
   final String? penaltyInfo;
   final String governanceStage;
+  final String sourceStatus;
+  final String authorityStatus;
   final String owningTeam;
 
-  String get guidelinesRefPrefix =>
-      pluginId.toUpperCase().replaceAll('_', '-');
+  String get guidelinesRefPrefix => pluginId.toUpperCase().replaceAll('_', '-');
 
   LocalComplianceResult defaultValidateCompliance(
     LocalGuidelinesPlugin plugin,
@@ -80,8 +113,7 @@ class CityPolicyData {
         '$authorityName: Hazardous waste must be marked for special disposal.',
       );
     }
-    if (cat == 'medical waste' &&
-        classification.hasUrgentTimeframe != true) {
+    if (cat == 'medical waste' && classification.hasUrgentTimeframe != true) {
       violations.add(
         '$authorityName: Medical waste must be flagged urgent.',
       );
@@ -104,18 +136,55 @@ class CityPolicyData {
     WasteClassification classification,
   ) async {
     final compliance = plugin.validateCompliance(classification);
-    final instructions = getDisposalFor(classification.category,
-        classification.subCategory);
-    final regs = regulations[classification.category
-            .toLowerCase()
-            .replaceAll(' ', '_')] ??
+    final instructions =
+        getDisposalFor(classification.category, classification.subCategory);
+    final regs = regulations[
+            classification.category.toLowerCase().replaceAll(' ', '_')] ??
         {};
+    final schedule = collectionSchedule[
+            classification.category.toLowerCase().replaceAll(' ', '_')] ??
+        {};
+    final enrichedRegulations = <String, String>{...regs};
 
     var updated = classification.copyWith(
       localRegulations: {
-        ...regs,
-        'authority': authorityName,
-        'helpline': helpline,
+        ...enrichedRegulations,
+        'policy_pack_reference':
+            '$guidelinesRefPrefix-${classification.category.toLowerCase().replaceAll(' ', '_')}-${guidelinesVersion.toLowerCase()}',
+        'policy_authority_name': authorityName,
+        'policy_source_status': sourceStatus,
+        'policy_authority_status': authorityStatus,
+        'policy_governance_stage': governanceStage,
+        'policy_last_verified': lastVerified ?? '',
+        'policy_next_review': nextReviewDue ?? '',
+        'policy_guidelines_version': guidelinesVersion,
+        'policy_source_title': sourceTitle ?? '',
+        'policy_source_url': sourceUrl,
+        'policy_helpline': helpline,
+        if (_toDisplayString(schedule['frequency']) != null)
+          'collection_frequency': _toDisplayString(schedule['frequency'])!,
+        if (_toDisplayString(schedule['time']) != null)
+          'collection_time_window': _toDisplayString(schedule['time'])!,
+        if (_toDisplayString(schedule['notes']) != null)
+          'collection_notes': _toDisplayString(schedule['notes'])!,
+        if (_toDisplayString(pickupZones['collector']) != null)
+          'policy_pickup_collector':
+              _toDisplayString(pickupZones['collector'])!,
+        if (_toDisplayString(pickupZones['zone']) != null)
+          'policy_pickup_zone': _toDisplayString(pickupZones['zone'])!,
+        if (_toDisplayString(pickupZones['service_area']) != null)
+          'policy_pickup_area': _toDisplayString(pickupZones['service_area'])!,
+        if (_toDisplayString(pickupZones['zone_confidence']) != null)
+          'policy_zone_confidence':
+              _toDisplayString(pickupZones['zone_confidence'])!,
+        if (_toDisplayString(pickupZones['zone_confidence']) != null)
+          'policy_pickup_zone_confidence':
+              _toDisplayString(pickupZones['zone_confidence'])!,
+        if (_toDisplayString(pickupZones['last_verified']) != null)
+          'policy_pickup_last_verified':
+              _toDisplayString(pickupZones['last_verified'])!,
+        if (_toDisplayString(pickupZones['source']) != null)
+          'policy_pickup_source': _toDisplayString(pickupZones['source'])!,
       },
       bbmpComplianceStatus: compliance.status,
       localGuidelinesVersion: guidelinesVersion,
@@ -130,8 +199,7 @@ class CityPolicyData {
     return updated;
   }
 
-  Map<String, dynamic>? getDisposalFor(
-      String category, String? subcategory) {
+  Map<String, dynamic>? getDisposalFor(String category, String? subcategory) {
     final catKey = category.toLowerCase().replaceAll(' ', '_');
     final subKey = subcategory?.toLowerCase().replaceAll(' ', '_');
 
@@ -194,10 +262,27 @@ class CityPolicyData {
 
   Map<String, dynamic> getCollectionScheduleMap() => collectionSchedule;
 
+  static String? _toDisplayString(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    final valueText = value.toString().trim();
+    if (valueText.isEmpty) {
+      return null;
+    }
+    return valueText;
+  }
+
   Map<String, String> getLocalRegulations(String category) {
     final catKey = category.toLowerCase().replaceAll(' ', '_');
     return regulations[catKey] ?? {};
   }
+
+  List<CommunityOperationNotice> getCommunityNotices() => communityNotices;
+
+  List<CommunityOperationNotice> getScheduleExceptions() => scheduleExceptions;
+
+  Map<String, String> getPickupZones() => pickupZones;
 
   // ---- Pre-built city instances ----
 
@@ -210,6 +295,15 @@ class CityPolicyData {
     owningTeam: 'india_city_ops',
     helpline: '1800-425-1442',
     sourceUrl: 'https://bbmp.gov.in/swm',
+    pickupZones: {
+      'zone': 'Bengaluru South + central pilot wards',
+      'service_area': 'Bengaluru Municipal Boundaries',
+      'collector': 'BBMP zonal collection teams',
+      'zone_confidence': 'high',
+      'valid_from': '2026-01-01',
+      'last_verified': '2026-07-30',
+      'source': 'BBMP SWM Operations Dashboard',
+    },
     colorCoding: {
       'wet_waste': 'Green Bin/Bag',
       'dry_waste': 'Blue Bin/Bag',
@@ -228,6 +322,7 @@ class CityPolicyData {
       'dry_waste': {
         'frequency': 'alternate_days',
         'time': '6:00 AM - 9:00 AM',
+        'days': ['Monday', 'Wednesday', 'Friday'],
         'notes': 'Clean and dry before disposal',
       },
       'hazardous_waste': {
@@ -246,7 +341,8 @@ class CityPolicyData {
         'primaryMethod': 'Compost or wet waste bin',
         'location': 'Green bin - daily collection',
         'timeframe': 'Daily disposal recommended',
-        'bbmp_specific': 'Follow BBMP composting guidelines; apartments ≥10 units must compost',
+        'bbmp_specific':
+            'Follow BBMP composting guidelines; apartments ≥10 units must compost',
       },
       'dry_waste': {
         'primaryMethod': 'Clean and recycle',
@@ -297,6 +393,41 @@ class CityPolicyData {
       'e_waste': 'BBMP e-waste exchange program',
       'bulk_waste': 'Prior intimation required for bulk pickup',
     },
+    communityNotices: [
+      CommunityOperationNotice(
+        title: 'E-waste Collection Drive',
+        summary: 'Saturday 4:00 PM to 7:00 PM in Koramangala community halls.',
+        noticeType: 'community_event',
+        whenLabel: 'Saturday',
+        zone: 'Bengaluru South',
+        location: 'Koramangala Community Hall',
+        collector: 'BBMP',
+        confidence: 'verified',
+        lastUpdated: '2026-07-28',
+      ),
+      CommunityOperationNotice(
+        title: 'Facility note',
+        summary:
+            'Biodegradable waste collection temporarily shifted for one day.',
+        noticeType: 'schedule_change',
+        whenLabel: 'This Sunday',
+        zone: 'Bengaluru South',
+        collector: 'BBMP',
+        confidence: 'reported',
+        lastUpdated: '2026-07-30',
+      ),
+    ],
+    scheduleExceptions: [
+      CommunityOperationNotice(
+        title: 'Dry waste delayed',
+        summary: 'Dry waste pick up moved from Sunday to Monday this week.',
+        noticeType: 'pickup_delay',
+        whenLabel: 'Sunday',
+        zone: 'Koramangala ward cluster',
+        confidence: 'verified',
+        lastUpdated: '2026-07-30',
+      ),
+    ],
     penaltyInfo: 'Rs. 100-500 spot fine for non-compliance',
   );
 
@@ -343,7 +474,8 @@ class CityPolicyData {
         'primaryMethod': 'Wet waste bin',
         'location': 'Green bin - daily collection',
         'timeframe': 'Daily disposal',
-        'bmc_specific': 'Separate wet waste from dry; no plastic bags in wet bin',
+        'bmc_specific':
+            'Separate wet waste from dry; no plastic bags in wet bin',
       },
       'dry_waste': {
         'primaryMethod': 'Dry waste collection',
@@ -519,7 +651,8 @@ class CityPolicyData {
         'primaryMethod': 'Compost (preferred) or green bin',
         'location': 'Green bin or on-site composter',
         'timeframe': 'Daily disposal or compost on-site',
-        'pmc_specific': 'PMC pioneer in decentralized waste processing; apartments ≥20 units must compost on-site',
+        'pmc_specific':
+            'PMC pioneer in decentralized waste processing; apartments ≥20 units must compost on-site',
       },
       'dry_waste': {
         'primaryMethod': 'Blue bin for weekly collection',
@@ -782,13 +915,15 @@ class CityPolicyData {
         'primaryMethod': 'Green bin or community composting',
         'location': 'Green bin',
         'timeframe': 'Daily disposal',
-        'kmc_specific': 'KMC ward-level collection; informal sector supplements',
+        'kmc_specific':
+            'KMC ward-level collection; informal sector supplements',
       },
       'dry_waste': {
         'primaryMethod': 'Blue bin or sell to kabadiwala',
         'location': 'Blue bin or local scrap dealer',
         'timeframe': 'Clean and dry',
-        'kmc_specific': 'Kolkata has active informal recycling network; kabadiwala collects door-to-door',
+        'kmc_specific':
+            'Kolkata has active informal recycling network; kabadiwala collects door-to-door',
       },
       'hazardous_waste': {
         'primaryMethod': 'Contact KMC or authorized dealer',
@@ -848,18 +983,52 @@ class CityPolicyData {
       'medical_waste': 'Yellow Bin/Bag',
     },
     collectionSchedule: {
-      'wet_waste': {'frequency': 'daily', 'time': '7:00 AM - 10:00 AM', 'notes': 'Door-to-door collection across 7 zones'},
-      'dry_waste': {'frequency': 'alternate_days', 'time': '7:00 AM - 10:00 AM', 'notes': 'Segregation at source mandatory'},
-      'hazardous_waste': {'frequency': 'monthly', 'time': 'Contact AMC ward office', 'notes': 'Special collection'},
-      'medical_waste': {'frequency': 'immediate', 'time': 'Contact authorized BMW handler', 'notes': 'Never mix with MSW'},
+      'wet_waste': {
+        'frequency': 'daily',
+        'time': '7:00 AM - 10:00 AM',
+        'notes': 'Door-to-door collection across 7 zones'
+      },
+      'dry_waste': {
+        'frequency': 'alternate_days',
+        'time': '7:00 AM - 10:00 AM',
+        'notes': 'Segregation at source mandatory'
+      },
+      'hazardous_waste': {
+        'frequency': 'monthly',
+        'time': 'Contact AMC ward office',
+        'notes': 'Special collection'
+      },
+      'medical_waste': {
+        'frequency': 'immediate',
+        'time': 'Contact authorized BMW handler',
+        'notes': 'Never mix with MSW'
+      },
     },
     disposalInstructions: {
-      'wet_waste': {'primaryMethod': 'Green bin for daily collection', 'location': 'Green bin', 'timeframe': 'Daily', 'amc_specific': 'AMC operates door-to-door collection across 7 zones'},
-      'dry_waste': {'primaryMethod': 'Blue bin for recyclables', 'location': 'Blue bin', 'timeframe': 'Alternate days', 'amc_specific': 'Clean and dry before disposal'},
-      'hazardous_waste': {'primaryMethod': 'Special collection via ward office', 'location': 'Red bin', 'timeframe': 'Monthly', 'amc_specific': 'Contact AMC ward office'},
+      'wet_waste': {
+        'primaryMethod': 'Green bin for daily collection',
+        'location': 'Green bin',
+        'timeframe': 'Daily',
+        'amc_specific': 'AMC operates door-to-door collection across 7 zones'
+      },
+      'dry_waste': {
+        'primaryMethod': 'Blue bin for recyclables',
+        'location': 'Blue bin',
+        'timeframe': 'Alternate days',
+        'amc_specific': 'Clean and dry before disposal'
+      },
+      'hazardous_waste': {
+        'primaryMethod': 'Special collection via ward office',
+        'location': 'Red bin',
+        'timeframe': 'Monthly',
+        'amc_specific': 'Contact AMC ward office'
+      },
     },
     regulations: {
-      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation at source under SWM 2016'},
+      'wet_waste': {
+        'bin': 'Green bin',
+        'mandate': 'Segregation at source under SWM 2016'
+      },
       'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
       'hazardous_waste': {'bin': 'Red bin', 'contact': 'AMC ward office'},
     },
@@ -881,20 +1050,54 @@ class CityPolicyData {
       'medical_waste': 'Yellow Bin/Bag',
     },
     collectionSchedule: {
-      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door collection; SMC ranked 7th in administrative practices'},
-      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Segregation recommended'},
-      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Special collection via SMC'},
-      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+      'wet_waste': {
+        'frequency': 'daily',
+        'notes':
+            'Door-to-door collection; SMC ranked 7th in administrative practices'
+      },
+      'dry_waste': {
+        'frequency': 'alternate_days',
+        'notes': 'Segregation recommended'
+      },
+      'hazardous_waste': {
+        'frequency': 'monthly',
+        'notes': 'Special collection via SMC'
+      },
+      'medical_waste': {
+        'frequency': 'immediate',
+        'notes': 'Authorized BMW handler only'
+      },
     },
     disposalInstructions: {
-      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'smc_specific': 'SMC provides door-to-door collection'},
-      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'smc_specific': 'Clean and dry before disposal'},
-      'hazardous_waste': {'primaryMethod': 'Special SMC collection', 'timeframe': 'Monthly', 'smc_specific': 'Contact SMC ward office'},
+      'wet_waste': {
+        'primaryMethod': 'Green bin',
+        'timeframe': 'Daily',
+        'smc_specific': 'SMC provides door-to-door collection'
+      },
+      'dry_waste': {
+        'primaryMethod': 'Blue bin',
+        'timeframe': 'Alternate days',
+        'smc_specific': 'Clean and dry before disposal'
+      },
+      'hazardous_waste': {
+        'primaryMethod': 'Special SMC collection',
+        'timeframe': 'Monthly',
+        'smc_specific': 'Contact SMC ward office'
+      },
     },
     regulations: {
-      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation under SWM 2016'},
-      'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Items must be clean and dry'},
-      'hazardous_waste': {'bin': 'Red bin', 'disposal': 'Special collection required'},
+      'wet_waste': {
+        'bin': 'Green bin',
+        'mandate': 'Segregation under SWM 2016'
+      },
+      'dry_waste': {
+        'bin': 'Blue bin',
+        'cleaning': 'Items must be clean and dry'
+      },
+      'hazardous_waste': {
+        'bin': 'Red bin',
+        'disposal': 'Special collection required'
+      },
     },
     penaltyInfo: 'As per Gujarat SWM rules',
   );
@@ -914,18 +1117,46 @@ class CityPolicyData {
       'medical_waste': 'Yellow Bin/Bag',
     },
     collectionSchedule: {
-      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door collection; JMC operates Greater (150 wards) and Heritage (100 wards)'},
-      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Segregation mandatory'},
-      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact JMC zone office'},
-      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+      'wet_waste': {
+        'frequency': 'daily',
+        'notes':
+            'Door-to-door collection; JMC operates Greater (150 wards) and Heritage (100 wards)'
+      },
+      'dry_waste': {
+        'frequency': 'alternate_days',
+        'notes': 'Segregation mandatory'
+      },
+      'hazardous_waste': {
+        'frequency': 'monthly',
+        'notes': 'Contact JMC zone office'
+      },
+      'medical_waste': {
+        'frequency': 'immediate',
+        'notes': 'Authorized BMW handler only'
+      },
     },
     disposalInstructions: {
-      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'jmc_specific': 'JMC covers 250 wards across Greater and Heritage zones'},
-      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'jmc_specific': 'Sort by material type'},
-      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'jmc_specific': 'Contact JMC zone office'},
+      'wet_waste': {
+        'primaryMethod': 'Green bin',
+        'timeframe': 'Daily',
+        'jmc_specific': 'JMC covers 250 wards across Greater and Heritage zones'
+      },
+      'dry_waste': {
+        'primaryMethod': 'Blue bin',
+        'timeframe': 'Alternate days',
+        'jmc_specific': 'Sort by material type'
+      },
+      'hazardous_waste': {
+        'primaryMethod': 'Special collection',
+        'timeframe': 'Monthly',
+        'jmc_specific': 'Contact JMC zone office'
+      },
     },
     regulations: {
-      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation under Rajasthan SWM rules'},
+      'wet_waste': {
+        'bin': 'Green bin',
+        'mandate': 'Segregation under Rajasthan SWM rules'
+      },
       'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
       'hazardous_waste': {'bin': 'Red bin', 'contact': 'JMC zone office'},
     },
@@ -947,26 +1178,60 @@ class CityPolicyData {
       'medical_waste': 'Yellow Bin/Bag',
     },
     collectionSchedule: {
-      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door collection; report issues to Mayor helpline 6389200005'},
-      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Zero Waste initiative for large events'},
-      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact LMC zone office'},
-      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+      'wet_waste': {
+        'frequency': 'daily',
+        'notes':
+            'Door-to-door collection; report issues to Mayor helpline 6389200005'
+      },
+      'dry_waste': {
+        'frequency': 'alternate_days',
+        'notes': 'Zero Waste initiative for large events'
+      },
+      'hazardous_waste': {
+        'frequency': 'monthly',
+        'notes': 'Contact LMC zone office'
+      },
+      'medical_waste': {
+        'frequency': 'immediate',
+        'notes': 'Authorized BMW handler only'
+      },
     },
     disposalInstructions: {
-      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'lmc_specific': 'Zero Waste protocol for large events. Helpline 6389200005'},
-      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'lmc_specific': 'City Sanitation Plan published on lmc.up.nic.in'},
-      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'lmc_specific': 'Contact LMC zone office'},
+      'wet_waste': {
+        'primaryMethod': 'Green bin',
+        'timeframe': 'Daily',
+        'lmc_specific':
+            'Zero Waste protocol for large events. Helpline 6389200005'
+      },
+      'dry_waste': {
+        'primaryMethod': 'Blue bin',
+        'timeframe': 'Alternate days',
+        'lmc_specific': 'City Sanitation Plan published on lmc.up.nic.in'
+      },
+      'hazardous_waste': {
+        'primaryMethod': 'Special collection',
+        'timeframe': 'Monthly',
+        'lmc_specific': 'Contact LMC zone office'
+      },
     },
     regulations: {
-      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation mandatory; Zero Waste for events'},
+      'wet_waste': {
+        'bin': 'Green bin',
+        'mandate': 'Segregation mandatory; Zero Waste for events'
+      },
       'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
-      'hazardous_waste': {'bin': 'Red bin', 'contact': 'LMC helpline 6389200005'},
+      'hazardous_waste': {
+        'bin': 'Red bin',
+        'contact': 'LMC helpline 6389200005'
+      },
     },
     specialPrograms: {
-      'zero_waste': 'Zero Waste protocol for large events (Bada Mangal Bhandara)',
+      'zero_waste':
+          'Zero Waste protocol for large events (Bada Mangal Bhandara)',
       'complaints': 'Online complaint system via Mayor helpline 6389200005',
     },
-    penaltyInfo: 'As per UP SWM rules; extra money demand for garbage pickup is reportable',
+    penaltyInfo:
+        'As per UP SWM rules; extra money demand for garbage pickup is reportable',
   );
 
   static const CityPolicyData nmc = CityPolicyData(
@@ -984,20 +1249,52 @@ class CityPolicyData {
       'medical_waste': 'Yellow Bin/Bag',
     },
     collectionSchedule: {
-      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door across 10 zones; use My Nagpur app'},
-      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Segregation mandatory'},
-      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact SWM Deputy Commissioner 8275036200'},
-      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler'},
+      'wet_waste': {
+        'frequency': 'daily',
+        'notes': 'Door-to-door across 10 zones; use My Nagpur app'
+      },
+      'dry_waste': {
+        'frequency': 'alternate_days',
+        'notes': 'Segregation mandatory'
+      },
+      'hazardous_waste': {
+        'frequency': 'monthly',
+        'notes': 'Contact SWM Deputy Commissioner 8275036200'
+      },
+      'medical_waste': {
+        'frequency': 'immediate',
+        'notes': 'Authorized BMW handler'
+      },
     },
     disposalInstructions: {
-      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'nmc_specific': 'My Nagpur app available for Android/iOS. 10 administrative zones.'},
-      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'nmc_specific': 'Clean and dry before disposal'},
-      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'nmc_specific': 'Contact SWM Deputy Commissioner 8275036200'},
+      'wet_waste': {
+        'primaryMethod': 'Green bin',
+        'timeframe': 'Daily',
+        'nmc_specific':
+            'My Nagpur app available for Android/iOS. 10 administrative zones.'
+      },
+      'dry_waste': {
+        'primaryMethod': 'Blue bin',
+        'timeframe': 'Alternate days',
+        'nmc_specific': 'Clean and dry before disposal'
+      },
+      'hazardous_waste': {
+        'primaryMethod': 'Special collection',
+        'timeframe': 'Monthly',
+        'nmc_specific': 'Contact SWM Deputy Commissioner 8275036200'
+      },
     },
     regulations: {
-      'wet_waste': {'bin': 'Green bin', 'mandate': 'Door-to-door across 10 zones', 'app': 'My Nagpur app for reports'},
+      'wet_waste': {
+        'bin': 'Green bin',
+        'mandate': 'Door-to-door across 10 zones',
+        'app': 'My Nagpur app for reports'
+      },
       'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
-      'hazardous_waste': {'bin': 'Red bin', 'contact': '8275036200 or WhatsApp 917397807397'},
+      'hazardous_waste': {
+        'bin': 'Red bin',
+        'contact': '8275036200 or WhatsApp 917397807397'
+      },
     },
     specialPrograms: {
       'mobile_app': 'My Nagpur app (Android/iOS) for citizen services',
@@ -1021,27 +1318,62 @@ class CityPolicyData {
       'medical_waste': 'Yellow Bin/Bag',
     },
     collectionSchedule: {
-      'wet_waste': {'frequency': 'daily', 'notes': '100% door-to-door coverage; Indore is India\'s #1 cleanest city'},
-      'dry_waste': {'frequency': 'daily', 'notes': 'Strict segregation enforcement; 100% collection'},
-      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact IMC ward office'},
-      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+      'wet_waste': {
+        'frequency': 'daily',
+        'notes':
+            '100% door-to-door coverage; Indore is India\'s #1 cleanest city'
+      },
+      'dry_waste': {
+        'frequency': 'daily',
+        'notes': 'Strict segregation enforcement; 100% collection'
+      },
+      'hazardous_waste': {
+        'frequency': 'monthly',
+        'notes': 'Contact IMC ward office'
+      },
+      'medical_waste': {
+        'frequency': 'immediate',
+        'notes': 'Authorized BMW handler only'
+      },
     },
     disposalInstructions: {
-      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'imc_specific': 'India\'s #1 cleanest city — strict segregation at source enforced. Pioneered waste-to-energy.'},
-      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Daily', 'imc_specific': '100% door-to-door collection. Bio-remediation of legacy waste.'},
-      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'imc_specific': 'Contact IMC ward office'},
+      'wet_waste': {
+        'primaryMethod': 'Green bin',
+        'timeframe': 'Daily',
+        'imc_specific':
+            'India\'s #1 cleanest city — strict segregation at source enforced. Pioneered waste-to-energy.'
+      },
+      'dry_waste': {
+        'primaryMethod': 'Blue bin',
+        'timeframe': 'Daily',
+        'imc_specific':
+            '100% door-to-door collection. Bio-remediation of legacy waste.'
+      },
+      'hazardous_waste': {
+        'primaryMethod': 'Special collection',
+        'timeframe': 'Monthly',
+        'imc_specific': 'Contact IMC ward office'
+      },
     },
     regulations: {
-      'wet_waste': {'bin': 'Green bin', 'mandate': 'Strict segregation enforced — national benchmark city'},
-      'dry_waste': {'bin': 'Blue bin', 'collection': '100% door-to-door coverage'},
+      'wet_waste': {
+        'bin': 'Green bin',
+        'mandate': 'Strict segregation enforced — national benchmark city'
+      },
+      'dry_waste': {
+        'bin': 'Blue bin',
+        'collection': '100% door-to-door coverage'
+      },
       'hazardous_waste': {'bin': 'Red bin', 'contact': 'IMC ward office'},
     },
     specialPrograms: {
       'waste_to_energy': 'Pioneered waste-to-energy in India',
       'bio_remediation': 'Bio-remediation of legacy waste sites',
-      'carbon_credits': 'First Indian city to trade carbon credits from waste management',
+      'carbon_credits':
+          'First Indian city to trade carbon credits from waste management',
     },
-    penaltyInfo: 'Strict enforcement — fines for non-segregation; India\'s highest compliance city',
+    penaltyInfo:
+        'Strict enforcement — fines for non-segregation; India\'s highest compliance city',
   );
 
   static const CityPolicyData bmcBhopal = CityPolicyData(
@@ -1059,18 +1391,46 @@ class CityPolicyData {
       'medical_waste': 'Yellow Bin/Bag',
     },
     collectionSchedule: {
-      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door; BMC automated services via SAP'},
-      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Segregation mandatory; 85 wards across 463 sq km'},
-      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact BMC zone office'},
-      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+      'wet_waste': {
+        'frequency': 'daily',
+        'notes': 'Door-to-door; BMC automated services via SAP'
+      },
+      'dry_waste': {
+        'frequency': 'alternate_days',
+        'notes': 'Segregation mandatory; 85 wards across 463 sq km'
+      },
+      'hazardous_waste': {
+        'frequency': 'monthly',
+        'notes': 'Contact BMC zone office'
+      },
+      'medical_waste': {
+        'frequency': 'immediate',
+        'notes': 'Authorized BMW handler only'
+      },
     },
     disposalInstructions: {
-      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'bmc_specific': 'First Indian corporation to adopt SAP for full automation (2014)'},
-      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'bmc_specific': '85 wards; mobile app for citizen services'},
-      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'bmc_specific': 'Contact BMC zone office'},
+      'wet_waste': {
+        'primaryMethod': 'Green bin',
+        'timeframe': 'Daily',
+        'bmc_specific':
+            'First Indian corporation to adopt SAP for full automation (2014)'
+      },
+      'dry_waste': {
+        'primaryMethod': 'Blue bin',
+        'timeframe': 'Alternate days',
+        'bmc_specific': '85 wards; mobile app for citizen services'
+      },
+      'hazardous_waste': {
+        'primaryMethod': 'Special collection',
+        'timeframe': 'Monthly',
+        'bmc_specific': 'Contact BMC zone office'
+      },
     },
     regulations: {
-      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation under MP SWM rules'},
+      'wet_waste': {
+        'bin': 'Green bin',
+        'mandate': 'Segregation under MP SWM rules'
+      },
       'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
       'hazardous_waste': {'bin': 'Red bin', 'contact': 'BMC zone office'},
     },
@@ -1096,18 +1456,46 @@ class CityPolicyData {
       'medical_waste': 'Yellow Bin/Bag',
     },
     collectionSchedule: {
-      'wet_waste': {'frequency': 'daily', 'notes': 'Door-to-door; largest corporation in TN by area (415 sq km)'},
-      'dry_waste': {'frequency': 'alternate_days', 'notes': '5 zones (North, South, East, West, Central); 100 wards'},
-      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact CCMC zone office'},
-      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+      'wet_waste': {
+        'frequency': 'daily',
+        'notes': 'Door-to-door; largest corporation in TN by area (415 sq km)'
+      },
+      'dry_waste': {
+        'frequency': 'alternate_days',
+        'notes': '5 zones (North, South, East, West, Central); 100 wards'
+      },
+      'hazardous_waste': {
+        'frequency': 'monthly',
+        'notes': 'Contact CCMC zone office'
+      },
+      'medical_waste': {
+        'frequency': 'immediate',
+        'notes': 'Authorized BMW handler only'
+      },
     },
     disposalInstructions: {
-      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'ccmc_specific': 'Largest municipal corporation in Tamil Nadu. 5 zones, 100 wards.'},
-      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'ccmc_specific': 'Best Corporation Award from TN Govt (2012)'},
-      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'ccmc_specific': 'Contact CCMC zone office'},
+      'wet_waste': {
+        'primaryMethod': 'Green bin',
+        'timeframe': 'Daily',
+        'ccmc_specific':
+            'Largest municipal corporation in Tamil Nadu. 5 zones, 100 wards.'
+      },
+      'dry_waste': {
+        'primaryMethod': 'Blue bin',
+        'timeframe': 'Alternate days',
+        'ccmc_specific': 'Best Corporation Award from TN Govt (2012)'
+      },
+      'hazardous_waste': {
+        'primaryMethod': 'Special collection',
+        'timeframe': 'Monthly',
+        'ccmc_specific': 'Contact CCMC zone office'
+      },
     },
     regulations: {
-      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation under Tamil Nadu SWM rules'},
+      'wet_waste': {
+        'bin': 'Green bin',
+        'mandate': 'Segregation under Tamil Nadu SWM rules'
+      },
       'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
       'hazardous_waste': {'bin': 'Red bin', 'contact': 'CCMC zone office'},
     },
@@ -1129,20 +1517,51 @@ class CityPolicyData {
       'medical_waste': 'Yellow Bin/Bag',
     },
     collectionSchedule: {
-      'wet_waste': {'frequency': 'daily', 'notes': '74 wards; backwater-sensitive disposal rules'},
-      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Segregation mandatory in Kerala'},
-      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact Corporation Health Standing Committee'},
-      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+      'wet_waste': {
+        'frequency': 'daily',
+        'notes': '74 wards; backwater-sensitive disposal rules'
+      },
+      'dry_waste': {
+        'frequency': 'alternate_days',
+        'notes': 'Segregation mandatory in Kerala'
+      },
+      'hazardous_waste': {
+        'frequency': 'monthly',
+        'notes': 'Contact Corporation Health Standing Committee'
+      },
+      'medical_waste': {
+        'frequency': 'immediate',
+        'notes': 'Authorized BMW handler only'
+      },
     },
     disposalInstructions: {
-      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'kochi_specific': 'Brahmapuram waste plant fire (2023) highlighted need for proper disposal. 74 wards.'},
-      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'kochi_specific': 'Most densely populated corporation in Kerala'},
-      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'kochi_specific': 'Contact Health Standing Committee'},
+      'wet_waste': {
+        'primaryMethod': 'Green bin',
+        'timeframe': 'Daily',
+        'kochi_specific':
+            'Brahmapuram waste plant fire (2023) highlighted need for proper disposal. 74 wards.'
+      },
+      'dry_waste': {
+        'primaryMethod': 'Blue bin',
+        'timeframe': 'Alternate days',
+        'kochi_specific': 'Most densely populated corporation in Kerala'
+      },
+      'hazardous_waste': {
+        'primaryMethod': 'Special collection',
+        'timeframe': 'Monthly',
+        'kochi_specific': 'Contact Health Standing Committee'
+      },
     },
     regulations: {
-      'wet_waste': {'bin': 'Green bin', 'mandate': 'Kerala SWM rules; backwater-sensitive areas'},
+      'wet_waste': {
+        'bin': 'Green bin',
+        'mandate': 'Kerala SWM rules; backwater-sensitive areas'
+      },
       'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
-      'hazardous_waste': {'bin': 'Red bin', 'contact': 'Corporation Health Standing Committee'},
+      'hazardous_waste': {
+        'bin': 'Red bin',
+        'contact': 'Corporation Health Standing Committee'
+      },
     },
     specialPrograms: {
       'janasevanakendram': 'Citizen service centers across 74 wards',
@@ -1163,29 +1582,62 @@ class CityPolicyData {
       'dry_waste': 'Blue Bin/Bag',
       'hazardous_waste': 'Red Bin/Bag',
       'medical_waste': 'Yellow Bin/Bag',
-      'sanitary_waste': 'Pink Bin (progressive — aligned with MCD Delhi pattern)',
+      'sanitary_waste':
+          'Pink Bin (progressive — aligned with MCD Delhi pattern)',
     },
     collectionSchedule: {
-      'wet_waste': {'frequency': 'daily', 'notes': 'Sector-based collection in planned city. Toll-free helpline 14420.'},
-      'dry_waste': {'frequency': 'alternate_days', 'notes': 'Clean and dry; sector-based scheduling'},
-      'hazardous_waste': {'frequency': 'monthly', 'notes': 'Contact MCC helpline 14420'},
-      'medical_waste': {'frequency': 'immediate', 'notes': 'Authorized BMW handler only'},
+      'wet_waste': {
+        'frequency': 'daily',
+        'notes':
+            'Sector-based collection in planned city. Toll-free helpline 14420.'
+      },
+      'dry_waste': {
+        'frequency': 'alternate_days',
+        'notes': 'Clean and dry; sector-based scheduling'
+      },
+      'hazardous_waste': {
+        'frequency': 'monthly',
+        'notes': 'Contact MCC helpline 14420'
+      },
+      'medical_waste': {
+        'frequency': 'immediate',
+        'notes': 'Authorized BMW handler only'
+      },
     },
     disposalInstructions: {
-      'wet_waste': {'primaryMethod': 'Green bin', 'timeframe': 'Daily', 'mcc_specific': 'Planned city by Le Corbusier — sector-based collection. Helpline 14420.'},
-      'dry_waste': {'primaryMethod': 'Blue bin', 'timeframe': 'Alternate days', 'mcc_specific': 'Waste to Wonder initiative under Swachh Survekshan 2025-26'},
-      'hazardous_waste': {'primaryMethod': 'Special collection', 'timeframe': 'Monthly', 'mcc_specific': 'Toll-free helpline: 14420'},
+      'wet_waste': {
+        'primaryMethod': 'Green bin',
+        'timeframe': 'Daily',
+        'mcc_specific':
+            'Planned city by Le Corbusier — sector-based collection. Helpline 14420.'
+      },
+      'dry_waste': {
+        'primaryMethod': 'Blue bin',
+        'timeframe': 'Alternate days',
+        'mcc_specific':
+            'Waste to Wonder initiative under Swachh Survekshan 2025-26'
+      },
+      'hazardous_waste': {
+        'primaryMethod': 'Special collection',
+        'timeframe': 'Monthly',
+        'mcc_specific': 'Toll-free helpline: 14420'
+      },
     },
     regulations: {
-      'wet_waste': {'bin': 'Green bin', 'mandate': 'Segregation mandatory in Chandigarh'},
+      'wet_waste': {
+        'bin': 'Green bin',
+        'mandate': 'Segregation mandatory in Chandigarh'
+      },
       'dry_waste': {'bin': 'Blue bin', 'cleaning': 'Must be clean and dry'},
       'hazardous_waste': {'bin': 'Red bin', 'helpline': '14420'},
     },
     specialPrograms: {
       'toll_free': 'Dedicated SWM helpline 14420 (8 AM - 8 PM)',
-      'waste_to_wonder': 'Waste to Wonder sculpture initiative under Swachh Survekshan',
+      'waste_to_wonder':
+          'Waste to Wonder sculpture initiative under Swachh Survekshan',
       'cd_waste': 'C&D waste processing plant operated',
     },
-    penaltyInfo: 'eChallan system active; as per Punjab SWM rules extended to Chandigarh',
+    penaltyInfo:
+        'eChallan system active; as per Punjab SWM rules extended to Chandigarh',
   );
 }

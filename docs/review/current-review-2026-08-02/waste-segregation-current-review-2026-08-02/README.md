@@ -106,3 +106,4 @@ The latest commit is now the remote baseline. A local reconciliation task is no 
 - `17_PARALLEL_AGENT_ORCHESTRATION.md`
 - `18_DECISION_LOG_KILL_LIST.md`
 - `19_SOURCE_NOTES.md`
+- `20_TASK_CHATGPT_FEEDBACK_PMFMODEL_AND_CONFIDENCE_HARDENING_2026-08-02.md`

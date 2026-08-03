@@ -17,6 +17,10 @@ import 'package:waste_segregation_app/services/result_pipeline.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
 import 'package:waste_segregation_app/widgets/manual_region_selector.dart';
 import 'package:waste_segregation_app/widgets/per_item_result_card.dart';
+import 'package:waste_segregation_app/providers/scan_orchestrator_provider.dart';
+import 'package:waste_segregation_app/providers/token_providers.dart';
+import 'package:waste_segregation_app/services/scan_orchestrator.dart';
+import 'package:waste_segregation_app/services/token_service.dart';
 
 /// A minimal valid 1x1 blue PNG used as test image data.
 final Uint8List kTestPng = Uint8List.fromList([
@@ -54,10 +58,54 @@ class MockStorageService extends Mock implements StorageService {}
 
 class MockResultPipeline extends Mock implements ResultPipeline {}
 
-class FakePremiumService extends PremiumService {
-  FakePremiumService() : super();
+class MockTokenService extends Mock implements TokenService {}
+
+/// Mockito-based fake: must NOT extend the real [PremiumService], whose
+/// constructor kicks off unawaited `initialize()` (Hive/Firebase) that throws
+/// in widget tests. `implements` + a concrete `hasActivePremiumPlan` avoids the
+/// real constructor while keeping a real `false` (never a null-in-bool slot).
+class FakePremiumService extends Mock implements PremiumService {
   @override
   bool hasActivePremiumPlan() => false;
+}
+
+/// ProviderScope with test doubles for every service the capture screen reads
+/// at initState/build time (no Firebase/Hive).
+///
+/// Drift fix: the refactor added `scanOrchestratorProvider` (initState queue
+/// listener) and `tokenServiceProvider`/`tokenWalletProvider` (review body)
+/// reads; these were previously un-overridden, so the real services touched
+/// Firebase and threw `[core/no-app]` in widget tests.
+///
+/// Note: `classificationStateMachineProvider` is deliberately NOT overridden —
+/// `ClassificationStateMachineNotifier` is a pure in-memory notifier with no
+/// Firebase/Hive dependencies, so the real provider is safe in widget tests.
+ProviderScope _captureScope({
+  required Widget child,
+  MockAiService? aiService,
+  MockAnalyticsService? analyticsService,
+  MockStorageService? storageService,
+  MockResultPipeline? resultPipeline,
+}) {
+  final mockAi = aiService ?? MockAiService();
+  final mockAnalytics = analyticsService ?? MockAnalyticsService();
+  final mockStorage = storageService ?? MockStorageService();
+  final mockPipeline = resultPipeline ?? MockResultPipeline();
+  return ProviderScope(
+    overrides: [
+      aiServiceProvider.overrideWithValue(mockAi),
+      analyticsServiceProvider.overrideWithValue(mockAnalytics),
+      storageServiceProvider.overrideWithValue(mockStorage),
+      resultPipelineProvider.overrideWith((_) => mockPipeline),
+      scanOrchestratorProvider.overrideWithValue(
+        ScanOrchestrator(aiService: mockAi, resultPipeline: mockPipeline),
+      ),
+      tokenServiceProvider.overrideWithValue(MockTokenService()),
+      tokenWalletProvider.overrideWith((_) async => null),
+      premiumServiceProvider.overrideWithValue(FakePremiumService()),
+    ],
+    child: MaterialApp(home: child),
+  );
 }
 
 void main() {
@@ -66,7 +114,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        const ProviderScope(child: MaterialApp(home: ImageCaptureScreen())),
+        _captureScope(child: const ImageCaptureScreen()),
       );
 
       expect(find.text('Waiting for camera...'), findsOneWidget);
@@ -75,19 +123,9 @@ void main() {
     testWidgets(
       'tapping "Select multiple items" enters region selection mode',
       (tester) async {
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              aiServiceProvider.overrideWithValue(MockAiService()),
-              analyticsServiceProvider.overrideWithValue(
-                MockAnalyticsService(),
-              ),
-              storageServiceProvider.overrideWithValue(MockStorageService()),
-              resultPipelineProvider.overrideWith((_) => MockResultPipeline()),
-            ],
-            child: MaterialApp(home: ImageCaptureScreen(webImage: kTestPng)),
-          ),
-        );
+      await tester.pumpWidget(
+        _captureScope(child: ImageCaptureScreen(webImage: kTestPng)),
+      );
         // Use pump instead of pumpAndSettle because image decoding in tests
         // may not settle with tiny test data.
         await tester.pump();
@@ -117,19 +155,9 @@ void main() {
     testWidgets(
       'region selection mode disables analyze button when no regions selected',
       (tester) async {
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              aiServiceProvider.overrideWithValue(MockAiService()),
-              analyticsServiceProvider.overrideWithValue(
-                MockAnalyticsService(),
-              ),
-              storageServiceProvider.overrideWithValue(MockStorageService()),
-              resultPipelineProvider.overrideWith((_) => MockResultPipeline()),
-            ],
-            child: MaterialApp(home: ImageCaptureScreen(webImage: kTestPng)),
-          ),
-        );
+      await tester.pumpWidget(
+        _captureScope(child: ImageCaptureScreen(webImage: kTestPng)),
+      );
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
@@ -157,15 +185,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            aiServiceProvider.overrideWithValue(MockAiService()),
-            analyticsServiceProvider.overrideWithValue(MockAnalyticsService()),
-            storageServiceProvider.overrideWithValue(MockStorageService()),
-            resultPipelineProvider.overrideWith((_) => MockResultPipeline()),
-          ],
-          child: MaterialApp(home: ImageCaptureScreen(webImage: kTestPng)),
-        ),
+        _captureScope(child: ImageCaptureScreen(webImage: kTestPng)),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));

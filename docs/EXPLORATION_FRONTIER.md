@@ -363,3 +363,42 @@
 - The complexity of showing per-action breakdowns creates more cognitive load than the "+10 points" toast.
 
 **Related**: [F11 Personal Waste Analytics Engine](#), [Points economy](models/gamification.dart), [Token wallet](screens/token_wallet_screen.dart).
+
+---
+
+## Addendum (2026-08-03): Home schedule and pickup-community PMF loop
+
+The home area schedule is now an operational surface for the recurring household
+loop, not only a policy summary. The existing `home_area_schedule_card` keeps its
+stable identity while adding three explicit reading states:
+
+- `Today` shows only exact windows that the policy data can justify for the
+  current weekday.
+- `Tomorrow` applies the same exact-day rule for the next weekday.
+- `Upcoming windows` keeps every configured stream visible, including schedules
+  that do not provide enough weekday data to claim a same-day window.
+
+The schedule map remains backwards-compatible. An optional `days` or
+`collection_days` value is read when present; daily and immediate frequencies
+retain their existing behavior. The BBMP dry-waste entry now carries the
+source-qualified Monday, Wednesday, and Friday cadence used by the home bucket
+view.
+
+Pickup-zone context now makes confidence, last verification date, and source
+visible together. The policy enrichment path also preserves these values under
+new `policy_pickup_*` keys without removing the existing keys. Community notices,
+schedule exceptions, and special-program entries now include a `Next step`
+instruction. These instructions are intentionally conditional: they tell the
+household how to prepare or where to check, but do not imply a collector booking,
+pickup completion, or official confirmation.
+
+Evidence for this addendum is the focused home widget suite plus the scoped
+service delegation assertion. The remaining boundary is operational rather than
+UI-only: schedules are still static policy data, there is no operator edit or
+refresh workflow, and reminders or collector confirmation remain separate work.
+
+### Anything else?
+
+No pricing, token, persistence, plugin-ID, or plugin-manager changes were needed.
+The next hardening step is a source-refresh and operator-review workflow that
+can update effective dates and exceptions before the app presents them as current.

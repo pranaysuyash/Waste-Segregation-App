@@ -4,7 +4,7 @@
   "branch": "main",
   "reviewed_commit": "e48a66bd6c9116e939a3eddfa5cc48c5d2171e6a",
   "previous_commit": "d7a9c73f75779ddcbf9f22f4ce2fba9a0280b171",
-  "markdown_files": 21,
+  "markdown_files": 22,
   "files": [
     "00_CURRENT_REMOTE_REVIEW.md",
     "01_DELTA_FROM_PREVIOUS_REVIEW.md",
@@ -26,6 +26,7 @@
     "17_PARALLEL_AGENT_ORCHESTRATION.md",
     "18_DECISION_LOG_KILL_LIST.md",
     "19_SOURCE_NOTES.md",
+    "20_TASK_CHATGPT_FEEDBACK_PMFMODEL_AND_CONFIDENCE_HARDENING_2026-08-02.md",
     "README.md"
   ],
   "supersedes": "waste-segregation-agent-tasks-2026-08-02.zip"

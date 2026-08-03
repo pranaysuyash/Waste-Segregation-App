@@ -1,6 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waste_segregation_app/models/waste_classification.dart';
 
+EnvironmentalMetricEvidence _metricEvidence({
+  required String metricId,
+  required num value,
+  double confidence = 0.88,
+}) {
+  return EnvironmentalMetricEvidence(
+    metricId: metricId,
+    value: value,
+    unit: metricId == 'co2_avoidance' ? 'kgCO2e' : '1-5',
+    confidence: confidence,
+    evidenceLevel: 'measured',
+    sources: const ['EPA WARM'],
+    methodologyVersion: 'WARM-v16',
+    geography: 'IN-KA',
+    scenario: 'recycle_vs_landfill',
+    decisionSupported: 'recycling_guidance',
+    userExplanation: 'Evidence-backed estimate',
+  );
+}
+
 void main() {
   group('WasteClassification', () {
     test('should create a WasteClassification with all required fields', () {
@@ -43,6 +63,80 @@ void main() {
       expect(classification.alternatives, hasLength(3));
       expect(classification.analysisSource,
           WasteClassification.analysisSourceCloudPrimary);
+    });
+
+    test('derives household waste stream from classification taxonomy', () {
+      final wet = WasteClassification(
+        itemName: 'Banana peel',
+        category: 'Wet Waste',
+        explanation: 'Organic leftovers',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Compost',
+          steps: ['Put in compost bin'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test Region',
+        visualFeatures: ['banana'],
+        alternatives: [],
+        requiresSpecialDisposal: false,
+      );
+
+      final dry = WasteClassification(
+        itemName: 'Plastic Bottle',
+        category: 'Dry Waste',
+        explanation: 'PET bottle',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Blue bin',
+          steps: ['Rinse and flatten'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test Region',
+        visualFeatures: ['plastic'],
+        alternatives: [],
+        requiresSpecialDisposal: false,
+      );
+
+      final sanitary = WasteClassification(
+        itemName: 'Sanitary pad',
+        category: 'Sanitary Waste',
+        explanation: 'Disposable hygiene item',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Special hygiene disposal',
+          steps: ['Use safe wrap', 'Hand over at clinic'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Test Region',
+        visualFeatures: ['pad'],
+        alternatives: [],
+        requiresSpecialDisposal: false,
+      );
+
+      final battery = WasteClassification(
+        itemName: 'AA Battery',
+        category: 'Household Item',
+        explanation: 'Loose alkaline battery',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Special waste kiosk',
+          steps: ['Do not mix'],
+          hasUrgentTimeframe: true,
+        ),
+        region: 'Test Region',
+        visualFeatures: ['battery'],
+        alternatives: [],
+        subCategory: 'Battery',
+        requiresSpecialDisposal: true,
+      );
+
+      expect(wet.householdWasteStream, equals('wet_waste'));
+      expect(dry.householdWasteStream, equals('dry_waste'));
+      expect(sanitary.householdWasteStream, equals('sanitary_waste'));
+      expect(battery.householdWasteStream, equals('special_care_waste'));
+      expect(WasteStreamClassifier.isSpecialCareCategory('hazardous waste'),
+          isTrue);
+      expect(
+        WasteStreamClassifier.isSpecialCareCategory('medical waste'),
+        isTrue,
+      );
     });
 
     test('should create WasteClassification from JSON', () {
@@ -146,6 +240,275 @@ void main() {
       expect(roundTrip.analysisSourceLabel, 'Local experimental');
       expect(roundTrip.analysisFallbackReason, 'placeholder_local_model');
     });
+
+    test('should round-trip environmental impact evidence through JSON', () {
+      final original = WasteClassification(
+        itemName: 'Reusable Bottle',
+        category: 'Dry Waste',
+        explanation: 'Reusable plastic bottle',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Blue bin',
+          steps: ['Rinse', 'Remove label'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Original Region',
+        visualFeatures: ['bottle', 'plastic'],
+        alternatives: [],
+        environmentalImpactEvidence: {
+          'co2_avoidance': EnvironmentalMetricEvidence(
+            metricId: 'co2_avoidance',
+            value: 0.12,
+            unit: 'kgCO2e',
+            methodologyVersion: 'WARM-v16',
+            geography: 'IN-KA',
+            scenario: 'recycle_vs_landfill',
+            decisionSupported: 'recycling_guidance',
+            userExplanation: 'Recycling comparison',
+            sources: const ['EPA WARM', 'ILCD'],
+            inputSignals: const {'mass_kg': 0.5},
+            confidence: 0.87,
+          ),
+        },
+      );
+
+      final roundTrip = WasteClassification.fromJson(original.toJson());
+
+      expect(roundTrip.environmentalImpactEvidence, isNotNull);
+      expect(
+        roundTrip.environmentalImpactEvidence!['co2_avoidance']?.value,
+        0.12,
+      );
+      expect(
+        roundTrip.environmentalImpactEvidence!['co2_avoidance']?.unit,
+        'kgCO2e',
+      );
+      expect(
+        roundTrip
+            .environmentalImpactEvidence!['co2_avoidance']?.methodologyVersion,
+        'WARM-v16',
+      );
+      expect(
+        roundTrip.environmentalImpactEvidence!['co2_avoidance']?.confidence,
+        0.87,
+      );
+    });
+
+    test('copyWith replaces environmental impact evidence when provided', () {
+      final original = WasteClassification(
+        itemName: 'Recycled Bag',
+        category: 'Dry Waste',
+        explanation: 'Recycled fabric tote',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Reusable',
+          steps: ['Rinse and dry'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Original Region',
+        visualFeatures: ['cloth', 'bag'],
+        alternatives: [],
+        environmentalImpactEvidence: {
+          'reuse_option': EnvironmentalMetricEvidence(
+            metricId: 'reuse_option',
+            value: 0.2,
+            unit: 'kgCO2e',
+            methodologyVersion: 'ILCD',
+            geography: 'IN-KA',
+            scenario: 'reuse_vs_dispose',
+            decisionSupported: 'reuse_guidance',
+            userExplanation: 'Reuse potential',
+          ),
+        },
+      );
+
+      final replacementEvidence = {
+        'reuse_option': EnvironmentalMetricEvidence(
+          metricId: 'reuse_option',
+          value: 0.1,
+          unit: 'kgCO2e',
+          methodologyVersion: 'ILCD-2',
+          geography: 'IN-KA',
+          scenario: 'reuse_vs_dispose',
+          decisionSupported: 'reuse_guidance',
+          userExplanation: 'Updated reuse estimate',
+          confidence: 0.75,
+        ),
+      };
+
+      final updated = original.copyWith(
+        environmentalImpactEvidence: replacementEvidence,
+      );
+
+      expect(updated.environmentalImpactEvidence, same(replacementEvidence));
+      expect(updated.environmentalImpactEvidence?['reuse_option']?.value, 0.1);
+    });
+
+    test('returns verified environmental metric text when evidence is adequate',
+        () {
+      final classified = WasteClassification(
+        itemName: 'Compostable Cup',
+        category: 'Compostable',
+        explanation: 'Biodegradable cup',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Compost',
+          steps: ['Place in compost bin'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Original Region',
+        visualFeatures: ['paper'],
+        alternatives: [],
+        environmentalImpactEvidence: {
+          'co2_avoidance': EnvironmentalMetricEvidence(
+            metricId: 'co2_avoidance',
+            value: 0.12,
+            unit: 'kgCO2e',
+            confidence: 0.82,
+            evidenceLevel: 'measured',
+            methodologyVersion: 'WARM-v16',
+            geography: 'IN-KA',
+            scenario: 'recycle_vs_landfill',
+            decisionSupported: 'recycling_guidance',
+            userExplanation: 'Verified estimate',
+          ),
+        },
+      );
+
+      expect(
+        classified.getEnvironmentalMetricDisplayValue(
+          metricKeys: const ['co2_avoidance'],
+        ),
+        '0.12 kgCO2e',
+      );
+    });
+
+    test(
+        'returns null for environmental metric when evidence is inferred without source',
+        () {
+      final classified = WasteClassification(
+        itemName: 'Cardboard Box',
+        category: 'Dry Waste',
+        explanation: 'Cardboard',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Recycle',
+          steps: ['Flatten box'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Original Region',
+        visualFeatures: ['cardboard'],
+        alternatives: [],
+        environmentalImpactEvidence: {
+          'co2_avoidance': EnvironmentalMetricEvidence(
+            metricId: 'co2_avoidance',
+            value: 0.4,
+            unit: 'kgCO2e',
+            confidence: 0.72,
+            evidenceLevel: 'model_inferred',
+            methodologyVersion: 'heuristic',
+            geography: 'IN-KA',
+            scenario: 'recycle_vs_landfill',
+            decisionSupported: 'recycling_guidance',
+            userExplanation: 'Model-inferred only',
+          ),
+        },
+      );
+
+      expect(
+        classified.getEnvironmentalMetricDisplayValue(
+          metricKeys: const ['co2_avoidance'],
+        ),
+        isNull,
+      );
+    });
+
+    test('returns evidence summary when environmental impact is verifiable',
+        () {
+      final classified = WasteClassification(
+        itemName: 'Aluminum Can',
+        category: 'Dry Waste',
+        explanation: 'Aluminum container',
+        disposalInstructions: DisposalInstructions(
+          primaryMethod: 'Recycle',
+          steps: ['Rinse and flatten'],
+          hasUrgentTimeframe: false,
+        ),
+        region: 'Original Region',
+        visualFeatures: ['aluminum', 'can'],
+        alternatives: [],
+        environmentalImpactEvidence: {
+          'co2_avoidance': EnvironmentalMetricEvidence(
+            metricId: 'co2_avoidance',
+            value: 0.4,
+            unit: 'kgCO2e',
+            confidence: 0.9,
+            evidenceLevel: 'authoritative_database',
+            methodologyVersion: 'WARM-v16',
+            geography: 'IN-KA',
+            scenario: 'recycle_vs_landfill',
+            decisionSupported: 'recycling_guidance',
+            userExplanation: 'Verified estimate',
+            sources: const ['EPA WARM'],
+          ),
+        },
+      );
+
+      final summary = classified.getEnvironmentalMetricEvidenceSummary(
+        metricKeys: const ['co2_avoidance'],
+      );
+
+      expect(summary, isNotNull);
+      expect(summary, contains('0.4'));
+      expect(summary, contains('WARM-v16'));
+      expect(summary, contains('90%'));
+      expect(summary, contains('EPA WARM'));
+      expect(summary, contains('IN-KA'));
+    });
+
+    test(
+      'awards environmental score only when evidence is verified, not from raw fields',
+      () {
+        final rawOnly = WasteClassification(
+          itemName: 'Legacy Metrics Item',
+          category: 'Dry Waste',
+          explanation: 'Legacy item',
+          disposalInstructions: DisposalInstructions(
+            primaryMethod: 'Recycle',
+            steps: ['Recycle'],
+            hasUrgentTimeframe: false,
+          ),
+          region: 'Original Region',
+          visualFeatures: ['item'],
+          alternatives: [],
+          co2Impact: 12.0,
+          waterPollutionLevel: 4,
+          soilContaminationRisk: 4,
+        );
+
+        expect(rawOnly.hasVerifiedEnvironmentalImpactScoreInput, isFalse);
+        expect(rawOnly.getEnvironmentalImpactScore(), 5.0);
+
+        final verified = rawOnly.copyWith(
+          environmentalImpactEvidence: {
+            'co2_avoidance': _metricEvidence(
+              metricId: 'co2_avoidance',
+              value: 12.0,
+              confidence: 0.94,
+            ),
+            'water_pollution': _metricEvidence(
+              metricId: 'water_pollution',
+              value: 4,
+              confidence: 0.94,
+            ),
+            'soil_contamination_risk': _metricEvidence(
+              metricId: 'soil_contamination_risk',
+              value: 4,
+              confidence: 0.94,
+            ),
+          },
+        );
+
+        expect(verified.hasVerifiedEnvironmentalImpactScoreInput, isTrue);
+        expect(verified.getEnvironmentalImpactScore(), greaterThan(5.0));
+      },
+    );
   });
 
   group('AlternativeClassification', () {

@@ -15,9 +15,24 @@ import '../utils/waste_app_logger.dart';
 /// platform-level gating for UI rendering.
 class StorefrontEligibilityService {
   StorefrontEligibilityService({FirebaseRemoteConfig? remoteConfig})
-      : _remoteConfig = remoteConfig ?? FirebaseRemoteConfig.instance;
+      : _remoteConfig = remoteConfig;
 
-  final FirebaseRemoteConfig _remoteConfig;
+  /// Lazily resolved so construction never touches Firebase (test-safe).
+  /// Never throws: returns null when Remote Config is unavailable, and the
+  /// boolean getters below treat null as their documented fail-open default.
+  /// This makes the fail-open property structural rather than depending on
+  /// every call site remembering to wrap in try/catch.
+  FirebaseRemoteConfig? _remoteConfig;
+  FirebaseRemoteConfig? get _rc {
+    if (_remoteConfig == null) {
+      try {
+        _remoteConfig = FirebaseRemoteConfig.instance;
+      } catch (_) {
+        return null; // Firebase not initialized (e.g. widget tests) — fail open.
+      }
+    }
+    return _remoteConfig;
+  }
 
   /// Whether external checkout (DodoPayments web checkout) is available
   /// on the current platform.
@@ -62,7 +77,8 @@ class StorefrontEligibilityService {
   }
 
   /// Whether both payment rails are available (shows divider + "or").
-  bool get showDualPaymentRails => isExternalCheckoutAvailable && isIapAvailable;
+  bool get showDualPaymentRails =>
+      isExternalCheckoutAvailable && isIapAvailable;
 
   /// Human-readable label for the primary payment rail on this platform.
   String get primaryPaymentLabel {
@@ -77,7 +93,7 @@ class StorefrontEligibilityService {
   /// Use this if a payment provider is compromised or store policy changes.
   bool get _isKillSwitchEnabled {
     try {
-      return _remoteConfig.getBool('storefront_kill_switch');
+      return _rc?.getBool('storefront_kill_switch') ?? false;
     } catch (e) {
       // Remote config not available — default to enabled (fail open for UX)
       return false;
@@ -93,7 +109,7 @@ class StorefrontEligibilityService {
   /// Default: false (Apple requires IAP by default).
   bool get _isIosExternalCheckoutEntitled {
     try {
-      return _remoteConfig.getBool('ios_external_checkout_entitled');
+      return _rc?.getBool('ios_external_checkout_entitled') ?? false;
     } catch (e) {
       return false;
     }
@@ -113,7 +129,7 @@ class StorefrontEligibilityService {
   /// Default: false (require explicit enrolment).
   bool get _isAndroidAlternativeBillingEnrolled {
     try {
-      return _remoteConfig.getBool('android_alternative_billing_enrolled');
+      return _rc?.getBool('android_alternative_billing_enrolled') ?? false;
     } catch (e) {
       return false;
     }

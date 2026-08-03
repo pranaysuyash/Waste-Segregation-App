@@ -121,6 +121,16 @@ class LocalRulesCard extends StatelessWidget {
     if (raw.isEmpty) return raw;
 
     const labelMap = <String, String>{
+      'policy_authority_name': 'Authority',
+      'policy_authority_status': 'Authority Status',
+      'policy_governance_stage': 'Governance Stage',
+      'policy_guidelines_version': 'Guidelines Version',
+      'policy_helpline': 'Helpline',
+      'policy_last_verified': 'Last Verified',
+      'policy_next_review': 'Next Review',
+      'policy_source_status': 'Source Status',
+      'policy_source_title': 'Source',
+      'policy_source_url': 'Source URL',
       'policy_rule_pack_id': 'Policy Pack',
       'policy_plugin_id': 'Policy Plugin',
       'policy_compliance_status': 'Policy Status',
@@ -130,6 +140,8 @@ class LocalRulesCard extends StatelessWidget {
       'policy_evaluated_at': 'Policy Evaluated At',
       'color_coding': 'Color Coding',
       'collection_frequency': 'Collection Frequency',
+      'collection_time_window': 'Collection Window',
+      'collection_notes': 'Collection Notes',
       'composting_requirement': 'Composting Requirement',
       'penalty_non_compliance': 'Penalty',
       'cleaning_requirement': 'Cleaning Requirement',
@@ -139,6 +151,16 @@ class LocalRulesCard extends StatelessWidget {
     };
 
     final preferredOrder = <String>[
+      'policy_authority_name',
+      'policy_authority_status',
+      'policy_governance_stage',
+      'policy_guidelines_version',
+      'policy_source_status',
+      'policy_source_title',
+      'policy_source_url',
+      'policy_helpline',
+      'policy_last_verified',
+      'policy_next_review',
       'policy_compliance_status',
       'policy_violation_count',
       'policy_warning_count',
@@ -147,6 +169,8 @@ class LocalRulesCard extends StatelessWidget {
       'policy_evaluated_at',
       'color_coding',
       'collection_frequency',
+      'collection_time_window',
+      'collection_notes',
       'composting_requirement',
       'segregation_requirement',
       'cleaning_requirement',

@@ -2,6 +2,9 @@ import 'package:waste_segregation_app/models/waste_classification.dart';
 import 'city_policy_data.dart';
 import '../utils/waste_app_logger.dart';
 
+// These legacy private helpers remain available as compatibility references
+// while CityPolicyData is the canonical policy-application path.
+
 /// Abstract base class for local guidelines plugins.
 ///
 /// New cities should use [CityPolicyData] to power most methods without
@@ -22,6 +25,9 @@ abstract class LocalGuidelinesPlugin {
   Map<String, String> getColorCoding();
   Map<String, dynamic> getCollectionSchedule();
   Map<String, String> getLocalRegulations(String category);
+  List<CommunityOperationNotice> getCommunityNotices();
+  List<CommunityOperationNotice> getScheduleExceptions();
+  Map<String, String> getPickupZones();
 }
 
 /// Helper mixin-like base that delegates most methods to a [CityPolicyData].
@@ -44,12 +50,12 @@ mixin CityDataPluginMixin on LocalGuidelinesPlugin {
   @override
   Future<WasteClassification> applyLocalGuidelines(
       WasteClassification classification) async {
-    return cityData.applyDefaults(this as LocalGuidelinesPlugin, classification);
+    return cityData.applyDefaults(
+        this as LocalGuidelinesPlugin, classification);
   }
 
   @override
-  LocalComplianceResult validateCompliance(
-      WasteClassification classification) {
+  LocalComplianceResult validateCompliance(WasteClassification classification) {
     return cityData.defaultValidateCompliance(
         this as LocalGuidelinesPlugin, classification);
   }
@@ -70,6 +76,17 @@ mixin CityDataPluginMixin on LocalGuidelinesPlugin {
   @override
   Map<String, String> getLocalRegulations(String category) =>
       cityData.getLocalRegulations(category);
+
+  @override
+  List<CommunityOperationNotice> getCommunityNotices() =>
+      cityData.getCommunityNotices();
+
+  @override
+  List<CommunityOperationNotice> getScheduleExceptions() =>
+      cityData.getScheduleExceptions();
+
+  @override
+  Map<String, String> getPickupZones() => cityData.getPickupZones();
 }
 
 /// BBMP (Bruhat Bengaluru Mahanagara Palike) — Bangalore.
@@ -102,26 +119,11 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
             'category': classification.category,
           });
 
-      final localRegulations = getLocalRegulations(classification.category);
+      var updatedClassification = await cityData.applyDefaults(
+        this,
+        classification,
+      );
       final complianceResult = validateCompliance(classification);
-      final localInstructions = getLocalDisposalInstructions(
-        classification.category,
-        classification.subCategory,
-      );
-
-      var updatedClassification = classification.copyWith(
-        localRegulations: localRegulations,
-        bbmpComplianceStatus: complianceResult.status,
-        localGuidelinesVersion: guidelinesVersion,
-        localGuidelinesReference: _generateGuidelinesReference(classification),
-      );
-
-      if (localInstructions != null) {
-        updatedClassification = _applyLocalDisposalOverrides(
-          updatedClassification,
-          localInstructions,
-        );
-      }
 
       final pointsModifier =
           _calculatePointsModifier(classification, complianceResult);
@@ -135,7 +137,8 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
       WasteAppLogger.info('BBMP guidelines applied successfully', context: {
         'compliance_status': complianceResult.status,
         'points_modifier': pointsModifier,
-        'regulations_count': localRegulations.length,
+        'regulations_count':
+            updatedClassification.localRegulations?.length ?? 0,
       });
 
       return updatedClassification;
@@ -151,8 +154,7 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
   }
 
   @override
-  LocalComplianceResult validateCompliance(
-      WasteClassification classification) {
+  LocalComplianceResult validateCompliance(WasteClassification classification) {
     final violations = <String>[];
     final warnings = <String>[];
 
@@ -205,10 +207,21 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
   Map<String, String> getLocalRegulations(String category) =>
       cityData.getLocalRegulations(category);
 
+  @override
+  List<CommunityOperationNotice> getCommunityNotices() =>
+      cityData.getCommunityNotices();
+
+  @override
+  List<CommunityOperationNotice> getScheduleExceptions() =>
+      cityData.getScheduleExceptions();
+
+  @override
+  Map<String, String> getPickupZones() => cityData.getPickupZones();
+
   // -- BBMP-specific compliance logic --
 
-  void _validateWetWasteCompliance(WasteClassification c,
-      List<String> violations, List<String> warnings) {
+  void _validateWetWasteCompliance(
+      WasteClassification c, List<String> violations, List<String> warnings) {
     if (c.disposalMethod?.toLowerCase().contains('landfill') == true) {
       violations.add('Wet waste should not go to landfill - must be composted');
     }
@@ -220,29 +233,31 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
     }
   }
 
-  void _validateDryWasteCompliance(WasteClassification c,
-      List<String> violations, List<String> warnings) {
+  void _validateDryWasteCompliance(
+      WasteClassification c, List<String> violations, List<String> warnings) {
     if (c.isRecyclable != true &&
         c.subCategory?.toLowerCase().contains('plastic') == true) {
       warnings.add('Most plastics are recyclable - verify recycling code');
     }
     if (c.visualFeatures.any((f) => f.toLowerCase().contains('dirty'))) {
-      warnings.add('Clean items before dry waste disposal for better recycling');
+      warnings
+          .add('Clean items before dry waste disposal for better recycling');
     }
   }
 
-  void _validateHazardousWasteCompliance(WasteClassification c,
-      List<String> violations, List<String> warnings) {
+  void _validateHazardousWasteCompliance(
+      WasteClassification c, List<String> violations, List<String> warnings) {
     if (c.requiresSpecialDisposal != true) {
-      violations.add('Hazardous waste must be marked as requiring special disposal');
+      violations
+          .add('Hazardous waste must be marked as requiring special disposal');
     }
     if (c.riskLevel == 'safe') {
       warnings.add('Risk level may be underestimated for hazardous category');
     }
   }
 
-  void _validateMedicalWasteCompliance(WasteClassification c,
-      List<String> violations, List<String> warnings) {
+  void _validateMedicalWasteCompliance(
+      WasteClassification c, List<String> violations, List<String> warnings) {
     if (c.hasUrgentTimeframe != true) {
       violations.add('Medical waste requires immediate disposal');
     }
@@ -252,14 +267,18 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
   }
 
   List<String> _getComplianceRecommendations(WasteClassification c) {
-    final recs = <String>[];
-    recs.add(
-        'Follow BBMP color-coding: ${getColorCoding()[c.category.toLowerCase().replaceAll(' ', '_')]}');
+    final recs = <String>[
+      'Follow BBMP color-coding: ${getColorCoding()[c.category.toLowerCase().replaceAll(' ', '_')]}'
+    ];
 
-    final schedule = getCollectionSchedule()[
-        c.category.toLowerCase().replaceAll(' ', '_')];
+    final schedule =
+        getCollectionSchedule()[c.category.toLowerCase().replaceAll(' ', '_')];
     if (schedule != null) {
       recs.add('Collection: ${schedule['frequency']} at ${schedule['time']}');
+      final days = schedule['days'];
+      if (days is Iterable && days.isNotEmpty) {
+        recs.add('Collection days: ${days.join(', ')}');
+      }
     }
 
     switch (c.category.toLowerCase()) {
@@ -282,11 +301,13 @@ class BBMPBangalorePlugin extends LocalGuidelinesPlugin {
     return recs;
   }
 
+  // ignore: unused_element
   String _generateGuidelinesReference(WasteClassification c) {
     final cat = c.category.toLowerCase().replaceAll(' ', '_');
     return 'BBMP-2024-$cat-guidelines';
   }
 
+  // ignore: unused_element
   WasteClassification _applyLocalDisposalOverrides(
     WasteClassification classification,
     Map<String, dynamic> localInstructions,
@@ -342,8 +363,7 @@ class MCDDelhiPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
   CityPolicyData get cityData => CityPolicyData.mcd;
 
   @override
-  LocalComplianceResult validateCompliance(
-      WasteClassification classification) {
+  LocalComplianceResult validateCompliance(WasteClassification classification) {
     final result = cityData.defaultValidateCompliance(this, classification);
     if (classification.category.toLowerCase() == 'sanitary waste' &&
         (classification.requiresSpecialDisposal != true)) {
@@ -360,13 +380,12 @@ class PunePMCPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
   CityPolicyData get cityData => CityPolicyData.pmc;
 
   @override
-  LocalComplianceResult validateCompliance(
-      WasteClassification classification) {
+  LocalComplianceResult validateCompliance(WasteClassification classification) {
     final result = cityData.defaultValidateCompliance(this, classification);
     if (classification.category.toLowerCase() == 'wet waste' &&
         classification.isCompostable != true) {
-      result.warnings.add(
-          'PMC encourages composting; wet waste should be compostable.');
+      result.warnings
+          .add('PMC encourages composting; wet waste should be compostable.');
     }
     return result;
   }
@@ -391,8 +410,7 @@ class KMKKolkataPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
   CityPolicyData get cityData => CityPolicyData.kmc;
 
   @override
-  LocalComplianceResult validateCompliance(
-      WasteClassification classification) {
+  LocalComplianceResult validateCompliance(WasteClassification classification) {
     final result = cityData.defaultValidateCompliance(this, classification);
     result.recommendations.add(
         'Consider selling recyclable dry waste to your local kabadiwala for better recycling rates.');
@@ -401,7 +419,8 @@ class KMKKolkataPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
 }
 
 /// AMC (Ahmedabad Municipal Corporation) — Ahmedabad.
-class AMCAhmedabadPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
+class AMCAhmedabadPlugin extends LocalGuidelinesPlugin
+    with CityDataPluginMixin {
   @override
   CityPolicyData get cityData => CityPolicyData.amc;
 }
@@ -424,8 +443,7 @@ class LMCLucknowPlugin extends LocalGuidelinesPlugin with CityDataPluginMixin {
   CityPolicyData get cityData => CityPolicyData.lmc;
 
   @override
-  LocalComplianceResult validateCompliance(
-      WasteClassification classification) {
+  LocalComplianceResult validateCompliance(WasteClassification classification) {
     final result = cityData.defaultValidateCompliance(this, classification);
     result.recommendations.add(
         'Report garbage collection issues to Mayor helpline: ${cityData.helpline}');

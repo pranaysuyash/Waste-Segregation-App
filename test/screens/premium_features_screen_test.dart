@@ -8,6 +8,7 @@ import 'package:waste_segregation_app/models/premium_feature.dart';
 import 'package:waste_segregation_app/screens/premium_features_screen.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/services/purchase_service.dart';
+import 'package:waste_segregation_app/services/storefront_eligibility_service.dart';
 import 'package:waste_segregation_app/utils/routes.dart';
 import 'package:waste_segregation_app/widgets/premium_feature_card.dart';
 
@@ -19,6 +20,13 @@ class FakePremiumService extends ChangeNotifier implements PremiumService {
 
   @override
   Future<void> initialize() async {}
+
+  @override
+  EntitlementState get entitlementState =>
+      hasActivePremiumPlan() ? EntitlementState.active : EntitlementState.expired;
+
+  @override
+  DateTime? get lastServerVerification => null;
 
   @override
   bool isPremiumFeature(String featureId) => _enabled[featureId] ?? false;
@@ -82,6 +90,8 @@ Widget buildTestApp(FakePremiumService premiumService) {
   return ProviderScope(
     overrides: [
       premiumServiceProvider.overrideWithValue(premiumService),
+      storefrontEligibilityServiceProvider.overrideWithValue(
+          _FakeStorefrontEligibilityService()),
     ],
     child: MaterialApp(
       localizationsDelegates: const [
@@ -94,6 +104,17 @@ Widget buildTestApp(FakePremiumService premiumService) {
       home: const PremiumFeaturesScreen(),
     ),
   );
+}
+
+class _FakeStorefrontEligibilityService extends StorefrontEligibilityService {
+  @override
+  bool get isExternalCheckoutAvailable => true;
+
+  @override
+  bool get isIapAvailable => false;
+
+  @override
+  String get primaryPaymentLabel => 'Card / UPI';
 }
 
 class FakePurchaseService extends ChangeNotifier implements PurchaseService {
@@ -177,6 +198,8 @@ Widget buildTestAppWithIap({
     overrides: [
       premiumServiceProvider.overrideWithValue(premiumService),
       purchaseServiceProvider.overrideWithValue(purchaseService),
+      storefrontEligibilityServiceProvider.overrideWithValue(
+          _FakeStorefrontEligibilityService()),
     ],
     child: MaterialApp(
       localizationsDelegates: const [
@@ -261,11 +284,11 @@ void main() {
 
       await scrollToText(
         tester,
-        'Pay online with credit/debit card, UPI, or net banking. No app store required.',
+        'Pay online with credit/debit card, UPI, or net banking.',
       );
       expect(
         find.text(
-          'Pay online with credit/debit card, UPI, or net banking. No app store required.',
+          'Pay online with credit/debit card, UPI, or net banking.',
           findRichText: true,
         ),
         findsOneWidget,
@@ -457,6 +480,8 @@ void main() {
         await tester.pumpWidget(ProviderScope(
           overrides: [
             premiumServiceProvider.overrideWithValue(premiumService),
+            storefrontEligibilityServiceProvider.overrideWithValue(
+                _FakeStorefrontEligibilityService()),
           ],
           child: MaterialApp(
             localizationsDelegates: const [

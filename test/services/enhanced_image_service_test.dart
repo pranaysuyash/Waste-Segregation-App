@@ -284,6 +284,85 @@ void main() {
 
   // ─── Content-based extension ───────────────────────────────────
 
+  // ─── purgeExpiredLocalImages (PRIVACY-02 retention) ────────────
+
+  group('purgeExpiredLocalImages', () {
+    test('removes only stale unreferenced files older than retention', () async {
+      final imagesDir = Directory('${testDir.path}/images');
+      await imagesDir.create(recursive: true);
+
+      // Stale (older than 90-day retention) + unreferenced → MUST be purged.
+      final staleOrphan = File('${imagesDir.path}/stale_orphan_uuid.jpg');
+      await staleOrphan.writeAsBytes(_createTestJpeg());
+      staleOrphan.setLastModifiedSync(
+          DateTime.now().subtract(const Duration(days: 120)));
+
+      // Stale + referenced by a saved classification → MUST survive.
+      final staleReferenced = File('${imagesDir.path}/stale_referenced_uuid.jpg');
+      await staleReferenced.writeAsBytes(_createTestJpeg());
+      staleReferenced.setLastModifiedSync(
+          DateTime.now().subtract(const Duration(days: 120)));
+
+      // Fresh (within retention window) + unreferenced → MUST survive.
+      // This is the "only stale files are removed" guarantee.
+      final freshOrphan = File('${imagesDir.path}/fresh_orphan_uuid.jpg');
+      await freshOrphan.writeAsBytes(_createTestJpeg());
+      freshOrphan.setLastModifiedSync(
+          DateTime.now().subtract(const Duration(days: 10)));
+
+      // Just inside the retention window → MUST survive. purge compares with
+      // strict `>` (now.difference(modified) <= olderThan is kept), so an
+      // exactly-at-boundary mtime would be flaky; 1h inside is deterministic.
+      final justInside = File('${imagesDir.path}/just_inside_uuid.jpg');
+      await justInside.writeAsBytes(_createTestJpeg());
+      justInside.setLastModifiedSync(DateTime.now().subtract(
+          EnhancedImageService.localImageRetention -
+              const Duration(hours: 1)));
+
+      final removed = await service.purgeExpiredLocalImages(
+        referencedPaths: {staleReferenced.path},
+      );
+
+      expect(removed, 1, reason: 'exactly one stale orphan is purged');
+      expect(staleOrphan.existsSync(), isFalse,
+          reason: 'stale unreferenced image must be purged');
+      expect(staleReferenced.existsSync(), isTrue,
+          reason: 'stale but referenced image must survive');
+      expect(freshOrphan.existsSync(), isTrue,
+          reason: 'fresh unreferenced image must survive (only stale removed)');
+      expect(justInside.existsSync(), isTrue,
+          reason: 'image inside retention window is not stale');
+    });
+
+    test('returns 0 and leaves files untouched when images dir is absent',
+        () async {
+      final removed =
+          await service.purgeExpiredLocalImages(referencedPaths: {});
+      expect(removed, 0);
+    });
+
+    test('purges every stale orphan when referenced set is empty', () async {
+      final imagesDir = Directory('${testDir.path}/images');
+      await imagesDir.create(recursive: true);
+
+      final staleOne = File('${imagesDir.path}/stale_one_uuid.jpg');
+      await staleOne.writeAsBytes(_createTestJpeg());
+      staleOne.setLastModifiedSync(
+          DateTime.now().subtract(const Duration(days: 100)));
+
+      final staleTwo = File('${imagesDir.path}/stale_two_uuid.jpg');
+      await staleTwo.writeAsBytes(_createTestJpeg());
+      staleTwo.setLastModifiedSync(
+          DateTime.now().subtract(const Duration(days: 200)));
+
+      final removed =
+          await service.purgeExpiredLocalImages(referencedPaths: {});
+      expect(removed, 2);
+      expect(staleOne.existsSync(), isFalse);
+      expect(staleTwo.existsSync(), isFalse);
+    });
+  });
+
   group('content-based extension', () {
     test('saves PNG content with .png extension', () async {
       final png = _createTestPng();

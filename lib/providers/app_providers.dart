@@ -21,6 +21,7 @@ import 'package:waste_segregation_app/services/points_engine.dart';
 import 'package:waste_segregation_app/services/premium_service.dart';
 import 'package:waste_segregation_app/services/purchase_service.dart';
 import 'package:waste_segregation_app/services/storage_service.dart';
+import 'package:waste_segregation_app/services/storefront_eligibility_service.dart';
 import 'package:waste_segregation_app/services/training_data_service.dart';
 import 'package:waste_segregation_app/services/user_consent_service.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
@@ -201,6 +202,11 @@ final googleDriveServiceProvider = Provider<GoogleDriveService>((ref) {
 /// Premium service provider
 final premiumServiceProvider = Provider<PremiumService>((ref) =>
     PremiumService());
+
+/// Storefront/payment-rail eligibility provider — platform-level gating for
+/// which payment options render (iOS/Android store compliance).
+final storefrontEligibilityServiceProvider =
+    Provider<StorefrontEligibilityService>((ref) => StorefrontEligibilityService());
 
 /// Purchase service provider
 final purchaseServiceProvider = Provider<PurchaseService>((ref) {

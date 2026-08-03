@@ -87,20 +87,15 @@ class CommunityImpactCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppTheme.spacingMd),
-          _ImpactRow(
-            icon: Icons.cloud_off_outlined,
-            label: 'Est. CO₂ saved',
-            value: '${stats.estimatedCO2Saved.toStringAsFixed(1)} kg',
-            color: Colors.green,
-          ),
-          if (stats.waterSavedLiters > 0) ...[
-            const SizedBox(height: AppTheme.spacingSm),
+          if (stats.estimatedCO2Saved != null) ...[
             _ImpactRow(
-              icon: Icons.water_drop_outlined,
-              label: 'Water saved',
-              value: '${stats.waterSavedLiters.round()} L',
-              color: Colors.blue,
+              icon: Icons.cloud_off_outlined,
+              label: 'Est. CO₂ saved',
+              value:
+                  '${stats.estimatedCO2Saved!.toStringAsFixed(1)} kg CO₂ (verified)',
+              color: Colors.green,
             ),
+            const SizedBox(height: AppTheme.spacingSm),
           ],
           const SizedBox(height: AppTheme.spacingSm),
           _ImpactRow(
@@ -208,25 +203,21 @@ class CommunityImpactCard extends StatelessWidget {
   static _ImpactStats _computeStats(List<WasteClassification> list) {
     final totalItems = list.length;
 
-    // CO2: prefer explicit co2Impact when available; fallback to simple heuristic
+    // CO2: use only evidence-backed environmental metrics.
     var estimatedCO2Saved = 0.0;
+    var hasEstimatedCO2 = false;
     for (final c in list) {
-      if (c.co2Impact != null) {
-        estimatedCO2Saved += c.co2Impact!;
-      } else if (c.isRecyclable == true) {
-        estimatedCO2Saved += 0.5;
+      final impact = c.getEnvironmentalMetricNumericValue(
+        metricKeys: const ['co2_avoidance'],
+        minConfidence: 0.5,
+      );
+      if (impact == null) {
+        continue;
       }
+      estimatedCO2Saved += impact;
+      hasEstimatedCO2 = true;
     }
-
-    // Water: prefer explicit waterPollutionLevel inverse proxy (1-5 scale)
-    // If we don't have real water data, show 0 so the row is hidden.
-    var waterSavedLiters = 0.0;
-    for (final c in list) {
-      if (c.waterPollutionLevel != null) {
-        // rough proxy: higher pollution prevented = more water "saved"
-        waterSavedLiters += c.waterPollutionLevel! * 20;
-      }
-    }
+    final co2Value = hasEstimatedCO2 ? estimatedCO2Saved : null;
 
     // Most common category
     final categoryCounts = <String, int>{};
@@ -251,8 +242,7 @@ class CommunityImpactCard extends StatelessWidget {
 
     return _ImpactStats(
       totalItems: totalItems,
-      estimatedCO2Saved: estimatedCO2Saved,
-      waterSavedLiters: waterSavedLiters,
+      estimatedCO2Saved: co2Value,
       mostCommonCategory: mostCommonCategory,
       thisWeekCount: thisWeekCount,
     );
@@ -263,14 +253,12 @@ class _ImpactStats {
   _ImpactStats({
     required this.totalItems,
     required this.estimatedCO2Saved,
-    required this.waterSavedLiters,
     required this.mostCommonCategory,
     required this.thisWeekCount,
   });
 
   final int totalItems;
-  final double estimatedCO2Saved;
-  final double waterSavedLiters;
+  final double? estimatedCO2Saved;
   final String mostCommonCategory;
   final int thisWeekCount;
 }

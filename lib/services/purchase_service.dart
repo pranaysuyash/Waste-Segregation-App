@@ -3,17 +3,18 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
-import '../models/premium_feature.dart';
 import '../utils/waste_app_logger.dart';
 import 'premium_service.dart';
 
 /// Launchable purchase rail for a single premium subscription product.
 ///
-/// This service owns store interaction and synchronizes entitlement state
-/// into [PremiumService].
+/// This service owns store interaction only. Store purchase and restore
+/// updates are completed here, but they do not prove a paid entitlement to
+/// the client. The server webhook updates Firestore and [PremiumService]'s
+/// entitlement listener re-syncs the local UI cache from that projection.
 class PurchaseService extends ChangeNotifier {
   PurchaseService(
-    this._premiumService, {
+    PremiumService _, {
     StoreBillingGateway? gateway,
     this.productId = _defaultProductId,
   }) : _gateway = gateway ?? InAppPurchaseGateway();
@@ -22,7 +23,6 @@ class PurchaseService extends ChangeNotifier {
       'PREMIUM_SUBSCRIPTION_PRODUCT_ID',
       defaultValue: 'waste_premium_monthly');
 
-  final PremiumService _premiumService;
   final StoreBillingGateway _gateway;
   final String productId;
 
@@ -157,7 +157,9 @@ class PurchaseService extends ChangeNotifier {
           break;
         case PurchaseUpdateStatus.purchased:
         case PurchaseUpdateStatus.restored:
-          await _grantPremiumEntitlements();
+          // A store event is not server verification. Do not mutate the
+          // entitlement cache here; the Firestore entitlement listener is the
+          // only production path that can re-sync paid access locally.
           shouldStopProcessing = true;
           break;
         case PurchaseUpdateStatus.error:
@@ -180,16 +182,6 @@ class PurchaseService extends ChangeNotifier {
     }
 
     notifyListeners();
-  }
-
-  Future<void> _grantPremiumEntitlements() async {
-    // setPremiumPlanEntitlement sets both canonical and legacy Hive flags and
-    // fires the Firestore subscriptionTier sync via PremiumService — no
-    // separate write needed here.
-    await _premiumService.setPremiumPlanEntitlement(true);
-    for (final feature in PremiumFeature.features) {
-      await _premiumService.setPremiumFeature(feature.id, true);
-    }
   }
 
   @override

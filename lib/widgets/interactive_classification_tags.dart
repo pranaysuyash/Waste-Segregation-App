@@ -529,6 +529,10 @@ class EnvironmentalImpactIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!classification.hasVerifiedEnvironmentalImpactScoreInput) {
+      return const SizedBox.shrink();
+    }
+
     final impact = classification.getEnvironmentalImpactScore();
     final color = _getImpactColor(impact);
     final level = _getImpactLevel(impact);

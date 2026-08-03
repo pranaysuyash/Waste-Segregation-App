@@ -99,7 +99,12 @@ void main() {
           overrides: [
             storageServiceProvider.overrideWithValue(storageService),
           ],
-          child: MaterialApp(home: FamilyManagementScreen(family: family)),
+          child: MaterialApp(
+            home: FamilyManagementScreen(
+              family: family,
+              familyService: familyService,
+            ),
+          ),
         ),
       );
 

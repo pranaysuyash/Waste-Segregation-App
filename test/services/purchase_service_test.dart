@@ -78,7 +78,7 @@ void main() {
       expect(service.errorMessage, isNull);
     });
 
-    test('purchased update grants premium entitlement', () async {
+    test('purchased update waits for server entitlement sync', () async {
       when(() => gateway.isAvailable()).thenAnswer((_) async => true);
       when(() => gateway.queryProducts(any())).thenAnswer(
         (_) async => const [
@@ -109,9 +109,8 @@ void main() {
 
       await Future<void>.delayed(const Duration(milliseconds: 20));
 
-      verify(() => premiumService.setPremiumPlanEntitlement(true)).called(1);
-      verify(() => premiumService.setPremiumFeature('remove_ads', true))
-          .called(greaterThanOrEqualTo(1));
+      verifyNever(() => premiumService.setPremiumPlanEntitlement(true));
+      verifyNever(() => premiumService.setPremiumFeature(any(), any()));
       verify(() => gateway.completePurchase(any())).called(1);
       expect(service.isProcessingPurchase, isFalse);
     });

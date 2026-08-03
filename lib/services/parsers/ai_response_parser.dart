@@ -191,6 +191,14 @@ class AiResponseParser {
       final disposalInstructions =
           parseDisposalInstructions(jsonContent['disposalInstructions']);
       final alternatives = parseAlternatives(jsonContent['alternatives']);
+      final environmentalImpactEvidence = _parseEnvironmentalImpactEvidence(
+        jsonContent['environmentalImpactEvidence'],
+      );
+      // Legacy raw environmental scalars are retained only for storage/backward
+      // compatibility when evidence is unavailable. They are intentionally not
+      // considered authoritative in scoring/tags/impact display.
+      final preserveLegacyEnvironmentalFields =
+          !_hasUsableEnvironmentalMetricEvidence(environmentalImpactEvidence);
       final taxonomyPayload = _readTaxonomyPayload(jsonContent);
 
       var itemName = safeStringParse(jsonContent['itemName']) ?? '';
@@ -334,16 +342,19 @@ class AiResponseParser {
         reanalysisModelsTried: reanalysisModelsTried,
         recyclability: safeStringParse(jsonContent['recyclability']),
         hazardLevel: parseInt(jsonContent['hazardLevel']),
-        co2Impact: parseDouble(jsonContent['co2Impact']),
-        decompositionTime: safeStringParse(jsonContent['decompositionTime']),
+        co2Impact: preserveLegacyEnvironmentalFields
+            ? parseDouble(jsonContent['co2Impact'])
+            : null,
+        decompositionTime: preserveLegacyEnvironmentalFields
+            ? safeStringParse(jsonContent['decompositionTime'])
+            : null,
         properEquipment: parseStringListSafely(jsonContent['properEquipment']),
         materials: parseStringListSafely(jsonContent['materials']),
         subCategory: safeStringParse(jsonContent['subCategory']),
         commonUses: parseStringListSafely(jsonContent['commonUses']),
         alternativeOptions:
             parseStringListSafely(jsonContent['alternativeOptions']),
-        localRegulations:
-            parseStringMapSafely(jsonContent['localRegulations']),
+        localRegulations: parseStringMapSafely(jsonContent['localRegulations']),
         taxonomyVersion: taxonomyPayload['taxonomyVersion'],
         taxonomyFamilyId: taxonomyPayload['taxonomyFamilyId'],
         taxonomyCategoryId: taxonomyPayload['taxonomyCategoryId'],
@@ -357,24 +368,46 @@ class AiResponseParser {
         ),
         taxonomyMatchedSignal:
             taxonomyPayload['taxonomyMatchedSignal']?.toString(),
-        waterPollutionLevel: parseInt(jsonContent['waterPollutionLevel']),
-        soilContaminationRisk: parseInt(jsonContent['soilContaminationRisk']),
+        waterPollutionLevel: preserveLegacyEnvironmentalFields
+            ? parseInt(jsonContent['waterPollutionLevel'])
+            : null,
+        soilContaminationRisk: preserveLegacyEnvironmentalFields
+            ? parseInt(jsonContent['soilContaminationRisk'])
+            : null,
         biodegradabilityDays: parseInt(jsonContent['biodegradabilityDays']),
-        recyclingEfficiency: parseInt(jsonContent['recyclingEfficiency']),
-        manufacturingEnergyFootprint:
-            parseDouble(jsonContent['manufacturingEnergyFootprint']),
-        transportationFootprint:
-            parseDouble(jsonContent['transportationFootprint']),
-        endOfLifeCost: safeStringParse(jsonContent['endOfLifeCost']),
-        circularEconomyPotential:
-            parseStringListSafely(jsonContent['circularEconomyPotential']),
-        generatesMicroplastics:
-            parseBool(jsonContent['generatesMicroplastics']),
-        humanToxicityLevel: parseInt(jsonContent['humanToxicityLevel']),
-        wildlifeImpactSeverity:
-            parseInt(jsonContent['wildlifeImpactSeverity']),
-        resourceScarcity: safeStringParse(jsonContent['resourceScarcity']),
-        disposalCostEstimate: parseDouble(jsonContent['disposalCostEstimate']),
+        recyclingEfficiency: preserveLegacyEnvironmentalFields
+            ? parseInt(jsonContent['recyclingEfficiency'])
+            : null,
+        manufacturingEnergyFootprint: preserveLegacyEnvironmentalFields
+            ? parseDouble(jsonContent['manufacturingEnergyFootprint'])
+            : null,
+        transportationFootprint: preserveLegacyEnvironmentalFields
+            ? parseDouble(jsonContent['transportationFootprint'])
+            : null,
+        endOfLifeCost: preserveLegacyEnvironmentalFields
+            ? safeStringParse(jsonContent['endOfLifeCost'])
+            : null,
+        circularEconomyPotential: parseStringListSafely(
+          preserveLegacyEnvironmentalFields
+              ? jsonContent['circularEconomyPotential']
+              : null,
+        ),
+        generatesMicroplastics: preserveLegacyEnvironmentalFields
+            ? parseBool(jsonContent['generatesMicroplastics'])
+            : null,
+        humanToxicityLevel: preserveLegacyEnvironmentalFields
+            ? parseInt(jsonContent['humanToxicityLevel'])
+            : null,
+        wildlifeImpactSeverity: preserveLegacyEnvironmentalFields
+            ? parseInt(jsonContent['wildlifeImpactSeverity'])
+            : null,
+        resourceScarcity: preserveLegacyEnvironmentalFields
+            ? safeStringParse(jsonContent['resourceScarcity'])
+            : null,
+        disposalCostEstimate: preserveLegacyEnvironmentalFields
+            ? parseDouble(jsonContent['disposalCostEstimate'])
+            : null,
+        environmentalImpactEvidence: environmentalImpactEvidence,
         bbmpComplianceStatus:
             safeStringParse(jsonContent['bbmpComplianceStatus']),
         localGuidelinesVersion:
@@ -388,9 +421,7 @@ class AiResponseParser {
       WasteAppLogger.severe('Error occurred');
       return _createFallbackClassification(
           jsonContent.toString(), imagePath, region,
-          provider: provider,
-          model: model,
-          classificationId: classificationId);
+          provider: provider, model: model, classificationId: classificationId);
     }
   }
 
@@ -430,6 +461,52 @@ class AiResponseParser {
           .map((e) => MapEntry(e.key.toString(), e.value.toString())));
     }
     return null;
+  }
+
+  static Map<String, EnvironmentalMetricEvidence>?
+      _parseEnvironmentalImpactEvidence(dynamic value) {
+    if (value == null) return null;
+    if (value is Map) {
+      try {
+        final evidence = EnvironmentalMetricEvidence.fromJsonMap(
+          Map<String, dynamic>.from(value),
+        );
+        return _hasUsableEnvironmentalMetricEvidence(evidence)
+            ? evidence
+            : null;
+      } catch (_) {
+        return null;
+      }
+    }
+    if (value is String && value.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is Map<String, dynamic>) {
+          final evidence = EnvironmentalMetricEvidence.fromJsonMap(decoded);
+          return _hasUsableEnvironmentalMetricEvidence(evidence)
+              ? evidence
+              : null;
+        }
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  static bool _hasUsableEnvironmentalMetricEvidence(
+    Map<String, EnvironmentalMetricEvidence>? evidence,
+  ) {
+    if (evidence == null || evidence.isEmpty) {
+      return false;
+    }
+
+    return evidence.values.any((metric) {
+      if (metric.unit.trim().isEmpty) return false;
+      final hasValue = metric.value != null;
+      final hasRange = metric.lowerBound != null && metric.upperBound != null;
+      return hasValue || hasRange;
+    });
   }
 
   static Map<String, dynamic> _readTaxonomyPayload(
@@ -501,8 +578,8 @@ class AiResponseParser {
   static Map<String, double>? parseImageMetrics(dynamic value) {
     if (value == null) return null;
     if (value is Map) {
-      return Map<String, double>.fromEntries(value.entries.map(
-          (e) => MapEntry(e.key.toString(), parseDouble(e.value) ?? 0.0)));
+      return Map<String, double>.fromEntries(value.entries
+          .map((e) => MapEntry(e.key.toString(), parseDouble(e.value) ?? 0.0)));
     }
     return null;
   }
@@ -595,14 +672,14 @@ class AiResponseParser {
     return WasteClassification.fallback(
       imagePath,
       id: classificationId,
-      ).copyWith(
-        itemName: itemName,
-        category: category,
-        explanation: explanation,
-        modelSource: '$provider-$model',
-        source: 'ai_analysis_$provider',
-        analysisSource: WasteClassification.analysisSourceCloudPrimary,
-        analysisFallbackReason: 'malformed_provider_response',
-      );
+    ).copyWith(
+      itemName: itemName,
+      category: category,
+      explanation: explanation,
+      modelSource: '$provider-$model',
+      source: 'ai_analysis_$provider',
+      analysisSource: WasteClassification.analysisSourceCloudPrimary,
+      analysisFallbackReason: 'malformed_provider_response',
+    );
   }
 }

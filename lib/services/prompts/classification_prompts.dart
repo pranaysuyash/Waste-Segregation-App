@@ -20,23 +20,33 @@ Classification Hierarchy & Instructions:
    - Material type: Primary material composition
    - Recycling code: For plastics (1-7), if identifiable
 
-2. ENVIRONMENTAL IMPACT ANALYSIS (Enhanced v2.0):
+2. ENVIRONMENTAL IMPACT EVIDENCE:
    - recyclability: "fully recyclable", "partially recyclable", "not recyclable"
    - hazardLevel: Integer 1-5 (1=safe, 5=extremely hazardous)
-   - co2Impact: CO2 equivalent in kg (estimate lifecycle impact)
-   - decompositionTime: Natural decomposition timeline (e.g., "6 months", "500 years")
-   - waterPollutionLevel: Integer 1-5 (potential for water contamination)
-   - soilContaminationRisk: Integer 1-5 (soil pollution risk)
-   - biodegradabilityDays: Integer days for natural breakdown
-   - recyclingEfficiency: Percentage 0-100 (how much can actually be recycled)
-   - manufacturingEnergyFootprint: Energy in kWh to produce this item
-   - transportationFootprint: CO2 kg for typical transport to disposal
-   - endOfLifeCost: Environmental cost description (e.g., "landfill space", "toxic leachate")
-   - generatesMicroplastics: Boolean (does this create microplastic pollution?)
-   - humanToxicityLevel: Integer 1-5 (health risk to humans)
-   - wildlifeImpactSeverity: Integer 1-5 (impact on animals/ecosystems)
-   - resourceScarcity: "common", "uncommon", "rare" (how scarce are source materials?)
-   - disposalCostEstimate: Estimated cost in INR for proper disposal
+   - environmentalImpactEvidence: object containing evidence-backed metrics only.
+     - For each metric provide value and metadata only when verifiable:
+       - co2_avoidance: numeric (kgCO2e avoided when recycled locally)
+       - water_pollution: numeric score 1-5 (evidence-backed)
+       - soil_contamination_risk: numeric score 1-5 (evidence-backed)
+       - human_toxicity: numeric score 1-5 (evidence-backed)
+       - wildlife_impact: numeric score 1-5 (evidence-backed)
+       - biodegradation_risk: numeric score 1-5 (evidence-backed)
+     - Optional fields for each metric:
+       - lowerBound, upperBound (numeric range when available)
+       - unit (required when value exists)
+       - evidenceLevel (e.g., authoritative_database, authoritative_model, model_inferred)
+       - sources (array of source references)
+       - inputSignals (map of inputs used)
+       - methodologyVersion (required for non-obvious logic)
+       - geography
+       - scenario
+       - decisionSupported (what disposal decision this metric directly supports)
+       - userExplanation
+       - confidence (0.0-1.0)
+       - calculatedAt / validUntil timestamps (ISO-8601 when available)
+   - decompositionTime: natural decomposition description if known, only from visible packaging behavior or policy sources
+
+   If evidence is not available, return environmentalImpactEvidence as null or empty and avoid guessing numeric environmental fields.
 
 3. CIRCULAR ECONOMY ANALYSIS:
    - circularEconomyPotential: List of reuse/repurpose opportunities
@@ -83,7 +93,7 @@ Rules:
 - Reference actual BBMP guidelines when possible
 - Set pointsAwarded to null (will be calculated dynamically)
 
-JSON STRUCTURE with ALL fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, disposalInstructions, region, localGuidelinesReference, imageUrl, imageHash, imageMetrics, visualFeatures, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode, riskLevel, requiredPPE, brand, product, barcode, isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount, clarificationNeeded, confidence, modelVersion, processingTimeMs, modelSource, analysisSessionId, alternatives, suggestedAction, hasUrgentTimeframe, instructionsLang, translatedInstructions, pointsAwarded, isSingleUse, environmentalImpact, relatedItems, recyclability, hazardLevel, co2Impact, decompositionTime, properEquipment, materials, subCategory, commonUses, alternativeOptions, localRegulations, waterPollutionLevel, soilContaminationRisk, biodegradabilityDays, recyclingEfficiency, manufacturingEnergyFootprint, transportationFootprint, endOfLifeCost, circularEconomyPotential, generatesMicroplastics, humanToxicityLevel, wildlifeImpactSeverity, resourceScarcity, disposalCostEstimate, bbmpComplianceStatus, localGuidelinesVersion
+JSON STRUCTURE with ALL fields: itemName, category, subcategory, materialType, recyclingCode, explanation, disposalMethod, disposalInstructions, region, localGuidelinesReference, imageUrl, imageHash, imageMetrics, visualFeatures, isRecyclable, isCompostable, requiresSpecialDisposal, colorCode, riskLevel, requiredPPE, brand, product, barcode, isSaved, userConfirmed, userCorrection, disagreementReason, userNotes, viewCount, clarificationNeeded, confidence, modelVersion, processingTimeMs, modelSource, analysisSessionId, alternatives, suggestedAction, hasUrgentTimeframe, instructionsLang, translatedInstructions, pointsAwarded, isSingleUse, environmentalImpact, relatedItems, recyclability, hazardLevel, decompositionTime, properEquipment, materials, subCategory, commonUses, alternativeOptions, localRegulations, endOfLifeCost, circularEconomyPotential, bbmpComplianceStatus, localGuidelinesVersion, environmentalImpactEvidence
 ''';
 
   static String correctionPrompt(

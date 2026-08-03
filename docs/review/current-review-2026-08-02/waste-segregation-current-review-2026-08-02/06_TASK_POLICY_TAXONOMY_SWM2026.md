@@ -22,6 +22,60 @@ P1, but required before any compliance claim or paid BWG pilot.
 
 Separate item/material recognition from the legally relevant four-stream disposal model and establish verified, versioned policy sources.
 
+## Feedback-driven implementation update (2026-08-02)
+
+- Low-confidence municipal policy is now still evaluated instead of being skipped, while non-safety violations are softened to warnings.
+- Safety-critical category patterns are held as violations even under low confidence.
+- This is a partial safety-hardening step toward the SWM 2026 conservative policy model, but the full taxonomy migration (`wet`, `dry`, `sanitary`, `special_care`) is still pending.
+
+## PMF recurring-core policy boundary (2026-08-03)
+
+The feedback identifies area collection schedules, pickup events and a completion
+layer as the recurring-use hypothesis. This task owns the policy facts that can
+make a schedule safe to show. It does not own calendar UI, reminders, an event
+lifecycle, collector operations or a completion claim.
+
+In the master plan, this file owns P1-01 through P1-03: canonical streams,
+reviewed policy provenance and conservative handling under uncertainty. Those
+three task IDs are prerequisites for the P1-08 through P1-10 workflow scope in
+`12_TASK_PRODUCT_WEDGE_BWG.md`.
+
+Static source inspection finds a generic city/category `collectionSchedule` map
+in `lib/services/city_policy_data.dart`, which
+`lib/services/local_policy_engine.dart` consumes. It has neither the
+area-specific provenance nor the four-stream migration required here. Per
+`20_TASK_CHATGPT_FEEDBACK_PMFMODEL_AND_CONFIDENCE_HARDENING_2026-08-02.md`,
+area calendars, events and the completion layer are design-only, not current
+implementation.
+
+### Policy-to-product boundary
+
+| PMF layer | This task owns | Linked task owner | Required acceptance boundary |
+|---|---|---|---|
+| Area collection schedule | The stream binding, area scope, source reference, policy-pack/version, effective window and review status of a schedule fact. | P1-08/P1-09 in `12_TASK_PRODUCT_WEDGE_BWG.md` own the displayed next action and workflow. | An absent, stale or unreviewed fact produces `unavailable`, not an inferred local pickup window. |
+| Pickup event | The event's canonical stream and reference to the schedule/policy fact. | P1-09 in `12_TASK_PRODUCT_WEDGE_BWG.md` owns state transitions; P1-07 in `08_TASK_RUNTIME_ARCHITECTURE_CONVERGENCE.md` owns idempotent effects. | No event state can reclassify a stream, erase a safety flag or claim collection occurred. |
+| Completion layer | Conservative handling when a schedule or exact local instruction is unknown. | P1-10 in `12_TASK_PRODUCT_WEDGE_BWG.md` owns observed-outcome handoff; P0-07 in `09_TASK_OFFLINE_QUEUE_PRIVACY.md` owns evidence treatment. | A user/operator outcome remains an attributed observation, never policy verification or official proof. |
+
+### Schedule-fact contract for the future policy projection
+
+When a reviewed policy pack contains a schedule, its projected fact needs:
+
+```text
+areaRef
+regulatoryStream
+serviceWindow
+scheduleSourceRef
+policyPackId
+policyVersion
+scheduleEffectiveDate
+scheduleVerifiedAt
+scheduleReviewStatus
+```
+
+These are schedule facts, not pickup events. A future operational event may
+reference them, but `pickupCompleted`, collector identity and outcome evidence
+must not be written into or inferred from the policy pack.
+
 ## Current problem
 
 The new material taxonomy is useful but does not replace a regulatory stream model.
@@ -54,6 +108,10 @@ taxonomyVersion
 model/prompt/schema versions
 confidence/uncertainty
 ```
+
+For a schedule-enabled policy projection, retain the separate schedule-fact
+contract above. Do not overload `regulatoryStream`, `policyVersion` or a
+free-text local instruction to imply an exact area window or pickup outcome.
 
 Canonical stream enum:
 
@@ -133,6 +191,18 @@ For production packs:
 - scope;
 - unsupported claims removed.
 
+For a pack that exposes an area collection schedule, also record:
+
+- area scope rather than a city-wide assumption;
+- stream-specific service window and effective dates;
+- schedule source reference, reviewer and review status;
+- an explicit unavailable/stale state;
+- the distinction between a policy schedule fact and an observed pickup outcome.
+
+Do not generate a local reminder or expected pickup event from an unreviewed
+schedule fact. A city-level frequency alone is insufficient for an exact
+area-level window.
+
 Do not mark a pack production when `lastVerified` is null.
 
 ### Commit 6: real-image evaluation
@@ -167,7 +237,11 @@ Gate:
 - uncertainty cannot suppress safe handling;
 - real-image evaluation blocks safety regressions;
 - “SWM 2026” appears in marketing only after this gate and domain/legal review.
+- any future area schedule is stream-bound, source-qualified, effective-dated and visibly reviewable, or unavailable;
+- missing schedule data preserves conservative containment guidance rather than defaulting to ordinary disposal;
+- a policy pack cannot store or imply a pickup-completed outcome, collector performance or official completion proof;
+- the PMF workflow links to P1-08 to P1-10 in `12_TASK_PRODUCT_WEDGE_BWG.md` without turning policy data into a collector workflow.
 
 ## Anything else?
 
-The app's pricing documents use “EPR compliance.” Replace this with the exact applicable concept, such as Extended Bulk Waste Generator Responsibility, only after the product actually supports the required workflow.
+The app's pricing documents use “EPR compliance.” Replace this with the exact applicable concept, such as Extended Bulk Waste Generator Responsibility, only after the product actually supports the required workflow. A recurring schedule and user-reported completion loop is not, by itself, a municipal, processor or statutory compliance claim.

@@ -3,9 +3,233 @@ import 'package:hive/hive.dart';
 
 part 'waste_classification.g.dart';
 
+/// SWM 2026 household stream classifier helpers.
+///
+/// This keeps top-level municipal stream reasoning stable while legacy
+/// category labels can continue to evolve. The stream is derived for policy
+/// and scheduling pipelines and defaults to `unknown` when it cannot be
+/// confidently inferred.
+class WasteStreamClassifier {
+  static const String streamWet = 'wet_waste';
+  static const String streamDry = 'dry_waste';
+  static const String streamSanitary = 'sanitary_waste';
+  static const String streamSpecialCare = 'special_care_waste';
+  static const String streamUnknown = 'unknown';
+
+  static const Set<String> _specialCareCategoryKeys = {
+    'hazardous_waste',
+    'hazardous waste',
+    'medical_waste',
+    'medical waste',
+    'e_waste',
+    'e waste',
+    'battery',
+    'medicine',
+    'chemicals',
+    'sanitary_waste',
+    'special_care_waste',
+    'special care',
+    'biomedical_waste',
+    'biomedical waste',
+    'sharp',
+    'sharps',
+  };
+
+  static const Set<String> _sanitaryCategoryKeys = {
+    'sanitary_waste',
+    'sanitary',
+    'sanitary waste',
+  };
+
+  static const Set<String> _wetCategoryKeys = {
+    'wet_waste',
+    'wet',
+    'wet waste',
+    'food_waste',
+  };
+
+  static const Set<String> _dryCategoryKeys = {
+    'dry_waste',
+    'dry',
+    'dry waste',
+    'recyclable',
+  };
+
+  static String toHouseholdWasteStream({
+    required String category,
+    bool? requiresSpecialDisposal,
+    bool? hasUrgentTimeframe,
+    String? subCategory,
+  }) {
+    final cat = _normalizeCategoryKey(category);
+    if (cat.isEmpty) return streamUnknown;
+    if (_wetCategoryKeys.contains(cat)) return streamWet;
+    if (_dryCategoryKeys.contains(cat)) return streamDry;
+    if (_sanitaryCategoryKeys.contains(cat)) return streamSanitary;
+
+    final hasSpecialCareSignals = _specialCareCategoryKeys.contains(cat) ||
+        _containsSpecialCareSignals(cat) ||
+        _containsSpecialCareSignals(_normalizeCategoryKey(subCategory ?? ''));
+    if (hasSpecialCareSignals) {
+      return streamSpecialCare;
+    }
+
+    if (requiresSpecialDisposal == true || hasUrgentTimeframe == true) {
+      return streamSpecialCare;
+    }
+
+    return streamUnknown;
+  }
+
+  static bool isSpecialCareCategory(String category) =>
+      _specialCareCategoryKeys.contains(_normalizeCategoryKey(category));
+
+  static String _normalizeCategoryKey(String value) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9 ]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  static bool _containsSpecialCareSignals(String value) {
+    return value.contains('special care') ||
+        value.contains('special_care') ||
+        value.contains('specialcare') ||
+        value.contains('battery') ||
+        value.contains('medicine') ||
+        value.contains('needle') ||
+        value.contains('syringe') ||
+        value.contains('sharp') ||
+        value.contains('sharps') ||
+        value.contains('chemical') ||
+        value.contains('biomedical');
+  }
+}
+
+/// Evidence bundle for an environmental metric.
+class EnvironmentalMetricEvidence {
+  const EnvironmentalMetricEvidence({
+    required this.metricId,
+    this.value,
+    this.lowerBound,
+    this.upperBound,
+    required this.unit,
+    this.evidenceLevel = 'model_inferred',
+    this.sources = const [],
+    this.inputSignals = const {},
+    required this.methodologyVersion,
+    required this.geography,
+    required this.scenario,
+    required this.decisionSupported,
+    required this.userExplanation,
+    this.confidence,
+    this.calculatedAt,
+    this.validUntil,
+  });
+
+  final String metricId;
+  final num? value;
+  final num? lowerBound;
+  final num? upperBound;
+  final String unit;
+  final String evidenceLevel;
+  final List<String> sources;
+  final Map<String, Object?> inputSignals;
+  final String methodologyVersion;
+  final String geography;
+  final String scenario;
+  final String decisionSupported;
+  final String userExplanation;
+  final double? confidence;
+  final DateTime? calculatedAt;
+  final DateTime? validUntil;
+
+  factory EnvironmentalMetricEvidence.fromJson(Map<String, dynamic> json) {
+    return EnvironmentalMetricEvidence(
+      metricId: json['metricId']?.toString() ?? '',
+      value: json['value'] as num?,
+      lowerBound: json['lowerBound'] as num?,
+      upperBound: json['upperBound'] as num?,
+      unit: json['unit']?.toString() ?? '',
+      evidenceLevel: json['evidenceLevel']?.toString() ?? 'model_inferred',
+      sources: json['sources'] != null
+          ? List<String>.from(json['sources'])
+          : const <String>[],
+      inputSignals: json['inputSignals'] != null
+          ? Map<String, Object?>.from(json['inputSignals'])
+          : const <String, Object?>{},
+      methodologyVersion: json['methodologyVersion']?.toString() ?? 'unknown',
+      geography: json['geography']?.toString() ?? 'unknown',
+      scenario: json['scenario']?.toString() ?? 'unknown',
+      decisionSupported: json['decisionSupported']?.toString() ?? 'unknown',
+      userExplanation: json['userExplanation']?.toString() ?? '',
+      confidence: json['confidence']?.toDouble(),
+      calculatedAt: json['calculatedAt'] != null
+          ? DateTime.tryParse(json['calculatedAt'].toString())
+          : null,
+      validUntil: json['validUntil'] != null
+          ? DateTime.tryParse(json['validUntil'].toString())
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'metricId': metricId,
+        'value': value,
+        'lowerBound': lowerBound,
+        'upperBound': upperBound,
+        'unit': unit,
+        'evidenceLevel': evidenceLevel,
+        'sources': sources,
+        'inputSignals': inputSignals,
+        'methodologyVersion': methodologyVersion,
+        'geography': geography,
+        'scenario': scenario,
+        'decisionSupported': decisionSupported,
+        'userExplanation': userExplanation,
+        'confidence': confidence,
+        'calculatedAt': calculatedAt?.toIso8601String(),
+        'validUntil': validUntil?.toIso8601String(),
+      };
+
+  static Map<String, EnvironmentalMetricEvidence> fromJsonMap(
+    Map<String, dynamic>? raw,
+  ) {
+    if (raw == null || raw.isEmpty) {
+      return const <String, EnvironmentalMetricEvidence>{};
+    }
+
+    final result = <String, EnvironmentalMetricEvidence>{};
+    for (final entry in raw.entries) {
+      final value = entry.value;
+      if (value is Map<String, dynamic>) {
+        result[entry.key] = EnvironmentalMetricEvidence.fromJson(value);
+      }
+    }
+    return result;
+  }
+
+  static Map<String, dynamic>? toJsonMap(
+    Map<String, EnvironmentalMetricEvidence>? evidence,
+  ) {
+    if (evidence == null || evidence.isEmpty) {
+      return null;
+    }
+    return evidence.map((key, value) => MapEntry(key, value.toJson()));
+  }
+}
+
 /// Represents a waste classification result with comprehensive disposal information
 @HiveType(typeId: 0)
 class WasteClassification extends HiveObject {
+  static const String _metricCo2Avoidance = 'co2_avoidance';
+  static const String _metricWaterPollution = 'water_pollution';
+  static const String _metricSoilContamination = 'soil_contamination_risk';
+  static const String _metricHumanToxicity = 'human_toxicity';
+  static const String _metricWildlifeImpact = 'wildlife_impact';
+
   WasteClassification({
     String? id,
     required this.itemName,
@@ -92,6 +316,7 @@ class WasteClassification extends HiveObject {
     this.wildlifeImpactSeverity,
     this.resourceScarcity,
     this.disposalCostEstimate,
+    this.environmentalImpactEvidence,
     this.bbmpComplianceStatus,
     this.localGuidelinesVersion,
     this.qualityScore,
@@ -197,8 +422,8 @@ class WasteClassification extends HiveObject {
       id: json['id'],
       itemName: json['itemName'] ?? 'Unknown Item',
       category: json['category'] ?? 'Dry Waste',
-      subCategory: (json['subCategory'] as String?) ??
-          (json['subcategory'] as String?),
+      subCategory:
+          (json['subCategory'] as String?) ?? (json['subcategory'] as String?),
       materials: json['materials'] != null
           ? List<String>.from(json['materials'])
           : (json['materialType'] != null
@@ -327,6 +552,10 @@ class WasteClassification extends HiveObject {
       wildlifeImpactSeverity: json['wildlifeImpactSeverity'],
       resourceScarcity: json['resourceScarcity'],
       disposalCostEstimate: json['disposalCostEstimate']?.toDouble(),
+      environmentalImpactEvidence: EnvironmentalMetricEvidence.fromJsonMap(
+          json['environmentalImpactEvidence'] != null
+              ? Map<String, dynamic>.from(json['environmentalImpactEvidence'])
+              : null),
       bbmpComplianceStatus: json['bbmpComplianceStatus'],
       localGuidelinesVersion: json['localGuidelinesVersion'],
       qualityScore: json['qualityScore']?.toDouble(),
@@ -610,6 +839,8 @@ class WasteClassification extends HiveObject {
   @HiveField(84)
   final double? disposalCostEstimate;
 
+  final Map<String, EnvironmentalMetricEvidence>? environmentalImpactEvidence;
+
   /// BBMP compliance status for Bangalore
   @HiveField(85)
   final String? bbmpComplianceStatus;
@@ -698,8 +929,7 @@ class WasteClassification extends HiveObject {
   String? get normalizedSubcategory => subCategory;
 
   static const String analysisSourceCloudPrimary = 'cloud_primary';
-  static const String analysisSourceLocalExperimental =
-      'local_experimental';
+  static const String analysisSourceLocalExperimental = 'local_experimental';
   static const String analysisSourceLocalFailedFallbackCloud =
       'local_failed_fallback_cloud';
 
@@ -789,6 +1019,17 @@ class WasteClassification extends HiveObject {
     return value.isNotEmpty ? value : 'Unknown item';
   }
 
+  String get householdWasteStream =>
+      WasteStreamClassifier.toHouseholdWasteStream(
+        category: category,
+        requiresSpecialDisposal: requiresSpecialDisposal,
+        hasUrgentTimeframe: hasUrgentTimeframe,
+        subCategory: subCategory,
+      );
+
+  bool get isSpecialCareCategory =>
+      WasteStreamClassifier.isSpecialCareCategory(category);
+
   /// Canonical recycling code label for display surfaces.
   String get displayRecyclingCodeLabel {
     return recyclingCode != null ? 'Code ${recyclingCode!}' : 'Unknown code';
@@ -825,13 +1066,26 @@ class WasteClassification extends HiveObject {
     points += (dataFields * 1.5).round().clamp(0, 15);
 
     // Environmental impact bonus (up to 10 points)
-    if (co2Impact != null && co2Impact! > 0) {
+    final co2ImpactMetric = getEnvironmentalMetricNumericValue(
+      metricKeys: const [_metricCo2Avoidance],
+      minConfidence: 0.55,
+    );
+    final waterPollutionMetric = getEnvironmentalMetricNumericValue(
+      metricKeys: const [_metricWaterPollution],
+      minConfidence: 0.55,
+    );
+    final soilPollutionMetric = getEnvironmentalMetricNumericValue(
+      metricKeys: const [_metricSoilContamination],
+      minConfidence: 0.55,
+    );
+
+    if (co2ImpactMetric != null && co2ImpactMetric > 0) {
       points += 2;
     }
-    if (waterPollutionLevel != null && waterPollutionLevel! > 3) {
+    if (waterPollutionMetric != null && waterPollutionMetric > 3) {
       points += 2;
     }
-    if (soilContaminationRisk != null && soilContaminationRisk! > 3) {
+    if (soilPollutionMetric != null && soilPollutionMetric > 3) {
       points += 2;
     }
     if (recyclability == 'fully recyclable') {
@@ -882,25 +1136,46 @@ class WasteClassification extends HiveObject {
 
   /// Get environmental impact score (1-10 scale)
   double getEnvironmentalImpactScore() {
+    final co2ImpactMetric = getEnvironmentalMetricNumericValue(
+      metricKeys: const [_metricCo2Avoidance],
+      minConfidence: 0.55,
+    );
+    final waterPollutionMetric = getEnvironmentalMetricNumericValue(
+      metricKeys: const [_metricWaterPollution],
+      minConfidence: 0.55,
+    );
+    final soilPollutionMetric = getEnvironmentalMetricNumericValue(
+      metricKeys: const [_metricSoilContamination],
+      minConfidence: 0.55,
+    );
+    final humanToxicityMetric = getEnvironmentalMetricNumericValue(
+      metricKeys: const [_metricHumanToxicity],
+      minConfidence: 0.55,
+    );
+    final wildlifeImpactMetric = getEnvironmentalMetricNumericValue(
+      metricKeys: const [_metricWildlifeImpact],
+      minConfidence: 0.55,
+    );
+
     var score = 5.0; // Neutral baseline
 
     // CO2 impact factor
-    if (co2Impact != null) {
-      if (co2Impact! > 10.0) {
+    if (co2ImpactMetric != null) {
+      if (co2ImpactMetric > 10.0) {
         score += 2.0;
-      } else if (co2Impact! > 5.0) {
+      } else if (co2ImpactMetric > 5.0) {
         score += 1.0;
-      } else if (co2Impact! < 1.0) {
+      } else if (co2ImpactMetric < 1.0) {
         score -= 1.0;
       }
     }
 
     // Pollution factors
-    if (waterPollutionLevel != null) {
-      score += (waterPollutionLevel! - 3) * 0.5;
+    if (waterPollutionMetric != null) {
+      score += (waterPollutionMetric - 3) * 0.5;
     }
-    if (soilContaminationRisk != null) {
-      score += (soilContaminationRisk! - 3) * 0.5;
+    if (soilPollutionMetric != null) {
+      score += (soilPollutionMetric - 3) * 0.5;
     }
 
     // Recyclability factor
@@ -916,14 +1191,159 @@ class WasteClassification extends HiveObject {
     }
 
     // Toxicity factors
-    if (humanToxicityLevel != null) {
-      score += (humanToxicityLevel! - 3) * 0.3;
+    if (humanToxicityMetric != null) {
+      score += (humanToxicityMetric - 3) * 0.3;
     }
-    if (wildlifeImpactSeverity != null) {
-      score += (wildlifeImpactSeverity! - 3) * 0.4;
+    if (wildlifeImpactMetric != null) {
+      score += (wildlifeImpactMetric - 3) * 0.4;
     }
 
     return score.clamp(1.0, 10.0);
+  }
+
+  /// Whether enough verified environmental data exists to display a score.
+  bool get hasVerifiedEnvironmentalImpactScoreInput {
+    return getEnvironmentalMetricNumericValue(
+          metricKeys: const [
+            _metricCo2Avoidance,
+            _metricWaterPollution,
+            _metricSoilContamination,
+            _metricHumanToxicity,
+            _metricWildlifeImpact,
+          ],
+          minConfidence: 0.55,
+        ) !=
+        null;
+  }
+
+  /// Returns a verified/usable user-facing metric string for one or more impact keys.
+  ///
+  /// The caller can pass multiple fallback keys in priority order.
+  /// Returns null when evidence is missing or not strong enough for external display.
+  String? getEnvironmentalMetricDisplayValue({
+    required Iterable<String> metricKeys,
+    double minConfidence = 0.5,
+  }) {
+    final evidenceMap = environmentalImpactEvidence;
+    if (evidenceMap == null || evidenceMap.isEmpty) return null;
+
+    for (final metricKey in metricKeys) {
+      final evidence = evidenceMap[metricKey];
+      if (evidence == null) continue;
+      if (!_isEvidenceUsableForDisplay(evidence, minConfidence)) {
+        continue;
+      }
+
+      final hasValue = evidence.value != null;
+      final hasRange =
+          evidence.lowerBound != null && evidence.upperBound != null;
+      if (!hasValue && !hasRange) continue;
+
+      if (hasValue) {
+        final unit = evidence.unit.trim();
+        return '${_formatEvidenceValue(evidence.value!)} $unit'.trim();
+      }
+
+      final formattedRange =
+          '${_formatEvidenceValue(evidence.lowerBound!)}-${_formatEvidenceValue(evidence.upperBound!)}'
+                  ' ${evidence.unit.trim()}'
+              .trim();
+      return formattedRange;
+    }
+
+    return null;
+  }
+
+  String? getEnvironmentalMetricEvidenceSummary({
+    required Iterable<String> metricKeys,
+    double minConfidence = 0.5,
+  }) {
+    final evidenceMap = environmentalImpactEvidence;
+    if (evidenceMap == null || evidenceMap.isEmpty) return null;
+
+    for (final metricKey in metricKeys) {
+      final evidence = evidenceMap[metricKey];
+      if (evidence == null) continue;
+      if (!_isEvidenceUsableForDisplay(evidence, minConfidence)) continue;
+
+      final sources = evidence.sources.isNotEmpty
+          ? evidence.sources.join(', ')
+          : 'unverified source';
+      final confidence = evidence.confidence == null
+          ? 'unknown confidence'
+          : '${(evidence.confidence! * 100).toStringAsFixed(0)}%';
+      final metricValue = evidence.value != null
+          ? '${_formatEvidenceValue(evidence.value!)} ${evidence.unit.trim()}'
+          : '${_formatEvidenceValue(evidence.lowerBound!)}-${_formatEvidenceValue(evidence.upperBound!)} ${evidence.unit.trim()}';
+
+      final method = evidence.methodologyVersion.isNotEmpty
+          ? evidence.methodologyVersion
+          : 'unknown method';
+      final geography =
+          evidence.geography.isNotEmpty ? evidence.geography : 'unknown region';
+      final decisionImpact = evidence.decisionSupported.isNotEmpty
+          ? evidence.decisionSupported
+          : 'unknown decision context';
+
+      return '$metricValue • $method • $confidence • $sources • $geography • $decisionImpact';
+    }
+
+    return null;
+  }
+
+  double? getEnvironmentalMetricNumericValue({
+    required Iterable<String> metricKeys,
+    double minConfidence = 0.5,
+  }) {
+    final evidenceMap = environmentalImpactEvidence;
+    if (evidenceMap == null || evidenceMap.isEmpty) return null;
+
+    for (final metricKey in metricKeys) {
+      final evidence = evidenceMap[metricKey];
+      if (evidence == null) continue;
+      if (!_isEvidenceUsableForDisplay(evidence, minConfidence)) continue;
+
+      if (evidence.value != null) return evidence.value!.toDouble();
+
+      final hasRange =
+          evidence.lowerBound != null && evidence.upperBound != null;
+      if (!hasRange) return null;
+      return (evidence.lowerBound!.toDouble() +
+              evidence.upperBound!.toDouble()) /
+          2.0;
+    }
+
+    return null;
+  }
+
+  bool _isEvidenceUsableForDisplay(
+    EnvironmentalMetricEvidence evidence,
+    double minConfidence,
+  ) {
+    final unit = evidence.unit.trim();
+    if (unit.isEmpty) return false;
+
+    final hasValue = evidence.value != null;
+    final hasRange = evidence.lowerBound != null && evidence.upperBound != null;
+    if (!hasValue && !hasRange) return false;
+
+    if (evidence.confidence != null && evidence.confidence! < minConfidence) {
+      return false;
+    }
+
+    final level = evidence.evidenceLevel.toLowerCase();
+    if (level == 'model_inferred' && evidence.sources.isEmpty) {
+      return false;
+    }
+
+    return true;
+  }
+
+  String _formatEvidenceValue(num value) {
+    if (value is int) return value.toString();
+    final rounded = value.toDouble();
+    final fixed = rounded.toStringAsFixed(2);
+    return fixed.replaceAll(RegExp(r'\.0+$'), '');
   }
 
   /// Get visual tags for this classification
@@ -1018,7 +1438,11 @@ class WasteClassification extends HiveObject {
     }
 
     // High CO2 impact
-    if (co2Impact != null && co2Impact! > 5.0) {
+    final co2ImpactMetric = getEnvironmentalMetricNumericValue(
+      metricKeys: const [_metricCo2Avoidance],
+      minConfidence: 0.55,
+    );
+    if (co2ImpactMetric != null && co2ImpactMetric > 5.0) {
       tags.add(const ClassificationTag(
         label: 'High CO₂ Impact',
         color: '#FF5722', // Deep Orange
@@ -1121,6 +1545,8 @@ class WasteClassification extends HiveObject {
       'wildlifeImpactSeverity': wildlifeImpactSeverity,
       'resourceScarcity': resourceScarcity,
       'disposalCostEstimate': disposalCostEstimate,
+      'environmentalImpactEvidence':
+          EnvironmentalMetricEvidence.toJsonMap(environmentalImpactEvidence),
       'bbmpComplianceStatus': bbmpComplianceStatus,
       'localGuidelinesVersion': localGuidelinesVersion,
       'qualityScore': qualityScore,
@@ -1246,6 +1672,7 @@ class WasteClassification extends HiveObject {
     int? wildlifeImpactSeverity,
     String? resourceScarcity,
     double? disposalCostEstimate,
+    Map<String, EnvironmentalMetricEvidence>? environmentalImpactEvidence,
     String? bbmpComplianceStatus,
     String? localGuidelinesVersion,
     double? qualityScore,
@@ -1340,11 +1767,13 @@ class WasteClassification extends HiveObject {
       taxonomyFamilyId: taxonomyFamilyId ?? this.taxonomyFamilyId,
       taxonomyCategoryId: taxonomyCategoryId ?? this.taxonomyCategoryId,
       taxonomyFamilyLabel: taxonomyFamilyLabel ?? this.taxonomyFamilyLabel,
-      taxonomyCategoryLabel: taxonomyCategoryLabel ?? this.taxonomyCategoryLabel,
+      taxonomyCategoryLabel:
+          taxonomyCategoryLabel ?? this.taxonomyCategoryLabel,
       taxonomySource: taxonomySource ?? this.taxonomySource,
       taxonomyMethod: taxonomyMethod ?? this.taxonomyMethod,
       taxonomyConfidence: taxonomyConfidence ?? this.taxonomyConfidence,
-      taxonomyMatchedSignal: taxonomyMatchedSignal ?? this.taxonomyMatchedSignal,
+      taxonomyMatchedSignal:
+          taxonomyMatchedSignal ?? this.taxonomyMatchedSignal,
       waterPollutionLevel: waterPollutionLevel ?? this.waterPollutionLevel,
       soilContaminationRisk:
           soilContaminationRisk ?? this.soilContaminationRisk,
@@ -1364,6 +1793,8 @@ class WasteClassification extends HiveObject {
           wildlifeImpactSeverity ?? this.wildlifeImpactSeverity,
       resourceScarcity: resourceScarcity ?? this.resourceScarcity,
       disposalCostEstimate: disposalCostEstimate ?? this.disposalCostEstimate,
+      environmentalImpactEvidence:
+          environmentalImpactEvidence ?? this.environmentalImpactEvidence,
       bbmpComplianceStatus: bbmpComplianceStatus ?? this.bbmpComplianceStatus,
       localGuidelinesVersion:
           localGuidelinesVersion ?? this.localGuidelinesVersion,

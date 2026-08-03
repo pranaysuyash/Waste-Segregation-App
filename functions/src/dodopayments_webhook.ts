@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import { Webhook } from 'standardwebhooks';
 import { respondWithApiError, respondWithApiSuccess } from './helpers';
 import { resolveProduct, PRODUCT_CATALOGUE } from './product_catalogue';
@@ -96,84 +97,82 @@ function getFirebaseUid(event: DodoWebhookEvent): string | null {
 }
 
 async function grantPremiumAccess(
+  tx: admin.firestore.Transaction,
+  db: admin.firestore.Firestore,
   uid: string,
-  event: DodoWebhookEvent,
 ): Promise<void> {
-  const db = admin.firestore();
   const userRef = db.collection('users').doc(uid);
+  const userSnap = await tx.get(userRef);
+  const existingData = userSnap.exists ? (userSnap.data() ?? {}) : {};
 
-  await db.runTransaction(async (tx) => {
-    const userSnap = await tx.get(userRef);
-    const existingData = userSnap.exists ? (userSnap.data() ?? {}) : {};
+  const billing = (existingData.billing && typeof existingData.billing === 'object')
+    ? { ...existingData.billing as Record<string, unknown> }
+    : {};
+  const entitlements = (billing.entitlements && typeof billing.entitlements === 'object')
+    ? { ...billing.entitlements as Record<string, unknown> }
+    : {};
 
-    const billing = (existingData.billing && typeof existingData.billing === 'object')
-      ? { ...existingData.billing as Record<string, unknown> }
-      : {};
-    const entitlements = (billing.entitlements && typeof billing.entitlements === 'object')
-      ? { ...billing.entitlements as Record<string, unknown> }
-      : {};
+  entitlements.pro_subscription = true;
 
-    entitlements.pro_subscription = true;
+  const nowIso = new Date().toISOString();
 
-    const nowIso = new Date().toISOString();
-
-    tx.set(userRef, {
-      billing: {
-        ...billing,
-        entitlements,
-        updatedAt: nowIso,
-        updatedBy: 'dodopayments_webhook',
-      },
-      subscriptionTier: 'premium',
-      lastPremiumGrantAt: nowIso,
-      lastActive: nowIso,
-    }, { merge: true });
-  });
+  tx.set(userRef, {
+    billing: {
+      ...billing,
+      entitlements,
+      updatedAt: nowIso,
+      updatedBy: 'dodopayments_webhook',
+    },
+    subscriptionTier: 'premium',
+    lastPremiumGrantAt: nowIso,
+    lastActive: nowIso,
+  }, { merge: true });
 
   functions.logger.info('Premium access granted via DodoPayments webhook', { uid });
 }
 
-async function revokePremiumAccess(uid: string): Promise<void> {
-  const db = admin.firestore();
+async function revokePremiumAccess(
+  tx: admin.firestore.Transaction,
+  db: admin.firestore.Firestore,
+  uid: string,
+): Promise<void> {
   const userRef = db.collection('users').doc(uid);
+  const userSnap = await tx.get(userRef);
+  const existingData = userSnap.exists ? (userSnap.data() ?? {}) : {};
 
-  await db.runTransaction(async (tx) => {
-    const userSnap = await tx.get(userRef);
-    const existingData = userSnap.exists ? (userSnap.data() ?? {}) : {};
+  const billing = (existingData.billing && typeof existingData.billing === 'object')
+    ? { ...existingData.billing as Record<string, unknown> }
+    : {};
+  const entitlements = (billing.entitlements && typeof billing.entitlements === 'object')
+    ? { ...billing.entitlements as Record<string, unknown> }
+    : {};
 
-    const billing = (existingData.billing && typeof existingData.billing === 'object')
-      ? { ...existingData.billing as Record<string, unknown> }
-      : {};
-    const entitlements = (billing.entitlements && typeof billing.entitlements === 'object')
-      ? { ...billing.entitlements as Record<string, unknown> }
-      : {};
+  entitlements.pro_subscription = false;
 
-    entitlements.pro_subscription = false;
+  const nowIso = new Date().toISOString();
 
-    const nowIso = new Date().toISOString();
-
-    tx.set(userRef, {
-      billing: {
-        ...billing,
-        entitlements,
-        updatedAt: nowIso,
-        updatedBy: 'dodopayments_webhook',
-      },
-      subscriptionTier: 'free',
-      lastPremiumRevokedAt: nowIso,
-      lastActive: nowIso,
-    }, { merge: true });
-  });
+  tx.set(userRef, {
+    billing: {
+      ...billing,
+      entitlements,
+      updatedAt: nowIso,
+      updatedBy: 'dodopayments_webhook',
+    },
+    subscriptionTier: 'free',
+    lastPremiumRevokedAt: nowIso,
+    lastActive: nowIso,
+  }, { merge: true });
 
   functions.logger.info('Premium access revoked via DodoPayments webhook', { uid });
 }
 
 async function creditTokenPurchase(
+  tx: admin.firestore.Transaction,
+  db: admin.firestore.Firestore,
   uid: string,
   event: DodoWebhookEvent,
   catalogueTokenCount: number | null,
 ): Promise<void> {
-  const db = admin.firestore();
   // Use catalogue token count when available (authoritative).
   // Fall back to client metadata for backward compat with older clients.
   const tokens = catalogueTokenCount ?? parseInt(event.data.metadata?.tokens ?? '0', 10);
@@ -191,29 +190,27 @@ async function creditTokenPurchase(
   const userRef = db.collection('users').doc(uid);
   const nowIso = new Date().toISOString();
 
-  await db.runTransaction(async (tx) => {
-    const userSnap = await tx.get(userRef);
-    const userData = userSnap.exists ? (userSnap.data() ?? {}) : {};
+  const userSnap = await tx.get(userRef);
+  const userData = userSnap.exists ? (userSnap.data() ?? {}) : {};
 
-    const walletRaw = (userData.tokenWallet && typeof userData.tokenWallet === 'object')
-      ? { ...userData.tokenWallet as Record<string, unknown> }
-      : { balance: 50, totalEarned: 50, totalSpent: 0 };
+  const walletRaw = (userData.tokenWallet && typeof userData.tokenWallet === 'object')
+    ? { ...userData.tokenWallet as Record<string, unknown> }
+    : { balance: 50, totalEarned: 50, totalSpent: 0 };
 
-    const currentBalance = Number(walletRaw.balance ?? 0);
-    const totalEarned = Number(walletRaw.totalEarned ?? 0);
+  const currentBalance = Number(walletRaw.balance ?? 0);
+  const totalEarned = Number(walletRaw.totalEarned ?? 0);
 
-    const updatedWallet = {
-      ...walletRaw,
-      balance: currentBalance + tokens,
-      totalEarned: totalEarned + tokens,
-      lastUpdated: nowIso,
-    };
+  const updatedWallet = {
+    ...walletRaw,
+    balance: currentBalance + tokens,
+    totalEarned: totalEarned + tokens,
+    lastUpdated: nowIso,
+  };
 
-    tx.set(userRef, {
-      tokenWallet: updatedWallet,
-      lastActive: nowIso,
-    }, { merge: true });
-  });
+  tx.set(userRef, {
+    tokenWallet: updatedWallet,
+    lastActive: nowIso,
+  }, { merge: true });
 
   functions.logger.info('Token purchase credited via DodoPayments webhook', {
     uid,
@@ -222,8 +219,12 @@ async function creditTokenPurchase(
   });
 }
 
-async function recordSubscription(event: DodoWebhookEvent, uid: string): Promise<void> {
-  const db = admin.firestore();
+async function recordSubscription(
+  tx: admin.firestore.Transaction,
+  db: admin.firestore.Firestore,
+  event: DodoWebhookEvent,
+  uid: string,
+): Promise<void> {
   const subId = event.data.subscription_id;
   if (!subId) return;
 
@@ -253,11 +254,11 @@ async function recordSubscription(event: DodoWebhookEvent, uid: string): Promise
       ? (subData as any).current_period_end
       : null,
     metadata: subData.metadata ?? {},
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   };
 
-  await subscriptionRef.set(record, { merge: true });
+  tx.set(subscriptionRef, record, { merge: true });
   functions.logger.info('Subscription record saved', {
     subId,
     uid,
@@ -298,6 +299,11 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
       return;
     }
 
+    // C-09/C-10: verify over the exact body bytes the provider sent. The v1
+    // onRequest runtime parses JSON bodies, so we re-serialize the parsed
+    // body — key order is preserved by JSON.parse, and Dodo delivers compact
+    // JSON, so the round-trip is byte-exact for signature verification.
+    // (Follow-up: a v2 onRequest with `rawBody: true` removes this reliance.)
     const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
 
     const wh = new Webhook(webhookSecret);
@@ -309,7 +315,10 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
         'webhook-timestamp': webhookTimestamp,
         'webhook-signature': webhookSignature,
       });
-      event = JSON.parse(payload as string) as DodoWebhookEvent;
+      // standardwebhooks v1 verify() returns the already-parsed JSON object;
+      // re-parsing it (JSON.parse on an object) would throw and 401 every
+      // valid webhook.
+      event = payload as DodoWebhookEvent;
     } catch (verifyError) {
       functions.logger.error('Webhook signature verification failed', { verifyError });
       respondWithApiError(
@@ -370,63 +379,127 @@ export const dodopaymentsWebhook = asiaSouth1.https.onRequest(async (req, res) =
       : null;
     const productType = catalogueProductType ?? validMetadataProductType ?? 'subscription';
 
-    // SEC-03 fix: Execute side effects FIRST, then record idempotency marker.
-    // The old order recorded the marker before side effects, so a failed
-    // side effect (e.g. entitlement grant) would cause the retry to be
-    // treated as a duplicate — permanently losing the purchase.
+    // ================================================================
+    // C-09/C-10: atomic, exactly-once side effects.
+    //
+    // Every side effect for a Dodo event runs inside ONE transaction that
+    // atomically creates the billing_events/{eventId} gate document. The gate
+    // is keyed on the provider's unique transaction ID (event.data.id), NOT
+    // the webhookId header (a redelivery carries the same event.id).
+    //
+    //   - First delivery: gate absent -> side effects applied + gate created
+    //     in the same commit. If the function crashes mid-transaction nothing
+    //     is applied, so redelivery re-processes safely.
+    //   - Duplicate delivery: gate present -> acknowledged as 'duplicate',
+    //     side effects never re-run. Token credit is additive, so without
+    //     this gate a duplicate delivery (or a crash after credit but before
+    //     the old marker write) would double-credit tokens — the previous
+    //     comment claiming additive counters are idempotent was false.
+    //   - Concurrent deliveries race: the read-then-write of the gate doc
+    //     inside the transaction aborts the loser (optimistic concurrency),
+    //     so exactly one delivery applies side effects.
+    // ================================================================
+    const eventId = event.data.id;
+    const gateRef = db.collection('billing_events').doc(eventId);
+
+    let outcome: 'processed' | 'duplicate' | 'ignored';
     try {
-      switch (event.type) {
-        case 'payment.succeeded':
-          if (productType === 'token_pack') {
-            await creditTokenPurchase(uid, event, catalogueTokenCount);
-          } else {
-            await grantPremiumAccess(uid, event);
-            await recordSubscription(event, uid);
-          }
-          break;
-
-        case 'subscription.cancelled':
-          await revokePremiumAccess(uid);
-          await recordSubscription(event, uid);
-          break;
-
-        case 'subscription.past_due':
-          await recordSubscription(event, uid);
-          functions.logger.warn('Subscription past due', {
+      outcome = await db.runTransaction(async (tx) => {
+        const gateSnap = await tx.get(gateRef);
+        if (gateSnap.exists) {
+          functions.logger.info('Duplicate webhook event ignored', {
+            eventId,
+            webhookId,
+            eventType: event.type,
             uid,
-            subscriptionId: event.data.subscription_id,
           });
-          break;
+          return 'duplicate';
+        }
 
-        default:
-          functions.logger.info('Unhandled webhook event type', { type: (event as any).type });
-      }
+        switch (event.type) {
+          case 'payment.succeeded':
+          case 'subscription.active':
+            if (productType === 'token_pack') {
+              await creditTokenPurchase(tx, db, uid, event, catalogueTokenCount);
+            } else {
+              await grantPremiumAccess(tx, db, uid);
+              await recordSubscription(tx, db, event, uid);
+            }
+            break;
 
-      // Record idempotency marker AFTER successful side effects.
-      // If the function crashes after side effects but before this write,
-      // a retry will re-execute the side effects (idempotent by design:
-      // grantPremiumAccess and creditTokenPurchase use merge: true with
-      // additive counters, so re-execution is safe).
-      const eventRef = db.collection('webhook_events').doc(webhookId);
-      await eventRef.set({
-        eventId: webhookId,
-        type: event.type,
-        uid,
-        processedAt: admin.firestore.FieldValue.serverTimestamp(),
+          case 'subscription.cancelled':
+            await revokePremiumAccess(tx, db, uid);
+            await recordSubscription(tx, db, event, uid);
+            break;
+
+          case 'subscription.past_due':
+            await recordSubscription(tx, db, event, uid);
+            functions.logger.warn('Subscription past due', {
+              uid,
+              subscriptionId: event.data.subscription_id,
+            });
+            break;
+
+          default:
+            // Unknown event type: acknowledge WITHOUT creating an idempotency
+            // gate. Gating an unhandled type would make it a permanent
+            // duplicate if that type is later handled in code. Dodo stops
+            // redelivering on any 2xx, so no gate is needed here.
+            functions.logger.warn('Unhandled webhook event type, acknowledged without side effects', {
+              type: (event as any).type,
+              uid,
+              webhookId,
+            });
+            return 'ignored';
+        }
+
+        // Atomic create-if-absent gate — must commit for the transaction to
+        // succeed. Any side effect failure aborts the whole transaction, so
+        // the gate is never created and redelivery re-processes the event.
+        tx.set(gateRef, {
+          provider: 'dodopayments',
+          eventId,
+          webhookId,
+          type: event.type,
+          uid,
+          sku: logicalSku ?? null,
+          processedAt: FieldValue.serverTimestamp(),
+        });
+
+        // Audit trail only — NOT the idempotency authority (the gate doc is).
+        tx.set(db.collection('webhook_events').doc(webhookId), {
+          eventId,
+          webhookId,
+          type: event.type,
+          uid,
+          processedAt: FieldValue.serverTimestamp(),
+        }, { merge: true });
+
+        return 'processed';
       });
-
-      respondWithApiSuccess(res, 200, { status: 'accepted' });
     } catch (sideEffectError) {
-      // Side effect failed — do NOT record the idempotency marker so that
-      // a retry can re-process this event.
-      functions.logger.error('Webhook side effect failed, will retry on redelivery', {
+      // Transaction aborted — no side effects were applied. A redelivery will
+      // re-run the entire transaction safely.
+      // NOTE: the logger serialises Error instances to {} (non-enumerable own
+      // properties), so log the message/code/stack explicitly for diagnostics.
+      const err = sideEffectError as (Error & { code?: string; details?: unknown });
+      functions.logger.error('Webhook transaction failed, will retry on redelivery', {
         webhookId,
+        eventId,
         eventType: event.type,
         uid,
-        error: sideEffectError,
+        errorMessage: err?.message ?? String(sideEffectError),
+        errorCode: err?.code ?? null,
+        errorDetails: err?.details ?? null,
+        errorStack: err?.stack ?? null,
       });
       throw sideEffectError;
     }
+
+    respondWithApiSuccess(res, 200, {
+      status: outcome === 'duplicate' ? 'duplicate'
+        : outcome === 'ignored' ? 'ignored' : 'accepted',
+    });
   } catch (error: any) {
     functions.logger.error('Webhook processing error', { error });
     respondWithApiError(

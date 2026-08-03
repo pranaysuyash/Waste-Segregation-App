@@ -157,10 +157,12 @@ class SocietyAwareDecision {
   const SocietyAwareDecision({
     required this.society,
     required this.appliedOverrides,
+    required this.attemptedOverrides,
     required this.conflicts,
   });
 
   final SocietyPolicyOverride? society;
   final List<RuleOverride> appliedOverrides;
+  final List<RuleOverride> attemptedOverrides;
   final List<String> conflicts;
 }

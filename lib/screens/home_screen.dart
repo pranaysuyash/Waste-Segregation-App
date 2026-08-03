@@ -9,17 +9,18 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:waste_segregation_app/models/waste_classification.dart';
 import '../models/educational_content.dart';
-import '../screens/leaderboard/leaderboard_screen.dart';
 import '../models/gamification.dart';
 import '../models/user_profile.dart';
 import '../providers/app_providers.dart';
 import '../providers/points_manager.dart';
 import '../providers/token_providers.dart';
-import '../screens/achievements_screen.dart';
 import '../screens/content_detail_screen.dart';
+import '../screens/achievements_screen.dart';
+import '../screens/disposal_completion_history_screen.dart';
 import '../screens/educational_content_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/image_capture_screen.dart';
+import '../screens/leaderboard/leaderboard_screen.dart';
 import '../screens/instant_analysis_screen.dart';
 import '../screens/waste_dashboard_screen.dart';
 import '../utils/capture_image_options.dart';
@@ -28,11 +29,19 @@ import '../utils/waste_theme.dart';
 import 'package:waste_segregation_app/utils/waste_app_logger.dart';
 import '../models/gamification_result.dart';
 import '../widgets/modern_ui/modern_buttons.dart';
-import '../widgets/enhanced_gamification_widgets.dart' as widgets;
 import '../widgets/advanced_ui/achievement_celebration.dart';
-import '../widgets/community_impact_card.dart';
 import '../widgets/platform_camera.dart';
+import '../providers/region_preference_provider.dart';
+import '../services/local_guidelines_plugin.dart';
 import '../utils/permission_handler.dart';
+import '../widgets/community_impact_card.dart';
+import '../widgets/enhanced_gamification_widgets.dart' as widgets;
+import '../services/city_policy_data.dart';
+
+// Several legacy home sections are intentionally retained for compatibility
+// with older compositions and visual fixtures, even when not in the default
+// PMF-focused composition.
+// ignore_for_file: unused_element
 
 @visibleForTesting
 int homeStreakCount(GamificationProfile? profile) {
@@ -197,7 +206,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final classificationsAsync = ref.watch(classificationsProvider);
-    final profileAsync = ref.watch(profileProvider);
+    final homeRegion = ref.watch(regionPreferenceProvider);
     final userProfileAsync = ref.watch(userProfileProvider);
 
     return Scaffold(
@@ -217,7 +226,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               child: CustomScrollView(
                 slivers: [
                   // Hero header with gradient
-                  _buildHeroHeader(context, profileAsync, userProfileAsync),
+                  _buildHeroHeader(context, userProfileAsync),
 
                   // Content sections
                   SliverToBoxAdapter(
@@ -225,59 +234,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 24),
-
-                        // Mission control panel
-                        _buildMissionControlPanel(
+                        _buildAreaScheduleCard(context, homeRegion),
+                        const SizedBox(height: 20),
+                        _buildPickupReminderCard(
                           context,
-                          profileAsync,
+                          _collectPickupReminders(homeRegion),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Primary action surface
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildActionChips(context),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Pending special handling reminders
+                        _buildPendingSpecialItemsCard(
+                          context,
+                          classificationsAsync,
+                        ),
+
+                        // Disposal completion summary for recurring loop
+                        _buildCompletionSummaryCard(
+                          context,
+                          userProfileAsync,
+                        ),
+
+                        // Pending completion follow-up reminders
+                        _buildPendingFollowUpCard(
+                          context,
                           userProfileAsync,
                         ),
                         const SizedBox(height: 20),
 
-                        // Daily progress habit loop
-                        _buildDailyProgressCard(
-                          context,
-                          profileAsync,
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Horizontal scrolling action chips
-                        _buildActionChips(context),
-                        const SizedBox(height: 20),
-
-                        // Near milestone nudge
-                        _buildNudgeSection(context),
-                        const SizedBox(height: 20),
-
-                        // Community impact
-                        _buildCommunityImpactCard(
-                          context,
-                          classificationsAsync,
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Leaderboard
-                        _buildLeaderboardCard(context),
-                        const SizedBox(height: 20),
-
-                        // Content with padding
+                        // Tips and recent decisions
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Active Challenge section
-                              _buildActiveChallengeSection(
+                              _buildPrimaryActionLegend(context),
+                              const SizedBox(height: 20),
+                              _buildDailyTipCard(
                                 context,
-                                profileAsync,
+                                classificationsAsync,
                               ),
-                              const SizedBox(height: 32),
-
-                              // Daily sorting tip card
-                              _buildDailyTipCard(context, classificationsAsync),
-                              const SizedBox(height: 32),
-
-                              // Recent Classifications
+                              const SizedBox(height: 24),
                               _buildRecentClassifications(
                                 context,
                                 classificationsAsync,
@@ -306,7 +309,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   Widget _buildHeroHeader(
     BuildContext context,
-    AsyncValue<GamificationProfile?> profileAsync,
     AsyncValue<UserProfile?> userProfileAsync,
   ) {
     final hour = DateTime.now().hour;
@@ -317,7 +319,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final topPadding = MediaQuery.of(context).padding.top;
 
     return SliverAppBar(
-      expandedHeight: topPadding + 220,
+      expandedHeight: topPadding + 236,
       toolbarHeight: 52,
       pinned: true,
       backgroundColor: gradientColors.first,
@@ -343,7 +345,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.fromLTRB(20, topPadding + 12, 20, 16),
+            padding: EdgeInsets.fromLTRB(20, topPadding + 10, 20, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -400,11 +402,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           Text(
                             _getMotivationalMessage(timePhase),
                             style: GoogleFonts.inter(
-                              fontSize: 14,
+                              fontSize: 12,
                               color: Colors.white.withValues(alpha: 0.9),
                               height: 1.2,
                             ),
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -412,36 +414,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                // Stats chips with impact info
-                Row(
-                  children: [
-                    Expanded(child: _buildPointsChip(context)),
-                    const SizedBox(width: 8),
-                    Expanded(child: _buildTokensChip(context)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: profileAsync.when(
-                        data: (profile) => _buildStatChip(
-                          '${homeStreakCount(profile)}',
-                          AppStrings.streak,
-                          Icons.local_fire_department,
-                        ),
-                        loading: () => _buildStatChip(
-                          '...',
-                          AppStrings.streak,
-                          Icons.local_fire_department,
-                        ),
-                        error: (_, __) => _buildStatChip(
-                          '0',
-                          AppStrings.streak,
-                          Icons.local_fire_department,
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.recycling,
+                          color: Colors.white, size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Home flow: identify the item, prepare it right, and place it in the correct local stream.',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.95),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(child: _buildDaysActiveChip(context)),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -449,6 +446,1212 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildPrimaryActionLegend(BuildContext context) {
+    return Text(
+      'Need a quick disposal action?',
+      style: Theme.of(context)
+          .textTheme
+          .titleMedium
+          ?.copyWith(fontWeight: FontWeight.bold),
+    );
+  }
+
+  LocalGuidelinesPlugin? _resolveRegionPlugin(String region) {
+    LocalGuidelinesManager.initializeDefaultPlugins();
+    return LocalGuidelinesManager.getPluginForRegion(region);
+  }
+
+  Widget _buildAreaScheduleCard(BuildContext context, String region) {
+    final plugin = _resolveRegionPlugin(region);
+    final cityData = plugin?.cityData;
+    final zoneMeta = plugin?.getPickupZones() ?? const <String, String>{};
+    final communityNotices = plugin?.getCommunityNotices() ?? const [];
+    final scheduleExceptions = plugin?.getScheduleExceptions() ?? const [];
+    final scheduleData = plugin?.getCollectionSchedule() ?? <String, dynamic>{};
+    final zoneConfidence =
+        _toDisplayText(zoneMeta['zone_confidence']) ?? 'unknown';
+    final zoneLastVerified = _toDisplayText(zoneMeta['last_verified']) ??
+        _toDisplayText(cityData?.lastVerified) ??
+        'unknown';
+    final zoneSource = _toDisplayText(zoneMeta['source']);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Card(
+        key: const Key('home_area_schedule_card'),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Collection windows for ${cityData?.region ?? region}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (cityData != null)
+                    _buildScheduleMetaChip(
+                      context,
+                      cityData.authorityName,
+                      icon: Icons.gavel,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (cityData == null) ...[
+                Text(
+                  'Set your area in Settings to show collection windows and exception notes.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ] else ...[
+                if (zoneMeta.isNotEmpty) ...[
+                  Text(
+                    'Zone coverage',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (_toDisplayText(zoneMeta['service_area']) != null)
+                        _buildScheduleMetaChip(
+                          context,
+                          _toDisplayText(zoneMeta['service_area'])!,
+                          icon: Icons.location_city,
+                        ),
+                      if (_toDisplayText(zoneMeta['zone']) != null)
+                        _buildScheduleMetaChip(
+                          context,
+                          _toDisplayText(zoneMeta['zone'])!,
+                          icon: Icons.map,
+                        ),
+                      if (_toDisplayText(zoneMeta['collector']) != null)
+                        _buildScheduleMetaChip(
+                          context,
+                          _toDisplayText(zoneMeta['collector'])!,
+                          icon: Icons.local_shipping,
+                        ),
+                      if (_toDisplayText(zoneMeta['zone_confidence']) != null)
+                        _buildScheduleMetaChip(
+                          context,
+                          'Confidence ${_toDisplayText(zoneMeta['zone_confidence'])}',
+                          icon: Icons.verified_user,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Pickup confidence: $zoneConfidence',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  Text(
+                    'Last verified: $zoneLastVerified',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  if (zoneSource != null)
+                    Text(
+                      'Zone source: $zoneSource',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  const SizedBox(height: 12),
+                ],
+                Text(
+                  'Area schedule',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                if (scheduleData.isEmpty)
+                  Text(
+                    'Collection schedule is not available for this region yet.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  )
+                else
+                  ..._buildScheduleSections(context, scheduleData),
+                const SizedBox(height: 12),
+                if (communityNotices.isNotEmpty) ...[
+                  Text(
+                    'Community notices',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._buildCommunityNotices(context, communityNotices),
+                  const SizedBox(height: 12),
+                ],
+                if (scheduleExceptions.isNotEmpty) ...[
+                  Text(
+                    'Schedule exceptions',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._buildCommunityNotices(context, scheduleExceptions),
+                  const SizedBox(height: 12),
+                ],
+                if (cityData.specialPrograms.isNotEmpty) ...[
+                  Text(
+                    'Area updates and pickup events',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  ...cityData.specialPrograms.entries
+                      .where((entry) => entry.key.isNotEmpty)
+                      .map(
+                        (entry) => _buildSpecialProgramNotice(
+                          context,
+                          entry.key,
+                          entry.value,
+                        ),
+                      ),
+                  const SizedBox(height: 12),
+                ],
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildScheduleMetaChip(
+                      context,
+                      'Helpline: ${cityData.helpline}',
+                      icon: Icons.phone,
+                    ),
+                    _buildScheduleMetaChip(
+                      context,
+                      'Source: ${cityData.sourceStatus}',
+                      icon: Icons.info_outline,
+                    ),
+                    _buildScheduleMetaChip(
+                      context,
+                      'Verified: ${cityData.lastVerified ?? zoneLastVerified}',
+                      icon: Icons.verified_user,
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildScheduleSections(
+    BuildContext context,
+    Map<String, dynamic> scheduleData,
+  ) {
+    final entries = _scheduleEntries(scheduleData);
+    if (entries.isEmpty) return const [];
+
+    final today = DateTime.now();
+    final tomorrow = today.add(const Duration(days: 1));
+    final todayEntries = _scheduleEntriesForDate(entries, today);
+    final tomorrowEntries = _scheduleEntriesForDate(entries, tomorrow);
+
+    return [
+      _buildScheduleBucket(context, 'Today', todayEntries),
+      const SizedBox(height: 12),
+      _buildScheduleBucket(context, 'Tomorrow', tomorrowEntries),
+      const SizedBox(height: 12),
+      Text(
+        'Upcoming windows',
+        style: Theme.of(context)
+            .textTheme
+            .bodyMedium
+            ?.copyWith(fontWeight: FontWeight.w600),
+      ),
+      const SizedBox(height: 8),
+      ..._buildCollectionRows(scheduleData),
+    ];
+  }
+
+  Widget _buildScheduleBucket(
+    BuildContext context,
+    String label,
+    List<MapEntry<String, Map<String, dynamic>>> entries,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        if (entries.isEmpty)
+          Text(
+            'No exact collection window listed for $label.',
+            style: Theme.of(context).textTheme.bodySmall,
+          )
+        else
+          ...entries.map(
+            (entry) => _buildCollectionRow(
+              streamLabel: _formatStreamLabel(entry.key),
+              frequency: entry.value['frequency']?.toString() ?? 'unknown',
+              window: entry.value['time']?.toString(),
+              notes: entry.value['notes']?.toString(),
+              dayLabel: label,
+            ),
+          ),
+      ],
+    );
+  }
+
+  List<MapEntry<String, Map<String, dynamic>>> _scheduleEntries(
+    Map<String, dynamic> scheduleData,
+  ) {
+    const orderedStreams = [
+      'wet_waste',
+      'dry_waste',
+      'sanitary_waste',
+      'special_care_waste',
+      'hazardous_waste',
+      'medical_waste',
+      'e_waste',
+    ];
+
+    final entries = <MapEntry<String, Map<String, dynamic>>>[];
+    for (final stream in orderedStreams) {
+      final value = _scheduleMap(scheduleData[stream]);
+      if (value != null) {
+        entries.add(MapEntry(stream, value));
+      }
+    }
+
+    scheduleData.forEach((stream, value) {
+      if (orderedStreams.contains(stream)) return;
+      final schedule = _scheduleMap(value);
+      if (schedule != null) {
+        entries.add(MapEntry(stream, schedule));
+      }
+    });
+
+    return entries;
+  }
+
+  Map<String, dynamic>? _scheduleMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return null;
+  }
+
+  List<MapEntry<String, Map<String, dynamic>>> _scheduleEntriesForDate(
+    List<MapEntry<String, Map<String, dynamic>>> entries,
+    DateTime date,
+  ) {
+    return entries
+        .where((entry) => _scheduleRunsOnDate(entry.value, date))
+        .toList();
+  }
+
+  bool _scheduleRunsOnDate(Map<String, dynamic> schedule, DateTime date) {
+    final frequency = schedule['frequency']?.toString().toLowerCase() ?? '';
+    if (frequency.contains('daily')) return true;
+    if (frequency.contains('immediate')) {
+      final now = DateTime.now();
+      return _isSameDate(date, now);
+    }
+
+    final configuredDays = schedule['days'] ?? schedule['collection_days'];
+    final weekdays = _parseWeekdays(configuredDays);
+    return weekdays.contains(date.weekday);
+  }
+
+  bool _isSameDate(DateTime first, DateTime second) {
+    return first.year == second.year &&
+        first.month == second.month &&
+        first.day == second.day;
+  }
+
+  Set<int> _parseWeekdays(dynamic value) {
+    if (value == null) return <int>{};
+    final values = value is Iterable ? value : value.toString().split(',');
+    final weekdays = <int>{};
+    for (final item in values) {
+      final normalized = item.toString().trim().toLowerCase();
+      if (normalized.startsWith('mon')) weekdays.add(DateTime.monday);
+      if (normalized.startsWith('tue')) weekdays.add(DateTime.tuesday);
+      if (normalized.startsWith('wed')) weekdays.add(DateTime.wednesday);
+      if (normalized.startsWith('thu')) weekdays.add(DateTime.thursday);
+      if (normalized.startsWith('fri')) weekdays.add(DateTime.friday);
+      if (normalized.startsWith('sat')) weekdays.add(DateTime.saturday);
+      if (normalized.startsWith('sun')) weekdays.add(DateTime.sunday);
+    }
+    return weekdays;
+  }
+
+  List<Widget> _buildCollectionRows(Map<String, dynamic> scheduleData) {
+    final rows = <Widget>[];
+    for (final entry in _scheduleEntries(scheduleData)) {
+      rows.add(
+        _buildCollectionRow(
+          streamLabel: _formatStreamLabel(entry.key),
+          frequency: entry.value['frequency']?.toString() ?? 'unknown',
+          window: entry.value['time']?.toString(),
+          notes: entry.value['notes']?.toString(),
+          scheduleDays: _formatScheduleDays(
+            entry.value['days'] ?? entry.value['collection_days'],
+          ),
+        ),
+      );
+    }
+
+    return rows;
+  }
+
+  Widget _buildCollectionRow({
+    required String streamLabel,
+    required String frequency,
+    String? window,
+    String? notes,
+    String? dayLabel,
+    String? scheduleDays,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$streamLabel · $frequency',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          if (dayLabel != null)
+            Text(
+              '$dayLabel pickup window',
+              style: const TextStyle(fontSize: 12),
+            ),
+          if (window != null && window.isNotEmpty)
+            Text('Window: $window', style: const TextStyle(fontSize: 12)),
+          if (scheduleDays != null && scheduleDays.isNotEmpty)
+            Text('Days: $scheduleDays', style: const TextStyle(fontSize: 12)),
+          if (notes != null && notes.isNotEmpty)
+            Text(
+              notes,
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScheduleMetaChip(
+    BuildContext context,
+    String label, {
+    required IconData icon,
+  }) {
+    return Chip(
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      label: Text(
+        label,
+        style: const TextStyle(fontSize: 11),
+      ),
+      visualDensity: VisualDensity.compact,
+      avatar: Icon(icon, size: 14),
+      padding: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+    );
+  }
+
+  String _formatStreamLabel(String raw) {
+    return raw
+        .trim()
+        .replaceAll('_', ' ')
+        .split(' ')
+        .where((part) => part.isNotEmpty)
+        .map(
+          (part) => part[0].toUpperCase() + part.substring(1).toLowerCase(),
+        )
+        .join(' ');
+  }
+
+  String? _formatScheduleDays(dynamic value) {
+    if (value == null) return null;
+    if (value is Iterable) {
+      final days = value
+          .map((day) => day.toString().trim())
+          .where((day) => day.isNotEmpty)
+          .toList();
+      return days.isEmpty ? null : days.join(', ');
+    }
+    final text = value.toString().trim();
+    return text.isEmpty ? null : text;
+  }
+
+  Widget _buildSpecialProgramNotice(
+    BuildContext context,
+    String programKey,
+    String description,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Card(
+        elevation: 0,
+        color: Theme.of(context).colorScheme.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _formatProgramLabel(programKey),
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 4),
+              Text(description, style: const TextStyle(fontSize: 12)),
+              const SizedBox(height: 6),
+              const Text(
+                'Next step',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              ),
+              Text(
+                _specialProgramAction(programKey),
+                style: const TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _specialProgramAction(String programKey) {
+    final normalized = programKey.trim().toLowerCase();
+    if (normalized.contains('bulk')) {
+      return 'Contact the authority before putting bulk waste out; this does not confirm a pickup booking.';
+    }
+    if (normalized.contains('e_waste') || normalized.contains('e-waste')) {
+      return 'Use this e-waste route instead of a regular bin and confirm the current drop-off window.';
+    }
+    return 'Confirm the programme\'s current window with the area authority before relying on it.';
+  }
+
+  List<Widget> _buildCommunityNotices(
+    BuildContext context,
+    List<CommunityOperationNotice> notices,
+  ) {
+    if (notices.isEmpty) {
+      return [
+        Text('No active notices right now.',
+            style: Theme.of(context).textTheme.bodySmall)
+      ];
+    }
+
+    final sorted = List<CommunityOperationNotice>.from(notices)
+      ..sort((a, b) {
+        final aSort =
+            DateTime.tryParse(a.lastUpdated ?? '')?.millisecondsSinceEpoch ?? 0;
+        final bSort =
+            DateTime.tryParse(b.lastUpdated ?? '')?.millisecondsSinceEpoch ?? 0;
+        return bSort.compareTo(aSort);
+      });
+
+    return sorted.map((notice) {
+      final confidenceText =
+          _toDisplayText(notice.confidence)?.toUpperCase() ?? 'UNKNOWN';
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Card(
+          elevation: 0,
+          color: Theme.of(context).colorScheme.surface,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      _communityNoticeIcon(notice.noticeType),
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        notice.title,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  notice.summary,
+                  style: const TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Next step',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  _communityNoticeAction(notice),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (_toDisplayText(notice.whenLabel) != null)
+                      _buildScheduleMetaChip(
+                        context,
+                        'When: ${_toDisplayText(notice.whenLabel)!}',
+                        icon: Icons.schedule,
+                      ),
+                    if (_toDisplayText(notice.zone) != null)
+                      _buildScheduleMetaChip(
+                        context,
+                        'Zone: ${_toDisplayText(notice.zone)!}',
+                        icon: Icons.location_city,
+                      ),
+                    if (_toDisplayText(notice.location) != null)
+                      _buildScheduleMetaChip(
+                        context,
+                        'Location: ${_toDisplayText(notice.location)!}',
+                        icon: Icons.place,
+                      ),
+                    if (_toDisplayText(notice.collector) != null)
+                      _buildScheduleMetaChip(
+                        context,
+                        'Collector: ${_toDisplayText(notice.collector)!}',
+                        icon: Icons.local_shipping,
+                      ),
+                    _buildScheduleMetaChip(
+                      context,
+                      'Confidence $confidenceText',
+                      icon: Icons.verified,
+                    ),
+                    if (_toDisplayText(notice.lastUpdated) != null)
+                      _buildScheduleMetaChip(
+                        context,
+                        'Updated: ${_toDisplayText(notice.lastUpdated)!}',
+                        icon: Icons.access_time,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  String _communityNoticeAction(CommunityOperationNotice notice) {
+    final normalized = notice.noticeType.trim().toLowerCase();
+    if (normalized.contains('delay')) {
+      return 'Keep this stream separate and use the updated pickup window.';
+    }
+    if (normalized.contains('event')) {
+      return 'Prepare the item and take it to the listed location during this window.';
+    }
+    if (normalized.contains('change')) {
+      return 'Use the temporary window and keep the stream separate until then.';
+    }
+    return 'Check the listed time and location before handing the item over.';
+  }
+
+  IconData _communityNoticeIcon(String type) {
+    final normalized = type.trim().toLowerCase();
+    if (normalized.contains('delay')) return Icons.warning_amber;
+    if (normalized.contains('closure') || normalized.contains('closed')) {
+      return Icons.do_not_disturb_on;
+    }
+    if (normalized.contains('pickup')) return Icons.local_shipping;
+    if (normalized.contains('event')) return Icons.event;
+    return Icons.info_outline;
+  }
+
+  String? _toDisplayText(String? value) {
+    if (value == null) return null;
+    final text = value.trim();
+    if (text.isEmpty) return null;
+    return text;
+  }
+
+  Widget _buildCompletionSummaryCard(
+    BuildContext context,
+    AsyncValue<UserProfile?> userProfileAsync,
+  ) {
+    return userProfileAsync.when(
+      data: (userProfile) {
+        final raw = userProfile
+            ?.preferences?[UserPreferenceKeys.disposalCompletionLast];
+        if (raw is! Map) {
+          return const SizedBox.shrink();
+        }
+
+        final status = (raw['status'] as String?)?.trim() ?? '';
+        final recordedAt = raw['recordedAt']?.toString();
+        if (status.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final notes = raw['notes']?.toString().trim();
+        final statusLabel = _completionStatusLabel(status);
+        final classificationId = raw['classificationId']?.toString();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Card(
+            key: const Key('home_completion_summary_card'),
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(alpha: 0.7),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.fact_check),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Last disposal completion',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Status: $statusLabel',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  if (classificationId != null &&
+                      classificationId.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Item: $classificationId',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.black54,
+                          ),
+                    ),
+                  ],
+                  if (recordedAt != null && recordedAt.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Recorded: $recordedAt',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                  if (notes != null && notes.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Notes: $notes',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: Colors.black54),
+                    ),
+                  ],
+                  if (status.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Wrap(
+                        alignment: WrapAlignment.end,
+                        spacing: 8,
+                        children: [
+                          if (classificationId != null &&
+                              classificationId.isNotEmpty)
+                            TextButton(
+                              key: const Key(
+                                  'home_completion_summary_card_update'),
+                              onPressed: _openCompletionHistory,
+                              child: const Text('Update this item'),
+                            ),
+                          TextButton(
+                            key: const Key(
+                              'home_completion_summary_card_open_history',
+                            ),
+                            onPressed: _openCompletionHistory,
+                            child: const Text('Open completion history'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildPickupReminderCard(
+    BuildContext context,
+    List<_HomePickupReminder> reminders,
+  ) {
+    if (reminders.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Card(
+        key: const Key('home_pickup_reminder_card'),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.notifications_active),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Collection reminders',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Based on your area schedule, these collections are coming next.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 10),
+              for (final reminder in reminders)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.event_note, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${reminder.dateLabel} · ${reminder.streamLabel}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            if (reminder.window.isNotEmpty)
+                              Text(
+                                'Window: ${reminder.window}',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            if (reminder.notes != null &&
+                                reminder.notes!.isNotEmpty)
+                              Text(
+                                reminder.notes!,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(color: Colors.black54),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<_HomePickupReminder> _collectPickupReminders(String region) {
+    final plugin = _resolveRegionPlugin(region);
+    if (plugin == null) return const [];
+
+    final scheduleEntries = _scheduleEntries(plugin.getCollectionSchedule());
+    final now = DateTime.now();
+    final nowDate = DateTime(now.year, now.month, now.day);
+    final reminders = <_HomePickupReminder>[];
+
+    for (final entry in scheduleEntries) {
+      final schedule = entry.value;
+      final reminderDate = _nextScheduleDate(schedule, nowDate);
+      if (reminderDate == null) continue;
+
+      final daysAhead = reminderDate.difference(nowDate).inDays;
+      if (daysAhead < 0 || daysAhead > 7) continue;
+
+      final streamLabel = _formatStreamLabel(entry.key);
+      final window = _toDisplayText(schedule['time'])?.trim() ?? '';
+      final notes = _toDisplayText(schedule['notes']);
+
+      reminders.add(
+        _HomePickupReminder(
+          streamLabel: streamLabel,
+          dateLabel: _friendlyReminderDateLabel(reminderDate, nowDate),
+          window: window,
+          notes: notes,
+          reminderDate: reminderDate,
+        ),
+      );
+    }
+
+    reminders.sort((a, b) => a.reminderDate.compareTo(b.reminderDate));
+    if (reminders.length <= 4) return reminders;
+    return reminders.sublist(0, 4);
+  }
+
+  DateTime? _nextScheduleDate(Map<String, dynamic> schedule, DateTime from) {
+    final frequency = schedule['frequency']?.toString().toLowerCase() ?? '';
+    if (frequency.contains('daily') || frequency.contains('immediate')) {
+      return from;
+    }
+
+    final weekdayNumbers =
+        _parseWeekdays(schedule['days'] ?? schedule['collection_days']);
+    if (weekdayNumbers.isEmpty) return null;
+
+    for (var offset = 0; offset < 14; offset++) {
+      final candidate = from.add(Duration(days: offset));
+      if (weekdayNumbers.contains(candidate.weekday)) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  String _friendlyReminderDateLabel(DateTime date, DateTime from) {
+    final target = DateTime(date.year, date.month, date.day);
+    final start = DateTime(from.year, from.month, from.day);
+    final diffDays = target.difference(start).inDays;
+
+    if (diffDays <= 0) return 'Today';
+    if (diffDays == 1) return 'Tomorrow';
+    if (diffDays <= 7) {
+      const weekdays = [
+        '',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+      ];
+      return 'On ${weekdays[target.weekday]}';
+    }
+
+    return '${date.month}/${date.day}';
+  }
+
+  Widget _buildPendingFollowUpCard(
+    BuildContext context,
+    AsyncValue<UserProfile?> userProfileAsync,
+  ) {
+    return userProfileAsync.when(
+      data: (userProfile) {
+        final followUps = _collectPendingCompletionFollowUps(userProfile);
+        if (followUps.isEmpty) return const SizedBox.shrink();
+
+        final previewRows = followUps.take(3).toList();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Card(
+            key: const Key('home_completion_followup_card'),
+            color: Theme.of(context)
+                .colorScheme
+                .errorContainer
+                .withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.event_repeat, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Pending disposal follow-ups',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.red.shade900,
+                                ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${followUps.length} item${followUps.length == 1 ? '' : 's'} still marked for action',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 10),
+                  for (final followUp in previewRows)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.flag_outlined, size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  followUp.itemName,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  '${_completionStatusLabel(followUp.status)} · ${followUp.action}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (followUps.length > previewRows.length)
+                    Text(
+                      '+ ${followUps.length - previewRows.length} more',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      key: const Key('home_completion_followup_card_open_all'),
+                      onPressed: _openCompletionHistory,
+                      child: const Text('Open follow-up list'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  List<_HomeCompletionFollowUpItem> _collectPendingCompletionFollowUps(
+    UserProfile? userProfile,
+  ) {
+    final raw =
+        userProfile?.preferences?[UserPreferenceKeys.disposalCompletionHistory];
+    if (raw is! Map) return const [];
+
+    final followUps = <_HomeCompletionFollowUpItem>[];
+
+    for (final entry in raw.entries) {
+      final itemKey = entry.key;
+      final value = entry.value;
+      if (itemKey is! String || value is! Map) continue;
+
+      final map = Map<String, dynamic>.from(value);
+      final followUp = map['followUp'];
+      final followUpMap = followUp is Map
+          ? Map<String, dynamic>.from(followUp)
+          : const <String, dynamic>{};
+
+      final followUpRequired = followUpMap['required'] == true ||
+          map['followUpRequired'] == true ||
+          map['status']?.toString() == 'blocked';
+      if (!followUpRequired) continue;
+
+      followUps.add(
+        _HomeCompletionFollowUpItem(
+          classificationId: itemKey,
+          itemName: map['itemName']?.toString().trim() ??
+              'Item ${_trimText(itemKey)}',
+          status: map['status']?.toString() ?? 'not_recorded',
+          action: (followUpMap['action']?.toString() ??
+                  map['followUpAction']?.toString() ??
+                  'Follow-up required')
+              .trim(),
+          recordedAt: map['recordedAt']?.toString(),
+        ),
+      );
+    }
+
+    followUps.sort((a, b) {
+      final aTime = DateTime.tryParse(a.recordedAt ?? '');
+      final bTime = DateTime.tryParse(b.recordedAt ?? '');
+      if (aTime == null && bTime == null) return 0;
+      if (aTime == null) return 1;
+      if (bTime == null) return -1;
+      return bTime.compareTo(aTime);
+    });
+
+    return followUps;
+  }
+
+  String _trimText(String value) {
+    if (value.length <= 8) return value;
+    return '${value.substring(0, 8)}...';
+  }
+
+  String _completionStatusLabel(String status) {
+    switch (status) {
+      case 'prepared':
+        return 'Prepared for disposal';
+      case 'pickup_booked':
+        return 'Pickup booked';
+      case 'handed_off':
+        return 'Handed off';
+      case 'completed':
+        return 'Completed';
+      case 'blocked':
+        return 'Blocked / follow-up needed';
+      case 'not_recorded':
+      default:
+        return 'Not recorded';
+    }
+  }
+
+  void _openCompletionHistory() {
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DisposalCompletionHistoryScreen(),
+      ),
+    );
+  }
+
+  String _formatProgramLabel(String raw) {
+    return raw
+        .trim()
+        .replaceAll('_', ' ')
+        .split(' ')
+        .where((part) => part.isNotEmpty)
+        .map(
+          (part) => part[0].toUpperCase() + part.substring(1).toLowerCase(),
+        )
+        .join(' ');
+  }
+
+  Widget _buildPendingSpecialItemsCard(
+    BuildContext context,
+    AsyncValue<List<WasteClassification>> classificationsAsync,
+  ) {
+    return classificationsAsync.when(
+      data: (classifications) {
+        final pending = classifications
+            .where(_isPriorityDisposalItem)
+            .take(4)
+            .toList(growable: false);
+
+        if (pending.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Card(
+            key: const Key('home_pending_special_card'),
+            color: Theme.of(context)
+                .colorScheme
+                .errorContainer
+                .withValues(alpha: 0.2),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.warning_amber_outlined),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Items needing special handling',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...pending.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text('• ${item.itemName} (${item.category})'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  bool _isPriorityDisposalItem(WasteClassification item) {
+    final stream = WasteStreamClassifier.toHouseholdWasteStream(
+      category: item.category,
+      requiresSpecialDisposal: item.requiresSpecialDisposal,
+      hasUrgentTimeframe: item.hasUrgentTimeframe,
+      subCategory: item.subCategory,
+    );
+    return stream == WasteStreamClassifier.streamSpecialCare ||
+        stream == WasteStreamClassifier.streamSanitary ||
+        item.requiresSpecialDisposal == true ||
+        item.hasUrgentTimeframe == true;
   }
 
   Widget _buildPointsChip(BuildContext context) {
@@ -810,17 +2013,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   // ==========================================================================
 
   Widget _buildActionChips(BuildContext context) {
+    final actions = _getActionItems();
     return SizedBox(
       height: 148,
-      child: ListView.separated(
+      child: SingleChildScrollView(
+        key: const Key('home_action_rail'),
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _getActionItems().length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final action = _getActionItems()[index];
-          return _buildActionCard(action);
-        },
+        child: Row(
+          children: [
+            for (var i = 0; i < actions.length; i++) ...[
+              if (i > 0) const SizedBox(width: 12),
+              _buildActionCard(actions[i]),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -828,7 +2035,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   List<ActionItem> _getActionItems() {
     return [
       ActionItem(
-        key: const Key('home_action_take_photo'),
+        key: const Key('home_action_scan'),
         title: AppStrings.takePhoto,
         subtitle: AppStrings.reviewAnalyze,
         icon: Icons.camera_alt,
@@ -836,7 +2043,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         onTap: () => _takePhoto(),
       ),
       ActionItem(
-        key: const Key('home_action_upload_image'),
+        key: const Key('home_action_upload'),
         title: AppStrings.uploadImage,
         subtitle: AppStrings.fromGallery,
         icon: Icons.photo_library,
@@ -844,20 +2051,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         onTap: () => _pickImage(),
       ),
       ActionItem(
-        key: const Key('home_action_instant_camera'),
-        title: AppStrings.instantCamera,
-        subtitle: AppStrings.autoAnalyze,
-        icon: Icons.flash_on,
+        key: const Key('home_action_guidance'),
+        title: 'Guidance',
+        subtitle: 'Find what to do now',
+        icon: Icons.lightbulb_outline,
         color: const Color(0xFFFF9800),
-        onTap: () => _takePhotoInstant(),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  const EducationalContentScreen(showBottomAd: false),
+            ),
+          );
+        },
       ),
       ActionItem(
-        key: const Key('home_action_instant_upload'),
-        title: AppStrings.instantUpload,
-        subtitle: AppStrings.autoAnalyze,
-        icon: Icons.bolt,
+        key: const Key('home_action_history'),
+        title: AppStrings.history,
+        subtitle: 'Recent decisions',
+        icon: Icons.history,
         color: const Color(0xFF9C27B0),
-        onTap: () => _pickImageInstant(),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HistoryScreen(),
+            ),
+          );
+        },
+      ),
+      ActionItem(
+        key: const Key('home_action_completion'),
+        title: 'Disposal completion',
+        subtitle: 'Track handover outcomes',
+        icon: Icons.fact_check,
+        color: const Color(0xFF2E7D32),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const DisposalCompletionHistoryScreen(),
+            ),
+          );
+        },
       ),
     ];
   }
@@ -983,8 +2220,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             '$streakDays day streak · $totalPoints pts',
                             style: GoogleFonts.inter(
                               fontSize: 12,
-                              color:
-                                  Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1153,7 +2391,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     color: Colors.amber.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.leaderboard, color: Colors.amber, size: 28),
+                  child: const Icon(Icons.leaderboard,
+                      color: Colors.amber, size: 28),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1170,7 +2409,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       Text(
                         'See how you rank against others',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -1889,7 +3129,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       }
     } else {
       final file = File(image.path);
-      if (await file.exists() && mounted) {
+      if (file.existsSync() && mounted) {
         final result = await Navigator.push<GamificationResult>(
           context,
           MaterialPageRoute(
@@ -1988,4 +3228,36 @@ class ActionItem {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
+}
+
+class _HomeCompletionFollowUpItem {
+  _HomeCompletionFollowUpItem({
+    required this.classificationId,
+    required this.itemName,
+    required this.status,
+    required this.action,
+    this.recordedAt,
+  });
+
+  final String classificationId;
+  final String itemName;
+  final String status;
+  final String action;
+  final String? recordedAt;
+}
+
+class _HomePickupReminder {
+  _HomePickupReminder({
+    required this.streamLabel,
+    required this.dateLabel,
+    required this.window,
+    required this.reminderDate,
+    this.notes,
+  });
+
+  final String streamLabel;
+  final String dateLabel;
+  final String window;
+  final String? notes;
+  final DateTime reminderDate;
 }

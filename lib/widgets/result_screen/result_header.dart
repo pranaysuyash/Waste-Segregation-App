@@ -355,18 +355,12 @@ class ResultHeader extends ConsumerWidget {
       WasteTheme.confidenceColorFromFraction(confidence);
 
   String _getEnvironmentalImpact() {
-    // Calculate environmental impact based on category
-    final category = classification.category.toLowerCase();
-    switch (category) {
-      case 'recyclable':
-        return '−3g CO₂e';
-      case 'organic':
-      case 'compostable':
-        return '−2g CO₂e';
-      case 'plastic':
-        return '−1g CO₂e';
-      default:
-        return '−1g CO₂e';
+    final co2ImpactValue = classification.getEnvironmentalMetricDisplayValue(
+      metricKeys: const ['co2_avoidance'],
+    );
+    if (co2ImpactValue == null) {
+      return 'Impact estimate unavailable';
     }
+    return co2ImpactValue;
   }
 }

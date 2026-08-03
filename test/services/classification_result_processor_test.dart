@@ -21,6 +21,9 @@ class _FakePolicyEngine extends LocalPolicyEngine {
     this.policyApplied = false,
     this.complianceStatus,
     this.pluginId,
+    this.technicalStatus = 'draft',
+    this.sourceStatus = 'unverified',
+    this.authorityStatus = 'unknown',
     this.warnings = const [],
     this.violations = const [],
     this.recommendations = const [],
@@ -29,6 +32,9 @@ class _FakePolicyEngine extends LocalPolicyEngine {
   final bool policyApplied;
   final String? complianceStatus;
   final String? pluginId;
+  final String technicalStatus;
+  final String sourceStatus;
+  final String authorityStatus;
   final List<String> warnings;
   final List<String> violations;
   final List<String> recommendations;
@@ -65,6 +71,9 @@ class _FakePolicyEngine extends LocalPolicyEngine {
       guidelinesVersion: 'test-v1',
       rulePackId: 'test:test-v1',
       complianceStatus: complianceStatus ?? 'compliant',
+      technicalStatus: technicalStatus,
+      sourceStatus: sourceStatus,
+      authorityStatus: authorityStatus,
       rulePack: null,
       violations: violations,
       warnings: warnings,
@@ -240,7 +249,8 @@ ClassificationResultProcessor _defaultProcessor({
     schemaVersion: _testSchemaVersion,
     localGuidelinesVersion: _testGuidelinesVersion,
     taxonomyService: RecyclingTaxonomyService(
-      fallbackJsonOverride: '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
+      fallbackJsonOverride:
+          '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
     ),
   );
 }
@@ -252,7 +262,8 @@ ClassificationResultProcessor _defaultProcessor({
 void main() {
   group('ClassificationResultProcessor', () {
     group('process() — basic flow', () {
-      test('processes OpenAI-style response into WasteClassification', () async {
+      test('processes OpenAI-style response into WasteClassification',
+          () async {
         final processor = _defaultProcessor();
         final response = _openAiResponse();
 
@@ -271,7 +282,8 @@ void main() {
         expect(result.modelSource, contains('openai'));
       });
 
-      test('processes Gemini-style response into WasteClassification', () async {
+      test('processes Gemini-style response into WasteClassification',
+          () async {
         final processor = _defaultProcessor();
         final response = _geminiResponse();
 
@@ -431,8 +443,7 @@ void main() {
     });
 
     group('process() — policy integration', () {
-      test(
-          'passes through classification unchanged when policy is not applied',
+      test('passes through classification unchanged when policy is not applied',
           () async {
         final processor = _defaultProcessor(policyApplied: false);
         final response = _openAiResponse();
@@ -463,7 +474,8 @@ void main() {
           schemaVersion: _testSchemaVersion,
           localGuidelinesVersion: _testGuidelinesVersion,
           taxonomyService: RecyclingTaxonomyService(
-            fallbackJsonOverride: '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
+            fallbackJsonOverride:
+                '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
           ),
         );
 
@@ -489,6 +501,9 @@ void main() {
           policyEngine: _FakePolicyEngine(
             policyApplied: true,
             complianceStatus: 'violation',
+            technicalStatus: 'tested',
+            sourceStatus: 'verified',
+            authorityStatus: 'approved',
             warnings: ['Dirty item'],
             violations: ['No special disposal'],
             recommendations: ['Clean before disposal'],
@@ -499,7 +514,8 @@ void main() {
           schemaVersion: _testSchemaVersion,
           localGuidelinesVersion: _testGuidelinesVersion,
           taxonomyService: RecyclingTaxonomyService(
-            fallbackJsonOverride: '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
+            fallbackJsonOverride:
+                '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
           ),
         );
 
@@ -513,6 +529,18 @@ void main() {
 
         expect(result.localRegulations?['policy_compliance_status'],
             equals('violation'));
+        expect(
+          result.localRegulations?['policy_technical_status'],
+          equals('tested'),
+        );
+        expect(
+          result.localRegulations?['policy_source_status'],
+          equals('verified'),
+        );
+        expect(
+          result.localRegulations?['policy_authority_status'],
+          equals('approved'),
+        );
         expect(result.localRegulations?['policy_warning_count'], equals('1'));
         expect(result.localRegulations?['policy_violation_count'], equals('1'));
         expect(result.localRegulations?['policy_recommendations'],
@@ -546,7 +574,8 @@ void main() {
           schemaVersion: _testSchemaVersion,
           localGuidelinesVersion: _testGuidelinesVersion,
           taxonomyService: RecyclingTaxonomyService(
-            fallbackJsonOverride: '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
+            fallbackJsonOverride:
+                '{"version":"test","families":[],"categories":[],"fallbackCategoryIds":{}}',
           ),
         );
 

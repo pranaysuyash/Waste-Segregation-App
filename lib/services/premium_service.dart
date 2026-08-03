@@ -166,8 +166,7 @@ class PremiumService extends ChangeNotifier {
 
         final data = snapshot.data()!;
         final billing = data['billing'] as Map<String, dynamic>?;
-        final entitlements =
-            billing?['entitlements'] as Map<String, dynamic>?;
+        final entitlements = billing?['entitlements'] as Map<String, dynamic>?;
         final isProActive = entitlements?['pro_subscription'] == true;
 
         final previousState = _entitlementState;
@@ -306,8 +305,14 @@ class PremiumService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Preferred entry point for purchase and restore flows.
-  /// Keeps canonical and legacy premium flags aligned.
+  /// Updates the local UI cache only.
+  ///
+  /// Paid purchase and restore flows must not call this method. Production
+  /// entitlement cache updates come from [_syncLocalCacheFromServer] after
+  /// the Firestore entitlement listener observes the server projection. This
+  /// remains available for local test/developer UI compatibility and never
+  /// changes [hasActivePremiumPlan].
+  @visibleForTesting
   Future<void> setPremiumPlanEntitlement(bool isPremium) async {
     await setPremiumFeature(proSubscriptionEntitlement, isPremium);
     if (_premiumBox == null) return;

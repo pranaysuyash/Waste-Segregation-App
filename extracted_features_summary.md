@@ -89,7 +89,7 @@
 - _buildPlaceholderImage(),
 - : _buildPlaceholderImage();
 - Widget _buildPlaceholderImage() {
-- * Missing fields are omitted gracefully — no placeholders or crashes.
+- - Missing fields are omitted gracefully — no placeholders or crashes.
 - Simple stub implementation for cross-platform compatibility
 - Simple stub class for cross-platform compatibility
 - For now, return a placeholder - in real implementation, this would handle
@@ -103,8 +103,8 @@
 - **Performance Tests**: ❌ Not started
 - **Security Tests**: ❌ Not started
 - **Technology Adoption Rate**: % of users engaging with new features
-- *   **Iconography:** Review placeholder icons (gallery, quiz question mark) for better branding.
-- *   **Default Avatars:** Improve basic "Y" placeholder in Community Feed.
+- - **Iconography:** Review placeholder icons (gallery, quiz question mark) for better branding.
+- - **Default Avatars:** Improve basic "Y" placeholder in Community Feed.
 - Initialize feature flags from remote config (placeholder).
 - if (ProductionSafetyConfig.hasPlaceholderKey(ApiConfig.openAiApiKey)) {
 - 'OpenAI client blocked: OPENAI_API_KEY is placeholder/missing. Route through backend gateway or provide a real key in non-release test builds.',
@@ -150,10 +150,10 @@
 - 'OpenAI provider client blocked: placeholder/missing API key.',
 - `LocalVlmProvider`      — on-device VLM stub (UnimplementedError until bundled)
 - 1. **Skeleton Loading:** Replace spinners with content-shaped placeholders
-- *   LLMs can also assist in generating placeholder visual descriptions for badge design inspiration (e.g., "a shield with a recycling symbol and three stars for a mastery badge"). The actual visual design will likely be a separate process.
-- *   **Curiosity & Exploration:** Discovering new features, hidden badges, or interesting educational content.
-- *   **Feature Adoption:** Track if challenges/badges successfully guide users to try new features.
-- *   **AI for Dynamic Difficulty Adjustment (DDA - 3.3 - Experimental):** Begin experimenting with simple DDA for certain challenge types if data supports it.
+- - LLMs can also assist in generating placeholder visual descriptions for badge design inspiration (e.g., "a shield with a recycling symbol and three stars for a mastery badge"). The actual visual design will likely be a separate process.
+- - **Curiosity & Exploration:** Discovering new features, hidden badges, or interesting educational content.
+- - **Feature Adoption:** Track if challenges/badges successfully guide users to try new features.
+- - **AI for Dynamic Difficulty Adjustment (DDA - 3.3 - Experimental):** Begin experimenting with simple DDA for certain challenge types if data supports it.
 - **Level Progression**: Unlocks new features, challenges, and rewards
 - For now, this is a placeholder
 - WasteAppLogger.info('Object detection model loaded (placeholder)');
@@ -187,8 +187,8 @@
 - **New Feature**: Connectivity monitoring with user feedback
 - **New Feature**: Comprehensive semantic labels
 - Implemented all new features
-- *   **Current Status:** Placeholder. Basic communication happens via app store text and planned notifications.
-- *   Strategy for communicating updates, new features, and potential issues.
+- - **Current Status:** Placeholder. Basic communication happens via app store text and planned notifications.
+- - Strategy for communicating updates, new features, and potential issues.
 - docs/planning/PRIORITY_TODOS.md:**Status**: TODO (Integrate with new feature designs)
 - c.isExperimentalAnalysisSource
 - _IndividualResultPlaceholder(classification: classification),
@@ -196,10 +196,10 @@
 - const _IndividualResultPlaceholder({required this.classification});
 - This document provides a comprehensive analysis of the current User Experience (UX) and User Interface (UI) of the ReLoop. It aims to identify existing user flows, evaluate current screen designs, and propose improvements, new features, and enhanced user flows. The goal is to create a more intuitive, engaging, and effective application.
 - |   | [Profile Picture Placeholder/Avatar]            | |
-- *   **Onboarding Tour for New Features:**
-- *   **Flow:** When significant new features are released, provide a brief, dismissible in-app tour highlighting what's new and how to use it.
+- - **Onboarding Tour for New Features:**
+- - **Flow:** When significant new features are released, provide a brief, dismissible in-app tour highlighting what's new and how to use it.
 - This initial UX/UI analysis has reviewed key screens and user flows within the ReLoop, identifying numerous opportunities for improvement and potential new features. The "Before" and "After" wireframes provide a conceptual basis for redesign, guided by the "Global UX/UI Themes" identified.
-- 7.  **Plan Phased Implementation:** Break down the desired changes and new features into manageable development phases or sprints.
+- 7. **Plan Phased Implementation:** Break down the desired changes and new features into manageable development phases or sprints.
 - If no image is available yet and we are not analyzing, show a loader or placeholder
 - **✨ NEW FEATURE - User Feedback System**
 - ├── New features tour
@@ -283,8 +283,8 @@
 - [ ] 🔄 Replace placeholder ad unit IDs with real AdMob console IDs
 - **Status**: ❌ **UI PLACEHOLDERS EXIST** → **FUNCTIONALITY INCOMPLETE**
 - 6. **Fix AdMob Configuration** - Replace placeholder IDs, test ad loading
-- *   **Navigating Local Rules:** Importance of checking local guidelines, links to resources (if a generic guide, otherwise placeholder for future local integration).
-- *   **Accessibility (A11y):** Ensure all new features and content adhere to accessibility standards.
+- - **Navigating Local Rules:** Importance of checking local guidelines, links to resources (if a generic guide, otherwise placeholder for future local integration).
+- - **Accessibility (A11y):** Ensure all new features and content adhere to accessibility standards.
 - **Current State:** Placeholder flag in README
 - **Description:** Use flutter_dotenv + remote_config to gate experimental camera features and new leaderboard
 - [ ] Analytics tracking for new features
@@ -293,7 +293,7 @@
 - Phase 1: New features use Riverpod only
 - **Extensible Architecture**: New features can leverage existing components
 - 1. **Test the modernized app** - Run and explore all new features
-- *   **Placeholder for Phase 2+ AI integration.**
+- - **Placeholder for Phase 2+ AI integration.**
 - Create PR to see all new features in action:
 - New Features:
 - **Minor version** (1.X.0): New features or substantial improvements
@@ -322,27 +322,27 @@
 - Integration Tests: 🔴 **NOT STARTED**
 - 3. ❌ **Widget tests working** - Not started
 - 4. ❌ **Integration tests working** - Not started
-- *   Manage feature flags (e.g., enabling/disabling experimental features for a subset of users).
-- *   Interface to manually send broadcast notifications to all users or specific segments (e.g., announcing new features or critical updates).
-- *   **Firebase Crashlytics (Likely):** Given the use of Firebase, it's highly probable that Firebase Crashlytics is integrated (or planned) for automatic crash reporting for native crashes and unhandled Dart exceptions.
+- - Manage feature flags (e.g., enabling/disabling experimental features for a subset of users).
+- - Interface to manually send broadcast notifications to all users or specific segments (e.g., announcing new features or critical updates).
+- - **Firebase Crashlytics (Likely):** Given the use of Firebase, it's highly probable that Firebase Crashlytics is integrated (or planned) for automatic crash reporting for native crashes and unhandled Dart exceptions.
 - **Cross-reference UX/UI Analysis:** `docs/design/user_experience/app_ux_ui_analysis.md` (Mentions in Home Screen for new users (4.1), and as a general global UX theme for proactive guidance. Section 5, Undocumented User Flow Opportunities, also lists "Onboarding Tour for New Features").
-- *   **Onboarding for New Features (as per UX analysis):** When significant new features are released, provide a brief in-app tour for existing users.
-- *   **Triggering Onboarding Logic:** Correctly identifying first-time users or users who haven't seen onboarding for new features.
-- *   **Maintaining Accessibility:** Accessibility can regress if not continuously tested and considered during development of new features or UI changes.
-- *   Track impact of new features or changes.
+- - **Onboarding for New Features (as per UX analysis):** When significant new features are released, provide a brief in-app tour for existing users.
+- - **Triggering Onboarding Logic:** Correctly identifying first-time users or users who haven't seen onboarding for new features.
+- - **Maintaining Accessibility:** Accessibility can regress if not continuously tested and considered during development of new features or UI changes.
+- - Track impact of new features or changes.
 - **Feature Adoption**: Usage metrics for new features
-- *   `icon_url`: "gs://your-bucket/badges/rookie_classifier.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/plastic_novice.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/paper_novice.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/sorting_star.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/diversity_detective.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/curious_mind.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/quiz_whiz_kid.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/page_turner.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/knowledge_seeker.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/steady_sorter.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/consistent_learner.png" (Placeholder)
-- *   `icon_url`: "gs://your-bucket/badges/challenger_approaching.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/rookie_classifier.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/plastic_novice.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/paper_novice.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/sorting_star.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/diversity_detective.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/curious_mind.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/quiz_whiz_kid.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/page_turner.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/knowledge_seeker.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/steady_sorter.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/consistent_learner.png" (Placeholder)
+- - `icon_url`: "gs://your-bucket/badges/challenger_approaching.png" (Placeholder)
 - test('all placeholder variables are consistent', () {
 - For each string with placeholders, verify same placeholders exist in all languages
 - final basePlaceholders = extractPlaceholders(baseString);
@@ -489,8 +489,8 @@
 - 4. **Add new features** to existing navigation screens
 - [ ]  = Not started     [✓] = Completed     [KILLED] = Dropped with rationale
 - **Status**: Not formalised. The app transmits every classification image to OpenAI or Gemini (cloud providers) today. On-device capability exists as a placeholder (`on_device_vision_service.dart`) but is not production-ready. No explicit user-facing privacy policy exists for "which layers transmit your image."
-- * **Scalability**: Architecture should support adding new features without complexity explosion
-- * **Scalability**: New features can be added without affecting existing code
+- - **Scalability**: Architecture should support adding new features without complexity explosion
+- - **Scalability**: New features can be added without affecting existing code
 - 1. **README**: Updated with new features
 - local/on-device inference is placeholder-grade,
 - **AI Lead:** The app uses cloud AI paths today, with OpenAI/Gemini-style provider support and fallback routing. It also has local model/on-device architecture, but local inference is not production-ready. The current local model readiness doc explicitly says cloud is the practical authoritative classifier and local is placeholder-grade.

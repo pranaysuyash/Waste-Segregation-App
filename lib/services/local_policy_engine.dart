@@ -23,6 +23,8 @@ class LocalPolicyRulePack {
     this.lastVerified,
     this.nextReviewDue,
     this.trustTier,
+    this.sourceStatus = 'unverified',
+    this.authorityStatus = 'unknown',
     this.localName,
   });
 
@@ -41,6 +43,8 @@ class LocalPolicyRulePack {
   final String? lastVerified;
   final String? nextReviewDue;
   final String? trustTier;
+  final String sourceStatus;
+  final String authorityStatus;
   final String? localName;
 }
 
@@ -93,18 +97,58 @@ class LocalPolicyRule {
 class LocalPolicyComplianceEvaluator {
   const LocalPolicyComplianceEvaluator();
 
+  static const Set<String> _safetyCriticalCategoryKeys = {
+    'hazardous_waste',
+    'medical_waste',
+    'sanitary_waste',
+    'special_care_waste',
+    'special_care',
+  };
+
+  static const Set<String> _safetyVisualSignals = {
+    'battery',
+    'acid',
+    'chemical',
+    'medicine',
+    'needle',
+    'ampoule',
+    'syringe',
+    'sharps',
+    'sharp',
+    'biomedical',
+  };
+
+  static const Map<String, String> _safetyVisualSignalAliases = {
+    'syringes': 'syringe',
+    'medicines': 'medicine',
+    'ampoules': 'ampoule',
+    'batteries': 'battery',
+    'chemicals': 'chemical',
+  };
+
   LocalPolicyComplianceEvaluation evaluate({
     required LocalGuidelinesPlugin plugin,
     required WasteClassification classification,
     required LocalPolicyRulePack rulePack,
   }) {
+    final isSafetyCritical = _isSafetyCriticalClassification(classification);
     final pluginResult = plugin.validateCompliance(classification);
     final confidence = classification.confidence ?? 1.0;
     final violations = <String>[];
     final warnings = <String>[...pluginResult.warnings];
 
+    if (isSafetyCritical) {
+      violations.add(
+        '[safety_floor] Special-care handling is required before disposal.',
+      );
+    }
+
     for (final v in pluginResult.violations) {
-      final severity = _resolvePluginViolationSeverity(v, confidence);
+      final severity = _resolvePluginViolationSeverity(
+        v,
+        confidence,
+        isSafetyCritical,
+      );
       if (severity == LocalPolicyRuleSeverity.violation) {
         violations.add(v);
       } else {
@@ -122,7 +166,11 @@ class LocalPolicyComplianceEvaluator {
 
       if (passed) continue;
 
-      final severity = _resolveRuleSeverity(rule, confidence);
+      final severity = _resolveRuleSeverity(
+        rule,
+        confidence,
+        isSafetyCritical,
+      );
 
       if (severity == LocalPolicyRuleSeverity.violation) {
         violations.add('[${rule.ruleId}] ${rule.message}');
@@ -149,16 +197,14 @@ class LocalPolicyComplianceEvaluator {
   /// Resolves the effective severity of a plugin-level violation, applying
   /// confidence gating.
   ///
-  /// < 0.50  -> treated as low confidence path elsewhere; evaluator still
-  ///           returns warnings only for a safe fallback.
-  ///   >=0.50 -> apply warning demotion rules below.
-  ///
-  ///   0.50–0.69  — violations become warnings
-  ///   ≥0.70      — full enforcement
+  /// < 0.70  — violations become warnings unless safety-critical.
+  /// ≥0.70    — full enforcement unless rule indicates risk-based exception.
   LocalPolicyRuleSeverity _resolvePluginViolationSeverity(
     String violation,
     double confidence,
+    bool isSafetyCritical,
   ) {
+    if (isSafetyCritical) return LocalPolicyRuleSeverity.violation;
     if (confidence >= 0.70) return LocalPolicyRuleSeverity.violation;
     return LocalPolicyRuleSeverity.warning;
   }
@@ -168,14 +214,135 @@ class LocalPolicyComplianceEvaluator {
   ///
   /// - >= 0.90  — full enforcement per rule
   /// - 0.70–0.89 — keep configured severity (safety overrides preserved)
-  /// - < 0.70 — all rule failures are warnings when policy is applied
+  /// - >=0.70 — keep configured severity except safety-critical overrides.
+  /// - <0.70  — warnings for non-safety failures.
   LocalPolicyRuleSeverity _resolveRuleSeverity(
     LocalPolicyRule rule,
     double confidence,
+    bool isSafetyCritical,
   ) {
+    if (rule.checkType == LocalPolicyRuleCheckType.safetyOverrideAlways) {
+      return LocalPolicyRuleSeverity.violation;
+    }
+
+    if (isSafetyCritical &&
+        rule.severity == LocalPolicyRuleSeverity.violation) {
+      return LocalPolicyRuleSeverity.violation;
+    }
+
+    if (rule.severity == LocalPolicyRuleSeverity.violation &&
+        rule.checkType == LocalPolicyRuleCheckType.safetyOverrideAlways) {
+      return LocalPolicyRuleSeverity.violation;
+    }
+
     if (confidence >= 0.90) return rule.severity;
     if (confidence >= 0.70) return rule.severity;
     return LocalPolicyRuleSeverity.warning;
+  }
+
+  bool _isSafetyCriticalClassification(WasteClassification classification) {
+    final categoryKey = _toCategoryKey(classification.category);
+    if (_safetyCriticalCategoryKeys.contains(categoryKey)) {
+      return true;
+    }
+
+    if (classification.requiresSpecialDisposal == true) return true;
+    if (classification.hasUrgentTimeframe == true) return true;
+    if (_containsSpecialCareSignals(classification)) return true;
+    if (_containsSafetyVisualSignal(classification.visualFeatures)) return true;
+    if (classification.itemName.trim().isNotEmpty &&
+        _containsSafetyVisualSignal([classification.itemName])) {
+      return true;
+    }
+
+    final metadataSignals = _buildSafetySignalText([
+      classification.explanation,
+      ...[classification.subCategory, classification.disposalMethod]
+          .whereType<String>(),
+      ...classification.visualFeatures,
+    ]);
+    return metadataSignals.any(_safetyVisualSignals.contains);
+  }
+
+  bool _containsSafetyVisualSignal(Iterable<String> values) {
+    final signals = _buildSafetySignalText(values);
+    return signals.any((value) => _isSafetyVisualSignal(value));
+  }
+
+  bool _isSafetyVisualSignal(String value) {
+    if (value.isEmpty) return false;
+    final alias = _safetyVisualSignalAliases[value];
+    if (alias != null && _safetyVisualSignals.contains(alias)) {
+      return true;
+    }
+    if (_safetyVisualSignals.contains(value)) return true;
+    final singular = _toSingularSafetyToken(value);
+    return singular.isNotEmpty && _safetyVisualSignals.contains(singular);
+  }
+
+  String _toSingularSafetyToken(String token) {
+    final alias = _safetyVisualSignalAliases[token];
+    if (alias != null) {
+      return alias;
+    }
+
+    if (token.endsWith('ies') && token.length > 3) {
+      return '${token.substring(0, token.length - 3)}y';
+    }
+    if (token.endsWith('es') && token.length > 2) {
+      return token.substring(0, token.length - 2);
+    }
+    if (token.endsWith('s') && token.length > 1) {
+      return token.substring(0, token.length - 1);
+    }
+    return token;
+  }
+
+  bool _containsSpecialCareSignals(WasteClassification classification) {
+    final normalized = _normalizeTextForSafety([
+      classification.itemName,
+      classification.explanation,
+      classification.subCategory,
+      classification.category,
+    ].whereType<String>().join(' '));
+
+    if (normalized.contains('special care')) {
+      return true;
+    }
+    if (normalized.contains('specialcare')) {
+      return true;
+    }
+    final tokens =
+        normalized.split(RegExp(r'\s+')).where((value) => value.isNotEmpty);
+    return tokens.any((token) => token == 'special' || token == 'care') &&
+        normalized.contains('care') &&
+        normalized.contains('special');
+  }
+
+  Set<String> _buildSafetySignalText(Iterable<String> values) {
+    final tokens = <String>{};
+    for (final value in values.whereType<String>()) {
+      final normalized = _normalizeTextForSafety(value);
+      final split =
+          normalized.split(RegExp(r'\s+')).where((value) => value.isNotEmpty);
+      for (final token in split) {
+        tokens.add(token);
+        final singular = _toSingularSafetyToken(token);
+        if (singular.isNotEmpty) {
+          tokens.add(singular);
+        }
+      }
+    }
+    return tokens;
+  }
+
+  String _normalizeTextForSafety(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9 ]+'), ' ')
+        .replaceAll(RegExp(r'[_-]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 
   bool _evaluateRule(LocalPolicyRule rule, WasteClassification classification) {
@@ -199,8 +366,12 @@ class LocalPolicyComplianceEvaluator {
     }
   }
 
-  String _toCategoryKey(String category) =>
-      category.toLowerCase().replaceAll(' ', '_');
+  String _toCategoryKey(String category) => category
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[_-]'), ' ')
+      .replaceAll(RegExp(r'[^a-z0-9 ]+'), ' ')
+      .replaceAll(RegExp(r'\s+'), '_');
 }
 
 /// Canonical outcome of local policy evaluation.
@@ -224,7 +395,11 @@ class LocalPolicyDecision {
     this.lastVerified,
     this.nextReviewDue,
     this.trustTier,
+    this.technicalStatus = 'draft',
+    this.sourceStatus = 'unverified',
+    this.authorityStatus = 'unknown',
     this.localName,
+    this.householdWasteStream = 'unknown',
     this.confidenceGated = false,
     this.confidenceState,
     this.societyId,
@@ -256,7 +431,11 @@ class LocalPolicyDecision {
   final String? lastVerified;
   final String? nextReviewDue;
   final String? trustTier;
+  final String technicalStatus;
+  final String sourceStatus;
+  final String authorityStatus;
   final String? localName;
+  final String householdWasteStream;
   final bool confidenceGated;
   final String? confidenceState;
   final String? societyId;
@@ -286,8 +465,8 @@ class LocalPolicyEngine {
         const LocalPolicyComplianceEvaluator(),
     LocalPolicyRulePackRegistry rulePackRegistry =
         const LocalPolicyRulePackRegistry(),
-  }) : _complianceEvaluator = complianceEvaluator,
-       _rulePackRegistry = rulePackRegistry;
+  })  : _complianceEvaluator = complianceEvaluator,
+        _rulePackRegistry = rulePackRegistry;
 
   final LocalPolicyComplianceEvaluator _complianceEvaluator;
   final LocalPolicyRulePackRegistry _rulePackRegistry;
@@ -314,33 +493,7 @@ class LocalPolicyEngine {
     final rulePack = _buildRulePack(plugin);
     final confidence = classification.confidence ?? 1.0;
     final confidenceState = _confidenceState(confidence);
-    final shouldApplyPolicy = confidence >= 0.50;
-    final isConfidenceGated = confidence >= 0.50 && confidence < 0.70;
-
-    if (!shouldApplyPolicy) {
-      return LocalPolicyDecision(
-        classification: classification,
-        policyApplied: false,
-        evaluatedAt: DateTime.now(),
-        pluginId: plugin.pluginId,
-        authorityName: plugin.authorityName,
-        guidelinesVersion: plugin.guidelinesVersion,
-        rulePackId: rulePack.rulePackId,
-        rulePack: rulePack,
-        sourceUrl: rulePack.sourceUrl,
-        sourceTitle: rulePack.sourceTitle,
-        helpline: rulePack.helpline,
-        lastVerified: rulePack.lastVerified,
-        nextReviewDue: rulePack.nextReviewDue,
-        trustTier: rulePack.trustTier,
-        localName: rulePack.localName,
-        confidenceGated: true,
-        confidenceState: confidenceState,
-        warnings: const [
-          'Confidence below 0.50: municipal policy checks were skipped.',
-        ],
-      );
-    }
+    final isConfidenceGated = confidence < 0.70;
 
     final compliance = _complianceEvaluator.evaluate(
       plugin: plugin,
@@ -354,6 +507,8 @@ class LocalPolicyEngine {
       societyId: societyId,
       plugin: plugin,
       categoryKey: _toCategoryKey(updated.category),
+      confidence: confidence,
+      userConfirmed: classification.userConfirmed == true,
       service: societyPolicyService,
     );
     final policyClassification = appliedSocietyResult.classification;
@@ -361,22 +516,21 @@ class LocalPolicyEngine {
     final warnings = [...compliance.warnings];
     final violations = [...compliance.violations];
 
+    warnings.addAll(appliedSocietyResult.societyDecision.conflicts);
     if (isConfidenceGated) {
-      warnings.addAll(
-        violations
-            .where((violation) => !violation.contains('[confidence_gated]'))
-            .map((violation) => '[confidence_gated] $violation'),
+      warnings.add(
+        'Low-confidence classification: municipal policy is conservative.',
       );
-      warnings.addAll(appliedSocietyResult.societyDecision.conflicts);
-      violations.clear();
-    } else {
-      violations.addAll(const <String>[]);
-      warnings.addAll(appliedSocietyResult.societyDecision.conflicts);
     }
 
     final freshnessWarnings = _freshnessWarnings(rulePack);
     if (freshnessWarnings.isNotEmpty) {
       warnings.addAll(freshnessWarnings);
+    }
+
+    final sourceTrustWarnings = _policySourceTrustWarnings(rulePack);
+    if (sourceTrustWarnings.isNotEmpty) {
+      warnings.addAll(sourceTrustWarnings);
     }
 
     String status;
@@ -407,9 +561,13 @@ class LocalPolicyEngine {
       lastVerified: rulePack.lastVerified,
       nextReviewDue: rulePack.nextReviewDue,
       trustTier: rulePack.trustTier,
+      technicalStatus: rulePack.governanceStage,
+      sourceStatus: rulePack.sourceStatus,
+      authorityStatus: rulePack.authorityStatus,
       localName: rulePack.localName,
       confidenceGated: isConfidenceGated,
       confidenceState: confidenceState,
+      householdWasteStream: policyClassification.householdWasteStream,
       societyId: appliedSocietyResult.societyDecision.society?.societyId,
       societyName: appliedSocietyResult.societyDecision.society?.societyName,
       societyConflictCount:
@@ -421,14 +579,13 @@ class LocalPolicyEngine {
                 '${override.categoryKey}:${override.overrideType.name}=${override.value}',
           )
           .toList(),
-      ruleOverridesApplied: appliedSocietyResult
-          .societyDecision
-          .appliedOverrides
-          .map(
-            (override) =>
-                '${override.categoryKey}:${override.overrideType.name}',
-          )
-          .toList(),
+      ruleOverridesApplied:
+          appliedSocietyResult.societyDecision.appliedOverrides
+              .map(
+                (override) =>
+                    '${override.categoryKey}:${override.overrideType.name}',
+              )
+              .toList(),
     );
 
     if (societyId != null) {
@@ -465,12 +622,18 @@ class LocalPolicyEngine {
       lastVerified: cityData?.lastVerified,
       nextReviewDue: cityData?.nextReviewDue,
       trustTier: cityData?.trustTier,
+      sourceStatus: definition.sourceStatus.isNotEmpty
+          ? definition.sourceStatus
+          : (cityData?.sourceStatus ?? 'unverified'),
+      authorityStatus: definition.authorityStatus.isNotEmpty
+          ? definition.authorityStatus
+          : (cityData?.authorityStatus ?? 'unknown'),
       localName: cityData?.localName,
     );
   }
 
   String _confidenceState(double confidence) {
-    if (confidence < 0.50) return 'not_applied';
+    if (confidence < 0.50) return 'warning_only';
     if (confidence < 0.70) return 'warning_only';
     if (confidence < 0.90) return 'full_softened';
     return 'full';
@@ -498,6 +661,28 @@ class LocalPolicyEngine {
     return const <String>[];
   }
 
+  List<String> _policySourceTrustWarnings(LocalPolicyRulePack rulePack) {
+    final warnings = <String>[];
+
+    final sourceStatus = rulePack.sourceStatus.toLowerCase().trim();
+    if (sourceStatus.isNotEmpty && sourceStatus != 'verified') {
+      warnings.add(
+        '[source] Policy source status is "$sourceStatus". Treat guidance as '
+        'provisional until independently verified.',
+      );
+    }
+
+    final authorityStatus = rulePack.authorityStatus.toLowerCase().trim();
+    if (authorityStatus.isNotEmpty && authorityStatus != 'approved') {
+      warnings.add(
+        '[authority] Authority status is "$authorityStatus". Confirm before acting '
+        'on irreversible disposal steps.',
+      );
+    }
+
+    return warnings;
+  }
+
   List<String> _dedupeAndSort(Iterable<String> source) {
     final values = <String>{};
     final deduped = <String>[];
@@ -515,6 +700,8 @@ class LocalPolicyEngine {
     required String? societyId,
     required LocalGuidelinesPlugin plugin,
     required String categoryKey,
+    required double confidence,
+    required bool userConfirmed,
     required SocietyPolicyService? service,
   }) async {
     if (societyId == null) {
@@ -523,6 +710,7 @@ class LocalPolicyEngine {
         societyDecision: const SocietyAwareDecision(
           society: null,
           appliedOverrides: <RuleOverride>[],
+          attemptedOverrides: <RuleOverride>[],
           conflicts: <String>[],
         ),
       );
@@ -536,6 +724,7 @@ class LocalPolicyEngine {
         societyDecision: const SocietyAwareDecision(
           society: null,
           appliedOverrides: <RuleOverride>[],
+          attemptedOverrides: <RuleOverride>[],
           conflicts: <String>[],
         ),
       );
@@ -547,6 +736,7 @@ class LocalPolicyEngine {
         societyDecision: SocietyAwareDecision(
           society: societyPolicy,
           appliedOverrides: const <RuleOverride>[],
+          attemptedOverrides: const <RuleOverride>[],
           conflicts: [
             'Society profile basePluginId (${societyPolicy.basePluginId}) does not '
                 'match resolved plugin (${plugin.pluginId}).',
@@ -555,8 +745,12 @@ class LocalPolicyEngine {
       );
     }
 
+    final normalizedCategoryKey = _toCategoryKey(categoryKey);
     final applicableOverrides = societyPolicy.overrides
-        .where((override) => override.categoryKey == categoryKey)
+        .where(
+          (override) =>
+              _toCategoryKey(override.categoryKey) == normalizedCategoryKey,
+        )
         .toList();
 
     if (applicableOverrides.isEmpty) {
@@ -565,6 +759,19 @@ class LocalPolicyEngine {
         societyDecision: SocietyAwareDecision(
           society: societyPolicy,
           appliedOverrides: const <RuleOverride>[],
+          attemptedOverrides: const <RuleOverride>[],
+          conflicts: const <String>[],
+        ),
+      );
+    }
+
+    if (confidence < 0.70 && !userConfirmed) {
+      return _SocietyRuleLayerResult(
+        classification: baseClassification,
+        societyDecision: SocietyAwareDecision(
+          society: societyPolicy,
+          appliedOverrides: const <RuleOverride>[],
+          attemptedOverrides: applicableOverrides,
           conflicts: const <String>[],
         ),
       );
@@ -572,6 +779,7 @@ class LocalPolicyEngine {
 
     var updated = baseClassification;
     final conflicts = <String>[];
+    final appliedOverrides = <RuleOverride>[];
     final regulations = Map<String, String>.from(
       updated.localRegulations ?? const <String, String>{},
     );
@@ -586,52 +794,88 @@ class LocalPolicyEngine {
     for (final override in applicableOverrides) {
       switch (override.overrideType) {
         case RuleOverrideType.binColor:
-          final cityValue = cityColor[categoryKey];
-          if (cityValue != null && !_safeEquals(cityValue, override.value)) {
+          final cityValue = cityColor[normalizedCategoryKey];
+          if (cityValue == null || cityValue.trim().isEmpty) {
+            conflicts.add(
+              'City bin guidance unavailable for ${normalizedCategoryKey}; '
+              'blocking society bin override to preserve municipal safety. '
+              '(${override.value}).',
+            );
+            break;
+          }
+          if (!_safeEquals(cityValue, override.value)) {
             conflicts.add(
               'City bin guidance conflicts with society bin override '
               '($cityValue vs ${override.value}).',
             );
+            break;
           }
-          regulations['bin'] = override.value;
+          regulations['society_bin_alias'] = override.value;
+          appliedOverrides.add(override);
           break;
 
         case RuleOverrideType.collectionFrequency:
-          final cityFrequency = citySchedule[categoryKey]?['frequency'];
-          if (cityFrequency != null &&
-              !_safeEquals(cityFrequency, override.value)) {
+          final cityFrequency =
+              citySchedule[normalizedCategoryKey]?['frequency']?.toString();
+          if (cityFrequency == null || cityFrequency.trim().isEmpty) {
+            conflicts.add(
+              'City collection schedule unavailable for ${normalizedCategoryKey}; '
+              'blocking society frequency override to preserve municipal safety. '
+              '(${override.value}).',
+            );
+            break;
+          }
+          if (!_safeEquals(cityFrequency, override.value)) {
             conflicts.add(
               'City collection frequency conflicts with society override '
               '($cityFrequency vs ${override.value}).',
             );
+            break;
           }
-          regulations['collection_frequency'] = override.value;
+          regulations['society_pickup_window'] = override.value;
+          appliedOverrides.add(override);
           break;
 
         case RuleOverrideType.disposalMethod:
-          final cityDisposalMethod = cityDisposal?['primaryMethod'];
-          if (cityDisposalMethod != null &&
-              !_safeEquals(cityDisposalMethod, override.value)) {
+          final cityDisposalMethod = cityDisposal?['primaryMethod']?.toString();
+          if (cityDisposalMethod == null || cityDisposalMethod.trim().isEmpty) {
+            conflicts.add(
+              'City disposal method unavailable for ${normalizedCategoryKey}; '
+              'blocking society disposal override to preserve municipal safety. '
+              '(${override.value}).',
+            );
+            break;
+          }
+          if (!_safeEquals(cityDisposalMethod, override.value)) {
             conflicts.add(
               'City disposal method conflicts with society override '
               '($cityDisposalMethod vs ${override.value}).',
             );
+            break;
           }
-          updated = _overrideDisposalMethod(updated, override.value);
-          regulations['disposal_method_override'] = override.value;
+          regulations['society_disposal_method'] = override.value;
+          appliedOverrides.add(override);
           break;
 
         case RuleOverrideType.collectionLocation:
-          final cityLocation = cityDisposal?['location'];
-          if (cityLocation != null &&
-              !_safeEquals(cityLocation, override.value)) {
+          final cityLocation = cityDisposal?['location']?.toString();
+          if (cityLocation == null || cityLocation.trim().isEmpty) {
+            conflicts.add(
+              'City collection location unavailable for ${normalizedCategoryKey}; '
+              'blocking society location override to preserve municipal safety. '
+              '(${override.value}).',
+            );
+            break;
+          }
+          if (!_safeEquals(cityLocation, override.value)) {
             conflicts.add(
               'City collection location conflicts with society override '
               '($cityLocation vs ${override.value}).',
             );
+            break;
           }
-          updated = _overrideDisposalLocation(updated, override.value);
-          regulations['collection_location_override'] = override.value;
+          regulations['society_collection_location'] = override.value;
+          appliedOverrides.add(override);
           break;
 
         case RuleOverrideType.bannedItem:
@@ -648,6 +892,7 @@ class LocalPolicyEngine {
             value: override.value,
           );
           regulations['society_banned_items'] = banned;
+          appliedOverrides.add(override);
           break;
 
         case RuleOverrideType.customInstruction:
@@ -656,6 +901,7 @@ class LocalPolicyEngine {
             value: override.value,
           );
           regulations['society_custom_instructions'] = instructions;
+          appliedOverrides.add(override);
           break;
       }
     }
@@ -666,7 +912,8 @@ class LocalPolicyEngine {
       classification: updated,
       societyDecision: SocietyAwareDecision(
         society: societyPolicy,
-        appliedOverrides: applicableOverrides,
+        appliedOverrides: appliedOverrides,
+        attemptedOverrides: applicableOverrides,
         conflicts: conflicts,
       ),
     );
@@ -735,6 +982,11 @@ class LocalPolicyEngine {
   }
 
   String _toCategoryKey(String category) {
-    return category.toLowerCase().replaceAll(' ', '_');
+    return category
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[_-]'), ' ')
+        .replaceAll(RegExp(r'[^a-z0-9 ]'), ' ')
+        .replaceAll(RegExp(r'\s+'), '_');
   }
 }

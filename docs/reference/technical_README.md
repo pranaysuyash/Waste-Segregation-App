@@ -2,6 +2,8 @@
 
 This folder contains technical documentation for recent fixes and implementations.
 
+Note: Release-status wording in historical entries is kept for context. Treat this file as a technical index, and confirm current release claims against evidence packets in `docs/review`.
+
 ## 🚀 **Recent Bug Fixes** (2025-05-29 baseline)
 
 ### ✅ **Critical Issues Resolved**
@@ -72,7 +74,7 @@ This folder contains technical documentation for recent fixes and implementation
 **Last Updated:** 2026-05-20  
 **Status:** ✅ Current docs reflect the live dashboard implementation
 
-### **Production Ready Features (as of 0.1.6+98):**
+### **Verified-at-implementation Features (as of 0.1.6+98):**
 - ✅ **World's Most Comprehensive Recycling Research Integrated**
 - ✅ Dashboard fully functional with fl_chart-based chart display
 - ✅ Achievement system working correctly
@@ -80,7 +82,7 @@ This folder contains technical documentation for recent fixes and implementation
 - ✅ iOS build process verified and stable
 - ✅ Comprehensive error handling and loading states
 
-### **Play Store Release (0.1.6+98) - Ready:**
+### **Play Store Release Packet (0.1.6+98) - Staging:**
 - 🏪 Incorporates the comprehensive recycling research milestone.
 - 🏪 Based on stable 0.1.4+96 with critical fixes and Play Store compliance updates.
 
