@@ -11,16 +11,18 @@
     "logs": "firebase functions:log",
     "lint": "tsc --noEmit",
     "test": "npm run test:unit",
-    "test:unit": "npm run build && node --test test/http_guards.test.js test/openai_key_resolution.test.js test/training_data.test.js test/classify_image.test.js test/http_response_contracts.test.js test/appcheck_guardrails.test.js test/family_dashboard_analytics.test.js test/ops_hardening.test.js",
+    "test:unit": "npm run build && node --test test/http_guards.test.js test/openai_key_resolution.test.js test/training_data.test.js test/classify_image.test.js test/http_response_contracts.test.js test/appcheck_guardrails.test.js test/family_dashboard_analytics.test.js test/ops_hardening.test.js test/backfill_legacy_shared_classifications.test.js",
     "ci": "npm ci && npm run lint && npm run test:unit && npm run test:emulator",
-    "test:emulator": "npm run build && ENABLE_DIAGNOSTIC_ENDPOINTS=true ALLOW_TRAINING_REVIEW_NON_ADMIN=false FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 firebase emulators:exec --project waste-segregation-app-df523 --only auth,functions,firestore \"node --test test/*.emulator.test.js\"",
+    "test:emulator": "npm run build && ENABLE_DIAGNOSTIC_ENDPOINTS=true ALLOW_TRAINING_REVIEW_NON_ADMIN=false DODO_WEBHOOK_SECRET=whsec_0123456789abcdef0123456789abcdef FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 firebase emulators:exec --project waste-segregation-app-df523 --only auth,functions,firestore \"node --test test/*.emulator.test.js\"",
     "test:http-guards": "npm run build && node --test test/http_guards.test.js",
     "test:key-resolution": "npm run build && node --test test/openai_key_resolution.test.js",
     "test:training-data": "npm run build && node --test test/training_data.test.js",
     "test:classify-image": "npm run build && node --test test/classify_image.test.js",
     "test:training-data:emulator": "npm run build && ENABLE_DIAGNOSTIC_ENDPOINTS=true ALLOW_TRAINING_REVIEW_NON_ADMIN=false FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 firebase emulators:exec --project waste-segregation-app-df523 --only auth,functions,firestore \"node --test test/training_data.emulator.test.js\"",
     "test:http-guards:emulator": "npm run build && ENABLE_DIAGNOSTIC_ENDPOINTS=true FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 firebase emulators:exec --project waste-segregation-app-df523 --only auth,functions,firestore \"node --test test/http_guards.emulator.test.js\"",
-    "test:http-response-contracts": "npm run build && node --test test/http_response_contracts.test.js"
+    "test:http-response-contracts": "npm run build && node --test test/http_response_contracts.test.js",
+    "test:backfill-shared-classifications": "npm run build && node --test test/backfill_legacy_shared_classifications.test.js",
+    "backfill:shared-classifications": "npm run build && node lib/backfill_legacy_shared_classifications.js"
   },
   "engines": {
     "node": "22"
