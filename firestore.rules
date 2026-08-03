@@ -10,7 +10,15 @@ service cloud.firestore {
     // deny-by-default field-diff policy that blocks all server-owned fields.
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
+      // SEC-01 fix (round-3): create is owner-only AND field-restricted.
+      // A user may bootstrap their own document, but must never create it
+      // WITH server-owned values (billing, subscriptionTier, tokenWallet,
+      // bonusScans, admin, roles, audit fields, ...). Only client-writable
+      // fields plus null placeholders (from the client model's toJson) are
+      // permitted. Server-owned fields are added only by Cloud Functions.
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && clientCanCreate(request.resource.data);
       allow delete: if request.auth != null && request.auth.uid == userId;
       
       // User's personal classifications (subcollection)
@@ -143,6 +151,33 @@ service cloud.firestore {
         && validateFamilyUpdate(resource.data, request.resource.data);
       allow delete: if request.auth != null
         && resource.data.createdBy == request.auth.uid;
+
+      // Shared classifications within families (C-07 fix): moved from a
+      // top-level collection to a families/{familyId}/ subcollection so that
+      // family membership is enforceable by Firestore rules. Aligned with
+      // SharedWasteClassification.toJson() model fields.
+      // Read: family members only (was any authenticated user — SEC-02/C-07).
+      // Create: family member + sharedBy matches auth + familyId must equal
+      // the parent path segment (a non-empty string alone was forgeable —
+      // create referenced a family the user may not belong to).
+      // Update: family member + identity fields immutable (reactions/comments
+      // may be appended by members).
+      // Delete: family member + original sharer only.
+      match /shared_classifications/{classificationId} {
+        allow read: if request.auth != null
+          && isFamilyMemberById(familyId, request.auth.uid);
+        allow create: if request.auth != null
+          && isFamilyMemberById(familyId, request.auth.uid)
+          && request.resource.data.sharedBy == request.auth.uid
+          && request.resource.data.familyId == familyId
+          && validateSharedClassificationCreate(request.resource.data);
+        allow update: if request.auth != null
+          && isFamilyMemberById(familyId, request.auth.uid)
+          && validateSharedClassificationUpdate(resource.data, request.resource.data, request.auth.uid);
+        allow delete: if request.auth != null
+          && isFamilyMemberById(familyId, request.auth.uid)
+          && resource.data.sharedBy == request.auth.uid;
+      }
     }
     
     // Family invitations - aligned with FamilyInvitation.toJson() model fields.
@@ -162,22 +197,9 @@ service cloud.firestore {
             || resource.data.invitedEmail == request.auth.token.email);
     }
     
-    // Shared classifications within families - aligned with SharedWasteClassification.toJson()
-    // SEC-02 fix: create requires familyId to match a valid family the user belongs to.
-    // Read is restricted to authenticated users — the familyId field provides the
-    // access-scoping at the query level. Full family-member validation happens at
-    // read time via a separate client-side filter (the cross-doc get() approach
-    // causes evaluation errors when the family doc is absent).
-    match /shared_classifications/{classificationId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null
-        && request.resource.data.sharedBy == request.auth.uid
-        && validateSharedClassificationCreate(request.resource.data);
-      allow update: if request.auth != null
-        && validateSharedClassificationUpdate(resource.data, request.resource.data, request.auth.uid);
-      allow delete: if request.auth != null
-        && resource.data.sharedBy == request.auth.uid;
-    }
+    // NOTE: shared_classifications moved under families/{familyId}/ (C-07) so
+    // membership is enforceable by Firestore rules. See the nested match inside
+    // the families block above.
     
     // Family stats - reads respect leaderboardVisibility setting.
     // membersOnly/adminsOnly: only family members can read.
@@ -283,8 +305,14 @@ service cloud.firestore {
       allow create, update, delete: if false; // Managed by Cloud Functions
     }
 
-    // Webhook events (idempotency) - no client access
+    // Webhook events (idempotency audit trail) - no client access
     match /webhook_events/{eventId} {
+      allow read, write: if false; // Managed by Cloud Functions
+    }
+
+    // Billing events (C-09/C-10 idempotency gate) - no client access
+    // Created atomically inside the DodoPayments webhook transaction.
+    match /billing_events/{eventId} {
       allow read, write: if false; // Managed by Cloud Functions
     }
 
@@ -448,33 +476,114 @@ service cloud.firestore {
         && (!newData.keys().hasAny(['points']) || (newData.points is number && newData.points >= 0));
     }
     
-    // --- Server-owned field protection (SEC-01 fix) ---
-    // Denies any client write that touches server-owned fields.
-    // Server-only fields: billing, subscriptionTier, tokenWallet, bonusScans,
-    //   admin, roles, lastPremiumGrantAt, lastPremiumRevokedAt, updatedBy,
-    //   auditTimestamps, and any nested billing sub-fields.
-    // This is the primary guard against privilege escalation.
-    function denyServerOwnedFieldMutation(oldData, newData) {
-      let serverOwnedKeys = [
-        'billing', 'subscriptionTier', 'tokenWallet', 'bonusScans',
+    // Canonical server-owned key list (SEC-01). Single source of truth so the
+    // three enforcement sites below cannot drift apart:
+    //   1. denyServerOwnedFieldMutation (update rule)
+    //   2. clientCanCreate hasOnly (create rule)
+    //   3. hasServerOwnedValue (create rule null-check)
+    function serverOwnedKeys() {
+      return ['billing', 'subscriptionTier', 'tokenWallet', 'bonusScans',
         'admin', 'roles', 'lastPremiumGrantAt', 'lastPremiumRevokedAt',
-        'updatedBy', 'auditTimestamps', 'tokenTransactions'
-      ];
-      return newData.keys().hasAny(serverOwnedKeys);
+        'updatedBy', 'auditTimestamps', 'tokenTransactions'];
     }
 
-    // Allowlist of fields a client may write to their own user document.
+    // Allowlist of fields a client may CHANGE on their own user document.
     // Anything NOT in this list is implicitly denied (deny-by-default).
     // NOTE: 'familyId' excluded — membership changes go through invitation flow only.
     // NOTE: 'email' excluded — sourced from Firebase Auth, never client-writable.
     // NOTE: 'role' excluded — privilege escalation vector; roles are server-managed.
-    function clientWritableFieldDiff(oldData, newData) {
-      let allowedKeys = [
-        'id', 'displayName', 'photoUrl', 'preferences',
+    function clientWritableKeys() {
+      return ['id', 'displayName', 'photoUrl', 'preferences',
         'gamificationProfile', 'trainingConsent',
-        'lastActive', 'createdAt'
-      ];
-      return newData.keys().hasOnly(allowedKeys);
+        'lastActive', 'createdAt'];
+    }
+
+    // --- Server-owned field protection (SEC-01 fix, round-3) ---
+    // Denies any client write that CHANGES a server-owned field.
+    // Diff-based (round-3): only the CHANGED keys are evaluated, so
+    // pre-existing server-managed fields (billing, email, tokenWallet) do NOT
+    // block legitimate client updates to profile/preferences fields.
+    function denyServerOwnedFieldMutation(oldData, newData) {
+      return newData.diff(oldData).affectedKeys().hasAny(serverOwnedKeys());
+    }
+
+    // Allowlist of fields a client may CHANGE on their own user document.
+    // Diff-based (round-3): only the CHANGED keys must be in this list, so
+    // server-managed fields already present on the document (written by Cloud
+    // Functions) do not deny an update to unrelated client-writable fields.
+    function clientWritableFieldDiff(oldData, newData) {
+      return newData.diff(oldData).affectedKeys().hasOnly(clientWritableKeys());
+    }
+
+    // Create-time field restriction (SEC-01 fix, round-3).
+    // A brand-new user document may contain any known field, INCLUDING the
+    // server-owned keys, as long as those server-owned keys hold only null
+    // placeholders. The client model's toJson always emits tokenWallet,
+    // tokenTransactions, familyId, role etc. (null when unset), so a strict
+    // whitelist without those keys would break the first sync. Non-null
+    // server-owned values are rejected by hasServerOwnedValue, closing the
+    // "bootstrap a privileged document" vector.
+    function clientCanCreate(data) {
+      let allowedKeys = clientWritableKeys().concat([
+        'email', 'familyId', 'role'
+      ]).concat(serverOwnedKeys());
+      return data.keys().hasOnly(allowedKeys)
+        && !hasServerOwnedValue(data)
+        // familyId/role/email may appear only as null placeholders at create:
+        // membership is established via the invitation flow (findings #2/#3)
+        // and email is sourced from Firebase Auth. Non-null values at create
+        // would be a membership/role bootstrap vector.
+        //
+        // NOTE (finding #3 migration): the client's firebase_family_service
+        // `_updateUserFamilyId` still writes familyId/role via client update,
+        // which clientWritableFieldDiff (below) has always excluded — so client
+        // family-member sync silently no-ops today. Membership must be migrated
+        // to a server callable before family role/member authority is enabled.
+        && (!data.keys().hasAny(['familyId']) || data.familyId == null)
+        && (!data.keys().hasAny(['role']) || data.role == null)
+        && (!data.keys().hasAny(['email']) || data.email == null);
+    }
+
+    // True if any server-owned field holds a non-null value.
+    // Used by the create restriction to reject privileged bootstrap documents.
+    // Every access is presence-guarded: dot-accessing a missing map key is an
+    // evaluation error in the rules engine.
+    function hasServerOwnedValue(data) {
+      return (data.keys().hasAny(['billing']) && data.billing != null)
+        || (data.keys().hasAny(['subscriptionTier']) && data.subscriptionTier != null)
+        || (data.keys().hasAny(['tokenWallet']) && data.tokenWallet != null)
+        || (data.keys().hasAny(['bonusScans']) && data.bonusScans != null)
+        || (data.keys().hasAny(['admin']) && data.admin != null)
+        || (data.keys().hasAny(['roles']) && data.roles != null)
+        || (data.keys().hasAny(['lastPremiumGrantAt']) && data.lastPremiumGrantAt != null)
+        || (data.keys().hasAny(['lastPremiumRevokedAt']) && data.lastPremiumRevokedAt != null)
+        || (data.keys().hasAny(['updatedBy']) && data.updatedBy != null)
+        || (data.keys().hasAny(['auditTimestamps']) && data.auditTimestamps != null)
+        || (data.keys().hasAny(['tokenTransactions']) && data.tokenTransactions != null);
+    }
+
+    // Gamification progression helpers. Dot-accessing a missing map key is an
+    // evaluation error in the rules engine ("Property X is undefined on
+    // object"), so every nested access is presence-guarded with keys().hasAny
+    // BEFORE the dot access. Bracket notation would also work, but this file
+    // consistently uses the keys().hasAny() guard pattern.
+    function gamificationShapesValid(oldGamification, newGamification) {
+      return oldGamification.keys().hasAny(['points'])
+        && oldGamification.points is map
+        && oldGamification.points.keys().hasAny(['total'])
+        && oldGamification.points.total is number
+        && newGamification.keys().hasAny(['points'])
+        && newGamification.points is map
+        && newGamification.points.keys().hasAny(['total'])
+        && newGamification.points.total is number
+        && oldGamification.keys().hasAny(['achievements'])
+        && oldGamification.achievements is list
+        && newGamification.keys().hasAny(['achievements'])
+        && newGamification.achievements is list
+        && oldGamification.keys().hasAny(['currentStreak'])
+        && oldGamification.currentStreak is number
+        && newGamification.keys().hasAny(['currentStreak'])
+        && newGamification.currentStreak is number;
     }
 
     // --- Gamification validation ---
@@ -485,21 +594,32 @@ service cloud.firestore {
       let newGamification = newHasGamification ? newData.gamificationProfile : null;
       
       // Token wallet must NEVER be touched by clients — server-only.
-      let walletUntouched = !newData.keys().hasAny(['tokenWallet']);
+      // Diff-based (round-3): only a CHANGE to tokenWallet is forbidden.
+      // A server-written wallet already on the document must not block
+      // unrelated client updates (e.g. displayName / preferences).
+      let walletUntouched = !newData.diff(oldData).affectedKeys().hasAny(['tokenWallet']);
 
       return walletUntouched
         && (
           // Non-gamification profile update: allow when both absent.
           (oldGamification == null && newGamification == null)
           // Initialize gamification for existing profiles with bounded values.
+          // Presence-guarded: dot-accessing a missing map key is an
+          // evaluation error in the rules engine, so guard before accessing.
           || (oldGamification == null
             && newGamification != null
+            && newGamification.keys().hasAny(['points'])
+            && newGamification.points is map
+            && newGamification.points.keys().hasAny(['total'])
             && newGamification.points.total is number
             && newGamification.points.total >= 0
             && newGamification.points.total <= 1000)
           // Normal anti-cheat progression checks when both exist.
+          // Shape guard: dot-accessing a missing nested key (e.g. .points)
+          // would be an evaluation error, so validate the map shape first.
           || (oldGamification != null
             && newGamification != null
+            && gamificationShapesValid(oldGamification, newGamification)
             && validatePointsIncrease(oldGamification, newGamification)
             && validateAchievementProgress(oldGamification, newGamification)
             && validateStreakLogic(oldGamification, newGamification))

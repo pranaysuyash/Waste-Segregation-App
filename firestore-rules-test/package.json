@@ -4,7 +4,8 @@
   "private": true,
   "description": "Firestore rules unit tests for ReLoop",
   "scripts": {
-    "test": "mocha --exit --timeout 30000 rules-test.spec.js classification-feedback-rules-test.spec.js family-rules-test.spec.js",
+    "test": "mocha --exit --timeout 30000 rules-test.spec.js classification-feedback-rules-test.spec.js family-rules-test.spec.js security-authz-test.spec.js",
+    "test:security": "mocha --exit --timeout 30000 security-authz-test.spec.js",
     "test:emulator": "firebase emulators:exec --only firestore \"npm test\"",
     "test:classification-feedback": "mocha --exit --timeout 30000 classification-feedback-rules-test.spec.js",
     "test:family": "mocha --exit --timeout 30000 family-rules-test.spec.js",

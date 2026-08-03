@@ -43,6 +43,8 @@ class FirestoreCollections {
   // --- Family collections ---
   static const String families = 'families';
   static const String invitations = 'invitations';
+  /// Subcollection of `families/{familyId}/` (C-07: moved from top-level so
+  /// Firestore rules can enforce family membership).
   static const String sharedClassifications = 'shared_classifications';
   static const String familyStats = 'family_stats';
 
@@ -87,8 +89,14 @@ class FirestoreCollections {
   // --- Subscriptions (DodoPayments) ---
   static const String subscriptions = 'subscriptions';
 
-  // --- Webhook events (idempotency tracking) ---
+  // --- Webhook events (idempotency audit trail) ---
   static const String webhookEvents = 'webhook_events';
+
+  // --- Billing events (C-09/C-10 idempotency gate, server-only) ---
+  /// Gate documents keyed on the provider's unique transaction ID
+  /// (event.data.id). Created atomically inside the DodoPayments webhook
+  /// transaction so duplicate deliveries can never double-credit.
+  static const String billingEvents = 'billing_events';
 
   // --- Referral system ---
   static const String referralCodes = 'referral_codes';
@@ -124,6 +132,7 @@ class FirestoreCollections {
     userContributions,
     subscriptions,
     webhookEvents,
+    billingEvents,
     referralCodes,
     referralRedemptions,
   };
@@ -971,7 +980,11 @@ class InvitationsSchema {
   ];
 }
 
-/// Canonical schema for `shared_classifications` collection.
+/// Canonical schema for `families/{familyId}/shared_classifications` subcollection.
+///
+/// C-07: moved from a top-level collection to a families/{familyId}/ subcollection
+/// so Firestore rules can enforce family membership (read/create/update/delete
+/// all require the caller to be a family member).
 ///
 /// Source: SharedWasteClassification.toJson() from shared_waste_classification.dart
 class SharedClassificationsSchema {

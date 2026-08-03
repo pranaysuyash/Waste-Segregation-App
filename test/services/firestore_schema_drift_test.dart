@@ -455,6 +455,61 @@ void main() {
           reason:
               'Email should be removed by privacy guard before Firestore write');
     });
+
+    test('privacy guard strips every server-owned key UserProfile.toJson can emit',
+        () {
+      // This is the anti-drift invariant behind the diff-based users/{uid}
+      // update rule (SEC-01 in firestore.rules). The rule rejects any client
+      // write that CHANGES a server-owned field, so if UserProfile.toJson()
+      // could emit a server-owned key that _applyUserProfilePrivacyGuard does
+      // NOT strip, a user whose server doc holds the authoritative value would
+      // have every subsequent profile update denied.
+      //
+      // Keep this list in sync with serverOwnedKeys() in firestore.rules.
+      const serverOwnedKeys = <String>{
+        'billing',
+        'subscriptionTier',
+        'tokenWallet',
+        'bonusScans',
+        'admin',
+        'roles',
+        'lastPremiumGrantAt',
+        'lastPremiumRevokedAt',
+        'updatedBy',
+        'auditTimestamps',
+        'tokenTransactions',
+      };
+
+      // Keys _applyUserProfilePrivacyGuard removes before any Firestore write
+      // (cloud_storage_service.dart). If a new server-owned key becomes
+      // emittable, extend this set AND the guard itself.
+      const guardStrippedKeys = <String>{
+        'tokenWallet',
+        'tokenTransactions',
+      };
+
+      // toJson() always emits every key (null values included), so this
+      // captures the full payload surface regardless of profile state.
+      final profile = UserProfile(id: 'user-test');
+      final emittableServerOwned = profile.toJson().keys
+          .toSet()
+          .intersection(serverOwnedKeys);
+
+      final emittableButNotStripped =
+          emittableServerOwned.difference(guardStrippedKeys);
+      expect(
+        emittableButNotStripped,
+        isEmpty,
+        reason: 'UserProfile.toJson() can emit server-owned key(s) '
+            '$emittableButNotStripped which _applyUserProfilePrivacyGuard does '
+            'not strip. The diff-based users/{uid} update rule rejects any '
+            'client write that changes a server-owned field, so users whose '
+            'server doc holds the authoritative value would be denied '
+            'legitimate profile updates. Strip them in '
+            '_applyUserProfilePrivacyGuard (lib/services/cloud_storage_service.dart) '
+            'and add them to guardStrippedKeys here.',
+      );
+    });
   });
 
   // ============================================================

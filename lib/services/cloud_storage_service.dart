@@ -557,6 +557,13 @@ class CloudStorageService {
   /// Applies privacy guards to user profile data before writing to Firestore.
   /// Removes email field per PrivacyGuardConfig — email should come from
   /// Firebase Auth, not be stored redundantly in Firestore.
+  ///
+  /// ALSO strips server-owned fields (tokenWallet, tokenTransactions) so the
+  /// client never sends them to Firestore. The server (Cloud Functions /
+  /// webhook) is the sole writer of wallet state; the diff-based user update
+  /// rule rejects any client write that CHANGES tokenWallet, and sending the
+  /// client's (possibly null/stale) wallet value would deny otherwise-
+  /// legitimate profile updates. See SEC-01 in firestore.rules.
   Map<String, dynamic> _applyUserProfilePrivacyGuard(
     Map<String, dynamic> data,
   ) {
@@ -567,6 +574,11 @@ class CloudStorageService {
       WasteAppLogger.info(
           'Privacy: Email removed from user profile before Firestore write');
     }
+
+    // Server-owned fields: remove before any Firestore write so the client
+    // never appears to mutate server-managed wallet state.
+    sanitized.remove('tokenWallet');
+    sanitized.remove('tokenTransactions');
 
     return sanitized;
   }

@@ -21,11 +21,21 @@ class FirebaseFamilyService {
   static const String _familiesCollection = FirestoreCollections.families;
   static const String _invitationsCollection = FirestoreCollections.invitations;
   static const String _classificationsCollection =
-      FirestoreCollections.sharedClassifications;
+      FirestoreCollections.sharedClassifications; // subcollection of families/{familyId}/
   static const String _usersCollection = FirestoreCollections.users;
 
   late final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Uuid _uuid = const Uuid();
+
+  /// Shared classifications live under `families/{familyId}/shared_classifications/`
+  /// (C-07: subcollection so Firestore rules can enforce family membership).
+  CollectionReference<Map<String, dynamic>> _sharedClassificationsRef(
+      String familyId) {
+    return _firestore
+        .collection(_familiesCollection)
+        .doc(familyId)
+        .collection(_classificationsCollection);
+  }
 
   // ================ FAMILY MANAGEMENT ================
 
@@ -135,6 +145,13 @@ class FirebaseFamilyService {
           .get();
 
       for (final doc in invitations.docs) {
+        batch.delete(doc.reference);
+      }
+
+      // Delete the family feed (shared classifications subcollection) — the
+      // family doc delete does NOT cascade to subcollections (C-07).
+      final sharedFeed = await _sharedClassificationsRef(familyId).get();
+      for (final doc in sharedFeed.docs) {
         batch.delete(doc.reference);
       }
 
@@ -520,10 +537,8 @@ class FirebaseFamilyService {
   Future<List<SharedWasteClassification>> getFamilyClassifications(
       String familyId) async {
     try {
-      final querySnapshot = await _firestore
-          .collection(_classificationsCollection)
-          .where('familyId', isEqualTo: familyId)
-          .orderBy('timestamp', descending: true)
+      final querySnapshot = await _sharedClassificationsRef(familyId)
+          .orderBy('sharedAt', descending: true)
           .get();
 
       return querySnapshot.docs
@@ -560,9 +575,7 @@ class FirebaseFamilyService {
   Stream<List<SharedWasteClassification>> getFamilyClassificationsStream(
       String familyId,
       {int limit = 5}) {
-    return _firestore
-        .collection(_classificationsCollection)
-        .where('familyId', isEqualTo: familyId)
+    return _sharedClassificationsRef(familyId)
         .orderBy('sharedAt',
             descending: true) // Assuming 'sharedAt' for ordering recent items
         .limit(limit)
@@ -617,8 +630,7 @@ class FirebaseFamilyService {
             'Shared classification schema validation warnings: \$schemaWarnings');
       }
 
-      await _firestore
-          .collection(_classificationsCollection)
+      await _sharedClassificationsRef(familyId)
           .doc(sharedClassification.id)
           .set(classificationData);
 
@@ -632,6 +644,7 @@ class FirebaseFamilyService {
 
   /// Adds a reaction to a shared classification.
   Future<void> addReactionToClassification(
+    String familyId,
     String classificationId,
     String userId,
     FamilyReactionType reactionType, {
@@ -652,8 +665,7 @@ class FirebaseFamilyService {
         comment: comment,
       );
 
-      await _firestore
-          .collection(_classificationsCollection)
+      await _sharedClassificationsRef(familyId)
           .doc(classificationId)
           .update({
         'reactions': FieldValue.arrayUnion([reaction.toJson()])
@@ -665,6 +677,7 @@ class FirebaseFamilyService {
 
   /// Adds a comment to a shared classification.
   Future<void> addCommentToClassification(
+    String familyId,
     String classificationId,
     String userId,
     String text, {
@@ -686,8 +699,7 @@ class FirebaseFamilyService {
         parentCommentId: parentCommentId,
       );
 
-      await _firestore
-          .collection(_classificationsCollection)
+      await _sharedClassificationsRef(familyId)
           .doc(classificationId)
           .update({
         'comments': FieldValue.arrayUnion([comment.toJson()])
@@ -946,10 +958,8 @@ class FirebaseFamilyService {
   Future<List<SharedWasteClassification>> _getRecentFamilyClassifications(
       String familyId, int limit) async {
     try {
-      final querySnapshot = await _firestore
-          .collection(_classificationsCollection)
-          .where('familyId', isEqualTo: familyId)
-          .orderBy('timestamp', descending: true)
+      final querySnapshot = await _sharedClassificationsRef(familyId)
+          .orderBy('sharedAt', descending: true)
           .limit(limit)
           .get();
 
