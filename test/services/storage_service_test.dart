@@ -179,5 +179,60 @@ void main() {
         );
       }
     });
+
+    test(
+        'purgeExpiredLocalImages protects images referenced by a different '
+        'profile\'s classification',
+        () async {
+      final testDocDir =
+          Directory.systemTemp.createTempSync('storage_purge_crossuser_');
+      const channel = MethodChannel('plugins.flutter.io/path_provider');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        if (call.method == 'getApplicationDocumentsDirectory') {
+          return testDocDir.path;
+        }
+        return null;
+      });
+
+      await Hive.openBox(StorageKeys.userBox);
+      final classificationsBox =
+          await Hive.openBox(StorageKeys.classificationsBox);
+      await classificationsBox.clear();
+
+      final imagesDir = Directory('${testDocDir.path}/images');
+      await imagesDir.create(recursive: true);
+
+      // Image referenced ONLY by another user's classification. No profile is
+      // saved, so the current user resolves to 'guest_user' — the cross-user
+      // record must still protect its file from the retention purge.
+      final otherUserFile = File('${imagesDir.path}/other_user_uuid.jpg');
+      await otherUserFile.writeAsBytes(Uint8List.fromList([7, 8, 9]));
+      otherUserFile.setLastModifiedSync(
+          DateTime.now().subtract(const Duration(days: 120)));
+
+      final otherUserClassification =
+          _classification().copyWith(
+        imageUrl: otherUserFile.path,
+        userId: 'different_user_id',
+      );
+      await classificationsBox
+          .put('c_other_user', jsonEncode(otherUserClassification.toJson()));
+
+      try {
+        await storageService.purgeExpiredLocalImages();
+
+        expect(otherUserFile.existsSync(), isTrue,
+            reason:
+                'image referenced by another profile must never be purged');
+      } finally {
+        testDocDir.deleteSync(recursive: true);
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
+      }
+    });
   });
 }

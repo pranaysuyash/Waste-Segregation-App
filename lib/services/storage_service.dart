@@ -1664,11 +1664,23 @@ class StorageService {
   /// older than the retention window. Referenced images are never touched —
   /// they are removed with their classification record or on account deletion.
   ///
+  /// The referenced set comes from the format-safe
+  /// [ClassificationStorageService.getAllClassifications] facade called
+  /// WITHOUT a `userId` filter, so records owned by other profiles (or
+  /// leftover guest data) on the same device still protect their files. It
+  /// deliberately does NOT use the user-filtered `StorageService
+  /// getAllClassifications()`: the `images/` directory is device-shared
+  /// storage, and purging against a current-user-only set would silently
+  /// delete another profile's history images on their next sign-in.
+  ///
   /// Returns the number of files deleted.
   Future<int> purgeExpiredLocalImages() async {
     try {
-      // Gather referenced paths from all saved classifications.
-      final classifications = await getAllClassifications();
+      // Gather referenced paths from ALL saved classifications in the box,
+      // regardless of which profile owns them. ClassificationStorageService
+      // is the format-safe facade; its getAllClassifications() without a
+      // userId filter returns records from every profile on the device.
+      final classifications = await classificationStorage.getAllClassifications();
       final referencedPaths = <String>{};
 
       for (final classification in classifications) {
