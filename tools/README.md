@@ -119,3 +119,31 @@ dart run tools/check_policy_sources.dart
 Inputs/outputs:
 - Manifest: `tools/policy_source_manifest.json`
 - Report: `build/reports/policy_source_check/latest.json`
+
+## 12) `sim_drive.py`
+iOS-simulator persona-flow driver over WebDriverAgent (W3C actions API). Used by the
+runtime persona sims (see `docs/review/RUNTIME_FLOW_TEST_REPORT_2026-10-05.md`) to
+tap/swipe/type when neither Simulator.app GUI nor idb HID are available (trimmed
+Xcode installs). Coordinates are screen points (393x852 for iPhone 16).
+
+One-time WDA setup:
+```bash
+git clone --depth 1 https://github.com/appium/WebDriverAgent.git /tmp/wda
+cd /tmp/wda && xcodebuild build-for-testing -scheme WebDriverAgentRunner \
+  -destination 'platform=iOS Simulator,id=<UDID>' \
+  -derivedDataPath /tmp/wda-dd CODE_SIGNING_ALLOWED=NO
+xcodebuild test-without-building \
+  -xctestrun /tmp/wda-dd/Build/Products/WebDriverAgentRunner_*.xctestrun \
+  -destination 'platform=iOS Simulator,id=<UDID>' &   # serves http://127.0.0.1:8100
+```
+
+Driver usage:
+```bash
+python3 tools/sim_drive.py tap 198 520
+python3 tools/sim_drive.py swipe 300 700 90 700 --ms 350
+python3 tools/sim_drive.py type "Sharma Family"
+python3 tools/sim_drive.py source dump.xml
+```
+
+Screenshots stay on `xcrun simctl io <UDID> screenshot <path>` (faster, no session).
+

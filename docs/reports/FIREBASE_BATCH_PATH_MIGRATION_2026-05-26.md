@@ -45,3 +45,45 @@
    - OpenAI submission failure refund path
 2. Consolidate/remove `functions/batch_processor.js` after parity check against `functions/src/index.ts`.
 3. Add batch completion notification and storage retention cleanup policy in the same rollout with docs and tests.
+
+## Verified Session Learning - 2026-09-12
+
+This addendum salvages the durable findings from OpenCode exploration session
+`ses_1a15bbf10ffepbgX0qCgpg3cOO` (`Find Firebase Storage upload patterns`).
+The original report was checked against current source because its contribution
+upload path had since moved.
+
+### Current ownership and paths
+
+- Batch processing is owned by `CloudStorageService`:
+  `batch_images/{userId}/batch_image_{timestamp}.jpg`.
+- Facility contribution uploads are now owned by
+  `CommunityContributionService.uploadContributionPhotos`, called through
+  `CommunityContributionService.submitContribution` from
+  `contribution_submission_screen.dart`:
+  `contribution_photos/{userId}/contribution_{timestamp}_{index}.jpg`.
+- `CloudStorageService.deleteUserStorageBlobs` knows both path families, but
+  the presence of a deletion method is not proof that scheduled retention is
+  wired or that every caller invokes it.
+
+### Privacy and retention learning
+
+- The batch path calls `ImageUtils.stripExifData` before `putData`.
+- The current contribution upload path reads the image bytes and calls
+  `putData` directly; no EXIF-stripping call is present in that method. This
+  is a concrete privacy gap, not merely a documentation concern.
+- Both paths attach `userId`, `purpose`, and `uploadedAt` metadata and return a
+  Firebase download URL. These fields and URLs should be treated as sensitive
+  lifecycle-bearing data, not as disposable cache records.
+- The existing design target remains explicit retention: batch objects should
+  expire after processing, while contribution photos need moderation/resolution
+  retention. Current client code does not establish an automatic TTL for
+  either path.
+
+### Source-drift guardrail
+
+The exploration report's former reference to a private upload method in
+`contribution_submission_screen.dart` is stale. Future audits should trace the
+UI call into `CommunityContributionService` before documenting upload behavior;
+otherwise a correct historical report can hide a changed privacy or retention
+boundary.

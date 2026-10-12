@@ -65,6 +65,13 @@ app.*.map.json
 **/.agent/
 .agents/
 **/context/agent-start/
+**/.mimosa/
+/.v2c/
+/.video_agent/
+
+# Local editor task wiring and one-off source probes
+/.vscode/tasks.json
+/analysis_tmp.dart
 
 # Hermes/local skill lock artifact
 skills-lock.json

@@ -59,7 +59,7 @@ Outputs:
 - Test changes, verify for regressions, and document findings, decisions, open questions, and follow-up work in durable project artifacts.
 
 ### Mandatory commit gate
-Install or refresh the managed repo-local git hooks. They resolve the repo's effective hook path, block commit creation in `prepare-commit-msg` until the current full `motto_v3.md` has a fresh attestation, then enforce objective diff checks plus commit trailers in `pre-commit` and `commit-msg`:
+Install or refresh the managed repo-local git hooks. They resolve the repo's effective hook path, block commit creation in `prepare-commit-msg` until the current full `OPERATING_DOCTRINE.md` has a fresh attestation, then enforce objective diff checks plus commit trailers in `pre-commit` and `commit-msg`:
 ```bash
 python3 /Users/pranay/Projects/workspace_memory/scripts/install_git_precommit_agent_hook.py
 ```

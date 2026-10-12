@@ -37,8 +37,8 @@
 // android/build.gradle
 
 buildscript {
-    // --- Revert to Kotlin 1.9.10 for the last known successful build ---
-    ext.kotlin_version = '1.9.10'
+    // --- Kotlin 2.0.0: minimum required by Flutter 3.44 toolchain (matches settings.gradle pin) ---
+    ext.kotlin_version = '2.0.0'
 
     repositories {
         google()

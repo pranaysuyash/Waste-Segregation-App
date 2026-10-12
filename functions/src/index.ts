@@ -23,6 +23,7 @@ export { getR2UploadUrl } from './r2_storage';
 export { createReferralCode, redeemReferralCode, getReferralStats } from './referrals';
 export { aggregateFamilyDashboardAnalytics } from './family_dashboard_analytics';
 export { migrateLegacyUserData } from './migrate_legacy_user_data';
+export { verifyStorePurchase } from './verify_store_purchase';
 
 // Initialize Firebase Admin
 admin.initializeApp();

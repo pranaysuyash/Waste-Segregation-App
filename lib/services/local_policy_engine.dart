@@ -940,47 +940,6 @@ class LocalPolicyEngine {
     return parts.join('|');
   }
 
-  WasteClassification _overrideDisposalMethod(
-    WasteClassification classification,
-    String disposalMethod,
-  ) {
-    final sourceInstructions = classification.disposalInstructions;
-    final nextInstructions = DisposalInstructions(
-      primaryMethod: disposalMethod,
-      steps: sourceInstructions.steps,
-      timeframe: sourceInstructions.timeframe,
-      location: sourceInstructions.location,
-      warnings: sourceInstructions.warnings,
-      tips: sourceInstructions.tips,
-      recyclingInfo: sourceInstructions.recyclingInfo,
-      estimatedTime: sourceInstructions.estimatedTime,
-      hasUrgentTimeframe: sourceInstructions.hasUrgentTimeframe,
-    );
-    return classification.copyWith(
-      disposalMethod: disposalMethod,
-      disposalInstructions: nextInstructions,
-    );
-  }
-
-  WasteClassification _overrideDisposalLocation(
-    WasteClassification classification,
-    String location,
-  ) {
-    final sourceInstructions = classification.disposalInstructions;
-    final nextInstructions = DisposalInstructions(
-      primaryMethod: sourceInstructions.primaryMethod,
-      steps: sourceInstructions.steps,
-      timeframe: sourceInstructions.timeframe,
-      location: location,
-      warnings: sourceInstructions.warnings,
-      tips: sourceInstructions.tips,
-      recyclingInfo: sourceInstructions.recyclingInfo,
-      estimatedTime: sourceInstructions.estimatedTime,
-      hasUrgentTimeframe: sourceInstructions.hasUrgentTimeframe,
-    );
-    return classification.copyWith(disposalInstructions: nextInstructions);
-  }
-
   String _toCategoryKey(String category) {
     return category
         .trim()

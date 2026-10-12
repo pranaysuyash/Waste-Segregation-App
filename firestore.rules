@@ -146,8 +146,7 @@ service cloud.firestore {
         && request.resource.data.createdBy == request.auth.uid
         && validateFamilyCreate(request.resource.data);
       allow update: if request.auth != null
-        && (resource.data.createdBy == request.auth.uid
-            || belongsToFamily(resource.data, request.auth.uid))
+        && resource.data.createdBy == request.auth.uid
         && validateFamilyUpdate(resource.data, request.resource.data);
       allow delete: if request.auth != null
         && resource.data.createdBy == request.auth.uid;
@@ -230,7 +229,8 @@ service cloud.firestore {
         && resource.data.userId == request.auth.uid;
       allow update: if request.auth != null
         && request.resource.data.userId == request.auth.uid
-        && validateClassificationFeedbackUpdate(request.resource.data);
+        && resource.data.userId == request.auth.uid
+        && validateClassificationFeedbackUpdate(resource.data, request.resource.data);
       allow delete: if false;
     }
 
@@ -812,6 +812,7 @@ service cloud.firestore {
         && newData.invitedEmail == oldData.invitedEmail
         && newData.id == oldData.id
         && newData.method == oldData.method
+        && newData.roleToAssign == oldData.roleToAssign
         // Only the inviter or the invited user (by email) can update
         && (newData.inviterUserId == request.auth.uid
             || newData.invitedEmail == request.auth.token.email);
@@ -887,12 +888,15 @@ service cloud.firestore {
       && data.appVersion is string;
     }
     
-    function validateClassificationFeedbackUpdate(data) {
-      // Updates must preserve core identity fields and userId ownership
-      return data.keys().hasAll(['userId', 'originalClassificationId'])
-        && data.userId is string
-        && data.originalClassificationId is string
-        && data.keys().hasOnly([
+    function validateClassificationFeedbackUpdate(oldData, newData) {
+      // Updates must preserve core identity fields, reviewStatus, and userId ownership
+      return newData.userId == oldData.userId
+        && newData.originalClassificationId == oldData.originalClassificationId
+        && newData.reviewStatus == oldData.reviewStatus
+        && (!newData.keys().hasAny(['adminReviewerId']) || newData.adminReviewerId == oldData.adminReviewerId)
+        && (!newData.keys().hasAny(['adminNotes']) || newData.adminNotes == oldData.adminNotes)
+        && (!newData.keys().hasAny(['adminReviewTimestamp']) || newData.adminReviewTimestamp == oldData.adminReviewTimestamp)
+        && newData.keys().hasOnly([
           'userId', 'originalClassificationId', 'originalAIItemName',
           'originalAICategory', 'originalAIMaterial', 'originalAIConfidence',
           'userSuggestedItemName', 'userSuggestedCategory', 'userSuggestedMaterial',

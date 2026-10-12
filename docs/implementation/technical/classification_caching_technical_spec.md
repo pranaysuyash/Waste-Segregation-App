@@ -278,3 +278,36 @@ print('Cache size: ${cacheStats['size']} entries');
 4. **Hash calculation errors**: Robust fallback mechanisms ensure graceful degradation
 5. **Similar hash false positives**: Configurable similarity threshold allows fine-tuning to balance hit rate vs. accuracy
 6. **Perceptual hash quality**: For items where perceptual hashing isn't ideal (like transparent items), fallback algorithms are available
+
+## Verified Session Learning - 2026-09-12
+
+This addendum salvages the durable finding from OpenCode exploration session
+`ses_1a0dd2e69ffeLdWljF1nQ4V8ac` (`Find image compression in
+EnhancedCacheService`). The session report was checked against the current
+source before recording it here.
+
+### Deprecated compression path
+
+- `lib/services/enhanced_cache_service.dart` contains a complete compression
+  pipeline: decode, resize to a maximum dimension, JPEG encode, and a short
+  in-memory result cache.
+- The file is explicitly marked deprecated and opens the separate Hive boxes
+  `enhanced_cache_classifications` and `enhanced_cache_images`.
+- Current source wiring uses `ClassificationCacheService` from
+  `lib/services/cache_service.dart`; `AiService` and
+  `ClassificationResultProcessor` inject/use that service. A repository-wide
+  source search found no current reference to `EnhancedCacheService` outside
+  its own file.
+
+### Learning and guardrail
+
+The useful lesson is architectural, not a deletion instruction: a promising
+optimization can become dead code when the canonical service changes. Treat
+the deprecated file as source history until a separate cleanup task proves
+ownership, migration completeness, tests, and rollback. Its Hive boxes are
+persistent application data if any old build still opens them; they must not
+be cleared as ordinary temporary cache without that verification.
+
+The live cache path has its own bounded image-byte budget and LRU eviction in
+`cache_service.dart`. Future cache work should extend that canonical path
+instead of reviving or modifying `EnhancedCacheService`.

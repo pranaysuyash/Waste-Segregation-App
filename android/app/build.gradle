@@ -24,8 +24,8 @@ def adMobAppId = localProperties.getProperty('ADMOB_APP_ID') ?: ''
 
 android {
     namespace = "com.pranaysuyash.wastewise"
-    compileSdk = 35
-    ndkVersion = "27.1.12297006"
+    compileSdk = 36
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -45,7 +45,10 @@ android {
         targetSdk = 35
         versionCode = localProperties.getProperty('flutter.versionCode').toInteger()
         versionName = localProperties.getProperty('flutter.versionName')
-        manifestPlaceholders = [adMobAppId: adMobAppId]
+        manifestPlaceholders += [
+            applicationName: "io.flutter.app.FlutterApplication",
+            adMobAppId: adMobAppId,
+        ]
     }
 
     signingConfigs {

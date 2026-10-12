@@ -85,6 +85,7 @@ When updating documentation:
 - **[Current Issues](current_issues.md)** - Known issues and their status
 - **[Critical Fixes Summary](CRITICAL_FIXES_SUMMARY.md)** - Major bug fixes implemented
 - **[Analysis Cancellation Fix](fixes/ANALYSIS_CANCELLATION_FIX.md)** - Recent critical bug fix for analysis flow
+- **[Session Learning Salvage](reports/SESSION_LEARNING_SALVAGE_2026-09-12.md)** - Verified learnings and open-work queue from local agent session history
 
 ### 📋 **Planning & Management**
 

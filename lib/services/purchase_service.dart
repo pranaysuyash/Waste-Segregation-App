@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../utils/waste_app_logger.dart';
@@ -157,9 +158,10 @@ class PurchaseService extends ChangeNotifier {
           break;
         case PurchaseUpdateStatus.purchased:
         case PurchaseUpdateStatus.restored:
-          // A store event is not server verification. Do not mutate the
-          // entitlement cache here; the Firestore entitlement listener is the
-          // only production path that can re-sync paid access locally.
+          // A store event alone is not sufficient; we actively invoke the
+          // server verifyStorePurchase callable to atomically reconcile
+          // entitlements, while the Firestore listener re-syncs the UI.
+          await _verifyPurchaseOnServer(update);
           shouldStopProcessing = true;
           break;
         case PurchaseUpdateStatus.error:
@@ -182,6 +184,36 @@ class PurchaseService extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  Future<void> _verifyPurchaseOnServer(PurchaseUpdate update) async {
+    try {
+      final token = update.purchaseToken;
+      if (token == null || token.isEmpty) return;
+
+      final platform =
+          defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
+      final functions = FirebaseFunctions.instanceFor(region: 'asia-south1');
+      final callable = functions.httpsCallable('verifyStorePurchase');
+      await callable.call(<String, dynamic>{
+        'product_id': update.productId,
+        'purchase_token': token,
+        'platform': platform,
+        if (update.verificationData != null)
+          'verification_data': update.verificationData,
+      });
+      WasteAppLogger.info('Store purchase verified with server callable',
+          context: {
+            'service': 'purchase_service',
+            'productId': update.productId
+          });
+    } catch (e, s) {
+      WasteAppLogger.warning(
+          'Server purchase verification error; will rely on webhook/polling',
+          error: e,
+          stackTrace: s,
+          context: {'service': 'purchase_service'});
+    }
   }
 
   @override
@@ -214,6 +246,8 @@ class PurchaseUpdate {
     required this.status,
     this.errorMessage,
     this.needsCompletion = false,
+    this.purchaseToken,
+    this.verificationData,
     this.raw,
   });
 
@@ -221,6 +255,8 @@ class PurchaseUpdate {
   final PurchaseUpdateStatus status;
   final String? errorMessage;
   final bool needsCompletion;
+  final String? purchaseToken;
+  final String? verificationData;
   final Object? raw;
 }
 
@@ -308,6 +344,8 @@ class InAppPurchaseGateway implements StoreBillingGateway {
       status: status,
       errorMessage: details.error?.message,
       needsCompletion: details.pendingCompletePurchase,
+      purchaseToken: details.purchaseID ?? details.verificationData.serverVerificationData,
+      verificationData: details.verificationData.localVerificationData,
       raw: details,
     );
   }

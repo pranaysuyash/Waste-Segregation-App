@@ -4,7 +4,7 @@
     {
       "label": "Agent: Align Context (agent-start)",
       "type": "shell",
-      "command": "/Users/pranay/Projects/agent-start",
+      "command": "/Users/pranay/Projects/agent-start/bin/agent-start",
       "args": [
         "--skip-index",
         "--quiet"
@@ -21,7 +21,7 @@
     {
       "label": "Agent: Auto Align On Folder Open (agent-start)",
       "type": "shell",
-      "command": "/Users/pranay/Projects/agent-start",
+      "command": "/Users/pranay/Projects/agent-start/bin/agent-start",
       "args": [
         "--skip-index",
         "--quiet"
@@ -41,7 +41,7 @@
     {
       "label": "Agent: Align + Index Project (agent-start)",
       "type": "shell",
-      "command": "/Users/pranay/Projects/agent-start",
+      "command": "/Users/pranay/Projects/agent-start/bin/agent-start",
       "args": [],
       "options": {
         "cwd": "${workspaceFolder}"

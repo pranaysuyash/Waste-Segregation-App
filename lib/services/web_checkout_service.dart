@@ -34,11 +34,27 @@ class WebCheckoutService extends ChangeNotifier {
         throw Exception('User not authenticated');
       }
 
+      String clientPlatform = 'web';
+      if (!kIsWeb) {
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          clientPlatform = 'android';
+        } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+          clientPlatform = 'ios';
+        } else if (defaultTargetPlatform == TargetPlatform.macOS) {
+          clientPlatform = 'macos';
+        } else if (defaultTargetPlatform == TargetPlatform.windows) {
+          clientPlatform = 'windows';
+        } else if (defaultTargetPlatform == TargetPlatform.linux) {
+          clientPlatform = 'linux';
+        }
+      }
+
       final functions = FirebaseFunctions.instanceFor(region: 'asia-south1');
       final callable = functions.httpsCallable('createCheckoutSession');
       final result = await callable.call(<String, dynamic>{
         if (productId != null) 'product_id': productId,
         if (returnUrl != null) 'return_url': returnUrl,
+        'platform': clientPlatform,
       });
 
       final data = result.data as Map<String, dynamic>;
